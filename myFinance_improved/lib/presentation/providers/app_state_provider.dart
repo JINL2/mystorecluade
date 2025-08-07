@@ -1,81 +1,52 @@
 import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../pages/homepage/models/homepage_models.dart';
-import '../../domain/entities/company.dart';
-import '../../domain/entities/store.dart';
 
-// App state class to hold persistent data
+// App state class to hold persistent data - FOLLOWING READMEAppState.md EXACTLY
 class AppState {
   const AppState({
-    this.userWithCompanies,
-    this.selectedCompanyId,
-    this.selectedStoreId,
-    this.lastSyncTime,
-    this.categoriesWithFeatures,
-    this.rawApiData,
-    this.isRefreshNeeded = false,
+    this.categoryFeatures = const [],
+    this.user = const {},
+    this.companyChoosen = '',
+    this.storeChoosen = '',
   });
 
-  final UserWithCompanies? userWithCompanies;
-  final String? selectedCompanyId;
-  final String? selectedStoreId;
-  final DateTime? lastSyncTime;
-  final List<CategoryWithFeatures>? categoriesWithFeatures;
-  final Map<String, dynamic>? rawApiData; // Store raw API responses
-  final bool isRefreshNeeded; // Flag to indicate if data refresh is needed
+  // As per READMEAppState.md requirements:
+  final dynamic categoryFeatures; // JSON Array from get_categories_with_features() RPC
+  final dynamic user; // JSON Object from get_user_companies_and_stores(user_id) RPC
+  final String companyChoosen; // Currently selected company ID (session only)
+  final String storeChoosen; // Currently selected store ID (session only)
 
   AppState copyWith({
-    UserWithCompanies? userWithCompanies,
-    String? selectedCompanyId,
-    String? selectedStoreId,
-    DateTime? lastSyncTime,
-    List<CategoryWithFeatures>? categoriesWithFeatures,
-    Map<String, dynamic>? rawApiData,
-    bool? isRefreshNeeded,
-    bool clearCategories = false,
-    bool clearUserData = false,
+    dynamic? categoryFeatures,
+    dynamic? user,
+    String? companyChoosen,
+    String? storeChoosen,
   }) {
     return AppState(
-      userWithCompanies: clearUserData ? null : (userWithCompanies ?? this.userWithCompanies),
-      selectedCompanyId: selectedCompanyId ?? this.selectedCompanyId,
-      selectedStoreId: selectedStoreId ?? this.selectedStoreId,
-      lastSyncTime: lastSyncTime ?? this.lastSyncTime,
-      categoriesWithFeatures: clearCategories ? null : (categoriesWithFeatures ?? this.categoriesWithFeatures),
-      rawApiData: rawApiData ?? this.rawApiData,
-      isRefreshNeeded: isRefreshNeeded ?? this.isRefreshNeeded,
+      categoryFeatures: categoryFeatures ?? this.categoryFeatures,
+      user: user ?? this.user,
+      companyChoosen: companyChoosen ?? this.companyChoosen,
+      storeChoosen: storeChoosen ?? this.storeChoosen,
     );
   }
 
   Map<String, dynamic> toJson() {
+    // Only persist categoryFeatures and user as per READMEAppState.md
     return {
-      'userWithCompanies': userWithCompanies?.toJson(),
-      'selectedCompanyId': selectedCompanyId,
-      'selectedStoreId': selectedStoreId,
-      'lastSyncTime': lastSyncTime?.toIso8601String(),
-      'categoriesWithFeatures': categoriesWithFeatures?.map((c) => c.toJson()).toList(),
-      'rawApiData': rawApiData,
-      'isRefreshNeeded': isRefreshNeeded,
+      'categoryFeatures': categoryFeatures,
+      'user': user,
+      // DO NOT persist companyChoosen and storeChoosen - session only
     };
   }
 
   factory AppState.fromJson(Map<String, dynamic> json) {
     return AppState(
-      userWithCompanies: json['userWithCompanies'] != null
-          ? UserWithCompanies.fromJson(json['userWithCompanies'] as Map<String, dynamic>)
-          : null,
-      selectedCompanyId: json['selectedCompanyId'] as String?,
-      selectedStoreId: json['selectedStoreId'] as String?,
-      lastSyncTime: json['lastSyncTime'] != null
-          ? DateTime.parse(json['lastSyncTime'] as String)
-          : null,
-      categoriesWithFeatures: json['categoriesWithFeatures'] != null
-          ? (json['categoriesWithFeatures'] as List)
-              .map((e) => CategoryWithFeatures.fromJson(e as Map<String, dynamic>))
-              .toList()
-          : null,
-      rawApiData: json['rawApiData'] as Map<String, dynamic>?,
-      isRefreshNeeded: json['isRefreshNeeded'] as bool? ?? false,
+      categoryFeatures: json['categoryFeatures'] ?? [],
+      user: json['user'] ?? {},
+      // companyChoosen and storeChoosen default to empty string (session only)
+      companyChoosen: '',
+      storeChoosen: '',
     );
   }
 }
@@ -97,7 +68,7 @@ class AppStateNotifier extends StateNotifier<AppState> {
       if (jsonString != null) {
         final json = jsonDecode(jsonString) as Map<String, dynamic>;
         state = AppState.fromJson(json);
-        print('AppState: Loaded from storage - Companies: ${state.userWithCompanies?.companies.length ?? 0}');
+        print('AppState: Loaded from storage');
       }
     } catch (e) {
       print('AppState: Failed to load from storage: $e');
@@ -116,31 +87,35 @@ class AppStateNotifier extends StateNotifier<AppState> {
     }
   }
 
-  // Update user companies data
-  Future<void> updateUserCompanies(UserWithCompanies userWithCompanies) async {
-    state = state.copyWith(
-      userWithCompanies: userWithCompanies,
-      lastSyncTime: DateTime.now(),
-    );
+  // Set categoryFeatures from get_categories_with_features() RPC
+  Future<void> setCategoryFeatures(dynamic features) async {
+    state = state.copyWith(categoryFeatures: features);
     await _saveToStorage();
-    print('AppState: Updated user companies - ${userWithCompanies.companies.length} companies');
+    print('AppState: Updated categoryFeatures');
   }
 
-  // Select company
-  Future<void> selectCompany(String companyId) async {
-    state = state.copyWith(
-      selectedCompanyId: companyId,
-      selectedStoreId: null, // Clear store selection when company changes
-    );
+  // Set user from get_user_companies_and_stores(user_id) RPC
+  Future<void> setUser(dynamic userData) async {
+    state = state.copyWith(user: userData);
     await _saveToStorage();
-    print('AppState: Selected company: $companyId');
+    print('AppState: Updated user data');
   }
 
-  // Select store
-  Future<void> selectStore(String storeId) async {
-    state = state.copyWith(selectedStoreId: storeId);
-    await _saveToStorage();
-    print('AppState: Selected store: $storeId');
+  // Set companyChoosen (session only - not persisted)
+  void setCompanyChoosen(String companyId) {
+    state = state.copyWith(
+      companyChoosen: companyId,
+      storeChoosen: '', // Clear store selection when company changes
+    );
+    // Do NOT save to storage - session only
+    print('AppState: Selected company (session): $companyId');
+  }
+
+  // Set storeChoosen (session only - not persisted)
+  void setStoreChoosen(String storeId) {
+    state = state.copyWith(storeChoosen: storeId);
+    // Do NOT save to storage - session only
+    print('AppState: Selected store (session): $storeId');
   }
 
   // Clear all data (logout)
@@ -151,101 +126,62 @@ class AppStateNotifier extends StateNotifier<AppState> {
     print('AppState: Cleared all data');
   }
 
-  // Get selected company
-  Company? get selectedCompany {
-    if (state.selectedCompanyId == null || state.userWithCompanies == null) {
+  // Get selected company from user JSON
+  dynamic get selectedCompany {
+    if (state.companyChoosen.isEmpty || state.user.isEmpty) {
       return null;
     }
     
     try {
-      return state.userWithCompanies!.companies.firstWhere(
-        (company) => company.id == state.selectedCompanyId,
+      final companies = state.user['companies'] as List<dynamic>?;
+      if (companies == null) return null;
+      
+      return companies.firstWhere(
+        (company) => company['company_id'] == state.companyChoosen,
+        orElse: () => null,
       );
     } catch (e) {
       return null;
     }
   }
 
-  // Get selected store
-  Store? get selectedStore {
-    if (state.selectedStoreId == null || selectedCompany == null) {
+  // Get selected store from selected company
+  dynamic get selectedStore {
+    if (state.storeChoosen.isEmpty || selectedCompany == null) {
       return null;
     }
     
     try {
-      return selectedCompany!.stores.firstWhere(
-        (store) => store.id == state.selectedStoreId,
+      final stores = selectedCompany['stores'] as List<dynamic>?;
+      if (stores == null) return null;
+      
+      return stores.firstWhere(
+        (store) => store['store_id'] == state.storeChoosen,
+        orElse: () => null,
       );
     } catch (e) {
       return null;
     }
   }
 
-  // Check if data is stale (older than 5 minutes)
-  bool get isDataStale {
-    if (state.lastSyncTime == null) return true;
-    
-    final now = DateTime.now();
-    final difference = now.difference(state.lastSyncTime!);
-    return difference.inMinutes > 5;
-  }
+  // Helper to check if we have user data
+  bool get hasUserData => state.user.isNotEmpty;
+  
+  // Helper to check if we have category features
+  bool get hasCategoryFeatures => (state.categoryFeatures as List).isNotEmpty;
 
-  // Update categories with features
-  Future<void> updateCategoriesWithFeatures(List<CategoryWithFeatures> categories) async {
-    state = state.copyWith(categoriesWithFeatures: categories);
-    await _saveToStorage();
-    print('AppState: Updated categories - ${categories.length} categories');
-  }
-
-  // Update raw API data for debugging
-  Future<void> updateRawApiData(Map<String, dynamic> data) async {
-    state = state.copyWith(rawApiData: data);
-    await _saveToStorage();
-    print('AppState: Updated raw API data');
-  }
 
   // Refresh all data from API
   Future<void> refreshAllData() async {
-    // Clear all cached data to force refresh from API
+    // Clear persistent data to force refresh from API
     state = state.copyWith(
-      lastSyncTime: null, // Force data to be considered stale
-      clearCategories: true, // Clear cached categories
-      clearUserData: true, // Clear cached user data
+      categoryFeatures: [],
+      user: {},
     );
     await _saveToStorage();
     print('AppState: Cleared all cached data for refresh');
   }
 
-  // Get or set company by ID (used after creation)
-  Future<void> selectCompanyById(String companyId) async {
-    state = state.copyWith(
-      selectedCompanyId: companyId,
-      selectedStoreId: null,
-    );
-    await _saveToStorage();
-    print('AppState: Selected company by ID: $companyId');
-  }
-
-  // Mark that refresh is needed (when company/store structure changes)
-  Future<void> markRefreshNeeded() async {
-    // Clear the last sync time to force data refresh
-    state = state.copyWith(
-      isRefreshNeeded: true,
-      lastSyncTime: null, // Force data to be considered stale
-    );
-    await _saveToStorage();
-    print('AppState: Marked refresh needed and cleared last sync time');
-  }
-
-  // Clear refresh flag after refreshing
-  Future<void> clearRefreshFlag() async {
-    state = state.copyWith(isRefreshNeeded: false);
-    await _saveToStorage();
-    print('AppState: Cleared refresh flag');
-  }
-
-  // Check if refresh is needed
-  bool get needsRefresh => state.isRefreshNeeded;
 }
 
 // Provider for app state
@@ -254,32 +190,26 @@ final appStateProvider = StateNotifierProvider<AppStateNotifier, AppState>((ref)
 });
 
 // Computed providers for convenience
-final selectedCompanyProvider = Provider<Company?>((ref) {
+final selectedCompanyProvider = Provider<dynamic>((ref) {
   final appState = ref.watch(appStateProvider);
   final appStateNotifier = ref.read(appStateProvider.notifier);
   // Force the provider to rebuild when app state changes
   return appStateNotifier.selectedCompany;
 });
 
-// Selected company ID provider
-final selectedCompanyIdProvider = Provider<String?>((ref) {
-  final appState = ref.watch(appStateProvider);
-  return appState.selectedCompanyId;
-});
-
-final selectedStoreProvider = Provider<Store?>((ref) {
+final selectedStoreProvider = Provider<dynamic>((ref) {
   final appState = ref.watch(appStateProvider);
   final appStateNotifier = ref.read(appStateProvider.notifier);
   // Force the provider to rebuild when app state changes
   return appStateNotifier.selectedStore;
 });
 
-final userCompaniesDataProvider = Provider<UserWithCompanies?>((ref) {
+final userDataProvider = Provider<dynamic>((ref) {
   final appState = ref.watch(appStateProvider);
-  return appState.userWithCompanies;
+  return appState.user;
 });
 
-final isDataStaleProvider = Provider<bool>((ref) {
-  final appStateNotifier = ref.read(appStateProvider.notifier);
-  return appStateNotifier.isDataStale;
+final categoryFeaturesProvider = Provider<dynamic>((ref) {
+  final appState = ref.watch(appStateProvider);
+  return appState.categoryFeatures;
 });

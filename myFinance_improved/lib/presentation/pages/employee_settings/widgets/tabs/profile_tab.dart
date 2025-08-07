@@ -5,7 +5,6 @@ import '../../../../../core/themes/toss_colors.dart';
 import '../../../../../core/themes/toss_spacing.dart';
 import '../../../../../core/themes/toss_text_styles.dart';
 import '../../../../../core/themes/toss_border_radius.dart';
-import '../../../../../core/themes/toss_shadows.dart';
 import '../../../../../domain/entities/employee_detail.dart';
 
 class ProfileTab extends StatelessWidget {
@@ -20,42 +19,24 @@ class ProfileTab extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Personal Information
           _buildSection(
-            title: 'Personal Information',
-            children: [
+            'Basic Information',
+            [
               _buildInfoRow('Full Name', employee.fullName),
-              _buildInfoRow('Email', employee.email ?? 'No email' ?? 'No email'),
-              _buildInfoRow('Employee ID', employee.userId),
-              if (employee.firstName != null)
-                _buildInfoRow('First Name', employee.firstName!),
-              if (employee.lastName != null)
-                _buildInfoRow('Last Name', employee.lastName!),
+              _buildInfoRow('Email', employee.email ?? 'Not provided'),
+              _buildInfoRow('Phone', employee.phoneNumber ?? 'Not provided'),
+              _buildInfoRow('Date of Birth', _formatDate(employee.dateOfBirth)),
             ],
           ),
-          SizedBox(height: TossSpacing.space4),
-
-          // Employment Details
+          SizedBox(height: TossSpacing.space6),
+          
           _buildSection(
-            title: 'Employment Details',
-            children: [
-              _buildInfoRow('Role', employee.roleName ?? 'Unknown'),
+            'Employment Details',
+            [
+              _buildInfoRow('Role', employee.roleName ?? 'Not assigned'),
               _buildInfoRow('Company', employee.companyName ?? 'N/A'),
-              _buildInfoRow('Store', employee.storeName ?? 'N/A'),
-              _buildInfoRow('Status', employee.status),
-              if (employee.createdAt != null)
-                _buildInfoRow('Join Date', _formatDate(employee.createdAt!)),
-            ],
-          ),
-          SizedBox(height: TossSpacing.space4),
-
-          // Contact Information
-          _buildSection(
-            title: 'Contact Information',
-            children: [
-              _buildInfoRow('Primary Email', employee.email ?? 'No email' ?? 'No email'),
-              _buildInfoRow('Phone', 'Not available'),
-              _buildInfoRow('Emergency Contact', 'Not available'),
+              _buildInfoRow('Store', employee.storeName ?? 'Not assigned'),
+              _buildInfoRow('Hire Date', _formatDate(employee.hireDate)),
             ],
           ),
         ],
@@ -63,55 +44,46 @@ class ProfileTab extends StatelessWidget {
     );
   }
 
-  Widget _buildSection({
-    required String title,
-    required List<Widget> children,
-  }) {
-    return Container(
-      padding: EdgeInsets.all(TossSpacing.space4),
-      decoration: BoxDecoration(
-        color: TossColors.surface,
-        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-        boxShadow: TossShadows.shadow2,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: TossTextStyles.h3.copyWith(
-              color: TossColors.gray900,
-            ),
+  Widget _buildSection(String title, List<Widget> children) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: TossTextStyles.bodyLarge.copyWith(
+            color: TossColors.gray900,
+            fontWeight: FontWeight.w600,
           ),
-          SizedBox(height: TossSpacing.space3),
-          ...children,
-        ],
-      ),
+        ),
+        SizedBox(height: TossSpacing.space3),
+        Column(
+          children: children,
+        ),
+      ],
     );
   }
 
   Widget _buildInfoRow(String label, String value) {
     return Padding(
-      padding: EdgeInsets.symmetric(vertical: TossSpacing.space2),
+      padding: EdgeInsets.symmetric(vertical: TossSpacing.space3),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          SizedBox(
-            width: 140,
-            child: Text(
-              label,
-              style: TossTextStyles.body.copyWith(
-                color: TossColors.gray600,
-              ),
+          Text(
+            label,
+            style: TossTextStyles.body.copyWith(
+              color: TossColors.gray600,
             ),
           ),
-          Expanded(
+          Flexible(
             child: Text(
               value,
               style: TossTextStyles.body.copyWith(
                 color: TossColors.gray900,
                 fontWeight: FontWeight.w500,
               ),
+              textAlign: TextAlign.right,
+              overflow: TextOverflow.ellipsis,
             ),
           ),
         ],
@@ -119,7 +91,12 @@ class ProfileTab extends StatelessWidget {
     );
   }
 
-  String _formatDate(DateTime date) {
-    return '${date.day}/${date.month}/${date.year}';
+  String _formatDate(DateTime? date) {
+    if (date == null) return 'N/A';
+    final months = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+    ];
+    return '${months[date.month - 1]} ${date.day}, ${date.year}';
   }
 }

@@ -32,7 +32,7 @@ class AttendanceTab extends ConsumerWidget {
             loading: () => _buildLoadingCard(),
             error: (error, _) => _buildErrorCard(error.toString()),
           ),
-          SizedBox(height: TossSpacing.space4),
+          SizedBox(height: TossSpacing.space6),
 
           // Monthly Calendar View
           _buildMonthlyCalendar(),
@@ -42,70 +42,63 @@ class AttendanceTab extends ConsumerWidget {
   }
 
   Widget _buildAttendanceSummary(Map<String, dynamic> attendance) {
-    return Container(
-      padding: EdgeInsets.all(TossSpacing.space4),
-      decoration: BoxDecoration(
-        color: TossColors.surface,
-        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-        boxShadow: TossShadows.shadow2,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Last 30 Days Summary',
-            style: TossTextStyles.h3.copyWith(
-              color: TossColors.gray900,
-            ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Last 30 Days Summary',
+          style: TossTextStyles.bodyLarge.copyWith(
+            color: TossColors.gray900,
+            fontWeight: FontWeight.w600,
           ),
-          SizedBox(height: TossSpacing.space4),
+        ),
+        SizedBox(height: TossSpacing.space4),
 
-          // Metrics grid
-          Row(
-            children: [
-              Expanded(
-                child: _buildMetricCard(
-                  'Attendance Rate',
-                  '${attendance['attendanceRate']}%',
-                  Icons.check_circle_outline,
-                  TossColors.success,
-                ),
+        // Metrics grid
+        Row(
+          children: [
+            Expanded(
+              child: _buildMetricCard(
+                'Attendance Rate',
+                '${attendance['attendanceRate']}%',
+                Icons.check_circle_outline,
+                TossColors.success,
               ),
-              SizedBox(width: TossSpacing.space3),
-              Expanded(
-                child: _buildMetricCard(
-                  'Late Arrivals',
-                  '${attendance['lateCount']}',
-                  Icons.schedule,
-                  TossColors.warning,
-                ),
+            ),
+            SizedBox(width: TossSpacing.space3),
+            Expanded(
+              child: _buildMetricCard(
+                'Late Arrivals',
+                '${attendance['lateCount']}',
+                Icons.schedule,
+                TossColors.warning,
               ),
-            ],
-          ),
-          SizedBox(height: TossSpacing.space3),
-          Row(
-            children: [
-              Expanded(
-                child: _buildMetricCard(
-                  'Overtime Hours',
-                  '${attendance['overtimeHours']}h',
-                  Icons.timer,
-                  TossColors.primary,
-                ),
+            ),
+          ],
+        ),
+        SizedBox(height: TossSpacing.space3),
+        Row(
+          children: [
+            Expanded(
+              child: _buildMetricCard(
+                'Overtime Hours',
+                '${attendance['overtimeHours']}h',
+                Icons.timer,
+                TossColors.primary,
               ),
-              SizedBox(width: TossSpacing.space3),
-              Expanded(
-                child: _buildMetricCard(
-                  'Total Shifts',
-                  '${attendance['totalShifts']}',
-                  Icons.event_available,
-                  TossColors.gray600,
-                ),
+            ),
+            SizedBox(width: TossSpacing.space3),
+            Expanded(
+              child: _buildMetricCard(
+                'Total Shifts',
+                '${attendance['totalShifts']}',
+                Icons.event_available,
+                TossColors.gray600,
               ),
-            ],
-          ),
-        ],
-      ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 
@@ -128,10 +121,13 @@ class AttendanceTab extends ConsumerWidget {
             children: [
               Icon(icon, color: color, size: 20),
               SizedBox(width: TossSpacing.space2),
-              Text(
-                label,
-                style: TossTextStyles.label.copyWith(
-                  color: TossColors.gray700,
+              Expanded(
+                child: Text(
+                  label,
+                  style: TossTextStyles.caption.copyWith(
+                    color: TossColors.gray700,
+                  ),
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
             ],
@@ -150,35 +146,43 @@ class AttendanceTab extends ConsumerWidget {
   }
 
   Widget _buildMonthlyCalendar() {
-    // Simplified calendar view - in real app, use table_calendar package
-    return Container(
-      padding: EdgeInsets.all(TossSpacing.space4),
-      decoration: BoxDecoration(
-        color: TossColors.surface,
-        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-        boxShadow: TossShadows.shadow2,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Monthly View',
-            style: TossTextStyles.h3.copyWith(
-              color: TossColors.gray900,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Monthly View',
+          style: TossTextStyles.bodyLarge.copyWith(
+            color: TossColors.gray900,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        SizedBox(height: TossSpacing.space4),
+        Container(
+          padding: EdgeInsets.all(TossSpacing.space6),
+          decoration: BoxDecoration(
+            color: TossColors.gray50,
+            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+          ),
+          child: Center(
+            child: Column(
+              children: [
+                Icon(
+                  Icons.calendar_month_outlined,
+                  size: 48,
+                  color: TossColors.gray400,
+                ),
+                SizedBox(height: TossSpacing.space3),
+                Text(
+                  'Calendar view coming soon',
+                  style: TossTextStyles.body.copyWith(
+                    color: TossColors.gray500,
+                  ),
+                ),
+              ],
             ),
           ),
-          SizedBox(height: TossSpacing.space3),
-          Center(
-            child: Text(
-              'Calendar view coming soon',
-              style: TossTextStyles.body.copyWith(
-                color: TossColors.gray500,
-              ),
-            ),
-          ),
-          SizedBox(height: TossSpacing.space4),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
@@ -186,9 +190,8 @@ class AttendanceTab extends ConsumerWidget {
     return Container(
       height: 200,
       decoration: BoxDecoration(
-        color: TossColors.surface,
+        color: TossColors.gray50,
         borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-        boxShadow: TossShadows.shadow2,
       ),
       child: Center(
         child: CircularProgressIndicator(

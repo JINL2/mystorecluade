@@ -11,12 +11,7 @@ import '../../providers/app_state_provider.dart';
 import '../../providers/auth_provider.dart';
 import 'models/homepage_models.dart';
 import 'widgets/modern_drawer.dart';
-import '../../../domain/entities/company.dart';
-import '../../../domain/entities/store.dart';
-import '../../../domain/entities/feature.dart';
 import '../../../data/services/click_tracking_service.dart';
-import '../../app/app_routes.dart';
-import '../../app/route_validator.dart';
 
 class HomePageRedesigned extends ConsumerStatefulWidget {
   const HomePageRedesigned({super.key});
@@ -32,10 +27,6 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    // Check for refresh when page is first built
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _checkAndClearRefreshFlag();
-    });
   }
 
   @override
@@ -46,57 +37,14 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    // Check for refresh when app comes to foreground
-    if (state == AppLifecycleState.resumed) {
-      _checkAndClearRefreshFlag();
-    }
+    // No longer checking for refresh flag
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // Check for refresh when page regains focus (e.g., after navigation)
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _checkAndClearRefreshFlag();
-    });
   }
 
-  Future<void> _checkAndClearRefreshFlag() async {
-    final appStateNotifier = ref.read(appStateProvider.notifier);
-    
-    // Check if refresh is needed
-    if (appStateNotifier.needsRefresh) {
-      print('🟡🟡🟡 HomePage: Passive refresh detected - refreshing data');
-      
-      // Use the same refresh logic as pull-to-refresh
-      try {
-        // First, invalidate the force refresh providers to ensure they re-execute
-        ref.invalidate(forceRefreshUserCompaniesProvider);
-        ref.invalidate(forceRefreshCategoriesProvider);
-        
-        print('🟡 Force refresh providers invalidated, now calling them...');
-        
-        // Now call the force refresh providers that ALWAYS fetch from API
-        final userCompaniesResult = await ref.read(forceRefreshUserCompaniesProvider.future);
-        final categoriesResult = await ref.read(forceRefreshCategoriesProvider.future);
-        
-        print('🟡 Force refresh providers completed with results:');
-        print('🟡 UserCompanies: ${userCompaniesResult.companies.length} companies');
-        print('🟡 Categories: ${categoriesResult.length} categories');
-        
-        // Invalidate the regular providers to show the new data
-        ref.invalidate(userCompaniesProvider);
-        ref.invalidate(categoriesWithFeaturesProvider);
-        
-        // Clear the refresh flag after successful refresh
-        await appStateNotifier.clearRefreshFlag();
-        
-        print('🟡 HomePage: Passive refresh COMPLETED - fresh data from API');
-      } catch (e) {
-        print('🟡 HomePage: Error during passive refresh: $e');
-      }
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -167,7 +115,7 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
     );
   }
 
-  Widget _buildSimpleAppBar(BuildContext context, UserWithCompanies userData) {
+  Widget _buildSimpleAppBar(BuildContext context, dynamic userData) {
     return SliverAppBar(
       pinned: true,
       floating: false,
@@ -259,13 +207,13 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
             ],
             child: CircleAvatar(
               radius: 18,
-              backgroundImage: userData.profileImage.isNotEmpty
-                  ? NetworkImage(userData.profileImage)
+              backgroundImage: (userData['profile_image'] ?? '').isNotEmpty
+                  ? NetworkImage(userData['profile_image'])
                   : null,
               backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.1),
-              child: userData.profileImage.isEmpty
+              child: (userData['profile_image'] ?? '').isEmpty
                   ? Text(
-                      userData.userFirstName.isNotEmpty ? userData.userFirstName[0] : 'U',
+                      (userData['user_first_name'] ?? '').isNotEmpty ? userData['user_first_name'][0] : 'U',
                       style: TossTextStyles.body.copyWith(
                         color: Theme.of(context).colorScheme.primary,
                         fontWeight: FontWeight.w600,
@@ -279,7 +227,7 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
     );
   }
 
-  Widget _buildPinnedHelloSection(BuildContext context, UserWithCompanies userData, Company? selectedCompany, Store? selectedStore) {
+  Widget _buildPinnedHelloSection(BuildContext context, dynamic userData, dynamic selectedCompany, dynamic selectedStore) {
     return SliverPersistentHeader(
       pinned: true,
       delegate: _PinnedHelloDelegate(
@@ -292,17 +240,18 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
   }
 
 
-  Widget _buildQuickActionsSection(AsyncValue<List<CategoryWithFeatures>> categoriesAsync) {
+  Widget _buildQuickActionsSection(AsyncValue<dynamic> categoriesAsync) {
     return SliverToBoxAdapter(
       child: categoriesAsync.when(
         data: (categories) {
           // Get top 6 most important features across all categories with their category IDs
-          final allFeaturesWithCategory = <(Feature, String)>[];
+          final allFeaturesWithCategory = <(dynamic, String)>[];
           for (final category in categories) {
-            print('Category: ${category.categoryName} (ID: ${category.categoryId})');
-            for (final feature in category.features) {
-              print('  - Feature: ${feature.featureName} will use categoryId: ${category.categoryId}');
-              allFeaturesWithCategory.add((feature, category.categoryId));
+            print('Category: ${category['category_name']} (ID: ${category['category_id']})');
+            final features = category['features'] as List<dynamic>? ?? [];
+            for (final feature in features) {
+              print('  - Feature: ${feature['feature_name']} will use categoryId: ${category['category_id']}');
+              allFeaturesWithCategory.add((feature, category['category_id']));
             }
           }
           
@@ -437,7 +386,7 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
     );
   }
 
-  Widget _buildQuickActionItem(Feature feature, String categoryId) {
+  Widget _buildQuickActionItem(dynamic feature, String categoryId) {
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -464,13 +413,13 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
                   color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: feature.featureIcon.isNotEmpty &&
-                        (feature.featureIcon.startsWith('http://') ||
-                         feature.featureIcon.startsWith('https://'))
+                child: (feature['icon'] ?? '').isNotEmpty &&
+                        ((feature['icon'] ?? '').startsWith('http://') ||
+                         (feature['icon'] ?? '').startsWith('https://'))
                     ? ClipRRect(
                         borderRadius: BorderRadius.circular(12),
                         child: Image.network(
-                          feature.featureIcon,
+                          feature['icon'],
                           width: 40,
                           height: 40,
                           fit: BoxFit.cover,
@@ -489,7 +438,7 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
               ),
               SizedBox(height: TossSpacing.space1),
               Text(
-                feature.featureName,
+                feature['feature_name'] ?? '',
                 style: TossTextStyles.caption.copyWith(
                   color: Theme.of(context).colorScheme.onSurface,
                   fontWeight: FontWeight.w500,
@@ -507,7 +456,7 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
     );
   }
 
-  Widget _buildMainFeaturesSection(AsyncValue<List<CategoryWithFeatures>> categoriesAsync) {
+  Widget _buildMainFeaturesSection(AsyncValue<dynamic> categoriesAsync) {
     return SliverToBoxAdapter(
       child: categoriesAsync.when(
         data: (categories) {
@@ -599,7 +548,7 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
     );
   }
 
-  Widget _buildCategorySection(CategoryWithFeatures category) {
+  Widget _buildCategorySection(dynamic category) {
     return Container(
       margin: EdgeInsets.only(bottom: TossSpacing.space4),
       padding: EdgeInsets.all(TossSpacing.space4),
@@ -624,7 +573,7 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
               ),
               SizedBox(width: TossSpacing.space3),
               Text(
-                category.categoryName,
+                category['category_name'] ?? '',
                 style: TossTextStyles.h3.copyWith(
                   color: Theme.of(context).colorScheme.onSurface,
                   fontWeight: FontWeight.w600,
@@ -635,13 +584,14 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
           SizedBox(height: TossSpacing.space4),
           
           // Features List with minimal spacing
-          ...category.features.asMap().entries.map((entry) {
+          ...(category['features'] as List<dynamic>? ?? []).asMap().entries.map((entry) {
             final index = entry.key;
             final feature = entry.value;
+            final features = category['features'] as List<dynamic>? ?? [];
             return Column(
               children: [
-                _buildFeatureListItem(feature, category.categoryId),
-                if (index < category.features.length - 1)
+                _buildFeatureListItem(feature, category['category_id']),
+                if (index < features.length - 1)
                   SizedBox(height: TossSpacing.space1),
               ],
             );
@@ -651,7 +601,7 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
     );
   }
 
-  Widget _buildFeatureListItem(Feature feature, String categoryId) {
+  Widget _buildFeatureListItem(dynamic feature, String categoryId) {
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -672,13 +622,13 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
                   color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: feature.featureIcon.isNotEmpty &&
-                        (feature.featureIcon.startsWith('http://') ||
-                         feature.featureIcon.startsWith('https://'))
+                child: (feature['icon'] ?? '').isNotEmpty &&
+                        ((feature['icon'] ?? '').startsWith('http://') ||
+                         (feature['icon'] ?? '').startsWith('https://'))
                     ? ClipRRect(
                         borderRadius: BorderRadius.circular(8),
                         child: Image.network(
-                          feature.featureIcon,
+                          feature['icon'],
                           width: 32,
                           height: 32,
                           fit: BoxFit.cover,
@@ -700,7 +650,7 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
               // Feature Name with theme colors
               Expanded(
                 child: Text(
-                  feature.featureName,
+                  feature['feature_name'] ?? '',
                   style: TossTextStyles.body.copyWith(
                     color: Theme.of(context).colorScheme.onSurface,
                     fontWeight: FontWeight.w500,
@@ -724,29 +674,43 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
     );
   }
 
-  void _handleFeatureTap(Feature feature, [String? categoryId]) async {
+  void _handleFeatureTap(dynamic feature, [String? categoryId]) async {
     try {
       // Track the feature click only if categoryId is provided
       if (categoryId != null) {
-        print('Tracking feature: ${feature.featureName} with categoryId: $categoryId');
+        print('Tracking feature: ${feature['feature_name']} with categoryId: $categoryId');
+        // Use the click tracking service
         final clickTracker = ref.read(clickTrackingServiceProvider);
-        await clickTracker.trackFeatureEntityClick(feature, categoryId: categoryId);
+        await clickTracker.trackFeatureClick(
+          featureId: feature['feature_id'],
+          featureName: feature['feature_name'],
+          categoryId: categoryId,
+        );
       } else {
-        print('Warning: No categoryId provided for feature: ${feature.featureName}');
+        print('Warning: No categoryId provided for feature: ${feature['feature_name']}');
       }
       
-      // Navigate to the feature route using centralized route system
-      if (feature.featureRoute.isNotEmpty) {
-        // Use route validator for safer navigation
-        ref.navigateToFeature(feature.featureRoute, (validatedRoute) {
-          print('Navigating to validated route: $validatedRoute');
-          context.push(validatedRoute);
-        });
+      // Special handling for Employee Settings
+      if (feature['feature_name'] == 'Employee Setting') {
+        context.go('/employee-settings');
+        return;
+      }
+      
+      // Navigate to the feature route
+      final route = feature['route'] ?? '';
+      print('Feature: ${feature['feature_name']} has route: $route');
+      if (route.isNotEmpty) {
+        // Ensure route starts with / for proper navigation
+        final fullRoute = route.startsWith('/') 
+            ? route 
+            : '/$route';
+        print('Navigating to: $fullRoute');
+        context.push(fullRoute);
       } else {
         // Show message if no route is defined
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('${feature.featureName} coming soon!'),
+            content: Text('${feature['feature_name']} coming soon!'),
             backgroundColor: Theme.of(context).colorScheme.primary,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
@@ -759,7 +723,7 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error opening ${feature.featureName}'),
+            content: Text('Error opening ${feature['feature_name']}'),
             backgroundColor: Theme.of(context).colorScheme.error,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
@@ -785,8 +749,9 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
       final categoriesResult = await ref.read(forceRefreshCategoriesProvider.future);
       
       print('🟢 Force refresh providers completed with results:');
-      print('🟢 UserCompanies: ${userCompaniesResult.companies.length} companies');
-      print('🟢 Categories: ${categoriesResult.length} categories');
+      final companies = userCompaniesResult['companies'] as List<dynamic>? ?? [];
+      print('🟢 UserCompanies: ${companies.length} companies');
+      print('🟢 Categories: ${(categoriesResult as List).length} categories');
       
       // Invalidate the regular providers to show the new data
       ref.invalidate(userCompaniesProvider);
@@ -828,6 +793,8 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
     
     userCompaniesAsync.when(
       data: (userData) {
+        print('Drawer userData type: ${userData.runtimeType}');
+        print('Drawer userData: $userData');
         showModalBottomSheet(
           context: context,
           isScrollControlled: true,
@@ -841,7 +808,7 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
                 topRight: Radius.circular(20),
               ),
             ),
-            child: ModernDrawer(userData: userData),
+            child: ModernDrawer(userData: UserWithCompanies.fromJson(userData as Map<String, dynamic>)),
           ),
         );
       },
@@ -868,9 +835,9 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
 }
 
 class _PinnedHelloDelegate extends SliverPersistentHeaderDelegate {
-  final UserWithCompanies userData;
-  final Company? selectedCompany;
-  final Store? selectedStore;
+  final dynamic userData;
+  final dynamic selectedCompany;
+  final dynamic selectedStore;
   final BuildContext context;
 
   _PinnedHelloDelegate({
@@ -906,7 +873,7 @@ class _PinnedHelloDelegate extends SliverPersistentHeaderDelegate {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
-              'Hello, ${userData.userFirstName}!',
+              'Hello, ${userData['user_first_name'] ?? 'User'}!',
               style: TossTextStyles.h2.copyWith(
                 color: Theme.of(context).colorScheme.onSurface,
                 fontWeight: FontWeight.w700,
@@ -919,7 +886,7 @@ class _PinnedHelloDelegate extends SliverPersistentHeaderDelegate {
               Row(
                 children: [
                   Text(
-                    selectedCompany!.companyName,
+                    selectedCompany!['company_name'] ?? '',
                     style: TossTextStyles.body.copyWith(
                       color: Theme.of(context).colorScheme.primary,
                       fontWeight: FontWeight.w500,
@@ -937,7 +904,7 @@ class _PinnedHelloDelegate extends SliverPersistentHeaderDelegate {
                     ),
                     Expanded(
                       child: Text(
-                        selectedStore!.storeName,
+                        selectedStore!['store_name'] ?? '',
                         style: TossTextStyles.caption.copyWith(
                           color: Theme.of(context).colorScheme.onSurfaceVariant,
                           fontWeight: FontWeight.w500,

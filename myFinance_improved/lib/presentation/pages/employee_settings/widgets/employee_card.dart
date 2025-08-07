@@ -1,5 +1,3 @@
-// lib/presentation/pages/employee_settings/widgets/employee_card.dart
-
 import 'package:flutter/material.dart';
 import '../../../../core/themes/toss_colors.dart';
 import '../../../../core/themes/toss_spacing.dart';
@@ -27,19 +25,24 @@ class EmployeeCard extends StatelessWidget {
       onTap: onTap,
       borderRadius: BorderRadius.circular(TossBorderRadius.lg),
       child: Container(
-        height: 120,
         decoration: BoxDecoration(
           color: TossColors.surface,
-          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-          boxShadow: TossShadows.shadow2,
+          borderRadius: BorderRadius.circular(TossBorderRadius.md),
+          border: Border.all(
+            color: TossColors.gray100,
+            width: 1,
+          ),
         ),
         child: Padding(
-          padding: EdgeInsets.all(TossSpacing.space4),
+          padding: EdgeInsets.symmetric(
+            horizontal: TossSpacing.space3,
+            vertical: TossSpacing.space2,
+          ),
           child: Row(
             children: [
               // Profile Image
               _buildProfileImage(),
-              SizedBox(width: TossSpacing.space4),
+              SizedBox(width: TossSpacing.space3),
               
               // Employee Info
               Expanded(
@@ -50,49 +53,34 @@ class EmployeeCard extends StatelessWidget {
                     // Name
                     Text(
                       employee.fullName,
-                      style: TossTextStyles.h3.copyWith(
+                      style: TossTextStyles.body.copyWith(
                         color: TossColors.gray900,
+                        fontWeight: FontWeight.w600,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    SizedBox(height: TossSpacing.space1),
+                    SizedBox(height: 4),
                     
-                    // Role and Store
+                    // Role and Salary in one row
                     Row(
                       children: [
                         _buildRoleChip(),
-                        if (employee.storeName != null) ...[
-                          SizedBox(width: TossSpacing.space2),
-                          Flexible(
-                            child: Text(
-                              employee.storeName!,
-                              style: TossTextStyles.bodySmall.copyWith(
-                                color: TossColors.gray600,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-                    SizedBox(height: TossSpacing.space2),
-                    
-                    // Salary and Status
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            employee.displaySalary,
-                            style: TossTextStyles.bodyLarge.copyWith(
-                              color: TossColors.gray900,
-                              fontWeight: FontWeight.w600,
-                              fontFamily: 'JetBrains Mono',
-                            ),
+                        SizedBox(width: TossSpacing.space2),
+                        Text(
+                          '•',
+                          style: TossTextStyles.bodySmall.copyWith(
+                            color: TossColors.gray400,
                           ),
                         ),
-                        _buildStatusIndicator(),
+                        SizedBox(width: TossSpacing.space2),
+                        Text(
+                          employee.displaySalary,
+                          style: TossTextStyles.bodySmall.copyWith(
+                            color: TossColors.gray700,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
                       ],
                     ),
                   ],
@@ -117,18 +105,19 @@ class EmployeeCard extends StatelessWidget {
   Widget _buildProfileImage() {
     if (employee.profileImage != null && employee.profileImage!.isNotEmpty) {
       return CircleAvatar(
-        radius: 32,
+        radius: 22,
         backgroundImage: NetworkImage(employee.profileImage!),
         backgroundColor: TossColors.gray200,
       );
     } else {
       return CircleAvatar(
-        radius: 32,
+        radius: 22,
         backgroundColor: TossColors.primary.withOpacity(0.1),
         child: Text(
           employee.initials,
-          style: TossTextStyles.h3.copyWith(
+          style: TossTextStyles.body.copyWith(
             color: TossColors.primary,
+            fontWeight: FontWeight.w600,
           ),
         ),
       );
@@ -154,31 +143,6 @@ class EmployeeCard extends StatelessWidget {
           fontWeight: FontWeight.w500,
         ),
       ),
-    );
-  }
-
-  Widget _buildStatusIndicator() {
-    final isActive = employee.isActive;
-    
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          width: 8,
-          height: 8,
-          decoration: BoxDecoration(
-            color: isActive ? TossColors.success : TossColors.gray400,
-            shape: BoxShape.circle,
-          ),
-        ),
-        SizedBox(width: TossSpacing.space1),
-        Text(
-          isActive ? 'Active' : 'Inactive',
-          style: TossTextStyles.labelSmall.copyWith(
-            color: isActive ? TossColors.success : TossColors.gray600,
-          ),
-        ),
-      ],
     );
   }
 
@@ -273,16 +237,6 @@ class EmployeeCard extends StatelessWidget {
                 Navigator.pop(context);
                 // TODO: Implement attendance view
               },
-            ),
-            Divider(color: TossColors.gray200),
-            _buildActionItem(
-              icon: employee.isActive ? Icons.block : Icons.check_circle_outline,
-              label: employee.isActive ? 'Deactivate' : 'Activate',
-              onTap: () {
-                Navigator.pop(context);
-                // TODO: Implement status toggle
-              },
-              isDestructive: employee.isActive,
             ),
           ],
         ),

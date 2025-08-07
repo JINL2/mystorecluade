@@ -1,4 +1,4 @@
-// lib/presentation/pages/employee_settings/employee_settings_page.dart
+// lib/presentation/pages/delegate_role/delegate_role_page.dart
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -7,28 +7,26 @@ import '../../../core/themes/toss_colors.dart';
 import '../../../core/themes/toss_spacing.dart';
 import '../../../core/themes/toss_text_styles.dart';
 import '../../../core/themes/toss_border_radius.dart';
-import '../../../domain/entities/employee_detail.dart';
-import '../../providers/employee_provider.dart';
+import '../../providers/delegate_role_provider.dart';
 import '../../providers/app_state_provider.dart';
 import '../../widgets/toss/toss_button.dart';
-import '../../widgets/toss/toss_primary_button.dart';
-import 'widgets/employee_card.dart';
-import 'widgets/employee_filter_panel.dart';
-import 'widgets/employee_search_bar.dart';
-import 'widgets/employee_detail_modal.dart';
-import 'widgets/employee_loading_shimmer.dart';
+import 'widgets/user_role_card.dart';
+import 'widgets/role_filter_panel.dart';
+import 'widgets/user_search_bar.dart';
+import 'widgets/role_update_bottom_sheet.dart';
+import 'widgets/user_loading_shimmer.dart';
 
-class EmployeeSettingsPage extends ConsumerStatefulWidget {
-  const EmployeeSettingsPage({super.key});
+class DelegateRolePage extends ConsumerStatefulWidget {
+  const DelegateRolePage({super.key});
 
-  static const String routeName = 'employeeSettings';
-  static const String routePath = '/employeeSettings';
+  static const String routeName = 'delegateRole';
+  static const String routePath = '/delegateRole';
 
   @override
-  ConsumerState<EmployeeSettingsPage> createState() => _EmployeeSettingsPageState();
+  ConsumerState<DelegateRolePage> createState() => _DelegateRolePageState();
 }
 
-class _EmployeeSettingsPageState extends ConsumerState<EmployeeSettingsPage> {
+class _DelegateRolePageState extends ConsumerState<DelegateRolePage> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   bool _isFilterPanelOpen = true;
 
@@ -38,13 +36,12 @@ class _EmployeeSettingsPageState extends ConsumerState<EmployeeSettingsPage> {
     });
   }
 
-  void _showEmployeeDetail(BuildContext context, employee) {
-    ref.read(selectedEmployeeProvider.notifier).state = employee;
+  void _showRoleUpdateSheet(BuildContext context, UserRoleInfo user) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => const EmployeeDetailModal(),
+      builder: (context) => RoleUpdateBottomSheet(user: user),
     );
   }
 
@@ -53,12 +50,11 @@ class _EmployeeSettingsPageState extends ConsumerState<EmployeeSettingsPage> {
     final appState = ref.watch(appStateProvider);
     final companyId = appState.companyChoosen;
     
-    // Debug logging
-    print('Employee Settings - Company ID: $companyId');
-    print('Employee Settings - Has Company: ${companyId != null && companyId.isNotEmpty}');
-    
-    final employees = ref.watch(filteredEmployeesProvider);
-    final employeesAsync = ref.watch(employeesStreamProvider);
+    if (companyId.isEmpty) {
+      return _buildNoCompanyState();
+    }
+
+    final usersAsync = ref.watch(filteredUserRolesWithMultiSelectProvider(companyId));
     final isTablet = MediaQuery.of(context).size.width >= 768;
 
     return Scaffold(
@@ -69,7 +65,7 @@ class _EmployeeSettingsPageState extends ConsumerState<EmployeeSettingsPage> {
         elevation: 0,
         toolbarHeight: 60,
         title: Text(
-          'Employee Settings',
+          'Delegate Role',
           style: TossTextStyles.h2.copyWith(
             color: TossColors.gray900,
             fontWeight: FontWeight.w700,
@@ -114,7 +110,7 @@ class _EmployeeSettingsPageState extends ConsumerState<EmployeeSettingsPage> {
               TossSpacing.space4,
               TossSpacing.space3,
             ),
-            child: const EmployeeSearchBar(),
+            child: const UserSearchBar(),
           ),
           
           // Main Content
@@ -127,26 +123,24 @@ class _EmployeeSettingsPageState extends ConsumerState<EmployeeSettingsPage> {
                     width: 280,
                     child: Container(
                       color: TossColors.gray50,
-                      child: const EmployeeFilterPanel(),
+                      child: const RoleFilterPanel(),
                     ),
                   ),
                 
-                // Employee List
+                // User List
                 Expanded(
                   child: Container(
                     color: TossColors.background,
-                    child: employeesAsync.when(
-                      data: (_) {
-                        if (companyId == null || companyId.isEmpty) {
-                          return _buildNoCompanyState();
+                    child: usersAsync.when(
+                      data: (users) {
+                        if (users.isEmpty) {
+                          return _buildEmptyState();
                         }
-                        return employees.isEmpty 
-                          ? _buildEmptyState()
-                          : _buildEmployeeList(employees);
+                        return _buildUserList(users);
                       },
-                      loading: () => const EmployeeLoadingShimmer(),
+                      loading: () => const UserLoadingShimmer(),
                       error: (error, stack) {
-                        print('Employee Settings Error: $error');
+                        print('Delegate Role Error: $error');
                         print('Stack trace: $stack');
                         return _buildErrorState(error);
                       },
@@ -159,33 +153,29 @@ class _EmployeeSettingsPageState extends ConsumerState<EmployeeSettingsPage> {
         ],
       ),
       
-      
       // Mobile Filter Drawer (Right side)
       endDrawer: !isTablet 
         ? Drawer(
             child: Container(
               color: TossColors.background,
-              child: const EmployeeFilterPanel(isMobile: true),
+              child: const RoleFilterPanel(isMobile: true),
             ),
           )
         : null,
     );
   }
 
-  Widget _buildEmployeeList(List<dynamic> employees) {
+  Widget _buildUserList(List<UserRoleInfo> users) {
     return ListView.builder(
       padding: EdgeInsets.all(TossSpacing.space4),
-      itemCount: employees.length,
+      itemCount: users.length,
       itemBuilder: (context, index) {
-        final employee = employees[index];
-        final employeeDetail = employee is EmployeeDetail 
-            ? employee 
-            : EmployeeDetail.fromEmployee(employee);
+        final user = users[index];
         return Padding(
           padding: EdgeInsets.only(bottom: TossSpacing.space3),
-          child: EmployeeCard(
-            employee: employeeDetail,
-            onTap: () => _showEmployeeDetail(context, employeeDetail),
+          child: UserRoleCard(
+            user: user,
+            onTap: () => _showRoleUpdateSheet(context, user),
           ),
         );
       },
@@ -193,10 +183,10 @@ class _EmployeeSettingsPageState extends ConsumerState<EmployeeSettingsPage> {
   }
 
   Widget _buildEmptyState() {
-    final filter = ref.watch(employeeFilterProvider);
-    final hasFilters = filter.searchQuery.isNotEmpty || 
-                      filter.selectedRoleIds.isNotEmpty || 
-                      filter.selectedStoreIds.isNotEmpty;
+    final searchQuery = ref.watch(userSearchProvider);
+    final selectedRoleIds = ref.watch(selectedRoleFiltersProvider);
+    final selectedStoreIds = ref.watch(selectedStoreFiltersProvider);
+    final hasFilters = searchQuery.isNotEmpty || selectedRoleIds.isNotEmpty || selectedStoreIds.isNotEmpty;
 
     return Center(
       child: Padding(
@@ -211,7 +201,7 @@ class _EmployeeSettingsPageState extends ConsumerState<EmployeeSettingsPage> {
             ),
             SizedBox(height: TossSpacing.space4),
             Text(
-              hasFilters ? 'No employees match your filters' : 'No employees found',
+              hasFilters ? 'No users match your filters' : 'No users found',
               style: TossTextStyles.h3.copyWith(
                 color: TossColors.gray700,
               ),
@@ -220,7 +210,7 @@ class _EmployeeSettingsPageState extends ConsumerState<EmployeeSettingsPage> {
             Text(
               hasFilters 
                 ? 'Try adjusting your search or filters'
-                : 'Add your first employee to get started',
+                : 'All users in this company will appear here',
               style: TossTextStyles.body.copyWith(
                 color: TossColors.gray500,
               ),
@@ -230,13 +220,14 @@ class _EmployeeSettingsPageState extends ConsumerState<EmployeeSettingsPage> {
               SizedBox(height: TossSpacing.space6),
               TextButton(
                 onPressed: () {
-                  ref.read(employeeFilterProvider.notifier).clearFilters();
+                  ref.read(userSearchProvider.notifier).clear();
+                  ref.read(selectedRoleFiltersProvider.notifier).clearFilters();
+                  ref.read(selectedStoreFiltersProvider.notifier).clearFilters();
                 },
                 child: Text(
-                  'Clear all filters',
-                  style: TossTextStyles.body.copyWith(
+                  'Clear Filters',
+                  style: TossTextStyles.labelLarge.copyWith(
                     color: TossColors.primary,
-                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ),
@@ -248,39 +239,66 @@ class _EmployeeSettingsPageState extends ConsumerState<EmployeeSettingsPage> {
   }
 
   Widget _buildNoCompanyState() {
-    return Center(
-      child: Padding(
-        padding: EdgeInsets.all(TossSpacing.space8),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.business_center_outlined,
-              size: 64,
-              color: TossColors.gray400,
-            ),
-            SizedBox(height: TossSpacing.space4),
-            Text(
-              'No company selected',
-              style: TossTextStyles.h3.copyWith(
-                color: TossColors.gray700,
+    return Scaffold(
+      backgroundColor: TossColors.gray50,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        title: Text(
+          'Delegate Role',
+          style: TossTextStyles.h2.copyWith(
+            color: TossColors.gray900,
+            fontWeight: FontWeight.w700,
+            fontSize: 20,
+          ),
+        ),
+        centerTitle: false,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back_ios_new, color: TossColors.gray900, size: 22),
+          onPressed: () => context.go('/'),
+        ),
+      ),
+      body: Center(
+        child: Padding(
+          padding: EdgeInsets.all(TossSpacing.space6),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.business_outlined,
+                size: 64,
+                color: TossColors.gray400,
               ),
-            ),
-            SizedBox(height: TossSpacing.space2),
-            Text(
-              'Please select a company from the menu',
-              style: TossTextStyles.body.copyWith(
-                color: TossColors.gray500,
+              SizedBox(height: TossSpacing.space4),
+              Text(
+                'No company selected',
+                style: TossTextStyles.h3.copyWith(
+                  color: TossColors.gray700,
+                ),
               ),
-              textAlign: TextAlign.center,
-            ),
-          ],
+              SizedBox(height: TossSpacing.space2),
+              Text(
+                'Please select a company from the homepage first',
+                style: TossTextStyles.body.copyWith(
+                  color: TossColors.gray500,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              SizedBox(height: TossSpacing.space6),
+              TossButton(
+                text: 'Go to Homepage',
+                onPressed: () {
+                  context.go('/');
+                },
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildErrorState(error) {
+  Widget _buildErrorState(Object error) {
     return Center(
       child: Padding(
         padding: EdgeInsets.all(TossSpacing.space8),
@@ -294,25 +312,37 @@ class _EmployeeSettingsPageState extends ConsumerState<EmployeeSettingsPage> {
             ),
             SizedBox(height: TossSpacing.space4),
             Text(
-              'Failed to load employees',
+              'Unable to load users',
               style: TossTextStyles.h3.copyWith(
-                color: TossColors.gray700,
+                color: TossColors.gray900,
               ),
             ),
             SizedBox(height: TossSpacing.space2),
             Text(
-              error.toString(),
+              'Please check your internet connection and try again',
               style: TossTextStyles.body.copyWith(
-                color: TossColors.gray500,
+                color: TossColors.gray600,
               ),
               textAlign: TextAlign.center,
             ),
             SizedBox(height: TossSpacing.space6),
-            TossButton(
-              text: 'Try again',
+            ElevatedButton.icon(
               onPressed: () {
-                ref.invalidate(employeesStreamProvider);
+                final companyId = ref.read(appStateProvider).companyChoosen;
+                if (companyId.isNotEmpty) {
+                  ref.invalidate(companyUserRolesProvider(companyId));
+                }
               },
+              icon: const Icon(Icons.refresh),
+              label: const Text('Try Again'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: TossColors.primary,
+                foregroundColor: Colors.white,
+                padding: EdgeInsets.symmetric(
+                  horizontal: TossSpacing.space6,
+                  vertical: TossSpacing.space3,
+                ),
+              ),
             ),
           ],
         ),

@@ -1,198 +1,185 @@
 // lib/data/repositories/employee_repository.dart
 
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../models/employee_detail_model.dart';
 import '../../domain/entities/employee_detail.dart';
-import '../../core/error/exceptions.dart';
 
 class EmployeeRepository {
-  final SupabaseClient _supabase;
+  final SupabaseClient supabase;
 
-  EmployeeRepository({required SupabaseClient supabase}) : _supabase = supabase;
+  EmployeeRepository({required this.supabase});
 
-  // Fetch all employees for a company
-  Future<List<EmployeeDetail>> getEmployees(String companyId) async {
-    try {
-      final response = await _supabase
-          .from('v_user_salary')
-          .select('*')
-          .eq('company_id', companyId)
-          .order('full_name', ascending: true);
-
-      final List<dynamic> data = response as List<dynamic>;
-      
-      return data
-          .map((json) => EmployeeDetailModel.fromJson(json as Map<String, dynamic>))
-          .map((model) => model.toEntity())
-          .toList();
-    } catch (e) {
-      throw ServerException(message: 'Failed to fetch employees: ${e.toString()}');
-    }
-  }
-
-  // Fetch single employee details
-  Future<EmployeeDetail> getEmployeeDetail(String userId) async {
-    try {
-      final response = await _supabase
-          .from('v_user_salary')
-          .select('*')
-          .eq('user_id', userId)
-          .single();
-
-      return EmployeeDetailModel.fromJson(response as Map<String, dynamic>)
-          .toEntity();
-    } catch (e) {
-      throw ServerException(message: 'Failed to fetch employee detail: ${e.toString()}');
-    }
-  }
-
-  // Update employee salary using RPC function
-  Future<void> updateEmployeeSalary({
-    required String salaryId,
-    required double salaryAmount,
-    required String salaryType,
-    required String currencyId,
-  }) async {
-    try {
-      await _supabase.rpc('update_user_salary', params: {
-        'p_salary_id': salaryId,
-        'p_salary_amount': salaryAmount,
-        'p_salary_type': salaryType,
-        'p_currency_id': currencyId,
-      });
-    } catch (e) {
-      throw ServerException(message: 'Failed to update salary: ${e.toString()}');
-    }
-  }
-
-  // Get available currencies
-  Future<List<Map<String, dynamic>>> getCurrencies() async {
-    try {
-      final response = await _supabase
-          .from('currency_types')
-          .select('currency_id, currency_code, currency_name, symbol')
-          .order('currency_code', ascending: true);
-
-      return List<Map<String, dynamic>>.from(response as List);
-    } catch (e) {
-      throw ServerException(message: 'Failed to fetch currencies: ${e.toString()}');
-    }
-  }
-
-  // Get employee attendance summary (last 30 days)
-  Future<Map<String, dynamic>> getEmployeeAttendance(String userId) async {
-    try {
-      final thirtyDaysAgo = DateTime.now().subtract(const Duration(days: 30));
-      
-      final response = await _supabase
-          .from('shift_requests')
-          .select('is_late, is_approved, overtime_amount, is_extratime')
-          .eq('user_id', userId)
-          .gte('request_date', thirtyDaysAgo.toIso8601String());
-
-      final List<dynamic> data = response as List<dynamic>;
-      
-      // Calculate attendance metrics
-      int totalShifts = data.length;
-      int lateCount = data.where((shift) => shift['is_late'] == true).length;
-      double totalOvertime = data.fold(0.0, (sum, shift) => 
-          sum + (shift['overtime_amount'] ?? 0.0));
-      int approvedShifts = data.where((shift) => shift['is_approved'] == true).length;
-      
-      return {
-        'totalShifts': totalShifts,
-        'lateCount': lateCount,
-        'attendanceRate': totalShifts > 0 
-            ? ((totalShifts - lateCount) / totalShifts * 100).round() 
-            : 100,
-        'overtimeHours': totalOvertime,
-        'approvedShifts': approvedShifts,
-      };
-    } catch (e) {
-      throw ServerException(message: 'Failed to fetch attendance: ${e.toString()}');
-    }
-  }
-
-  // Stream employees for real-time updates
   Stream<List<EmployeeDetail>> streamEmployees(String companyId) {
-    return _supabase
-        .from('v_user_salary')
-        .stream(primaryKey: ['user_id'])
+    return supabase
+        .from('user_companies')
+        .stream(primaryKey: ['user_id', 'company_id'])
         .eq('company_id', companyId)
-        .order('full_name', ascending: true)
-        .map((data) {
-          print('Employee Repository - Raw data from Supabase:');
-          if (data.isNotEmpty) {
-            print('First employee data: ${data.first}');
-          }
-          
-          return data.map((json) {
-            try {
-              return EmployeeDetailModel.fromJson(json).toEntity();
-            } catch (e) {
-              print('Error parsing employee data: $e');
-              print('JSON data: $json');
-              rethrow;
-            }
-          }).toList();
+        .asyncMap((data) async {
+          final filtered = data.where((item) => item['is_deleted'] == false).toList();
+          return await _processEmployeeData(filtered, companyId);
         });
   }
 
-  // Update employee role
-  Future<void> updateEmployeeRole({
-    required String userId,
-    required String newRoleId,
-  }) async {
-    try {
-      // First deactivate current role
-      await _supabase
-          .from('user_roles')
-          .update({
-            'is_deleted': true,
-            'deleted_at': DateTime.now().toIso8601String(),
-          })
-          .eq('user_id', userId)
-          .eq('is_deleted', false);
+  Future<List<EmployeeDetail>> _processEmployeeData(List<Map<String, dynamic>> userCompanies, String companyId) async {
+    final List<EmployeeDetail> employees = [];
+    
+    for (final record in userCompanies) {
+      try {
+        final userId = record['user_id'];
+        
+        // Fetch user details
+        final userResponse = await supabase
+            .from('users')
+            .select('*')
+            .eq('user_id', userId)
+            .single();
+        
+        // Fetch role - same pattern as delegate role and role permission pages
+        String? roleId;
+        String? roleName;
+        try {
+          
+          // Fetch all roles for the user and filter by company
+          final rolesResponse = await supabase
+              .from('user_roles')
+              .select('''
+                user_role_id,
+                role_id,
+                is_deleted,
+                roles!inner(
+                  role_id,
+                  role_name,
+                  role_type,
+                  company_id
+                )
+              ''')
+              .eq('user_id', userId)
+              .eq('is_deleted', false);
+                
+          
+          // Find the role for the current company
+          for (final roleData in rolesResponse) {
+            if (roleData['roles'] != null && roleData['roles']['company_id'] == companyId) {
+              roleId = roleData['role_id'];
+              roleName = roleData['roles']['role_name'];
+              break;
+            }
+          }
+          
+        } catch (e) {
+        }
+        
+        // Fetch salary
+        Map<String, dynamic>? salaryData;
+        try {
+          final salaryResponse = await supabase
+              .from('user_salaries')
+              .select('*')
+              .eq('user_id', userId)
+              .eq('company_id', companyId)
+              .order('created_at', ascending: false)
+              .limit(1)
+              .maybeSingle();
+          salaryData = salaryResponse;
+        } catch (e) {
+          print('Error fetching salary for user $userId: $e');
+        }
+        
+        // Fetch stores
+        List<Map<String, dynamic>> stores = [];
+        try {
+          final storesResponse = await supabase
+              .from('user_stores')
+              .select('store_id, stores!inner(store_id, store_name)')
+              .eq('user_id', userId)
+              .eq('is_deleted', false);
+          stores = List<Map<String, dynamic>>.from(storesResponse);
+        } catch (e) {
+          print('Error fetching stores for user $userId: $e');
+        }
+        
+        final employee = EmployeeDetail(
+          userId: userId,
+          fullName: '${userResponse['first_name'] ?? ''} ${userResponse['last_name'] ?? ''}'.trim(),
+          email: userResponse['email'],
+          profileImage: userResponse['profile_image'],
+          roleId: roleId,
+          roleName: roleName,
+          companyId: companyId,
+          salaryId: salaryData?['salary_id'],
+          salaryAmount: salaryData?['salary_amount']?.toDouble(),
+          salaryType: salaryData?['salary_type'],
+          currencyId: salaryData?['currency_id'],
+          currencySymbol: '\$', // Default to USD for now
+          hireDate: record['created_at'] != null ? DateTime.parse(record['created_at']) : null,
+          isActive: true,
+          createdAt: userResponse['created_at'] != null ? DateTime.parse(userResponse['created_at']) : null,
+          updatedAt: userResponse['updated_at'] != null ? DateTime.parse(userResponse['updated_at']) : null,
+          firstName: userResponse['first_name'],
+          lastName: userResponse['last_name'],
+          storeId: stores.isNotEmpty ? stores.first['store_id'] : null,
+          storeName: stores.isNotEmpty ? stores.first['stores']['store_name'] : null,
+          phoneNumber: userResponse['phone_number'],
+          dateOfBirth: userResponse['date_of_birth'] != null ? DateTime.parse(userResponse['date_of_birth']) : null,
+        );
+        
+        employees.add(employee);
+      } catch (e) {
+        print('Error processing employee data: $e');
+      }
+    }
+    
+    return employees;
+  }
 
-      // Then create new role assignment
-      await _supabase.from('user_roles').insert({
-        'user_id': userId,
-        'role_id': newRoleId,
-        'created_at': DateTime.now().toIso8601String(),
-      });
+  Future<Map<String, dynamic>> getEmployeeAttendance(String userId) async {
+    // Mock attendance data for now since attendance system is not in current database
+    return {
+      'attendanceRate': 95,
+      'lateCount': 3,
+      'overtimeHours': 12,
+      'totalShifts': 20,
+    };
+  }
+
+  Future<List<Map<String, dynamic>>> getCurrencies() async {
+    try {
+      final response = await supabase
+          .from('currencies')
+          .select('*')
+          .order('currency_code');
+      return List<Map<String, dynamic>>.from(response);
     } catch (e) {
-      throw ServerException(message: 'Failed to update role: ${e.toString()}');
+      print('Error fetching currencies: $e');
+      return [];
     }
   }
 
-  // Get all roles for a company
   Future<List<Map<String, dynamic>>> getCompanyRoles(String companyId) async {
     try {
-      final response = await _supabase
+      final response = await supabase
           .from('roles')
-          .select('role_id, role_name, description')
+          .select('*')
           .eq('company_id', companyId)
-          .order('role_name', ascending: true);
-
-      return List<Map<String, dynamic>>.from(response as List);
+          .order('role_name');
+      return List<Map<String, dynamic>>.from(response);
     } catch (e) {
-      throw ServerException(message: 'Failed to fetch roles: ${e.toString()}');
+      print('Error fetching company roles: $e');
+      return [];
     }
   }
 
-  // Get stores for filtering
   Future<List<Map<String, dynamic>>> getCompanyStores(String companyId) async {
     try {
-      final response = await _supabase
+      final response = await supabase
           .from('stores')
-          .select('store_id, store_name')
+          .select('*')
           .eq('company_id', companyId)
           .eq('is_deleted', false)
-          .order('store_name', ascending: true);
-
-      return List<Map<String, dynamic>>.from(response as List);
+          .order('store_name');
+      return List<Map<String, dynamic>>.from(response);
     } catch (e) {
-      throw ServerException(message: 'Failed to fetch stores: ${e.toString()}');
+      print('Error fetching company stores: $e');
+      return [];
     }
   }
 }

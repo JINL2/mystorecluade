@@ -9,7 +9,6 @@ import '../../../../../core/themes/toss_border_radius.dart';
 import '../../../../../core/themes/toss_shadows.dart';
 import '../../../../../domain/entities/employee_detail.dart';
 import '../../../../providers/employee_provider.dart';
-import '../salary_update_dialog.dart';
 
 class CompensationTab extends ConsumerWidget {
   final EmployeeDetail employee;
@@ -18,155 +17,63 @@ class CompensationTab extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final currenciesAsync = ref.watch(currenciesProvider);
+
     return SingleChildScrollView(
       padding: EdgeInsets.all(TossSpacing.space4),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Current Salary Section
-          _buildSalaryCard(context, ref),
-          SizedBox(height: TossSpacing.space4),
-          
-          // Total Compensation Breakdown
-          _buildCompensationBreakdown(context),
-          SizedBox(height: TossSpacing.space4),
-          
-          // Salary History
-          _buildSalaryHistory(context),
+          _buildCurrentSalaryCard(),
+          SizedBox(height: TossSpacing.space6),
+          _buildSalaryBreakdown(),
+          SizedBox(height: TossSpacing.space6),
+          _buildPaymentHistory(),
         ],
       ),
     );
   }
 
-  Widget _buildSalaryCard(BuildContext context, WidgetRef ref) {
+  Widget _buildCurrentSalaryCard() {
     return Container(
-      padding: EdgeInsets.all(TossSpacing.space4),
+      padding: EdgeInsets.all(TossSpacing.space5),
       decoration: BoxDecoration(
-        color: TossColors.surface,
+        gradient: LinearGradient(
+          colors: [TossColors.primary, TossColors.primary.withOpacity(0.8)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
         borderRadius: BorderRadius.circular(TossBorderRadius.lg),
         boxShadow: TossShadows.shadow2,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Current Salary',
-                style: TossTextStyles.h3.copyWith(
-                  color: TossColors.gray900,
-                ),
-              ),
-              TextButton.icon(
-                icon: Icon(Icons.edit, size: 18),
-                label: Text('Edit'),
-                onPressed: () => _showSalaryEditDialog(context, ref),
-                style: TextButton.styleFrom(
-                  foregroundColor: TossColors.primary,
-                ),
-              ),
-            ],
+          Text(
+            'Current Salary',
+            style: TossTextStyles.body.copyWith(
+              color: Colors.white.withOpacity(0.9),
+            ),
           ),
-          SizedBox(height: TossSpacing.space3),
-          
-          // Salary amount
+          SizedBox(height: TossSpacing.space2),
           Text(
             employee.displaySalary,
-            style: TextStyle(
-              fontSize: 32,
+            style: TossTextStyles.h1.copyWith(
+              color: Colors.white,
               fontWeight: FontWeight.bold,
-              color: TossColors.gray900,
-              fontFamily: 'JetBrains Mono',
             ),
           ),
-          SizedBox(height: TossSpacing.space1),
-          
-          // Additional info
-          if (employee.updatedAt != null)
-            Text(
-              'Last updated: ${_formatDate(employee.updatedAt!)}',
-              style: TossTextStyles.bodySmall.copyWith(
-                color: TossColors.gray600,
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildCompensationBreakdown(BuildContext context) {
-    // This is mock data - in real app, fetch from attendance/bonus data
-    final baseSalary = employee.salaryAmount ?? 0;
-    final overtime = 750.0;
-    final bonus = 500.0;
-    final deductions = 50.0;
-    final total = baseSalary + overtime + bonus - deductions;
-
-    return Container(
-      padding: EdgeInsets.all(TossSpacing.space4),
-      decoration: BoxDecoration(
-        color: TossColors.surface,
-        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-        boxShadow: TossShadows.shadow2,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Total Compensation (This Month)',
-            style: TossTextStyles.h3.copyWith(
-              color: TossColors.gray900,
-            ),
-          ),
-          SizedBox(height: TossSpacing.space3),
-          
-          _buildCompensationRow(
-            'Base Salary',
-            baseSalary,
-            employee.currencySymbol ?? '\$',
-          ),
-          _buildCompensationRow(
-            'Overtime',
-            overtime,
-            employee.currencySymbol ?? '\$',
-            isAddition: true,
-          ),
-          _buildCompensationRow(
-            'Performance Bonus',
-            bonus,
-            employee.currencySymbol ?? '\$',
-            isAddition: true,
-          ),
-          _buildCompensationRow(
-            'Late Deductions',
-            deductions,
-            employee.currencySymbol ?? '\$',
-            isDeduction: true,
-          ),
-          
-          Padding(
-            padding: EdgeInsets.symmetric(vertical: TossSpacing.space2),
-            child: Divider(color: TossColors.gray200),
-          ),
-          
+          SizedBox(height: TossSpacing.space4),
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                'Total',
-                style: TossTextStyles.bodyLarge.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: TossColors.gray900,
-                ),
+              _buildSalaryBadge(
+                'Type',
+                employee.salaryType == 'hourly' ? 'Hourly' : 'Monthly',
               ),
-              Text(
-                '${employee.currencySymbol ?? '\$'}${total.toStringAsFixed(2)}',
-                style: TossTextStyles.bodyLarge.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: TossColors.gray900,
-                  fontFamily: 'JetBrains Mono',
-                ),
+              SizedBox(width: TossSpacing.space3),
+              _buildSalaryBadge(
+                'Currency',
+                employee.currencyCode ?? 'USD',
               ),
             ],
           ),
@@ -175,144 +82,88 @@ class CompensationTab extends ConsumerWidget {
     );
   }
 
-  Widget _buildCompensationRow(
-    String label,
-    double amount,
-    String currency, {
-    bool isAddition = false,
-    bool isDeduction = false,
-  }) {
-    final prefix = isAddition ? '+ ' : (isDeduction ? '- ' : '');
-    final color = isDeduction ? TossColors.error : TossColors.gray700;
+  Widget _buildSalaryBadge(String label, String value) {
+    return Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: TossSpacing.space3,
+        vertical: TossSpacing.space2,
+      ),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.2),
+        borderRadius: BorderRadius.circular(TossBorderRadius.md),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: TossTextStyles.caption.copyWith(
+              color: Colors.white.withOpacity(0.8),
+            ),
+          ),
+          Text(
+            value,
+            style: TossTextStyles.body.copyWith(
+              color: Colors.white,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSalaryBreakdown() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Compensation Details',
+          style: TossTextStyles.bodyLarge.copyWith(
+            color: TossColors.gray900,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        SizedBox(height: TossSpacing.space3),
+        _buildBreakdownRow('Base Salary', employee.salaryAmount),
+        _buildBreakdownRow('Bonus', employee.bonusAmount),
+        if (employee.salaryAmount != null) ...[
+          SizedBox(height: TossSpacing.space3),
+          Container(height: 1, color: TossColors.gray200),
+          SizedBox(height: TossSpacing.space3),
+          _buildBreakdownRow(
+            'Total',
+            (employee.salaryAmount ?? 0) + (employee.bonusAmount ?? 0),
+            isTotal: true,
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildBreakdownRow(String label, double? amount, {bool isTotal = false}) {
+    final symbol = employee.currencySymbol ?? '\$';
+    final displayAmount = amount != null 
+        ? '$symbol${amount.toStringAsFixed(2)}'
+        : 'Not set';
     
     return Padding(
-      padding: EdgeInsets.symmetric(vertical: TossSpacing.space1),
+      padding: EdgeInsets.symmetric(vertical: TossSpacing.space3),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
             label,
             style: TossTextStyles.body.copyWith(
-              color: TossColors.gray700,
+              color: isTotal ? TossColors.gray900 : TossColors.gray600,
+              fontWeight: isTotal ? FontWeight.w600 : FontWeight.normal,
             ),
           ),
           Text(
-            '$prefix$currency${amount.toStringAsFixed(2)}',
+            displayAmount,
             style: TossTextStyles.body.copyWith(
-              color: color,
-              fontFamily: 'JetBrains Mono',
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSalaryHistory(BuildContext context) {
-    // Mock salary history - in real app, fetch from database
-    final history = [
-      {'date': DateTime(2024, 1, 1), 'from': 4500.0, 'to': 5000.0},
-      {'date': DateTime(2023, 7, 1), 'from': 4000.0, 'to': 4500.0},
-      {'date': DateTime(2023, 1, 1), 'from': 0.0, 'to': 4000.0},
-    ];
-
-    return Container(
-      padding: EdgeInsets.all(TossSpacing.space4),
-      decoration: BoxDecoration(
-        color: TossColors.surface,
-        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-        boxShadow: TossShadows.shadow2,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Salary History',
-            style: TossTextStyles.h3.copyWith(
               color: TossColors.gray900,
-            ),
-          ),
-          SizedBox(height: TossSpacing.space3),
-          
-          ...history.map((item) => _buildHistoryItem(
-            item['date'] as DateTime,
-            item['from'] as double,
-            item['to'] as double,
-            employee.currencySymbol ?? '\$',
-          )),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildHistoryItem(
-    DateTime date,
-    double fromAmount,
-    double toAmount,
-    String currency,
-  ) {
-    final percentage = fromAmount > 0 
-      ? ((toAmount - fromAmount) / fromAmount * 100).toStringAsFixed(1)
-      : '100';
-    
-    return Padding(
-      padding: EdgeInsets.symmetric(vertical: TossSpacing.space2),
-      child: Row(
-        children: [
-          Container(
-            width: 8,
-            height: 8,
-            decoration: BoxDecoration(
-              color: TossColors.primary,
-              shape: BoxShape.circle,
-            ),
-          ),
-          SizedBox(width: TossSpacing.space3),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  _formatDate(date),
-                  style: TossTextStyles.label.copyWith(
-                    color: TossColors.gray600,
-                  ),
-                ),
-                SizedBox(height: TossSpacing.space1),
-                Row(
-                  children: [
-                    Text(
-                      fromAmount > 0 
-                        ? '$currency${fromAmount.toStringAsFixed(0)} → $currency${toAmount.toStringAsFixed(0)}'
-                        : 'Hired at $currency${toAmount.toStringAsFixed(0)}',
-                      style: TossTextStyles.body.copyWith(
-                        color: TossColors.gray900,
-                        fontFamily: 'JetBrains Mono',
-                      ),
-                    ),
-                    if (fromAmount > 0) ...[
-                      SizedBox(width: TossSpacing.space2),
-                      Container(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: TossSpacing.space1,
-                          vertical: 2,
-                        ),
-                        decoration: BoxDecoration(
-                          color: TossColors.success.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(TossBorderRadius.xs),
-                        ),
-                        child: Text(
-                          '+$percentage%',
-                          style: TossTextStyles.labelSmall.copyWith(
-                            color: TossColors.success,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ],
+              fontWeight: isTotal ? FontWeight.bold : FontWeight.w500,
             ),
           ),
         ],
@@ -320,18 +171,37 @@ class CompensationTab extends ConsumerWidget {
     );
   }
 
-  void _showSalaryEditDialog(BuildContext context, WidgetRef ref) {
-    showDialog(
-      context: context,
-      builder: (context) => SalaryUpdateDialog(employee: employee),
+  Widget _buildPaymentHistory() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Payment History',
+          style: TossTextStyles.bodyLarge.copyWith(
+            color: TossColors.gray900,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        SizedBox(height: TossSpacing.space4),
+        Center(
+          child: Column(
+            children: [
+              Icon(
+                Icons.receipt_long_outlined,
+                size: 48,
+                color: TossColors.gray400,
+              ),
+              SizedBox(height: TossSpacing.space3),
+              Text(
+                'Payment history coming soon',
+                style: TossTextStyles.body.copyWith(
+                  color: TossColors.gray500,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
-  }
-
-  String _formatDate(DateTime date) {
-    final months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
-    ];
-    return '${months[date.month - 1]} ${date.year}';
   }
 }

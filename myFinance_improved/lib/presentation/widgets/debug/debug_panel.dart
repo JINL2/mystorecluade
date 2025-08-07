@@ -339,10 +339,10 @@ class _DebugPanelState extends ConsumerState<DebugPanel> {
           'Cache Info:',
           style: TossTextStyles.caption.copyWith(fontWeight: FontWeight.bold, color: TossColors.success),
         ),
-        _buildStatusRow('Last Sync Time', appState.lastSyncTime?.toString() ?? 'Never'),
-        _buildStatusRow('Data Loaded', (appState.userWithCompanies != null).toString()),
-        _buildStatusRow('Selected Company ID', appState.selectedCompanyId ?? 'None'),
-        _buildStatusRow('Selected Store ID', appState.selectedStoreId ?? 'None'),
+        _buildStatusRow('User Data Loaded', appState.user.isNotEmpty.toString()),
+        _buildStatusRow('Categories Loaded', (appState.categoryFeatures as List).isNotEmpty.toString()),
+        _buildStatusRow('Company Chosen', appState.companyChoosen.isEmpty ? 'None' : appState.companyChoosen),
+        _buildStatusRow('Store Chosen', appState.storeChoosen.isEmpty ? 'None' : appState.storeChoosen),
         const SizedBox(height: 8),
         
         // Environment Information

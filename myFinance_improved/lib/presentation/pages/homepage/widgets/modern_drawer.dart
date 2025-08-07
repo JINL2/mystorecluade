@@ -273,7 +273,7 @@ class _ModernDrawerState extends ConsumerState<ModernDrawer> {
               });
               
               // Select company
-              await ref.read(appStateProvider.notifier).selectCompany(company.id);
+              ref.read(appStateProvider.notifier).setCompanyChoosen(company.id);
               
               // Scroll to top when company is selected
               if (_scrollController.hasClients) {
@@ -418,7 +418,7 @@ class _ModernDrawerState extends ConsumerState<ModernDrawer> {
         color: Colors.transparent,
         child: InkWell(
           onTap: () async {
-            await ref.read(appStateProvider.notifier).selectStore(store.id);
+            ref.read(appStateProvider.notifier).setStoreChoosen(store.id);
             if (context.mounted) {
               Navigator.of(context).pop();
             }
@@ -1433,9 +1433,8 @@ class _ModernDrawerState extends ConsumerState<ModernDrawer> {
       }
       
       if (companyId != null) {
-        // Mark that refresh is needed
+        // No longer marking refresh needed - will refresh directly
         final appStateNotifier = ref.read(appStateProvider.notifier);
-        await appStateNotifier.markRefreshNeeded();
         
         // Force refresh from API using force refresh providers
         try {
@@ -1455,10 +1454,9 @@ class _ModernDrawerState extends ConsumerState<ModernDrawer> {
         ref.invalidate(categoriesWithFeaturesProvider);
         
         // Select the new company after data is refreshed
-        await appStateNotifier.selectCompanyById(companyId);
+        appStateNotifier.setCompanyChoosen(companyId);
         
-        // Clear the refresh flag since we just refreshed
-        await appStateNotifier.clearRefreshFlag();
+        // Data has been refreshed
         
         if (context.mounted) {
           // Close all bottom sheets and dialogs
@@ -1504,9 +1502,7 @@ class _ModernDrawerState extends ConsumerState<ModernDrawer> {
   }
 
   void _joinCompany(BuildContext context, WidgetRef ref, String code) {
-    // Mark refresh needed when joining company
-    final appStateNotifier = ref.read(appStateProvider.notifier);
-    appStateNotifier.markRefreshNeeded();
+    // Will refresh data after joining company
     
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -1570,9 +1566,8 @@ class _ModernDrawerState extends ConsumerState<ModernDrawer> {
       }
       
       if (storeId != null) {
-        // Mark that refresh is needed
+        // No longer marking refresh needed - will refresh directly
         final appStateNotifier = ref.read(appStateProvider.notifier);
-        await appStateNotifier.markRefreshNeeded();
         
         // Force refresh from API using force refresh providers
         try {
@@ -1592,10 +1587,9 @@ class _ModernDrawerState extends ConsumerState<ModernDrawer> {
         ref.invalidate(categoriesWithFeaturesProvider);
         
         // Select the new store after data is refreshed
-        await appStateNotifier.selectStore(storeId);
+        appStateNotifier.setStoreChoosen(storeId);
         
-        // Clear the refresh flag since we just refreshed
-        await appStateNotifier.clearRefreshFlag();
+        // Data has been refreshed
         
         if (context.mounted) {
           // Close all bottom sheets and dialogs
@@ -1641,9 +1635,7 @@ class _ModernDrawerState extends ConsumerState<ModernDrawer> {
   }
 
   void _joinStore(BuildContext context, WidgetRef ref, String code) {
-    // Mark refresh needed when joining store
-    final appStateNotifier = ref.read(appStateProvider.notifier);
-    appStateNotifier.markRefreshNeeded();
+    // Will refresh data after joining store
     
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(

@@ -10,8 +10,6 @@ import '../../../providers/employee_provider.dart';
 import 'tabs/profile_tab.dart';
 import 'tabs/compensation_tab.dart';
 import 'tabs/attendance_tab.dart';
-import 'tabs/permissions_tab.dart';
-import 'tabs/history_tab.dart';
 
 class EmployeeDetailModal extends ConsumerWidget {
   const EmployeeDetailModal({super.key});
@@ -36,7 +34,7 @@ class EmployeeDetailModal extends ConsumerWidget {
           ),
         ),
         child: DefaultTabController(
-          length: 5,
+          length: 3,
           child: Column(
             children: [
               // Handle bar
@@ -55,8 +53,6 @@ class EmployeeDetailModal extends ConsumerWidget {
                     ProfileTab(employee: employee),
                     CompensationTab(employee: employee),
                     AttendanceTab(employee: employee),
-                    PermissionsTab(employee: employee),
-                    HistoryTab(employee: employee),
                   ],
                 ),
               ),
@@ -123,22 +119,15 @@ class EmployeeDetailModal extends ConsumerWidget {
                     color: TossColors.gray600,
                   ),
                 ),
-                Text(
-                  employee.email ?? 'No email' ?? 'No email',
-                  style: TossTextStyles.bodySmall.copyWith(
-                    color: TossColors.gray500,
+                if (employee.email != null && employee.email!.isNotEmpty)
+                  Text(
+                    employee.email!,
+                    style: TossTextStyles.bodySmall.copyWith(
+                      color: TossColors.gray500,
+                    ),
                   ),
-                ),
               ],
             ),
-          ),
-          
-          // Edit button
-          IconButton(
-            icon: Icon(Icons.edit_outlined, color: TossColors.gray700),
-            onPressed: () {
-              // TODO: Implement edit
-            },
           ),
         ],
       ),
@@ -164,10 +153,8 @@ class EmployeeDetailModal extends ConsumerWidget {
         indicatorWeight: 2,
         tabs: const [
           Tab(text: 'Profile'),
-          Tab(text: 'Compensation'),
+          Tab(text: 'Salary'),
           Tab(text: 'Attendance'),
-          Tab(text: 'Permissions'),
-          Tab(text: 'History'),
         ],
       ),
     );

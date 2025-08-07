@@ -5,12 +5,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/themes/toss_colors.dart';
 import '../../../../core/themes/toss_spacing.dart';
 import '../../../../core/themes/toss_text_styles.dart';
-import '../../../../core/themes/toss_border_radius.dart';
-import '../../../../core/utils/role_color_utils.dart';
 import '../../../../domain/entities/employee_filter.dart';
 import '../../../providers/employee_provider.dart';
 
-class EmployeeFilterPanel extends ConsumerWidget {
+class EmployeeFilterPanel extends ConsumerStatefulWidget {
   final bool isMobile;
 
   const EmployeeFilterPanel({
@@ -19,323 +17,424 @@ class EmployeeFilterPanel extends ConsumerWidget {
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final filter = ref.watch(employeeFilterProvider);
+  ConsumerState<EmployeeFilterPanel> createState() => _EmployeeFilterPanelState();
+}
+
+class _EmployeeFilterPanelState extends ConsumerState<EmployeeFilterPanel> {
+  bool _rolesExpanded = true;
+  bool _storesExpanded = true;
+  bool _sortExpanded = true;
+
+  @override
+  Widget build(BuildContext context) {
     final rolesAsync = ref.watch(companyRolesProvider);
     final storesAsync = ref.watch(companyStoresProvider);
-    final employees = ref.watch(employeesStreamProvider);
+    final filter = ref.watch(employeeFilterProvider);
 
     return Container(
-      height: double.infinity,
-      child: SingleChildScrollView(
-        padding: EdgeInsets.all(TossSpacing.space4),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Header
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      decoration: BoxDecoration(
+        color: widget.isMobile ? TossColors.background : TossColors.gray50,
+        border: widget.isMobile
+            ? null
+            : Border(
+                right: BorderSide(
+                  color: TossColors.gray200,
+                  width: 1,
+                ),
+              ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (widget.isMobile) ...[
+            AppBar(
+              backgroundColor: TossColors.background,
+              elevation: 0,
+              leading: IconButton(
+                icon: Icon(Icons.close, color: TossColors.gray900),
+                onPressed: () => Navigator.pop(context),
+              ),
+              title: Text(
+                'Filters',
+                style: TossTextStyles.h3.copyWith(
+                  color: TossColors.gray900,
+                ),
+              ),
+            ),
+          ] else ...[
+            Padding(
+              padding: EdgeInsets.all(TossSpacing.space4),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Filters',
+                    style: TossTextStyles.h3.copyWith(
+                      color: TossColors.gray900,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  if (filter.selectedRoleIds.isNotEmpty || filter.selectedStoreIds.isNotEmpty)
+                    TextButton(
+                      onPressed: () {
+                        ref.read(employeeFilterProvider.notifier).clearFilters();
+                      },
+                      child: Text(
+                        'Clear all',
+                        style: TossTextStyles.labelLarge.copyWith(
+                          color: TossColors.primary,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ],
+          
+          Expanded(
+            child: SingleChildScrollView(
+              padding: EdgeInsets.all(TossSpacing.space4),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Role Filter Section
+                  _buildDropdownFilterSection(
+                    context: context,
+                    ref: ref,
+                    title: 'Roles',
+                    items: rolesAsync.when(
+                      data: (roles) => roles,
+                      loading: () => [],
+                      error: (_, __) => [],
+                    ),
+                    selectedIds: filter.selectedRoleIds,
+                    onToggle: (roleId) {
+                      ref.read(employeeFilterProvider.notifier).toggleRoleFilter(roleId);
+                    },
+                    onSelectAll: () {
+                      final allRoleIds = rolesAsync.value?.map((r) => r['role_id'].toString()).toList() ?? [];
+                      for (final id in allRoleIds) {
+                        if (!filter.selectedRoleIds.contains(id)) {
+                          ref.read(employeeFilterProvider.notifier).toggleRoleFilter(id);
+                        }
+                      }
+                    },
+                    onClearAll: () {
+                      ref.read(employeeFilterProvider.notifier).clearRoleFilters();
+                    },
+                    nameKey: 'role_name',
+                    idKey: 'role_id',
+                    isExpanded: _rolesExpanded,
+                    onExpandToggle: () => setState(() => _rolesExpanded = !_rolesExpanded),
+                  ),
+                  
+                  SizedBox(height: TossSpacing.space6),
+                  
+                  // Store Filter Section
+                  _buildDropdownFilterSection(
+                    context: context,
+                    ref: ref,
+                    title: 'Stores',
+                    items: storesAsync.when(
+                      data: (stores) => stores,
+                      loading: () => [],
+                      error: (_, __) => [],
+                    ),
+                    selectedIds: filter.selectedStoreIds,
+                    onToggle: (storeId) {
+                      ref.read(employeeFilterProvider.notifier).toggleStoreFilter(storeId);
+                    },
+                    onSelectAll: () {
+                      final allStoreIds = storesAsync.value?.map((s) => s['store_id'].toString()).toList() ?? [];
+                      for (final id in allStoreIds) {
+                        if (!filter.selectedStoreIds.contains(id)) {
+                          ref.read(employeeFilterProvider.notifier).toggleStoreFilter(id);
+                        }
+                      }
+                    },
+                    onClearAll: () {
+                      ref.read(employeeFilterProvider.notifier).clearStoreFilters();
+                    },
+                    nameKey: 'store_name',
+                    idKey: 'store_id',
+                    isExpanded: _storesExpanded,
+                    onExpandToggle: () => setState(() => _storesExpanded = !_storesExpanded),
+                  ),
+                  
+                  SizedBox(height: TossSpacing.space6),
+                  
+                  // Sort Options
+                  _buildSortSection(context, ref, filter),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDropdownFilterSection({
+    required BuildContext context,
+    required WidgetRef ref,
+    required String title,
+    required List<Map<String, dynamic>> items,
+    required List<String> selectedIds,
+    required Function(String) onToggle,
+    required VoidCallback onSelectAll,
+    required VoidCallback onClearAll,
+    required String nameKey,
+    required String idKey,
+    required bool isExpanded,
+    required VoidCallback onExpandToggle,
+  }) {
+    final selectedCount = selectedIds.length;
+    final totalCount = items.length;
+    final allSelected = selectedCount == totalCount && totalCount > 0;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        InkWell(
+          onTap: onExpandToggle,
+          borderRadius: BorderRadius.circular(8),
+          child: Padding(
+            padding: EdgeInsets.symmetric(vertical: TossSpacing.space2),
+            child: Row(
               children: [
+                Icon(
+                  isExpanded ? Icons.expand_more : Icons.chevron_right,
+                  color: TossColors.gray600,
+                  size: 20,
+                ),
+                SizedBox(width: TossSpacing.space2),
                 Text(
-                  'Filters',
-                  style: TossTextStyles.h3.copyWith(
+                  title,
+                  style: TossTextStyles.bodyLarge.copyWith(
                     color: TossColors.gray900,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
-                if (filter != const EmployeeFilter())
+                const Spacer(),
+                if (isExpanded && items.isNotEmpty) ...[
                   TextButton(
-                    onPressed: () {
-                      ref.read(employeeFilterProvider.notifier).clearFilters();
-                    },
+                    onPressed: allSelected ? onClearAll : onSelectAll,
+                    style: TextButton.styleFrom(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: TossSpacing.space2,
+                        vertical: TossSpacing.space1,
+                      ),
+                      minimumSize: Size.zero,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
                     child: Text(
-                      'Clear All',
+                      allSelected ? 'Clear' : 'Select all',
                       style: TossTextStyles.label.copyWith(
                         color: TossColors.primary,
                       ),
                     ),
                   ),
+                ],
               ],
             ),
-            SizedBox(height: TossSpacing.space4),
-
-            // Status Filter
-            _buildStatusFilter(context, ref, filter),
-            SizedBox(height: TossSpacing.space4),
-
-            // Role Filter
-            _buildRoleFilter(context, ref, filter, rolesAsync),
-            SizedBox(height: TossSpacing.space4),
-
-            // Store Filter
-            _buildStoreFilter(context, ref, filter, storesAsync),
-            SizedBox(height: TossSpacing.space4),
-
-            // Sort Options
-            _buildSortOptions(context, ref, filter),
-            
-            if (isMobile) SizedBox(height: TossSpacing.space8),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildStatusFilter(
-    BuildContext context,
-    WidgetRef ref,
-    EmployeeFilter filter,
-  ) {
-    return _buildFilterSection(
-      title: 'Status',
-      child: Column(
-        children: [
-          _buildCheckboxItem(
-            'Active Only',
-            filter.activeOnly,
-            (value) {
-              ref.read(employeeFilterProvider.notifier).toggleActiveOnly(value!);
-            },
-            TossColors.success,
           ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildRoleFilter(
-    BuildContext context,
-    WidgetRef ref,
-    EmployeeFilter filter,
-    AsyncValue<List<Map<String, dynamic>>> rolesAsync,
-  ) {
-    return _buildFilterSection(
-      title: 'Role',
-      child: rolesAsync.when(
-        data: (roles) => Column(
-          children: [
-            _buildRadioItem(
-              'All',
-              null,
-              filter.selectedRoleId,
-              (value) {
-                ref.read(employeeFilterProvider.notifier).setRoleFilter(null);
-              },
-            ),
-            ...roles.map((role) => _buildRadioItem(
-              role['role_name'] as String,
-              role['role_id'] as String,
-              filter.selectedRoleId,
-              (value) {
-                ref.read(employeeFilterProvider.notifier).setRoleFilter(value);
-              },
-              RoleColorUtils.getRoleColor(role['role_name'] as String),
-            )),
-          ],
         ),
-        loading: () => _buildLoadingPlaceholder(),
-        error: (_, __) => _buildErrorPlaceholder('Failed to load roles'),
-      ),
-    );
-  }
-
-  Widget _buildStoreFilter(
-    BuildContext context,
-    WidgetRef ref,
-    EmployeeFilter filter,
-    AsyncValue<List<Map<String, dynamic>>> storesAsync,
-  ) {
-    return _buildFilterSection(
-      title: 'Store',
-      child: storesAsync.when(
-        data: (stores) => Column(
-          children: [
-            _buildRadioItem(
-              'All Stores',
-              null,
-              filter.selectedStoreId,
-              (value) {
-                ref.read(employeeFilterProvider.notifier).setStoreFilter(null);
-              },
-            ),
-            ...stores.map((store) => _buildRadioItem(
-              store['store_name'] as String,
-              store['store_id'] as String,
-              filter.selectedStoreId,
-              (value) {
-                ref.read(employeeFilterProvider.notifier).setStoreFilter(value);
-              },
-            )),
-          ],
-        ),
-        loading: () => _buildLoadingPlaceholder(),
-        error: (_, __) => _buildErrorPlaceholder('Failed to load stores'),
-      ),
-    );
-  }
-
-  Widget _buildSortOptions(
-    BuildContext context,
-    WidgetRef ref,
-    EmployeeFilter filter,
-  ) {
-    return _buildFilterSection(
-      title: 'Sort By',
-      child: Column(
-        children: [
-          ...EmployeeSortBy.values.map((sortBy) => _buildRadioItem(
-            _getSortByLabel(sortBy),
-            sortBy,
-            filter.sortBy,
-            (value) {
-              ref.read(employeeFilterProvider.notifier).setSortBy(value!);
-            },
-          )),
+        
+        if (isExpanded) ...[
           SizedBox(height: TossSpacing.space2),
-          Row(
-            children: [
-              Text(
-                'Order:',
+          if (items.isEmpty) ...[
+            Container(
+              padding: EdgeInsets.all(TossSpacing.space4),
+              decoration: BoxDecoration(
+                color: TossColors.gray100,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                'No $title available',
                 style: TossTextStyles.body.copyWith(
-                  color: TossColors.gray700,
+                  color: TossColors.gray500,
                 ),
               ),
-              SizedBox(width: TossSpacing.space2),
-              IconButton(
-                icon: Icon(
-                  filter.sortAscending
-                    ? Icons.arrow_upward
-                    : Icons.arrow_downward,
-                  color: TossColors.primary,
-                  size: 20,
-                ),
-                onPressed: () {
-                  ref.read(employeeFilterProvider.notifier).toggleSortOrder();
-                },
-              ),
-              Text(
-                filter.sortAscending ? 'Ascending' : 'Descending',
-                style: TossTextStyles.label.copyWith(
-                  color: TossColors.gray600,
-                ),
-              ),
-            ],
-          ),
+            ),
+          ] else ...[
+            Column(
+              children: items.map((item) {
+                final id = item[idKey].toString();
+                final name = item[nameKey] ?? 'Unknown';
+                final isSelected = selectedIds.contains(id);
+                
+                return InkWell(
+                  onTap: () => onToggle(id),
+                  borderRadius: BorderRadius.circular(8),
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(
+                      vertical: TossSpacing.space2,
+                      horizontal: TossSpacing.space2,
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 20,
+                          height: 20,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: isSelected ? TossColors.primary : TossColors.gray300,
+                              width: 2,
+                            ),
+                            color: isSelected ? TossColors.primary : Colors.transparent,
+                          ),
+                          child: isSelected
+                              ? Icon(
+                                  Icons.check,
+                                  size: 12,
+                                  color: Colors.white,
+                                )
+                              : null,
+                        ),
+                        SizedBox(width: TossSpacing.space3),
+                        Expanded(
+                          child: Text(
+                            name,
+                            style: TossTextStyles.body.copyWith(
+                              color: TossColors.gray900,
+                              fontWeight: isSelected ? FontWeight.w500 : FontWeight.w400,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+          ],
         ],
-      ),
-    );
-  }
-
-  Widget _buildFilterSection({
-    required String title,
-    required Widget child,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          title,
-          style: TossTextStyles.labelLarge.copyWith(
-            color: TossColors.gray900,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        SizedBox(height: TossSpacing.space2),
-        child,
       ],
     );
   }
 
-  Widget _buildCheckboxItem(
-    String label,
-    bool value,
-    ValueChanged<bool?> onChanged,
-    Color? color,
-  ) {
-    return InkWell(
-      onTap: () => onChanged(!value),
-      borderRadius: BorderRadius.circular(TossBorderRadius.sm),
-      child: Padding(
-        padding: EdgeInsets.symmetric(vertical: TossSpacing.space1),
-        child: Row(
-          children: [
-            SizedBox(
-              width: 24,
-              height: 24,
-              child: Checkbox(
-                value: value,
-                onChanged: onChanged,
-                activeColor: color ?? TossColors.primary,
-                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              ),
-            ),
-            SizedBox(width: TossSpacing.space2),
-            Expanded(
-              child: Text(
-                label,
-                style: TossTextStyles.body.copyWith(
-                  color: TossColors.gray700,
+  Widget _buildSortSection(BuildContext context, WidgetRef ref, filter) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        InkWell(
+          onTap: () => setState(() => _sortExpanded = !_sortExpanded),
+          borderRadius: BorderRadius.circular(8),
+          child: Padding(
+            padding: EdgeInsets.symmetric(vertical: TossSpacing.space2),
+            child: Row(
+              children: [
+                Icon(
+                  _sortExpanded ? Icons.expand_more : Icons.chevron_right,
+                  color: TossColors.gray600,
+                  size: 20,
                 ),
-              ),
+                SizedBox(width: TossSpacing.space2),
+                Text(
+                  'Sort By',
+                  style: TossTextStyles.bodyLarge.copyWith(
+                    color: TossColors.gray900,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                SizedBox(width: TossSpacing.space2),
+                Text(
+                  _getSortLabel(filter.sortBy),
+                  style: TossTextStyles.body.copyWith(
+                    color: TossColors.gray600,
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
-      ),
+        
+        if (_sortExpanded) ...[
+          SizedBox(height: TossSpacing.space2),
+          Column(
+            children: [
+              _buildSortOption(
+                context: context,
+                ref: ref,
+                label: 'Name',
+                sortBy: EmployeeSortBy.name,
+                currentSortBy: filter.sortBy,
+              ),
+              _buildSortOption(
+                context: context,
+                ref: ref,
+                label: 'Role',
+                sortBy: EmployeeSortBy.role,
+                currentSortBy: filter.sortBy,
+              ),
+              _buildSortOption(
+                context: context,
+                ref: ref,
+                label: 'Salary',
+                sortBy: EmployeeSortBy.salary,
+                currentSortBy: filter.sortBy,
+              ),
+              _buildSortOption(
+                context: context,
+                ref: ref,
+                label: 'Join Date',
+                sortBy: EmployeeSortBy.joinDate,
+                currentSortBy: filter.sortBy,
+              ),
+            ],
+          ),
+        ],
+      ],
     );
   }
 
-  Widget _buildRadioItem<T>(
-    String label,
-    T value,
-    T? groupValue,
-    ValueChanged<T?> onChanged,
-    [Color? indicatorColor]
-  ) {
-    final isSelected = value == groupValue;
+  Widget _buildSortOption({
+    required BuildContext context,
+    required WidgetRef ref,
+    required String label,
+    required EmployeeSortBy sortBy,
+    required EmployeeSortBy currentSortBy,
+  }) {
+    final isSelected = sortBy == currentSortBy;
     
     return InkWell(
-      onTap: () => onChanged(value),
-      borderRadius: BorderRadius.circular(TossBorderRadius.sm),
-      child: Container(
+      onTap: () {
+        ref.read(employeeFilterProvider.notifier).setSortBy(sortBy);
+      },
+      borderRadius: BorderRadius.circular(8),
+      child: Padding(
         padding: EdgeInsets.symmetric(
-          horizontal: TossSpacing.space2,
           vertical: TossSpacing.space2,
-        ),
-        decoration: BoxDecoration(
-          color: isSelected ? TossColors.gray100 : Colors.transparent,
-          borderRadius: BorderRadius.circular(TossBorderRadius.sm),
+          horizontal: TossSpacing.space2,
         ),
         child: Row(
           children: [
-            SizedBox(
+            Container(
               width: 20,
               height: 20,
-              child: Radio<T>(
-                value: value,
-                groupValue: groupValue,
-                onChanged: onChanged,
-                activeColor: TossColors.primary,
-                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: isSelected ? TossColors.primary : TossColors.gray300,
+                  width: 2,
+                ),
+                color: isSelected ? TossColors.primary : Colors.transparent,
               ),
+              child: isSelected
+                  ? Icon(
+                      Icons.check,
+                      size: 12,
+                      color: Colors.white,
+                    )
+                  : null,
             ),
-            SizedBox(width: TossSpacing.space2),
-            if (indicatorColor != null) ...[
-              Container(
-                width: 8,
-                height: 8,
-                decoration: BoxDecoration(
-                  color: indicatorColor,
-                  shape: BoxShape.circle,
-                ),
-              ),
-              SizedBox(width: TossSpacing.space2),
-            ],
-            Expanded(
-              child: Text(
-                label,
-                style: TossTextStyles.body.copyWith(
-                  color: TossColors.gray700,
-                  fontWeight: isSelected ? FontWeight.w500 : FontWeight.normal,
-                ),
+            SizedBox(width: TossSpacing.space3),
+            Text(
+              label,
+              style: TossTextStyles.body.copyWith(
+                color: TossColors.gray900,
+                fontWeight: isSelected ? FontWeight.w500 : FontWeight.w400,
               ),
             ),
           ],
@@ -344,31 +443,7 @@ class EmployeeFilterPanel extends ConsumerWidget {
     );
   }
 
-  Widget _buildLoadingPlaceholder() {
-    return Center(
-      child: Padding(
-        padding: EdgeInsets.symmetric(vertical: TossSpacing.space3),
-        child: CircularProgressIndicator(
-          strokeWidth: 2,
-          valueColor: AlwaysStoppedAnimation<Color>(TossColors.primary),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildErrorPlaceholder(String message) {
-    return Padding(
-      padding: EdgeInsets.symmetric(vertical: TossSpacing.space2),
-      child: Text(
-        message,
-        style: TossTextStyles.bodySmall.copyWith(
-          color: TossColors.error,
-        ),
-      ),
-    );
-  }
-
-  String _getSortByLabel(EmployeeSortBy sortBy) {
+  String _getSortLabel(EmployeeSortBy sortBy) {
     switch (sortBy) {
       case EmployeeSortBy.name:
         return 'Name';

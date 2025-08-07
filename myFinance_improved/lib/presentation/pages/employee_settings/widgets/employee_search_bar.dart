@@ -1,95 +1,77 @@
-// lib/presentation/pages/employee_settings/widgets/employee_search_bar.dart
-
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/themes/toss_colors.dart';
 import '../../../../core/themes/toss_spacing.dart';
 import '../../../../core/themes/toss_text_styles.dart';
-import '../../../../core/themes/toss_border_radius.dart';
-import '../../../providers/employee_provider.dart';
 
-class EmployeeSearchBar extends ConsumerStatefulWidget {
-  const EmployeeSearchBar({super.key});
+class EmployeeSearchBar extends StatefulWidget {
+  final Function(String)? onSearch;
+  
+  const EmployeeSearchBar({
+    super.key,
+    this.onSearch,
+  });
 
   @override
-  ConsumerState<EmployeeSearchBar> createState() => _EmployeeSearchBarState();
+  State<EmployeeSearchBar> createState() => _EmployeeSearchBarState();
 }
 
-class _EmployeeSearchBarState extends ConsumerState<EmployeeSearchBar> {
-  late TextEditingController _searchController;
-  
-  @override
-  void initState() {
-    super.initState();
-    _searchController = TextEditingController();
-  }
+class _EmployeeSearchBarState extends State<EmployeeSearchBar> {
+  final TextEditingController _searchController = TextEditingController();
+  final FocusNode _focusNode = FocusNode();
 
   @override
   void dispose() {
     _searchController.dispose();
+    _focusNode.dispose();
     super.dispose();
-  }
-
-  void _onSearchChanged(String value) {
-    ref.read(employeeFilterProvider.notifier).updateSearchQuery(value);
-  }
-
-  void _clearSearch() {
-    _searchController.clear();
-    ref.read(employeeFilterProvider.notifier).updateSearchQuery('');
   }
 
   @override
   Widget build(BuildContext context) {
-    final filter = ref.watch(employeeFilterProvider);
-    
     return Container(
-      height: 48,
+      height: 44,
       decoration: BoxDecoration(
         color: TossColors.gray50,
-        borderRadius: BorderRadius.circular(TossBorderRadius.md),
-        border: Border.all(
-          color: TossColors.gray200,
-          width: 1,
-        ),
+        borderRadius: BorderRadius.circular(12),
       ),
-      child: Row(
-        children: [
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: TossSpacing.space3),
-            child: Icon(
-              Icons.search,
-              color: TossColors.gray600,
-              size: 20,
-            ),
+      child: TextField(
+        controller: _searchController,
+        focusNode: _focusNode,
+        onChanged: widget.onSearch,
+        style: TossTextStyles.body.copyWith(
+          color: TossColors.gray900,
+        ),
+        decoration: InputDecoration(
+          hintText: 'Search by name, role, or email',
+          hintStyle: TossTextStyles.body.copyWith(
+            color: TossColors.gray500,
           ),
-          Expanded(
-            child: TextField(
-              controller: _searchController,
-              onChanged: _onSearchChanged,
-              style: TossTextStyles.body.copyWith(
-                color: TossColors.gray900,
-              ),
-              decoration: InputDecoration(
-                hintText: 'Search by name, email, or role...',
-                hintStyle: TossTextStyles.body.copyWith(
-                  color: TossColors.gray500,
-                ),
-                border: InputBorder.none,
-                contentPadding: EdgeInsets.zero,
-              ),
-            ),
+          prefixIcon: Icon(
+            Icons.search,
+            color: TossColors.gray500,
+            size: 22,
           ),
-          if (filter.searchQuery.isNotEmpty)
-            IconButton(
-              icon: Icon(
-                Icons.clear,
-                color: TossColors.gray600,
-                size: 20,
-              ),
-              onPressed: _clearSearch,
-            ),
-        ],
+          suffixIcon: _searchController.text.isNotEmpty
+              ? IconButton(
+                  icon: Icon(
+                    Icons.clear,
+                    color: TossColors.gray500,
+                    size: 20,
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      _searchController.clear();
+                      widget.onSearch?.call('');
+                    });
+                  },
+                )
+              : null,
+          border: InputBorder.none,
+          contentPadding: EdgeInsets.symmetric(
+            horizontal: TossSpacing.space3,
+            vertical: TossSpacing.space2,
+          ),
+        ),
       ),
     );
   }

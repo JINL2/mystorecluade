@@ -1,24 +1,39 @@
 // lib/domain/entities/employee_filter.dart
 
-import 'package:freezed_annotation/freezed_annotation.dart';
+enum EmployeeSortBy { name, role, salary, joinDate }
 
-part 'employee_filter.freezed.dart';
+class EmployeeFilter {
+  final String searchQuery;
+  final bool activeOnly;
+  final List<String> selectedRoleIds;
+  final List<String> selectedStoreIds;
+  final EmployeeSortBy sortBy;
+  final bool sortAscending;
 
-@freezed
-class EmployeeFilter with _$EmployeeFilter {
-  const factory EmployeeFilter({
-    @Default('') String searchQuery,
-    @Default(true) bool activeOnly,
-    String? selectedRoleId,
-    String? selectedStoreId,
-    @Default(EmployeeSortBy.name) EmployeeSortBy sortBy,
-    @Default(true) bool sortAscending,
-  }) = _EmployeeFilter;
-}
+  const EmployeeFilter({
+    this.searchQuery = '',
+    this.activeOnly = true,
+    this.selectedRoleIds = const [],
+    this.selectedStoreIds = const [],
+    this.sortBy = EmployeeSortBy.name,
+    this.sortAscending = true,
+  });
 
-enum EmployeeSortBy {
-  name,
-  role,
-  salary,
-  joinDate,
+  EmployeeFilter copyWith({
+    String? searchQuery,
+    bool? activeOnly,
+    List<String>? selectedRoleIds,
+    List<String>? selectedStoreIds,
+    EmployeeSortBy? sortBy,
+    bool? sortAscending,
+  }) {
+    return EmployeeFilter(
+      searchQuery: searchQuery ?? this.searchQuery,
+      activeOnly: activeOnly ?? this.activeOnly,
+      selectedRoleIds: selectedRoleIds ?? this.selectedRoleIds,
+      selectedStoreIds: selectedStoreIds ?? this.selectedStoreIds,
+      sortBy: sortBy ?? this.sortBy,
+      sortAscending: sortAscending ?? this.sortAscending,
+    );
+  }
 }
