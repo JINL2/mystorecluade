@@ -5,12 +5,18 @@
 
 ## 🚀 빠른 시작
 
+### 🔑 첫 번째 단계: GitHub 인증 설정
+**[→ GitHub Token 설정 가이드](./docs/00-GITHUB-TOKEN-SETUP.md)** (필수, 3분 소요)
+
+프로젝트 정보:
+
 ```yaml
 프로젝트: MyFinance (Flutter)
 상태관리: Riverpod
 데이터베이스: Supabase
 디자인시스템: Toss Design System
 GitHub: https://github.com/JINL2/mystorecluade
+인증: 각 개발자가 자신의 GitHub Token 사용 (문서 참조)
 ```
 
 ## 📍 필수 확인 사항
