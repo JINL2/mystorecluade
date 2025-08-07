@@ -65,6 +65,13 @@ GitHub: https://github.com/JINL2/mystorecluade
 - 파일 위치
 - 명명 규칙
 
+### 7. 버전 관리가 필요할 때
+**[→ 버전 관리 가이드](./docs/08-VERSION-CONTROL.md)**
+- Semantic Versioning
+- 브랜치 전략
+- 릴리즈 프로세스
+- CHANGELOG 관리
+
 ## ⚡ 빠른 명령어
 
 ```bash
