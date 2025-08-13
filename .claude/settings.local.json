@@ -1,5 +1,4 @@
 {
-  "$schema": "https://json.schemastore.org/claude-code-settings.json",
   "permissions": {
     "allow": [
       "Bash(mkdir:*)",
@@ -19,11 +18,9 @@
       "Bash(find:*)",
       "Bash(flutter doctor:*)",
       "Bash(cp:*)",
-      "Bash(touch:*)",
       "Bash(flutter pub run build_runner build:*)",
-      "Bash(ls:*)",
-      "Bash(open:*)",
-      "Bash(flutter pub:*)"
+      "Bash(rm:*)",
+      "Bash(flutter packages pub run build_runner build:*)"
     ],
     "deny": []
   }
