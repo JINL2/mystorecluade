@@ -125,9 +125,6 @@ class _CounterPartyFormState extends ConsumerState<CounterPartyForm> with Ticker
       linkedCompanyId: _linkedCompanyId,
     );
 
-    print('FormSave: Widget counterParty: ${widget.counterParty?.toJson()}');
-    print('FormSave: Form data prepared: ${formData.toJson()}');
-    print('FormSave: Is update operation: ${widget.counterParty != null}');
 
     try {
       CounterPartyResponse response;
