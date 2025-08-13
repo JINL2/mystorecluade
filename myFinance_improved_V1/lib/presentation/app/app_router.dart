@@ -10,7 +10,7 @@ import '../pages/attendance/attendance_main_page.dart';
 import '../pages/time_table_manage/time_table_manage_page.dart';
 import '../pages/cash_ending/cash_ending_page.dart';
 import '../pages/journal_input/journal_input_page.dart';
-import '../pages/employee_setting/employee_setting_page.dart';
+import '../pages/employee_setting/enhanced_employee_setting_page.dart';
 import '../pages/role_permission/role_permission_page.dart';
 import '../pages/delegate_role/delegate_role_page.dart';
 import '../pages/timetable/timetable_page.dart';
@@ -104,14 +104,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           // Additional HR Features
           GoRoute(
             path: 'employeeSetting',
-            builder: (context, state) => const EmployeeSettingPage(),
+            builder: (context, state) => const EnhancedEmployeeSettingPage(),
           ),
           GoRoute(
             path: 'rolePermissionPage',
             builder: (context, state) => const RolePermissionPage(),
           ),
           GoRoute(
-            path: 'delegateRole',
+            path: 'delegateRolePage',
             builder: (context, state) => const DelegateRolePage(),
           ),
           GoRoute(

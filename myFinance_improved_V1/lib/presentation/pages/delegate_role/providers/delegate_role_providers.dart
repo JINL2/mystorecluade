@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:myfinance_improved/presentation/providers/auth_provider.dart';
 import 'package:myfinance_improved/presentation/providers/app_state_provider.dart';
+import '../models/delegate_role_models.dart';
 
 /// Provider for user data with companies (reuses app state)
 final userCompaniesProvider = FutureProvider<dynamic>((ref) async {
@@ -150,10 +151,410 @@ final forceRefreshCategoriesProvider = FutureProvider<dynamic>((ref) async {
   return filteredCategories;
 });
 
-/// Delegate Role specific providers will be added here
-/// For now, we maintain the same app state structure as homepage
+// Delegate Role specific providers
 
-// TODO: Add delegate role specific data providers here
+/// Provider for active role delegations
+final activeDelegationsProvider = FutureProvider<List<RoleDelegation>>((ref) async {
+  final user = ref.watch(authStateProvider);
+  final appState = ref.watch(appStateProvider);
+  
+  if (user == null) {
+    throw UnauthorizedException();
+  }
+  
+  final selectedCompany = appState.companyChoosen;
+  if (selectedCompany.isEmpty) {
+    return [];
+  }
+  
+  // For now, return empty list since we don't have delegation tables yet
+  // In production, you would either:
+  // 1. Create the role_delegations table in Supabase
+  // 2. Use user_roles with additional metadata
+  // 3. Implement using a different approach
+  
+  return [];
+  
+  // TODO: Implement when delegation tables are created
+  // final supabase = Supabase.instance.client;
+  // final response = await supabase
+  //     .from('role_delegations')
+  //     .select('''
+  //       *,
+  //       delegate:users!delegate_id(id, name, email),
+  //       role:roles(id, name)
+  //     ''')
+  //     .eq('delegator_id', user.id)
+  //     .eq('company_id', selectedCompany)
+  //     .eq('is_active', true)
+  //     .gte('end_date', DateTime.now().toIso8601String())
+  //     .order('created_at', ascending: false);
+  
+  // return (response as List)
+  //     .map((json) => RoleDelegation.fromJson({
+  //       ...json,
+  //       'delegateUser': json['delegate'],
+  //       'roleName': json['role']['name'],
+  //     }))
+  //     .toList();
+});
+
+/// Provider for roles that the current user can delegate
+final delegatableRolesProvider = FutureProvider<List<DelegatableRole>>((ref) async {
+  final appState = ref.watch(appStateProvider);
+  final selectedCompany = ref.read(appStateProvider.notifier).selectedCompany;
+  
+  if (selectedCompany == null) {
+    return [];
+  }
+  
+  final supabase = Supabase.instance.client;
+  
+  try {
+    // Fetch all roles for the company
+    final rolesResponse = await supabase
+        .from('roles')
+        .select('*')
+        .eq('company_id', appState.companyChoosen);
+    
+    final roles = rolesResponse as List;
+    
+    // Get current user's role
+    final userRole = selectedCompany['role'];
+    final currentUserRoleName = userRole['role_name']?.toString().toLowerCase() ?? '';
+    
+    // Define delegation hierarchy
+    // Owner can delegate all roles
+    // Manager can delegate Employee roles
+    // Others cannot delegate
+    final canDelegateRoles = <DelegatableRole>[];
+    
+    for (final role in roles) {
+      final roleId = role['role_id'] as String;
+      final roleName = role['role_name'] as String;
+      final roleType = role['role_type'] as String? ?? '';
+      
+      bool canDelegate = false;
+      String description = '';
+      
+      // Determine if current user can delegate this role
+      if (currentUserRoleName == 'owner') {
+        canDelegate = true;
+        description = 'Full delegation rights as Owner';
+      } else if (currentUserRoleName == 'manager') {
+        // Managers can only delegate to employees
+        if (roleName.toLowerCase() == 'employee') {
+          canDelegate = true;
+          description = 'Can delegate Employee role';
+        }
+      }
+      
+      if (canDelegate) {
+        // Get permissions for this role
+        final permissionsResponse = await supabase
+            .from('role_permissions')
+            .select('feature_id')
+            .eq('role_id', roleId);
+        
+        final permissions = (permissionsResponse as List)
+            .map((p) => p['feature_id'] as String)
+            .toList();
+        
+        canDelegateRoles.add(DelegatableRole(
+          roleId: roleId,
+          roleName: roleName,
+          description: description.isEmpty ? 'Role type: $roleType' : description,
+          permissions: permissions,
+          canDelegate: canDelegate,
+        ));
+      }
+    }
+    
+    return canDelegateRoles;
+  } catch (e) {
+    print('Error fetching delegatable roles: $e');
+    return [];
+  }
+});
+
+/// Provider for delegation history (audit trail)
+final delegationHistoryProvider = FutureProvider<List<DelegationAudit>>((ref) async {
+  final user = ref.watch(authStateProvider);
+  final appState = ref.watch(appStateProvider);
+  
+  if (user == null) {
+    throw UnauthorizedException();
+  }
+  
+  final selectedCompany = appState.companyChoosen;
+  if (selectedCompany.isEmpty) {
+    return [];
+  }
+  
+  // Return empty list for now
+  return [];
+  
+  // TODO: Implement when audit tables are created
+  // final supabase = Supabase.instance.client;
+  // final response = await supabase
+  //     .from('delegation_audit')
+  //     .select('''
+  //       *,
+  //       performer:users!performed_by(id, name, email)
+  //     ''')
+  //     .eq('company_id', selectedCompany)
+  //     .order('timestamp', ascending: false)
+  //     .limit(50);
+  
+  // return (response as List)
+  //     .map((json) => DelegationAudit.fromJson({
+  //       ...json,
+  //       'performedByUser': json['performer'],
+  //     }))
+  //     .toList();
+});
+
+/// Provider for company users (for delegation selection)
+final companyUsersProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
+  final appState = ref.watch(appStateProvider);
+  final selectedCompany = appState.companyChoosen;
+  
+  if (selectedCompany.isEmpty) {
+    return [];
+  }
+  
+  final supabase = Supabase.instance.client;
+  
+  // Get all users in the current company using user_companies table
+  final response = await supabase
+      .from('user_companies')
+      .select('''
+        user:users!user_id(user_id, name, email),
+        company:companies!company_id(company_id, company_name)
+      ''')
+      .eq('company_id', selectedCompany)
+      .eq('is_deleted', false);
+  
+  return (response as List).map((item) => {
+    'id': item['user']['user_id'],
+    'name': item['user']['name'] ?? 'Unknown User',
+    'email': item['user']['email'] ?? '',
+    'role': 'Employee', // Default role text
+  }).toList();
+});
+
+/// Provider for all company roles (for display in cards)
+final allCompanyRolesProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
+  final appState = ref.watch(appStateProvider);
+  final selectedCompany = ref.read(appStateProvider.notifier).selectedCompany;
+  
+  if (selectedCompany == null || appState.companyChoosen.isEmpty) {
+    return [];
+  }
+  
+  final supabase = Supabase.instance.client;
+  
+  try {
+    // Fetch all roles for the company
+    final rolesResponse = await supabase
+        .from('roles')
+        .select('*')
+        .eq('company_id', appState.companyChoosen);
+    
+    final roles = rolesResponse as List;
+    final rolesWithPermissions = <Map<String, dynamic>>[];
+    
+    // Get current user's role to determine edit permissions
+    final userRole = selectedCompany['role'];
+    final currentUserRoleName = userRole['role_name']?.toString().toLowerCase() ?? '';
+    final canEditRoles = currentUserRoleName == 'owner'; // Only owners can edit roles
+    
+    for (final role in roles) {
+      final roleId = role['role_id'] as String;
+      final roleName = role['role_name'] as String;
+      
+      // Get permissions for this role
+      final permissionsResponse = await supabase
+          .from('role_permissions')
+          .select('feature_id')
+          .eq('role_id', roleId);
+      
+      final permissions = (permissionsResponse as List)
+          .map((p) => p['feature_id'] as String)
+          .toList();
+      
+      // Determine if current user can delegate this role
+      bool canDelegate = false;
+      if (currentUserRoleName == 'owner') {
+        canDelegate = true;
+      } else if (currentUserRoleName == 'manager' && roleName.toLowerCase() == 'employee') {
+        canDelegate = true;
+      }
+      
+      // For now, set member count to 0 since we need to implement proper role-user mapping
+      // TODO: Implement proper member count when user-role relationship is established
+      final memberCount = 0;
+
+      rolesWithPermissions.add({
+        'roleId': roleId,
+        'roleName': roleName,
+        'permissions': permissions,
+        'memberCount': memberCount,
+        'canEdit': canEditRoles,
+        'canDelegate': canDelegate,
+      });
+    }
+    
+    return rolesWithPermissions;
+  } catch (e) {
+    print('Error fetching all company roles: $e');
+    return [];
+  }
+});
+
+/// Create delegation provider
+final createDelegationProvider = Provider((ref) {
+  return (CreateDelegationRequest request) async {
+    final user = ref.read(authStateProvider);
+    final appState = ref.read(appStateProvider);
+    
+    if (user == null) {
+      throw UnauthorizedException();
+    }
+    
+    final selectedCompany = appState.companyChoosen;
+    if (selectedCompany.isEmpty) {
+      throw Exception('No company selected');
+    }
+    
+    // TODO: Implement when delegation tables are created
+    // For now, just show success message
+    await Future.delayed(const Duration(seconds: 1)); // Simulate API call
+    
+    // final supabase = Supabase.instance.client;
+    // await supabase.from('role_delegations').insert({
+    //   'delegator_id': user.id,
+    //   'delegate_id': request.delegateId,
+    //   'company_id': selectedCompany,
+    //   'role_id': request.roleId,
+    //   'permissions': request.permissions,
+    //   'start_date': request.startDate.toIso8601String(),
+    //   'end_date': request.endDate.toIso8601String(),
+    //   'is_active': true,
+    // });
+    
+    // Invalidate the active delegations to refresh
+    ref.invalidate(activeDelegationsProvider);
+  };
+});
+
+/// Revoke delegation provider
+final revokeDelegationProvider = Provider((ref) {
+  return (String delegationId) async {
+    final user = ref.read(authStateProvider);
+    
+    if (user == null) {
+      throw UnauthorizedException();
+    }
+    
+    // TODO: Implement when delegation tables are created
+    // For now, just show success message
+    await Future.delayed(const Duration(seconds: 1)); // Simulate API call
+    
+    // final supabase = Supabase.instance.client;
+    // await supabase
+    //     .from('role_delegations')
+    //     .update({'is_active': false})
+    //     .eq('id', delegationId);
+    
+    // Invalidate the active delegations to refresh
+    ref.invalidate(activeDelegationsProvider);
+  };
+});
+
+/// Provider for all available features with categories (for permission management)
+final allFeaturesWithCategoriesProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
+  final supabase = Supabase.instance.client;
+  
+  try {
+    // Fetch all categories with features using RPC
+    final categories = await supabase.rpc('get_categories_with_features');
+    
+    return (categories as List).cast<Map<String, dynamic>>();
+  } catch (e) {
+    print('Error fetching features with categories: $e');
+    return [];
+  }
+});
+
+/// Provider for role permissions (for editing)
+final rolePermissionsProvider = FutureProvider.family<Map<String, dynamic>, String>((ref, roleId) async {
+  final supabase = Supabase.instance.client;
+  
+  try {
+    // Get current permissions for the role
+    final permissionsResponse = await supabase
+        .from('role_permissions')
+        .select('feature_id')
+        .eq('role_id', roleId);
+    
+    final currentPermissions = (permissionsResponse as List)
+        .map((p) => p['feature_id'] as String)
+        .toSet();
+    
+    // Get all features with categories
+    final categories = await supabase.rpc('get_categories_with_features');
+    
+    return {
+      'currentPermissions': currentPermissions,
+      'categories': categories,
+    };
+  } catch (e) {
+    print('Error fetching role permissions: $e');
+    return {
+      'currentPermissions': <String>{},
+      'categories': [],
+    };
+  }
+});
+
+/// Provider for updating role permissions
+final updateRolePermissionsProvider = Provider((ref) {
+  return (String roleId, Set<String> newPermissions) async {
+    final supabase = Supabase.instance.client;
+    
+    try {
+      // First, delete all existing permissions for the role
+      await supabase
+          .from('role_permissions')
+          .delete()
+          .eq('role_id', roleId);
+      
+      // Then, insert the new permissions
+      if (newPermissions.isNotEmpty) {
+        final permissionInserts = newPermissions
+            .map((featureId) => {
+                  'role_id': roleId,
+                  'feature_id': featureId,
+                })
+            .toList();
+        
+        await supabase
+            .from('role_permissions')
+            .insert(permissionInserts);
+      }
+      
+      // Invalidate related providers to refresh data
+      ref.invalidate(allCompanyRolesProvider);
+      ref.invalidate(rolePermissionsProvider(roleId));
+      
+      return true;
+    } catch (e) {
+      print('Error updating role permissions: $e');
+      throw e;
+    }
+  };
+});
 
 /// Exception class
 class UnauthorizedException implements Exception {
