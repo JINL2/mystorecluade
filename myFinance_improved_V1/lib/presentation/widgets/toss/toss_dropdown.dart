@@ -47,13 +47,23 @@ class TossDropdown<T> extends StatelessWidget {
         // Dropdown Field
         Container(
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(TossBorderRadius.md),
+            borderRadius: BorderRadius.circular(14),
+            color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.3),
             border: Border.all(
               color: hasError
                 ? Theme.of(context).colorScheme.error
-                : Theme.of(context).colorScheme.outline.withOpacity(0.3),
-              width: 1.5,
+                : value != null 
+                  ? Theme.of(context).colorScheme.primary.withOpacity(0.3)
+                  : Theme.of(context).colorScheme.outline.withOpacity(0.2),
+              width: value != null ? 1.5 : 1,
             ),
+            boxShadow: [
+              BoxShadow(
+                color: Theme.of(context).colorScheme.shadow.withOpacity(0.05),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
           child: Material(
             color: Colors.transparent,
@@ -61,36 +71,74 @@ class TossDropdown<T> extends StatelessWidget {
               onTap: isLoading || onChanged == null 
                 ? null 
                 : () => _showSelectionBottomSheet(context),
-              borderRadius: BorderRadius.circular(TossBorderRadius.md),
+              borderRadius: BorderRadius.circular(14),
               child: Container(
                 padding: EdgeInsets.symmetric(
                   horizontal: TossSpacing.space4,
-                  vertical: TossSpacing.space3,
+                  vertical: TossSpacing.space3 + 2,
                 ),
                 child: Row(
                   children: [
+                    // Company icon
+                    Container(
+                      width: 32,
+                      height: 32,
+                      decoration: BoxDecoration(
+                        color: value != null 
+                          ? Theme.of(context).colorScheme.primary.withOpacity(0.1)
+                          : Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.5),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Icon(
+                        Icons.business_rounded,
+                        color: value != null
+                          ? Theme.of(context).colorScheme.primary
+                          : Theme.of(context).colorScheme.onSurfaceVariant,
+                        size: 18,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    
                     // Selected value or hint
                     Expanded(
                       child: isLoading
                         ? _buildLoadingIndicator(context)
-                        : Text(
-                            value != null 
-                              ? items.firstWhere((item) => item.value == value).label
-                              : hint ?? 'Select $label',
-                            style: TossTextStyles.body.copyWith(
-                              color: value != null
-                                ? Theme.of(context).colorScheme.onSurface
-                                : Theme.of(context).colorScheme.onSurfaceVariant,
-                              fontWeight: value != null ? FontWeight.w500 : FontWeight.w400,
-                            ),
+                        : Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                value != null 
+                                  ? items.where((item) => item.value == value).isNotEmpty
+                                    ? items.firstWhere((item) => item.value == value).label
+                                    : 'Invalid selection'
+                                  : hint ?? 'Select $label',
+                                style: TossTextStyles.body.copyWith(
+                                  color: value != null
+                                    ? Theme.of(context).colorScheme.onSurface
+                                    : Theme.of(context).colorScheme.onSurfaceVariant,
+                                  fontWeight: value != null ? FontWeight.w600 : FontWeight.w400,
+                                  fontSize: 16,
+                                ),
+                              ),
+                              // Remove subtitle display in main field for cleaner look
+                            ],
                           ),
                     ),
                     
                     // Dropdown icon
-                    Icon(
-                      Icons.keyboard_arrow_down_rounded,
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      size: 24,
+                    Container(
+                      width: 32,
+                      height: 32,
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.5),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Icon(
+                        Icons.expand_more_rounded,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        size: 20,
+                      ),
                     ),
                   ],
                 ),
@@ -141,25 +189,44 @@ class TossDropdown<T> extends StatelessWidget {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(24),
+          topRight: Radius.circular(24),
+        ),
+      ),
       builder: (context) => Container(
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * 0.85,
+          minHeight: 200,
+        ),
         decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.surface,
           borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(20),
-            topRight: Radius.circular(20),
+            topLeft: Radius.circular(24),
+            topRight: Radius.circular(24),
           ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 20,
+              spreadRadius: 0,
+              offset: const Offset(0, -2),
+            ),
+          ],
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             // Handle bar
             Container(
-              width: 40,
+              width: 48,
               height: 4,
-              margin: const EdgeInsets.only(top: 8, bottom: 16),
+              margin: const EdgeInsets.only(top: 12, bottom: 20),
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.outline.withOpacity(0.3),
-                borderRadius: BorderRadius.circular(2),
+                color: Theme.of(context).colorScheme.outline.withOpacity(0.4),
+                borderRadius: BorderRadius.circular(3),
               ),
             ),
             
@@ -168,24 +235,49 @@ class TossDropdown<T> extends StatelessWidget {
               padding: EdgeInsets.symmetric(horizontal: TossSpacing.space4),
               child: Row(
                 children: [
-                  Text(
-                    label,
-                    style: TossTextStyles.h3.copyWith(
-                      color: Theme.of(context).colorScheme.onSurface,
-                      fontWeight: FontWeight.w700,
-                    ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        label,
+                        style: TossTextStyles.h3.copyWith(
+                          color: Theme.of(context).colorScheme.onSurface,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 20,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '${items.length} ${items.length == 1 ? 'option' : 'options'} available',
+                        style: TossTextStyles.caption.copyWith(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
                   ),
                   const Spacer(),
-                  IconButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    icon: Icon(
-                      Icons.close,
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.5),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: IconButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      icon: Icon(
+                        Icons.close_rounded,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        size: 20,
+                      ),
+                      padding: const EdgeInsets.all(8),
+                      constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
                     ),
                   ),
                 ],
               ),
             ),
+            
+            const SizedBox(height: 8),
             
             // Options
             Flexible(
@@ -199,57 +291,106 @@ class TossDropdown<T> extends StatelessWidget {
                   final item = items[index];
                   final isSelected = item.value == value;
                   
-                  return Material(
-                    color: Colors.transparent,
-                    child: InkWell(
-                      onTap: () {
-                        onChanged?.call(item.value);
-                        Navigator.of(context).pop();
-                      },
-                      child: Container(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: TossSpacing.space4,
-                          vertical: TossSpacing.space3,
-                        ),
-                        child: Row(
-                          children: [
-                            // Option content
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    item.label,
-                                    style: TossTextStyles.body.copyWith(
-                                      color: isSelected
-                                        ? Theme.of(context).colorScheme.primary
-                                        : Theme.of(context).colorScheme.onSurface,
-                                      fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                                    ),
-                                  ),
-                                  if (item.subtitle != null) ...[
-                                    SizedBox(height: TossSpacing.space1),
+                  return Container(
+                    margin: EdgeInsets.symmetric(
+                      horizontal: TossSpacing.space4,
+                      vertical: 2,
+                    ),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      color: isSelected 
+                        ? Theme.of(context).colorScheme.primaryContainer.withOpacity(0.3)
+                        : Colors.transparent,
+                      border: isSelected 
+                        ? Border.all(
+                            color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
+                            width: 1,
+                          )
+                        : null,
+                    ),
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(12),
+                        onTap: () {
+                          onChanged?.call(item.value);
+                          Navigator.of(context).pop();
+                        },
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: TossSpacing.space3,
+                            vertical: TossSpacing.space3,
+                          ),
+                          child: Row(
+                            children: [
+                              // Company icon
+                              Container(
+                                width: 40,
+                                height: 40,
+                                decoration: BoxDecoration(
+                                  color: isSelected
+                                    ? Theme.of(context).colorScheme.primary.withOpacity(0.1)
+                                    : Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.5),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Icon(
+                                  Icons.business_rounded,
+                                  color: isSelected
+                                    ? Theme.of(context).colorScheme.primary
+                                    : Theme.of(context).colorScheme.onSurfaceVariant,
+                                  size: 20,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              
+                              // Option content
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
                                     Text(
-                                      item.subtitle!,
-                                      style: TossTextStyles.caption.copyWith(
+                                      item.label,
+                                      style: TossTextStyles.body.copyWith(
                                         color: isSelected
                                           ? Theme.of(context).colorScheme.primary
-                                          : Theme.of(context).colorScheme.onSurfaceVariant,
+                                          : Theme.of(context).colorScheme.onSurface,
+                                        fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                                        fontSize: 16,
                                       ),
                                     ),
+                                    if (item.subtitle != null) ...[
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        item.subtitle!,
+                                        style: TossTextStyles.caption.copyWith(
+                                          color: isSelected
+                                            ? Theme.of(context).colorScheme.primary.withOpacity(0.8)
+                                            : Theme.of(context).colorScheme.onSurfaceVariant,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                    ],
                                   ],
-                                ],
+                                ),
                               ),
-                            ),
-                            
-                            // Check icon if selected
-                            if (isSelected)
-                              Icon(
-                                Icons.check,
-                                color: Theme.of(context).colorScheme.primary,
-                                size: 20,
-                              ),
-                          ],
+                              
+                              // Check icon if selected
+                              if (isSelected)
+                                Container(
+                                  width: 24,
+                                  height: 24,
+                                  decoration: BoxDecoration(
+                                    color: Theme.of(context).colorScheme.primary,
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Icon(
+                                    Icons.check_rounded,
+                                    color: Colors.white,
+                                    size: 16,
+                                  ),
+                                ),
+                            ],
+                          ),
                         ),
                       ),
                     ),

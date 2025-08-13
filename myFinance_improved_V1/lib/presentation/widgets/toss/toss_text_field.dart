@@ -16,6 +16,8 @@ class TossTextField extends StatelessWidget {
   final int? maxLines;
   final bool autocorrect;
   final FocusNode? focusNode;
+  final TextInputAction? textInputAction;
+  final void Function(String)? onFieldSubmitted;
 
   const TossTextField({
     super.key,
@@ -31,6 +33,8 @@ class TossTextField extends StatelessWidget {
     this.maxLines = 1,
     this.autocorrect = true,
     this.focusNode,
+    this.textInputAction,
+    this.onFieldSubmitted,
   });
 
   @override
@@ -57,6 +61,8 @@ class TossTextField extends StatelessWidget {
           maxLines: maxLines,
           autocorrect: autocorrect,
           focusNode: focusNode,
+          textInputAction: textInputAction,
+          onFieldSubmitted: onFieldSubmitted,
           style: TossTextStyles.body.copyWith(
             color: enabled ? TossColors.gray900 : TossColors.gray500,
           ),
