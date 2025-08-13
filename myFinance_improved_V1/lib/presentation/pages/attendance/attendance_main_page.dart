@@ -2288,7 +2288,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
     // The RPC response should be a list directly
     if (shiftMetadata is List) {
       print('DEBUG: shiftMetadata is a List with ${(shiftMetadata as List).length} items');
-      // Convert each item to Map<String, dynamic>
+      // Convert each item to Map<String, dynamic> and filter for active shifts only
       return (shiftMetadata as List).map((item) {
         if (item is Map<String, dynamic>) {
           return item;
@@ -2298,7 +2298,10 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
           print('DEBUG: Unexpected item type in list: ${item.runtimeType}');
           return <String, dynamic>{};
         }
-      }).where((item) => item.isNotEmpty).toList();
+      }).where((item) => 
+        item.isNotEmpty && 
+        item['is_active'] == true  // Filter only active shifts
+      ).toList();
     }
     
     // If somehow it's still a Map, check if it contains shift data

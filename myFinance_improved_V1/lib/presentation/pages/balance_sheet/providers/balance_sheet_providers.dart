@@ -150,6 +150,34 @@ final forceRefreshCategoriesProvider = FutureProvider<dynamic>((ref) async {
   return filteredCategories;
 });
 
+/// Provider for the current company from app state (balance sheet specific)
+final balanceSheetSelectedCompanyProvider = Provider<dynamic>((ref) {
+  final appStateNotifier = ref.read(appStateProvider.notifier);
+  return appStateNotifier.selectedCompany;
+});
+
+/// Provider for the current store (if any) from app state (balance sheet specific)
+final balanceSheetSelectedStoreProvider = Provider<dynamic>((ref) {
+  final appState = ref.watch(appStateProvider);
+  final appStateNotifier = ref.read(appStateProvider.notifier);
+  
+  // If a store is selected in app state, return its data
+  if (appState.storeChoosen.isNotEmpty) {
+    final selectedCompany = appStateNotifier.selectedCompany;
+    if (selectedCompany != null) {
+      final stores = selectedCompany['stores'] as List<dynamic>? ?? [];
+      try {
+        return stores.firstWhere(
+          (store) => store['store_id'] == appState.storeChoosen,
+        );
+      } catch (e) {
+        return null;
+      }
+    }
+  }
+  return null;
+});
+
 /// Balance Sheet specific providers will be added here
 /// For now, we maintain the same app state structure as homepage
 
