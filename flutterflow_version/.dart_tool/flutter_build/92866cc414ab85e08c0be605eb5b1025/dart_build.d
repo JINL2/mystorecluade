@@ -1,0 +1,1 @@
+ /Applications/XAMPP/xamppfiles/htdocs/mcparrange-main/myFinance_claude/flutterflow_version/.dart_tool/flutter_build/92866cc414ab85e08c0be605eb5b1025/dart_build_result.json: 

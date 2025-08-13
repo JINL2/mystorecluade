@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mkdir:*)",
+      "Bash(mv:*)",
+      "Bash(sed:*)",
+      "Bash(flutter analyze:*)",
+      "Bash(flutter run:*)",
+      "Bash(grep:*)",
+      "Bash(awk:*)",
+      "Bash(# Find line numbers of all important methods\necho \"\"Looking for important method boundaries...\"\"\ngrep -n \"\"^  void _showActivityDetails\"\" /Applications/XAMPP/xamppfiles/htdocs/mcparrange-main/myFinance_claude/myFinance_improved/lib/presentation/pages/attendance/attendance_main_page.dart | head -1\ngrep -n \"\"^  void _showAllAttendanceHistory\"\" /Applications/XAMPP/xamppfiles/htdocs/mcparrange-main/myFinance_claude/myFinance_improved/lib/presentation/pages/attendance/attendance_main_page.dart | head -1)",
+      "Bash(flutter build:*)",
+      "Bash(dart analyze:*)",
+      "Bash(python3:*)",
+      "Bash(echo:*)",
+      "Bash(dart:*)",
+      "Bash(flutter logs:*)",
+      "Bash(find:*)",
+      "Bash(flutter doctor:*)",
+      "Bash(cp:*)"
+    ],
+    "deny": []
+  }
+}
