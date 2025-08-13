@@ -1,605 +1,342 @@
-# 📄 Page Setup Guide
+# 📄 Page Setup Guide - Complete Process
 
-A step-by-step guide for creating new pages and features in the MyFinance app, following our Toss-style architecture.
+> **PURPOSE**: Step-by-step guide to create a new page. Follow EXACTLY in order.
 
-## 🎯 Quick Reference
+---
 
-When creating a new feature/page, here's where files go:
+## 🚨 CRITICAL: Before You Start
 
-```
-Feature: Transaction History
-├── 📂 domain/entities/          → transaction.dart (Business entity)
-├── 📂 data/models/              → transaction_model.dart (API model)
-├── 📂 presentation/providers/   → transaction_provider.dart (State)
-├── 📂 presentation/pages/       → transaction_history_page.dart (Screen)
-└── 📂 presentation/widgets/     → transaction specific widgets
-    ├── 📂 toss/                → Reusable Toss components
-    └── 📂 specific/             → Feature-specific widgets
+```yaml
+CHECK_FIRST:
+  1. Route exists? → Check /docs/ROUTE_MAPPING_TABLE.md
+  2. Similar page exists? → Check /lib/presentation/pages/
+  3. Components exist? → Check /lib/presentation/widgets/toss/
+  
+IF_ALL_NO: Proceed with this guide
 ```
 
-## 📚 Complete Page Creation Workflow
+---
 
-### Step 1: Plan Your Feature
+## 📋 Complete Page Creation Process
 
-Before creating files, answer these questions:
-- What data does this page need? (entities)
-- Where does the data come from? (API/local)
-- What state needs to be managed? (providers)
-- What UI components are needed? (widgets)
+### 🔴 Step 1: Register Route (MANDATORY)
 
-### Step 2: Create Domain Entity (if needed)
+#### 1A. Add to Supabase
+```sql
+-- Run this in Supabase SQL editor
+INSERT INTO features (
+  feature_id,
+  feature_name,
+  route,
+  icon,
+  category_id
+) VALUES (
+  gen_random_uuid(),
+  'Your Feature Name',     -- Display name in Korean/English
+  'yourFeatureRoute',      -- camelCase, no 'Page' suffix
+  'https://icon-url.png',  -- Icon URL
+  'category-uuid-here'     -- Get from categories table
+);
+```
 
-**Location**: `lib/domain/entities/`
+#### 1B. Add to Router
+```dart
+// File: /lib/presentation/app/app_router.dart
+
+// 1. Add import at top
+import '../pages/your_feature/your_feature_page.dart';
+
+// 2. Add route in routes array (find the right section)
+GoRoute(
+  path: 'yourFeatureRoute',  // MUST match Supabase exactly
+  builder: (context, state) => const YourFeaturePage(),
+),
+```
+
+---
+
+### 📁 Step 2: Create Folder Structure
+
+```bash
+# Create these folders
+/lib/presentation/pages/your_feature/
+├── your_feature_page.dart        # Main page
+├── models/                        # If needed
+│   └── your_feature_models.dart
+├── providers/                     # State management
+│   └── your_feature_providers.dart
+└── widgets/                       # Page-specific widgets
+    └── your_feature_widgets.dart
+```
+
+---
+
+### 📝 Step 3: Create Main Page File
 
 ```dart
-// lib/domain/entities/transaction.dart
-class Transaction {
-  final String id;
-  final double amount;
-  final String description;
-  final DateTime date;
-  final TransactionType type;
-  
-  const Transaction({
-    required this.id,
-    required this.amount,
-    required this.description,
-    required this.date,
-    required this.type,
-  });
-}
+// File: /lib/presentation/pages/your_feature/your_feature_page.dart
 
-enum TransactionType { income, expense, transfer }
-```
-
-### Step 3: Create Data Model (if fetching from API)
-
-**Location**: `lib/data/models/`
-
-```dart
-// lib/data/models/transaction_model.dart
-import 'package:freezed_annotation/freezed_annotation.dart';
-import '../../domain/entities/transaction.dart';
-
-part 'transaction_model.freezed.dart';
-part 'transaction_model.g.dart';
-
-@freezed
-class TransactionModel with _$TransactionModel {
-  const factory TransactionModel({
-    required String id,
-    required double amount,
-    required String description,
-    required DateTime date,
-    required String type,
-  }) = _TransactionModel;
-  
-  factory TransactionModel.fromJson(Map<String, dynamic> json) =>
-      _$TransactionModelFromJson(json);
-  
-  // Convert to domain entity
-  Transaction toEntity() {
-    return Transaction(
-      id: id,
-      amount: amount,
-      description: description,
-      date: date,
-      type: TransactionType.values.firstWhere((e) => e.name == type),
-    );
-  }
-}
-```
-
-### Step 4: Create State Provider
-
-**Location**: `lib/presentation/providers/`
-
-```dart
-// lib/presentation/providers/transaction_provider.dart
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../domain/entities/transaction.dart';
-
-// Page-specific state
-@riverpod
-class TransactionList extends _$TransactionList {
-  @override
-  Future<List<Transaction>> build() async {
-    // Fetch transactions from repository
-    final repository = ref.watch(transactionRepositoryProvider);
-    return repository.getTransactions();
-  }
-  
-  Future<void> refresh() async {
-    ref.invalidateSelf();
-  }
-  
-  Future<void> addTransaction(Transaction transaction) async {
-    final repository = ref.read(transactionRepositoryProvider);
-    await repository.createTransaction(transaction);
-    ref.invalidateSelf();
-  }
-}
-
-// Filter state for this page
-@riverpod
-class TransactionFilter extends _$TransactionFilter {
-  @override
-  TransactionFilterState build() => TransactionFilterState.all;
-}
-
-enum TransactionFilterState { all, income, expense }
-
-// Search query state
-@riverpod
-class TransactionSearchQuery extends _$TransactionSearchQuery {
-  @override
-  String build() => '';
-  
-  void updateQuery(String query) => state = query;
-}
-
-// Computed provider for filtered transactions
-@riverpod
-List<Transaction> filteredTransactions(FilteredTransactionsRef ref) {
-  final transactions = ref.watch(transactionListProvider).valueOrNull ?? [];
-  final filter = ref.watch(transactionFilterProvider);
-  final searchQuery = ref.watch(transactionSearchQueryProvider);
-  
-  return transactions.where((transaction) {
-    // Apply filter
-    if (filter != TransactionFilterState.all) {
-      final filterType = filter == TransactionFilterState.income 
-          ? TransactionType.income 
-          : TransactionType.expense;
-      if (transaction.type != filterType) return false;
-    }
-    
-    // Apply search
-    if (searchQuery.isNotEmpty) {
-      return transaction.description
-          .toLowerCase()
-          .contains(searchQuery.toLowerCase());
-    }
-    
-    return true;
-  }).toList();
-}
-```
-
-### Step 5: Create the Page
-
-**Location**: `lib/presentation/pages/transaction/`
-
-```dart
-// lib/presentation/pages/transaction/transaction_history_page.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/themes/toss_colors.dart';
 import '../../../core/themes/toss_text_styles.dart';
 import '../../../core/themes/toss_spacing.dart';
-import '../../providers/transaction_provider.dart';
-import '../../widgets/toss/toss_card.dart';
-import '../../widgets/specific/transaction_list_item.dart';
-import '../../widgets/common/app_loading.dart';
-import '../../widgets/common/app_error.dart';
+import '../../widgets/common/toss_app_bar.dart';
+import '../../widgets/common/toss_loading_view.dart';
+import '../../widgets/common/toss_error_view.dart';
+import '../../widgets/common/toss_empty_view.dart';
+import 'providers/your_feature_providers.dart';
 
-class TransactionHistoryPage extends ConsumerWidget {
-  const TransactionHistoryPage({super.key});
-  
+class YourFeaturePage extends ConsumerWidget {
+  const YourFeaturePage({super.key});
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final transactionsAsync = ref.watch(filteredTransactionsProvider);
+    // Watch your data provider
+    final dataAsync = ref.watch(yourFeatureProvider);
     
     return Scaffold(
       backgroundColor: TossColors.background,
       appBar: AppBar(
-        title: const Text('Transaction History'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.filter_list),
-            onPressed: () => _showFilterSheet(context, ref),
-          ),
-        ],
+        title: Text('페이지 제목'),  // Korean title
+        backgroundColor: TossColors.background,
+        foregroundColor: TossColors.gray900,
+        elevation: 0,
       ),
-      body: transactionsAsync.when(
-        data: (transactions) => _buildTransactionList(transactions),
-        loading: () => const AppLoading(),
-        error: (error, stack) => AppError(
+      body: dataAsync.when(
+        data: (data) => _buildContent(context, ref, data),
+        loading: () => const TossLoadingView(),
+        error: (error, stack) => TossErrorView(
           message: error.toString(),
-          onRetry: () => ref.refresh(transactionListProvider),
+          onRetry: () => ref.refresh(yourFeatureProvider),
         ),
       ),
     );
   }
   
-  Widget _buildTransactionList(List<Transaction> transactions) {
-    if (transactions.isEmpty) {
-      return _buildEmptyState();
+  Widget _buildContent(BuildContext context, WidgetRef ref, List<dynamic> data) {
+    if (data.isEmpty) {
+      return const TossEmptyView(
+        message: '데이터가 없습니다',
+        icon: Icons.inbox_outlined,
+      );
     }
     
-    return RefreshIndicator(
-      onRefresh: () => ref.read(transactionListProvider.notifier).refresh(),
-      child: ListView.separated(
-        padding: const EdgeInsets.all(TossSpacing.space5),
-        itemCount: transactions.length,
-        separatorBuilder: (_, __) => const SizedBox(height: TossSpacing.space3),
-        itemBuilder: (context, index) {
-          final transaction = transactions[index];
-          return TransactionListItem(
-            transaction: transaction,
-            onTap: () => _navigateToDetail(context, transaction),
-          );
-        },
-      ),
-    );
-  }
-  
-  Widget _buildEmptyState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.receipt_long,
-            size: 64,
-            color: TossColors.gray300,
-          ),
-          const SizedBox(height: TossSpacing.space4),
-          Text(
-            'No transactions yet',
-            style: TossTextStyles.h3,
-          ),
-          const SizedBox(height: TossSpacing.space2),
-          Text(
-            'Your transactions will appear here',
-            style: TossTextStyles.body.copyWith(
-              color: TossColors.gray500,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-  
-  void _showFilterSheet(BuildContext context, WidgetRef ref) {
-    // Show filter bottom sheet
-  }
-  
-  void _navigateToDetail(BuildContext context, Transaction transaction) {
-    // Navigate to detail page
-  }
-}
-```
-
-### Step 6: Create Feature-Specific Widgets
-
-**Location**: `lib/presentation/widgets/specific/`
-
-```dart
-// lib/presentation/widgets/specific/transaction_list_item.dart
-import 'package:flutter/material.dart';
-import '../../../core/themes/toss_colors.dart';
-import '../../../core/themes/toss_text_styles.dart';
-import '../../../core/themes/toss_spacing.dart';
-import '../../../domain/entities/transaction.dart';
-import '../toss/toss_card.dart';
-
-class TransactionListItem extends StatelessWidget {
-  final Transaction transaction;
-  final VoidCallback? onTap;
-  
-  const TransactionListItem({
-    super.key,
-    required this.transaction,
-    this.onTap,
-  });
-  
-  @override
-  Widget build(BuildContext context) {
-    final isIncome = transaction.type == TransactionType.income;
-    final amountColor = isIncome ? TossColors.profit : TossColors.gray900;
-    final amountSign = isIncome ? '+' : '-';
-    
-    return TossCard(
-      onTap: onTap,
-      padding: const EdgeInsets.all(TossSpacing.space4),
-      child: Row(
-        children: [
-          // Icon
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: TossColors.gray100,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(
-              _getIconForType(transaction.type),
-              size: 24,
-              color: TossColors.gray600,
-            ),
-          ),
-          const SizedBox(width: TossSpacing.space3),
-          
-          // Content
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  transaction.description,
-                  style: TossTextStyles.body.copyWith(
-                    fontWeight: FontWeight.w500,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: TossSpacing.space1),
-                Text(
-                  _formatDate(transaction.date),
-                  style: TossTextStyles.caption.copyWith(
-                    color: TossColors.gray500,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          
-          // Amount
-          Text(
-            '$amountSign\$${transaction.amount.toStringAsFixed(2)}',
-            style: TossTextStyles.body.copyWith(
-              fontWeight: FontWeight.w600,
-              color: amountColor,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-  
-  IconData _getIconForType(TransactionType type) {
-    switch (type) {
-      case TransactionType.income:
-        return Icons.arrow_downward;
-      case TransactionType.expense:
-        return Icons.arrow_upward;
-      case TransactionType.transfer:
-        return Icons.swap_horiz;
-    }
-  }
-  
-  String _formatDate(DateTime date) {
-    // Format date logic
-    return '${date.day}/${date.month}';
-  }
-}
-```
-
-### Step 7: Add Route
-
-**Location**: `lib/presentation/app/app_router.dart`
-
-```dart
-// Add to your routes
-GoRoute(
-  path: '/transactions',
-  name: 'transactions',
-  builder: (context, state) => const TransactionHistoryPage(),
-  routes: [
-    GoRoute(
-      path: ':id',
-      name: 'transaction-detail',
-      builder: (context, state) {
-        final id = state.pathParameters['id']!;
-        return TransactionDetailPage(transactionId: id);
+    return ListView.builder(
+      padding: EdgeInsets.all(TossSpacing.space4),
+      itemCount: data.length,
+      itemBuilder: (context, index) {
+        // Use Toss components here
+        return Container(); // Replace with actual content
       },
-    ),
-  ],
-),
-```
-
-## 📁 File Organization Rules
-
-### 1. Pages (`presentation/pages/`)
-```
-pages/
-├── auth/                   # Authentication pages
-│   ├── login_page.dart
-│   └── register_page.dart
-├── transaction/            # Transaction feature
-│   ├── transaction_history_page.dart
-│   ├── transaction_detail_page.dart
-│   └── transaction_create_page.dart
-└── home/                   # Home feature
-    └── home_page.dart
-```
-
-### 2. Widgets (`presentation/widgets/`)
-```
-widgets/
-├── common/                 # Shared across features
-│   ├── app_loading.dart   # Generic loading
-│   ├── app_error.dart     # Generic error
-│   └── app_empty.dart     # Generic empty state
-├── toss/                   # Toss design system
-│   ├── toss_button.dart
-│   ├── toss_card.dart
-│   └── toss_input.dart
-└── specific/               # Feature-specific
-    ├── transaction_list_item.dart
-    ├── transaction_filter.dart
-    └── balance_card.dart
-```
-
-### 3. State Management (`presentation/providers/`)
-```
-providers/
-├── app_provider.dart       # Global app state
-├── auth_provider.dart      # Authentication state
-├── theme_provider.dart     # Theme state
-└── transaction_provider.dart # Feature state
-```
-
-### 4. Common Components Location Guide
-
-| Component Type | Location | Example |
-|----------------|----------|---------|
-| **Toss Components** | `widgets/toss/` | TossButton, TossCard |
-| **Loading States** | `widgets/common/` | AppLoading, Shimmer |
-| **Error States** | `widgets/common/` | AppError, ErrorBoundary |
-| **Empty States** | `widgets/common/` | AppEmpty, NoData |
-| **Form Components** | `widgets/common/` | AppTextField, AppDropdown |
-| **Feature Widgets** | `widgets/specific/` | TransactionItem, UserAvatar |
-| **Layout Components** | `widgets/common/` | AppScaffold, AppDrawer |
-
-## 🔄 State Management Patterns
-
-### Global State (App-wide)
-```dart
-// lib/presentation/providers/app_provider.dart
-@riverpod
-class AppState extends _$AppState {
-  @override
-  AppStateData build() => AppStateData();
-}
-
-// Examples:
-// - Current user
-// - Selected company
-// - App settings
-// - Theme preferences
-```
-
-### Feature State (Page-specific)
-```dart
-// lib/presentation/providers/[feature]_provider.dart
-@riverpod
-class FeatureState extends _$FeatureState {
-  @override
-  FeatureData build() => FeatureData();
-}
-
-// Examples:
-// - Transaction list
-// - Filter settings
-// - Search queries
-// - Pagination state
-```
-
-### Computed State
-```dart
-// Derived from other states
-@riverpod
-ComputedData computedState(ComputedStateRef ref) {
-  final state1 = ref.watch(provider1);
-  final state2 = ref.watch(provider2);
-  
-  return ComputedData(
-    // Compute from state1 and state2
-  );
+    );
+  }
 }
 ```
-
-## ✅ Page Creation Checklist
-
-When creating a new page, ensure you:
-
-- [ ] **Domain Layer**
-  - [ ] Create entity if needed
-  - [ ] Define repository interface
-  - [ ] Create use cases
-
-- [ ] **Data Layer**
-  - [ ] Create model for API
-  - [ ] Implement repository
-  - [ ] Add API endpoints
-
-- [ ] **Presentation Layer**
-  - [ ] Create page widget
-  - [ ] Create state provider
-  - [ ] Create specific widgets
-  - [ ] Add route to router
-
-- [ ] **Testing**
-  - [ ] Unit tests for providers
-  - [ ] Widget tests for page
-  - [ ] Integration tests for flow
-
-- [ ] **Documentation**
-  - [ ] Add inline documentation
-  - [ ] Update component docs
-  - [ ] Add to navigation
-
-## 🎯 Common Patterns
-
-### 1. List Page Pattern
-```dart
-class FeatureListPage extends ConsumerWidget {
-  // 1. Watch filtered/sorted data
-  // 2. Show loading/error/empty states
-  // 3. Implement pull-to-refresh
-  // 4. Add search/filter
-  // 5. Navigate to detail
-}
-```
-
-### 2. Detail Page Pattern
-```dart
-class FeatureDetailPage extends ConsumerWidget {
-  // 1. Fetch single item by ID
-  // 2. Show loading state
-  // 3. Display item details
-  // 4. Add actions (edit, delete)
-  // 5. Handle errors
-}
-```
-
-### 3. Form Page Pattern
-```dart
-class FeatureFormPage extends ConsumerStatefulWidget {
-  // 1. Create form key
-  // 2. Add text controllers
-  // 3. Implement validation
-  // 4. Handle submission
-  // 5. Show success/error
-}
-```
-
-## 💡 Best Practices
-
-1. **Keep Pages Simple**: Pages should only orchestrate, not contain business logic
-2. **Reuse Components**: Check `widgets/toss/` before creating new components
-3. **State in Providers**: All state management in providers, not in widgets
-4. **Type Safety**: Use proper types, avoid `dynamic`
-5. **Error Handling**: Always handle loading, error, and empty states
-6. **Accessibility**: Include semantic labels and proper contrast
-7. **Performance**: Use `const` constructors where possible
-
-## 🚫 Common Mistakes to Avoid
-
-1. ❌ Putting business logic in widgets
-2. ❌ Creating duplicate components
-3. ❌ Managing state in StatefulWidget when provider would be better
-4. ❌ Forgetting error states
-5. ❌ Hard-coding strings (use constants)
-6. ❌ Ignoring null safety
-7. ❌ Not following naming conventions
-
-## 📝 Naming Conventions
-
-### Files
-- **Pages**: `feature_action_page.dart` (e.g., `transaction_history_page.dart`)
-- **Widgets**: `descriptive_name_widget.dart` (e.g., `transaction_list_item.dart`)
-- **Providers**: `feature_provider.dart` (e.g., `transaction_provider.dart`)
-- **Models**: `entity_model.dart` (e.g., `transaction_model.dart`)
-
-### Classes
-- **Pages**: `FeatureActionPage` (e.g., `TransactionHistoryPage`)
-- **Widgets**: `DescriptiveName` (e.g., `TransactionListItem`)
-- **Providers**: `FeatureState` (e.g., `TransactionListState`)
-- **Models**: `EntityModel` (e.g., `TransactionModel`)
 
 ---
 
-Ready to create your first page? Start with Step 1 and work through the checklist! 🚀
+### 💾 Step 4: Create Provider
+
+```dart
+// File: /lib/presentation/pages/your_feature/providers/your_feature_providers.dart
+
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../../providers/app_state_provider.dart';
+
+part 'your_feature_providers.g.dart';
+
+@riverpod
+class YourFeature extends _$YourFeature {
+  @override
+  Future<List<dynamic>> build() async {
+    // Get Supabase client
+    final supabase = Supabase.instance.client;
+    
+    // Get current company/store from app state
+    final appState = ref.watch(appStateProvider);
+    final companyId = appState.companyChoosen;
+    final storeId = appState.storeChoosen;
+    
+    // Fetch data from Supabase
+    try {
+      final response = await supabase
+          .from('your_table')
+          .select()
+          .eq('company_id', companyId)
+          .eq('store_id', storeId);
+      
+      return response as List<dynamic>;
+    } catch (e) {
+      throw Exception('Failed to load data: $e');
+    }
+  }
+  
+  // Add methods for CRUD operations
+  Future<void> refresh() async {
+    ref.invalidateSelf();
+  }
+  
+  Future<void> create(Map<String, dynamic> data) async {
+    final supabase = Supabase.instance.client;
+    await supabase.from('your_table').insert(data);
+    ref.invalidateSelf();
+  }
+  
+  Future<void> update(String id, Map<String, dynamic> data) async {
+    final supabase = Supabase.instance.client;
+    await supabase.from('your_table').update(data).eq('id', id);
+    ref.invalidateSelf();
+  }
+  
+  Future<void> delete(String id) async {
+    final supabase = Supabase.instance.client;
+    await supabase.from('your_table').delete().eq('id', id);
+    ref.invalidateSelf();
+  }
+}
+```
+
+---
+
+### 🧩 Step 5: Use Existing Components
+
+#### ALWAYS Check These First:
+
+```dart
+// 1. Toss Components (USE THESE FIRST)
+import '../../widgets/toss/toss_primary_button.dart';
+import '../../widgets/toss/toss_card.dart';
+import '../../widgets/toss/toss_text_field.dart';
+import '../../widgets/toss/toss_bottom_sheet.dart';
+import '../../widgets/toss/toss_dropdown.dart';
+
+// 2. Common Components (USE IF TOSS DOESN'T HAVE)
+import '../../widgets/common/toss_app_bar.dart';
+import '../../widgets/common/toss_loading_view.dart';
+import '../../widgets/common/toss_error_view.dart';
+import '../../widgets/common/toss_empty_view.dart';
+
+// 3. ONLY create new if absolutely necessary
+// Create in: /lib/presentation/widgets/specific/your_feature/
+```
+
+---
+
+### ⚙️ Step 6: Generate Code
+
+```bash
+# After creating providers with @riverpod annotation
+flutter pub run build_runner build --delete-conflicting-outputs
+```
+
+---
+
+### ✅ Step 7: Test Your Page
+
+```yaml
+TEST_CHECKLIST:
+  □ Feature appears in homepage menu?
+  □ Click navigates to your page?
+  □ Data loads correctly?
+  □ Loading state shows?
+  □ Error state works (disconnect internet)?
+  □ Empty state shows (no data)?
+  □ All buttons/interactions work?
+  □ Uses Toss components (not custom)?
+  □ Follows theme colors/spacing?
+```
+
+---
+
+## 🎨 UI Patterns to Follow
+
+### List Page Pattern
+```dart
+ListView.separated(
+  padding: EdgeInsets.all(TossSpacing.space4),
+  itemBuilder: (context, index) => TossCard(
+    child: YourListItem(data[index]),
+    onTap: () => navigateToDetail(data[index]),
+  ),
+  separatorBuilder: (_, __) => SizedBox(height: TossSpacing.space2),
+  itemCount: data.length,
+)
+```
+
+### Form Page Pattern
+```dart
+Column(
+  children: [
+    TossTextField(
+      label: '이름',
+      controller: _nameController,
+    ),
+    SizedBox(height: TossSpacing.space4),
+    TossDropdown(
+      label: '선택',
+      items: options,
+      onChanged: (value) {},
+    ),
+    Spacer(),
+    TossPrimaryButton(
+      text: '저장',
+      onPressed: _handleSubmit,
+    ),
+  ],
+)
+```
+
+### Detail Page Pattern
+```dart
+SingleChildScrollView(
+  padding: EdgeInsets.all(TossSpacing.space4),
+  child: Column(
+    children: [
+      TossCard(child: MainInfo()),
+      SizedBox(height: TossSpacing.space3),
+      TossCard(child: DetailInfo()),
+      SizedBox(height: TossSpacing.space6),
+      TossPrimaryButton(text: '수정'),
+    ],
+  ),
+)
+```
+
+---
+
+## 🚫 Common Mistakes
+
+| Mistake | Solution |
+|---------|----------|
+| Route not in Supabase | Add to features table first |
+| Route mismatch | Ensure exact match (case-sensitive) |
+| Custom button created | Use TossPrimaryButton |
+| Hardcoded colors | Use TossColors.primary |
+| Hardcoded spacing | Use TossSpacing.space4 |
+| setState used | Use Riverpod provider |
+| No error handling | Add error state in .when() |
+
+---
+
+## 📋 Final Checklist
+
+```yaml
+BEFORE_COMMITTING:
+  □ Route in Supabase features table?
+  □ Route in app_router.dart?
+  □ Routes match exactly?
+  □ Import added in router?
+  □ Using Toss components?
+  □ No hardcoded values?
+  □ All states handled (loading/error/empty)?
+  □ Provider uses Supabase?
+  □ Code generated (build_runner)?
+  □ Page tested and working?
+```
+
+---
+
+**REMEMBER**: Follow this guide EXACTLY. Don't skip steps. Check existing components first.

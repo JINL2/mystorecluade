@@ -20,7 +20,8 @@
       "Bash(cp:*)",
       "Bash(flutter pub run build_runner build:*)",
       "Bash(rm:*)",
-      "Bash(flutter packages pub run build_runner build:*)"
+      "Bash(flutter packages pub run build_runner build:*)",
+      "Bash(git checkout:*)"
     ],
     "deny": []
   }
