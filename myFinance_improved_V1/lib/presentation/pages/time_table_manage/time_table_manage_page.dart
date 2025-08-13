@@ -1074,7 +1074,9 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
               ),
             ),
             const SizedBox(height: TossSpacing.space2),
-            ...(shiftMetadata as List).map((shift) {
+            ...(shiftMetadata as List).where((shift) => 
+              shift['is_active'] == true  // Filter only active shifts
+            ).map((shift) {
               final shiftId = shift['shift_id'];
               final shiftName = shift['shift_name'] ?? 'Unknown Shift';
               final startTime = shift['start_time'] ?? shift['shift_start_time'] ?? '--:--';
