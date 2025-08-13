@@ -134,6 +134,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: 'registerCounterparty',
             builder: (context, state) => const CounterPartyPage(),
+          ),
           GoRoute(
             path: 'addFixAsset',
             builder: (context, state) => const AddFixAssetPage(),
