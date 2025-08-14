@@ -16,6 +16,8 @@ import '../pages/delegate_role/delegate_role_page.dart';
 import '../pages/timetable/timetable_page.dart';
 import '../pages/balance_sheet/balance_sheet_page.dart';
 import '../pages/store_shift/store_shift_page.dart';
+import '../pages/cash_location/cash_location_page.dart';
+import '../pages/cash_location/account_detail_page.dart';
 
 // Router notifier to listen to auth state changes
 class RouterNotifier extends ChangeNotifier {
@@ -126,6 +128,25 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: 'balanceSheet',
             builder: (context, state) => const BalanceSheetPage(),
+          ),
+          GoRoute(
+            path: 'cashLocation',
+            builder: (context, state) => const CashLocationPage(),
+            routes: [
+              GoRoute(
+                path: 'account/:accountName',
+                builder: (context, state) {
+                  final accountName = state.pathParameters['accountName'] ?? '';
+                  final extra = state.extra as Map<String, dynamic>?;
+                  return AccountDetailPage(
+                    accountName: accountName,
+                    locationType: extra?['locationType'] ?? 'cash',
+                    balance: extra?['balance'] ?? 0,
+                    errors: extra?['errors'] ?? 0,
+                  );
+                },
+              ),
+            ],
           ),
         ],
       ),
