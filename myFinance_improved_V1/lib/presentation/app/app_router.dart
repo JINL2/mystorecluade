@@ -143,6 +143,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                     locationType: extra?['locationType'] ?? 'cash',
                     balance: extra?['balance'] ?? 0,
                     errors: extra?['errors'] ?? 0,
+                    totalJournal: extra?['totalJournal'],
+                    totalReal: extra?['totalReal'],
+                    cashDifference: extra?['cashDifference'],
+                    currencySymbol: extra?['currencySymbol'],
                   );
                 },
               ),

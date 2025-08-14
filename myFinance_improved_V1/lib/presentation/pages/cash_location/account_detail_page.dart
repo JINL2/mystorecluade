@@ -12,6 +12,10 @@ class AccountDetailPage extends ConsumerStatefulWidget {
   final String locationType;
   final int balance;
   final int errors;
+  final int? totalJournal;
+  final int? totalReal;
+  final int? cashDifference;
+  final String? currencySymbol;
   
   const AccountDetailPage({
     super.key,
@@ -19,6 +23,10 @@ class AccountDetailPage extends ConsumerStatefulWidget {
     required this.locationType,
     required this.balance,
     required this.errors,
+    this.totalJournal,
+    this.totalReal,
+    this.cashDifference,
+    this.currencySymbol,
   });
 
   @override
@@ -111,9 +119,10 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
     ];
   }
   
-  String _formatCurrency(int amount) {
+  String _formatCurrency(int amount, [String? currencySymbol]) {
     final formatter = NumberFormat('#,###', 'en_US');
-    return '₩${formatter.format(amount.abs())}';
+    final symbol = currencySymbol ?? '₩';
+    return '$symbol${formatter.format(amount.abs())}';
   }
   
   String _formatTransactionAmount(int amount, bool isIncome) {
@@ -202,10 +211,11 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
   }
   
   Widget _buildBalanceCard() {
-    // Mock data for this specific account
-    final totalJournal = widget.balance + 50000; // Mock calculation
-    final totalReal = widget.balance;
-    final error = widget.errors * 10000; // Mock error amount
+    // Use passed parameters or fallback to legacy values
+    final totalJournal = widget.totalJournal ?? widget.balance;
+    final totalReal = widget.totalReal ?? widget.balance;
+    final error = widget.cashDifference ?? (totalReal - totalJournal);
+    final currencySymbol = widget.currencySymbol ?? '₩';
     
     return Container(
       padding: EdgeInsets.all(TossSpacing.space5),
@@ -256,7 +266,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
           // Total Journal
           _buildBalanceRow(
             'Total Journal',
-            _formatCurrency(totalJournal),
+            _formatCurrency(totalJournal, currencySymbol),
             isJournal: true,
           ),
           
@@ -265,7 +275,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
           // Total Real
           _buildBalanceRow(
             'Total Real',
-            _formatCurrency(totalReal),
+            _formatCurrency(totalReal, currencySymbol),
             isJournal: false,
           ),
           
@@ -287,7 +297,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
                 ),
               ),
               Text(
-                _formatCurrency(error),
+                _formatCurrency(error, currencySymbol),
                 style: TossTextStyles.h3.copyWith(
                   color: const Color(0xFFE53935),
                   fontWeight: FontWeight.w700,

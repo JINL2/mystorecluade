@@ -7,6 +7,7 @@ import '../../../core/themes/toss_spacing.dart';
 import '../../../core/themes/toss_border_radius.dart';
 import '../../../core/themes/toss_shadows.dart';
 import '../../providers/app_state_provider.dart';
+import '../../../data/services/cash_location_service.dart';
 import 'add_account_page.dart';
 import 'total_journal_page.dart';
 
@@ -21,55 +22,6 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   int _selectedTab = 0;
-  
-  // Mock data for demonstration
-  final Map<String, Map<String, dynamic>> locationData = {
-    'cash': {
-      'balance': 1233208,
-      'income': 4285122,
-      'spending': 3051914,
-      'totalJournal': {
-        'date': 'Aug 13',
-        'totalIn': 5000000,
-        'totalOut': 3766792,
-      },
-      'error': 0,
-      'accounts': [
-        {'name': 'Main Cashier', 'balance': 800000, 'errors': 0},
-        {'name': 'Petty Cash', 'balance': 433208, 'errors': 2},
-      ],
-    },
-    'bank': {
-      'balance': 5650000,
-      'income': 8500000,
-      'spending': 2850000,
-      'totalJournal': {
-        'date': 'Aug 13',
-        'totalIn': 9000000,
-        'totalOut': 3350000,
-      },
-      'error': 0,
-      'accounts': [
-        {'name': 'KB Bank Main', 'balance': 3500000, 'errors': 1},
-        {'name': 'Shinhan Business', 'balance': 2150000, 'errors': 0},
-      ],
-    },
-    'vault': {
-      'balance': 10000000,
-      'income': 12000000,
-      'spending': 2000000,
-      'totalJournal': {
-        'date': 'Aug 13',
-        'totalIn': 12500000,
-        'totalOut': 2500000,
-      },
-      'error': 0,
-      'accounts': [
-        {'name': 'Main Vault', 'balance': 7000000, 'errors': 0},
-        {'name': 'Emergency Reserve', 'balance': 3000000, 'errors': 3},
-      ],
-    },
-  };
   
   @override
   void initState() {
@@ -88,9 +40,10 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
     super.dispose();
   }
   
-  String _formatCurrency(int amount) {
+  String _formatCurrency(double amount, [String? currencySymbol]) {
     final formatter = NumberFormat('#,###', 'en_US');
-    return '₩${formatter.format(amount)}';
+    final symbol = currencySymbol ?? '₩';
+    return '$symbol${formatter.format(amount.round())}';
   }
   
   String get _currentLocationType {
@@ -108,7 +61,40 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
   
   @override
   Widget build(BuildContext context) {
-    final currentData = locationData[_currentLocationType]!;
+    final appState = ref.watch(appStateProvider);
+    final companyId = appState.companyChoosen;
+    final storeId = appState.storeChoosen;
+    
+    if (companyId.isEmpty || storeId.isEmpty) {
+      return Scaffold(
+        backgroundColor: const Color(0xFFF7F8FA),
+        body: SafeArea(
+          child: Column(
+            children: [
+              _buildHeader(context),
+              _buildTabBar(),
+              Expanded(
+                child: Center(
+                  child: Text(
+                    'Please select a company and store',
+                    style: TossTextStyles.body.copyWith(
+                      color: Colors.grey[500],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+    
+    final allLocationsAsync = ref.watch(allCashLocationsProvider(
+      CashLocationQueryParams(
+        companyId: companyId, 
+        storeId: storeId,
+      ),
+    ));
     
     return Scaffold(
       backgroundColor: const Color(0xFFF7F8FA),
@@ -123,19 +109,50 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
             
             // Content
             Expanded(
-              child: SingleChildScrollView(
-                padding: EdgeInsets.all(TossSpacing.space4),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Balance Section
-                    _buildBalanceSection(currentData),
-                    
-                    SizedBox(height: TossSpacing.space4),
-                    
-                    // Accounts Section
-                    _buildAccountsSection(currentData['accounts']),
-                  ],
+              child: allLocationsAsync.when(
+                data: (allLocations) {
+                  // Filter locations by selected tab
+                  final filteredLocations = allLocations
+                      .where((location) => location.locationType == _currentLocationType)
+                      .toList();
+                  
+                  return SingleChildScrollView(
+                    padding: EdgeInsets.all(TossSpacing.space4),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Balance Section
+                        _buildBalanceSection(filteredLocations),
+                        
+                        SizedBox(height: TossSpacing.space4),
+                        
+                        // Accounts Section
+                        _buildAccountsSection(filteredLocations),
+                      ],
+                    ),
+                  );
+                },
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (error, stack) => Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        'Error loading locations',
+                        style: TossTextStyles.body.copyWith(
+                          color: Colors.grey[500],
+                        ),
+                      ),
+                      SizedBox(height: TossSpacing.space2),
+                      Text(
+                        error.toString(),
+                        style: TossTextStyles.caption.copyWith(
+                          color: Colors.grey[400],
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -211,7 +228,19 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
     );
   }
   
-  Widget _buildBalanceSection(Map<String, dynamic> data) {
+  Widget _buildBalanceSection(List<CashLocation> cashLocations) {
+    // Calculate totals from cash locations
+    final totalJournal = cashLocations.fold<double>(
+      0, (sum, location) => sum + location.totalJournalCashAmount
+    );
+    final totalReal = cashLocations.fold<double>(
+      0, (sum, location) => sum + location.totalRealCashAmount
+    );
+    final totalError = totalReal - totalJournal;
+    
+    // Get currency symbol from first location (all should have same symbol)
+    final currencySymbol = cashLocations.isNotEmpty ? cashLocations.first.currencySymbol : '₩';
+    
     return Container(
       padding: EdgeInsets.all(TossSpacing.space5),
       decoration: BoxDecoration(
@@ -231,19 +260,19 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
           ),
           SizedBox(height: TossSpacing.space4),
           
-          // Total Journal (previously Income)
+          // Total Journal
           _buildBalanceRow(
             'Total Journal',
-            _formatCurrency(data['income']),
+            _formatCurrency(totalJournal, currencySymbol),
             isIncome: true,
           ),
           
           SizedBox(height: TossSpacing.space3),
           
-          // Total Real (previously Spending)
+          // Total Real
           _buildBalanceRow(
             'Total Real',
-            _formatCurrency(data['spending']),
+            _formatCurrency(totalReal, currencySymbol),
             isIncome: false,
           ),
           
@@ -254,7 +283,7 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
             color: const Color(0xFFE5E8EB),
           ),
           
-          // Error (previously Remaining balance)
+          // Error
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -265,7 +294,7 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
                 ),
               ),
               Text(
-                _formatCurrency(data['balance']),
+                _formatCurrency(totalError, currencySymbol),
                 style: TossTextStyles.h3.copyWith(
                   color: const Color(0xFFE53935),
                   fontWeight: FontWeight.w700,
@@ -328,7 +357,12 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
     );
   }
   
-  Widget _buildAccountsSection(List<dynamic> accounts) {
+  Widget _buildAccountsSection(List<CashLocation> cashLocations) {
+    // Calculate total for percentage calculations
+    final totalAmount = cashLocations.fold<double>(
+      0, (sum, location) => sum + location.totalJournalCashAmount
+    );
+    
     return Container(
       padding: EdgeInsets.all(TossSpacing.space5),
       decoration: BoxDecoration(
@@ -348,7 +382,7 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
           ),
           SizedBox(height: TossSpacing.space3),
           
-          ...accounts.map((account) => _buildAccountCard(account)),
+          ...cashLocations.map((location) => _buildAccountCard(location, totalAmount)),
           
           // Add New Account button
           GestureDetector(
@@ -405,21 +439,27 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
     );
   }
   
-  Widget _buildAccountCard(Map<String, dynamic> account) {
-    // Calculate percentage (mock calculation)
-    final totalBalance = locationData[_currentLocationType]!['balance'] as int;
-    final accountBalance = account['balance'] as int;
-    final percentage = ((accountBalance / totalBalance) * 100).round();
+  Widget _buildAccountCard(CashLocation location, double totalAmount) {
+    // Calculate percentage
+    final percentage = totalAmount > 0 
+        ? ((location.totalJournalCashAmount / totalAmount) * 100).round()
+        : 0;
     
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: () {
         context.push(
-          '/cashLocation/account/${Uri.encodeComponent(account['name'])}',
+          '/cashLocation/account/${Uri.encodeComponent(location.locationName)}',
           extra: {
             'locationType': _currentLocationType,
-            'balance': account['balance'],
-            'errors': account['errors'] ?? 0,
+            'accountName': location.locationName,
+            'totalJournal': location.totalJournalCashAmount.round(),
+            'totalReal': location.totalRealCashAmount.round(),
+            'cashDifference': location.cashDifference.round(),
+            'currencySymbol': location.currencySymbol,
+            // Legacy fields for compatibility (can be removed later)
+            'balance': location.totalJournalCashAmount.round(),
+            'errors': location.cashDifference.abs().round(),
           },
         );
       },
@@ -452,7 +492,7 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      account['name'],
+                      location.locationName,
                       style: TossTextStyles.body.copyWith(
                         fontWeight: FontWeight.w700,
                         fontSize: 16,
@@ -478,7 +518,7 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
                       Text(
-                        _formatCurrency(account['balance']),
+                        _formatCurrency(location.totalJournalCashAmount, location.currencySymbol),
                         style: TossTextStyles.body.copyWith(
                           color: Theme.of(context).colorScheme.primary,
                           fontWeight: FontWeight.w600,
@@ -487,7 +527,7 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
                       ),
                       SizedBox(height: TossSpacing.space1),
                       Text(
-                        '${account['errors'] ?? 0}',
+                        '${location.cashDifference.abs().round()}',
                         style: TossTextStyles.caption.copyWith(
                           color: const Color(0xFFE53935),
                           fontSize: 12,
