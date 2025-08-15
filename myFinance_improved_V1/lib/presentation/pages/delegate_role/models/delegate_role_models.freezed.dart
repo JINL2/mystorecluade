@@ -262,7 +262,7 @@ class __$$RoleDelegationImplCopyWithImpl<$Res>
 
 /// @nodoc
 @JsonSerializable()
-class _$RoleDelegationImpl implements _RoleDelegation {
+class _$RoleDelegationImpl extends _RoleDelegation {
   const _$RoleDelegationImpl(
       {required this.id,
       required this.delegatorId,
@@ -278,7 +278,8 @@ class _$RoleDelegationImpl implements _RoleDelegation {
       this.createdAt,
       this.updatedAt})
       : _delegateUser = delegateUser,
-        _permissions = permissions;
+        _permissions = permissions,
+        super._();
 
   factory _$RoleDelegationImpl.fromJson(Map<String, dynamic> json) =>
       _$$RoleDelegationImplFromJson(json);
@@ -392,7 +393,7 @@ class _$RoleDelegationImpl implements _RoleDelegation {
   }
 }
 
-abstract class _RoleDelegation implements RoleDelegation {
+abstract class _RoleDelegation extends RoleDelegation {
   const factory _RoleDelegation(
       {required final String id,
       required final String delegatorId,
@@ -407,6 +408,7 @@ abstract class _RoleDelegation implements RoleDelegation {
       required final bool isActive,
       final DateTime? createdAt,
       final DateTime? updatedAt}) = _$RoleDelegationImpl;
+  const _RoleDelegation._() : super._();
 
   factory _RoleDelegation.fromJson(Map<String, dynamic> json) =
       _$RoleDelegationImpl.fromJson;

@@ -79,25 +79,6 @@ class TossDropdown<T> extends StatelessWidget {
                 ),
                 child: Row(
                   children: [
-                    // Company icon
-                    Container(
-                      width: 32,
-                      height: 32,
-                      decoration: BoxDecoration(
-                        color: value != null 
-                          ? Theme.of(context).colorScheme.primary.withOpacity(0.1)
-                          : Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.5),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Icon(
-                        Icons.business_rounded,
-                        color: value != null
-                          ? Theme.of(context).colorScheme.primary
-                          : Theme.of(context).colorScheme.onSurfaceVariant,
-                        size: 18,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
                     
                     // Selected value or hint
                     Expanded(
@@ -323,25 +304,6 @@ class TossDropdown<T> extends StatelessWidget {
                           ),
                           child: Row(
                             children: [
-                              // Company icon
-                              Container(
-                                width: 40,
-                                height: 40,
-                                decoration: BoxDecoration(
-                                  color: isSelected
-                                    ? Theme.of(context).colorScheme.primary.withOpacity(0.1)
-                                    : Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.5),
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: Icon(
-                                  Icons.business_rounded,
-                                  color: isSelected
-                                    ? Theme.of(context).colorScheme.primary
-                                    : Theme.of(context).colorScheme.onSurfaceVariant,
-                                  size: 20,
-                                ),
-                              ),
-                              const SizedBox(width: 12),
                               
                               // Option content
                               Expanded(

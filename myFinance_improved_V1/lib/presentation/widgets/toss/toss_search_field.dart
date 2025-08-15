@@ -95,66 +95,80 @@ class _TossSearchFieldState extends State<TossSearchField> {
   Widget build(BuildContext context) {
     return Container(
       height: 48,
-      decoration: BoxDecoration(
-        color: TossColors.surface,
-        borderRadius: BorderRadius.circular(TossBorderRadius.md),
-        border: Border.all(
-          color: _focusNode.hasFocus ? TossColors.primary : TossColors.gray200,
-          width: 1,
+      width: double.infinity,
+      child: Material(
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(TossBorderRadius.md),
+          side: BorderSide(
+            color: _focusNode.hasFocus ? TossColors.primary : TossColors.gray400,
+            width: 1.5,
+          ),
         ),
-      ),
-      child: Row(
-        children: [
-          if (widget.prefixIcon != null)
-            Padding(
-              padding: EdgeInsets.only(left: TossSpacing.space3),
-              child: Icon(
-                widget.prefixIcon,
-                size: 20,
-                color: TossColors.gray400,
-              ),
-            ),
-          Expanded(
-            child: TextField(
-              controller: _controller,
-              focusNode: _focusNode,
-              enabled: widget.enabled,
-              autofocus: widget.autofocus,
-              onSubmitted: widget.onSubmitted,
-              style: TossTextStyles.body.copyWith(
-                color: TossColors.gray900,
-              ),
-              decoration: InputDecoration(
-                hintText: widget.hintText,
-                hintStyle: TossTextStyles.body.copyWith(
-                  color: TossColors.gray500,
+        color: Colors.white,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(TossBorderRadius.md),
+          onTap: () => _focusNode.requestFocus(),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(
+              children: [
+                if (widget.prefixIcon != null) ...[
+                  Icon(
+                    widget.prefixIcon,
+                    size: 20,
+                    color: TossColors.gray400,
+                  ),
+                  const SizedBox(width: 12),
+                ],
+                Expanded(
+                  child: TextField(
+                    controller: _controller,
+                    focusNode: _focusNode,
+                    enabled: widget.enabled,
+                    autofocus: widget.autofocus,
+                    onSubmitted: widget.onSubmitted,
+                    style: TossTextStyles.body.copyWith(
+                      color: TossColors.gray900,
+                    ),
+                    decoration: InputDecoration(
+                      hintText: widget.hintText,
+                      hintStyle: TossTextStyles.body.copyWith(
+                        color: TossColors.gray500,
+                      ),
+                      border: InputBorder.none,
+                      enabledBorder: InputBorder.none,
+                      focusedBorder: InputBorder.none,
+                      errorBorder: InputBorder.none,
+                      focusedErrorBorder: InputBorder.none,
+                      disabledBorder: InputBorder.none,
+                      contentPadding: EdgeInsets.zero,
+                      isDense: true,
+                    ),
+                  ),
                 ),
-                border: InputBorder.none,
-                contentPadding: EdgeInsets.symmetric(
-                  horizontal: widget.prefixIcon != null ? TossSpacing.space2 : TossSpacing.space4,
-                  vertical: TossSpacing.space3,
-                ),
-              ),
+                if (_showClearButton) ...[
+                  const SizedBox(width: 8),
+                  GestureDetector(
+                    onTap: _handleClear,
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      child: Icon(
+                        Icons.clear,
+                        size: 20,
+                        color: TossColors.gray400,
+                      ),
+                    ),
+                  ),
+                ],
+                if (widget.suffixIcon != null && !_showClearButton) ...[
+                  const SizedBox(width: 8),
+                  widget.suffixIcon!,
+                ],
+              ],
             ),
           ),
-          if (_showClearButton)
-            GestureDetector(
-              onTap: _handleClear,
-              child: Container(
-                padding: EdgeInsets.all(TossSpacing.space2),
-                child: Icon(
-                  Icons.clear,
-                  size: 20,
-                  color: TossColors.gray400,
-                ),
-              ),
-            ),
-          if (widget.suffixIcon != null && !_showClearButton)
-            Padding(
-              padding: EdgeInsets.only(right: TossSpacing.space3),
-              child: widget.suffixIcon,
-            ),
-        ],
+        ),
       ),
     );
   }

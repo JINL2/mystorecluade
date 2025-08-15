@@ -18,6 +18,7 @@ import '../pages/balance_sheet/balance_sheet_page.dart';
 import '../pages/store_shift/store_shift_page.dart';
 import '../pages/counter_party/counter_party_page.dart';
 import '../pages/add_fix_asset/add_fix_asset_page.dart';
+import '../pages/register_denomination/register_denomination_page.dart';
 
 
 // Router notifier to listen to auth state changes
@@ -138,7 +139,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: 'addFixAsset',
             builder: (context, state) => const AddFixAssetPage(),
-
+          ),
+          // Register Denomination Page
+          GoRoute(
+            path: 'registerDenomination',
+            builder: (context, state) => const RegisterDenominationPage(),
           ),
         ],
       ),
