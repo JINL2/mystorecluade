@@ -33,7 +33,6 @@ class CompanyService {
           .map((json) => CompanyType.fromJson(json))
           .toList();
     } catch (e) {
-      print('CompanyService Error: Failed to get company types: $e');
       return [];
     }
   }
@@ -50,7 +49,6 @@ class CompanyService {
           .map((json) => Currency.fromJson(json))
           .toList();
     } catch (e) {
-      print('CompanyService Error: Failed to get currencies: $e');
       return [];
     }
   }
@@ -170,7 +168,6 @@ class CompanyService {
       } catch (innerError) {
         // If something goes wrong, we should ideally delete the company
         // But for now, just log the error
-        print('CompanyService Error during role creation: $innerError');
         
         // Try to clean up
         try {
@@ -179,13 +176,11 @@ class CompanyService {
               .delete()
               .eq('company_id', companyId);
         } catch (deleteError) {
-          print('CompanyService Error: Failed to clean up company: $deleteError');
         }
         
         return null;
       }
     } catch (e) {
-      print('CompanyService Error: Failed to create company: $e');
       return null;
     }
   }

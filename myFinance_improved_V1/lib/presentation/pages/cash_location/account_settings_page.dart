@@ -1,18 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'dart:convert';
 import '../../../core/themes/toss_text_styles.dart';
 import '../../../core/themes/toss_spacing.dart';
 import '../../../core/themes/toss_border_radius.dart';
 import '../../../core/themes/toss_shadows.dart';
+import '../../providers/app_state_provider.dart';
+import '../../../data/services/cash_location_service.dart';
 
 class AccountSettingsPage extends ConsumerStatefulWidget {
   final String accountName;
   final String locationType;
+  final String locationId;
   
   const AccountSettingsPage({
     super.key,
     required this.accountName,
     required this.locationType,
+    required this.locationId,
   });
 
   @override
@@ -25,15 +31,74 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage> {
   final TextEditingController _noteController = TextEditingController();
   final TextEditingController _bankNameController = TextEditingController();
   final TextEditingController _accountNumberController = TextEditingController();
+  final _supabase = Supabase.instance.client;
+  String _currentAccountName = '';
   
   @override
   void initState() {
     super.initState();
+    _currentAccountName = widget.accountName;
     _nameController.text = widget.accountName;
-    // Initialize bank-specific fields if it's a bank account
-    if (widget.locationType == 'bank') {
-      _bankNameController.text = 'KB Bank'; // Mock data
-      _accountNumberController.text = '8888889999999'; // Mock full account number
+    if (widget.locationId.isNotEmpty) {
+      _loadCashLocationData();
+    } else {
+      _loadCashLocationDataByName();
+    }
+  }
+  
+  Future<void> _loadCashLocationData() async {
+    try {
+      final response = await _supabase
+          .from('cash_locations')
+          .select('*')
+          .eq('cash_location_id', widget.locationId)
+          .single();
+      
+      if (mounted) {
+        setState(() {
+          _currentAccountName = response['location_name'] ?? widget.accountName;
+          _nameController.text = _currentAccountName;
+          _noteController.text = response['note'] ?? '';
+          _isMainAccount = response['main_cash_location'] ?? false;
+          
+          if (widget.locationType == 'bank') {
+            _bankNameController.text = response['bank_name'] ?? '';
+            _accountNumberController.text = response['bank_account'] ?? '';
+          }
+        });
+      }
+    } catch (e) {
+      // If fails, try loading by name
+      _loadCashLocationDataByName();
+    }
+  }
+  
+  Future<void> _loadCashLocationDataByName() async {
+    try {
+      final appState = ref.read(appStateProvider);
+      final response = await _supabase
+          .from('cash_locations')
+          .select('*')
+          .eq('location_name', widget.accountName)
+          .eq('location_type', widget.locationType)
+          .eq('company_id', appState.companyChoosen)
+          .eq('store_id', appState.storeChoosen)
+          .single();
+      
+      if (mounted) {
+        setState(() {
+          _currentAccountName = response['location_name'] ?? widget.accountName;
+          _nameController.text = _currentAccountName;
+          _noteController.text = response['note'] ?? '';
+          _isMainAccount = response['main_cash_location'] ?? false;
+          
+          if (widget.locationType == 'bank') {
+            _bankNameController.text = response['bank_name'] ?? '';
+            _accountNumberController.text = response['bank_account'] ?? '';
+          }
+        });
+      }
+    } catch (e) {
     }
   }
   
@@ -129,7 +194,7 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage> {
           Container(
             width: double.infinity,
             child: Text(
-              widget.accountName,
+              _currentAccountName,
               style: TossTextStyles.body.copyWith(
                 fontWeight: FontWeight.w700,
                 fontSize: 17,
@@ -225,10 +290,11 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage> {
                 const Spacer(),
                 Switch(
                   value: _isMainAccount,
-                  onChanged: (value) {
+                  onChanged: (value) async {
                     setState(() {
                       _isMainAccount = value;
                     });
+                    await _updateMainAccountStatus(value);
                   },
                   activeColor: Theme.of(context).colorScheme.primary,
                 ),
@@ -332,12 +398,15 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage> {
       builder: (BuildContext modalContext) {
         return _SimpleNameEditSheet(
           initialName: initialText,
-          onSave: (String newName) {
+          onSave: (String newName) async {
             // Close the modal first
             Navigator.of(modalContext).pop();
+            // Update database
+            await _updateCashLocationName(newName);
             // Then update the parent state
             if (mounted) {
               setState(() {
+                _currentAccountName = newName;
                 _nameController.text = newName;
               });
             }
@@ -362,9 +431,11 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage> {
       builder: (BuildContext modalContext) {
         return _SimpleNoteEditSheet(
           initialNote: initialText,
-          onSave: (String newNote) {
+          onSave: (String newNote) async {
             // Close the modal first
             Navigator.of(modalContext).pop();
+            // Update database
+            await _updateCashLocationNote(newNote);
             // Then update the parent state
             if (mounted) {
               setState(() {
@@ -466,10 +537,14 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage> {
               ),
             ),
             TextButton(
-              onPressed: () {
+              onPressed: () async {
                 Navigator.of(context).pop();
-                Navigator.of(context).pop(); // Go back to previous screen
-                // Handle account deletion
+                await _deleteCashLocation();
+                if (mounted) {
+                  // Invalidate cache to refresh the list
+                  ref.invalidate(allCashLocationsProvider);
+                  Navigator.of(context).pop(); // Go back to previous screen
+                }
               },
               child: Text(
                 'Delete',
@@ -494,6 +569,196 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage> {
       case 'cash':
       default:
         return 'Cash';
+    }
+  }
+  
+  Future<void> _updateCashLocationName(String newName) async {
+    try {
+      if (widget.locationId.isNotEmpty) {
+        // Update using locationId
+        await _supabase
+            .from('cash_locations')
+            .update({'location_name': newName})
+            .eq('cash_location_id', widget.locationId);
+      } else {
+        // Fallback: Update using name and other identifying fields
+        final appState = ref.read(appStateProvider);
+        await _supabase
+            .from('cash_locations')
+            .update({'location_name': newName})
+            .eq('location_name', _currentAccountName)
+            .eq('location_type', widget.locationType)
+            .eq('company_id', appState.companyChoosen)
+            .eq('store_id', appState.storeChoosen);
+      }
+      
+      // Update the current name after successful DB update
+      _currentAccountName = newName;
+      
+      // Invalidate cache to refresh the list
+      ref.invalidate(allCashLocationsProvider);
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Account name updated successfully'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to update name: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+  
+  Future<void> _updateCashLocationNote(String newNote) async {
+    try {
+      if (widget.locationId.isNotEmpty) {
+        await _supabase
+            .from('cash_locations')
+            .update({'note': newNote})
+            .eq('cash_location_id', widget.locationId);
+      } else {
+        // Fallback: Update using name and other identifying fields
+        final appState = ref.read(appStateProvider);
+        await _supabase
+            .from('cash_locations')
+            .update({'note': newNote})
+            .eq('location_name', _currentAccountName)
+            .eq('location_type', widget.locationType)
+            .eq('company_id', appState.companyChoosen)
+            .eq('store_id', appState.storeChoosen);
+      }
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Note updated successfully'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to update note: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+  
+  Future<void> _updateMainAccountStatus(bool isMain) async {
+    try {
+      // If setting as main, first unset any existing main account
+      if (isMain) {
+        final appState = ref.read(appStateProvider);
+        final companyId = appState.companyChoosen;
+        final storeId = appState.storeChoosen;
+        
+        // Unset all main accounts for this location type
+        await _supabase
+            .from('cash_locations')
+            .update({'main_cash_location': false})
+            .eq('company_id', companyId)
+            .eq('store_id', storeId)
+            .eq('location_type', widget.locationType);
+      }
+      
+      // Update the current account
+      if (widget.locationId.isNotEmpty) {
+        await _supabase
+            .from('cash_locations')
+            .update({'main_cash_location': isMain})
+            .eq('cash_location_id', widget.locationId);
+      } else {
+        // Fallback: Update using name and other identifying fields
+        final appState = ref.read(appStateProvider);
+        await _supabase
+            .from('cash_locations')
+            .update({'main_cash_location': isMain})
+            .eq('location_name', _currentAccountName)
+            .eq('location_type', widget.locationType)
+            .eq('company_id', appState.companyChoosen)
+            .eq('store_id', appState.storeChoosen);
+      }
+      
+      // Invalidate cache to refresh the list
+      ref.invalidate(allCashLocationsProvider);
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(isMain ? 'Set as main account' : 'Removed as main account'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      // Revert the state if update failed
+      if (mounted) {
+        setState(() {
+          _isMainAccount = !isMain;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to update main account: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+  
+  Future<void> _deleteCashLocation() async {
+    try {
+      // Soft delete by setting deleted_at timestamp
+      if (widget.locationId.isNotEmpty) {
+        await _supabase
+            .from('cash_locations')
+            .update({'deleted_at': DateTime.now().toIso8601String()})
+            .eq('cash_location_id', widget.locationId);
+      } else {
+        // Fallback: Delete using name and other identifying fields
+        final appState = ref.read(appStateProvider);
+        await _supabase
+            .from('cash_locations')
+            .update({'deleted_at': DateTime.now().toIso8601String()})
+            .eq('location_name', _currentAccountName)
+            .eq('location_type', widget.locationType)
+            .eq('company_id', appState.companyChoosen)
+            .eq('store_id', appState.storeChoosen);
+      }
+      
+      // Invalidate cache to refresh the list
+      ref.invalidate(allCashLocationsProvider);
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Account deleted successfully'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to delete account: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 }

@@ -6,7 +6,6 @@ import '../../../core/themes/toss_text_styles.dart';
 import '../../../core/themes/toss_spacing.dart';
 import '../../widgets/toss/toss_primary_button.dart';
 import '../../providers/auth_provider.dart';
-import '../../providers/test_supabase.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
@@ -134,38 +133,6 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                 ),
                 
                 const SizedBox(height: TossSpacing.space2),
-                
-                // Temporary test buttons for debugging
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextButton(
-                        onPressed: () async {
-                          await TestAuthProvider.testSignup();
-                        },
-                        child: Text(
-                          'Test Signup',
-                          style: TossTextStyles.bodySmall.copyWith(
-                            color: TossColors.gray600,
-                          ),
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      child: TextButton(
-                        onPressed: () async {
-                          await TestAuthProvider.testResetPassword();
-                        },
-                        child: Text(
-                          'Test Reset',
-                          style: TossTextStyles.bodySmall.copyWith(
-                            color: TossColors.gray600,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
                 
                 const SizedBox(height: TossSpacing.space3),
               ],

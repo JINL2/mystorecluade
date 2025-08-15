@@ -146,11 +146,9 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
       final companyId = appState.companyChoosen;
       
       if (companyId.isEmpty) {
-        print('Company ID is empty, cannot load currencies');
         return;
       }
       
-      print('Loading company currencies for company_id: $companyId');
       
       // Query company_currency table
       final response = await Supabase.instance.client
@@ -158,9 +156,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
           .select('*')
           .eq('company_id', companyId);
       
-      print('Company currencies response: ${response.length} currencies found');
       if (response.isNotEmpty) {
-        print('First currency: ${response[0]}');
       }
       
       setState(() {
@@ -170,7 +166,6 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
       // Load denominations for each currency
       await _loadCurrencyDenominations();
     } catch (e) {
-      print('Error loading company currencies: $e');
     }
   }
   
@@ -181,11 +176,9 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
       final companyId = appState.companyChoosen;
       
       if (companyId.isEmpty || companyCurrencies.isEmpty) {
-        print('Cannot load denominations: companyId empty or no currencies');
         return;
       }
       
-      print('Loading currency denominations for company_id: $companyId');
       
       // Query currency_denominations table
       final response = await Supabase.instance.client
@@ -194,9 +187,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
           .eq('company_id', companyId)
           .order('value', ascending: false);
       
-      print('Currency denominations response: ${response.length} denominations found');
       if (response.isNotEmpty) {
-        print('First denomination: ${response[0]}');
       }
       
       // Group denominations by currency_id
@@ -214,7 +205,6 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
         controllers[currencyId]![denom['value'].toString()] = TextEditingController();
       }
       
-      print('Grouped denominations by currency: ${grouped.keys.toList()}');
       
       setState(() {
         currencyDenominations = grouped;
@@ -225,11 +215,9 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
           selectedCashCurrencyId = companyCurrencies.first['currency_id'].toString();
           selectedBankCurrencyId = companyCurrencies.first['currency_id'].toString();
           selectedVaultCurrencyId = companyCurrencies.first['currency_id'].toString();
-          print('Selected default currency ID: $selectedCashCurrencyId');
         }
       });
     } catch (e) {
-      print('Error loading denominations: $e');
     }
   }
   
@@ -387,8 +375,6 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
       
       // Debug: Print the first location to see its structure
       if (response.isNotEmpty) {
-        print('First $locationType location data: ${response[0]}');
-        print('Available keys in location: ${response[0].keys.toList()}');
       }
       
       setState(() {
@@ -803,9 +789,6 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
                 final currencyId = currency['currency_id'];
                 final denominations = currency['denominations'] ?? [];
                 
-                print('Debug: Processing currency $currencyId with ${denominations.length} denominations');
-                print('Debug: denominationData keys: ${denominationData.keys}');
-                print('Debug: currencyData keys: ${currencyData.keys}');
                 
                 // Get currency details - first try currencyData, then currencyTypes, then companyCurrencies
                 var currencyInfo = currencyData[currencyId];
@@ -825,7 +808,6 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
                 final currencySymbol = currencyInfo['symbol'] ?? '';
                 final currencyCode = currencyInfo['currency_code'] ?? '';
                 
-                print('Debug: Currency info - symbol: $currencySymbol, code: $currencyCode');
                 
                 // Calculate total amount
                 double totalAmount = 0;
@@ -835,7 +817,6 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
                   
                   // Find denomination value - use the denomination data we loaded
                   final denominationsList = denominationData[currencyId] ?? currencyDenominations[currencyId];
-                  print('Debug: Looking for denomination $denominationId in list with ${denominationsList?.length ?? 0} items');
                   if (denominationsList != null) {
                     final denominationInfo = denominationsList.firstWhere(
                       (d) => d['denomination_id'] == denominationId,
@@ -843,11 +824,9 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
                     );
                     final value = denominationInfo['value'] ?? 0;
                     totalAmount += value * quantity;
-                    print('Debug: Denomination $denominationId - value: $value, quantity: $quantity');
                   }
                 }
                 
-                print('Debug: Total amount calculated: $totalAmount');
                 
                 // Only display if we have denomination data or if total is 0
                 if (totalAmount > 0 || denominations.isNotEmpty) {
@@ -1635,8 +1614,6 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
           runSpacing: TossSpacing.space3,
           children: locations.map((location) {
             // Debug: Print location structure
-            print('Location data: $location');
-            print('Location keys: ${location.keys.toList()}');
             
             // Try different possible field names for the location ID
             final locationId = location['cash_location_id']?.toString() ?? 
@@ -1648,14 +1625,12 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
             final locationName = location['location_name'] ?? 'Unknown';
             final isSelected = selectedLocation == locationId;
             
-            print('Selected locationId for $locationName: $locationId');
             
             return GestureDetector(
               onTap: () {
                 setState(() {
                   if (locationType == 'cash') {
                     selectedLocationId = locationId;
-                    print('Set selectedLocationId to: $locationId');
                   } else if (locationType == 'bank') {
                     selectedBankLocationId = locationId;
                     // Fetch recent transactions when bank location is selected
@@ -1705,9 +1680,6 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
   }
   
   Widget _buildDenominationSection({String tabType = 'cash'}) {
-    print('Building denomination section for tab: $tabType');
-    print('Company currencies count: ${companyCurrencies.length}');
-    print('Currency denominations keys: ${currencyDenominations.keys.toList()}');
     
     // Get selected currency ID based on tab
     final String? selectedCurrencyId;
@@ -1719,10 +1691,8 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
       selectedCurrencyId = selectedVaultCurrencyId;
     }
     
-    print('Selected currency ID: $selectedCurrencyId');
     
     if (selectedCurrencyId == null || !currencyDenominations.containsKey(selectedCurrencyId)) {
-      print('No denominations found for currency ID: $selectedCurrencyId');
       return Container(
         padding: const EdgeInsets.all(TossSpacing.space4),
         decoration: BoxDecoration(
@@ -2329,9 +2299,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
         });
       }
       
-      print('Fetched most recent bank transaction');
     } catch (e) {
-      print('Error fetching bank transaction: $e');
       setState(() {
         isLoadingBankTransactions = false;
       });
@@ -2370,7 +2338,6 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
         });
       }
     } catch (e) {
-      print('Error fetching vault balance: $e');
       setState(() {
         vaultBalanceData = null;
         isLoadingVaultBalance = false;
@@ -2498,7 +2465,6 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
         }
       }
     } catch (e) {
-      print('Error fetching all bank transactions: $e');
       if (updateUI != null) {
         isLoadingAllTransactions = false;
         updateUI();
@@ -2574,21 +2540,11 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
       };
       
       // Debug: Log the params
-      print('Calling bank_amount_insert_v2 with params:');
-      print('p_company_id: ${params['p_company_id']}');
-      print('p_store_id: ${params['p_store_id']}');
-      print('p_record_date: ${params['p_record_date']}');
-      print('p_location_id: ${params['p_location_id']}');
-      print('p_currency_id: ${params['p_currency_id']}');
-      print('p_total_amount: ${params['p_total_amount']}');
-      print('p_created_by: ${params['p_created_by']}');
-      print('p_created_at: ${params['p_created_at']}');
       
       // Call the RPC function
       final response = await Supabase.instance.client
           .rpc('bank_amount_insert_v2', params: params);
       
-      print('RPC response: $response');
       
       // Show success message
       if (mounted) {
@@ -2619,7 +2575,6 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
       }
       
     } catch (e) {
-      print('Error saving bank balance: $e');
       if (mounted) {
         // Parse error message for user-friendly display
         String errorMessage = 'Failed to save bank balance';
@@ -3521,13 +3476,11 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
         'p_vault_amount_line_json': vaultAmountLineJson,
       };
       
-      print('Calling vault_amount_insert with params: $params');
       
       // Call the RPC function
       final response = await Supabase.instance.client
           .rpc('vault_amount_insert', params: params);
       
-      print('RPC response: $response');
       
       // Show success message
       if (mounted) {
@@ -3553,7 +3506,6 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
       }
       
     } catch (e) {
-      print('Error saving vault balance: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error saving vault balance: ${e.toString()}')),
@@ -3675,20 +3627,11 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
       };
       
       // Debug: Log the params to see what's being sent
-      print('Calling insert_cashier_amount_lines with params:');
-      print('p_company_id: ${params['p_company_id']}');
-      print('p_store_id: ${params['p_store_id']}');
-      print('p_location_id: ${params['p_location_id']}');
-      print('p_record_date: ${params['p_record_date']}');
-      print('p_created_by: ${params['p_created_by']}');
-      print('p_currencies: ${params['p_currencies']}');
-      print('p_created_at: ${params['p_created_at']}');
       
       // Call the RPC function
       final response = await Supabase.instance.client
           .rpc('insert_cashier_amount_lines', params: params);
       
-      print('RPC response: $response');
       
       // RPC returns null on success, so we don't check the response
       // Show success message
@@ -3718,7 +3661,6 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
       }
       
     } catch (e) {
-      print('Error saving cash ending: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error saving cash ending: ${e.toString()}')),
@@ -4071,7 +4013,6 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
   void _refreshData() {
     // Refresh cash ending data for the selected store
     // This would typically call a Supabase function
-    print('Refreshing cash ending data for store: $selectedStoreId');
   }
   
   Future<void> _loadRecentCashEndings(String locationId) async {
@@ -4083,13 +4024,8 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
       final appState = ref.read(appStateProvider);
       final companyId = appState.companyChoosen;
       
-      print('\n=== Debug _loadRecentCashEndings ===');
-      print('  companyId: $companyId');
-      print('  selectedStoreId: $selectedStoreId');
-      print('  locationId: $locationId');
       
       if (companyId.isEmpty || selectedStoreId == null || locationId.isEmpty) {
-        print('Debug: Returning early - missing required IDs');
         setState(() {
           recentCashEndings = [];
           isLoadingRecentEndings = false;
@@ -4099,28 +4035,14 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
       
       // Query cashier_amount_lines table - get all rows for this location
       // We need to group them by record_date and created_at to get the most recent transaction
-      print('Debug: Querying cashier_amount_lines with:');
-      print('  company_id = $companyId');
-      print('  store_id = $selectedStoreId');
-      print('  location_id = $locationId');
       
       // First, let's try a simpler query to see if we get any data at all
-      print('Debug: First trying a simple query for this location...');
       final testResponse = await Supabase.instance.client
           .from('cashier_amount_lines')
           .select('*')
           .eq('location_id', locationId);
       
-      print('Debug: Test query for location_id only returned: ${testResponse?.length ?? 0} rows');
       if (testResponse != null && testResponse.isNotEmpty) {
-        print('Debug: Sample row from test query:');
-        print('  company_id: ${testResponse[0]['company_id']}');
-        print('  store_id: ${testResponse[0]['store_id']}');
-        print('  location_id: ${testResponse[0]['location_id']}');
-        print('  Comparing with our values:');
-        print('  Our company_id: $companyId');
-        print('  Our store_id: $selectedStoreId');
-        print('  Our location_id: $locationId');
       }
       
       // Build the query based on whether it's headquarter or a regular store
@@ -4132,21 +4054,14 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
       
       // For headquarter, store_id should be null in the database
       if (selectedStoreId == 'headquarter') {
-        print('Debug: Querying for headquarter (store_id IS NULL)');
         query = query.isFilter('store_id', null);
       } else {
-        print('Debug: Querying for store: $selectedStoreId');
         query = query.eq('store_id', selectedStoreId!);
       }
       
       final response = await query.order('created_at', ascending: false);
       
-      print('Debug: Final query response: ${response?.length ?? 0} rows');
       if (response != null && response.isNotEmpty) {
-        print('Debug: First row from final query:');
-        print('  company_id: ${response[0]['company_id']}');
-        print('  store_id: ${response[0]['store_id']}');
-        print('  location_id: ${response[0]['location_id']}');
       }
       
       if (response != null && response.isNotEmpty) {
@@ -4161,7 +4076,6 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
           row['created_at'] == latestCreatedAt
         ).toList();
         
-        print('Debug: Found ${transactionRows.length} rows for latest transaction');
         
         // Get user's full name from users table
         String fullName = 'Unknown User';
@@ -4209,14 +4123,11 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
           }
           
           // Get currency info from currencyTypes table data (loaded when page loads)
-          print('Debug: Looking for currency $currencyId in currencyTypes');
-          print('Debug: currencyTypes count: ${currencyTypes.length}');
           
           // Find the currency in currencyTypes by matching currency_id
           final currencyInfo = currencyTypes.firstWhere(
             (c) => c['currency_id'] == currencyId,
             orElse: () {
-              print('Debug: Currency $currencyId not found in currencyTypes, checking companyCurrencies');
               // Fallback to companyCurrencies if not found in currencyTypes
               return companyCurrencies.firstWhere(
                 (c) => c['currency_id'] == currencyId,
@@ -4229,8 +4140,6 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
             },
           );
           
-          print('Debug: Found currency info: $currencyInfo');
-          print('Debug: Currency symbol: ${currencyInfo['symbol']}, code: ${currencyInfo['currency_code']}');
           
           if (currencyInfo.isNotEmpty) {
             currencyData[currencyId] = currencyInfo;
@@ -4260,9 +4169,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
           isLoadingRecentEndings = false;
         });
         
-        print('Debug: Loaded recent ending with ${currencies.length} currencies');
         for (var currency in currencies) {
-          print('Debug: Currency ${currency['currency_id']} has ${currency['denominations'].length} denominations');
         }
       } else {
         setState(() {
@@ -4271,7 +4178,6 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
         });
       }
     } catch (e) {
-      print('Error loading recent cash endings: $e');
       setState(() {
         recentCashEndings = [];
         isLoadingRecentEndings = false;

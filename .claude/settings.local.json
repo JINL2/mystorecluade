@@ -25,7 +25,9 @@
       "Bash(git checkout:*)",
       "Bash(flutter clean:*)",
       "Bash(flutter pub:*)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(touch:*)",
+      "Bash(timeout 30 flutter build ios --debug --no-codesign)"
     ],
     "deny": []
   }

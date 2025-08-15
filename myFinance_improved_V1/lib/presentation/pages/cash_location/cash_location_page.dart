@@ -451,6 +451,7 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
         context.push(
           '/cashLocation/account/${Uri.encodeComponent(location.locationName)}',
           extra: {
+            'locationId': location.locationId,
             'locationType': _currentLocationType,
             'accountName': location.locationName,
             'totalJournal': location.totalJournalCashAmount.round(),

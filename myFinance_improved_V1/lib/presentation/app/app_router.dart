@@ -21,6 +21,7 @@ import '../pages/add_fix_asset/add_fix_asset_page.dart';
 import '../pages/register_denomination/register_denomination_page.dart';
 import '../pages/cash_location/cash_location_page.dart';
 import '../pages/cash_location/account_detail_page.dart';
+import '../pages/transactions/transaction_history_page.dart';
 
 
 // Router notifier to listen to auth state changes
@@ -31,7 +32,6 @@ class RouterNotifier extends ChangeNotifier {
     _ref.listen<bool>(
       isAuthenticatedProvider,
       (previous, next) {
-        print('RouterNotifier: Auth state changed from $previous to $next');
         notifyListeners();
       },
     );
@@ -47,21 +47,17 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       final isAuth = ref.read(isAuthenticatedProvider);
       final isAuthRoute = state.matchedLocation.startsWith('/auth');
       
-      print('Router redirect: isAuth=$isAuth, location=${state.matchedLocation}, isAuthRoute=$isAuthRoute');
       
       // If not authenticated and not on auth route, go to login
       if (!isAuth && !isAuthRoute) {
-        print('Router redirect: Not authenticated, redirecting to login');
         return '/auth/login';
       }
       
       // If authenticated and on auth route, go to home
       if (isAuth && isAuthRoute) {
-        print('Router redirect: Authenticated on auth route, redirecting to home');
         return '/';
       }
       
-      print('Router redirect: No redirect needed');
       return null;
     },
     routes: [
@@ -146,6 +142,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: 'registerDenomination',
             builder: (context, state) => const RegisterDenominationPage(),
+          ),
+          // Transaction History Page
+          GoRoute(
+            path: 'transactionHistory',
+            builder: (context, state) => const TransactionHistoryPage(),
+          ),
           GoRoute(
             path: 'cashLocation',
             builder: (context, state) => const CashLocationPage(),
@@ -156,6 +158,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   final accountName = state.pathParameters['accountName'] ?? '';
                   final extra = state.extra as Map<String, dynamic>?;
                   return AccountDetailPage(
+                    locationId: extra?['locationId'],
                     accountName: accountName,
                     locationType: extra?['locationType'] ?? 'cash',
                     balance: extra?['balance'] ?? 0,

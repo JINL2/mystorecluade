@@ -743,7 +743,6 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
   void _handleFeatureTap(dynamic feature, [String? categoryId]) async {
     // Prevent multiple rapid taps
     if (_isNavigating) {
-      print('Navigation already in progress, ignoring tap');
       return;
     }
     
@@ -755,7 +754,6 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
       
       // Track the feature click only if categoryId is provided
       if (categoryId != null) {
-        print('Tracking feature: ${feature['feature_name']} with categoryId: $categoryId');
         // Use the click tracking service
         final clickTracker = ref.read(clickTrackingServiceProvider);
         await clickTracker.trackFeatureClick(
@@ -764,7 +762,6 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
           categoryId: categoryId,
         );
       } else {
-        print('Warning: No categoryId provided for feature: ${feature['feature_name']}');
       }
       
       // Navigate to the feature route
@@ -802,7 +799,6 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
         });
       }
     } catch (e) {
-      print('Error handling feature tap: $e');
       // Reset the flag on error
       if (mounted) {
         setState(() {
@@ -825,29 +821,22 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
 
   Future<void> _handleRefresh(WidgetRef ref) async {
     try {
-      print('🟢🟢🟢 HomePage: PULL-TO-REFRESH TRIGGERED');
-      print('🟢 This should ALWAYS call the API!');
       
       // First, invalidate the force refresh providers to ensure they re-execute
       ref.invalidate(forceRefreshUserCompaniesProvider);
       ref.invalidate(forceRefreshCategoriesProvider);
       
-      print('🟢 Force refresh providers invalidated, now calling them...');
       
       // Now call the force refresh providers that ALWAYS fetch from API
       final userCompaniesResult = await ref.read(forceRefreshUserCompaniesProvider.future);
       final categoriesResult = await ref.read(forceRefreshCategoriesProvider.future);
       
-      print('🟢 Force refresh providers completed with results:');
       final companies = userCompaniesResult['companies'] as List<dynamic>? ?? [];
-      print('🟢 UserCompanies: ${companies.length} companies');
-      print('🟢 Categories: ${(categoriesResult as List).length} categories');
       
       // Invalidate the regular providers to show the new data
       ref.invalidate(userCompaniesProvider);
       ref.invalidate(categoriesWithFeaturesProvider);
       
-      print('🟢 HomePage: Manual refresh COMPLETED - fresh data from API');
       
       // Show success feedback
       if (mounted) {
@@ -861,7 +850,6 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
         );
       }
     } catch (e) {
-      print('HomePage: Manual refresh failed: $e');
       
       // Show error feedback
       if (mounted) {

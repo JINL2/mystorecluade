@@ -148,7 +148,6 @@ class _JournalInputPageState extends ConsumerState<JournalInputPage>
     final selectedStoreId = appState.storeChoosen;
     
     if (selectedCompanyId.isEmpty) {
-      print('No company selected');
       return;
     }
     
@@ -193,9 +192,7 @@ class _JournalInputPageState extends ConsumerState<JournalInputPage>
         });
       }
       
-      print('Fetched ${_cashLocations.length} cash locations for ${selectedStoreId.isEmpty ? "Headquarters (null store_id)" : "store: $selectedStoreId"}');
     } catch (e) {
-      print('Error fetching cash locations: $e');
       if (!mounted) return;
       
       // Update state
@@ -219,7 +216,6 @@ class _JournalInputPageState extends ConsumerState<JournalInputPage>
     final selectedCompanyId = appState.companyChoosen;
     
     if (selectedCompanyId.isEmpty) {
-      print('No company selected');
       return;
     }
     
@@ -256,9 +252,7 @@ class _JournalInputPageState extends ConsumerState<JournalInputPage>
         });
       }
       
-      print('Fetched ${_counterparties.length} counterparties');
     } catch (e) {
-      print('Error fetching counterparties: $e');
       if (!mounted) return;
       
       // Update state
@@ -2569,10 +2563,8 @@ class _JournalInputPageState extends ConsumerState<JournalInputPage>
           _accounts = List<Map<String, dynamic>>.from(response);
           _isLoadingAccounts = false;
         });
-        print('Loaded ${_accounts.length} accounts');
       }
     } catch (e) {
-      print('Error fetching accounts: $e');
       updateState(() {
         _isLoadingAccounts = false;
       });

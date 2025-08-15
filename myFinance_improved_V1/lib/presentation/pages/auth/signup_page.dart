@@ -416,8 +416,6 @@ class _SignupPageState extends ConsumerState<SignupPage> {
     });
 
     try {
-      print('SignupPage: Starting signup process');
-      print('SignupPage: Email=${_emailController.text.trim()}, Name=${_nameController.text.trim()}');
       
       await ref.read(authStateProvider.notifier).signUp(
         email: _emailController.text.trim(),
@@ -425,7 +423,6 @@ class _SignupPageState extends ConsumerState<SignupPage> {
         name: _nameController.text.trim(),
       );
       
-      print('SignupPage: Signup completed successfully');
       
       // Show success message
       if (mounted) {
@@ -439,7 +436,6 @@ class _SignupPageState extends ConsumerState<SignupPage> {
         // Navigation will be handled automatically by GoRouter redirect
       }
     } catch (e) {
-      print('SignupPage: Signup error: $e');
       
       // Show error message
       if (mounted) {

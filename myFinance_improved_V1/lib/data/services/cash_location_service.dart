@@ -39,7 +39,6 @@ class CashLocationService {
           .map((json) => CashLocation.fromJson(json))
           .toList();
     } catch (e) {
-      print('CashLocationService Error: Failed to get cash locations: $e');
       return [];
     }
   }

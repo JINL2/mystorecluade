@@ -219,16 +219,13 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
         },
       );
       
-      print('Shift metadata response: $response');
       
       setState(() {
         shiftMetadata = response;
         isLoadingMetadata = false;
       });
       
-      print('Shift metadata loaded for store $storeId');
     } catch (e) {
-      print('Error fetching shift metadata: $e');
       setState(() {
         isLoadingMetadata = false;
         shiftMetadata = [];
@@ -246,7 +243,6 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
     
     // Check if we already have data for this month (unless force refresh is requested)
     if (!forceRefresh && loadedMonths.contains(monthKey)) {
-      print('Data already loaded for month: $monthKey');
       return;
     }
     
@@ -266,8 +262,6 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
         },
       );
       
-      print('Monthly shift status response type: ${response.runtimeType}');
-      print('Response length: ${(response as List).length}');
       
       setState(() {
         // Append new data to existing data (don't replace)
@@ -287,10 +281,7 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
         isLoadingShiftStatus = false;
       });
       
-      print('Monthly shift data loaded: ${monthlyShiftData.length} total days of data');
-      print('Loaded months: $loadedMonths');
     } catch (e) {
-      print('Error fetching monthly shift status: $e');
       setState(() {
         isLoadingShiftStatus = false;
       });
@@ -307,7 +298,6 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
     
     // Check if we already have data for this month
     if (managerOverviewDataByMonth.containsKey(monthKey)) {
-      print('Manager overview data already loaded for month: $monthKey');
       return;
     }
     
@@ -329,7 +319,6 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
       final companyId = appState.companyChoosen;
       
       if (companyId.isEmpty) {
-        print('Company ID not found in app state');
         setState(() {
           isLoadingOverview = false;
         });
@@ -346,7 +335,6 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
         },
       );
       
-      print('Manager overview response for $monthKey: $response');
       
       setState(() {
         if (response != null) {
@@ -355,9 +343,7 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
         isLoadingOverview = false;
       });
       
-      print('Manager overview loaded for store $selectedStoreId, month $monthKey');
     } catch (e) {
-      print('Error fetching manager overview: $e');
       setState(() {
         isLoadingOverview = false;
       });
@@ -374,7 +360,6 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
     
     // Check if we already have data for this month
     if (managerCardsDataByMonth.containsKey(monthKey)) {
-      print('Manager cards data already loaded for month: $monthKey');
       return;
     }
     
@@ -396,7 +381,6 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
       final companyId = appState.companyChoosen;
       
       if (companyId.isEmpty) {
-        print('Company ID not found in app state');
         setState(() {
           isLoadingCards = false;
         });
@@ -413,7 +397,6 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
         },
       );
       
-      print('Manager cards response for $monthKey: $response');
       
       setState(() {
         if (response != null) {
@@ -422,9 +405,7 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
         isLoadingCards = false;
       });
       
-      print('Manager cards loaded for store $selectedStoreId, month $monthKey');
     } catch (e) {
-      print('Error fetching manager cards: $e');
       setState(() {
         isLoadingCards = false;
       });
@@ -1055,9 +1036,6 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
     }
     
     // Debug: Print the data structure
-    print('Building shift data for date: $dateStr');
-    print('Found data: ${selectedDateData != null}');
-    print('Employee shifts: ${employeeShifts.length} shifts');
     
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: TossSpacing.space5),
@@ -1083,7 +1061,6 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
               final endTime = shift['end_time'] ?? shift['shift_end_time'] ?? '--:--';
               
               // Debug: Print shift data
-              print('Processing shift: $shiftName (ID: $shiftId)');
               
               // Find matching employee data from the RPC response
               final List<Map<String, dynamic>> assignedEmployees = [];
@@ -1116,7 +1093,6 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
                 }
               }
               
-              print('  Found ${assignedEmployees.length} employees for shift $shiftName');
               
               final hasEmployee = assignedEmployees.isNotEmpty;
               
@@ -1248,7 +1224,6 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
                                 selectedShiftRequestId = shiftRequestIdFromData;
                               }
                             });
-                            print('Selected shift request: $selectedShiftRequest, Approved: $selectedShiftIsApproved, Request ID: $selectedShiftRequestId');
                           } : null,
                           child: Container(
                             padding: const EdgeInsets.all(TossSpacing.space3),
@@ -2553,7 +2528,6 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
                             },
                           );
                           
-                          print('Toggle shift approval response: $response');
                           
                           // When clicking approved shift, it changes to pending. When clicking pending shift, it changes to approved.
                           final action = selectedShiftIsApproved == true 
@@ -2592,7 +2566,6 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
                           await fetchMonthlyShiftStatus(forDate: selectedDate, forceRefresh: true);
                           
                         } catch (e) {
-                          print('Error toggling shift approval: $e');
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               content: Text('Error: ${e.toString()}'),

@@ -355,7 +355,11 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
                             ),
                             SizedBox(height: TossSpacing.space1),
                             Text(
-                              'Configure what this role can access and do',
+                              widget.roleName.toLowerCase() == 'owner' 
+                                  ? 'Owner role always has full permissions'
+                                  : widget.canEdit 
+                                      ? 'Configure what this role can access and do'
+                                      : 'View permissions for this role',
                               style: TossTextStyles.body.copyWith(
                                 color: TossColors.gray600,
                                 fontSize: 14,

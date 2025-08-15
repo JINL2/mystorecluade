@@ -272,9 +272,74 @@ final delegatableRolesProvider = FutureProvider<List<DelegatableRole>>((ref) asy
     
     return canDelegateRoles;
   } catch (e) {
-    print('Error fetching delegatable roles: $e');
     return [];
   }
+});
+
+/// Provider to delete a role
+final deleteRoleProvider = Provider<Future<void> Function(String)>((ref) {
+  return (String roleId) async {
+    final supabase = Supabase.instance.client;
+    final appState = ref.read(appStateProvider);
+    
+    try {
+      // First, find a default role to reassign users to (e.g., Employee role)
+      final defaultRolesResponse = await supabase
+          .from('roles')
+          .select('role_id')
+          .eq('company_id', appState.companyChoosen)
+          .eq('role_name', 'Employee')
+          .limit(1);
+      
+      String? defaultRoleId;
+      if (defaultRolesResponse.isNotEmpty) {
+        defaultRoleId = defaultRolesResponse.first['role_id'];
+      }
+      
+      // Get users currently assigned to this role
+      final usersWithRole = await supabase
+          .from('user_roles')
+          .select('user_id')
+          .eq('role_id', roleId);
+      
+      // Handle user reassignment
+      if (usersWithRole.isNotEmpty) {
+        if (defaultRoleId != null) {
+          // Reassign users to Employee role
+          for (final userRole in usersWithRole) {
+            await supabase
+                .from('user_roles')
+                .update({'role_id': defaultRoleId})
+                .eq('role_id', roleId)
+                .eq('user_id', userRole['user_id']);
+          }
+        } else {
+          // If no Employee role exists, remove user role assignments
+          await supabase
+              .from('user_roles')
+              .delete()
+              .eq('role_id', roleId);
+        }
+      }
+      
+      // Delete role permissions
+      await supabase
+          .from('role_permissions')
+          .delete()
+          .eq('role_id', roleId);
+      
+      // Delete the role
+      await supabase
+          .from('roles')
+          .delete()
+          .eq('role_id', roleId);
+      
+      // Invalidate the roles provider to refresh the list
+      ref.invalidate(allCompanyRolesProvider);
+    } catch (e) {
+      throw Exception('Failed to delete role: $e');
+    }
+  };
 });
 
 /// Provider for delegation history (audit trail)
@@ -414,7 +479,6 @@ final allCompanyRolesProvider = FutureProvider<List<Map<String, dynamic>>>((ref)
     
     return rolesWithPermissions;
   } catch (e) {
-    print('Error fetching all company roles: $e');
     return [];
   }
 });
@@ -489,7 +553,6 @@ final allFeaturesWithCategoriesProvider = FutureProvider<List<Map<String, dynami
     
     return (categories as List).cast<Map<String, dynamic>>();
   } catch (e) {
-    print('Error fetching features with categories: $e');
     return [];
   }
 });
@@ -520,7 +583,6 @@ final rolePermissionsProvider = FutureProvider.family<Map<String, dynamic>, Stri
       'categories': categories,
     };
   } catch (e) {
-    print('Error fetching role permissions: $e');
     return {
       'currentPermissions': <String>{},
       'categories': [],
@@ -560,7 +622,6 @@ final updateRolePermissionsProvider = Provider((ref) {
       
       return true;
     } catch (e) {
-      print('Error updating role permissions: $e');
       throw e;
     }
   };
@@ -595,7 +656,6 @@ final createRoleProvider = Provider((ref) {
       
       return response['role_id'] as String;
     } catch (e) {
-      print('Error creating role: $e');
       throw Exception('Failed to create role: $e');
     }
   };
@@ -627,7 +687,6 @@ final updateRoleDetailsProvider = Provider((ref) {
       
       return true;
     } catch (e) {
-      print('Error updating role details: $e');
       throw Exception('Failed to update role details: $e');
     }
   };

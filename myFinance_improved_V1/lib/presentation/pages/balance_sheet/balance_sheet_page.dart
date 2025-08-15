@@ -10,7 +10,6 @@ import 'package:myfinance_improved/core/themes/toss_shadows.dart';
 import 'package:myfinance_improved/core/themes/toss_border_radius.dart';
 import 'providers/balance_sheet_providers.dart';
 import '../../providers/app_state_provider.dart';
-import '../../providers/auth_provider.dart';
 import 'widgets/balance_sheet_display.dart';
 import 'widgets/income_statement_display.dart';
 
@@ -164,7 +163,6 @@ class _BalanceSheetPageState extends ConsumerState<BalanceSheetPage>
       }
     } catch (e) {
       // Keep default currency on error
-      print('Error fetching currency data: $e');
     } finally {
       setState(() {
         isLoadingCurrency = false;

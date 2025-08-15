@@ -280,9 +280,6 @@ class _AddDenominationBottomSheetState extends ConsumerState<AddDenominationBott
       final appState = ref.read(appStateProvider);
       final companyId = appState.companyChoosen;
       
-      print('Adding denomination - Company ID: $companyId');
-      print('Currency ID: ${widget.currency.id}');
-      print('Amount: $amount, Type: ${selectedType.name}');
       
       if (companyId.isEmpty) {
         throw Exception('No company selected');
@@ -324,8 +321,6 @@ class _AddDenominationBottomSheetState extends ConsumerState<AddDenominationBott
         );
       }
     } catch (e, stackTrace) {
-      print('Error adding denomination: $e');
-      print('Stack trace: $stackTrace');
       
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

@@ -29,8 +29,6 @@ class SalaryService {
             try {
               return EmployeeSalary.fromJson(json as Map<String, dynamic>);
             } catch (e) {
-              print('Error parsing employee salary: $e');
-              print('JSON data: $json');
               return null;
             }
           })
@@ -38,7 +36,6 @@ class SalaryService {
           .cast<EmployeeSalary>()
           .toList();
     } catch (e) {
-      print('Error in getEmployeeSalaries: $e');
       throw Exception('Failed to load employee salaries: $e');
     }
   }
@@ -78,7 +75,6 @@ class SalaryService {
             try {
               return EmployeeSalary.fromJson(json as Map<String, dynamic>);
             } catch (e) {
-              print('Error parsing employee salary in search: $e');
               return null;
             }
           })
@@ -86,21 +82,18 @@ class SalaryService {
           .cast<EmployeeSalary>()
           .toList();
     } catch (e) {
-      print('Error in searchEmployees: $e');
       throw Exception('Failed to search employees: $e');
     }
   }
 
   Future<List<CurrencyType>> getCurrencyTypes() async {
     try {
-      print('=== FETCHING CURRENCY TYPES ===');
       final response = await _supabase
           .from('currency_types')
           .select('*')
           .eq('is_active', true)
           .order('currency_name', ascending: true);
       
-      print('Currency types response: $response');
 
       if (response == null) {
         // Return default currencies if none found (matching actual Supabase data)
@@ -117,7 +110,6 @@ class SalaryService {
             try {
               return CurrencyType.fromJson(json as Map<String, dynamic>);
             } catch (e) {
-              print('Error parsing currency type: $e');
               return null;
             }
           })
@@ -125,7 +117,6 @@ class SalaryService {
           .cast<CurrencyType>()
           .toList();
     } catch (e) {
-      print('Error in getCurrencyTypes: $e');
       // Return default currencies on error (matching actual Supabase data)
       return [
         CurrencyType(currencyCode: 'USD', currencyName: 'US Dollar', symbol: '\$'),
@@ -138,12 +129,6 @@ class SalaryService {
 
   Future<void> updateSalary(SalaryUpdateRequest request) async {
     try {
-      print('=== SALARY SERVICE UPDATE DEBUG ===');
-      print('Updating salary with request: ${request.toJson()}');
-      print('Salary ID to update: ${request.salaryId}');
-      print('Amount: ${request.salaryAmount}');
-      print('Type: ${request.salaryType}');
-      print('Currency ID: ${request.currencyId}');
       
       // First, let's check if the record exists by querying it
       final existingRecord = await _supabase
@@ -152,7 +137,6 @@ class SalaryService {
           .eq('salary_id', request.salaryId)
           .maybeSingle();
       
-      print('Existing record found: $existingRecord');
       
       if (existingRecord == null) {
         throw Exception('No salary record found with salary_id: ${request.salaryId}');
@@ -165,7 +149,6 @@ class SalaryService {
       // The currency_id field in user_salaries expects a UUID
       // We need to look up the UUID from the currency_code
       if (request.currencyId.length < 10) { // If it's a code like "VND", "USD"
-        print('Looking up currency UUID for code: ${request.currencyId}');
         try {
           final currencyRecord = await _supabase
               .from('currency_types')
@@ -174,20 +157,15 @@ class SalaryService {
               .single();
           
           currencyIdToUse = currencyRecord['currency_id'] as String;
-          print('Found currency UUID: $currencyIdToUse for code: ${request.currencyId}');
         } catch (e) {
-          print('Failed to lookup currency by code ${request.currencyId}: $e');
           // Fallback: use the existing currency_id from the record
           currencyIdToUse = existingRecord['currency_id'] as String;
-          print('Using existing currency_id as fallback: $currencyIdToUse');
         }
       } else {
         // Already a UUID, use as-is
         currencyIdToUse = request.currencyId;
-        print('Currency ID appears to be UUID already: $currencyIdToUse');
       }
       
-      print('Final currency ID to use: $currencyIdToUse');
       
       // Update the user_salaries table using salary_id as primary key
       final response = await _supabase
@@ -201,15 +179,12 @@ class SalaryService {
           .eq('salary_id', request.salaryId)
           .select();
 
-      print('Supabase update response: $response');
 
       if (response.isEmpty) {
         throw Exception('Update failed - no rows affected for salary_id: ${request.salaryId}');
       }
 
-      print('Salary updated successfully: ${response.first}');
     } catch (e) {
-      print('ERROR in updateSalary: $e');
       if (e.toString().contains('JWT') || e.toString().contains('auth')) {
         throw Exception('Authentication error. Please log in again.');
       } else if (e.toString().contains('RLS') || e.toString().contains('permission')) {
@@ -237,7 +212,6 @@ class SalaryService {
               try {
                 return EmployeeSalary.fromJson(json as Map<String, dynamic>);
               } catch (e) {
-                print('Error parsing employee salary in stream: $e');
                 return null;
               }
             })
@@ -245,7 +219,6 @@ class SalaryService {
             .cast<EmployeeSalary>()
             .toList())
         .handleError((error) {
-          print('Error in watchEmployeeSalaries stream: $error');
           return <EmployeeSalary>[];
         });
   }

@@ -287,27 +287,22 @@ class _RoleManagementModalState extends ConsumerState<RoleManagementModal> {
         },
       );
       
-      print('Role update successful, closing loading dialog');
       
       // Close loading dialog
       Navigator.of(context, rootNavigator: false).pop();
       
-      print('Calling onSave callback with role: $_selectedRoleName');
       
       // Return updated role name to parent
       widget.onSave(_selectedRoleName);
       
-      print('Refreshing employee data');
       
       // Refresh employees data
       await refreshEmployees(ref);
       
-      print('Closing modal');
       
       // Close modal with success result
       Navigator.of(context, rootNavigator: false).pop(true);
       
-      print('Showing success message');
       
       // Show success message on parent context
       Future.delayed(Duration(milliseconds: 500), () {
@@ -322,7 +317,6 @@ class _RoleManagementModalState extends ConsumerState<RoleManagementModal> {
         }
       });
     } catch (e) {
-      print('Error updating role: $e');
       
       // Close loading dialog
       Navigator.of(context, rootNavigator: false).pop();

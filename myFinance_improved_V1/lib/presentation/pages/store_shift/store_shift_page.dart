@@ -189,14 +189,11 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
     if (selectedStore != null && selectedStore['store_name'] != null) {
       // If we have a selected store from app state, use its name
       storeName = selectedStore['store_name'];
-      print('StoreShiftPage: Selected store from app state: $storeName (ID: ${appState.storeChoosen})');
     } else if (appState.storeChoosen.isNotEmpty) {
       // Store is selected but not found - this shouldn't happen
-      print('StoreShiftPage: Warning - Store ID ${appState.storeChoosen} selected but store not found');
       storeName = 'Select Store';
     } else {
       // No store selected
-      print('StoreShiftPage: No store selected in app state');
       storeName = 'Select Store';
     }
     
@@ -740,7 +737,6 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
           color = TossColors.gray600;
         }
       } catch (e) {
-        print('Error parsing shift time: $e');
       }
     }
     
@@ -765,7 +761,6 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
         child: InkWell(
           onTap: () {
             // Edit shift functionality - pass shiftId
-            print('Edit shift: $shiftId');
           },
           borderRadius: BorderRadius.circular(TossBorderRadius.lg),
           child: Padding(
@@ -815,7 +810,6 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
                     IconButton(
                       onPressed: () {
                         // Edit functionality with shiftId
-                        print('Edit shift ID: $shiftId');
                         _showEditShiftBottomSheet(shift);
                       },
                       icon: Icon(
@@ -2187,7 +2181,6 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
         );
       }
     } catch (e) {
-      print('Error creating shift: $e');
       
       // Show error message
       if (mounted) {
@@ -2349,7 +2342,6 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
         );
       }
     } catch (e) {
-      print('Error updating shift: $e');
       
       // Show error message
       if (mounted) {
@@ -2394,7 +2386,6 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
         );
       }
     } catch (e) {
-      print('Error deleting shift: $e');
       
       // Show error message
       if (mounted) {

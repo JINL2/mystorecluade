@@ -164,12 +164,10 @@ final storeShiftsProvider = FutureProvider.autoDispose<List<Map<String, dynamic>
   
   // If no store is selected, return empty list
   if (selectedStore == null || appState.storeChoosen.isEmpty) {
-    print('StoreShiftsProvider: No store selected');
     return [];
   }
   
   final storeId = appState.storeChoosen;
-  print('StoreShiftsProvider: Fetching shifts for store: $storeId');
   
   try {
     final supabase = Supabase.instance.client;
@@ -183,11 +181,9 @@ final storeShiftsProvider = FutureProvider.autoDispose<List<Map<String, dynamic>
         .order('start_time', ascending: true);
     
     final shifts = List<Map<String, dynamic>>.from(response as List);
-    print('StoreShiftsProvider: Found ${shifts.length} active shifts');
     
     return shifts;
   } catch (e) {
-    print('StoreShiftsProvider: Error fetching shifts: $e');
     throw Exception('Failed to load shifts: $e');
   }
 });

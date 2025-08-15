@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'dart:convert';
 import '../../../core/themes/toss_text_styles.dart';
 import '../../../core/themes/toss_spacing.dart';
 import '../../../core/themes/toss_border_radius.dart';
+import '../../providers/app_state_provider.dart';
+import '../../../data/services/cash_location_service.dart';
 
 class AddAccountPage extends ConsumerStatefulWidget {
   final String locationType; // 'cash', 'bank', 'vault'
@@ -398,7 +402,7 @@ class _AddAccountPageState extends ConsumerState<AddAccountPage> {
     );
   }
   
-  void _handleConfirm() {
+  void _handleConfirm() async {
     // First, dismiss keyboard
     FocusScope.of(context).unfocus();
     
@@ -417,7 +421,103 @@ class _AddAccountPageState extends ConsumerState<AddAccountPage> {
       return;
     }
     
-    // All required fields are filled - go back without notification
-    Navigator.of(context).pop();
+    // Get app state
+    final appState = ref.read(appStateProvider);
+    final companyId = appState.companyChoosen;
+    final storeId = appState.storeChoosen;
+    
+    if (companyId.isEmpty || storeId.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please select a company and store first')),
+      );
+      return;
+    }
+    
+    // Show loading dialog
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return const Center(
+          child: CircularProgressIndicator(),
+        );
+      },
+    );
+    
+    try {
+      // Prepare location_info JSON based on location type
+      Map<String, dynamic> locationInfo = {};
+      
+      if (widget.locationType == 'bank') {
+        // For bank accounts, store bank-specific info
+        locationInfo = {
+          'bank_name': _bankNameController.text.trim(),
+          'account_number': _accountNumberController.text.trim(),
+        };
+      } else {
+        // For cash/vault locations, store address and contact info
+        locationInfo = {
+          'address': _addressController.text.trim(),
+          'detailed_address': _detailedAddressController.text.trim(),
+          'nickname': _nicknameController.text.trim(),
+          'recipient': _recipientController.text.trim(),
+          'phone': _phoneController.text.trim(),
+          'instructions': _instructionsController.text.trim(),
+        };
+      }
+      
+      // Prepare the data for insertion
+      final data = {
+        'company_id': companyId,
+        'store_id': storeId,
+        'location_name': _nameController.text.trim(),
+        'location_type': widget.locationType,
+        'location_info': jsonEncode(locationInfo),
+        // currency_code is left as null - will use database default
+      };
+      
+      // Add bank-specific fields if it's a bank account
+      if (widget.locationType == 'bank') {
+        data['bank_name'] = _bankNameController.text.trim();
+        data['bank_account'] = _accountNumberController.text.trim();
+      }
+      
+      // Insert into Supabase
+      final supabase = Supabase.instance.client;
+      await supabase.from('cash_locations').insert(data);
+      
+      // Close loading dialog
+      if (mounted) Navigator.of(context).pop();
+      
+      // Invalidate the cash locations cache to refresh the list
+      ref.invalidate(allCashLocationsProvider);
+      
+      // Show success message
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('${_pageTitle.replaceAll('Add ', '')} added successfully'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+      
+      // Go back to previous screen
+      if (mounted) Navigator.of(context).pop();
+      
+    } catch (e) {
+      // Close loading dialog
+      if (mounted) Navigator.of(context).pop();
+      
+      // Show error message
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to add account: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 }

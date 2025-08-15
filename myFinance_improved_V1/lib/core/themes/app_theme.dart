@@ -3,7 +3,6 @@ import 'package:flutter/services.dart';
 import 'toss_colors.dart';
 import 'toss_text_styles.dart';
 import 'toss_border_radius.dart';
-import 'toss_shadows.dart';
 
 /// Main theme configuration for MyFinance app
 class AppTheme {

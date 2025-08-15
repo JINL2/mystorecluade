@@ -230,7 +230,6 @@ final fixedAssetsProvider = FutureProvider.family<List<Map<String, dynamic>>, St
     return List<Map<String, dynamic>>.from(response);
   } catch (e) {
     // If table doesn't exist or other error, return empty list
-    print('Error fetching fixed assets: $e');
     return [];
   }
 });
@@ -281,7 +280,6 @@ final companyBaseCurrencyProvider = FutureProvider<String?>((ref) async {
     
     return response['base_currency_id'] as String?;
   } catch (e) {
-    print('Error fetching company base currency: $e');
     return null;
   }
 });
@@ -300,7 +298,6 @@ final currencySymbolProvider = FutureProvider.family<String, String>((ref, curre
     
     return response['symbol'] as String? ?? '\$';
   } catch (e) {
-    print('Error fetching currency symbol: $e');
     return '\$'; // Default to $ if error
   }
 });

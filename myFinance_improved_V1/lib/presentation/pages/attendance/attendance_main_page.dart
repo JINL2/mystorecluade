@@ -8,7 +8,6 @@ import '../../../core/themes/toss_spacing.dart';
 import '../../providers/attendance_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/app_state_provider.dart';
-import 'attendance_page.dart';
 import 'qr_scanner_page.dart';
 
 class AttendanceMainPage extends StatefulWidget {
@@ -209,8 +208,6 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
         },
       );
       
-      print('DEBUG: Raw shift metadata response type: ${response.runtimeType}');
-      print('DEBUG: Raw shift metadata response: $response');
       
       setState(() {
         // Store the raw response directly - it should be a List of shift objects
@@ -222,11 +219,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
         isLoadingMetadata = false;
       });
       
-      print('Shift metadata loaded for store $storeId');
-      print('Processed shiftMetadata: $shiftMetadata');
-      print('Number of shifts: ${shiftMetadata is List ? (shiftMetadata as List).length : "not a list"}');
     } catch (e) {
-      print('Error fetching shift metadata: $e');
       setState(() {
         isLoadingMetadata = false;
         shiftMetadata = [];
@@ -264,9 +257,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
         isLoadingShiftStatus = false;
       });
       
-      print('Monthly shift status loaded: ${monthlyShiftStatus?.length ?? 0} shifts');
     } catch (e) {
-      print('Error fetching monthly shift status: $e');
       setState(() {
         isLoadingShiftStatus = false;
         monthlyShiftStatus = null;
@@ -779,7 +770,6 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
                                 );
                               }
                             } catch (e) {
-                              print('Error registering shift: $e');
                               if (mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
@@ -2278,16 +2268,12 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
   // Get ALL shifts from store metadata
   List<Map<String, dynamic>> _getAllStoreShifts() {
     if (shiftMetadata == null) {
-      print('DEBUG: shiftMetadata is null');
       return [];
     }
     
-    print('DEBUG: shiftMetadata type: ${shiftMetadata.runtimeType}');
-    print('DEBUG: shiftMetadata content: $shiftMetadata');
     
     // The RPC response should be a list directly
     if (shiftMetadata is List) {
-      print('DEBUG: shiftMetadata is a List with ${(shiftMetadata as List).length} items');
       // Convert each item to Map<String, dynamic> and filter for active shifts only
       return (shiftMetadata as List).map((item) {
         if (item is Map<String, dynamic>) {
@@ -2295,7 +2281,6 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
         } else if (item is Map) {
           return Map<String, dynamic>.from(item);
         } else {
-          print('DEBUG: Unexpected item type in list: ${item.runtimeType}');
           return <String, dynamic>{};
         }
       }).where((item) => 
@@ -2306,23 +2291,19 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
     
     // If somehow it's still a Map, check if it contains shift data
     if (shiftMetadata is Map) {
-      print('DEBUG: shiftMetadata is a Map, checking for shift data');
       final map = shiftMetadata as Map;
       
       // If it has shift properties, treat it as a single shift
       if (map['shift_id'] != null || map['id'] != null || map['shift_name'] != null) {
-        print('DEBUG: Single shift object found, wrapping in list');
         return [Map<String, dynamic>.from(map)];
       }
       
       // Check if it has a data property that contains shifts
       if (map['data'] is List) {
-        print('DEBUG: Found shifts under "data" key');
         return List<Map<String, dynamic>>.from(map['data'] as List);
       }
     }
     
-    print('DEBUG: Could not parse shift metadata, returning empty list');
     return [];
   }
   
@@ -2539,7 +2520,6 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
     final newMonthKey = '${newCenterDate.year}-${newCenterDate.month.toString().padLeft(2, '0')}';
     final currentMonthKey = currentDisplayedMonth;
     
-    print('_updateCenterDate: newMonthKey=$newMonthKey, currentMonthKey=$currentMonthKey');
     
     setState(() {
       centerDate = newCenterDate;
@@ -2548,7 +2528,6 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
     
     // If moving to a different month, fetch that month's data
     if (newMonthKey != currentMonthKey) {
-      print('_updateCenterDate: Different month detected, will fetch data for $newMonthKey');
       _fetchMonthData(newCenterDate);
       // Don't adjust the center date after user explicitly selected a date
       // The user wants THIS specific date to be centered
@@ -2558,7 +2537,6 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
   }
   
   void _adjustCenterDateForAvailableData(String monthKey) {
-    print('_adjustCenterDateForAvailableData: Looking for shifts in month $monthKey');
     
     // Find the first date with shift data in this month
     final monthShifts = allShiftCardsData.where((card) {
@@ -2566,7 +2544,6 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
       return date.startsWith(monthKey);
     }).toList();
     
-    print('_adjustCenterDateForAvailableData: Found ${monthShifts.length} shifts for $monthKey');
     
     if (monthShifts.isNotEmpty) {
       // Sort by date to find the earliest shift
@@ -2579,7 +2556,6 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
       // Parse the first shift date
       final firstShiftDateStr = monthShifts.first['request_date'];
       final lastShiftDateStr = monthShifts.last['request_date'];
-      print('_adjustCenterDateForAvailableData: Shifts range from $firstShiftDateStr to $lastShiftDateStr');
       
       if (firstShiftDateStr != null) {
         final parts = firstShiftDateStr.split('-');
@@ -2600,12 +2576,10 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
               centerDate = firstShiftDate;
             }
             selectedDate = centerDate;
-            print('_adjustCenterDateForAvailableData: Adjusted centerDate to $centerDate to show available shifts');
           });
         }
       }
     } else {
-      print('_adjustCenterDateForAvailableData: No shifts found for $monthKey, keeping current centerDate');
     }
   }
   
@@ -2613,14 +2587,11 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
     // Create month key for tracking (yyyy-MM format)
     final monthKey = '${targetDate.year}-${targetDate.month.toString().padLeft(2, '0')}';
     
-    print('_fetchMonthData: Called with targetDate = $targetDate');
-    print('_fetchMonthData: monthKey = $monthKey');
     
     // Check if we already have cached data for this month
     bool hasOverview = _monthlyOverviewCache.containsKey(monthKey);
     bool hasCards = _monthlyCardsCache.containsKey(monthKey);
     
-    print('_fetchMonthData: hasOverview = $hasOverview, hasCards = $hasCards');
     
     // If we already have data for this month, just update the display from cache
     if (hasOverview && hasCards) {
@@ -2643,13 +2614,10 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
         
         isLoading = false;
       });
-      print('AttendancePage: Already have data for $monthKey, using cached data');
-      print('AttendancePage: Restored ${allShiftCardsData.length} total cards from cache');
       return;
     }
     
     // Need to fetch data for this month
-    print('AttendancePage: Fetching new data for $monthKey with requestDate');
     setState(() {
       isLoading = true;
       errorMessage = null;
@@ -2665,7 +2633,6 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
       final companyId = appState.companyChoosen;
       final storeId = appState.storeChoosen;
       
-      print('AttendancePage: Fetching data for month $monthKey with userId=$userId, companyId=$companyId, storeId=$storeId');
       
       if (userId == null || companyId.isEmpty || storeId.isEmpty) {
         setState(() {
@@ -2680,9 +2647,6 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
       final lastDayOfMonth = DateTime(targetDate.year, targetDate.month + 1, 0);
       final requestDate = '${lastDayOfMonth.year}-${lastDayOfMonth.month.toString().padLeft(2, '0')}-${lastDayOfMonth.day.toString().padLeft(2, '0')}';
       
-      print('_fetchMonthData: Target date: ${targetDate.year}-${targetDate.month.toString().padLeft(2, '0')}-${targetDate.day.toString().padLeft(2, '0')}');
-      print('_fetchMonthData: Using last day of month for API: $requestDate');
-      print('>>> CALLING RPC: user_shift_overview and user_shift_cards for $requestDate <<<');
       
       // Call both APIs in parallel
       final results = await Future.wait([
@@ -2708,8 +2672,6 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
       final cardsResponse = results[1] as List<Map<String, dynamic>>;
       final currentShift = results[2] as Map<String, dynamic>?;
       
-      print('AttendancePage: Received overview for $monthKey: $overviewResponse');
-      print('AttendancePage: Received ${cardsResponse.length} shift cards for $monthKey');
       
       
       // Cache the overview data
@@ -2723,7 +2685,6 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
       
       // Rebuild allShiftCardsData from ALL cached months
       setState(() {
-        print('AttendancePage: Caching ${cardsResponse.length} cards for month $monthKey');
         
         // Clear and rebuild allShiftCardsData from all cached months
         allShiftCardsData.clear();
@@ -2732,10 +2693,8 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
         for (final cachedMonth in _monthlyCardsCache.keys) {
           final monthCards = _monthlyCardsCache[cachedMonth]!;
           allShiftCardsData.addAll(monthCards);
-          print('AttendancePage: Added ${monthCards.length} cards from cached month $cachedMonth');
         }
         
-        print('AttendancePage: Total cards after rebuilding from cache: ${allShiftCardsData.length}');
         
         
         // Sort all cards by date
@@ -2757,10 +2716,8 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
         }
       });
       
-      print('AttendancePage: Total accumulated cards: ${allShiftCardsData.length}');
       
     } catch (e) {
-      print('AttendancePage: Error fetching data for $monthKey - $e');
       setState(() {
         isLoading = false;
         errorMessage = 'Error loading data: ${e.toString()}';
@@ -2953,15 +2910,12 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
     final overtimeTotal = shiftOverviewData!['overtime_total'] ?? 0;
     
     // Calculate total unique shifts from the shift cards data for the current month
-    print('MonthlyOverview: currentDisplayedMonth = $currentDisplayedMonth');
-    print('MonthlyOverview: allShiftCardsData has ${allShiftCardsData.length} total items');
     
     final currentMonthShifts = allShiftCardsData.where((card) {
       final requestDate = card['request_date'] ?? '';
       return requestDate.startsWith(currentDisplayedMonth ?? '');
     }).toList();
     
-    print('MonthlyOverview: currentMonthShifts for $currentDisplayedMonth has ${currentMonthShifts.length} items');
     final totalShifts = currentMonthShifts.length;
     
     // Parse month and year from request_month (format: "2025-08")
@@ -3497,7 +3451,6 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                     }
                     
                     // At least one shift is approved - proceed with QR scanning
-                    print('Ready to scan QR - Found ${todayShifts.length} shift(s) for today, at least one is approved');
                     
                     // Navigate to QR scanner page
                     final result = await Navigator.push(
@@ -3753,7 +3706,6 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                       
                       // If month changed, fetch data for the new month
                       if (currentMonth != newMonth || currentYear != newYear) {
-                        print('Week schedule date clicked: Month changed from $currentYear-$currentMonth to $newYear-$newMonth');
                         await _fetchMonthData(date);
                       }
                     },
@@ -3853,8 +3805,6 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
     // Filter activities for the selected date
     final selectedDateStr = '${selectedDate.year}-${selectedDate.month.toString().padLeft(2, '0')}-${selectedDate.day.toString().padLeft(2, '0')}';
     
-    print('_buildRecentActivity: Filtering for selected date: $selectedDateStr');
-    print('_buildRecentActivity: allShiftCardsData has ${allShiftCardsData.length} items');
     
     // Filter cards for the selected date only
     final selectedDateCards = allShiftCardsData.where((card) {
@@ -3862,7 +3812,6 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
       return cardDate == selectedDateStr;
     }).toList();
     
-    print('_buildRecentActivity: Found ${selectedDateCards.length} cards for $selectedDateStr');
     
     // Sort by shift_request_id or any other relevant field
     selectedDateCards.sort((a, b) {
@@ -3905,7 +3854,6 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
               checkInTime = '${startTime.hour.toString().padLeft(2, '0')}:${startTime.minute.toString().padLeft(2, '0')}';
             }
           } catch (e) {
-            print('Error parsing start time: $actualStart - $e');
             checkInTime = actualStart.toString().substring(0, 5); // Try to get first 5 chars (HH:mm)
           }
         }
@@ -3970,11 +3918,9 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                 final minutes = duration.inMinutes % 60;
                 hoursWorked = '${hours}h ${minutes}m';
               } catch (e) {
-                print('Error calculating work duration: $e');
               }
             }
           } catch (e) {
-            print('Error parsing end time: $actualEnd - $e');
             checkOutTime = actualEnd.toString().substring(0, 5); // Try to get first 5 chars (HH:mm)
           }
         }
@@ -4858,8 +4804,6 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
     final daysInMonth = lastDayOfMonth.day;
     final firstWeekday = firstDayOfMonth.weekday;
     
-    print('_buildCalendarGrid: Building calendar for ${focusedDate.year}-${focusedDate.month}');
-    print('_buildCalendarGrid: shiftsData has ${shiftsData.length} total items');
     
     List<Widget> calendarDays = [];
     
@@ -4903,7 +4847,6 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
       ).toList();
       
       if (day == 1 || day == 31) {  // Debug first and last day of month
-        print('_buildCalendarGrid: Date $dateStr has ${shiftsForDate.length} shifts');
       }
       
       final hasShift = shiftsForDate.isNotEmpty;
@@ -5614,7 +5557,6 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
   }
 
   void _navigateToDate(DateTime date) {
-    print('_navigateToDate called with date: $date');
     setState(() {
       selectedDate = date;
     });
@@ -5817,8 +5759,6 @@ class _CalendarBottomSheetState extends State<_CalendarBottomSheet> {
                         final clickedMonthKey = '${date.year}-${date.month.toString().padLeft(2, '0')}';
                         final currentMonthKey = '${focusedDate.year}-${focusedDate.month.toString().padLeft(2, '0')}';
                         
-                        print('Calendar date clicked: $date');
-                        print('Clicked month: $clickedMonthKey, Current focused month: $currentMonthKey');
                         
                         // Close the modal
                         Navigator.pop(context);

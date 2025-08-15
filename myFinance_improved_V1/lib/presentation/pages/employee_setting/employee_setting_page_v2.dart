@@ -292,7 +292,6 @@ class _EmployeeSettingPageV2State extends ConsumerState<EmployeeSettingPageV2>
       // Handle the result if needed
       if (result == true) {
         // Role was successfully updated
-        print('Role update completed successfully');
       }
     });
   }

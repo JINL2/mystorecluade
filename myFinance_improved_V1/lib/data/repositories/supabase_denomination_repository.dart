@@ -57,11 +57,7 @@ class SupabaseDenominationRepository implements DenominationRepository {
         'created_at': DateTime.now().toIso8601String(),
       };
 
-      print('Inserting denomination data: $insertData');
-      
-      final response = await _client.from('currency_denominations').insert(insertData).select();
-      
-      print('Insert response: $response');
+      await _client.from('currency_denominations').insert(insertData).select();
 
       return Denomination(
         id: denominationId,
@@ -75,7 +71,6 @@ class SupabaseDenominationRepository implements DenominationRepository {
         createdAt: DateTime.now(),
       );
     } catch (e) {
-      print('Denomination insert error details: $e');
       throw Exception('Failed to add denomination: $e');
     }
   }

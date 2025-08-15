@@ -36,34 +36,25 @@ class TossDropdown<T> extends StatelessWidget {
         Text(
           label,
           style: TossTextStyles.caption.copyWith(
-            color: hasError 
-              ? Theme.of(context).colorScheme.error 
-              : Theme.of(context).colorScheme.onSurfaceVariant,
-            fontWeight: FontWeight.w500,
+            color: hasError ? TossColors.error : TossColors.gray700,
+            fontWeight: FontWeight.w600,
           ),
         ),
-        SizedBox(height: TossSpacing.space1),
+        SizedBox(height: TossSpacing.space2),
         
         // Dropdown Field
         Container(
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(14),
-            color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.3),
+            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+            color: Colors.white,
             border: Border.all(
               color: hasError
-                ? Theme.of(context).colorScheme.error
+                ? TossColors.error
                 : value != null 
-                  ? Theme.of(context).colorScheme.primary.withOpacity(0.3)
-                  : Theme.of(context).colorScheme.outline.withOpacity(0.2),
-              width: value != null ? 1.5 : 1,
+                  ? TossColors.primary
+                  : TossColors.gray200,
+              width: 1,
             ),
-            boxShadow: [
-              BoxShadow(
-                color: Theme.of(context).colorScheme.shadow.withOpacity(0.05),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
-              ),
-            ],
           ),
           child: Material(
             color: Colors.transparent,
@@ -71,12 +62,9 @@ class TossDropdown<T> extends StatelessWidget {
               onTap: isLoading || onChanged == null 
                 ? null 
                 : () => _showSelectionBottomSheet(context),
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
               child: Container(
-                padding: EdgeInsets.symmetric(
-                  horizontal: TossSpacing.space4,
-                  vertical: TossSpacing.space3 + 2,
-                ),
+                padding: EdgeInsets.all(TossSpacing.space3),
                 child: Row(
                   children: [
                     
@@ -96,8 +84,8 @@ class TossDropdown<T> extends StatelessWidget {
                                   : hint ?? 'Select $label',
                                 style: TossTextStyles.body.copyWith(
                                   color: value != null
-                                    ? Theme.of(context).colorScheme.onSurface
-                                    : Theme.of(context).colorScheme.onSurfaceVariant,
+                                    ? TossColors.gray900
+                                    : TossColors.gray400,
                                   fontWeight: value != null ? FontWeight.w600 : FontWeight.w400,
                                   fontSize: 16,
                                 ),
@@ -108,18 +96,10 @@ class TossDropdown<T> extends StatelessWidget {
                     ),
                     
                     // Dropdown icon
-                    Container(
-                      width: 32,
-                      height: 32,
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.5),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Icon(
-                        Icons.expand_more_rounded,
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        size: 20,
-                      ),
+                    Icon(
+                      Icons.arrow_drop_down,
+                      color: TossColors.gray600,
+                      size: 24,
                     ),
                   ],
                 ),
@@ -134,7 +114,7 @@ class TossDropdown<T> extends StatelessWidget {
           Text(
             errorText!,
             style: TossTextStyles.caption.copyWith(
-              color: Theme.of(context).colorScheme.error,
+              color: TossColors.error,
             ),
           ),
         ],

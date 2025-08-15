@@ -19,7 +19,6 @@ class ClickTrackingService {
     try {
       final userId = _supabase.auth.currentUser?.id;
       if (userId == null) {
-        print('ClickTrackingService: No user logged in, skipping tracking');
         return;
       }
 
@@ -37,10 +36,8 @@ class ClickTrackingService {
           .from('user_preferences')
           .insert(trackingData);
 
-      print('ClickTrackingService: Successfully tracked click for feature: $featureName');
     } catch (e) {
       // Don't throw error to prevent disrupting user experience
-      print('ClickTrackingService Error: Failed to track click: $e');
     }
   }
 
@@ -69,7 +66,6 @@ class ClickTrackingService {
 
       return List<Map<String, dynamic>>.from(response as List);
     } catch (e) {
-      print('ClickTrackingService Error: Failed to get click history: $e');
       return [];
     }
   }
@@ -91,7 +87,6 @@ class ClickTrackingService {
 
       return List<Map<String, dynamic>>.from(response as List);
     } catch (e) {
-      print('ClickTrackingService Error: Failed to get top features: $e');
       return [];
     }
   }

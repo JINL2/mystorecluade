@@ -270,20 +270,16 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
     });
 
     try {
-      print('ForgotPasswordPage: Starting password reset');
-      print('ForgotPasswordPage: Email=${_emailController.text.trim()}');
       
       await ref.read(authStateProvider.notifier).resetPassword(
         _emailController.text.trim(),
       );
       
-      print('ForgotPasswordPage: Password reset email sent successfully');
       
       setState(() {
         _emailSent = true;
       });
     } catch (e) {
-      print('ForgotPasswordPage: Password reset error: $e');
       // Show error message
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

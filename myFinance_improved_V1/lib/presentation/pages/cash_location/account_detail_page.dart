@@ -8,6 +8,7 @@ import '../../../core/themes/toss_shadows.dart';
 import 'account_settings_page.dart';
 
 class AccountDetailPage extends ConsumerStatefulWidget {
+  final String? locationId;
   final String accountName;
   final String locationType;
   final int balance;
@@ -19,6 +20,7 @@ class AccountDetailPage extends ConsumerStatefulWidget {
   
   const AccountDetailPage({
     super.key,
+    this.locationId,
     required this.accountName,
     required this.locationType,
     required this.balance,
@@ -191,6 +193,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
                 context,
                 MaterialPageRoute(
                   builder: (context) => AccountSettingsPage(
+                    locationId: widget.locationId ?? '',
                     accountName: widget.accountName,
                     locationType: widget.locationType,
                   ),

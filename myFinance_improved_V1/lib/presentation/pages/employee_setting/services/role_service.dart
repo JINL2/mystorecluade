@@ -9,13 +9,11 @@ class RoleService {
   /// Fetch all roles from the database
   Future<List<Role>> getAllRoles() async {
     try {
-      print('=== FETCHING ALL ROLES ===');
       final response = await _supabase
           .from('roles')
           .select('*')
           .order('role_name', ascending: true);
 
-      print('Roles response: $response');
 
       if (response == null) {
         return [];
@@ -26,8 +24,6 @@ class RoleService {
             try {
               return Role.fromJson(json as Map<String, dynamic>);
             } catch (e) {
-              print('Error parsing role: $e');
-              print('JSON data: $json');
               return null;
             }
           })
@@ -35,7 +31,6 @@ class RoleService {
           .cast<Role>()
           .toList();
     } catch (e) {
-      print('Error in getAllRoles: $e');
       throw Exception('Failed to load roles: $e');
     }
   }
@@ -43,14 +38,12 @@ class RoleService {
   /// Fetch roles for a specific company
   Future<List<Role>> getRolesByCompany(String companyId) async {
     try {
-      print('=== FETCHING ROLES FOR COMPANY: $companyId ===');
       final response = await _supabase
           .from('roles')
           .select('*')
           .or('company_id.eq.$companyId,company_id.is.null') // Include company-specific and global roles
           .order('role_name', ascending: true);
 
-      print('Company roles response: $response');
 
       if (response == null) {
         return [];
@@ -61,7 +54,6 @@ class RoleService {
             try {
               return Role.fromJson(json as Map<String, dynamic>);
             } catch (e) {
-              print('Error parsing role: $e');
               return null;
             }
           })
@@ -69,7 +61,6 @@ class RoleService {
           .cast<Role>()
           .toList();
     } catch (e) {
-      print('Error in getRolesByCompany: $e');
       throw Exception('Failed to load company roles: $e');
     }
   }
@@ -77,9 +68,6 @@ class RoleService {
   /// Update user role in user_roles table
   Future<void> updateUserRole(String userId, String roleId) async {
     try {
-      print('=== UPDATING USER ROLE ===');
-      print('User ID: $userId');
-      print('Role ID: $roleId');
 
       // Check if user_role record exists (handle multiple records)
       final existingRecords = await _supabase
@@ -89,7 +77,6 @@ class RoleService {
           .or('is_deleted.is.null,is_deleted.eq.false') // Only get non-deleted records
           .order('updated_at', ascending: false); // Get latest first
 
-      print('Existing user_role records: $existingRecords');
 
       if (existingRecords.isNotEmpty) {
         // Use the most recent record
@@ -97,7 +84,6 @@ class RoleService {
         
         // If there are multiple records, mark the older ones as deleted
         if (existingRecords.length > 1) {
-          print('Found ${existingRecords.length} records, marking duplicates as deleted');
           for (int i = 1; i < existingRecords.length; i++) {
             await _supabase
                 .from('user_roles')
@@ -120,7 +106,6 @@ class RoleService {
             .eq('user_role_id', latestRecord['user_role_id'])
             .select();
 
-        print('Update response: $response');
       } else {
         // Insert new record
         final response = await _supabase
@@ -133,12 +118,9 @@ class RoleService {
             })
             .select();
 
-        print('Insert response: $response');
       }
 
-      print('User role updated successfully');
     } catch (e) {
-      print('ERROR in updateUserRole: $e');
       if (e.toString().contains('JWT') || e.toString().contains('auth')) {
         throw Exception('Authentication error. Please log in again.');
       } else if (e.toString().contains('RLS') || e.toString().contains('permission')) {
@@ -164,7 +146,6 @@ class RoleService {
 
       return Role.fromJson(response as Map<String, dynamic>);
     } catch (e) {
-      print('Error in getRoleById: $e');
       return null;
     }
   }
@@ -184,7 +165,6 @@ class RoleService {
 
       return Role.fromJson(response as Map<String, dynamic>);
     } catch (e) {
-      print('Error in getRoleByName: $e');
       return null;
     }
   }

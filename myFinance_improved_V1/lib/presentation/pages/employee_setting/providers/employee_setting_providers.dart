@@ -28,14 +28,12 @@ final employeeSalaryListProvider = FutureProvider<List<EmployeeSalary>>((ref) as
     final companyId = appState.companyChoosen;
     
     if (companyId.isEmpty) {
-      print('Warning: No company selected, returning empty list');
       return [];
     }
     
     final result = await service.getEmployeeSalaries(companyId);
     return result;
   } catch (e) {
-    print('Error in employeeSalaryListProvider: $e');
     rethrow;
   }
 });
@@ -46,7 +44,6 @@ final currencyTypesProvider = FutureProvider<List<CurrencyType>>((ref) async {
     final service = ref.read(salaryServiceProvider);
     return await service.getCurrencyTypes();
   } catch (e) {
-    print('Error in currencyTypesProvider: $e');
     // Return default currencies on error (matching actual Supabase data)
     return [
       CurrencyType(currencyCode: 'USD', currencyName: 'US Dollar', symbol: '\$'),
@@ -149,7 +146,6 @@ final salaryUpdatesStreamProvider = StreamProvider<List<EmployeeSalary>>((ref) {
     
     return service.watchEmployeeSalaries(companyId);
   } catch (e) {
-    print('Error in salaryUpdatesStreamProvider: $e');
     return Stream.value([]);
   }
 });
@@ -172,7 +168,6 @@ final rolesProvider = FutureProvider<List<Role>>((ref) async {
     // Fetch company-specific and global roles
     return await service.getRolesByCompany(companyId);
   } catch (e) {
-    print('Error in rolesProvider: $e');
     rethrow;
   }
 });

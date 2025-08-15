@@ -382,20 +382,16 @@ class _ModernDrawerState extends ConsumerState<ModernDrawer> {
                   // Store Items - deduplicate by store ID
                   ...() {
                     final stores = company['stores'] as List<dynamic>? ?? [];
-                    print('ModernDrawer: Company ${company['company_name']} has ${stores.length} stores before deduplication');
                     for (final store in stores) {
-                      print('  - Store: ${store['store_name']} (ID: ${store['store_id']})');
                     }
                     
                     final uniqueStores = <String, dynamic>{};
                     for (final store in stores) {
                       if (uniqueStores.containsKey(store['store_id'])) {
-                        print('  ! Duplicate store found: ${store['store_name']} (ID: ${store['store_id']})');
                       }
                       uniqueStores[store['store_id']] = store;
                     }
                     
-                    print('ModernDrawer: After deduplication, ${uniqueStores.length} unique stores');
                     
                     return uniqueStores.values.map((store) => _buildStoreItem(
                       context, ref, store, selectedStore?['store_id'] == store['store_id'], company,
@@ -1453,7 +1449,6 @@ class _ModernDrawerState extends ConsumerState<ModernDrawer> {
           await ref.read(forceRefreshUserCompaniesProvider.future);
           await ref.read(forceRefreshCategoriesProvider.future);
         } catch (e) {
-          print('Error refreshing data: $e');
         }
         
         // Invalidate regular providers to show the new data
@@ -1586,7 +1581,6 @@ class _ModernDrawerState extends ConsumerState<ModernDrawer> {
           await ref.read(forceRefreshUserCompaniesProvider.future);
           await ref.read(forceRefreshCategoriesProvider.future);
         } catch (e) {
-          print('Error refreshing data: $e');
         }
         
         // Invalidate regular providers to show the new data
