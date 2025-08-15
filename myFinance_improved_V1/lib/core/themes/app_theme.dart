@@ -107,10 +107,10 @@ class AppTheme {
       ),
     ),
     
-    cardTheme: CardThemeData(
+    cardTheme: const CardTheme(
       elevation: 0,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+        borderRadius: BorderRadius.all(Radius.circular(TossBorderRadius.lg)),
       ),
       clipBehavior: Clip.antiAlias,
     ),

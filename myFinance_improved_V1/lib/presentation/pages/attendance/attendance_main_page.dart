@@ -99,7 +99,7 @@ class _AttendanceMainPageState extends State<AttendanceMainPage> with SingleTick
                             borderRadius: BorderRadius.circular(22),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.08),
+                                color: Colors.black.withOpacity(0.08),
                                 blurRadius: 4,
                                 offset: const Offset(0, 2),
                               ),
@@ -405,7 +405,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
                             width: 40,
                             height: 40,
                             decoration: BoxDecoration(
-                              color: isSelected ? TossColors.primary.withValues(alpha: 0.1) : TossColors.gray100,
+                              color: isSelected ? TossColors.primary.withOpacity(0.1) : TossColors.gray100,
                               borderRadius: BorderRadius.circular(10),
                             ),
                             child: Icon(
@@ -543,7 +543,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
               borderRadius: BorderRadius.circular(20),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.1),
+                  color: Colors.black.withOpacity(0.1),
                   blurRadius: 20,
                   offset: const Offset(0, 10),
                 ),
@@ -561,7 +561,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
                         width: 56,
                         height: 56,
                         decoration: BoxDecoration(
-                          color: TossColors.primary.withValues(alpha: 0.1),
+                          color: TossColors.primary.withOpacity(0.1),
                           shape: BoxShape.circle,
                         ),
                         child: const Icon(
@@ -701,7 +701,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
                                           borderRadius: BorderRadius.circular(20),
                                           boxShadow: [
                                             BoxShadow(
-                                              color: Colors.black.withValues(alpha: 0.1),
+                                              color: Colors.black.withOpacity(0.1),
                                               blurRadius: 20,
                                               offset: const Offset(0, 10),
                                             ),
@@ -718,7 +718,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
                                                     width: 56,
                                                     height: 56,
                                                     decoration: BoxDecoration(
-                                                      color: TossColors.success.withValues(alpha: 0.1),
+                                                      color: TossColors.success.withOpacity(0.1),
                                                       shape: BoxShape.circle,
                                                     ),
                                                     child: const Icon(
@@ -827,7 +827,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
               borderRadius: BorderRadius.circular(20),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.1),
+                  color: Colors.black.withOpacity(0.1),
                   blurRadius: 20,
                   offset: const Offset(0, 10),
                 ),
@@ -845,7 +845,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
                         width: 56,
                         height: 56,
                         decoration: BoxDecoration(
-                          color: TossColors.warning.withValues(alpha: 0.1),
+                          color: TossColors.warning.withOpacity(0.1),
                           shape: BoxShape.circle,
                         ),
                         child: const Icon(
@@ -985,7 +985,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
               borderRadius: BorderRadius.circular(20),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.1),
+                  color: Colors.black.withOpacity(0.1),
                   blurRadius: 20,
                   offset: const Offset(0, 10),
                 ),
@@ -1003,7 +1003,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
                         width: 56,
                         height: 56,
                         decoration: BoxDecoration(
-                          color: TossColors.warning.withValues(alpha: 0.1),
+                          color: TossColors.warning.withOpacity(0.1),
                           shape: BoxShape.circle,
                         ),
                         child: const Icon(
@@ -1088,7 +1088,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
               borderRadius: BorderRadius.circular(20),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.1),
+                  color: Colors.black.withOpacity(0.1),
                   blurRadius: 20,
                   offset: const Offset(0, 10),
                 ),
@@ -1106,7 +1106,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
                         width: 56,
                         height: 56,
                         decoration: BoxDecoration(
-                          color: TossColors.error.withValues(alpha: 0.1),
+                          color: TossColors.error.withOpacity(0.1),
                           shape: BoxShape.circle,
                         ),
                         child: const Icon(
@@ -1260,7 +1260,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
                   borderRadius: BorderRadius.circular(20),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.1),
+                      color: Colors.black.withOpacity(0.1),
                       blurRadius: 20,
                       offset: const Offset(0, 10),
                     ),
@@ -1278,7 +1278,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
                             width: 56,
                             height: 56,
                             decoration: BoxDecoration(
-                              color: TossColors.success.withValues(alpha: 0.1),
+                              color: TossColors.success.withOpacity(0.1),
                               shape: BoxShape.circle,
                             ),
                             child: const Icon(
@@ -1751,7 +1751,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
               Container(
                 padding: const EdgeInsets.all(TossSpacing.space2),
                 decoration: BoxDecoration(
-                  color: TossColors.primary.withValues(alpha: 0.1),
+                  color: TossColors.primary.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: const Icon(
@@ -1819,10 +1819,10 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
             Container(
               padding: const EdgeInsets.all(TossSpacing.space3),
               decoration: BoxDecoration(
-                color: TossColors.warning.withValues(alpha: 0.1),
+                color: TossColors.warning.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(
-                  color: TossColors.warning.withValues(alpha: 0.3),
+                  color: TossColors.warning.withOpacity(0.3),
                   width: 1,
                 ),
               ),
@@ -1966,7 +1966,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
                       vertical: 4,
                     ),
                     decoration: BoxDecoration(
-                      color: TossColors.primary.withValues(alpha: 0.1),
+                      color: TossColors.primary.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
@@ -2017,7 +2017,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
                             vertical: 4,
                           ),
                           decoration: BoxDecoration(
-                            color: TossColors.primary.withValues(alpha: 0.1),
+                            color: TossColors.primary.withOpacity(0.1),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Row(
@@ -2082,13 +2082,13 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
                       color: isSelected 
                         ? (isRegisteredForThisShift 
                             ? (isApproved 
-                                ? TossColors.primary.withValues(alpha: 0.08)
-                                : TossColors.primary.withValues(alpha: 0.08))
-                            : TossColors.primary.withValues(alpha: 0.08))
+                                ? TossColors.primary.withOpacity(0.08)
+                                : TossColors.primary.withOpacity(0.08))
+                            : TossColors.primary.withOpacity(0.08))
                         : (isRegisteredForThisShift 
                             ? (isApproved 
-                                ? TossColors.success.withValues(alpha: 0.05)
-                                : TossColors.warning.withValues(alpha: 0.05))
+                                ? TossColors.success.withOpacity(0.05)
+                                : TossColors.warning.withOpacity(0.05))
                             : TossColors.background),
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
@@ -2096,8 +2096,8 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
                           ? TossColors.primary
                           : (isRegisteredForThisShift 
                               ? (isApproved 
-                                  ? TossColors.success.withValues(alpha: 0.3)
-                                  : TossColors.warning.withValues(alpha: 0.3))
+                                  ? TossColors.success.withOpacity(0.3)
+                                  : TossColors.warning.withOpacity(0.3))
                               : TossColors.gray200),
                         width: isSelected ? 1.5 : 1,
                       ),
@@ -2242,10 +2242,10 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
             Container(
               padding: const EdgeInsets.all(TossSpacing.space3),
               decoration: BoxDecoration(
-                color: TossColors.warning.withValues(alpha: 0.1),
+                color: TossColors.warning.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(
-                  color: TossColors.warning.withValues(alpha: 0.3),
+                  color: TossColors.warning.withOpacity(0.3),
                   width: 1,
                 ),
               ),
@@ -2891,7 +2891,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                TossColors.primary.withValues(alpha: 0.05),
+                TossColors.primary.withOpacity(0.05),
                 TossColors.surface,
               ],
             ),
@@ -2911,7 +2911,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
         child: Container(
           padding: const EdgeInsets.all(TossSpacing.space5),
           decoration: BoxDecoration(
-            color: TossColors.error.withValues(alpha: 0.1),
+            color: TossColors.error.withOpacity(0.1),
             borderRadius: BorderRadius.circular(16),
           ),
           child: Text(
@@ -2986,8 +2986,8 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              TossColors.primary.withValues(alpha: 0.08),
-              TossColors.primary.withValues(alpha: 0.12),
+              TossColors.primary.withOpacity(0.08),
+              TossColors.primary.withOpacity(0.12),
             ],
           ),
           borderRadius: BorderRadius.circular(24),
@@ -3028,7 +3028,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                       vertical: TossSpacing.space2,
                     ),
                     decoration: BoxDecoration(
-                      color: TossColors.surface.withValues(alpha: 0.95),
+                      color: TossColors.surface.withOpacity(0.95),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Row(
@@ -3065,7 +3065,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                     child: Container(
                       padding: const EdgeInsets.all(TossSpacing.space4),
                       decoration: BoxDecoration(
-                        color: TossColors.primary.withValues(alpha: 0.08),
+                        color: TossColors.primary.withOpacity(0.08),
                         borderRadius: BorderRadius.circular(16),
                       ),
                       child: Column(
@@ -3118,7 +3118,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                     child: Container(
                       padding: const EdgeInsets.all(TossSpacing.space4),
                       decoration: BoxDecoration(
-                        color: TossColors.info.withValues(alpha: 0.08),
+                        color: TossColors.info.withOpacity(0.08),
                         borderRadius: BorderRadius.circular(16),
                       ),
                       child: Column(
@@ -3177,7 +3177,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                     child: Container(
                       padding: const EdgeInsets.all(TossSpacing.space4),
                       decoration: BoxDecoration(
-                        color: TossColors.success.withValues(alpha: 0.08),
+                        color: TossColors.success.withOpacity(0.08),
                         borderRadius: BorderRadius.circular(16),
                       ),
                       child: Column(
@@ -3230,7 +3230,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                     child: Container(
                       padding: const EdgeInsets.all(TossSpacing.space4),
                       decoration: BoxDecoration(
-                        color: TossColors.warning.withValues(alpha: 0.08),
+                        color: TossColors.warning.withOpacity(0.08),
                         borderRadius: BorderRadius.circular(16),
                       ),
                       child: Column(
@@ -3287,7 +3287,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
               Container(
                 padding: const EdgeInsets.all(TossSpacing.space4),
                 decoration: BoxDecoration(
-                  color: TossColors.surface.withValues(alpha: 0.95),
+                  color: TossColors.surface.withOpacity(0.95),
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: Column(
@@ -3298,7 +3298,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                         Container(
                           padding: const EdgeInsets.all(TossSpacing.space2),
                           decoration: BoxDecoration(
-                            color: TossColors.primary.withValues(alpha: 0.1),
+                            color: TossColors.primary.withOpacity(0.1),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Icon(
@@ -3338,7 +3338,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                               vertical: TossSpacing.space1,
                             ),
                             decoration: BoxDecoration(
-                              color: TossColors.success.withValues(alpha: 0.1),
+                              color: TossColors.success.withOpacity(0.1),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Text(
@@ -3556,7 +3556,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
         color: backgroundColor,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: iconColor.withValues(alpha: 0.2),
+          color: iconColor.withOpacity(0.2),
           width: 1,
         ),
       ),
@@ -3779,7 +3779,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                         boxShadow: isSelected 
                           ? [
                               BoxShadow(
-                                color: TossColors.primary.withValues(alpha: 0.3),
+                                color: TossColors.primary.withOpacity(0.3),
                                 blurRadius: 8,
                                 offset: Offset(0, 2),
                               ),
@@ -3830,7 +3830,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                               'off',
                               style: TossTextStyles.caption.copyWith(
                                 color: isSelected 
-                                  ? TossColors.surface.withValues(alpha: 0.8)
+                                  ? TossColors.surface.withOpacity(0.8)
                                   : TossColors.gray400,
                                 fontSize: 10,
                                 fontWeight: FontWeight.w500,
@@ -4592,8 +4592,8 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                                             ),
                                             decoration: BoxDecoration(
                                               color: isApproved
-                                                  ? TossColors.success.withValues(alpha: 0.1)
-                                                  : TossColors.warning.withValues(alpha: 0.1),
+                                                  ? TossColors.success.withOpacity(0.1)
+                                                  : TossColors.warning.withOpacity(0.1),
                                               borderRadius: BorderRadius.circular(4),
                                             ),
                                             child: Row(
@@ -4632,7 +4632,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                                                 vertical: 2,
                                               ),
                                               decoration: BoxDecoration(
-                                                color: TossColors.error.withValues(alpha: 0.1),
+                                                color: TossColors.error.withOpacity(0.1),
                                                 borderRadius: BorderRadius.circular(4),
                                               ),
                                               child: Row(
@@ -4926,7 +4926,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
               color: isSelected
                   ? TossColors.primary
                   : isToday
-                      ? TossColors.primary.withValues(alpha: 0.1)
+                      ? TossColors.primary.withOpacity(0.1)
                       : Colors.transparent,
               borderRadius: BorderRadius.circular(8),
               border: Border.all(
@@ -5183,7 +5183,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                     Container(
                       padding: const EdgeInsets.all(TossSpacing.space4),
                       decoration: BoxDecoration(
-                        color: TossColors.info.withValues(alpha: 0.05),
+                        color: TossColors.info.withOpacity(0.05),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Column(
@@ -5277,10 +5277,10 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                       Container(
                         padding: const EdgeInsets.all(TossSpacing.space4),
                         decoration: BoxDecoration(
-                          color: TossColors.warning.withValues(alpha: 0.06),
+                          color: TossColors.warning.withOpacity(0.06),
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
-                            color: TossColors.warning.withValues(alpha: 0.15),
+                            color: TossColors.warning.withOpacity(0.15),
                             width: 1,
                           ),
                         ),
@@ -5738,7 +5738,7 @@ class _CalendarBottomSheetState extends State<_CalendarBottomSheet> {
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.01),
+                    color: Colors.black.withOpacity(0.01),
                     blurRadius: 4,
                     offset: const Offset(0, 1),
                   ),
@@ -5840,10 +5840,10 @@ class _CalendarBottomSheetState extends State<_CalendarBottomSheet> {
               margin: const EdgeInsets.all(TossSpacing.space5),
               padding: const EdgeInsets.all(TossSpacing.space4),
               decoration: BoxDecoration(
-                color: TossColors.primary.withValues(alpha: 0.05),
+                color: TossColors.primary.withOpacity(0.05),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: TossColors.primary.withValues(alpha: 0.2),
+                  color: TossColors.primary.withOpacity(0.2),
                   width: 1,
                 ),
               ),
@@ -5852,7 +5852,7 @@ class _CalendarBottomSheetState extends State<_CalendarBottomSheet> {
                   Container(
                     padding: const EdgeInsets.all(TossSpacing.space2),
                     decoration: BoxDecoration(
-                      color: TossColors.primary.withValues(alpha: 0.15),
+                      color: TossColors.primary.withOpacity(0.15),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: const Icon(

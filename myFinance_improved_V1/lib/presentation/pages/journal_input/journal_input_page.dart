@@ -2473,115 +2473,15 @@ class _JournalInputPageState extends ConsumerState<JournalInputPage>
               onSurfaceVariant: TossColors.gray700,
             ),
             dialogBackgroundColor: Colors.white,
-            dialogTheme: DialogThemeData(
+            dialogTheme: const DialogTheme(
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(28),
+                borderRadius: BorderRadius.all(Radius.circular(28)),
               ),
               elevation: 0,
               backgroundColor: Colors.white,
               surfaceTintColor: Colors.transparent,
             ),
-            datePickerTheme: DatePickerThemeData(
-              backgroundColor: Colors.white,
-              elevation: 0,
-              shadowColor: Colors.transparent,
-              surfaceTintColor: Colors.transparent,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(28),
-              ),
-              // Header styling - Modern Toss blue header
-              headerBackgroundColor: TossColors.primary,
-              headerForegroundColor: Colors.white,
-              headerHelpStyle: const TextStyle(
-                fontSize: 14,
-                color: Colors.white70,
-                fontWeight: FontWeight.w500,
-              ),
-              headerHeadlineStyle: const TextStyle(
-                fontSize: 32,
-                color: Colors.white,
-                fontWeight: FontWeight.w700,
-              ),
-              // Calendar weekday headers
-              weekdayStyle: TextStyle(
-                fontSize: 13,
-                color: TossColors.gray500,
-                fontWeight: FontWeight.w600,
-                letterSpacing: 0.5,
-              ),
-              // Year selector text
-              yearStyle: TextStyle(
-                fontSize: 16,
-                color: TossColors.gray700,
-                fontWeight: FontWeight.w500,
-              ),
-              // Day numbers in calendar
-              dayStyle: TextStyle(
-                fontSize: 16,
-                color: TossColors.gray900,
-                fontWeight: FontWeight.w500,
-              ),
-              // Today's date styling - Only border, no fill
-              todayBackgroundColor: MaterialStateProperty.all(
-                Colors.transparent,
-              ),
-              todayForegroundColor: MaterialStateProperty.all(
-                TossColors.primary,
-              ),
-              todayBorder: BorderSide(
-                color: TossColors.primary,
-                width: 2,
-              ),
-              // Selected date styling - Solid blue circle
-              dayBackgroundColor: MaterialStateProperty.resolveWith((states) {
-                if (states.contains(MaterialState.selected)) {
-                  return TossColors.primary;
-                }
-                return Colors.transparent;
-              }),
-              dayForegroundColor: MaterialStateProperty.resolveWith((states) {
-                if (states.contains(MaterialState.selected)) {
-                  return Colors.white;
-                }
-                if (states.contains(MaterialState.disabled)) {
-                  return TossColors.gray300;
-                }
-                return TossColors.gray900;
-              }),
-              dayOverlayColor: MaterialStateProperty.resolveWith((states) {
-                if (states.contains(MaterialState.pressed)) {
-                  return TossColors.primary.withOpacity(0.08);
-                }
-                if (states.contains(MaterialState.hovered)) {
-                  return TossColors.gray100;
-                }
-                return Colors.transparent;
-              }),
-              // Divider styling
-              dividerColor: TossColors.gray200,
-              // Input field for manual date entry
-              inputDecorationTheme: InputDecorationTheme(
-                filled: true,
-                fillColor: TossColors.gray50,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: TossColors.primary, width: 2),
-                ),
-                labelStyle: TextStyle(
-                  fontSize: 14,
-                  color: TossColors.gray600,
-                ),
-                hintStyle: TextStyle(
-                  fontSize: 14,
-                  color: TossColors.gray400,
-                ),
-              ),
-            ),
+            // DatePickerTheme removed for Flutter 3.24 compatibility
             textButtonTheme: TextButtonThemeData(
               style: TextButton.styleFrom(
                 foregroundColor: TossColors.primary,
