@@ -29,6 +29,12 @@ class EmployeeSalary {
   final String? managerName;
   final String? costCenter;
   final String? employmentStatus; // Active, On Leave, Terminated
+  
+  // Attendance fields from user_salaries table
+  final String? month;
+  final int? totalWorkingDay;
+  final double? totalWorkingHour;
+  final double? totalSalary;
 
   EmployeeSalary({
     this.salaryId,
@@ -61,6 +67,12 @@ class EmployeeSalary {
     this.managerName,
     this.costCenter,
     this.employmentStatus,
+    
+    // Attendance fields
+    this.month,
+    this.totalWorkingDay,
+    this.totalWorkingHour,
+    this.totalSalary,
   });
 
   factory EmployeeSalary.fromJson(Map<String, dynamic> json) {
@@ -105,6 +117,12 @@ class EmployeeSalary {
       managerName: json['manager_name'] as String?,
       costCenter: json['cost_center'] as String?,
       employmentStatus: json['employment_status'] as String? ?? 'Active',
+      
+      // Attendance fields
+      month: json['month'] as String?,
+      totalWorkingDay: json['total_working_day'] as int?,
+      totalWorkingHour: (json['total_working_hour'] as num?)?.toDouble(),
+      totalSalary: (json['total_salary'] as num?)?.toDouble(),
     );
   }
 
@@ -140,6 +158,12 @@ class EmployeeSalary {
       'manager_name': managerName,
       'cost_center': costCenter,
       'employment_status': employmentStatus,
+      
+      // Attendance fields
+      'month': month,
+      'total_working_day': totalWorkingDay,
+      'total_working_hour': totalWorkingHour,
+      'total_salary': totalSalary,
     };
   }
 

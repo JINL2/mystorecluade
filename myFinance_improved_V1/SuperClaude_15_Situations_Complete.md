@@ -52,8 +52,7 @@
 ## 📚 **Quick Flag Reference:**
 - `--think` = Careful analysis (medium complexity)
 - `--think-hard` = Deep analysis (complex problems)
-- `--ultrathink` = Maximum analysis (critical issues)
-- `--seq` = Step-by-step solution
+- `--ultrathink` = Maximum analysis (critical issues)- `--seq` = Step-by-step solution
 - `--validate` = Check for errors and security
 - `--verbose` = Detailed explanations
 

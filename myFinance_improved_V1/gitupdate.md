@@ -1,42 +1,70 @@
-# Git Copy Paste Guide
+# Git Simple Guide
 
-## First Time Only
+## Step 1: First Time Setup (Once Only)
 ```bash
-git checkout -b [yourname] && git push -u origin [yourname]
+git checkout main
+```
+Then:
+```bash
+git checkout -b [yourname]
+```
+Then:
+```bash
+git push -u origin [yourname]
 ```
 
 ---
 
-## Morning
+## Step 2: Daily Work
+
+### Morning (Get Latest Code)
 ```bash
-git add . && git commit -m "save" && git checkout main && git pull origin main && git checkout [yourname] && git merge main
+git checkout main
+```
+```bash
+git pull origin main
+```
+```bash
+git checkout [yourname]
+```
+```bash
+git merge main
 ```
 
-## Before Going Home
+### Before Going Home (Save Your Work)
 ```bash
-git add . && git commit -m "work done" && git push
+git add .
+```
+```bash
+git commit -m "work done"
+```
+```bash
+git push
 ```
 
 ---
 
-## If Error Happens (local changes would be overwritten)
+## If You Get Errors
 
-### Option 1: Keep your changes
+### Error: "Your local changes would be overwritten"
+First do this:
 ```bash
-git add . && git commit -m "save my work" && git checkout main && git pull origin main && git checkout [yourname] && git merge main
+git add .
 ```
+```bash
+git commit -m "save my work"
+```
+Then continue with morning steps.
 
-### Option 2: Delete your changes
-```bash
-git checkout -- . && git checkout main && git pull origin main && git checkout [yourname] && git merge main
-```
+### Error: "pathspec did not match"
+You need to create your branch first. Go back to Step 1.
 
 ---
 
-## Name Examples
+## Names to Use
 - Nghia
-- John  
+- John
 - Sarah
 - Mike
 
-**Just replace [yourname] and copy paste**
+**Replace [yourname] with your actual name**
