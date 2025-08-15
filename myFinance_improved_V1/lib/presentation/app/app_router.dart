@@ -19,6 +19,8 @@ import '../pages/store_shift/store_shift_page.dart';
 import '../pages/counter_party/counter_party_page.dart';
 import '../pages/add_fix_asset/add_fix_asset_page.dart';
 import '../pages/register_denomination/register_denomination_page.dart';
+import '../pages/cash_location/cash_location_page.dart';
+import '../pages/cash_location/account_detail_page.dart';
 
 
 // Router notifier to listen to auth state changes
@@ -144,6 +146,28 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: 'registerDenomination',
             builder: (context, state) => const RegisterDenominationPage(),
+          GoRoute(
+            path: 'cashLocation',
+            builder: (context, state) => const CashLocationPage(),
+            routes: [
+              GoRoute(
+                path: 'account/:accountName',
+                builder: (context, state) {
+                  final accountName = state.pathParameters['accountName'] ?? '';
+                  final extra = state.extra as Map<String, dynamic>?;
+                  return AccountDetailPage(
+                    accountName: accountName,
+                    locationType: extra?['locationType'] ?? 'cash',
+                    balance: extra?['balance'] ?? 0,
+                    errors: extra?['errors'] ?? 0,
+                    totalJournal: extra?['totalJournal'],
+                    totalReal: extra?['totalReal'],
+                    cashDifference: extra?['cashDifference'],
+                    currencySymbol: extra?['currencySymbol'],
+                  );
+                },
+              ),
+            ],
           ),
         ],
       ),

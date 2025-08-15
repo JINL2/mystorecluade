@@ -236,7 +236,7 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
               Container(
                 padding: const EdgeInsets.all(TossSpacing.space4),
                 decoration: BoxDecoration(
-                  color: TossColors.primary.withValues(alpha: 0.1),
+                  color: TossColors.primary.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Column(
