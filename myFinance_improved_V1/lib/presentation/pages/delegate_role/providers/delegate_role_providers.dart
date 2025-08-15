@@ -372,6 +372,7 @@ final allCompanyRolesProvider = FutureProvider<List<Map<String, dynamic>>>((ref)
     for (final role in roles) {
       final roleId = role['role_id'] as String;
       final roleName = role['role_name'] as String;
+      final description = role['description'] as String?;
       
       // Get permissions for this role
       final permissionsResponse = await supabase
@@ -391,13 +392,19 @@ final allCompanyRolesProvider = FutureProvider<List<Map<String, dynamic>>>((ref)
         canDelegate = true;
       }
       
-      // For now, set member count to 0 since we need to implement proper role-user mapping
-      // TODO: Implement proper member count when user-role relationship is established
-      final memberCount = 0;
+      // Get member count for this role by counting users in user_roles table
+      final memberCountResponse = await supabase
+          .from('user_roles')
+          .select('user_id')
+          .eq('role_id', roleId)
+          .eq('is_deleted', false);
+      
+      final memberCount = (memberCountResponse as List).length;
 
       rolesWithPermissions.add({
         'roleId': roleId,
         'roleName': roleName,
+        'description': description,
         'permissions': permissions,
         'memberCount': memberCount,
         'canEdit': canEditRoles,
@@ -487,6 +494,9 @@ final allFeaturesWithCategoriesProvider = FutureProvider<List<Map<String, dynami
   }
 });
 
+/// Provider for all available features (alias for compatibility)
+final allFeaturesProvider = allFeaturesWithCategoriesProvider;
+
 /// Provider for role permissions (for editing)
 final rolePermissionsProvider = FutureProvider.family<Map<String, dynamic>, String>((ref, roleId) async {
   final supabase = Supabase.instance.client;
@@ -552,6 +562,73 @@ final updateRolePermissionsProvider = Provider((ref) {
     } catch (e) {
       print('Error updating role permissions: $e');
       throw e;
+    }
+  };
+});
+
+/// Provider for creating new roles
+final createRoleProvider = Provider((ref) {
+  return ({
+    required String companyId,
+    required String roleName,
+    String? description,
+    String roleType = 'custom',
+  }) async {
+    final supabase = Supabase.instance.client;
+    
+    try {
+      // Insert the new role into the roles table
+      final response = await supabase
+          .from('roles')
+          .insert({
+            'company_id': companyId,
+            'role_name': roleName,
+            'role_type': roleType,
+            'description': description,
+          })
+          .select()
+          .single();
+      
+      // Invalidate the roles provider to refresh the list
+      ref.invalidate(allCompanyRolesProvider);
+      ref.invalidate(delegatableRolesProvider);
+      
+      return response['role_id'] as String;
+    } catch (e) {
+      print('Error creating role: $e');
+      throw Exception('Failed to create role: $e');
+    }
+  };
+});
+
+/// Provider for updating role details (name and description)
+final updateRoleDetailsProvider = Provider((ref) {
+  return ({
+    required String roleId,
+    required String roleName,
+    String? description,
+  }) async {
+    final supabase = Supabase.instance.client;
+    
+    try {
+      // Update the role in the roles table
+      await supabase
+          .from('roles')
+          .update({
+            'role_name': roleName,
+            'description': description,
+            'updated_at': DateTime.now().toIso8601String(),
+          })
+          .eq('role_id', roleId);
+      
+      // Invalidate the roles provider to refresh the list
+      ref.invalidate(allCompanyRolesProvider);
+      ref.invalidate(delegatableRolesProvider);
+      
+      return true;
+    } catch (e) {
+      print('Error updating role details: $e');
+      throw Exception('Failed to update role details: $e');
     }
   };
 });

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../core/themes/toss_colors.dart';
 import '../../../../core/themes/toss_text_styles.dart';
 import '../../../../core/themes/toss_spacing.dart';
@@ -9,6 +10,7 @@ import '../providers/delegate_role_providers.dart';
 class RoleManagementSheet extends ConsumerStatefulWidget {
   final String roleId;
   final String roleName;
+  final String? description;
   final List<String> permissions;
   final int memberCount;
   final bool canEdit;
@@ -18,6 +20,7 @@ class RoleManagementSheet extends ConsumerStatefulWidget {
     super.key,
     required this.roleId,
     required this.roleName,
+    this.description,
     required this.permissions,
     required this.memberCount,
     required this.canEdit,
@@ -28,6 +31,7 @@ class RoleManagementSheet extends ConsumerStatefulWidget {
     BuildContext context, {
     required String roleId,
     required String roleName,
+    String? description,
     required List<String> permissions,
     required int memberCount,
     required bool canEdit,
@@ -40,6 +44,7 @@ class RoleManagementSheet extends ConsumerStatefulWidget {
       builder: (context) => RoleManagementSheet(
         roleId: roleId,
         roleName: roleName,
+        description: description,
         permissions: permissions,
         memberCount: memberCount,
         canEdit: canEdit,
@@ -59,14 +64,17 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
   late TextEditingController _descriptionController;
   bool _isLoading = false;
   Set<String> _selectedPermissions = {};
+  Set<String> _expandedCategories = {};
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
     _roleNameController = TextEditingController(text: widget.roleName);
-    _descriptionController = TextEditingController(text: _getRoleDescription());
+    _descriptionController = TextEditingController(text: widget.description ?? _getDefaultRoleDescription());
     _selectedPermissions = Set.from(widget.permissions);
+    // Start with all categories collapsed
+    _expandedCategories = {};
   }
 
   @override
@@ -105,20 +113,6 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
             padding: EdgeInsets.all(TossSpacing.space5),
             child: Row(
               children: [
-                Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    color: _getRoleColor().withOpacity(0.12),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(
-                    _getRoleIcon(),
-                    color: _getRoleColor(),
-                    size: 24,
-                  ),
-                ),
-                SizedBox(width: TossSpacing.space3),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -147,29 +141,18 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
             ),
           ),
 
-          // Tab bar
+          // Underline-style tabs
           Container(
             margin: EdgeInsets.symmetric(horizontal: TossSpacing.space5),
-            decoration: BoxDecoration(
-              color: TossColors.gray50,
-              borderRadius: BorderRadius.circular(TossBorderRadius.sm),
-            ),
-            child: TabBar(
-              controller: _tabController,
-              labelColor: Colors.white,
-              unselectedLabelColor: TossColors.gray600,
-              indicator: BoxDecoration(
-                color: TossColors.primary,
-                borderRadius: BorderRadius.circular(TossBorderRadius.sm),
-              ),
-              dividerColor: Colors.transparent,
-              tabs: [
-                Tab(text: 'Details'),
-                Tab(text: 'Permissions'),
-                Tab(text: 'Members'),
+            child: Row(
+              children: [
+                _buildUnderlineTab('Details', 0),
+                _buildUnderlineTab('Permissions', 1),
+                _buildUnderlineTab('Members', 2),
               ],
             ),
           ),
+          SizedBox(height: TossSpacing.space4),
 
           // Tab content
           Expanded(
@@ -183,7 +166,7 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
             ),
           ),
 
-          // Bottom action
+          // TOSS-style bottom action with proper safe area
           if (widget.canEdit) ...[
             Container(
               padding: EdgeInsets.all(TossSpacing.space5),
@@ -191,33 +174,39 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
                 color: TossColors.background,
                 border: Border(top: BorderSide(color: TossColors.gray200)),
               ),
-              child: SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: ElevatedButton(
-                  onPressed: _isLoading ? null : _saveChanges,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: TossColors.primary,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(TossBorderRadius.sm),
+              child: SafeArea(
+                top: false,
+                child: SizedBox(
+                  width: double.infinity,
+                  height: 56,
+                  child: ElevatedButton(
+                    onPressed: _isLoading ? null : _saveChanges,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: TossColors.primary,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                      ),
+                      elevation: 0,
                     ),
+                    child: _isLoading
+                        ? SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 2,
+                            ),
+                          )
+                        : Text(
+                            'Save Changes',
+                            style: TossTextStyles.body.copyWith(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 16,
+                            ),
+                          ),
                   ),
-                  child: _isLoading
-                      ? SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            color: Colors.white,
-                            strokeWidth: 2,
-                          ),
-                        )
-                      : Text(
-                          'Save Changes',
-                          style: TossTextStyles.label.copyWith(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
                 ),
               ),
             ),
@@ -337,44 +326,93 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
         final categories = permissionData['categories'] as List;
         final currentPermissions = permissionData['currentPermissions'] as Set<String>;
         
-        return SingleChildScrollView(
-          padding: EdgeInsets.all(TossSpacing.space5),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Role Permissions',
-                style: TossTextStyles.h3.copyWith(
-                  fontWeight: FontWeight.w700,
-                  color: TossColors.gray900,
+        return Column(
+          children: [
+            // Header section with padding
+            Container(
+              padding: EdgeInsets.fromLTRB(
+                TossSpacing.space5,
+                TossSpacing.space5,
+                TossSpacing.space5,
+                TossSpacing.space3,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Role Permissions',
+                              style: TossTextStyles.h3.copyWith(
+                                fontWeight: FontWeight.w700,
+                                color: TossColors.gray900,
+                              ),
+                            ),
+                            SizedBox(height: TossSpacing.space1),
+                            Text(
+                              'Configure what this role can access and do',
+                              style: TossTextStyles.body.copyWith(
+                                color: TossColors.gray600,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      // Quick actions
+                      if (widget.canEdit)
+                        Row(
+                          children: [
+                            TextButton(
+                              onPressed: () {
+                                setState(() {
+                                  _selectedPermissions.clear();
+                                });
+                              },
+                              child: Text(
+                                'Clear all',
+                                style: TossTextStyles.body.copyWith(
+                                  color: TossColors.gray600,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            
+            // Scrollable permission categories
+            Expanded(
+              child: SingleChildScrollView(
+                padding: EdgeInsets.fromLTRB(
+                  TossSpacing.space5,
+                  0,
+                  TossSpacing.space5,
+                  TossSpacing.space10,
+                ),
+                child: Column(
+                  children: categories.map((category) {
+                    final categoryName = category['category_name'] as String;
+                    final features = (category['features'] as List? ?? [])
+                        .cast<Map<String, dynamic>>();
+                    
+                    if (features.isEmpty) return SizedBox.shrink();
+                    
+                    return _buildPermissionCategory(categoryName, features);
+                  }).toList(),
                 ),
               ),
-              SizedBox(height: TossSpacing.space2),
-              Text(
-                'Configure what this role can access and do',
-                style: TossTextStyles.bodySmall.copyWith(
-                  color: TossColors.gray600,
-                ),
-              ),
-              SizedBox(height: TossSpacing.space5),
-
-              // Dynamic permission categories from Supabase
-              ...categories.map((category) {
-                final categoryName = category['category_name'] as String;
-                final features = (category['features'] as List? ?? [])
-                    .cast<Map<String, dynamic>>();
-                
-                if (features.isEmpty) return SizedBox.shrink();
-                
-                return Column(
-                  children: [
-                    _buildPermissionCategory(categoryName, features),
-                    SizedBox(height: TossSpacing.space4),
-                  ],
-                );
-              }).toList(),
-            ],
-          ),
+            ),
+          ],
         );
       },
       loading: () => Center(
@@ -407,87 +445,112 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
   }
 
   Widget _buildMembersTab() {
-    return SingleChildScrollView(
-      padding: EdgeInsets.all(TossSpacing.space5),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return Column(
+      children: [
+        // Header section
+        Container(
+          padding: EdgeInsets.all(TossSpacing.space5),
+          child: Row(
             children: [
-              Text(
-                'Team Members',
-                style: TossTextStyles.h3.copyWith(
-                  fontWeight: FontWeight.w700,
-                  color: TossColors.gray900,
-                ),
-              ),
-              if (widget.canDelegate)
-                ElevatedButton.icon(
-                  onPressed: () {
-                    // TODO: Show delegate user selection
-                  },
-                  icon: Icon(Icons.person_add, size: 18),
-                  label: Text('Add Member'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: TossColors.primary,
-                    foregroundColor: Colors.white,
-                    padding: EdgeInsets.symmetric(
-                      horizontal: TossSpacing.space3,
-                      vertical: TossSpacing.space2,
-                    ),
+              Expanded(
+                child: Text(
+                  'Team Members',
+                  style: TossTextStyles.h3.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: TossColors.gray900,
                   ),
                 ),
+              ),
             ],
           ),
-          SizedBox(height: TossSpacing.space4),
+        ),
 
-          // Members list (mock data)
-          if (widget.memberCount > 0) ...[
-            ListView.separated(
-              shrinkWrap: true,
-              physics: NeverScrollableScrollPhysics(),
-              itemCount: 3, // Mock data
-              separatorBuilder: (context, index) => SizedBox(height: TossSpacing.space3),
-              itemBuilder: (context, index) {
-                return _buildMemberItem(
-                  name: 'Team Member ${index + 1}',
-                  email: 'member${index + 1}@company.com',
-                  joinedDate: 'Joined 2 weeks ago',
-                );
-              },
+        // Scrollable content
+        Expanded(
+          child: SingleChildScrollView(
+            padding: EdgeInsets.symmetric(horizontal: TossSpacing.space5),
+            child: Column(
+              children: [
+                // Real members from database
+                FutureBuilder<List<Map<String, dynamic>>>(
+                  future: _getRoleMembers(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return Center(
+                        child: CircularProgressIndicator(color: TossColors.primary),
+                      );
+                    }
+                    
+                    if (snapshot.hasError) {
+                      return Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.error_outline, color: TossColors.error, size: 48),
+                            SizedBox(height: TossSpacing.space3),
+                            Text(
+                              'Failed to load members',
+                              style: TossTextStyles.body.copyWith(color: TossColors.error),
+                            ),
+                          ],
+                        ),
+                      );
+                    }
+                    
+                    final members = snapshot.data ?? [];
+                    
+                    if (members.isEmpty) {
+                      return Center(
+                        child: Column(
+                          children: [
+                            SizedBox(height: TossSpacing.space10),
+                            Icon(
+                              Icons.people_outline,
+                              size: 64,
+                              color: TossColors.gray300,
+                            ),
+                            SizedBox(height: TossSpacing.space4),
+                            Text(
+                              'No team members yet',
+                              style: TossTextStyles.h3.copyWith(
+                                color: TossColors.gray600,
+                              ),
+                            ),
+                            SizedBox(height: TossSpacing.space2),
+                            Text(
+                              'No users are currently assigned to this role',
+                              style: TossTextStyles.body.copyWith(
+                                color: TossColors.gray500,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
+                        ),
+                      );
+                    }
+                    
+                    return ListView.separated(
+                      shrinkWrap: true,
+                      physics: NeverScrollableScrollPhysics(),
+                      itemCount: members.length,
+                      separatorBuilder: (context, index) => SizedBox(height: TossSpacing.space3),
+                      itemBuilder: (context, index) {
+                        final member = members[index];
+                        return _buildMemberItem(
+                          name: member['name'] ?? 'Unknown User',
+                          email: member['email'] ?? '',
+                          joinedDate: _formatJoinDate(member['created_at']),
+                        );
+                      },
+                    );
+                  },
+                ),
+              ],
             ),
-          ] else ...[
-            Center(
-              child: Column(
-                children: [
-                  SizedBox(height: TossSpacing.space10),
-                  Icon(
-                    Icons.people_outline,
-                    size: 64,
-                    color: TossColors.gray300,
-                  ),
-                  SizedBox(height: TossSpacing.space4),
-                  Text(
-                    'No team members yet',
-                    style: TossTextStyles.h3.copyWith(
-                      color: TossColors.gray600,
-                    ),
-                  ),
-                  SizedBox(height: TossSpacing.space2),
-                  Text(
-                    'Delegate this role to team members to get started',
-                    style: TossTextStyles.body.copyWith(
-                      color: TossColors.gray500,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ],
-      ),
+          ),
+        ),
+
+      ],
     );
   }
 
@@ -528,73 +591,301 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
   }
 
   Widget _buildPermissionCategory(String title, List<Map<String, dynamic>> features) {
+    final isExpanded = _expandedCategories.contains(title);
+    final featureIds = features.map((f) => f['feature_id'] as String).toList();
+    final selectedCount = featureIds.where((id) => _selectedPermissions.contains(id)).length;
+    final allSelected = selectedCount == features.length && features.isNotEmpty;
+    final someSelected = selectedCount > 0 && selectedCount < features.length;
+    
     return Container(
-      padding: EdgeInsets.all(TossSpacing.space4),
+      margin: EdgeInsets.only(bottom: TossSpacing.space3),
       decoration: BoxDecoration(
         color: TossColors.surface,
-        borderRadius: BorderRadius.circular(TossBorderRadius.sm),
-        border: Border.all(color: TossColors.gray200),
+        borderRadius: BorderRadius.circular(TossBorderRadius.md),
+        border: Border.all(
+          color: TossColors.gray200,
+          width: 1,
+        ),
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            title,
-            style: TossTextStyles.label.copyWith(
-              fontWeight: FontWeight.w700,
-              color: TossColors.gray900,
+          // Collapsible header with select all
+          Material(
+            color: Colors.transparent,
+            borderRadius: BorderRadius.vertical(
+              top: Radius.circular(TossBorderRadius.md),
+              bottom: Radius.circular(isExpanded ? 0 : TossBorderRadius.md),
+            ),
+            child: InkWell(
+              onTap: () {
+                setState(() {
+                  if (isExpanded) {
+                    _expandedCategories.remove(title);
+                  } else {
+                    _expandedCategories.add(title);
+                  }
+                });
+              },
+              borderRadius: BorderRadius.vertical(
+                top: Radius.circular(TossBorderRadius.md),
+                bottom: Radius.circular(isExpanded ? 0 : TossBorderRadius.md),
+              ),
+              child: Container(
+                padding: EdgeInsets.all(TossSpacing.space4),
+                child: Row(
+                  children: [
+                    // Select all checkbox - wrapped in its own InkWell to prevent event bubbling
+                    Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: widget.canEdit
+                            ? () {
+                                _toggleCategoryPermissions(featureIds, !allSelected);
+                              }
+                            : null,
+                        borderRadius: BorderRadius.circular(6),
+                        child: Padding(
+                          padding: EdgeInsets.all(4), // Add padding for better touch target
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 200),
+                            width: 20,
+                            height: 20,
+                            decoration: BoxDecoration(
+                              color: allSelected
+                                  ? TossColors.primary
+                                  : someSelected
+                                      ? TossColors.primary.withOpacity(0.3)
+                                      : TossColors.background,
+                              border: Border.all(
+                                color: allSelected || someSelected
+                                    ? TossColors.primary
+                                    : TossColors.gray300,
+                                width: allSelected || someSelected ? 2 : 1.5,
+                              ),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: allSelected
+                                ? Icon(
+                                    Icons.check,
+                                    size: 14,
+                                    color: Colors.white,
+                                  )
+                                : someSelected
+                                    ? Center(
+                                        child: Container(
+                                          width: 8,
+                                          height: 2,
+                                          color: Colors.white,
+                                        ),
+                                      )
+                                    : null,
+                          ),
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: TossSpacing.space3),
+                    // Category title - clickable area
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            title,
+                            style: TossTextStyles.body.copyWith(
+                              fontWeight: FontWeight.w700,
+                              color: TossColors.gray900,
+                              fontSize: 16,
+                            ),
+                          ),
+                          if (selectedCount > 0)
+                            Text(
+                              '$selectedCount of ${features.length} selected',
+                              style: TossTextStyles.caption.copyWith(
+                                color: TossColors.gray600,
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                    // Expand/collapse icon
+                    AnimatedRotation(
+                      turns: isExpanded ? 0.5 : 0,
+                      duration: const Duration(milliseconds: 200),
+                      child: Icon(
+                        Icons.expand_more,
+                        color: TossColors.gray600,
+                        size: 24,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ),
-          SizedBox(height: TossSpacing.space3),
-          ...features.map((feature) {
-            final featureId = feature['feature_id'] as String;
-            final featureName = feature['feature_name'] as String;
-            final isSelected = _selectedPermissions.contains(featureId);
-            
-            return Padding(
-              padding: EdgeInsets.symmetric(vertical: TossSpacing.space1),
-              child: Row(
-                children: [
-                  GestureDetector(
-                    onTap: widget.canEdit ? () => _togglePermission(featureId) : null,
-                    child: Container(
-                      width: 18,
-                      height: 18,
-                      decoration: BoxDecoration(
-                        color: isSelected ? TossColors.primary : Colors.transparent,
-                        border: Border.all(
-                          color: isSelected ? TossColors.primary : TossColors.gray300,
-                          width: 2,
-                        ),
-                        borderRadius: BorderRadius.circular(3),
-                      ),
-                      child: isSelected
-                          ? Icon(
-                              Icons.check,
-                              size: 12,
-                              color: Colors.white,
-                            )
-                          : null,
-                    ),
-                  ),
-                  SizedBox(width: TossSpacing.space2),
-                  Expanded(
-                    child: Text(
-                      featureName,
-                      style: TossTextStyles.bodySmall.copyWith(
-                        color: widget.canEdit 
-                            ? TossColors.gray700 
-                            : TossColors.gray500,
-                      ),
-                    ),
-                  ),
-                ],
+          
+          // Expanded content
+          if (isExpanded) ...[
+            Container(
+              decoration: BoxDecoration(
+                border: Border(
+                  top: BorderSide(color: TossColors.gray200, width: 1),
+                ),
               ),
-            );
-          }).toList(),
+              child: Column(
+                children: features.map((feature) {
+                  final featureId = feature['feature_id'] as String;
+                  final featureName = feature['feature_name'] as String;
+                  final isSelected = _selectedPermissions.contains(featureId);
+                  
+                  return Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: widget.canEdit ? () => _togglePermission(featureId) : null,
+                      child: Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: TossSpacing.space4,
+                          vertical: TossSpacing.space3,
+                        ),
+                        decoration: BoxDecoration(
+                          border: Border(
+                            bottom: BorderSide(
+                              color: TossColors.gray100,
+                              width: 1,
+                            ),
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            SizedBox(width: TossSpacing.space6), // Indent for hierarchy
+                            // Individual checkbox
+                            AnimatedContainer(
+                              duration: const Duration(milliseconds: 200),
+                              width: 20,
+                              height: 20,
+                              decoration: BoxDecoration(
+                                color: isSelected
+                                    ? TossColors.primary
+                                    : TossColors.background,
+                                border: Border.all(
+                                  color: isSelected
+                                      ? TossColors.primary
+                                      : TossColors.gray300,
+                                  width: isSelected ? 2 : 1.5,
+                                ),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: isSelected
+                                  ? Icon(
+                                      Icons.check,
+                                      size: 14,
+                                      color: Colors.white,
+                                    )
+                                  : null,
+                            ),
+                            SizedBox(width: TossSpacing.space3),
+                            Expanded(
+                              child: Text(
+                                featureName,
+                                style: TossTextStyles.body.copyWith(
+                                  color: widget.canEdit 
+                                      ? TossColors.gray900
+                                      : TossColors.gray500,
+                                  fontWeight: FontWeight.w400,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
+          ],
         ],
       ),
     );
+  }
+
+  Future<List<Map<String, dynamic>>> _getRoleMembers() async {
+    final supabase = Supabase.instance.client;
+    
+    try {
+      // Get user IDs from user_roles table
+      final userRolesResponse = await supabase
+          .from('user_roles')
+          .select('user_id, created_at')
+          .eq('role_id', widget.roleId)
+          .eq('is_deleted', false);
+      
+      if (userRolesResponse.isEmpty) {
+        return [];
+      }
+      
+      // Extract user IDs
+      final userIds = (userRolesResponse as List).map((item) => item['user_id']).toList();
+      
+      // Get user details from users table
+      final usersResponse = await supabase
+          .from('users')
+          .select('user_id, first_name, last_name, email')
+          .inFilter('user_id', userIds);
+      
+      final members = <Map<String, dynamic>>[];
+      
+      for (final user in usersResponse as List) {
+        // Find the corresponding user_role entry to get created_at
+        final userRole = (userRolesResponse as List).firstWhere(
+          (role) => role['user_id'] == user['user_id'],
+          orElse: () => {'created_at': null},
+        );
+        
+        final firstName = user['first_name'] ?? '';
+        final lastName = user['last_name'] ?? '';
+        final fullName = '$firstName $lastName'.trim();
+        
+        members.add({
+          'user_id': user['user_id'],
+          'name': fullName.isEmpty ? 'Unknown User' : fullName,
+          'email': user['email'] ?? 'No email',
+          'created_at': userRole['created_at'],
+        });
+      }
+      
+      return members;
+    } catch (e) {
+      return [];
+    }
+  }
+
+  String _formatJoinDate(dynamic createdAt) {
+    if (createdAt == null) return 'Unknown date';
+    
+    try {
+      final date = DateTime.parse(createdAt.toString());
+      final now = DateTime.now();
+      final difference = now.difference(date);
+      
+      if (difference.inDays == 0) {
+        return 'Joined today';
+      } else if (difference.inDays == 1) {
+        return 'Joined yesterday';
+      } else if (difference.inDays < 7) {
+        return 'Joined ${difference.inDays} days ago';
+      } else if (difference.inDays < 30) {
+        final weeks = (difference.inDays / 7).floor();
+        return 'Joined $weeks week${weeks == 1 ? '' : 's'} ago';
+      } else if (difference.inDays < 365) {
+        final months = (difference.inDays / 30).floor();
+        return 'Joined $months month${months == 1 ? '' : 's'} ago';
+      } else {
+        final years = (difference.inDays / 365).floor();
+        return 'Joined $years year${years == 1 ? '' : 's'} ago';
+      }
+    } catch (e) {
+      return 'Unknown date';
+    }
   }
 
   Widget _buildMemberItem({
@@ -659,37 +950,8 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
     );
   }
 
-  Color _getRoleColor() {
-    switch (widget.roleName.toLowerCase()) {
-      case 'owner':
-        return TossColors.error;
-      case 'manager':
-        return TossColors.warning;
-      case 'employee':
-        return TossColors.primary;
-      case 'salesman':
-        return TossColors.success;
-      default:
-        return TossColors.gray600;
-    }
-  }
 
-  IconData _getRoleIcon() {
-    switch (widget.roleName.toLowerCase()) {
-      case 'owner':
-        return Icons.star;
-      case 'manager':
-        return Icons.supervisor_account;
-      case 'employee':
-        return Icons.person;
-      case 'salesman':
-        return Icons.shopping_bag;
-      default:
-        return Icons.badge;
-    }
-  }
-
-  String _getRoleDescription() {
+  String _getDefaultRoleDescription() {
     switch (widget.roleName.toLowerCase()) {
       case 'owner':
         return 'Full system access with company management capabilities. Can oversee all operations, manage finances, and make strategic decisions.';
@@ -718,18 +980,40 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
     });
   }
 
+  void _toggleCategoryPermissions(List<String> featureIds, bool select) {
+    if (!widget.canEdit) return;
+    
+    setState(() {
+      if (select) {
+        _selectedPermissions.addAll(featureIds);
+      } else {
+        _selectedPermissions.removeAll(featureIds);
+      }
+    });
+  }
+
   Future<void> _saveChanges() async {
     setState(() => _isLoading = true);
     
     try {
-      // Update role permissions using the provider
+      // Update role details (name and description) first
+      final updateDetails = ref.read(updateRoleDetailsProvider);
+      await updateDetails(
+        roleId: widget.roleId,
+        roleName: _roleNameController.text.trim(),
+        description: _descriptionController.text.trim().isEmpty 
+            ? null 
+            : _descriptionController.text.trim(),
+      );
+
+      // Update role permissions
       final updatePermissions = ref.read(updateRolePermissionsProvider);
       await updatePermissions(widget.roleId, _selectedPermissions);
       
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Role permissions updated successfully'),
+            content: Text('Role updated successfully'),
             backgroundColor: TossColors.success,
             behavior: SnackBarBehavior.floating,
           ),
@@ -752,4 +1036,40 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
       }
     }
   }
+
+
+  Widget _buildUnderlineTab(String text, int index) {
+    final isSelected = _tabController.index == index;
+    return Expanded(
+      child: GestureDetector(
+        onTap: () {
+          setState(() {
+            _tabController.animateTo(index);
+          });
+        },
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: EdgeInsets.symmetric(vertical: TossSpacing.space3),
+          decoration: BoxDecoration(
+            border: Border(
+              bottom: BorderSide(
+                color: isSelected ? TossColors.gray900 : Colors.transparent,
+                width: 2,
+              ),
+            ),
+          ),
+          child: Center(
+            child: Text(
+              text,
+              style: TossTextStyles.body.copyWith(
+                color: isSelected ? TossColors.gray900 : TossColors.gray500,
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }
+

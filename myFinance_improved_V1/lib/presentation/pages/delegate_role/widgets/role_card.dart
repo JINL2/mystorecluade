@@ -4,10 +4,12 @@ import '../../../../core/themes/toss_colors.dart';
 import '../../../../core/themes/toss_text_styles.dart';
 import '../../../../core/themes/toss_spacing.dart';
 import '../../../../core/themes/toss_border_radius.dart';
+import '../../../widgets/toss/toss_card.dart';
 
 class RoleCard extends ConsumerWidget {
   final String roleId;
   final String roleName;
+  final String? description;
   final List<String> permissions;
   final int memberCount;
   final bool canEdit;
@@ -18,6 +20,7 @@ class RoleCard extends ConsumerWidget {
     super.key,
     required this.roleId,
     required this.roleName,
+    this.description,
     required this.permissions,
     required this.memberCount,
     this.canEdit = false,
@@ -33,146 +36,99 @@ class RoleCard extends ConsumerWidget {
         right: TossSpacing.space5,
         bottom: TossSpacing.space4,
       ),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 20,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: InkWell(
+      child: TossCard(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-        child: Padding(
-          padding: EdgeInsets.all(TossSpacing.space5),
-          child: Row(
-            children: [
-              // Role icon
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: _getRoleColor().withOpacity(0.12),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(
-                  _getRoleIcon(),
-                  color: _getRoleColor(),
-                  size: 24,
-                ),
+        padding: EdgeInsets.all(TossSpacing.space4),
+        child: Row(
+          children: [
+            // Role info
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    roleName,
+                    style: TossTextStyles.h3.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: TossColors.gray900,
+                    ),
+                  ),
+                  SizedBox(height: TossSpacing.space1),
+                  Text(
+                    description?.isNotEmpty == true ? description! : _getDefaultRoleDescription(),
+                    style: TossTextStyles.body.copyWith(
+                      color: TossColors.gray500,
+                      height: 1.4,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
               ),
-              SizedBox(width: TossSpacing.space4),
-              
-              // Role info
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+            ),
+            
+            // Counts on the right
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                // People count
+                Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text(
-                      roleName,
-                      style: TossTextStyles.labelLarge.copyWith(
-                        fontWeight: FontWeight.w700,
-                        color: TossColors.gray900,
-                      ),
+                    Icon(
+                      Icons.person_outline,
+                      size: 16,
+                      color: TossColors.gray400,
                     ),
-                    SizedBox(height: 2),
+                    SizedBox(width: TossSpacing.space1),
                     Text(
-                      _getRoleDescription(),
-                      style: TossTextStyles.bodySmall.copyWith(
+                      '$memberCount',
+                      style: TossTextStyles.body.copyWith(
                         color: TossColors.gray600,
+                        fontWeight: FontWeight.w500,
                       ),
-                    ),
-                    SizedBox(height: TossSpacing.space2),
-                    // Info badges row
-                    Row(
-                      children: [
-                        // People count
-                        Container(
-                          padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: TossColors.gray50,
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(Icons.person, size: 10, color: TossColors.gray600),
-                              SizedBox(width: 2),
-                              Text('$memberCount', style: TossTextStyles.caption.copyWith(fontSize: 10)),
-                            ],
-                          ),
-                        ),
-                        SizedBox(width: 4),
-                        // Permissions count
-                        Container(
-                          padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: TossColors.gray50,
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(Icons.shield_outlined, size: 10, color: TossColors.gray600),
-                              SizedBox(width: 2),
-                              Text('${permissions.length}', style: TossTextStyles.caption.copyWith(fontSize: 10)),
-                            ],
-                          ),
-                        ),
-                      ],
                     ),
                   ],
                 ),
-              ),
-              
-              // Arrow indicator
-              Icon(
-                Icons.chevron_right,
-                color: TossColors.gray400,
-                size: 24,
-              ),
-            ],
-          ),
+                SizedBox(height: TossSpacing.space1),
+                // Permissions count
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.shield_outlined,
+                      size: 16,
+                      color: TossColors.gray400,
+                    ),
+                    SizedBox(width: TossSpacing.space1),
+                    Text(
+                      '${permissions.length}',
+                      style: TossTextStyles.body.copyWith(
+                        color: TossColors.gray600,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            
+            SizedBox(width: TossSpacing.space3),
+            
+            // Arrow indicator
+            Icon(
+              Icons.chevron_right,
+              color: TossColors.gray400,
+              size: 16,
+            ),
+          ],
         ),
       ),
     );
   }
 
-  Color _getRoleColor() {
-    switch (roleName.toLowerCase()) {
-      case 'owner':
-        return TossColors.error;
-      case 'manager':
-        return TossColors.warning;
-      case 'employee':
-        return TossColors.primary;
-      case 'salesman':
-        return TossColors.success;
-      default:
-        return TossColors.gray600;
-    }
-  }
 
-  IconData _getRoleIcon() {
-    switch (roleName.toLowerCase()) {
-      case 'owner':
-        return Icons.star;
-      case 'manager':
-        return Icons.supervisor_account;
-      case 'employee':
-        return Icons.person;
-      case 'salesman':
-        return Icons.shopping_bag;
-      default:
-        return Icons.badge;
-    }
-  }
-
-  String _getRoleDescription() {
+  String _getDefaultRoleDescription() {
     switch (roleName.toLowerCase()) {
       case 'owner':
         return 'Full system access & company management';
