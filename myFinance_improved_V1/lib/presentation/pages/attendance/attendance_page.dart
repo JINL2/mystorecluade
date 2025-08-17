@@ -112,7 +112,7 @@ class _AttendancePageState extends State<AttendancePage> {
             ],
           ),
           borderRadius: BorderRadius.circular(TossBorderRadius.xl),
-          boxShadow: TossShadows.shadow2,
+          boxShadow: TossShadows.elevation2,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -530,7 +530,7 @@ class _AttendancePageState extends State<AttendancePage> {
                             : Colors.transparent,
                         width: isToday ? 2 : 1,
                       ),
-                      boxShadow: isToday ? TossShadows.shadow2 : TossShadows.shadow1,
+                      boxShadow: isToday ? TossShadows.elevation2 : TossShadows.elevation1,
                     ),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -651,7 +651,7 @@ class _AttendancePageState extends State<AttendancePage> {
             decoration: BoxDecoration(
               color: TossColors.surface,
               borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-              boxShadow: TossShadows.shadow1,
+              boxShadow: TossShadows.elevation1,
             ),
             child: Column(
               children: recentActivities.asMap().entries.map((entry) {
@@ -941,7 +941,7 @@ class _AttendancePageState extends State<AttendancePage> {
                   decoration: BoxDecoration(
                     color: TossColors.surface,
                     borderRadius: BorderRadius.circular(TossBorderRadius.xl),
-                    boxShadow: TossShadows.shadow1,
+                    boxShadow: TossShadows.elevation1,
                   ),
                   child: Column(
                     children: [

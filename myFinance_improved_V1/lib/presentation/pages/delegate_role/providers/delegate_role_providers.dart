@@ -3,6 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:myfinance_improved/presentation/providers/auth_provider.dart';
 import 'package:myfinance_improved/presentation/providers/app_state_provider.dart';
 import '../models/delegate_role_models.dart';
+import '../../../../core/utils/tag_validator.dart';
 
 /// Provider for user data with companies (reuses app state)
 final userCompaniesProvider = FutureProvider<dynamic>((ref) async {
@@ -167,36 +168,8 @@ final activeDelegationsProvider = FutureProvider<List<RoleDelegation>>((ref) asy
     return [];
   }
   
-  // For now, return empty list since we don't have delegation tables yet
-  // In production, you would either:
-  // 1. Create the role_delegations table in Supabase
-  // 2. Use user_roles with additional metadata
-  // 3. Implement using a different approach
-  
+  // Return empty list - delegation feature not implemented yet
   return [];
-  
-  // TODO: Implement when delegation tables are created
-  // final supabase = Supabase.instance.client;
-  // final response = await supabase
-  //     .from('role_delegations')
-  //     .select('''
-  //       *,
-  //       delegate:users!delegate_id(id, name, email),
-  //       role:roles(id, name)
-  //     ''')
-  //     .eq('delegator_id', user.id)
-  //     .eq('company_id', selectedCompany)
-  //     .eq('is_active', true)
-  //     .gte('end_date', DateTime.now().toIso8601String())
-  //     .order('created_at', ascending: false);
-  
-  // return (response as List)
-  //     .map((json) => RoleDelegation.fromJson({
-  //       ...json,
-  //       'delegateUser': json['delegate'],
-  //       'roleName': json['role']['name'],
-  //     }))
-  //     .toList();
 });
 
 /// Provider for roles that the current user can delegate
@@ -356,30 +329,11 @@ final delegationHistoryProvider = FutureProvider<List<DelegationAudit>>((ref) as
     return [];
   }
   
-  // Return empty list for now
+  // Return empty list - audit feature not implemented yet
   return [];
-  
-  // TODO: Implement when audit tables are created
-  // final supabase = Supabase.instance.client;
-  // final response = await supabase
-  //     .from('delegation_audit')
-  //     .select('''
-  //       *,
-  //       performer:users!performed_by(id, name, email)
-  //     ''')
-  //     .eq('company_id', selectedCompany)
-  //     .order('timestamp', ascending: false)
-  //     .limit(50);
-  
-  // return (response as List)
-  //     .map((json) => DelegationAudit.fromJson({
-  //       ...json,
-  //       'performedByUser': json['performer'],
-  //     }))
-  //     .toList();
 });
 
-/// Provider for company users (for delegation selection)
+/// Provider for company users (for delegation selection) using RPC function
 final companyUsersProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
   final appState = ref.watch(appStateProvider);
   final selectedCompany = appState.companyChoosen;
@@ -390,22 +344,113 @@ final companyUsersProvider = FutureProvider<List<Map<String, dynamic>>>((ref) as
   
   final supabase = Supabase.instance.client;
   
-  // Get all users in the current company using user_companies table
-  final response = await supabase
-      .from('user_companies')
-      .select('''
-        user:users!user_id(user_id, name, email),
-        company:companies!company_id(company_id, company_name)
-      ''')
-      .eq('company_id', selectedCompany)
-      .eq('is_deleted', false);
+  // First, get the company owner information
+  String? companyOwnerId;
+  try {
+    final companyResponse = await supabase
+        .from('companies')
+        .select('owner_id')
+        .eq('company_id', selectedCompany)
+        .limit(1);
+    
+    if (companyResponse.isNotEmpty) {
+      companyOwnerId = companyResponse.first['owner_id'];
+    }
+  } catch (e) {
+    // Silently handle error - owner detection will fall back to role-based logic
+  }
   
-  return (response as List).map((item) => {
-    'id': item['user']['user_id'],
-    'name': item['user']['name'] ?? 'Unknown User',
-    'email': item['user']['email'] ?? '',
-    'role': 'Employee', // Default role text
-  }).toList();
+  try {
+    // Use RPC function for reliable role lookup
+    final response = await supabase.rpc(
+      'get_company_users_with_roles',
+      params: {'p_company_id': selectedCompany},
+    );
+    
+    final usersWithRoles = <Map<String, dynamic>>[];
+    
+    for (final item in response as List) {
+      final firstName = item['first_name'] ?? '';
+      final lastName = item['last_name'] ?? '';
+      final fullName = '$firstName $lastName'.trim();
+      final userId = item['user_id'];
+      
+      // Check if this user is the company owner
+      String role = item['role_name'] ?? 'No Role';
+      if (companyOwnerId == userId) {
+        role = 'Owner'; // Company owners are always "Owner"
+      }
+      
+      usersWithRoles.add({
+        'id': userId,
+        'name': fullName.isEmpty ? 'Unknown User' : fullName,
+        'email': item['email'] ?? '',
+        'role': role,
+      });
+    }
+    
+    return usersWithRoles;
+  } catch (e) {
+    // Fallback to original logic if RPC function doesn't exist or fails
+    
+    // Get all users in the current company (fallback)
+    final response = await supabase
+        .from('user_companies')
+        .select('''
+          user:users!user_id(user_id, first_name, last_name, email)
+        ''')
+        .eq('company_id', selectedCompany)
+        .eq('is_deleted', false);
+    
+    final usersWithRoles = <Map<String, dynamic>>[];
+    
+    for (final item in response as List) {
+      final user = item['user'];
+      final userId = user['user_id'];
+      final firstName = user['first_name'] ?? '';
+      final lastName = user['last_name'] ?? '';
+      final fullName = '$firstName $lastName'.trim();
+      
+      // Get current role for this user (fallback logic)
+      String currentRole = 'No Role';
+      
+      // Check if this user is the company owner first
+      if (companyOwnerId == userId) {
+        currentRole = 'Owner';
+      } else {
+        try {
+          // Get user roles and filter by company on the Dart side
+          final roleResponse = await supabase
+              .from('user_roles')
+              .select('''
+                role:roles!role_id(role_name, company_id)
+              ''')
+              .eq('user_id', userId)
+              .eq('is_deleted', false);
+          
+          // Filter for the current company and get the role name
+          for (final roleData in roleResponse as List) {
+            final role = roleData['role'];
+            if (role != null && role['company_id'] == selectedCompany) {
+              currentRole = role['role_name'] ?? 'No Role';
+              break; // Take the first matching role for this company
+            }
+          }
+        } catch (e) {
+          // Silently handle role lookup errors
+        }
+      }
+      
+      usersWithRoles.add({
+        'id': userId,
+        'name': fullName.isEmpty ? 'Unknown User' : fullName,
+        'email': user['email'] ?? '',
+        'role': currentRole,
+      });
+    }
+    
+    return usersWithRoles;
+  }
 });
 
 /// Provider for all company roles (for display in cards)
@@ -470,6 +515,7 @@ final allCompanyRolesProvider = FutureProvider<List<Map<String, dynamic>>>((ref)
         'roleId': roleId,
         'roleName': roleName,
         'description': description,
+        'tags': _parseTags(role['tags']), // Add tags parsing
         'permissions': permissions,
         'memberCount': memberCount,
         'canEdit': canEditRoles,
@@ -498,21 +544,8 @@ final createDelegationProvider = Provider((ref) {
       throw Exception('No company selected');
     }
     
-    // TODO: Implement when delegation tables are created
-    // For now, just show success message
+    // Delegation feature not implemented yet
     await Future.delayed(const Duration(seconds: 1)); // Simulate API call
-    
-    // final supabase = Supabase.instance.client;
-    // await supabase.from('role_delegations').insert({
-    //   'delegator_id': user.id,
-    //   'delegate_id': request.delegateId,
-    //   'company_id': selectedCompany,
-    //   'role_id': request.roleId,
-    //   'permissions': request.permissions,
-    //   'start_date': request.startDate.toIso8601String(),
-    //   'end_date': request.endDate.toIso8601String(),
-    //   'is_active': true,
-    // });
     
     // Invalidate the active delegations to refresh
     ref.invalidate(activeDelegationsProvider);
@@ -528,15 +561,8 @@ final revokeDelegationProvider = Provider((ref) {
       throw UnauthorizedException();
     }
     
-    // TODO: Implement when delegation tables are created
-    // For now, just show success message
+    // Delegation feature not implemented yet
     await Future.delayed(const Duration(seconds: 1)); // Simulate API call
-    
-    // final supabase = Supabase.instance.client;
-    // await supabase
-    //     .from('role_delegations')
-    //     .update({'is_active': false})
-    //     .eq('id', delegationId);
     
     // Invalidate the active delegations to refresh
     ref.invalidate(activeDelegationsProvider);
@@ -634,10 +660,19 @@ final createRoleProvider = Provider((ref) {
     required String roleName,
     String? description,
     String roleType = 'custom',
+    List<String>? tags,
   }) async {
     final supabase = Supabase.instance.client;
     
     try {
+      // Validate tags if provided
+      if (tags != null && tags.isNotEmpty) {
+        final validation = TagValidator.validateTags(tags);
+        if (!validation.isValid) {
+          throw Exception('Invalid tags: ${validation.firstError}');
+        }
+      }
+      
       // Insert the new role into the roles table
       final response = await supabase
           .from('roles')
@@ -646,6 +681,7 @@ final createRoleProvider = Provider((ref) {
             'role_name': roleName,
             'role_type': roleType,
             'description': description,
+            'tags': tags ?? [], // JSONB automatically converts Dart List to PostgreSQL array
           })
           .select()
           .single();
@@ -655,30 +691,55 @@ final createRoleProvider = Provider((ref) {
       ref.invalidate(delegatableRolesProvider);
       
       return response['role_id'] as String;
+    } on PostgrestException catch (e) {
+      // Handle specific Supabase/PostgreSQL errors
+      if (e.message.contains('jsonb')) {
+        throw Exception('Failed to save tags: Invalid tag format');
+      } else if (e.message.contains('duplicate')) {
+        throw Exception('Role name already exists');
+      } else {
+        throw Exception('Database error: ${e.message}');
+      }
     } catch (e) {
       throw Exception('Failed to create role: $e');
     }
   };
 });
 
-/// Provider for updating role details (name and description)
+/// Provider for updating role details (name, description, and tags)
 final updateRoleDetailsProvider = Provider((ref) {
   return ({
     required String roleId,
     required String roleName,
     String? description,
+    List<String>? tags,
   }) async {
     final supabase = Supabase.instance.client;
     
     try {
+      // Validate tags if provided
+      if (tags != null && tags.isNotEmpty) {
+        final validation = TagValidator.validateTags(tags);
+        if (!validation.isValid) {
+          throw Exception('Invalid tags: ${validation.firstError}');
+        }
+      }
+      
       // Update the role in the roles table
+      final updateData = <String, dynamic>{
+        'role_name': roleName,
+        'description': description,
+        'updated_at': DateTime.now().toIso8601String(),
+      };
+      
+      // Only update tags if provided (allows partial updates)
+      if (tags != null) {
+        updateData['tags'] = tags;
+      }
+      
       await supabase
           .from('roles')
-          .update({
-            'role_name': roleName,
-            'description': description,
-            'updated_at': DateTime.now().toIso8601String(),
-          })
+          .update(updateData)
           .eq('role_id', roleId);
       
       // Invalidate the roles provider to refresh the list
@@ -686,11 +747,39 @@ final updateRoleDetailsProvider = Provider((ref) {
       ref.invalidate(delegatableRolesProvider);
       
       return true;
+    } on PostgrestException catch (e) {
+      // Handle specific Supabase/PostgreSQL errors
+      if (e.message.contains('jsonb')) {
+        throw Exception('Failed to save tags: Invalid tag format');
+      } else if (e.message.contains('duplicate')) {
+        throw Exception('Role name already exists');
+      } else {
+        throw Exception('Database error: ${e.message}');
+      }
     } catch (e) {
       throw Exception('Failed to update role details: $e');
     }
   };
 });
+
+/// Helper function to parse tags from various formats
+List<String> _parseTags(dynamic tagsData) {
+  if (tagsData == null) return [];
+  
+  if (tagsData is List) {
+    return tagsData.map((e) => e.toString()).toList();
+  }
+  
+  // Handle legacy malformed data (Map format)
+  if (tagsData is Map && tagsData.containsKey('tag1')) {
+    // Legacy data format: {"tag1": "[Critical, Support, Management, Operations, Temporary]"}
+    String tagString = tagsData['tag1'].toString();
+    tagString = tagString.replaceAll('[', '').replaceAll(']', '');
+    return tagString.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toList();
+  }
+  
+  return [];
+}
 
 /// Exception class
 class UnauthorizedException implements Exception {

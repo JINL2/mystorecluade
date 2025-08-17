@@ -69,7 +69,7 @@ class _AddCurrencyBottomSheetState extends ConsumerState<AddCurrencyBottomSheet>
               ),
               IconButton(
                 onPressed: () => Navigator.of(context).pop(),
-                icon: const Icon(Icons.close, size: 20, color: TossColors.gray600),
+                icon: const Icon(Icons.close, color: TossColors.gray600),
                 style: IconButton.styleFrom(
                   backgroundColor: TossColors.gray100,
                   shape: const CircleBorder(),
@@ -205,7 +205,7 @@ class _AddCurrencyBottomSheetState extends ConsumerState<AddCurrencyBottomSheet>
                             child: Text(
                               '${selectedCurrencyIds.length} selected',
                               style: TossTextStyles.caption.copyWith(
-                                color: Colors.white,
+                                color: TossColors.white,
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
@@ -245,7 +245,7 @@ class _AddCurrencyBottomSheetState extends ConsumerState<AddCurrencyBottomSheet>
                                   vertical: TossSpacing.space3,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: isSelected ? TossColors.primary.withOpacity(0.05) : Colors.transparent,
+                                  color: isSelected ? TossColors.primary.withOpacity(0.05) : TossColors.transparent,
                                   border: Border.all(
                                     color: isSelected ? TossColors.primary : TossColors.gray200,
                                     width: isSelected ? 1.5 : 1,
@@ -259,7 +259,7 @@ class _AddCurrencyBottomSheetState extends ConsumerState<AddCurrencyBottomSheet>
                                       width: 20,
                                       height: 20,
                                       decoration: BoxDecoration(
-                                        color: isSelected ? TossColors.primary : Colors.transparent,
+                                        color: isSelected ? TossColors.primary : TossColors.transparent,
                                         border: Border.all(
                                           color: isSelected ? TossColors.primary : TossColors.gray400,
                                           width: isSelected ? 0 : 1.5,
@@ -269,8 +269,7 @@ class _AddCurrencyBottomSheetState extends ConsumerState<AddCurrencyBottomSheet>
                                       child: isSelected
                                           ? const Icon(
                                               Icons.check,
-                                              size: 14,
-                                              color: Colors.white,
+                                              color: TossColors.white,
                                             )
                                           : null,
                                     ),
@@ -278,7 +277,7 @@ class _AddCurrencyBottomSheetState extends ConsumerState<AddCurrencyBottomSheet>
                                     // Flag emoji
                                     Text(
                                       currency.flagEmoji,
-                                      style: const TextStyle(fontSize: 24),
+                                      style: TossTextStyles.h3,
                                     ),
                                     const SizedBox(width: TossSpacing.space3),
                                     // Currency details

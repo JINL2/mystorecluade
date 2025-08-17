@@ -10,8 +10,9 @@ import '../../../widgets/toss/toss_bottom_sheet.dart';
 import '../../../widgets/toss/toss_primary_button.dart';
 import '../../../widgets/toss/toss_secondary_button.dart';
 import '../../../widgets/toss/toss_dropdown.dart';
-import '../../../widgets/toss/toss_chip.dart';
-import '../../../widgets/toss/toss_multi_select_dropdown.dart';
+import '../../../widgets/specific/selectors/autonomous_cash_location_selector.dart';
+import '../../../widgets/specific/selectors/autonomous_counterparty_selector.dart';
+import '../../../widgets/specific/selectors/autonomous_account_selector.dart';
 import '../providers/transaction_history_provider.dart';
 
 class TransactionFilterSheet extends ConsumerStatefulWidget {
@@ -23,6 +24,7 @@ class TransactionFilterSheet extends ConsumerStatefulWidget {
 
 class _TransactionFilterSheetState extends ConsumerState<TransactionFilterSheet> {
   late TransactionFilter _filter;
+  TransactionScope _selectedScope = TransactionScope.store;
   DateTime? _selectedFromDate;
   DateTime? _selectedToDate;
   String? _selectedAccountId;
@@ -36,6 +38,7 @@ class _TransactionFilterSheetState extends ConsumerState<TransactionFilterSheet>
   void initState() {
     super.initState();
     _filter = ref.read(transactionFilterStateProvider);
+    _selectedScope = _filter.scope;
     _selectedFromDate = _filter.dateFrom;
     _selectedToDate = _filter.dateTo;
     _selectedAccountId = _filter.accountId;
@@ -49,12 +52,20 @@ class _TransactionFilterSheetState extends ConsumerState<TransactionFilterSheet>
   @override
   Widget build(BuildContext context) {
     final filterOptionsAsync = ref.watch(transactionFilterOptionsProvider);
+    final screenHeight = MediaQuery.of(context).size.height;
+    final maxHeight = screenHeight * 0.85; // Use 85% of screen height max
     
     return TossBottomSheet(
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+      content: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxHeight: maxHeight - 100, // Account for TossBottomSheet padding and handle
+        ),
+        child: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
           // Header - Using Toss design principles
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -66,178 +77,163 @@ class _TransactionFilterSheetState extends ConsumerState<TransactionFilterSheet>
                 ),
               ),
               IconButton(
-                icon: Icon(Icons.close, color: TossColors.gray700),
+                icon: const Icon(Icons.close, color: TossColors.gray700),
                 onPressed: () => Navigator.pop(context),
               ),
             ],
           ),
           
-          SizedBox(height: TossSpacing.space4),
+          const SizedBox(height: TossSpacing.space4),
+          
+          // Scope Toggle - Store vs Company view
+          _buildScopeToggle(),
+          
+          const SizedBox(height: TossSpacing.space4),
           
           // Quick Date Filters - Toss style chips
           _buildQuickDateFilters(),
           
-          SizedBox(height: TossSpacing.space4),
+          const SizedBox(height: TossSpacing.space4),
           
           // Custom Date Range - Toss style date pickers
           _buildDateRangeSection(),
           
-          SizedBox(height: TossSpacing.space4),
+          const SizedBox(height: TossSpacing.space4),
           
-          // Filter Options using proper TossDropdown components
+          // New Toss selector components (self-managing)
+          Column(
+            children: [
+              // Accounts - using new autonomous multi selector
+              AutonomousMultiAccountSelector(
+                selectedAccountIds: _selectedAccountIds,
+                onChanged: (values) {
+                  setState(() {
+                    _selectedAccountIds = values ?? [];
+                    _selectedAccountId = null; // Clear single selection
+                  });
+                },
+              ),
+              const SizedBox(height: TossSpacing.space4),
+              
+              // Cash Location - using autonomous selector with scope awareness
+              AutonomousCashLocationSelector(
+                key: ValueKey(_selectedScope), // Force rebuild when scope changes
+                selectedLocationId: _selectedCashLocationId,
+                initialScope: _selectedScope,
+                onChanged: (value) {
+                  setState(() {
+                    _selectedCashLocationId = value;
+                  });
+                },
+              ),
+              const SizedBox(height: TossSpacing.space4),
+              
+              // Counterparty - using autonomous selector
+              AutonomousCounterpartySelector(
+                selectedCounterpartyId: _selectedCounterpartyId,
+                onChanged: (value) {
+                  setState(() {
+                    _selectedCounterpartyId = value;
+                  });
+                },
+              ),
+              const SizedBox(height: TossSpacing.space4),
+            ],
+          ),
+          
+          // Filter Options that still need async data (Transaction Type, Created By)
           filterOptionsAsync.when(
             data: (options) => Column(
               children: [
-                // Journal Type - Using TossDropdown
-                if (options.journalTypes.isNotEmpty) ...[
-                  TossDropdown<String?>(
-                    label: 'Transaction Type',
-                    value: _selectedJournalType,
-                    hint: 'All Types',
-                    items: [
+                // Transaction Type
+                TossDropdown<String?>(
+                  label: 'Transaction Type',
+                  value: _selectedJournalType,
+                  hint: 'All Types',
+                  items: [
+                    const TossDropdownItem(
+                      value: null,
+                      label: 'All Types',
+                    ),
+                    ...options.journalTypes.map((type) => 
                       TossDropdownItem(
-                        value: null,
-                        label: 'All Types',
+                        value: type.id,
+                        label: type.name,
+                        subtitle: '${type.transactionCount} transactions',
                       ),
-                      ...options.journalTypes.map((type) => 
-                        TossDropdownItem(
-                          value: type.id,
-                          label: type.name,
-                          subtitle: '${type.transactionCount} transactions',
-                        ),
-                      ),
-                    ],
-                    onChanged: (value) {
-                      setState(() {
-                        _selectedJournalType = value;
-                      });
-                    },
-                  ),
-                  SizedBox(height: TossSpacing.space4),
-                ],
+                    ),
+                  ],
+                  onChanged: (value) {
+                    setState(() {
+                      _selectedJournalType = value;
+                    });
+                  },
+                ),
+                const SizedBox(height: TossSpacing.space4),
                 
-                // Created By - Using TossDropdown
-                if (options.users.isNotEmpty) ...[
-                  TossDropdown<String?>(
-                    label: 'Created By',
-                    value: _selectedCreatedBy,
-                    hint: 'All Users',
-                    items: [
+                // Created By
+                TossDropdown<String?>(
+                  label: 'Created By',
+                  value: _selectedCreatedBy,
+                  hint: 'All Users',
+                  items: [
+                    const TossDropdownItem(
+                      value: null,
+                      label: 'All Users',
+                    ),
+                    ...options.users.map((user) => 
                       TossDropdownItem(
-                        value: null,
-                        label: 'All Users',
+                        value: user.id,
+                        label: user.name,
+                        subtitle: '${user.transactionCount} transactions',
                       ),
-                      ...options.users.map((user) => 
-                        TossDropdownItem(
-                          value: user.id,
-                          label: user.name,
-                          subtitle: '${user.transactionCount} transactions',
-                        ),
-                      ),
-                    ],
-                    onChanged: (value) {
-                      setState(() {
-                        _selectedCreatedBy = value;
-                      });
-                    },
-                  ),
-                  SizedBox(height: TossSpacing.space4),
-                ],
-                
-                // Accounts - Using Multi-Select Dropdown
-                if (options.accounts.isNotEmpty) ...[
-                  TossMultiSelectDropdown<String>(
-                    label: 'Accounts',
-                    selectedValues: _selectedAccountIds,
-                    hint: 'All Accounts',
-                    searchable: true,
-                    items: options.accounts.map((account) => 
-                      TossMultiSelectItem(
-                        value: account.id!,
-                        label: account.name,
-                        subtitle: account.type != null 
-                          ? '${account.type} • ${account.transactionCount} transactions'
-                          : '${account.transactionCount} transactions',
-                      ),
-                    ).toList(),
-                    onChanged: (values) {
-                      setState(() {
-                        _selectedAccountIds = values;
-                        _selectedAccountId = null; // Clear single selection
-                      });
-                    },
-                  ),
-                  SizedBox(height: TossSpacing.space4),
-                ],
-                
-                // Cash Location - Using TossDropdown
-                if (options.cashLocations.isNotEmpty) ...[
-                  TossDropdown<String?>(
-                    label: 'Cash Location',
-                    value: _selectedCashLocationId,
-                    hint: 'All Locations',
-                    items: [
-                      TossDropdownItem(
-                        value: null,
-                        label: 'All Locations',
-                      ),
-                      ...options.cashLocations.map((location) => 
-                        TossDropdownItem(
-                          value: location.id,
-                          label: location.name,
-                          subtitle: location.type != null
-                            ? '${location.type} • ${location.transactionCount} transactions'
-                            : '${location.transactionCount} transactions',
-                        ),
-                      ),
-                    ],
-                    onChanged: (value) {
-                      setState(() {
-                        _selectedCashLocationId = value;
-                      });
-                    },
-                  ),
-                  SizedBox(height: TossSpacing.space4),
-                ],
-                
-                // Counterparty - Using TossDropdown
-                if (options.counterparties.isNotEmpty) ...[
-                  TossDropdown<String?>(
-                    label: 'Counterparty',
-                    value: _selectedCounterpartyId,
-                    hint: 'All Counterparties',
-                    items: [
-                      TossDropdownItem(
-                        value: null,
-                        label: 'All Counterparties',
-                      ),
-                      ...options.counterparties.map((counterparty) => 
-                        TossDropdownItem(
-                          value: counterparty.id,
-                          label: counterparty.name,
-                          subtitle: counterparty.type != null
-                            ? '${counterparty.type} • ${counterparty.transactionCount} transactions'
-                            : '${counterparty.transactionCount} transactions',
-                        ),
-                      ),
-                    ],
-                    onChanged: (value) {
-                      setState(() {
-                        _selectedCounterpartyId = value;
-                      });
-                    },
-                  ),
-                  SizedBox(height: TossSpacing.space4),
-                ],
+                    ),
+                  ],
+                  onChanged: (value) {
+                    setState(() {
+                      _selectedCreatedBy = value;
+                    });
+                  },
+                ),
+                const SizedBox(height: TossSpacing.space4),
               ],
             ),
-            loading: () => Center(
-              child: CircularProgressIndicator(color: TossColors.primary),
+            loading: () => const Column(
+              children: [
+                SizedBox(height: TossSpacing.space6),
+                Center(
+                  child: CircularProgressIndicator(color: TossColors.primary),
+                ),
+                SizedBox(height: TossSpacing.space6),
+              ],
             ),
-            error: (_, __) => SizedBox.shrink(),
+            error: (error, _) => Column(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(TossSpacing.space4),
+                  decoration: BoxDecoration(
+                    color: TossColors.error.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.error_outline, color: TossColors.error, size: 20),
+                      const SizedBox(width: TossSpacing.space2),
+                      Expanded(
+                        child: Text(
+                          'Failed to load filter options',
+                          style: TossTextStyles.caption.copyWith(color: TossColors.error),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: TossSpacing.space4),
+              ],
+            ),
           ),
           
-          SizedBox(height: TossSpacing.space6),
+          const SizedBox(height: TossSpacing.space6),
           
           // Action Buttons - Already using Toss components correctly
           Row(
@@ -248,7 +244,7 @@ class _TransactionFilterSheetState extends ConsumerState<TransactionFilterSheet>
                   onPressed: _clearFilters,
                 ),
               ),
-              SizedBox(width: TossSpacing.space3),
+              const SizedBox(width: TossSpacing.space3),
               Expanded(
                 child: TossPrimaryButton(
                   text: 'Apply Filter',
@@ -258,9 +254,137 @@ class _TransactionFilterSheetState extends ConsumerState<TransactionFilterSheet>
             ],
           ),
           
-          SizedBox(height: TossSpacing.space4),
-        ],
+          // Add bottom padding for safe area and visual spacing
+          const SizedBox(height: TossSpacing.space4),
+            ],
+          ),
+        ),
       ),
+    );
+  }
+
+  // Scope toggle widget
+  Widget _buildScopeToggle() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Scope',
+          style: TossTextStyles.caption.copyWith(
+            color: TossColors.gray500,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        const SizedBox(height: TossSpacing.space2),
+        Container(
+          decoration: BoxDecoration(
+            color: TossColors.gray50,
+            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+            border: Border.all(color: TossColors.gray200),
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: InkWell(
+                  onTap: () => setState(() => _selectedScope = TransactionScope.store),
+                  borderRadius: const BorderRadius.horizontal(
+                    left: Radius.circular(TossBorderRadius.lg - 1),
+                  ),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: TossSpacing.space3),
+                    decoration: BoxDecoration(
+                      color: _selectedScope == TransactionScope.store
+                          ? Colors.white
+                          : Colors.transparent,
+                      borderRadius: const BorderRadius.horizontal(
+                        left: Radius.circular(TossBorderRadius.lg - 1),
+                      ),
+                      border: _selectedScope == TransactionScope.store
+                          ? Border.all(color: TossColors.primary)
+                          : null,
+                    ),
+                    child: Center(
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.store,
+                            size: 16,
+                            color: _selectedScope == TransactionScope.store
+                                ? TossColors.primary
+                                : TossColors.gray500,
+                          ),
+                          const SizedBox(width: TossSpacing.space1),
+                          Text(
+                            'Store View',
+                            style: TossTextStyles.caption.copyWith(
+                              color: _selectedScope == TransactionScope.store
+                                  ? TossColors.primary
+                                  : TossColors.gray600,
+                              fontWeight: _selectedScope == TransactionScope.store
+                                  ? FontWeight.w600
+                                  : FontWeight.normal,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              Container(width: 1, height: 24, color: TossColors.gray200),
+              Expanded(
+                child: InkWell(
+                  onTap: () => setState(() => _selectedScope = TransactionScope.company),
+                  borderRadius: const BorderRadius.horizontal(
+                    right: Radius.circular(TossBorderRadius.lg - 1),
+                  ),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: TossSpacing.space3),
+                    decoration: BoxDecoration(
+                      color: _selectedScope == TransactionScope.company
+                          ? Colors.white
+                          : Colors.transparent,
+                      borderRadius: const BorderRadius.horizontal(
+                        right: Radius.circular(TossBorderRadius.lg - 1),
+                      ),
+                      border: _selectedScope == TransactionScope.company
+                          ? Border.all(color: TossColors.primary)
+                          : null,
+                    ),
+                    child: Center(
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.business,
+                            size: 16,
+                            color: _selectedScope == TransactionScope.company
+                                ? TossColors.primary
+                                : TossColors.gray500,
+                          ),
+                          const SizedBox(width: TossSpacing.space1),
+                          Text(
+                            'Company View',
+                            style: TossTextStyles.caption.copyWith(
+                              color: _selectedScope == TransactionScope.company
+                                  ? TossColors.primary
+                                  : TossColors.gray600,
+                              fontWeight: _selectedScope == TransactionScope.company
+                                  ? FontWeight.w600
+                                  : FontWeight.normal,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
@@ -276,7 +400,7 @@ class _TransactionFilterSheetState extends ConsumerState<TransactionFilterSheet>
             fontWeight: FontWeight.w600,
           ),
         ),
-        SizedBox(height: TossSpacing.space2),
+        const SizedBox(height: TossSpacing.space2),
         Wrap(
           spacing: TossSpacing.space2,
           runSpacing: TossSpacing.space2,
@@ -289,7 +413,7 @@ class _TransactionFilterSheetState extends ConsumerState<TransactionFilterSheet>
               });
             }),
             _buildQuickFilterChip('Yesterday', () {
-              final yesterday = DateTime.now().subtract(Duration(days: 1));
+              final yesterday = DateTime.now().subtract(const Duration(days: 1));
               setState(() {
                 _selectedFromDate = DateTime(yesterday.year, yesterday.month, yesterday.day);
                 _selectedToDate = DateTime(yesterday.year, yesterday.month, yesterday.day, 23, 59, 59);
@@ -322,7 +446,7 @@ class _TransactionFilterSheetState extends ConsumerState<TransactionFilterSheet>
       onTap: onTap,
       borderRadius: BorderRadius.circular(TossBorderRadius.sm),
       child: Container(
-        padding: EdgeInsets.symmetric(
+        padding: const EdgeInsets.symmetric(
           horizontal: TossSpacing.space3,
           vertical: TossSpacing.space2,
         ),
@@ -355,7 +479,7 @@ class _TransactionFilterSheetState extends ConsumerState<TransactionFilterSheet>
             fontWeight: FontWeight.w600,
           ),
         ),
-        SizedBox(height: TossSpacing.space2),
+        const SizedBox(height: TossSpacing.space2),
         Row(
           children: [
             Expanded(
@@ -365,7 +489,7 @@ class _TransactionFilterSheetState extends ConsumerState<TransactionFilterSheet>
                 (date) => setState(() => _selectedFromDate = date),
               ),
             ),
-            SizedBox(width: TossSpacing.space3),
+            const SizedBox(width: TossSpacing.space3),
             Expanded(
               child: _buildDatePicker(
                 'To',
@@ -391,11 +515,11 @@ class _TransactionFilterSheetState extends ConsumerState<TransactionFilterSheet>
           context: context,
           initialDate: value ?? DateTime.now(),
           firstDate: DateTime(2020),
-          lastDate: DateTime.now().add(Duration(days: 365)),
+          lastDate: DateTime.now().add(const Duration(days: 365)),
           builder: (context, child) {
             return Theme(
               data: Theme.of(context).copyWith(
-                colorScheme: ColorScheme.light(
+                colorScheme: const ColorScheme.light(
                   primary: TossColors.primary,
                   onPrimary: Colors.white,
                   surface: Colors.white,
@@ -413,7 +537,7 @@ class _TransactionFilterSheetState extends ConsumerState<TransactionFilterSheet>
       },
       borderRadius: BorderRadius.circular(TossBorderRadius.lg),
       child: Container(
-        padding: EdgeInsets.all(TossSpacing.space3),
+        padding: const EdgeInsets.all(TossSpacing.space3),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(TossBorderRadius.lg),
@@ -435,7 +559,7 @@ class _TransactionFilterSheetState extends ConsumerState<TransactionFilterSheet>
                     fontSize: 10,
                   ),
                 ),
-                SizedBox(height: 2),
+                const SizedBox(height: 2),
                 Text(
                   value != null
                       ? DateFormat('MMM d, yyyy').format(value)
@@ -459,6 +583,7 @@ class _TransactionFilterSheetState extends ConsumerState<TransactionFilterSheet>
 
   void _clearFilters() {
     setState(() {
+      _selectedScope = TransactionScope.store; // Reset to default
       _selectedFromDate = null;
       _selectedToDate = null;
       _selectedAccountId = null;
@@ -475,6 +600,7 @@ class _TransactionFilterSheetState extends ConsumerState<TransactionFilterSheet>
 
   void _applyFilters() {
     final newFilter = TransactionFilter(
+      scope: _selectedScope,
       dateFrom: _selectedFromDate,
       dateTo: _selectedToDate,
       accountId: _selectedAccountId,

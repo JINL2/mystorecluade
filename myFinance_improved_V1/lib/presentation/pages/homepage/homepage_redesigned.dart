@@ -267,7 +267,7 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
                     decoration: BoxDecoration(
                       color: Theme.of(context).colorScheme.surface,
                       borderRadius: BorderRadius.circular(16),
-                      boxShadow: TossShadows.cardShadow,
+                      boxShadow: TossShadows.card,
                     ),
                   child: GridView.builder(
                     padding: EdgeInsets.zero,
@@ -320,7 +320,7 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
             decoration: BoxDecoration(
               color: Theme.of(context).colorScheme.surface,
               borderRadius: BorderRadius.circular(20),
-              boxShadow: TossShadows.cardShadow,
+              boxShadow: TossShadows.card,
             ),
             child: GridView.builder(
               shrinkWrap: true,
@@ -536,7 +536,7 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
                   decoration: BoxDecoration(
                     color: Theme.of(context).colorScheme.surface,
                     borderRadius: BorderRadius.circular(16),
-                    boxShadow: TossShadows.cardShadow,
+                    boxShadow: TossShadows.card,
                   ),
                   child: Column(
                     children: [
@@ -599,7 +599,7 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
               decoration: BoxDecoration(
                 color: Theme.of(context).colorScheme.surface,
                 borderRadius: BorderRadius.circular(16),
-                boxShadow: TossShadows.cardShadow,
+                boxShadow: TossShadows.card,
               ),
               child: Text(
                 'Error loading features: $error',
@@ -621,7 +621,7 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: TossShadows.cardShadow,
+        boxShadow: TossShadows.card,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -938,7 +938,7 @@ class _PinnedHelloDelegate extends SliverPersistentHeaderDelegate {
         decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(16),
-          boxShadow: TossShadows.cardShadow,
+          boxShadow: TossShadows.card,
         ),
         padding: EdgeInsets.symmetric(
           horizontal: TossSpacing.space4,

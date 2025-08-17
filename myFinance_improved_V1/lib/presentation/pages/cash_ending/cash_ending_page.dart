@@ -1662,7 +1662,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
                     color: isSelected ? TossColors.primary : TossColors.gray300,
                     width: 1.5,
                   ),
-                  boxShadow: isSelected ? TossShadows.shadow2 : [],
+                  boxShadow: isSelected ? TossShadows.elevation2 : [],
                 ),
                 child: Text(
                   locationName,
@@ -3041,7 +3041,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
                     color: isSelected ? TossColors.primary : TossColors.gray300,
                     width: 1.5,
                   ),
-                  boxShadow: isSelected ? TossShadows.shadow2 : [],
+                  boxShadow: isSelected ? TossShadows.elevation2 : [],
                 ),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,

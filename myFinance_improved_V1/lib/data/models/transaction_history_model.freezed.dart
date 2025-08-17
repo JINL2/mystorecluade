@@ -30,6 +30,12 @@ mixin _$TransactionData {
   String get journalType => throw _privateConstructorUsedError;
   @JsonKey(name: 'is_draft')
   bool get isDraft => throw _privateConstructorUsedError;
+  @JsonKey(name: 'store_id')
+  String? get storeId => throw _privateConstructorUsedError;
+  @JsonKey(name: 'store_name')
+  String? get storeName => throw _privateConstructorUsedError;
+  @JsonKey(name: 'store_code')
+  String? get storeCode => throw _privateConstructorUsedError;
   @JsonKey(name: 'created_by')
   String? get createdBy => throw _privateConstructorUsedError;
   @JsonKey(name: 'created_by_name')
@@ -71,6 +77,9 @@ abstract class $TransactionDataCopyWith<$Res> {
       @JsonKey(name: 'description') String description,
       @JsonKey(name: 'journal_type') String journalType,
       @JsonKey(name: 'is_draft') bool isDraft,
+      @JsonKey(name: 'store_id') String? storeId,
+      @JsonKey(name: 'store_name') String? storeName,
+      @JsonKey(name: 'store_code') String? storeCode,
       @JsonKey(name: 'created_by') String? createdBy,
       @JsonKey(name: 'created_by_name') String createdByName,
       @JsonKey(name: 'currency_code') String currencyCode,
@@ -104,6 +113,9 @@ class _$TransactionDataCopyWithImpl<$Res, $Val extends TransactionData>
     Object? description = null,
     Object? journalType = null,
     Object? isDraft = null,
+    Object? storeId = freezed,
+    Object? storeName = freezed,
+    Object? storeCode = freezed,
     Object? createdBy = freezed,
     Object? createdByName = null,
     Object? currencyCode = null,
@@ -143,6 +155,18 @@ class _$TransactionDataCopyWithImpl<$Res, $Val extends TransactionData>
           ? _value.isDraft
           : isDraft // ignore: cast_nullable_to_non_nullable
               as bool,
+      storeId: freezed == storeId
+          ? _value.storeId
+          : storeId // ignore: cast_nullable_to_non_nullable
+              as String?,
+      storeName: freezed == storeName
+          ? _value.storeName
+          : storeName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      storeCode: freezed == storeCode
+          ? _value.storeCode
+          : storeCode // ignore: cast_nullable_to_non_nullable
+              as String?,
       createdBy: freezed == createdBy
           ? _value.createdBy
           : createdBy // ignore: cast_nullable_to_non_nullable
@@ -199,6 +223,9 @@ abstract class _$$TransactionDataImplCopyWith<$Res>
       @JsonKey(name: 'description') String description,
       @JsonKey(name: 'journal_type') String journalType,
       @JsonKey(name: 'is_draft') bool isDraft,
+      @JsonKey(name: 'store_id') String? storeId,
+      @JsonKey(name: 'store_name') String? storeName,
+      @JsonKey(name: 'store_code') String? storeCode,
       @JsonKey(name: 'created_by') String? createdBy,
       @JsonKey(name: 'created_by_name') String createdByName,
       @JsonKey(name: 'currency_code') String currencyCode,
@@ -230,6 +257,9 @@ class __$$TransactionDataImplCopyWithImpl<$Res>
     Object? description = null,
     Object? journalType = null,
     Object? isDraft = null,
+    Object? storeId = freezed,
+    Object? storeName = freezed,
+    Object? storeCode = freezed,
     Object? createdBy = freezed,
     Object? createdByName = null,
     Object? currencyCode = null,
@@ -269,6 +299,18 @@ class __$$TransactionDataImplCopyWithImpl<$Res>
           ? _value.isDraft
           : isDraft // ignore: cast_nullable_to_non_nullable
               as bool,
+      storeId: freezed == storeId
+          ? _value.storeId
+          : storeId // ignore: cast_nullable_to_non_nullable
+              as String?,
+      storeName: freezed == storeName
+          ? _value.storeName
+          : storeName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      storeCode: freezed == storeCode
+          ? _value.storeCode
+          : storeCode // ignore: cast_nullable_to_non_nullable
+              as String?,
       createdBy: freezed == createdBy
           ? _value.createdBy
           : createdBy // ignore: cast_nullable_to_non_nullable
@@ -320,6 +362,9 @@ class _$TransactionDataImpl implements _TransactionData {
       @JsonKey(name: 'description') required this.description,
       @JsonKey(name: 'journal_type') required this.journalType,
       @JsonKey(name: 'is_draft') required this.isDraft,
+      @JsonKey(name: 'store_id') this.storeId,
+      @JsonKey(name: 'store_name') this.storeName,
+      @JsonKey(name: 'store_code') this.storeCode,
       @JsonKey(name: 'created_by') this.createdBy,
       @JsonKey(name: 'created_by_name') required this.createdByName,
       @JsonKey(name: 'currency_code') required this.currencyCode,
@@ -354,6 +399,15 @@ class _$TransactionDataImpl implements _TransactionData {
   @override
   @JsonKey(name: 'is_draft')
   final bool isDraft;
+  @override
+  @JsonKey(name: 'store_id')
+  final String? storeId;
+  @override
+  @JsonKey(name: 'store_name')
+  final String? storeName;
+  @override
+  @JsonKey(name: 'store_code')
+  final String? storeCode;
   @override
   @JsonKey(name: 'created_by')
   final String? createdBy;
@@ -395,7 +449,7 @@ class _$TransactionDataImpl implements _TransactionData {
 
   @override
   String toString() {
-    return 'TransactionData(journalId: $journalId, journalNumber: $journalNumber, entryDate: $entryDate, createdAt: $createdAt, description: $description, journalType: $journalType, isDraft: $isDraft, createdBy: $createdBy, createdByName: $createdByName, currencyCode: $currencyCode, currencySymbol: $currencySymbol, totalDebit: $totalDebit, totalCredit: $totalCredit, totalAmount: $totalAmount, lines: $lines, attachments: $attachments)';
+    return 'TransactionData(journalId: $journalId, journalNumber: $journalNumber, entryDate: $entryDate, createdAt: $createdAt, description: $description, journalType: $journalType, isDraft: $isDraft, storeId: $storeId, storeName: $storeName, storeCode: $storeCode, createdBy: $createdBy, createdByName: $createdByName, currencyCode: $currencyCode, currencySymbol: $currencySymbol, totalDebit: $totalDebit, totalCredit: $totalCredit, totalAmount: $totalAmount, lines: $lines, attachments: $attachments)';
   }
 
   @override
@@ -416,6 +470,11 @@ class _$TransactionDataImpl implements _TransactionData {
             (identical(other.journalType, journalType) ||
                 other.journalType == journalType) &&
             (identical(other.isDraft, isDraft) || other.isDraft == isDraft) &&
+            (identical(other.storeId, storeId) || other.storeId == storeId) &&
+            (identical(other.storeName, storeName) ||
+                other.storeName == storeName) &&
+            (identical(other.storeCode, storeCode) ||
+                other.storeCode == storeCode) &&
             (identical(other.createdBy, createdBy) ||
                 other.createdBy == createdBy) &&
             (identical(other.createdByName, createdByName) ||
@@ -436,24 +495,28 @@ class _$TransactionDataImpl implements _TransactionData {
   }
 
   @override
-  int get hashCode => Object.hash(
-      runtimeType,
-      journalId,
-      journalNumber,
-      entryDate,
-      createdAt,
-      description,
-      journalType,
-      isDraft,
-      createdBy,
-      createdByName,
-      currencyCode,
-      currencySymbol,
-      totalDebit,
-      totalCredit,
-      totalAmount,
-      const DeepCollectionEquality().hash(_lines),
-      const DeepCollectionEquality().hash(_attachments));
+  int get hashCode => Object.hashAll([
+        runtimeType,
+        journalId,
+        journalNumber,
+        entryDate,
+        createdAt,
+        description,
+        journalType,
+        isDraft,
+        storeId,
+        storeName,
+        storeCode,
+        createdBy,
+        createdByName,
+        currencyCode,
+        currencySymbol,
+        totalDebit,
+        totalCredit,
+        totalAmount,
+        const DeepCollectionEquality().hash(_lines),
+        const DeepCollectionEquality().hash(_attachments)
+      ]);
 
   /// Create a copy of TransactionData
   /// with the given fields replaced by the non-null parameter values.
@@ -474,6 +537,9 @@ abstract class _TransactionData implements TransactionData {
       @JsonKey(name: 'description') required final String description,
       @JsonKey(name: 'journal_type') required final String journalType,
       @JsonKey(name: 'is_draft') required final bool isDraft,
+      @JsonKey(name: 'store_id') final String? storeId,
+      @JsonKey(name: 'store_name') final String? storeName,
+      @JsonKey(name: 'store_code') final String? storeCode,
       @JsonKey(name: 'created_by') final String? createdBy,
       @JsonKey(name: 'created_by_name') required final String createdByName,
       @JsonKey(name: 'currency_code') required final String currencyCode,
@@ -507,6 +573,15 @@ abstract class _TransactionData implements TransactionData {
   @override
   @JsonKey(name: 'is_draft')
   bool get isDraft;
+  @override
+  @JsonKey(name: 'store_id')
+  String? get storeId;
+  @override
+  @JsonKey(name: 'store_name')
+  String? get storeName;
+  @override
+  @JsonKey(name: 'store_code')
+  String? get storeCode;
   @override
   @JsonKey(name: 'created_by')
   String? get createdBy;
@@ -1215,6 +1290,8 @@ TransactionFilter _$TransactionFilterFromJson(Map<String, dynamic> json) {
 
 /// @nodoc
 mixin _$TransactionFilter {
+  TransactionScope get scope =>
+      throw _privateConstructorUsedError; // Default to store view
   DateTime? get dateFrom => throw _privateConstructorUsedError;
   DateTime? get dateTo => throw _privateConstructorUsedError;
   String? get accountId => throw _privateConstructorUsedError;
@@ -1246,7 +1323,8 @@ abstract class $TransactionFilterCopyWith<$Res> {
       _$TransactionFilterCopyWithImpl<$Res, TransactionFilter>;
   @useResult
   $Res call(
-      {DateTime? dateFrom,
+      {TransactionScope scope,
+      DateTime? dateFrom,
       DateTime? dateTo,
       String? accountId,
       List<String>? accountIds,
@@ -1274,6 +1352,7 @@ class _$TransactionFilterCopyWithImpl<$Res, $Val extends TransactionFilter>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
+    Object? scope = null,
     Object? dateFrom = freezed,
     Object? dateTo = freezed,
     Object? accountId = freezed,
@@ -1287,6 +1366,10 @@ class _$TransactionFilterCopyWithImpl<$Res, $Val extends TransactionFilter>
     Object? offset = null,
   }) {
     return _then(_value.copyWith(
+      scope: null == scope
+          ? _value.scope
+          : scope // ignore: cast_nullable_to_non_nullable
+              as TransactionScope,
       dateFrom: freezed == dateFrom
           ? _value.dateFrom
           : dateFrom // ignore: cast_nullable_to_non_nullable
@@ -1344,7 +1427,8 @@ abstract class _$$TransactionFilterImplCopyWith<$Res>
   @override
   @useResult
   $Res call(
-      {DateTime? dateFrom,
+      {TransactionScope scope,
+      DateTime? dateFrom,
       DateTime? dateTo,
       String? accountId,
       List<String>? accountIds,
@@ -1370,6 +1454,7 @@ class __$$TransactionFilterImplCopyWithImpl<$Res>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
+    Object? scope = null,
     Object? dateFrom = freezed,
     Object? dateTo = freezed,
     Object? accountId = freezed,
@@ -1383,6 +1468,10 @@ class __$$TransactionFilterImplCopyWithImpl<$Res>
     Object? offset = null,
   }) {
     return _then(_$TransactionFilterImpl(
+      scope: null == scope
+          ? _value.scope
+          : scope // ignore: cast_nullable_to_non_nullable
+              as TransactionScope,
       dateFrom: freezed == dateFrom
           ? _value.dateFrom
           : dateFrom // ignore: cast_nullable_to_non_nullable
@@ -1435,7 +1524,8 @@ class __$$TransactionFilterImplCopyWithImpl<$Res>
 @JsonSerializable()
 class _$TransactionFilterImpl implements _TransactionFilter {
   const _$TransactionFilterImpl(
-      {this.dateFrom,
+      {this.scope = TransactionScope.store,
+      this.dateFrom,
       this.dateTo,
       this.accountId,
       final List<String>? accountIds,
@@ -1451,6 +1541,10 @@ class _$TransactionFilterImpl implements _TransactionFilter {
   factory _$TransactionFilterImpl.fromJson(Map<String, dynamic> json) =>
       _$$TransactionFilterImplFromJson(json);
 
+  @override
+  @JsonKey()
+  final TransactionScope scope;
+// Default to store view
   @override
   final DateTime? dateFrom;
   @override
@@ -1488,7 +1582,7 @@ class _$TransactionFilterImpl implements _TransactionFilter {
 
   @override
   String toString() {
-    return 'TransactionFilter(dateFrom: $dateFrom, dateTo: $dateTo, accountId: $accountId, accountIds: $accountIds, cashLocationId: $cashLocationId, counterpartyId: $counterpartyId, journalType: $journalType, createdBy: $createdBy, searchQuery: $searchQuery, limit: $limit, offset: $offset)';
+    return 'TransactionFilter(scope: $scope, dateFrom: $dateFrom, dateTo: $dateTo, accountId: $accountId, accountIds: $accountIds, cashLocationId: $cashLocationId, counterpartyId: $counterpartyId, journalType: $journalType, createdBy: $createdBy, searchQuery: $searchQuery, limit: $limit, offset: $offset)';
   }
 
   @override
@@ -1496,6 +1590,7 @@ class _$TransactionFilterImpl implements _TransactionFilter {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$TransactionFilterImpl &&
+            (identical(other.scope, scope) || other.scope == scope) &&
             (identical(other.dateFrom, dateFrom) ||
                 other.dateFrom == dateFrom) &&
             (identical(other.dateTo, dateTo) || other.dateTo == dateTo) &&
@@ -1521,6 +1616,7 @@ class _$TransactionFilterImpl implements _TransactionFilter {
   @override
   int get hashCode => Object.hash(
       runtimeType,
+      scope,
       dateFrom,
       dateTo,
       accountId,
@@ -1552,7 +1648,8 @@ class _$TransactionFilterImpl implements _TransactionFilter {
 
 abstract class _TransactionFilter implements TransactionFilter {
   const factory _TransactionFilter(
-      {final DateTime? dateFrom,
+      {final TransactionScope scope,
+      final DateTime? dateFrom,
       final DateTime? dateTo,
       final String? accountId,
       final List<String>? accountIds,
@@ -1567,6 +1664,8 @@ abstract class _TransactionFilter implements TransactionFilter {
   factory _TransactionFilter.fromJson(Map<String, dynamic> json) =
       _$TransactionFilterImpl.fromJson;
 
+  @override
+  TransactionScope get scope; // Default to store view
   @override
   DateTime? get dateFrom;
   @override

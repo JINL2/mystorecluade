@@ -1487,7 +1487,7 @@ class _JournalInputPageState extends ConsumerState<JournalInputPage>
           Container(
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-              boxShadow: TossShadows.shadow2,
+              boxShadow: TossShadows.elevation2,
             ),
             child: Material(
               color: TossColors.background,
@@ -1561,7 +1561,7 @@ class _JournalInputPageState extends ConsumerState<JournalInputPage>
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-        boxShadow: TossShadows.shadow2,
+        boxShadow: TossShadows.elevation2,
       ),
       child: Material(
         color: TossColors.background,

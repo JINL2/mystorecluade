@@ -30,7 +30,7 @@ class CounterPartyListItem extends StatelessWidget {
           decoration: BoxDecoration(
             color: Theme.of(context).colorScheme.surface,
             borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-            boxShadow: TossShadows.cardShadow,
+            boxShadow: TossShadows.card,
           ),
           child: Row(
             children: [

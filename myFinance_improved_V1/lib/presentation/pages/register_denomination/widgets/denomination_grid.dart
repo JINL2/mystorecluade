@@ -4,6 +4,7 @@ import '../../../../core/themes/toss_colors.dart';
 import '../../../../core/themes/toss_text_styles.dart';
 import '../../../../core/themes/toss_spacing.dart';
 import '../../../../core/themes/toss_border_radius.dart';
+import '../../../../core/themes/toss_animations.dart';
 import '../../../../domain/entities/denomination.dart';
 import '../providers/denomination_providers.dart';
 
@@ -39,7 +40,7 @@ class DenominationGrid extends ConsumerWidget {
     // Show edit options
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.transparent,
+      backgroundColor: TossColors.transparent,
       builder: (context) => _buildDenominationOptionsSheet(context, ref, denomination),
     );
   }
@@ -111,7 +112,7 @@ class DenominationGrid extends ConsumerWidget {
   Widget _buildDenominationOptionsSheet(BuildContext context, WidgetRef ref, Denomination denomination) {
     return Container(
       decoration: const BoxDecoration(
-        color: Colors.white,
+        color: TossColors.white,
         borderRadius: BorderRadius.only(
           topLeft: Radius.circular(TossBorderRadius.xxl),
           topRight: Radius.circular(TossBorderRadius.xxl),
@@ -216,7 +217,7 @@ class DenominationGrid extends ConsumerWidget {
   }
 }
 
-class DenominationItem extends StatefulWidget {
+class DenominationItem extends StatelessWidget {
   final Denomination denomination;
   final VoidCallback? onTap;
   final VoidCallback? onLongPress;
@@ -229,98 +230,63 @@ class DenominationItem extends StatefulWidget {
   });
 
   @override
-  State<DenominationItem> createState() => _DenominationItemState();
-}
-
-class _DenominationItemState extends State<DenominationItem>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _scaleAnimation;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      duration: const Duration(milliseconds: 100),
-      vsync: this,
-    );
-    _scaleAnimation = Tween<double>(
-      begin: 1.0,
-      end: 0.95,
-    ).animate(CurvedAnimation(
-      parent: _controller,
-      curve: Curves.easeInOut,
-    ));
-  }
-
-  @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTapDown: (_) => _controller.forward(),
-      onTapUp: (_) => _controller.reverse(),
-      onTapCancel: () => _controller.reverse(),
-      onTap: widget.onTap,
-      onLongPress: widget.onLongPress,
-      child: AnimatedBuilder(
-        animation: _scaleAnimation,
-        builder: (context, child) => Transform.scale(
-          scale: _scaleAnimation.value,
-          child: Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-              border: Border.all(
-                color: TossColors.gray200,
-                width: 1,
+      onTap: onTap,
+      onLongPress: onLongPress,
+      child: TossAnimatedWidget(
+        enableTap: true,
+        duration: TossAnimations.quick,
+        curve: TossAnimations.standard,
+        child: Container(
+          decoration: BoxDecoration(
+            color: TossColors.white,
+            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+            border: Border.all(
+              color: TossColors.gray200,
+              width: 1,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: TossColors.black.withOpacity(0.04),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
               ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.04),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
+            ],
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // Simple emoji icon
+              Text(
+                denomination.emoji,
+                style: TossTextStyles.h2,
+              ),
+              const SizedBox(height: TossSpacing.space2),
+              
+              // Value
+              Text(
+                denomination.formattedValue,
+                style: TossTextStyles.h3.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: TossColors.gray900,
                 ),
-              ],
-            ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                // Simple emoji icon
-                Text(
-                  widget.denomination.emoji,
-                  style: const TextStyle(fontSize: 28),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: TossSpacing.space1),
+              
+              // Simple type text
+              Text(
+                denomination.type == DenominationType.coin ? 'Coin' : 'Bill',
+                style: TossTextStyles.caption.copyWith(
+                  color: TossColors.gray500,
+                  fontWeight: FontWeight.w500,
                 ),
-                const SizedBox(height: TossSpacing.space2),
-                
-                // Value
-                Text(
-                  widget.denomination.formattedValue,
-                  style: TossTextStyles.h3.copyWith(
-                    fontWeight: FontWeight.w700,
-                    color: TossColors.gray900,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: TossSpacing.space1),
-                
-                // Simple type text
-                Text(
-                  widget.denomination.type == DenominationType.coin ? 'Coin' : 'Bill',
-                  style: TossTextStyles.caption.copyWith(
-                    color: TossColors.gray500,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
     );
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
   }
 }

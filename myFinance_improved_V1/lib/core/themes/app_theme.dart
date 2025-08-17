@@ -3,10 +3,19 @@ import 'package:flutter/services.dart';
 import 'toss_colors.dart';
 import 'toss_text_styles.dart';
 import 'toss_border_radius.dart';
+import 'toss_spacing.dart';
+import 'toss_shadows.dart';
+import 'toss_animations.dart';
 
-/// Main theme configuration for MyFinance app
+/// MyFinance Theme - Powered by Toss Design System
+/// Clean, modern, and professional financial app design
+/// 
+/// Design Philosophy:
+/// - Minimalist white-dominant UI
+/// - Strategic use of Toss Blue
+/// - 4px grid spacing system
+/// - 200-250ms smooth animations
 class AppTheme {
-  // Private constructor
   AppTheme._();
 
   static ThemeData lightTheme = ThemeData(
@@ -20,19 +29,19 @@ class AppTheme {
       primaryContainer: TossColors.primaryLight,
       onPrimaryContainer: TossColors.primaryDark,
       
-      secondary: TossColors.gray100,
-      onSecondary: TossColors.gray900,
+      secondary: TossColors.secondary,
+      onSecondary: Colors.white,
       
       error: TossColors.error,
       onError: Colors.white,
       
-      surface: Colors.white,
-      onSurface: TossColors.gray900,
+      surface: TossColors.surface,
+      onSurface: TossColors.textPrimary,
       
-      surfaceContainer: TossColors.gray50,
+      surfaceContainer: TossColors.backgroundGray,
       surfaceContainerHighest: TossColors.gray100,
-      surfaceVariant: TossColors.gray100,
-      onSurfaceVariant: TossColors.gray700,
+      surfaceVariant: TossColors.surfaceHover,
+      onSurfaceVariant: TossColors.textSecondary,
       
       outline: TossColors.border,
       outlineVariant: TossColors.gray200,
@@ -41,17 +50,23 @@ class AppTheme {
       scrim: Colors.black54,
     ),
     
-    // Background colors - Toss-style greyish background
-    scaffoldBackgroundColor: TossColors.gray50,
+    // Background - Clean white like Toss
+    scaffoldBackgroundColor: TossColors.background,
     
-    // AppBar theme
+    // AppBar theme - Minimal like Toss
     appBarTheme: AppBarTheme(
       elevation: 0,
-      centerTitle: true,
-      backgroundColor: TossColors.gray50,
-      foregroundColor: TossColors.gray900,
+      scrolledUnderElevation: 0,
+      centerTitle: false,  // Toss uses left-aligned titles
+      backgroundColor: TossColors.background,
+      foregroundColor: TossColors.textPrimary,
       systemOverlayStyle: SystemUiOverlayStyle.dark,
-      titleTextStyle: TossTextStyles.h3,
+      titleTextStyle: TossTextStyles.h3.copyWith(color: TossColors.textPrimary),
+      toolbarHeight: 56,
+      iconTheme: IconThemeData(
+        color: TossColors.textPrimary,
+        size: TossSpacing.iconMD,
+      ),
     ),
     
     // Text theme
@@ -70,132 +85,257 @@ class AppTheme {
       bodySmall: TossTextStyles.bodySmall,
       labelLarge: TossTextStyles.labelLarge,
       labelMedium: TossTextStyles.label,
-      labelSmall: TossTextStyles.labelSmall,
+      labelSmall: TossTextStyles.caption,
     ),
     
-    // Component themes
+    // Component themes - Toss style
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
         elevation: 0,
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+        minimumSize: Size(double.infinity, TossSpacing.buttonHeightLG),
+        padding: EdgeInsets.symmetric(
+          horizontal: TossSpacing.paddingMD,
+          vertical: TossSpacing.paddingSM,
         ),
-        textStyle: TossTextStyles.labelLarge,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(TossBorderRadius.button),
+        ),
+        backgroundColor: TossColors.primary,
+        foregroundColor: TossColors.white,
+        textStyle: TossTextStyles.button,
       ),
     ),
     
     outlinedButtonTheme: OutlinedButtonThemeData(
       style: OutlinedButton.styleFrom(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        side: const BorderSide(color: TossColors.gray300),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(TossBorderRadius.md),
+        elevation: 0,
+        minimumSize: Size(double.infinity, TossSpacing.buttonHeightLG),
+        padding: EdgeInsets.symmetric(
+          horizontal: TossSpacing.paddingMD,
+          vertical: TossSpacing.paddingSM,
         ),
-        textStyle: TossTextStyles.label,
+        side: const BorderSide(color: TossColors.border, width: 1),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(TossBorderRadius.button),
+        ),
+        backgroundColor: TossColors.white,
+        foregroundColor: TossColors.textPrimary,
+        textStyle: TossTextStyles.button,
       ),
     ),
     
     textButtonTheme: TextButtonThemeData(
       style: TextButton.styleFrom(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        padding: EdgeInsets.symmetric(
+          horizontal: TossSpacing.paddingSM,
+          vertical: TossSpacing.paddingXS,
+        ),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(TossBorderRadius.sm),
         ),
-        textStyle: TossTextStyles.label,
+        foregroundColor: TossColors.primary,
+        textStyle: TossTextStyles.button,
       ),
     ),
     
-    cardTheme: const CardTheme(
+    cardTheme: CardTheme(
       elevation: 0,
+      color: TossColors.surface,
+      surfaceTintColor: Colors.transparent,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.all(Radius.circular(TossBorderRadius.lg)),
+        borderRadius: BorderRadius.circular(TossBorderRadius.card),
+        side: BorderSide(color: TossColors.border, width: 1),
       ),
       clipBehavior: Clip.antiAlias,
+      margin: EdgeInsets.symmetric(
+        horizontal: TossSpacing.marginMD,
+        vertical: TossSpacing.marginSM,
+      ),
     ),
     
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
-      fillColor: TossColors.gray50,
+      fillColor: TossColors.surface,
       border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(TossBorderRadius.md),
-        borderSide: const BorderSide(color: TossColors.gray300),
+        borderRadius: BorderRadius.circular(TossBorderRadius.input),
+        borderSide: const BorderSide(color: TossColors.border),
       ),
       enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(TossBorderRadius.md),
-        borderSide: const BorderSide(color: TossColors.gray300),
+        borderRadius: BorderRadius.circular(TossBorderRadius.input),
+        borderSide: const BorderSide(color: TossColors.border),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(TossBorderRadius.md),
+        borderRadius: BorderRadius.circular(TossBorderRadius.input),
         borderSide: const BorderSide(color: TossColors.primary, width: 2),
       ),
       errorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(TossBorderRadius.md),
+        borderRadius: BorderRadius.circular(TossBorderRadius.input),
         borderSide: const BorderSide(color: TossColors.error),
       ),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      hintStyle: TossTextStyles.body.copyWith(color: TossColors.gray400),
-      labelStyle: TossTextStyles.label,
+      focusedErrorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(TossBorderRadius.input),
+        borderSide: const BorderSide(color: TossColors.error, width: 2),
+      ),
+      contentPadding: EdgeInsets.symmetric(
+        horizontal: TossSpacing.paddingMD,
+        vertical: TossSpacing.paddingSM,
+      ),
+      hintStyle: TossTextStyles.body.copyWith(color: TossColors.textTertiary),
+      labelStyle: TossTextStyles.label.copyWith(color: TossColors.textSecondary),
       errorStyle: TossTextStyles.caption.copyWith(color: TossColors.error),
+      helperStyle: TossTextStyles.caption.copyWith(color: TossColors.textTertiary),
     ),
     
-    bottomSheetTheme: const BottomSheetThemeData(
-      backgroundColor: Colors.white,
+    bottomSheetTheme: BottomSheetThemeData(
+      backgroundColor: TossColors.surface,
+      surfaceTintColor: Colors.transparent,
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(TossBorderRadius.xxl),
-          topRight: Radius.circular(TossBorderRadius.xxl),
+          topLeft: Radius.circular(TossBorderRadius.bottomSheet),
+          topRight: Radius.circular(TossBorderRadius.bottomSheet),
         ),
       ),
+      showDragHandle: true,
+      dragHandleColor: TossColors.gray300,
+      dragHandleSize: const Size(40, 4),
     ),
     
     dividerTheme: const DividerThemeData(
       color: TossColors.divider,
-      thickness: 1,
+      thickness: 0.5,  // Toss uses very thin dividers
       space: 0,
+      indent: 0,
+      endIndent: 0,
+    ),
+    
+    // Additional themes
+    chipTheme: ChipThemeData(
+      backgroundColor: TossColors.backgroundGray,
+      selectedColor: TossColors.primarySurface,
+      disabledColor: TossColors.gray100,
+      labelStyle: TossTextStyles.label,
+      padding: EdgeInsets.symmetric(
+        horizontal: TossSpacing.paddingSM,
+        vertical: TossSpacing.paddingXS,
+      ),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(TossBorderRadius.chip),
+        side: BorderSide.none,
+      ),
+    ),
+    
+    listTileTheme: ListTileThemeData(
+      contentPadding: EdgeInsets.symmetric(
+        horizontal: TossSpacing.paddingMD,
+        vertical: TossSpacing.paddingSM,
+      ),
+      dense: false,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(TossBorderRadius.md),
+      ),
+      selectedColor: TossColors.primary,
+      iconColor: TossColors.textSecondary,
+      textColor: TossColors.textPrimary,
+      titleTextStyle: TossTextStyles.body,
+      subtitleTextStyle: TossTextStyles.bodySmall.copyWith(
+        color: TossColors.textSecondary,
+      ),
+    ),
+    
+    dialogTheme: DialogTheme(
+      backgroundColor: TossColors.surface,
+      surfaceTintColor: Colors.transparent,
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(TossBorderRadius.dialog),
+      ),
+      titleTextStyle: TossTextStyles.h3.copyWith(color: TossColors.textPrimary),
+      contentTextStyle: TossTextStyles.body.copyWith(color: TossColors.textSecondary),
+    ),
+    
+    snackBarTheme: SnackBarThemeData(
+      backgroundColor: TossColors.gray800,
+      contentTextStyle: TossTextStyles.body.copyWith(color: TossColors.white),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(TossBorderRadius.md),
+      ),
+      behavior: SnackBarBehavior.floating,
+      elevation: 0,
+    ),
+    
+    navigationBarTheme: NavigationBarThemeData(
+      backgroundColor: TossColors.surface,
+      surfaceTintColor: Colors.transparent,
+      elevation: 0,
+      height: 64,
+      labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+      indicatorColor: TossColors.primarySurface,
+      indicatorShape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(TossBorderRadius.md),
+      ),
     ),
     
     drawerTheme: const DrawerThemeData(
-      backgroundColor: Colors.white,
+      backgroundColor: TossColors.surface,
+      surfaceTintColor: Colors.transparent,
       elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.only(
-          topRight: Radius.circular(0),
-          bottomRight: Radius.circular(0),
-        ),
-      ),
+      width: 280,
     ),
   );
 
-  static ThemeData darkTheme = ThemeData(
-    useMaterial3: true,
+  // Dark theme - Not commonly used in Toss but provided for completeness
+  static ThemeData darkTheme = lightTheme.copyWith(
     brightness: Brightness.dark,
     
     colorScheme: const ColorScheme.dark(
-      primary: TossColors.primaryLight,
-      onPrimary: TossColors.gray900,
-      primaryContainer: TossColors.primary,
-      onPrimaryContainer: TossColors.gray100,
+      primary: TossColors.primary,
+      onPrimary: Colors.white,
+      primaryContainer: TossColors.primaryDark,
+      onPrimaryContainer: Colors.white,
       
-      secondary: TossColors.gray800,
-      onSecondary: TossColors.gray100,
+      secondary: TossColors.gray700,
+      onSecondary: Colors.white,
       
       error: TossColors.error,
       onError: Colors.white,
       
       surface: TossColors.gray900,
-      onSurface: TossColors.gray50,
+      onSurface: TossColors.white,
       
+      surfaceContainer: TossColors.gray800,
+      surfaceContainerHighest: TossColors.gray700,
       surfaceVariant: TossColors.gray800,
       onSurfaceVariant: TossColors.gray300,
       
       outline: TossColors.gray600,
       outlineVariant: TossColors.gray700,
+      
+      shadow: Colors.black26,
+      scrim: Colors.black87,
     ),
     
-    scaffoldBackgroundColor: Colors.black,
+    scaffoldBackgroundColor: TossColors.black,
     
-    // Dark theme configurations...
+    appBarTheme: AppBarTheme(
+      elevation: 0,
+      scrolledUnderElevation: 0,
+      centerTitle: false,
+      backgroundColor: TossColors.gray900,
+      foregroundColor: TossColors.white,
+      systemOverlayStyle: SystemUiOverlayStyle.light,
+      titleTextStyle: TossTextStyles.h3.copyWith(color: TossColors.white),
+    ),
+    
+    cardTheme: CardTheme(
+      color: TossColors.gray800,
+      surfaceTintColor: Colors.transparent,
+    ),
+    
+    inputDecorationTheme: InputDecorationTheme(
+      fillColor: TossColors.gray800,
+      hintStyle: TossTextStyles.body.copyWith(color: TossColors.gray500),
+      labelStyle: TossTextStyles.label.copyWith(color: TossColors.gray400),
+    ),
   );
 }

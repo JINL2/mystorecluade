@@ -4,14 +4,13 @@ import 'package:intl/intl.dart';
 import '../../../core/themes/toss_colors.dart';
 import '../../../core/themes/toss_spacing.dart';
 import '../../../core/themes/toss_text_styles.dart';
+import '../../../core/themes/toss_border_radius.dart';
 import '../../widgets/common/toss_app_bar.dart';
 import '../../widgets/common/toss_scaffold.dart';
 import '../../widgets/common/toss_loading_view.dart';
 import '../../widgets/common/toss_error_view.dart';
 import '../../widgets/common/toss_empty_view.dart';
-import '../../widgets/toss/toss_icon_button.dart';
 import '../../widgets/toss/toss_refresh_indicator.dart';
-import '../../widgets/toss/toss_card.dart';
 import 'providers/transaction_history_provider.dart';
 import '../../../data/models/transaction_history_model.dart';
 import 'widgets/transaction_list_item.dart';
@@ -64,18 +63,95 @@ class _TransactionHistoryPageState extends ConsumerState<TransactionHistoryPage>
 
     return TossScaffold(
       backgroundColor: TossColors.gray50,
-      appBar: TossAppBar(
+      appBar: const TossAppBar(
         title: 'Transaction History',
         actions: [],
       ),
       body: transactionsAsync.when(
         data: (transactions) {
           if (transactions.isEmpty) {
-            return TossEmptyView(
-              icon: Icon(Icons.receipt_long_outlined),
-              title: 'No Transactions',
-              description: 'Start recording your financial transactions',
-            );
+            // Check if filters are active
+            if (_hasActiveFilters(filter)) {
+              // Show empty state with filter indicator
+              return Column(
+                children: [
+                  // Filter indicator with clear button
+                  Container(
+                    margin: const EdgeInsets.all(TossSpacing.space4),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: TossSpacing.space4,
+                              vertical: TossSpacing.space3,
+                            ),
+                            decoration: BoxDecoration(
+                              color: TossColors.primarySurface,
+                              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+                              border: Border.all(
+                                color: TossColors.primary.withValues(alpha: 0.2),
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.filter_alt,
+                                  size: 16,
+                                  color: TossColors.primary,
+                                ),
+                                const SizedBox(width: TossSpacing.space2),
+                                Text(
+                                  'Filters Active',
+                                  style: TossTextStyles.body.copyWith(
+                                    color: TossColors.primary,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: TossSpacing.space2),
+                        InkWell(
+                          onTap: () {
+                            ref.read(transactionFilterStateProvider.notifier).clearFilter();
+                          },
+                          borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                          child: Container(
+                            padding: const EdgeInsets.all(TossSpacing.space3),
+                            decoration: BoxDecoration(
+                              color: TossColors.error.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                            ),
+                            child: Icon(
+                              Icons.close,
+                              size: 20,
+                              color: TossColors.error,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  // Empty state
+                  const Expanded(
+                    child: TossEmptyView(
+                      icon: Icon(Icons.filter_alt_off),
+                      title: 'No Results Found',
+                      description: 'Try adjusting your filters to see more transactions',
+                    ),
+                  ),
+                ],
+              );
+            } else {
+              // Show normal empty state when no filters
+              return const TossEmptyView(
+                icon: Icon(Icons.receipt_long_outlined),
+                title: 'No Transactions',
+                description: 'Start recording your financial transactions',
+              );
+            }
           }
 
           return TossRefreshIndicator(
@@ -87,7 +163,7 @@ class _TransactionHistoryPageState extends ConsumerState<TransactionHistoryPage>
                 // Filter Button
                 SliverToBoxAdapter(
                   child: Container(
-                    margin: EdgeInsets.all(TossSpacing.space4),
+                    margin: const EdgeInsets.all(TossSpacing.space4),
                     child: Row(
                       children: [
                         Expanded(
@@ -95,7 +171,7 @@ class _TransactionHistoryPageState extends ConsumerState<TransactionHistoryPage>
                             onTap: _showFilterSheet,
                             borderRadius: BorderRadius.circular(8),
                             child: Container(
-                              padding: EdgeInsets.all(TossSpacing.space3),
+                              padding: const EdgeInsets.all(TossSpacing.space3),
                               decoration: BoxDecoration(
                                 color: _hasActiveFilters(filter) 
                                     ? TossColors.primary.withOpacity(0.1)
@@ -117,7 +193,7 @@ class _TransactionHistoryPageState extends ConsumerState<TransactionHistoryPage>
                                         ? TossColors.primary
                                         : TossColors.gray600,
                                   ),
-                                  SizedBox(width: TossSpacing.space2),
+                                  const SizedBox(width: TossSpacing.space2),
                                   Text(
                                     _hasActiveFilters(filter) ? 'Filters Active' : 'Filter Transactions',
                                     style: TossTextStyles.body.copyWith(
@@ -133,20 +209,20 @@ class _TransactionHistoryPageState extends ConsumerState<TransactionHistoryPage>
                           ),
                         ),
                         if (_hasActiveFilters(filter)) ...[
-                          SizedBox(width: TossSpacing.space3),
+                          const SizedBox(width: TossSpacing.space3),
                           InkWell(
                             onTap: () {
                               ref.read(transactionFilterStateProvider.notifier).clearFilter();
                             },
                             borderRadius: BorderRadius.circular(8),
                             child: Container(
-                              padding: EdgeInsets.all(TossSpacing.space3),
+                              padding: const EdgeInsets.all(TossSpacing.space3),
                               decoration: BoxDecoration(
                                 color: TossColors.error.withOpacity(0.1),
                                 borderRadius: BorderRadius.circular(8),
                                 border: Border.all(color: TossColors.error.withOpacity(0.3)),
                               ),
-                              child: Icon(
+                              child: const Icon(
                                 Icons.clear,
                                 size: 18,
                                 color: TossColors.error,
@@ -177,7 +253,7 @@ class _TransactionHistoryPageState extends ConsumerState<TransactionHistoryPage>
                         children: [
                           // Date Header
                           Padding(
-                            padding: EdgeInsets.symmetric(
+                            padding: const EdgeInsets.symmetric(
                               horizontal: TossSpacing.space4,
                               vertical: TossSpacing.space3,
                             ),
@@ -190,7 +266,7 @@ class _TransactionHistoryPageState extends ConsumerState<TransactionHistoryPage>
                                     fontWeight: FontWeight.w600,
                                   ),
                                 ),
-                                SizedBox(width: TossSpacing.space2),
+                                const SizedBox(width: TossSpacing.space2),
                                 _buildCountBadge(dayTransactions.length),
                               ],
                             ),
@@ -199,7 +275,7 @@ class _TransactionHistoryPageState extends ConsumerState<TransactionHistoryPage>
                           // Transactions for this date
                           ...dayTransactions.map((transaction) => 
                             Padding(
-                              padding: EdgeInsets.symmetric(
+                              padding: const EdgeInsets.symmetric(
                                 horizontal: TossSpacing.space4,
                                 vertical: TossSpacing.space1,
                               ),
@@ -209,7 +285,7 @@ class _TransactionHistoryPageState extends ConsumerState<TransactionHistoryPage>
                             ),
                           ),
                           
-                          SizedBox(height: TossSpacing.space3),
+                          const SizedBox(height: TossSpacing.space3),
                         ],
                       );
                     },
@@ -219,10 +295,10 @@ class _TransactionHistoryPageState extends ConsumerState<TransactionHistoryPage>
 
                 // Loading indicator for pagination
                 if (transactionsAsync.isLoading && transactions.isNotEmpty)
-                  SliverToBoxAdapter(
+                  const SliverToBoxAdapter(
                     child: Padding(
                       padding: EdgeInsets.all(TossSpacing.space4),
-                      child: const Center(
+                      child: Center(
                         child: CircularProgressIndicator(
                           valueColor: AlwaysStoppedAnimation<Color>(TossColors.primary),
                         ),
@@ -246,9 +322,11 @@ class _TransactionHistoryPageState extends ConsumerState<TransactionHistoryPage>
     return filter.dateFrom != null ||
         filter.dateTo != null ||
         filter.accountId != null ||
+        (filter.accountIds != null && filter.accountIds!.isNotEmpty) ||
         filter.cashLocationId != null ||
         filter.counterpartyId != null ||
-        filter.journalType != null;
+        filter.journalType != null ||
+        filter.createdBy != null;
   }
 
   String _formatDateHeader(DateTime date) {
@@ -270,7 +348,7 @@ class _TransactionHistoryPageState extends ConsumerState<TransactionHistoryPage>
   
   Widget _buildCountBadge(int count) {
     return Container(
-      padding: EdgeInsets.symmetric(
+      padding: const EdgeInsets.symmetric(
         horizontal: TossSpacing.space2,
         vertical: 2,
       ),

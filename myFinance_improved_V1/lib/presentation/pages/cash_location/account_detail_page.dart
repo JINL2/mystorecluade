@@ -225,7 +225,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-        boxShadow: TossShadows.cardShadow,
+        boxShadow: TossShadows.card,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -574,7 +574,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-            boxShadow: TossShadows.cardShadow,
+            boxShadow: TossShadows.card,
           ),
           child: Column(
             children: [

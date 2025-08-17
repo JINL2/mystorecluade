@@ -3,6 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../widgets/toss/toss_primary_button.dart';
 import '../../widgets/toss/toss_search_field.dart';
 import '../../widgets/toss/toss_bottom_sheet.dart';
+import '../../widgets/common/toss_scaffold.dart';
+import '../../widgets/common/toss_app_bar.dart';
+import '../../widgets/common/toss_empty_view.dart';
+import '../../widgets/common/toss_error_view.dart';
+import '../../widgets/common/toss_loading_view.dart';
 import '../../../core/themes/toss_colors.dart';
 import '../../../core/themes/toss_text_styles.dart';
 import '../../../core/themes/toss_spacing.dart';
@@ -19,20 +24,12 @@ class RegisterDenominationPage extends ConsumerWidget {
     final companyCurrenciesAsync = ref.watch(searchFilteredCurrenciesProvider);
     final searchQuery = ref.watch(currencySearchQueryProvider);
     
-    return Scaffold(
+    return TossScaffold(
       backgroundColor: TossColors.background,
-      appBar: AppBar(
-        backgroundColor: TossColors.background,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        title: Text(
-          'Denomination',
-          style: TossTextStyles.h2.copyWith(
-            color: TossColors.gray900,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
+      appBar: const TossAppBar(
+        title: 'Denomination',
         centerTitle: true,
+        backgroundColor: TossColors.background,
       ),
       body: SafeArea(
         child: CustomScrollView(
@@ -87,16 +84,17 @@ class RegisterDenominationPage extends ConsumerWidget {
               },
               loading: () => [
                 const SliverFillRemaining(
-                  child: Center(
-                    child: CircularProgressIndicator(
-                      color: TossColors.primary,
-                    ),
+                  child: TossLoadingView(
+                    message: 'Loading currencies...',
                   ),
                 )
               ],
               error: (error, stackTrace) => [
                 SliverFillRemaining(
-                  child: _buildErrorState(error.toString()),
+                  child: TossErrorView(
+                    error: error,
+                    onRetry: () => ref.invalidate(searchFilteredCurrenciesProvider),
+                  ),
                 )
               ],
             ),
@@ -111,13 +109,13 @@ class RegisterDenominationPage extends ConsumerWidget {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _showAddCurrencySheet(context),
         backgroundColor: TossColors.primary,
-        foregroundColor: Colors.white,
+        foregroundColor: TossColors.white,
         elevation: 4,
-        icon: const Icon(Icons.add, size: 24),
+        icon: const Icon(Icons.add),
         label: Text(
           'Add New',
           style: TossTextStyles.labelLarge.copyWith(
-            color: Colors.white,
+            color: TossColors.white,
             fontWeight: FontWeight.w600,
           ),
         ),
@@ -129,144 +127,45 @@ class RegisterDenominationPage extends ConsumerWidget {
   }
 
   Widget _buildEmptyState(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(TossSpacing.space8),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              width: 80,
-              height: 80,
-              decoration: BoxDecoration(
-                color: TossColors.gray100,
-                borderRadius: BorderRadius.circular(TossBorderRadius.xxl),
-              ),
-              child: const Icon(
-                Icons.currency_exchange,
-                size: 40,
-                color: TossColors.gray400,
-              ),
-            ),
-            const SizedBox(height: TossSpacing.space6),
-            Text(
-              'No currencies yet',
-              style: TossTextStyles.h3.copyWith(
-                color: TossColors.gray900,
-                fontWeight: FontWeight.w600,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: TossSpacing.space3),
-            Text(
-              'Add your first currency to\nstart managing denominations',
-              style: TossTextStyles.body.copyWith(
-                color: TossColors.gray500,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: TossSpacing.space8),
-            SizedBox(
-              width: 200,
-              child: TossPrimaryButton(
-                text: 'Add Currency',
-                onPressed: () => _showAddCurrencySheet(context),
-              ),
-            ),
-          ],
+    return TossEmptyView(
+      icon: Container(
+        width: 80,
+        height: 80,
+        decoration: BoxDecoration(
+          color: TossColors.gray100,
+          borderRadius: BorderRadius.circular(TossBorderRadius.xxl),
+        ),
+        child: const Icon(
+          Icons.currency_exchange,
+          size: 40,
+          color: TossColors.gray400,
+        ),
+      ),
+      title: 'No currencies yet',
+      description: 'Add your first currency to\nstart managing denominations',
+      action: SizedBox(
+        width: 200,
+        child: TossPrimaryButton(
+          text: 'Add Currency',
+          onPressed: () => _showAddCurrencySheet(context),
         ),
       ),
     );
   }
 
   Widget _buildEmptySearchState() {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(TossSpacing.space8),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(
-              Icons.search_off,
-              size: 64,
-              color: TossColors.gray400,
-            ),
-            const SizedBox(height: TossSpacing.space6),
-            Text(
-              'No currencies found',
-              style: TossTextStyles.h3.copyWith(
-                color: TossColors.gray900,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(height: TossSpacing.space3),
-            Text(
-              'Try searching with different keywords',
-              style: TossTextStyles.body.copyWith(
-                color: TossColors.gray500,
-              ),
-            ),
-          ],
-        ),
+    return const TossEmptyView(
+      icon: Icon(
+        Icons.search_off,
+        size: 64,
+        color: TossColors.gray400,
       ),
+      title: 'No currencies found',
+      description: 'Try searching with different keywords',
     );
   }
 
-  Widget _buildErrorState(String error) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(TossSpacing.space8),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              width: 80,
-              height: 80,
-              decoration: BoxDecoration(
-                color: TossColors.error.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(TossBorderRadius.xxl),
-              ),
-              child: const Icon(
-                Icons.error_outline,
-                size: 40,
-                color: TossColors.error,
-              ),
-            ),
-            const SizedBox(height: TossSpacing.space6),
-            Text(
-              'Something went wrong',
-              style: TossTextStyles.h3.copyWith(
-                color: TossColors.gray900,
-                fontWeight: FontWeight.w600,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: TossSpacing.space3),
-            Text(
-              error,
-              style: TossTextStyles.body.copyWith(
-                color: TossColors.gray500,
-              ),
-              textAlign: TextAlign.center,
-              maxLines: 3,
-              overflow: TextOverflow.ellipsis,
-            ),
-            const SizedBox(height: TossSpacing.space8),
-            SizedBox(
-              width: 200,
-              child: TossPrimaryButton(
-                text: 'Retry',
-                onPressed: () {
-                  // Refresh the data
-                  // Note: In a real implementation, you might want to use ref.refresh()
-                },
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+  // This method is no longer needed as we're using TossErrorView directly
 
   void _showAddCurrencySheet(BuildContext context) {
     TossBottomSheet.show(

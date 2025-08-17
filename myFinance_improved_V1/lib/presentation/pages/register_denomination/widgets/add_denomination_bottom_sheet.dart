@@ -7,6 +7,7 @@ import '../../../../core/themes/toss_colors.dart';
 import '../../../../core/themes/toss_text_styles.dart';
 import '../../../../core/themes/toss_spacing.dart';
 import '../../../../core/themes/toss_border_radius.dart';
+import '../../../../core/themes/toss_animations.dart';
 import '../../../../domain/entities/currency.dart';
 import '../../../../domain/entities/denomination.dart';
 import '../providers/denomination_providers.dart';
@@ -43,7 +44,7 @@ class _AddDenominationBottomSheetState extends ConsumerState<AddDenominationBott
     
     return Container(
       decoration: const BoxDecoration(
-        color: Colors.white,
+        color: TossColors.white,
         borderRadius: BorderRadius.only(
           topLeft: Radius.circular(20),
           topRight: Radius.circular(20),
@@ -75,8 +76,7 @@ class _AddDenominationBottomSheetState extends ConsumerState<AddDenominationBott
                   Expanded(
                     child: Text(
                       'Add ${widget.currency.code} Denomination',
-                      style: const TextStyle(
-                        fontSize: 20,
+                      style: TossTextStyles.h2.copyWith(
                         fontWeight: FontWeight.w700,
                         color: TossColors.gray900,
                       ),
@@ -84,7 +84,7 @@ class _AddDenominationBottomSheetState extends ConsumerState<AddDenominationBott
                   ),
                   IconButton(
                     onPressed: () => Navigator.of(context).pop(),
-                    icon: const Icon(Icons.close, size: 20),
+                    icon: const Icon(Icons.close),
                     color: TossColors.gray500,
                     padding: const EdgeInsets.all(8),
                   ),
@@ -101,8 +101,7 @@ class _AddDenominationBottomSheetState extends ConsumerState<AddDenominationBott
                   // Amount field
                   Text(
                     'Amount',
-                    style: TextStyle(
-                      fontSize: 14,
+                    style: TossTextStyles.bodySmall.copyWith(
                       fontWeight: FontWeight.w600,
                       color: TossColors.gray900,
                     ),
@@ -114,15 +113,13 @@ class _AddDenominationBottomSheetState extends ConsumerState<AddDenominationBott
                     inputFormatters: [
                       FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
                     ],
-                    style: const TextStyle(
-                      fontSize: 16,
+                    style: TossTextStyles.body.copyWith(
                       color: TossColors.gray900,
                       fontWeight: FontWeight.w500,
                     ),
                     decoration: InputDecoration(
                       hintText: 'Enter amount (e.g., 5.00)',
-                      hintStyle: TextStyle(
-                        fontSize: 16,
+                      hintStyle: TossTextStyles.body.copyWith(
                         color: TossColors.gray400,
                         fontWeight: FontWeight.w400,
                       ),
@@ -154,8 +151,7 @@ class _AddDenominationBottomSheetState extends ConsumerState<AddDenominationBott
                   // Type selection
                   Text(
                     'Type',
-                    style: TextStyle(
-                      fontSize: 14,
+                    style: TossTextStyles.bodySmall.copyWith(
                       fontWeight: FontWeight.w600,
                       color: TossColors.gray900,
                     ),
@@ -226,7 +222,7 @@ class _AddDenominationBottomSheetState extends ConsumerState<AddDenominationBott
                       onPressed: isValid && !isLoading ? _addDenomination : null,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: isValid ? TossColors.primary : TossColors.gray200,
-                        foregroundColor: isValid ? Colors.white : TossColors.gray400,
+                        foregroundColor: isValid ? TossColors.white : TossColors.gray400,
                         padding: const EdgeInsets.symmetric(vertical: 13),
                         elevation: 0,
                         shape: RoundedRectangleBorder(
@@ -239,7 +235,7 @@ class _AddDenominationBottomSheetState extends ConsumerState<AddDenominationBott
                               height: 20,
                               child: CircularProgressIndicator(
                                 strokeWidth: 2,
-                                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                valueColor: AlwaysStoppedAnimation<Color>(TossColors.white),
                               ),
                             )
                           : Text(
@@ -362,7 +358,7 @@ class _TypeSelectionButton extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
+        duration: TossAnimations.normal,
         padding: const EdgeInsets.symmetric(vertical: 12),
         decoration: BoxDecoration(
           color: isSelected ? TossColors.primary : TossColors.gray50,

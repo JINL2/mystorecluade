@@ -1,6 +1,4 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../data/models/transaction_history_model.dart';
 import '../../../../data/services/supabase_service.dart';
 import '../../../providers/app_state_provider.dart';
@@ -32,9 +30,14 @@ class TransactionHistory extends _$TransactionHistory {
         throw Exception('No company selected');
       }
 
+      // Determine store_id based on scope
+      final storeId = filter?.scope == TransactionScope.company 
+        ? null  // NULL means show all stores in company
+        : selectedStore?['store_id'];  // Show only current store
+      
       final params = {
         'p_company_id': selectedCompany['company_id'],
-        'p_store_id': selectedStore?['store_id'],
+        'p_store_id': storeId,
         'p_date_from': filter?.dateFrom?.toIso8601String(),
         'p_date_to': filter?.dateTo?.toIso8601String(),
         'p_account_id': filter?.accountId,
@@ -75,13 +78,13 @@ class TransactionHistory extends _$TransactionHistory {
           final json = dataList[i] as Map<String, dynamic>;
           final transaction = TransactionData.fromJson(json);
           transactions.add(transaction);
-        } catch (e, stack) {
+        } catch (e) {
           // Skip invalid transaction
         }
       }
       
       return transactions;
-    } catch (e, stack) {
+    } catch (e) {
       throw Exception('Failed to fetch transactions: $e');
     }
   }
@@ -211,6 +214,11 @@ class TransactionFilterState extends _$TransactionFilterState {
     state = state.copyWith(accountIds: accountIds, accountId: null);
     ref.read(transactionHistoryProvider.notifier).applyFilter(state);
   }
+
+  void setScope(TransactionScope scope) {
+    state = state.copyWith(scope: scope);
+    ref.read(transactionHistoryProvider.notifier).applyFilter(state);
+  }
 }
 
 // Provider for grouping transactions by date
@@ -258,6 +266,9 @@ Future<TransactionFilterOptions> transactionFilterOptions(TransactionFilterOptio
     final data = response as Map<String, dynamic>;
     
     final options = TransactionFilterOptions(
+      stores: (data['stores'] as List<dynamic>? ?? [])
+          .map((item) => FilterOption.fromJson(item as Map<String, dynamic>))
+          .toList(),
       accounts: (data['accounts'] as List<dynamic>? ?? [])
           .map((item) => FilterOption.fromJson(item as Map<String, dynamic>))
           .toList(),
@@ -276,7 +287,7 @@ Future<TransactionFilterOptions> transactionFilterOptions(TransactionFilterOptio
     );
     
     return options;
-  } catch (e, stack) {
+  } catch (e) {
     return const TransactionFilterOptions();
   }
 }

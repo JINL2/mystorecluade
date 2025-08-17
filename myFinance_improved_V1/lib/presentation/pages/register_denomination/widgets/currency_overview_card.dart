@@ -5,6 +5,7 @@ import '../../../../core/themes/toss_colors.dart';
 import '../../../../core/themes/toss_text_styles.dart';
 import '../../../../core/themes/toss_spacing.dart';
 import '../../../../core/themes/toss_border_radius.dart';
+import '../../../../core/themes/toss_animations.dart';
 import '../../../../domain/entities/currency.dart';
 import '../providers/currency_providers.dart';
 import '../providers/denomination_providers.dart';
@@ -85,7 +86,7 @@ class CurrencyOverviewCard extends ConsumerWidget {
             crossFadeState: isExpanded 
                 ? CrossFadeState.showSecond 
                 : CrossFadeState.showFirst,
-            duration: const Duration(milliseconds: 300),
+            duration: TossAnimations.slow,
           ),
         ],
       ),
@@ -145,7 +146,7 @@ class CurrencyOverviewCard extends ConsumerWidget {
           child: Center(
             child: Text(
               currency.flagEmoji,
-              style: const TextStyle(fontSize: 24),
+              style: TossTextStyles.h3,
             ),
           ),
         ),
@@ -214,11 +215,10 @@ class CurrencyOverviewCard extends ConsumerWidget {
         // Expand/collapse icon
         AnimatedRotation(
           turns: isExpanded ? 0.5 : 0,
-          duration: const Duration(milliseconds: 300),
-          child: Icon(
+          duration: TossAnimations.slow,
+          child: const Icon(
             Icons.keyboard_arrow_down,
             color: TossColors.gray400,
-            size: 24,
           ),
         ),
       ],
@@ -232,27 +232,26 @@ class CurrencyOverviewCard extends ConsumerWidget {
         children: [
           // Add denomination button
           Expanded(
-            child: Container(
-              height: 44,
-              child: OutlinedButton.icon(
-                onPressed: () => _showAddDenominationSheet(context),
-                icon: const Icon(
-                  Icons.add,
-                  size: 18,
+            flex: 1,
+            child: OutlinedButton.icon(
+              onPressed: () => _showAddDenominationSheet(context),
+              icon: const Icon(
+                Icons.add,
+                size: 18,
+                color: TossColors.primary,
+              ),
+              label: Text(
+                'Add',
+                style: TossTextStyles.labelLarge.copyWith(
                   color: TossColors.primary,
+                  fontWeight: FontWeight.w600,
                 ),
-                label: Text(
-                  'Add',
-                  style: TossTextStyles.labelLarge.copyWith(
-                    color: TossColors.primary,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                style: OutlinedButton.styleFrom(
-                  side: const BorderSide(color: TossColors.primary),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                  ),
+              ),
+              style: OutlinedButton.styleFrom(
+                minimumSize: const Size(0, 44),
+                side: const BorderSide(color: TossColors.primary),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(TossBorderRadius.md),
                 ),
               ),
             ),
@@ -260,8 +259,8 @@ class CurrencyOverviewCard extends ConsumerWidget {
           const SizedBox(width: TossSpacing.space3),
           
           // Delete currency button
-          Container(
-            height: 44,
+          Expanded(
+            flex: 1,
             child: OutlinedButton.icon(
               onPressed: () => _showDeleteCurrencyDialog(context),
               icon: const Icon(
@@ -277,6 +276,7 @@ class CurrencyOverviewCard extends ConsumerWidget {
                 ),
               ),
               style: OutlinedButton.styleFrom(
+                minimumSize: const Size(0, 44),
                 side: const BorderSide(color: TossColors.error),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(TossBorderRadius.md),

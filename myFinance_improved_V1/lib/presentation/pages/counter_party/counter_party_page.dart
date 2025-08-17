@@ -168,7 +168,7 @@ class _CounterPartyPageState extends ConsumerState<CounterPartyPage> {
             decoration: BoxDecoration(
               color: Theme.of(context).colorScheme.surface,
               borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-              boxShadow: TossShadows.cardShadow,
+              boxShadow: TossShadows.card,
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -264,7 +264,7 @@ class _CounterPartyPageState extends ConsumerState<CounterPartyPage> {
             decoration: BoxDecoration(
               color: Theme.of(context).colorScheme.surface,
               borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-              boxShadow: TossShadows.cardShadow,
+              boxShadow: TossShadows.card,
             ),
             child: Center(
               child: CircularProgressIndicator(
@@ -278,7 +278,7 @@ class _CounterPartyPageState extends ConsumerState<CounterPartyPage> {
             decoration: BoxDecoration(
               color: Theme.of(context).colorScheme.surface,
               borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-              boxShadow: TossShadows.cardShadow,
+              boxShadow: TossShadows.card,
             ),
             child: Center(
               child: Text(
@@ -343,7 +343,7 @@ class _CounterPartyPageState extends ConsumerState<CounterPartyPage> {
                 decoration: BoxDecoration(
                   color: Theme.of(context).colorScheme.surface,
                   borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                  boxShadow: TossShadows.cardShadow,
+                  boxShadow: TossShadows.card,
                 ),
                 child: TextField(
                   controller: _searchController,
@@ -400,7 +400,7 @@ class _CounterPartyPageState extends ConsumerState<CounterPartyPage> {
                 decoration: BoxDecoration(
                   color: Theme.of(context).colorScheme.surface,
                   borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                  boxShadow: TossShadows.cardShadow,
+                  boxShadow: TossShadows.card,
                 ),
                 child: Stack(
                   alignment: Alignment.center,

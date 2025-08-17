@@ -9,6 +9,8 @@ part of 'transaction_history_model.dart';
 _$TransactionFilterImpl _$$TransactionFilterImplFromJson(
         Map<String, dynamic> json) =>
     _$TransactionFilterImpl(
+      scope: $enumDecodeNullable(_$TransactionScopeEnumMap, json['scope']) ??
+          TransactionScope.store,
       dateFrom: json['dateFrom'] == null
           ? null
           : DateTime.parse(json['dateFrom'] as String),
@@ -31,6 +33,7 @@ _$TransactionFilterImpl _$$TransactionFilterImplFromJson(
 Map<String, dynamic> _$$TransactionFilterImplToJson(
         _$TransactionFilterImpl instance) =>
     <String, dynamic>{
+      'scope': _$TransactionScopeEnumMap[instance.scope]!,
       'dateFrom': instance.dateFrom?.toIso8601String(),
       'dateTo': instance.dateTo?.toIso8601String(),
       'accountId': instance.accountId,
@@ -43,6 +46,11 @@ Map<String, dynamic> _$$TransactionFilterImplToJson(
       'limit': instance.limit,
       'offset': instance.offset,
     };
+
+const _$TransactionScopeEnumMap = {
+  TransactionScope.store: 'store',
+  TransactionScope.company: 'company',
+};
 
 _$TransactionSummaryImpl _$$TransactionSummaryImplFromJson(
         Map<String, dynamic> json) =>

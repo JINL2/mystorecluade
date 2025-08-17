@@ -24,25 +24,10 @@ class EmployeeCardEnhanced extends ConsumerWidget {
         horizontal: TossSpacing.space4,
         vertical: TossSpacing.space2,
       ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: () {
-            HapticFeedback.lightImpact();
-            onTap();
-          },
-          borderRadius: BorderRadius.circular(12),
-          child: Container(
-            padding: EdgeInsets.all(TossSpacing.space4),
-            decoration: BoxDecoration(
-              color: TossColors.background,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: TossColors.gray200,
-                width: 1,
-              ),
-            ),
-            child: Row(
+      child: TossCard(
+        onTap: onTap,
+        padding: EdgeInsets.all(TossSpacing.space4),
+        child: Row(
               children: [
                 // Avatar
                 Hero(
@@ -83,7 +68,7 @@ class EmployeeCardEnhanced extends ConsumerWidget {
                           ),
                           child: Text(
                             employee.roleName!,
-                            style: TossTextStyles.labelSmall.copyWith(
+                            style: TossTextStyles.small.copyWith(
                               color: _getRoleColor(employee.roleName!),
                               fontWeight: FontWeight.w500,
                             ),
@@ -117,8 +102,6 @@ class EmployeeCardEnhanced extends ConsumerWidget {
                 ),
               ],
             ),
-          ),
-        ),
       ),
     );
   }
@@ -155,109 +138,6 @@ class EmployeeCardEnhanced extends ConsumerWidget {
     );
   }
   
-  Widget _InfoCard({
-    required IconData icon,
-    required String label,
-    required String value,
-    required Color color,
-    required VoidCallback onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        padding: EdgeInsets.all(TossSpacing.space3),
-        decoration: BoxDecoration(
-          color: TossColors.gray50,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: TossColors.gray100,
-            width: 1,
-          ),
-        ),
-        child: Row(
-          children: [
-            Container(
-              padding: EdgeInsets.all(TossSpacing.space2),
-              decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Icon(
-                icon,
-                size: 16,
-                color: color,
-              ),
-            ),
-            SizedBox(width: TossSpacing.space2),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    label,
-                    style: TossTextStyles.caption.copyWith(
-                      color: TossColors.gray500,
-                    ),
-                  ),
-                  SizedBox(height: 2),
-                  Text(
-                    value,
-                    style: TossTextStyles.bodySmall.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: TossColors.gray900,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ),
-            ),
-            Icon(
-              Icons.chevron_right,
-              size: 16,
-              color: TossColors.gray400,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-  
-  Widget _buildPerformanceIndicator() {
-    final rating = employee.performanceRating ?? '';
-    final color = _getPerformanceColor(rating);
-    
-    return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: TossSpacing.space2,
-        vertical: TossSpacing.space1,
-      ),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(6),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            Icons.trending_up,
-            size: 12,
-            color: color,
-          ),
-          SizedBox(width: TossSpacing.space1),
-          Text(
-            'Performance: $rating',
-            style: TossTextStyles.caption.copyWith(
-              color: color,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-  
   String _formatAmount(double amount) {
     if (amount >= 1000000) {
       return '${(amount / 1000000).toStringAsFixed(1)}M';
@@ -268,42 +148,13 @@ class EmployeeCardEnhanced extends ConsumerWidget {
     }
   }
   
-  String _formatRelativeTime(DateTime dateTime) {
-    final now = DateTime.now();
-    final difference = now.difference(dateTime);
-    
-    if (difference.inDays > 30) {
-      return '${(difference.inDays / 30).floor()} months ago';
-    } else if (difference.inDays > 0) {
-      return '${difference.inDays} days ago';
-    } else if (difference.inHours > 0) {
-      return '${difference.inHours} hours ago';
-    } else {
-      return 'just now';
-    }
-  }
-  
-  Color _getPerformanceColor(String rating) {
-    switch (rating.toUpperCase()) {
-      case 'A+':
-      case 'A':
-        return TossColors.success;
-      case 'B':
-        return TossColors.blue;
-      case 'C':
-        return TossColors.warning;
-      default:
-        return TossColors.gray500;
-    }
-  }
-  
   Color _getRoleColor(String role) {
     switch (role.toLowerCase()) {
       case 'owner':
         return const Color(0xFF8B5CF6); // Purple for Owner
       case 'assistant manager':
       case 'manager':
-        return TossColors.blue; // Blue for managers
+        return TossColors.primary; // Primary color for managers
       case 'supervisor':
         return TossColors.primary; // Primary color for supervisors
       case 'employee':

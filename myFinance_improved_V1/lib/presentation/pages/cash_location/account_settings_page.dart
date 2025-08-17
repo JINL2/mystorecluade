@@ -185,7 +185,7 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-        boxShadow: TossShadows.cardShadow,
+        boxShadow: TossShadows.card,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -229,7 +229,7 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-        boxShadow: TossShadows.cardShadow,
+        boxShadow: TossShadows.card,
       ),
       child: Column(
         children: [
@@ -369,7 +369,7 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage> {
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-            boxShadow: TossShadows.cardShadow,
+            boxShadow: TossShadows.card,
           ),
           child: Center(
             child: Text(

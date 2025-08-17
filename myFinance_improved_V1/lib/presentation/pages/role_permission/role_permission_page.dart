@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import '../delegate_role/providers/delegate_role_providers.dart';
-import '../delegate_role/widgets/role_card.dart';
 import '../delegate_role/widgets/role_management_sheet.dart';
 import '../../providers/app_state_provider.dart';
 import '../../widgets/common/toss_scaffold.dart';
@@ -11,6 +10,11 @@ import '../../widgets/common/toss_app_bar.dart';
 import '../../widgets/common/toss_loading_view.dart';
 import '../../widgets/common/toss_error_view.dart';
 import '../../widgets/common/toss_empty_view.dart';
+import '../../widgets/toss/toss_search_field.dart';
+import '../../widgets/toss/toss_primary_button.dart';
+import '../../widgets/toss/toss_secondary_button.dart';
+import '../../widgets/toss/toss_text_field.dart';
+import '../../widgets/toss/toss_checkbox.dart';
 import '../../../core/themes/toss_colors.dart';
 import '../../../core/themes/toss_text_styles.dart';
 import '../../../core/themes/toss_spacing.dart';
@@ -55,7 +59,7 @@ class _RolePermissionPageState extends ConsumerState<RolePermissionPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Cannot delete the Owner role. This role always has full permissions.'),
-          backgroundColor: const Color(0xFFE53935),
+          backgroundColor: TossColors.error,
         ),
       );
       return;
@@ -65,7 +69,7 @@ class _RolePermissionPageState extends ConsumerState<RolePermissionPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Cannot delete the Employee role. This is a default system role.'),
-          backgroundColor: const Color(0xFFE53935),
+          backgroundColor: TossColors.error,
         ),
       );
       return;
@@ -88,33 +92,27 @@ class _RolePermissionPageState extends ConsumerState<RolePermissionPage> {
               Text(
                 'This role has $memberCount user${memberCount > 1 ? 's' : ''} assigned. They will be reassigned to the "Employee" role.',
                 style: TossTextStyles.caption.copyWith(
-                  color: Colors.orange[700],
-                  fontSize: 13,
+                  color: TossColors.warning,
                 ),
               ),
               SizedBox(height: TossSpacing.space2),
             ],
             Text(
               'This action cannot be undone.',
-              style: TossTextStyles.caption.copyWith(
-                color: const Color(0xFFE53935),
-                fontSize: 13,
-                fontWeight: FontWeight.w500,
+              style: TossTextStyles.bodySmall.copyWith(
+                color: TossColors.error,
               ),
             ),
           ],
         ),
         actions: [
-          TextButton(
+          TossSecondaryButton(
             onPressed: () => Navigator.pop(context, false),
-            child: Text('Cancel'),
+            text: 'Cancel',
           ),
-          TextButton(
+          TossSecondaryButton(
             onPressed: () => Navigator.pop(context, true),
-            child: Text(
-              'Delete Role',
-              style: TextStyle(color: const Color(0xFFE53935)),
-            ),
+            text: 'Delete Role',
           ),
         ],
       ),
@@ -136,7 +134,7 @@ class _RolePermissionPageState extends ConsumerState<RolePermissionPage> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('Role "${role['roleName']}" deleted successfully'),
-              backgroundColor: Theme.of(context).colorScheme.primary,
+              backgroundColor: TossColors.primary,
             ),
           );
         }
@@ -149,7 +147,7 @@ class _RolePermissionPageState extends ConsumerState<RolePermissionPage> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('Failed to delete role: ${e.toString()}'),
-              backgroundColor: const Color(0xFFE53935),
+              backgroundColor: TossColors.error,
             ),
           );
         }
@@ -169,7 +167,7 @@ class _RolePermissionPageState extends ConsumerState<RolePermissionPage> {
     // Check if company is selected
     if (appState.companyChoosen.isEmpty) {
       return Scaffold(
-        backgroundColor: const Color(0xFFF7F8FA),
+        backgroundColor: TossColors.gray100,
         body: SafeArea(
           child: Column(
             children: [
@@ -180,13 +178,13 @@ class _RolePermissionPageState extends ConsumerState<RolePermissionPage> {
                 child: Row(
                   children: [
                     IconButton(
-                      icon: const Icon(Icons.arrow_back_ios, size: 20),
+                      icon: const Icon(Icons.arrow_back_ios),
                       onPressed: () => Navigator.of(context).pop(),
                     ),
                     Expanded(
                       child: Text(
                         'Roles & Permissions',
-                        style: TossTextStyles.h3.copyWith(fontWeight: FontWeight.w600),
+                        style: TossTextStyles.h3,
                         textAlign: TextAlign.center,
                       ),
                     ),
@@ -204,53 +202,33 @@ class _RolePermissionPageState extends ConsumerState<RolePermissionPage> {
                         width: 80,
                         height: 80,
                         decoration: BoxDecoration(
-                          color: Colors.grey[100],
+                          color: TossColors.gray100,
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Icon(
                           Icons.business_outlined,
                           size: 40,
-                          color: Colors.grey[400],
+                          color: TossColors.textTertiary,
                         ),
                       ),
                       SizedBox(height: TossSpacing.space6),
                       Text(
                         'No company selected',
-                        style: TossTextStyles.h3.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
+                        style: TossTextStyles.h3,
                       ),
                       SizedBox(height: TossSpacing.space2),
                       Text(
                         'Please select a company to\nmanage roles and permissions',
                         textAlign: TextAlign.center,
                         style: TossTextStyles.caption.copyWith(
-                          color: Colors.grey[600],
-                          fontSize: 13,
+                          color: TossColors.textSecondary,
                         ),
                       ),
                       SizedBox(height: TossSpacing.space6),
-                      ElevatedButton(
+                      TossPrimaryButton(
                         onPressed: () => context.go('/'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Theme.of(context).colorScheme.primary,
-                          foregroundColor: Colors.white,
-                          padding: EdgeInsets.symmetric(
-                            horizontal: TossSpacing.space5,
-                            vertical: TossSpacing.space3,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                          ),
-                        ),
-                        child: Text(
-                          'Go to Home',
-                          style: TossTextStyles.body.copyWith(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w600,
-                            fontSize: 16,
-                          ),
-                        ),
+                        text: 'Go to Home',
+                        fullWidth: true,
                       ),
                     ],
                   ),
@@ -262,47 +240,20 @@ class _RolePermissionPageState extends ConsumerState<RolePermissionPage> {
       );
     }
 
-    return Scaffold(
-      backgroundColor: const Color(0xFFF7F8FA),
-      body: SafeArea(
-        child: Column(
-          children: [
-            // Header
-            Container(
-              height: 56,
-              padding: EdgeInsets.symmetric(horizontal: TossSpacing.space2),
-              child: Row(
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.arrow_back_ios, size: 20),
-                    onPressed: () => Navigator.of(context).pop(),
-                  ),
-                  Expanded(
-                    child: Text(
-                      'Roles & Permissions',
-                      style: TossTextStyles.h3.copyWith(fontWeight: FontWeight.w600),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                  TextButton(
-                    onPressed: () => _showCreateRoleModal(context),
-                    child: Text(
-                      'Add',
-                      style: TossTextStyles.body.copyWith(
-                        color: Theme.of(context).colorScheme.primary,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 16,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            // Content
-            Expanded(
+    return TossScaffold(
+      appBar: TossAppBar(
+        title: 'Roles & Permissions',
+        primaryActionText: 'Add',
+        primaryActionIcon: Icons.add,
+        onPrimaryAction: () => _showCreateRoleModal(context),
+      ),
+      body: Column(
+        children: [
+          // Content
+          Expanded(
               child: RefreshIndicator(
                 onRefresh: () => _handleRefresh(ref),
-                color: Theme.of(context).colorScheme.primary,
+                color: TossColors.primary,
                 child: allRolesAsync.when(
                   data: (roles) {
                     if (roles.isEmpty) {
@@ -316,29 +267,26 @@ class _RolePermissionPageState extends ConsumerState<RolePermissionPage> {
                                 width: 80,
                                 height: 80,
                                 decoration: BoxDecoration(
-                                  color: Colors.grey[100],
+                                  color: TossColors.gray100,
                                   borderRadius: BorderRadius.circular(20),
                                 ),
                                 child: Icon(
                                   Icons.admin_panel_settings_outlined,
                                   size: 40,
-                                  color: Colors.grey[400],
+                                  color: TossColors.textTertiary,
                                 ),
                               ),
                               SizedBox(height: TossSpacing.space6),
                               Text(
                                 'No roles created yet',
-                                style: TossTextStyles.h3.copyWith(
-                                  fontWeight: FontWeight.w600,
-                                ),
+                                style: TossTextStyles.h3,
                               ),
                               SizedBox(height: TossSpacing.space2),
                               Text(
                                 'Create roles and manage permissions\nfor your team members',
                                 textAlign: TextAlign.center,
                                 style: TossTextStyles.caption.copyWith(
-                                  color: Colors.grey[600],
-                                  fontSize: 13,
+                                  color: TossColors.textSecondary,
                                 ),
                               ),
                             ],
@@ -361,59 +309,31 @@ class _RolePermissionPageState extends ConsumerState<RolePermissionPage> {
 
                     return Column(
                       children: [
-                        // Search bar - WHITE background, NO borders (from design guidelines)
+                        // Search bar using TossSearchField component
                         Container(
-                          color: Colors.white, // WHITE background - same as cards
+                          color: TossColors.gray100,
                           padding: EdgeInsets.symmetric(
                             horizontal: TossSpacing.space4,
                             vertical: TossSpacing.space3,
                           ),
-                          child: Container(
-                            height: 44,
-                            padding: EdgeInsets.symmetric(horizontal: TossSpacing.space3),
-                            child: Row(
-                              children: [
-                                Icon(
-                                  Icons.search,
-                                  color: Colors.grey[400], // Light gray icon
-                                  size: 20,
-                                ),
-                                SizedBox(width: TossSpacing.space3),
-                                Expanded(
-                                  child: TextField(
-                                    controller: _searchController,
-                                    decoration: InputDecoration(
-                                      hintText: 'Search roles...',
-                                      hintStyle: TossTextStyles.body.copyWith(
-                                        color: Colors.grey[400], // Light gray hint text
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w400,
-                                      ),
-                                      border: InputBorder.none, // NO BORDER
-                                      isDense: true,
-                                      contentPadding: EdgeInsets.zero,
-                                    ),
-                                    style: TossTextStyles.body.copyWith(
-                                      fontSize: 16,
-                                      color: Colors.black87,
-                                    ),
-                                  ),
-                                ),
-                                if (_searchQuery.isNotEmpty)
-                                  GestureDetector(
-                                    onTap: () {
-                                      _searchController.clear();
-                                    },
-                                    child: Icon(
-                                      Icons.clear,
-                                      color: Colors.grey[400],
-                                      size: 18,
-                                    ),
-                                  ),
-                              ],
-                            ),
+                          child: TossSearchField(
+                            hintText: 'Search roles...',
+                            controller: _searchController,
+                            prefixIcon: Icons.search,
+                            onChanged: (value) {
+                              setState(() {
+                                _searchQuery = value;
+                              });
+                            },
+                            onClear: () {
+                              setState(() {
+                                _searchQuery = '';
+                              });
+                            },
                           ),
                         ),
+                        
+                        SizedBox(height: TossSpacing.space3),
                 
                         // Roles list
                         Expanded(
@@ -427,21 +347,18 @@ class _RolePermissionPageState extends ConsumerState<RolePermissionPage> {
                                         Icon(
                                           Icons.search_off,
                                           size: 48,
-                                          color: Colors.grey[400],
+                                          color: TossColors.textTertiary,
                                         ),
                                         SizedBox(height: TossSpacing.space4),
                                         Text(
                                           'No roles found',
-                                          style: TossTextStyles.h3.copyWith(
-                                            fontWeight: FontWeight.w600,
-                                          ),
+                                          style: TossTextStyles.h3,
                                         ),
                                         SizedBox(height: TossSpacing.space2),
                                         Text(
                                           'Try a different search term',
                                           style: TossTextStyles.caption.copyWith(
-                                            color: Colors.grey[600],
-                                            fontSize: 13,
+                                            color: TossColors.textSecondary,
                                           ),
                                         ),
                                       ],
@@ -454,13 +371,14 @@ class _RolePermissionPageState extends ConsumerState<RolePermissionPage> {
                                       padding: EdgeInsets.only(
                                         left: TossSpacing.space4,
                                         right: TossSpacing.space4,
+                                        top: TossSpacing.space2,
                                         bottom: TossSpacing.space10,
                                       ),
                                       child: Container(
                                         decoration: BoxDecoration(
-                                          color: Colors.white,
+                                          color: TossColors.surface,
                                           borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-                                          boxShadow: TossShadows.cardShadow,
+                                          boxShadow: TossShadows.card,
                                         ),
                                         child: ClipRRect(
                                           borderRadius: BorderRadius.circular(TossBorderRadius.lg),
@@ -493,12 +411,12 @@ class _RolePermissionPageState extends ConsumerState<RolePermissionPage> {
                                                               width: 32,
                                                               height: 32,
                                                               decoration: BoxDecoration(
-                                                                color: const Color(0xFFE53935),
+                                                                color: TossColors.error,
                                                                 shape: BoxShape.circle,
                                                               ),
                                                               child: Icon(
                                                                 Icons.remove,
-                                                                color: Colors.white,
+                                                                color: TossColors.textInverse,
                                                                 size: 20,
                                                               ),
                                                             ),
@@ -507,7 +425,7 @@ class _RolePermissionPageState extends ConsumerState<RolePermissionPage> {
                                                       ],
                                                     ) : null, // No swipe action for protected roles
                                                     child: Material(
-                                                      color: Colors.white,
+                                                      color: TossColors.white,
                                                       child: InkWell(
                                                         onTap: roleName == 'owner' ? null : () => _openRoleManagement(role),
                                                         child: Container(
@@ -524,10 +442,9 @@ class _RolePermissionPageState extends ConsumerState<RolePermissionPage> {
                                                                   children: [
                                                                     Text(
                                                                       role['roleName'],
-                                                                      style: TossTextStyles.body.copyWith(
+                                                                      style: TossTextStyles.bodyLarge.copyWith(
                                                                         fontWeight: FontWeight.w600,
-                                                                        fontSize: 16,
-                                                                        color: roleName == 'owner' ? Colors.grey[600] : Colors.black87,
+                                                                        color: roleName == 'owner' ? TossColors.textSecondary : TossColors.textPrimary,
                                                                       ),
                                                                     ),
                                                                     SizedBox(height: 2),
@@ -536,8 +453,7 @@ class _RolePermissionPageState extends ConsumerState<RolePermissionPage> {
                                                                           ? 'System administrator • Full permissions'
                                                                           : '$memberCount users • ${permissions.length} permissions',
                                                                       style: TossTextStyles.caption.copyWith(
-                                                                        color: Colors.grey[500],
-                                                                        fontSize: 13,
+                                                                        color: TossColors.textTertiary,
                                                                       ),
                                                                     ),
                                                                   ],
@@ -547,7 +463,7 @@ class _RolePermissionPageState extends ConsumerState<RolePermissionPage> {
                                                               if (roleName != 'owner' && roleName != 'employee')
                                                                 Icon(
                                                                   Icons.chevron_left,
-                                                                  color: Colors.grey[400],
+                                                                  color: TossColors.textTertiary,
                                                                   size: 22,
                                                                 ),
                                                             ],
@@ -560,7 +476,7 @@ class _RolePermissionPageState extends ConsumerState<RolePermissionPage> {
                                                     Container(
                                                       margin: EdgeInsets.symmetric(horizontal: TossSpacing.space4),
                                                       height: 0.5,
-                                                      color: const Color(0xFFE5E8EB),
+                                                      color: TossColors.borderLight,
                                                     ),
                                                 ],
                                               );
@@ -573,9 +489,7 @@ class _RolePermissionPageState extends ConsumerState<RolePermissionPage> {
                       ],
                     );
                   },
-                  loading: () => const Center(
-                    child: CircularProgressIndicator(),
-                  ),
+                  loading: () => const TossLoadingView(),
                   error: (error, stack) => Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -583,18 +497,13 @@ class _RolePermissionPageState extends ConsumerState<RolePermissionPage> {
                         Text(
                           'Failed to load roles',
                           style: TossTextStyles.body.copyWith(
-                            color: Colors.grey[500],
+                            color: TossColors.textTertiary,
                           ),
                         ),
                         SizedBox(height: TossSpacing.space3),
-                        TextButton(
+                        TossSecondaryButton(
                           onPressed: () => ref.invalidate(allCompanyRolesProvider),
-                          child: Text(
-                            'Retry',
-                            style: TossTextStyles.body.copyWith(
-                              color: Theme.of(context).colorScheme.primary,
-                            ),
-                          ),
+                          text: 'Retry',
                         ),
                       ],
                     ),
@@ -602,8 +511,7 @@ class _RolePermissionPageState extends ConsumerState<RolePermissionPage> {
                 ),
               ),
             ),
-          ],
-        ),
+        ],
       ),
     );
   }
@@ -626,6 +534,7 @@ class _RolePermissionPageState extends ConsumerState<RolePermissionPage> {
       roleId: role['roleId'],
       roleName: role['roleName'],
       description: role['description'],
+      tags: List<String>.from(role['tags'] ?? []),
       permissions: List<String>.from(role['permissions']),
       memberCount: role['memberCount'] ?? 0,
       canEdit: canEditPermissions, // Owner can manage users but not permissions
@@ -673,7 +582,7 @@ class _CreateRoleBottomSheetState extends ConsumerState<_CreateRoleBottomSheet> 
         minHeight: MediaQuery.of(context).size.height * 0.5,
       ),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: TossColors.white,
         borderRadius: BorderRadius.vertical(
           top: Radius.circular(TossBorderRadius.xxl),
         ),
@@ -688,7 +597,7 @@ class _CreateRoleBottomSheetState extends ConsumerState<_CreateRoleBottomSheet> 
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: Colors.grey[300],
+                color: TossColors.border,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -700,7 +609,7 @@ class _CreateRoleBottomSheetState extends ConsumerState<_CreateRoleBottomSheet> 
                 children: [
                   if (_currentStep > 0)
                     IconButton(
-                      icon: Icon(Icons.arrow_back, color: Colors.grey[600]),
+                      icon: Icon(Icons.arrow_back, color: TossColors.textSecondary),
                       onPressed: () {
                         setState(() {
                           _currentStep--;
@@ -713,9 +622,7 @@ class _CreateRoleBottomSheetState extends ConsumerState<_CreateRoleBottomSheet> 
                       children: [
                         Text(
                           _currentStep == 0 ? 'Create New Role' : 'Configure Permissions',
-                          style: TossTextStyles.h3.copyWith(
-                            fontWeight: FontWeight.w600,
-                          ),
+                          style: TossTextStyles.h3,
                         ),
                         SizedBox(height: TossSpacing.space1),
                         Text(
@@ -723,15 +630,14 @@ class _CreateRoleBottomSheetState extends ConsumerState<_CreateRoleBottomSheet> 
                               ? 'Define a new role with specific permissions'
                               : 'Select what this role can access and do',
                           style: TossTextStyles.caption.copyWith(
-                            color: Colors.grey[600],
-                            fontSize: 13,
+                            color: TossColors.textSecondary,
                           ),
                         ),
                       ],
                     ),
                   ),
                   IconButton(
-                    icon: Icon(Icons.close, color: Colors.grey[600]),
+                    icon: Icon(Icons.close, color: TossColors.textSecondary),
                     onPressed: () => Navigator.pop(context),
                   ),
                 ],
@@ -749,7 +655,7 @@ class _CreateRoleBottomSheetState extends ConsumerState<_CreateRoleBottomSheet> 
                     Container(
                       width: 40,
                       height: 2,
-                      color: Colors.grey[200],
+                      color: TossColors.borderLight,
                     ),
                     _buildStepIndicator(1, false),
                   ],
@@ -774,42 +680,16 @@ class _CreateRoleBottomSheetState extends ConsumerState<_CreateRoleBottomSheet> 
             Container(
               padding: EdgeInsets.all(TossSpacing.space5),
               decoration: BoxDecoration(
-                color: Colors.white,
-                border: Border(top: BorderSide(color: const Color(0xFFE5E8EB))),
+                color: TossColors.white,
+                border: Border(top: BorderSide(color: TossColors.borderLight)),
               ),
               child: SafeArea(
                 top: false,
-                child: SizedBox(
-                  width: double.infinity,
-                  height: 56,
-                  child: ElevatedButton(
-                    onPressed: _isCreating ? null : (_currentStep == 0 ? _goToNextStep : _createRole),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Theme.of(context).colorScheme.primary,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                      ),
-                      elevation: 0,
-                    ),
-                    child: _isCreating
-                        ? SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(
-                              color: Colors.white,
-                              strokeWidth: 2,
-                            ),
-                          )
-                        : Text(
-                            _currentStep == 0 ? 'Next' : 'Create Role',
-                            style: TossTextStyles.body.copyWith(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w600,
-                              fontSize: 16,
-                            ),
-                          ),
-                  ),
+                child: TossPrimaryButton(
+                  onPressed: _isCreating ? null : (_currentStep == 0 ? _goToNextStep : _createRole),
+                  isLoading: _isCreating,
+                  text: _currentStep == 0 ? 'Next' : 'Create Role',
+                  fullWidth: true,
                 ),
               ),
             ),
@@ -824,14 +704,14 @@ class _CreateRoleBottomSheetState extends ConsumerState<_CreateRoleBottomSheet> 
       width: 32,
       height: 32,
       decoration: BoxDecoration(
-        color: isActive ? Theme.of(context).colorScheme.primary : Colors.grey[200],
+        color: isActive ? TossColors.primary : TossColors.borderLight,
         shape: BoxShape.circle,
       ),
       child: Center(
         child: Text(
           '${step + 1}',
           style: TossTextStyles.body.copyWith(
-            color: isActive ? Colors.white : Colors.grey[600],
+            color: isActive ? TossColors.textInverse : TossColors.textSecondary,
             fontWeight: FontWeight.w600,
           ),
         ),
@@ -848,37 +728,14 @@ class _CreateRoleBottomSheetState extends ConsumerState<_CreateRoleBottomSheet> 
           // Role name input
           Text(
             'Role Name',
-            style: TossTextStyles.body.copyWith(
+            style: TossTextStyles.labelLarge.copyWith(
               fontWeight: FontWeight.w700,
-              fontSize: 15,
             ),
           ),
           SizedBox(height: TossSpacing.space2),
-          Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(TossBorderRadius.md),
-              border: Border.all(
-                color: Colors.grey[300]!,
-                width: 1,
-              ),
-            ),
-            child: TextField(
-              controller: _roleNameController,
-              style: TossTextStyles.body.copyWith(fontSize: 15),
-              decoration: InputDecoration(
-                hintText: 'Enter role name',
-                hintStyle: TossTextStyles.body.copyWith(
-                  color: Colors.grey[400],
-                  fontSize: 15,
-                ),
-                border: InputBorder.none,
-                contentPadding: EdgeInsets.symmetric(
-                  horizontal: TossSpacing.space3,
-                  vertical: TossSpacing.space3,
-                ),
-              ),
-            ),
+          TossTextField(
+            controller: _roleNameController,
+            hintText: 'Enter role name',
           ),
           
           SizedBox(height: TossSpacing.space5),
@@ -886,38 +743,15 @@ class _CreateRoleBottomSheetState extends ConsumerState<_CreateRoleBottomSheet> 
           // Description input
           Text(
             'Description',
-            style: TossTextStyles.body.copyWith(
+            style: TossTextStyles.labelLarge.copyWith(
               fontWeight: FontWeight.w700,
-              fontSize: 15,
             ),
           ),
           SizedBox(height: TossSpacing.space2),
-          Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(TossBorderRadius.md),
-              border: Border.all(
-                color: Colors.grey[300]!,
-                width: 1,
-              ),
-            ),
-            child: TextField(
-              controller: _descriptionController,
-              maxLines: 3,
-              style: TossTextStyles.body.copyWith(fontSize: 15),
-              decoration: InputDecoration(
-                hintText: 'Describe what this role does...',
-                hintStyle: TossTextStyles.body.copyWith(
-                  color: Colors.grey[400],
-                  fontSize: 15,
-                ),
-                border: InputBorder.none,
-                contentPadding: EdgeInsets.symmetric(
-                  horizontal: TossSpacing.space3,
-                  vertical: TossSpacing.space3,
-                ),
-              ),
-            ),
+          TossTextField(
+            controller: _descriptionController,
+            hintText: 'Describe what this role does...',
+            maxLines: 3,
           ),
         ],
       ),
@@ -939,25 +773,18 @@ class _CreateRoleBottomSheetState extends ConsumerState<_CreateRoleBottomSheet> 
                 children: [
                   Text(
                     'Select Permissions',
-                    style: TossTextStyles.body.copyWith(
+                    style: TossTextStyles.h4.copyWith(
                       fontWeight: FontWeight.w700,
-                      fontSize: 17,
-                      color: Colors.black87,
+                      color: TossColors.textPrimary,
                     ),
                   ),
-                  TextButton(
+                  TossSecondaryButton(
                     onPressed: () {
                       setState(() {
                         _selectedPermissions.clear();
                       });
                     },
-                    child: Text(
-                      'Clear all',
-                      style: TossTextStyles.body.copyWith(
-                        color: Colors.grey[600],
-                        fontSize: 14,
-                      ),
-                    ),
+                    text: 'Clear all',
                   ),
                 ],
               ),
@@ -976,18 +803,16 @@ class _CreateRoleBottomSheetState extends ConsumerState<_CreateRoleBottomSheet> 
           ),
         );
       },
-      loading: () => const Center(
-        child: CircularProgressIndicator(),
-      ),
+      loading: () => const TossLoadingView(),
       error: (error, stack) => Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.error_outline, color: const Color(0xFFE53935), size: 48),
+            Icon(Icons.error_outline, color: TossColors.error, size: 48),
             SizedBox(height: TossSpacing.space3),
             Text(
               'Failed to load permissions',
-              style: TossTextStyles.body.copyWith(color: const Color(0xFFE53935)),
+              style: TossTextStyles.body.copyWith(color: TossColors.error),
             ),
           ],
         ),
@@ -1005,9 +830,9 @@ class _CreateRoleBottomSheetState extends ConsumerState<_CreateRoleBottomSheet> 
     return Container(
       margin: EdgeInsets.only(bottom: TossSpacing.space3),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: TossColors.white,
         borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-        boxShadow: TossShadows.cardShadow,
+        boxShadow: TossShadows.card,
       ),
       child: Column(
         children: [
@@ -1038,7 +863,7 @@ class _CreateRoleBottomSheetState extends ConsumerState<_CreateRoleBottomSheet> 
                   children: [
                     // Select all checkbox
                     Material(
-                      color: Colors.transparent,
+                      color: TossColors.transparent,
                       child: InkWell(
                         onTap: () {
                           _toggleCategoryPermissions(featureIds, !allSelected);
@@ -1052,14 +877,14 @@ class _CreateRoleBottomSheetState extends ConsumerState<_CreateRoleBottomSheet> 
                             height: 20,
                             decoration: BoxDecoration(
                               color: allSelected
-                                  ? Theme.of(context).colorScheme.primary
+                                  ? TossColors.primary
                                   : someSelected
-                                      ? Theme.of(context).colorScheme.primary.withOpacity(0.3)
-                                      : Colors.white,
+                                      ? TossColors.primary.withValues(alpha: 0.3)
+                                      : TossColors.surface,
                               border: Border.all(
                                 color: allSelected || someSelected
-                                    ? Theme.of(context).colorScheme.primary
-                                    : Colors.grey[300]!,
+                                    ? TossColors.primary
+                                    : TossColors.border!,
                                 width: allSelected || someSelected ? 2 : 1,
                               ),
                               borderRadius: BorderRadius.circular(6),
@@ -1068,14 +893,14 @@ class _CreateRoleBottomSheetState extends ConsumerState<_CreateRoleBottomSheet> 
                                 ? Icon(
                                     Icons.check,
                                     size: 14,
-                                    color: Colors.white,
+                                    color: TossColors.white,
                                   )
                                 : someSelected
                                     ? Center(
                                         child: Container(
                                           width: 8,
                                           height: 2,
-                                          color: Colors.white,
+                                          color: TossColors.white,
                                         ),
                                       )
                                     : null,
@@ -1090,10 +915,9 @@ class _CreateRoleBottomSheetState extends ConsumerState<_CreateRoleBottomSheet> 
                         children: [
                           Text(
                             title,
-                            style: TossTextStyles.body.copyWith(
+                            style: TossTextStyles.bodyLarge.copyWith(
                               fontWeight: FontWeight.w600,
-                              fontSize: 16,
-                              color: Colors.black87,
+                              color: TossColors.textPrimary,
                             ),
                           ),
                           if (selectedCount > 0) ...[
@@ -1101,9 +925,8 @@ class _CreateRoleBottomSheetState extends ConsumerState<_CreateRoleBottomSheet> 
                             Text(
                               '$selectedCount of ${features.length} selected',
                               style: TossTextStyles.caption.copyWith(
-                                color: Colors.grey[600],
-                                fontSize: 13,
-                              ),
+                                color: TossColors.textSecondary,
+                                            ),
                             ),
                           ],
                         ],
@@ -1114,7 +937,7 @@ class _CreateRoleBottomSheetState extends ConsumerState<_CreateRoleBottomSheet> 
                       duration: const Duration(milliseconds: 200),
                       child: Icon(
                         Icons.expand_more,
-                        color: Colors.grey[400],
+                        color: TossColors.textTertiary,
                         size: 22,
                       ),
                     ),
@@ -1129,7 +952,7 @@ class _CreateRoleBottomSheetState extends ConsumerState<_CreateRoleBottomSheet> 
             Container(
               decoration: BoxDecoration(
                 border: Border(
-                  top: BorderSide(color: const Color(0xFFE5E8EB), width: 0.5),
+                  top: BorderSide(color: TossColors.borderLight, width: 0.5),
                 ),
               ),
               child: Column(
@@ -1144,7 +967,7 @@ class _CreateRoleBottomSheetState extends ConsumerState<_CreateRoleBottomSheet> 
                   return Column(
                     children: [
                       Material(
-                        color: Colors.transparent,
+                        color: TossColors.transparent,
                         child: InkWell(
                           onTap: () => _togglePermission(featureId),
                           child: Container(
@@ -1161,12 +984,12 @@ class _CreateRoleBottomSheetState extends ConsumerState<_CreateRoleBottomSheet> 
                                   height: 20,
                                   decoration: BoxDecoration(
                                     color: isSelected
-                                        ? Theme.of(context).colorScheme.primary
-                                        : Colors.white,
+                                        ? TossColors.primary
+                                        : TossColors.surface,
                                     border: Border.all(
                                       color: isSelected
-                                          ? Theme.of(context).colorScheme.primary
-                                          : Colors.grey[300]!,
+                                          ? TossColors.primary
+                                          : TossColors.border!,
                                       width: isSelected ? 2 : 1,
                                     ),
                                     borderRadius: BorderRadius.circular(6),
@@ -1175,7 +998,7 @@ class _CreateRoleBottomSheetState extends ConsumerState<_CreateRoleBottomSheet> 
                                       ? Icon(
                                           Icons.check,
                                           size: 14,
-                                          color: Colors.white,
+                                          color: TossColors.white,
                                         )
                                       : null,
                                 ),
@@ -1183,10 +1006,9 @@ class _CreateRoleBottomSheetState extends ConsumerState<_CreateRoleBottomSheet> 
                                 Expanded(
                                   child: Text(
                                     featureName,
-                                    style: TossTextStyles.body.copyWith(
-                                      color: Colors.black87,
+                                    style: TossTextStyles.labelLarge.copyWith(
+                                      color: TossColors.textPrimary,
                                       fontWeight: FontWeight.w400,
-                                      fontSize: 15,
                                     ),
                                   ),
                                 ),
@@ -1199,7 +1021,7 @@ class _CreateRoleBottomSheetState extends ConsumerState<_CreateRoleBottomSheet> 
                         Container(
                           margin: EdgeInsets.only(left: TossSpacing.space10),
                           height: 0.5,
-                          color: const Color(0xFFE5E8EB),
+                          color: TossColors.borderLight,
                         ),
                     ],
                   );
@@ -1238,7 +1060,7 @@ class _CreateRoleBottomSheetState extends ConsumerState<_CreateRoleBottomSheet> 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Please enter a role name'),
-          backgroundColor: const Color(0xFFE53935),
+          backgroundColor: TossColors.error,
         ),
       );
       return;
@@ -1255,7 +1077,7 @@ class _CreateRoleBottomSheetState extends ConsumerState<_CreateRoleBottomSheet> 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Please enter a role name'),
-          backgroundColor: const Color(0xFFE53935),
+          backgroundColor: TossColors.error,
         ),
       );
       return;
@@ -1293,7 +1115,7 @@ class _CreateRoleBottomSheetState extends ConsumerState<_CreateRoleBottomSheet> 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Role "$roleName" created successfully'),
-            backgroundColor: Theme.of(context).colorScheme.primary,
+            backgroundColor: TossColors.primary,
           ),
         );
       }
@@ -1302,7 +1124,7 @@ class _CreateRoleBottomSheetState extends ConsumerState<_CreateRoleBottomSheet> 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Failed to create role: $e'),
-            backgroundColor: const Color(0xFFE53935),
+            backgroundColor: TossColors.error,
           ),
         );
       }

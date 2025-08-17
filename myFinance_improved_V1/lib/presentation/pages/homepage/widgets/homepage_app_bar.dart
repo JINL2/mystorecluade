@@ -33,7 +33,7 @@ class HomepageAppBar extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: TossColors.background,
-        boxShadow: TossShadows.shadow1,
+        boxShadow: TossShadows.elevation1,
       ),
       child: Column(
         children: [

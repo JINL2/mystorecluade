@@ -148,7 +148,6 @@ class _EmployeeDetailSheetV2State extends ConsumerState<EmployeeDetailSheetV2>
           Text(
             employee.fullName,
             style: TossTextStyles.h2.copyWith(
-              fontSize: 24,
               fontWeight: FontWeight.w700,
             ),
           ),
@@ -269,8 +268,7 @@ class _InfoTab extends StatelessWidget {
       children: [
         Text(
           title,
-          style: TossTextStyles.h3.copyWith(
-            fontSize: 18,
+          style: TossTextStyles.h4.copyWith(
             fontWeight: FontWeight.w600,
           ),
         ),
@@ -353,16 +351,14 @@ class _SalaryTab extends StatelessWidget {
                   children: [
                     Text(
                       employee.symbol,
-                      style: TossTextStyles.h2.copyWith(
+                      style: TossTextStyles.h3.copyWith(
                         color: TossColors.gray900,
-                        fontSize: 20,
                       ),
                     ),
                     Text(
                       (employee.totalSalary ?? employee.salaryAmount).toStringAsFixed(0),
-                      style: TossTextStyles.h1.copyWith(
+                      style: TossTextStyles.display.copyWith(
                         color: TossColors.gray900,
-                        fontSize: 32,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
@@ -483,7 +479,6 @@ class _RoleTab extends StatelessWidget {
                   style: TossTextStyles.h3.copyWith(
                     color: hasRole ? TossColors.gray900 : TossColors.gray600,
                     fontWeight: FontWeight.w700,
-                    fontSize: 20,
                   ),
                 ),
               ],
@@ -592,8 +587,7 @@ class _AttendanceTab extends StatelessWidget {
           // Attendance Details
           Text(
             'Attendance Details',
-            style: TossTextStyles.h3.copyWith(
-              fontSize: 18,
+            style: TossTextStyles.h4.copyWith(
               fontWeight: FontWeight.w600,
             ),
           ),

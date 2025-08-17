@@ -27,7 +27,7 @@ final groupedTransactionsProvider =
 typedef GroupedTransactionsRef
     = AutoDisposeProviderRef<Map<String, List<TransactionData>>>;
 String _$transactionFilterOptionsHash() =>
-    r'6cc14f3c52bf0caf415ca42c43db300b03a0930d';
+    r'2c3373e137b426899f0fe840f65e9a7920445e83';
 
 /// See also [transactionFilterOptions].
 @ProviderFor(transactionFilterOptions)
@@ -47,7 +47,7 @@ final transactionFilterOptionsProvider =
 typedef TransactionFilterOptionsRef
     = AutoDisposeFutureProviderRef<TransactionFilterOptions>;
 String _$transactionHistoryHash() =>
-    r'951e37bcac0e322c8d17a80bcbf5d7bfe6941a27';
+    r'4e9dddba08778ee1fd63bf046174946542e4ca58';
 
 /// See also [TransactionHistory].
 @ProviderFor(TransactionHistory)
@@ -64,7 +64,7 @@ final transactionHistoryProvider = AutoDisposeAsyncNotifierProvider<
 
 typedef _$TransactionHistory = AutoDisposeAsyncNotifier<List<TransactionData>>;
 String _$transactionFilterStateHash() =>
-    r'3cd2cc3eb3c3ba91dead9f4cd30ebc598fb7746e';
+    r'700feef23ff0234a80cb59f0f4e87e2b3f9483cf';
 
 /// See also [TransactionFilterState].
 @ProviderFor(TransactionFilterState)

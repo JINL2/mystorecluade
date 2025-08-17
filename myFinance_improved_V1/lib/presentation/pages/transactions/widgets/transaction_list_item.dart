@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/themes/toss_colors.dart';
 import '../../../../core/themes/toss_spacing.dart';
@@ -6,9 +7,10 @@ import '../../../../core/themes/toss_text_styles.dart';
 import '../../../../core/themes/toss_border_radius.dart';
 import '../../../../data/models/transaction_history_model.dart';
 import '../../../widgets/toss/toss_card.dart';
+import '../providers/transaction_history_provider.dart';
 import 'transaction_detail_sheet.dart';
 
-class TransactionListItem extends StatelessWidget {
+class TransactionListItem extends ConsumerWidget {
   final TransactionData transaction;
   
   const TransactionListItem({
@@ -17,10 +19,13 @@ class TransactionListItem extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final currentFilter = ref.watch(transactionFilterStateProvider);
+    final isCompanyScope = currentFilter.scope == TransactionScope.company;
+    
     return TossCard(
       onTap: () => _showTransactionDetail(context),
-      padding: EdgeInsets.all(TossSpacing.space4),
+      padding: const EdgeInsets.all(TossSpacing.space4),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -38,27 +43,71 @@ class TransactionListItem extends StatelessWidget {
                       ),
                     ),
                     if (transaction.createdByName.isNotEmpty && transaction.createdByName != 'Unknown') ...[
-                      SizedBox(width: TossSpacing.space2),
-                      Icon(
+                      const SizedBox(width: TossSpacing.space2),
+                      const Icon(
                         Icons.person_outline,
                         size: 12,
                         color: TossColors.gray400,
                       ),
-                      SizedBox(width: 4),
-                      Text(
-                        transaction.createdByName,
-                        style: TossTextStyles.caption.copyWith(
-                          color: TossColors.gray500,
-                          fontSize: 11,
+                      const SizedBox(width: 4),
+                      Flexible(
+                        child: Text(
+                          transaction.createdByName,
+                          style: TossTextStyles.caption.copyWith(
+                            color: TossColors.gray500,
+                            fontSize: 11,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
                         ),
-                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                    // Show store name (always show if available)
+                    if (transaction.storeName != null && transaction.storeName!.isNotEmpty) ...[
+                      const SizedBox(width: TossSpacing.space2),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: TossSpacing.space1,
+                          vertical: 1,
+                        ),
+                        decoration: BoxDecoration(
+                          color: TossColors.primaryLight.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(4),
+                          border: Border.all(
+                            color: TossColors.primary.withValues(alpha: 0.2),
+                            width: 0.5,
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              Icons.store,
+                              size: 10,
+                              color: TossColors.primary,
+                            ),
+                            const SizedBox(width: 2),
+                            Flexible(
+                              child: Text(
+                                transaction.storeName!,
+                                style: TossTextStyles.caption.copyWith(
+                                  color: TossColors.primary,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 1,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ],
                   ],
                 ),
               ),
               Container(
-                padding: EdgeInsets.symmetric(
+                padding: const EdgeInsets.symmetric(
                   horizontal: TossSpacing.space2,
                   vertical: 2,
                 ),
@@ -78,32 +127,41 @@ class TransactionListItem extends StatelessWidget {
             ],
           ),
           
-          SizedBox(height: TossSpacing.space3),
+          const SizedBox(height: TossSpacing.space3),
           
-          // Transaction Lines
-          ...transaction.lines.asMap().entries.map((entry) {
-            final index = entry.key;
-            final line = entry.value;
-            return Column(
-              children: [
-                _buildTransactionLine(line),
-                if (index < transaction.lines.length - 1)
-                  Padding(
-                    padding: EdgeInsets.symmetric(vertical: TossSpacing.space2),
-                    child: Divider(
-                      color: TossColors.gray100,
-                      height: 1,
+          // Transaction Lines - Sort debits first, then credits
+          ...() {
+            // Separate debits and credits
+            final debitLines = transaction.lines.where((line) => line.isDebit).toList();
+            final creditLines = transaction.lines.where((line) => !line.isDebit).toList();
+            
+            // Combine with debits first
+            final sortedLines = [...debitLines, ...creditLines];
+            
+            return sortedLines.asMap().entries.map((entry) {
+              final index = entry.key;
+              final line = entry.value;
+              return Column(
+                children: [
+                  _buildTransactionLine(line),
+                  if (index < sortedLines.length - 1)
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: TossSpacing.space2),
+                      child: Divider(
+                        color: TossColors.gray100,
+                        height: 1,
+                      ),
                     ),
-                  ),
-              ],
-            );
-          }),
+                ],
+              );
+            });
+          }(),
           
           // Description (if exists and different from line descriptions)
           if (transaction.description.isNotEmpty && 
               !transaction.lines.any((l) => l.description == transaction.description))
             Padding(
-              padding: EdgeInsets.only(top: TossSpacing.space3),
+              padding: const EdgeInsets.only(top: TossSpacing.space3),
               child: Text(
                 transaction.description,
                 style: TossTextStyles.caption.copyWith(
@@ -116,15 +174,15 @@ class TransactionListItem extends StatelessWidget {
           // Attachments indicator
           if (transaction.attachments.isNotEmpty)
             Padding(
-              padding: EdgeInsets.only(top: TossSpacing.space3),
+              padding: const EdgeInsets.only(top: TossSpacing.space3),
               child: Row(
                 children: [
-                  Icon(
+                  const Icon(
                     Icons.attach_file,
                     size: 14,
                     color: TossColors.gray400,
                   ),
-                  SizedBox(width: TossSpacing.space1),
+                  const SizedBox(width: TossSpacing.space1),
                   Text(
                     '${transaction.attachments.length} attachment${transaction.attachments.length > 1 ? 's' : ''}',
                     style: TossTextStyles.caption.copyWith(
@@ -163,17 +221,18 @@ class TransactionListItem extends StatelessWidget {
           ),
         ),
         
-        SizedBox(width: TossSpacing.space3),
+        const SizedBox(width: TossSpacing.space3),
         
         // Main Content
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Account Name with Cash Location
+              // Account Name with Cash Location (fixed overflow)
               Row(
                 children: [
-                  Flexible(
+                  Expanded(
+                    flex: 3,
                     child: Text(
                       line.accountName,
                       style: TossTextStyles.body.copyWith(
@@ -181,78 +240,88 @@ class TransactionListItem extends StatelessWidget {
                         color: TossColors.gray900,
                       ),
                       overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
                     ),
                   ),
                   if (line.cashLocation != null) ...[
-                    SizedBox(width: TossSpacing.space2),
-                    Container(
-                      constraints: BoxConstraints(maxWidth: 120),
-                      padding: EdgeInsets.symmetric(
-                        horizontal: TossSpacing.space2,
-                        vertical: 2,
-                      ),
-                      decoration: BoxDecoration(
-                        color: TossColors.primary.withOpacity(0.08),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            _getCashLocationIcon(line.cashLocation!['type'] as String? ?? ''),
-                            size: 10,
-                            color: TossColors.primary,
-                          ),
-                          SizedBox(width: 2),
-                          Flexible(
-                            child: Text(
-                              line.displayLocation,
-                              style: TossTextStyles.caption.copyWith(
-                                color: TossColors.primary,
-                                fontSize: 10,
-                                fontWeight: FontWeight.w500,
-                              ),
-                              overflow: TextOverflow.ellipsis,
+                    const SizedBox(width: TossSpacing.space1),
+                    Expanded(
+                      flex: 2,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: TossSpacing.space2,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: TossColors.primary.withOpacity(0.08),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              _getCashLocationIcon(line.cashLocation!['type'] as String? ?? ''),
+                              size: 10,
+                              color: TossColors.primary,
                             ),
-                          ),
-                        ],
+                            const SizedBox(width: 2),
+                            Expanded(
+                              child: Text(
+                                line.displayLocation,
+                                style: TossTextStyles.caption.copyWith(
+                                  color: TossColors.primary,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 1,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ],
                 ],
               ),
               
-              // Counterparty
+              // Counterparty (fixed overflow)
               if (line.counterparty != null)
                 Padding(
-                  padding: EdgeInsets.only(top: 2),
+                  padding: const EdgeInsets.only(top: 2),
                   child: Row(
                     children: [
-                      Icon(
+                      const Icon(
                         Icons.person_outline,
                         size: 12,
                         color: TossColors.gray400,
                       ),
-                      SizedBox(width: 4),
-                      Text(
-                        line.displayCounterparty,
-                        style: TossTextStyles.caption.copyWith(
-                          color: TossColors.gray600,
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          line.displayCounterparty,
+                          style: TossTextStyles.caption.copyWith(
+                            color: TossColors.gray600,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
                         ),
                       ),
                     ],
                   ),
                 ),
               
-              // Line Description
+              // Line Description (fixed overflow)
               if (line.description != null && line.description!.isNotEmpty)
                 Padding(
-                  padding: EdgeInsets.only(top: 2),
+                  padding: const EdgeInsets.only(top: 2),
                   child: Text(
                     line.description!,
                     style: TossTextStyles.caption.copyWith(
                       color: TossColors.gray400,
                     ),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 2,
                   ),
                 ),
             ],

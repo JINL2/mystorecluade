@@ -198,7 +198,7 @@ class _TotalJournalPageState extends ConsumerState<TotalJournalPage> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-        boxShadow: TossShadows.cardShadow,
+        boxShadow: TossShadows.card,
       ),
       child: Column(
         children: [

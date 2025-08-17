@@ -3,6 +3,7 @@ import '../../../core/themes/toss_colors.dart';
 import '../../../core/themes/toss_text_styles.dart';
 import '../../../core/themes/toss_border_radius.dart';
 import '../../../core/themes/toss_spacing.dart';
+import '../../../core/themes/toss_animations.dart';
 
 /// Toss-style secondary button
 class TossSecondaryButton extends StatefulWidget {
@@ -11,6 +12,7 @@ class TossSecondaryButton extends StatefulWidget {
   final bool isLoading;
   final bool isEnabled;
   final Widget? leadingIcon;
+  final bool fullWidth;
   
   const TossSecondaryButton({
     super.key,
@@ -19,6 +21,7 @@ class TossSecondaryButton extends StatefulWidget {
     this.isLoading = false,
     this.isEnabled = true,
     this.leadingIcon,
+    this.fullWidth = false,
   });
   
   @override
@@ -34,7 +37,7 @@ class _TossSecondaryButtonState extends State<TossSecondaryButton>
   void initState() {
     super.initState();
     _controller = AnimationController(
-      duration: const Duration(milliseconds: 100),
+      duration: TossAnimations.quick,
       vsync: this,
     );
     _scaleAnimation = Tween<double>(
@@ -42,7 +45,7 @@ class _TossSecondaryButtonState extends State<TossSecondaryButton>
       end: 0.95,
     ).animate(CurvedAnimation(
       parent: _controller,
-      curve: Curves.easeInOut,
+      curve: TossAnimations.standard,
     ));
   }
   
@@ -58,29 +61,33 @@ class _TossSecondaryButtonState extends State<TossSecondaryButton>
         animation: _scaleAnimation,
         builder: (context, child) => Transform.scale(
           scale: _scaleAnimation.value,
-          child: Container(
-            width: double.infinity,
-            height: 56,
-            child: OutlinedButton(
-              onPressed: _isDisabled ? null : widget.onPressed,
-              style: OutlinedButton.styleFrom(
-                backgroundColor: _isDisabled 
-                    ? TossColors.gray100 
-                    : TossColors.background,
-                foregroundColor: _isDisabled 
-                    ? TossColors.gray400 
-                    : TossColors.gray900,
-                side: BorderSide(
-                  color: _isDisabled 
-                      ? TossColors.gray200 
-                      : TossColors.gray300,
-                  width: 1,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-                ),
+          child: OutlinedButton(
+            onPressed: _isDisabled ? null : widget.onPressed,
+            style: OutlinedButton.styleFrom(
+              backgroundColor: _isDisabled 
+                  ? TossColors.gray100 
+                  : TossColors.background,
+              foregroundColor: _isDisabled 
+                  ? TossColors.gray400 
+                  : TossColors.gray900,
+              side: BorderSide(
+                color: _isDisabled 
+                    ? TossColors.gray200 
+                    : TossColors.gray300,
+                width: 1,
               ),
-              child: widget.isLoading
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+              ),
+              minimumSize: widget.fullWidth 
+                  ? const Size(double.infinity, 56)
+                  : const Size(0, 56),
+              padding: EdgeInsets.symmetric(
+                horizontal: TossSpacing.space4,
+                vertical: TossSpacing.space3,
+              ),
+            ),
+            child: widget.isLoading
                   ? SizedBox(
                       width: 24,
                       height: 24,
@@ -109,7 +116,6 @@ class _TossSecondaryButtonState extends State<TossSecondaryButton>
                         ),
                       ],
                     ),
-            ),
           ),
         ),
       ),

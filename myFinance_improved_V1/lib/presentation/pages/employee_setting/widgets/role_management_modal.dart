@@ -186,8 +186,7 @@ class _RoleManagementModalState extends ConsumerState<RoleManagementModal> {
               children: [
                 Text(
                   'Manage Role',
-                  style: TossTextStyles.h2.copyWith(
-                    fontSize: 20,
+                  style: TossTextStyles.h3.copyWith(
                     fontWeight: FontWeight.w700,
                   ),
                 ),
@@ -416,7 +415,7 @@ class _RoleItem extends StatelessWidget {
                           ),
                           child: Text(
                             'Current',
-                            style: TossTextStyles.labelSmall.copyWith(
+                            style: TossTextStyles.small.copyWith(
                               color: TossColors.success,
                               fontWeight: FontWeight.w600,
                             ),

@@ -3,6 +3,7 @@ import '../../../core/themes/toss_colors.dart';
 import '../../../core/themes/toss_text_styles.dart';
 import '../../../core/themes/toss_border_radius.dart';
 import '../../../core/themes/toss_spacing.dart';
+import '../../../core/themes/toss_animations.dart';
 
 /// Toss-style primary button with micro-interactions
 class TossPrimaryButton extends StatefulWidget {
@@ -11,6 +12,7 @@ class TossPrimaryButton extends StatefulWidget {
   final bool isLoading;
   final bool isEnabled;
   final Widget? leadingIcon;
+  final bool fullWidth;
   
   const TossPrimaryButton({
     super.key,
@@ -19,6 +21,7 @@ class TossPrimaryButton extends StatefulWidget {
     this.isLoading = false,
     this.isEnabled = true,
     this.leadingIcon,
+    this.fullWidth = false,
   });
   
   @override
@@ -34,7 +37,7 @@ class _TossPrimaryButtonState extends State<TossPrimaryButton>
   void initState() {
     super.initState();
     _controller = AnimationController(
-      duration: const Duration(milliseconds: 100),
+      duration: TossAnimations.quick,
       vsync: this,
     );
     _scaleAnimation = Tween<double>(
@@ -42,7 +45,7 @@ class _TossPrimaryButtonState extends State<TossPrimaryButton>
       end: 0.95,
     ).animate(CurvedAnimation(
       parent: _controller,
-      curve: Curves.easeInOut,
+      curve: TossAnimations.standard,
     ));
   }
   
@@ -58,24 +61,28 @@ class _TossPrimaryButtonState extends State<TossPrimaryButton>
         animation: _scaleAnimation,
         builder: (context, child) => Transform.scale(
           scale: _scaleAnimation.value,
-          child: Container(
-            width: double.infinity,
-            height: 56,
-            child: ElevatedButton(
-              onPressed: _isDisabled ? null : widget.onPressed,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: _isDisabled 
-                    ? TossColors.gray200 
-                    : TossColors.primary,
-                foregroundColor: _isDisabled 
-                    ? TossColors.gray400 
-                    : Colors.white,
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-                ),
+          child: ElevatedButton(
+            onPressed: _isDisabled ? null : widget.onPressed,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: _isDisabled 
+                  ? TossColors.gray200 
+                  : TossColors.primary,
+              foregroundColor: _isDisabled 
+                  ? TossColors.gray400 
+                  : Colors.white,
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(TossBorderRadius.lg),
               ),
-              child: widget.isLoading
+              minimumSize: widget.fullWidth 
+                  ? const Size(double.infinity, 56)
+                  : const Size(0, 56),
+              padding: EdgeInsets.symmetric(
+                horizontal: TossSpacing.space4,
+                vertical: TossSpacing.space3,
+              ),
+            ),
+            child: widget.isLoading
                   ? SizedBox(
                       width: 24,
                       height: 24,
@@ -104,7 +111,6 @@ class _TossPrimaryButtonState extends State<TossPrimaryButton>
                         ),
                       ],
                     ),
-            ),
           ),
         ),
       ),

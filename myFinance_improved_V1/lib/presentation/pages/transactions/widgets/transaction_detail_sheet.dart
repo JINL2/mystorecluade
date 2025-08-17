@@ -9,7 +9,6 @@ import '../../../../data/models/transaction_history_model.dart';
 import '../../../widgets/toss/toss_bottom_sheet.dart';
 import '../../../widgets/toss/toss_icon_button.dart';
 import '../../../widgets/toss/toss_card.dart';
-import '../../../widgets/toss/toss_chip.dart';
 
 class TransactionDetailSheet extends StatelessWidget {
   final TransactionData transaction;
@@ -32,44 +31,44 @@ class TransactionDetailSheet extends StatelessWidget {
           // Header
           _buildHeader(context),
           
-          SizedBox(height: TossSpacing.space4),
+          const SizedBox(height: TossSpacing.space4),
           
           // Transaction Info Card
           _buildTransactionInfoCard(),
           
-          SizedBox(height: TossSpacing.space4),
+          const SizedBox(height: TossSpacing.space4),
           
           // Debit Section
           if (debitLines.isNotEmpty) ...[
             _buildSectionHeader('Debit', TossColors.success, debitLines),
-            SizedBox(height: TossSpacing.space3),
+            const SizedBox(height: TossSpacing.space3),
             ...debitLines.map((line) => _buildLineDetail(line, true)),
-            SizedBox(height: TossSpacing.space4),
+            const SizedBox(height: TossSpacing.space4),
           ],
           
           // Credit Section
           if (creditLines.isNotEmpty) ...[
             _buildSectionHeader('Credit', TossColors.loss, creditLines),
-            SizedBox(height: TossSpacing.space3),
+            const SizedBox(height: TossSpacing.space3),
             ...creditLines.map((line) => _buildLineDetail(line, false)),
-            SizedBox(height: TossSpacing.space4),
+            const SizedBox(height: TossSpacing.space4),
           ],
           
           // Balance Check
           _buildBalanceCheck(),
           
-          SizedBox(height: TossSpacing.space4),
+          const SizedBox(height: TossSpacing.space4),
           
           // Metadata
           _buildMetadata(),
           
           // Attachments
           if (transaction.attachments.isNotEmpty) ...[
-            SizedBox(height: TossSpacing.space4),
+            const SizedBox(height: TossSpacing.space4),
             _buildAttachments(),
           ],
           
-          SizedBox(height: TossSpacing.space6),
+          const SizedBox(height: TossSpacing.space6),
         ],
       ),
     );
@@ -88,7 +87,7 @@ class TransactionDetailSheet extends StatelessWidget {
                   color: TossColors.gray500,
                 ),
               ),
-              SizedBox(height: TossSpacing.space1),
+              const SizedBox(height: TossSpacing.space1),
               Row(
                 children: [
                   Text(
@@ -98,13 +97,13 @@ class TransactionDetailSheet extends StatelessWidget {
                       fontFamily: 'JetBrains Mono',
                     ),
                   ),
-                  SizedBox(width: TossSpacing.space2),
+                  const SizedBox(width: TossSpacing.space2),
                   _buildStatusBadge(
                     transaction.journalType.toUpperCase(),
                     _getTypeColor(transaction.journalType),
                   ),
                   if (transaction.isDraft) ...[
-                    SizedBox(width: TossSpacing.space1),
+                    const SizedBox(width: TossSpacing.space1),
                     _buildStatusBadge('DRAFT', TossColors.warning),
                   ],
                 ],
@@ -138,7 +137,7 @@ class TransactionDetailSheet extends StatelessWidget {
 
   Widget _buildStatusBadge(String label, Color color) {
     return Container(
-      padding: EdgeInsets.symmetric(
+      padding: const EdgeInsets.symmetric(
         horizontal: TossSpacing.space2,
         vertical: 2,
       ),
@@ -160,15 +159,15 @@ class TransactionDetailSheet extends StatelessWidget {
   Widget _buildTransactionInfoCard() {
     return TossCard(
       backgroundColor: TossColors.gray50,
-      padding: EdgeInsets.all(TossSpacing.space4),
+      padding: const EdgeInsets.all(TossSpacing.space4),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (transaction.description.isNotEmpty) ...[
             Row(
               children: [
-                Icon(Icons.description_outlined, size: 16, color: TossColors.gray500),
-                SizedBox(width: TossSpacing.space2),
+                const Icon(Icons.description_outlined, size: 16, color: TossColors.gray500),
+                const SizedBox(width: TossSpacing.space2),
                 Expanded(
                   child: Text(
                     transaction.description,
@@ -179,7 +178,7 @@ class TransactionDetailSheet extends StatelessWidget {
                 ),
               ],
             ),
-            SizedBox(height: TossSpacing.space2),
+            const SizedBox(height: TossSpacing.space2),
           ],
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -220,7 +219,7 @@ class TransactionDetailSheet extends StatelessWidget {
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
-            SizedBox(width: TossSpacing.space2),
+            const SizedBox(width: TossSpacing.space2),
             Text(
               title,
               style: TossTextStyles.body.copyWith(
@@ -228,9 +227,9 @@ class TransactionDetailSheet extends StatelessWidget {
                 color: TossColors.gray900,
               ),
             ),
-            SizedBox(width: TossSpacing.space2),
+            const SizedBox(width: TossSpacing.space2),
             Container(
-              padding: EdgeInsets.symmetric(
+              padding: const EdgeInsets.symmetric(
                 horizontal: TossSpacing.space2,
                 vertical: 2,
               ),
@@ -264,8 +263,8 @@ class TransactionDetailSheet extends StatelessWidget {
     final color = isDebit ? TossColors.success : TossColors.loss;
     
     return Container(
-      margin: EdgeInsets.only(bottom: TossSpacing.space3),
-      padding: EdgeInsets.all(TossSpacing.space3),
+      margin: const EdgeInsets.only(bottom: TossSpacing.space3),
+      padding: const EdgeInsets.all(TossSpacing.space3),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(TossBorderRadius.sm),
@@ -313,9 +312,9 @@ class TransactionDetailSheet extends StatelessWidget {
           
           // Cash Location
           if (line.cashLocation != null) ...[
-            SizedBox(height: TossSpacing.space2),
+            const SizedBox(height: TossSpacing.space2),
             Container(
-              padding: EdgeInsets.all(TossSpacing.space2),
+              padding: const EdgeInsets.all(TossSpacing.space2),
               decoration: BoxDecoration(
                 color: TossColors.primary.withOpacity(0.05),
                 borderRadius: BorderRadius.circular(4),
@@ -327,7 +326,7 @@ class TransactionDetailSheet extends StatelessWidget {
                     size: 14,
                     color: TossColors.primary,
                   ),
-                  SizedBox(width: TossSpacing.space2),
+                  const SizedBox(width: TossSpacing.space2),
                   Text(
                     'Cash Location: ',
                     style: TossTextStyles.caption.copyWith(
@@ -352,15 +351,15 @@ class TransactionDetailSheet extends StatelessWidget {
           
           // Counterparty
           if (line.counterparty != null) ...[
-            SizedBox(height: TossSpacing.space2),
+            const SizedBox(height: TossSpacing.space2),
             Row(
               children: [
-                Icon(
+                const Icon(
                   Icons.person_outline,
                   size: 14,
                   color: TossColors.gray400,
                 ),
-                SizedBox(width: TossSpacing.space2),
+                const SizedBox(width: TossSpacing.space2),
                 Text(
                   '${line.counterparty!['type'] as String? ?? ''}: ',
                   style: TossTextStyles.caption.copyWith(
@@ -382,7 +381,7 @@ class TransactionDetailSheet extends StatelessWidget {
           
           // Line Description
           if (line.description != null && line.description!.isNotEmpty) ...[
-            SizedBox(height: TossSpacing.space2),
+            const SizedBox(height: TossSpacing.space2),
             Text(
               line.description!,
               style: TossTextStyles.caption.copyWith(
@@ -402,7 +401,7 @@ class TransactionDetailSheet extends StatelessWidget {
     final isBalanced = (totalDebit - totalCredit).abs() < 0.01;
     
     return Container(
-      padding: EdgeInsets.all(TossSpacing.space3),
+      padding: const EdgeInsets.all(TossSpacing.space3),
       decoration: BoxDecoration(
         color: isBalanced ? TossColors.success.withOpacity(0.05) : TossColors.error.withOpacity(0.05),
         borderRadius: BorderRadius.circular(TossBorderRadius.sm),
@@ -420,7 +419,7 @@ class TransactionDetailSheet extends StatelessWidget {
                 size: 16,
                 color: isBalanced ? TossColors.success : TossColors.error,
               ),
-              SizedBox(width: TossSpacing.space2),
+              const SizedBox(width: TossSpacing.space2),
               Text(
                 isBalanced ? 'Balanced' : 'Unbalanced',
                 style: TossTextStyles.caption.copyWith(
@@ -454,8 +453,10 @@ class TransactionDetailSheet extends StatelessWidget {
             fontWeight: FontWeight.w600,
           ),
         ),
-        SizedBox(height: TossSpacing.space2),
+        const SizedBox(height: TossSpacing.space2),
         _buildMetadataRow('Created by', transaction.createdByName),
+        if (transaction.storeName != null && transaction.storeName!.isNotEmpty)
+          _buildMetadataRow('Store', transaction.storeName!, color: TossColors.primary),
         _buildMetadataRow('Currency', '${transaction.currencyCode} (${transaction.currencySymbol})'),
         _buildMetadataRow('Type', transaction.journalType),
         if (transaction.isDraft)
@@ -466,7 +467,7 @@ class TransactionDetailSheet extends StatelessWidget {
 
   Widget _buildMetadataRow(String label, String value, {Color? color}) {
     return Padding(
-      padding: EdgeInsets.symmetric(vertical: 2),
+      padding: const EdgeInsets.symmetric(vertical: 2),
       child: Row(
         children: [
           SizedBox(
@@ -502,11 +503,11 @@ class TransactionDetailSheet extends StatelessWidget {
             fontWeight: FontWeight.w600,
           ),
         ),
-        SizedBox(height: TossSpacing.space2),
+        const SizedBox(height: TossSpacing.space2),
         ...transaction.attachments.map((attachment) => 
           Container(
-            margin: EdgeInsets.only(bottom: TossSpacing.space2),
-            padding: EdgeInsets.all(TossSpacing.space2),
+            margin: const EdgeInsets.only(bottom: TossSpacing.space2),
+            padding: const EdgeInsets.all(TossSpacing.space2),
             decoration: BoxDecoration(
               color: TossColors.gray50,
               borderRadius: BorderRadius.circular(TossBorderRadius.sm),
@@ -521,7 +522,7 @@ class TransactionDetailSheet extends StatelessWidget {
                   size: 16,
                   color: TossColors.gray500,
                 ),
-                SizedBox(width: TossSpacing.space2),
+                const SizedBox(width: TossSpacing.space2),
                 Expanded(
                   child: Text(
                     attachment.fileName,
@@ -554,7 +555,7 @@ class TransactionDetailSheet extends StatelessWidget {
       case 'purchase':
         return TossColors.loss;
       case 'payment':
-        return TossColors.blue;
+        return TossColors.primary;
       case 'receipt':
         return TossColors.info;
       default:

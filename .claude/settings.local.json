@@ -27,7 +27,12 @@
       "Bash(flutter pub:*)",
       "Bash(ls:*)",
       "Bash(touch:*)",
-      "Bash(timeout 30 flutter build ios --debug --no-codesign)"
+      "Bash(timeout 30 flutter build ios --debug --no-codesign)",
+      "WebFetch(domain:brand.toss.im)",
+      "WebSearch",
+      "Bash(flutter packages:*)",
+      "Bash(true)",
+      "Bash(flutter:*)"
     ],
     "deny": []
   }

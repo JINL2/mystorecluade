@@ -272,8 +272,7 @@ class _SalaryEditModalState extends ConsumerState<SalaryEditModal> {
               children: [
                 Text(
                   'Edit Salary',
-                  style: TossTextStyles.h2.copyWith(
-                    fontSize: 20,
+                  style: TossTextStyles.h3.copyWith(
                     fontWeight: FontWeight.w700,
                   ),
                 ),
@@ -330,7 +329,6 @@ class _SalaryEditModalState extends ConsumerState<SalaryEditModal> {
                 _numberFormat.format(widget.employee.salaryAmount),
                 style: TossTextStyles.h2.copyWith(
                   color: TossColors.gray900,
-                  fontSize: 24,
                 ),
               ),
               Text(

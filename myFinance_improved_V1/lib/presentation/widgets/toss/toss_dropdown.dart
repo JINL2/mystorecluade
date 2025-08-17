@@ -32,15 +32,17 @@ class TossDropdown<T> extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Label
-        Text(
-          label,
-          style: TossTextStyles.caption.copyWith(
-            color: hasError ? TossColors.error : TossColors.gray700,
-            fontWeight: FontWeight.w600,
+        // Label (only show if not empty)
+        if (label.isNotEmpty) ...[
+          Text(
+            label,
+            style: TossTextStyles.caption.copyWith(
+              color: hasError ? TossColors.error : TossColors.gray700,
+              fontWeight: FontWeight.w600,
+            ),
           ),
-        ),
-        SizedBox(height: TossSpacing.space2),
+          SizedBox(height: TossSpacing.space2),
+        ],
         
         // Dropdown Field
         Container(

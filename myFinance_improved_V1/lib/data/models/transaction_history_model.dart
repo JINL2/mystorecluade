@@ -13,6 +13,9 @@ class TransactionData with _$TransactionData {
     @JsonKey(name: 'description') required String description,
     @JsonKey(name: 'journal_type') required String journalType,
     @JsonKey(name: 'is_draft') required bool isDraft,
+    @JsonKey(name: 'store_id') String? storeId,
+    @JsonKey(name: 'store_name') String? storeName,
+    @JsonKey(name: 'store_code') String? storeCode,
     @JsonKey(name: 'created_by') String? createdBy,
     @JsonKey(name: 'created_by_name') required String createdByName,
     @JsonKey(name: 'currency_code') required String currencyCode,
@@ -61,6 +64,9 @@ class TransactionData with _$TransactionData {
         description: json['description'] ?? '',
         journalType: json['journal_type'] ?? '',
         isDraft: json['is_draft'] ?? false,
+        storeId: json['store_id']?.toString(),
+        storeName: json['store_name'],
+        storeCode: json['store_code'],
         createdBy: json['created_by']?.toString(),
         createdByName: json['created_by_name'] ?? 'Unknown',
         currencyCode: json['currency_code'] ?? 'USD',
@@ -106,7 +112,7 @@ extension TransactionDataExtension on TransactionData {
   double get amount => totalAmount;
   bool get isBalanced => (totalDebit - totalCredit).abs() < 0.01;
   int get attachmentCount => attachments.length;
-  String get storeName => ''; // Not available in current schema
+  // storeName is now available directly from the model, no need to override
 }
 
 @freezed
@@ -158,9 +164,16 @@ extension TransactionLineExtension on TransactionLine {
   double get amount => isDebit ? debit : credit;
 }
 
+// Enum for transaction scope
+enum TransactionScope {
+  store,  // Show only current store (default)
+  company // Show all stores in company
+}
+
 @freezed
 class TransactionFilter with _$TransactionFilter {
   const factory TransactionFilter({
+    @Default(TransactionScope.store) TransactionScope scope, // Default to store view
     DateTime? dateFrom,
     DateTime? dateTo,
     String? accountId,
@@ -193,6 +206,7 @@ class TransactionSummary with _$TransactionSummary {
 
 // Simple filter options classes without freezed for better compatibility
 class TransactionFilterOptions {
+  final List<FilterOption> stores;
   final List<FilterOption> accounts;
   final List<FilterOption> cashLocations;
   final List<FilterOption> counterparties;
@@ -200,6 +214,7 @@ class TransactionFilterOptions {
   final List<FilterOption> users; // Users who created transactions
 
   const TransactionFilterOptions({
+    this.stores = const [],
     this.accounts = const [],
     this.cashLocations = const [],
     this.counterparties = const [],
@@ -222,10 +237,10 @@ class FilterOption {
   });
 
   factory FilterOption.fromJson(Map<String, dynamic> json) {
-    // The RPC returns 'id' and 'label' fields
+    // The RPC returns 'id' and 'name' fields
     return FilterOption(
       id: json['id']?.toString(),
-      name: json['label'] as String? ?? json['name'] as String? ?? '',
+      name: json['name'] as String? ?? json['label'] as String? ?? '',
       type: json['type'] as String?,
       transactionCount: json['transaction_count'] as int? ?? 0,
     );
