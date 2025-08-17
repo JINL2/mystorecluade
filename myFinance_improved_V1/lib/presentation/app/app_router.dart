@@ -22,6 +22,7 @@ import '../pages/register_denomination/register_denomination_page.dart';
 import '../pages/cash_location/cash_location_page.dart';
 import '../pages/cash_location/account_detail_page.dart';
 import '../pages/transactions/transaction_history_page.dart';
+import '../pages/transaction_template/transaction_template_page.dart';
 
 
 // Router notifier to listen to auth state changes
@@ -147,6 +148,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: 'transactionHistory',
             builder: (context, state) => const TransactionHistoryPage(),
+          ),
+          // Transaction Template Page
+          GoRoute(
+            path: 'transactionTemplate',
+            builder: (context, state) => const TransactionTemplatePage(),
           ),
           GoRoute(
             path: 'cashLocation',
