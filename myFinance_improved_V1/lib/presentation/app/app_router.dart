@@ -23,6 +23,9 @@ import '../pages/cash_location/cash_location_page.dart';
 import '../pages/cash_location/account_detail_page.dart';
 import '../pages/transactions/transaction_history_page.dart';
 import '../pages/transaction_template/transaction_template_page.dart';
+import '../pages/my_page/my_page.dart';
+import '../pages/debt_account_settings/debt_account_settings_page.dart';
+import '../pages/component_test/component_test_page.dart';
 
 
 // Router notifier to listen to auth state changes
@@ -135,6 +138,18 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             path: 'registerCounterparty',
             builder: (context, state) => const CounterPartyPage(),
           ),
+          // Debt Account Settings
+          GoRoute(
+            path: 'debtAccountSettings/:counterpartyId/:counterpartyName',
+            builder: (context, state) {
+              final counterpartyId = state.pathParameters['counterpartyId'] ?? '';
+              final counterpartyName = state.pathParameters['counterpartyName'] ?? '';
+              return DebtAccountSettingsPage(
+                counterpartyId: counterpartyId,
+                counterpartyName: counterpartyName,
+              );
+            },
+          ),
           GoRoute(
             path: 'addFixAsset',
             builder: (context, state) => const AddFixAssetPage(),
@@ -153,6 +168,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: 'transactionTemplate',
             builder: (context, state) => const TransactionTemplatePage(),
+          ),
+          // My Page
+          GoRoute(
+            path: 'myPage',
+            builder: (context, state) => const MyPage(),
           ),
           GoRoute(
             path: 'cashLocation',
@@ -177,6 +197,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 },
               ),
             ],
+          ),
+          // Component Test Page
+          GoRoute(
+            path: 'test',
+            builder: (context, state) => const ComponentTestPage(),
           ),
         ],
       ),

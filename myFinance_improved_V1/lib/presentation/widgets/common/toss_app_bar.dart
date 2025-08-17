@@ -55,7 +55,7 @@ class TossAppBar extends StatelessWidget implements PreferredSizeWidget {
             icon: Icon(
               secondaryActionIcon,
               color: TossColors.textSecondary,
-              size: 24,
+              size: TossSpacing.iconLG,
             ),
             onPressed: onSecondaryAction,
           ),
@@ -83,7 +83,7 @@ class TossAppBar extends StatelessWidget implements PreferredSizeWidget {
                       if (primaryActionIcon != null) ...[
                         Icon(
                           primaryActionIcon,
-                          size: 18,
+                          size: TossSpacing.iconMD,
                           color: TossColors.primary,
                         ),
                         SizedBox(width: TossSpacing.space1),

@@ -22,13 +22,10 @@ final userCompaniesProvider = FutureProvider<dynamic>((ref) async {
   
   // Check if we have cached data and don't need to refresh
   if (appStateNotifier.hasUserData && !needsRefresh) {
-    print('TransactionTemplate UserCompaniesProvider: Using cached data');
     return appState.user;
   }
   
   // Fetch fresh data from API using RPC function
-  print('TransactionTemplate UserCompaniesProvider: Fetching fresh data from API for user: ${user.id}');
-  
   // Call get_user_companies_and_stores(user_id) RPC
   final supabase = Supabase.instance.client;
   final response = await supabase.rpc('get_user_companies_and_stores', params: {'p_user_id': user.id});
@@ -37,7 +34,6 @@ final userCompaniesProvider = FutureProvider<dynamic>((ref) async {
   await appStateNotifier.setUser(response);
   
   final companies = response['companies'] as List<dynamic>? ?? [];
-  print('TransactionTemplate UserCompaniesProvider: Fetched ${companies.length} companies');
   
   // Auto-select first company if none selected
   if (appState.companyChoosen.isEmpty && companies.isNotEmpty) {
@@ -54,14 +50,12 @@ final categoriesWithFeaturesProvider = FutureProvider<dynamic>((ref) async {
   final appState = ref.watch(appStateProvider);
   final appStateNotifier = ref.read(appStateProvider.notifier);
   
-  print('TransactionTemplate CategoriesProvider: App state companyChoosen: ${appState.companyChoosen}');
   
   // Check if we need to refresh (no cached data)
   final needsRefresh = !appStateNotifier.hasCategoryFeatures;
   
   // Check if we have cached categories and don't need to refresh
   if (appStateNotifier.hasCategoryFeatures && !needsRefresh) {
-    print('TransactionTemplate CategoriesProvider: Using cached categories');
     return appState.categoryFeatures;
   }
   
@@ -69,19 +63,15 @@ final categoriesWithFeaturesProvider = FutureProvider<dynamic>((ref) async {
   final selectedCompany = appStateNotifier.selectedCompany;
   
   if (selectedCompany == null) {
-    print('TransactionTemplate CategoriesProvider: No selected company, returning empty list');
     return [];
   }
   
-  print('TransactionTemplate CategoriesProvider: Selected company: ${selectedCompany['company_name']}');
   final userRole = selectedCompany['role'];
   final permissions = userRole['permissions'] as List<dynamic>? ?? [];
-  print('TransactionTemplate CategoriesProvider: User permissions count: ${permissions.length}');
   
   // Fetch all categories with features using RPC
   final supabase = Supabase.instance.client;
   final categories = await supabase.rpc('get_categories_with_features');
-  print('TransactionTemplate CategoriesProvider: Fetched ${(categories as List).length} categories from RPC');
   
   // Filter features based on user permissions
   final filteredCategories = [];
@@ -91,7 +81,6 @@ final categoriesWithFeaturesProvider = FutureProvider<dynamic>((ref) async {
       return permissions.contains(feature['feature_id']);
     }).toList();
     
-    print('TransactionTemplate CategoriesProvider: Category "${category['category_name']}" has ${filteredFeatures.length}/${features.length} permitted features');
     
     if (filteredFeatures.isNotEmpty) {
       filteredCategories.add({
@@ -105,7 +94,6 @@ final categoriesWithFeaturesProvider = FutureProvider<dynamic>((ref) async {
   // Save to app state for persistence
   await appStateNotifier.setCategoryFeatures(filteredCategories);
   
-  print('TransactionTemplate CategoriesProvider: Returning ${filteredCategories.length} filtered categories');
   return filteredCategories;
 });
 
@@ -121,12 +109,10 @@ final transactionTemplatesProvider = FutureProvider<List<TransactionTemplate>>((
   
   // Return empty list if no company selected
   if (companyId.isEmpty) {
-    print('TransactionTemplates: No company selected, returning empty list');
     return [];
   }
   
   if (currentUser == null) {
-    print('TransactionTemplates: No user authenticated, returning empty list');
     return [];
   }
   
@@ -148,7 +134,6 @@ final transactionTemplatesProvider = FutureProvider<List<TransactionTemplate>>((
       // Ensure response is a List
       final responseList = response is List ? response : [response];
       
-      print('TransactionTemplates: Fetched ${responseList.length} templates for company: $companyId and store: $storeId');
       
       // Filter templates based on visibility level
       final filteredTemplates = responseList.where((item) {
@@ -170,7 +155,6 @@ final transactionTemplatesProvider = FutureProvider<List<TransactionTemplate>>((
         return false;
       }).toList();
       
-      print('TransactionTemplates: After visibility filtering, showing ${filteredTemplates.length} templates');
       
       // Convert to TransactionTemplate models
       final templates = filteredTemplates
@@ -185,7 +169,6 @@ final transactionTemplatesProvider = FutureProvider<List<TransactionTemplate>>((
       // Ensure response is a List
       final responseList = response is List ? response : [response];
       
-      print('TransactionTemplates: Fetched ${responseList.length} company-wide templates for company: $companyId');
       
       // Filter templates based on visibility level
       final filteredTemplates = responseList.where((item) {
@@ -207,7 +190,6 @@ final transactionTemplatesProvider = FutureProvider<List<TransactionTemplate>>((
         return false;
       }).toList();
       
-      print('TransactionTemplates: After visibility filtering, showing ${filteredTemplates.length} templates');
       
       // Convert to TransactionTemplate models
       final templates = filteredTemplates
@@ -217,7 +199,6 @@ final transactionTemplatesProvider = FutureProvider<List<TransactionTemplate>>((
       return templates;
     }
   } catch (e) {
-    print('TransactionTemplates: Error fetching templates: $e');
     throw Exception('Failed to fetch transaction templates: $e');
   }
 });
@@ -233,7 +214,6 @@ final accountsProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async 
         .select('account_id, account_name, category_tag')
         .order('account_name');
     
-    print('Accounts: Fetched ${response.length} accounts');
     
     // Filter out fixedAsset accounts for transaction templates
     final filteredAccounts = response.where((account) {
@@ -241,11 +221,9 @@ final accountsProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async 
       return categoryTag != 'fixedasset';
     }).toList();
     
-    print('Accounts: Filtered to ${filteredAccounts.length} accounts (excluded fixedAsset)');
     
     return List<Map<String, dynamic>>.from(filteredAccounts);
   } catch (e) {
-    print('Accounts: Error fetching accounts: $e');
     throw Exception('Failed to fetch accounts: $e');
   }
 });
@@ -259,7 +237,6 @@ final cashLocationsProvider = FutureProvider<List<Map<String, dynamic>>>((ref) a
     final storeId = appState.storeChoosen;
     
     if (companyId.isEmpty) {
-      print('CashLocations: No company selected, returning empty list');
       return [];
     }
     
@@ -278,11 +255,9 @@ final cashLocationsProvider = FutureProvider<List<Map<String, dynamic>>>((ref) a
     
     final response = await query.order('location_name');
     
-    print('CashLocations: Fetched ${response.length} cash locations');
     
     return List<Map<String, dynamic>>.from(response);
   } catch (e) {
-    print('CashLocations: Error fetching cash locations: $e');
     throw Exception('Failed to fetch cash locations: $e');
   }
 });
@@ -295,7 +270,6 @@ final counterpartiesProvider = FutureProvider<List<Map<String, dynamic>>>((ref) 
     final companyId = appState.companyChoosen;
     
     if (companyId.isEmpty) {
-      print('Counterparties: No company selected, returning empty list');
       return [];
     }
     
@@ -306,11 +280,9 @@ final counterpartiesProvider = FutureProvider<List<Map<String, dynamic>>>((ref) 
         .eq('company_id', companyId)
         .order('name');
     
-    print('Counterparties: Fetched ${response.length} counterparties');
     
     return List<Map<String, dynamic>>.from(response);
   } catch (e) {
-    print('Counterparties: Error fetching counterparties: $e');
     throw Exception('Failed to fetch counterparties: $e');
   }
 });
@@ -319,7 +291,6 @@ final counterpartiesProvider = FutureProvider<List<Map<String, dynamic>>>((ref) 
 final counterpartyCashLocationsProvider = FutureProvider.family<List<Map<String, dynamic>>, String?>((ref, linkedCompanyId) async {
   try {
     if (linkedCompanyId == null || linkedCompanyId.isEmpty) {
-      print('CounterpartyCashLocations: No linked company ID, returning empty list');
       return [];
     }
     
@@ -332,7 +303,6 @@ final counterpartyCashLocationsProvider = FutureProvider.family<List<Map<String,
         .eq('company_id', linkedCompanyId)
         .order('location_name');
     
-    print('CounterpartyCashLocations: Fetched ${response.length} cash locations for company: $linkedCompanyId');
     
     // Add "None" option at the beginning (it should be first in the list)
     final locations = <Map<String, dynamic>>[
@@ -344,7 +314,6 @@ final counterpartyCashLocationsProvider = FutureProvider.family<List<Map<String,
     
     return locations;
   } catch (e) {
-    print('CounterpartyCashLocations: Error fetching cash locations: $e');
     throw Exception('Failed to fetch counterparty cash locations: $e');
   }
 });
@@ -394,9 +363,7 @@ final createTransactionTemplateProvider = Provider<Future<void> Function(Map<Str
       // Invalidate the templates provider to refresh the list
       ref.invalidate(transactionTemplatesProvider);
       
-      print('TransactionTemplate: Created new template successfully');
     } catch (e) {
-      print('TransactionTemplate: Error creating template: $e');
       throw Exception('Failed to create transaction template: $e');
     }
   };
@@ -524,11 +491,8 @@ final executeTransactionTemplateProvider = Provider<Future<void> Function(Transa
         },
       );
       
-      print('ExecuteTemplate: Created journal entry from template "${template.name}" with amount: $amount');
-      print('RPC Response: $response');
       
     } catch (e) {
-      print('ExecuteTemplate: Error executing template: $e');
       throw Exception('Failed to execute transaction template: $e');
     }
   };

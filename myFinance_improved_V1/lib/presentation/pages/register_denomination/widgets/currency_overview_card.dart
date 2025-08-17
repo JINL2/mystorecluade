@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../widgets/toss/toss_card.dart';
 import '../../../../core/themes/toss_colors.dart';
@@ -12,6 +13,7 @@ import '../providers/denomination_providers.dart';
 import '../../../providers/app_state_provider.dart';
 import 'denomination_grid.dart';
 import 'add_denomination_bottom_sheet.dart';
+import 'add_currency_bottom_sheet.dart';
 
 class CurrencyOverviewCard extends ConsumerWidget {
   final Currency currency;
@@ -25,7 +27,7 @@ class CurrencyOverviewCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final expandedCurrencies = ref.watch(expandedCurrenciesProvider);
     final isExpanded = expandedCurrencies.contains(currency.id);
-    final denominationsAsync = ref.watch(denominationListProvider(currency.id));
+    final denominationsAsync = ref.watch(effectiveDenominationListProvider(currency.id));
 
     return TossCard(
       onTap: () => _toggleExpansion(ref),
@@ -97,7 +99,7 @@ class CurrencyOverviewCard extends ConsumerWidget {
     // Use Consumer to get denomination count dynamically
     return Consumer(
       builder: (context, ref, _) {
-        final denominationsAsync = ref.watch(denominationListProvider(currency.id));
+        final denominationsAsync = ref.watch(effectiveDenominationListProvider(currency.id));
         
         return denominationsAsync.when(
           data: (denominations) => _buildHeaderWithDenominations(isExpanded, denominations),
@@ -394,7 +396,13 @@ class CurrencyOverviewCard extends ConsumerWidget {
                   ),
                 ),
                 orElse: () => TextButton(
-                  onPressed: () => _deleteCurrency(context, ref),
+                  onPressed: () {
+                    // Check if not already loading before allowing delete
+                    final operationState = ref.read(currencyOperationsProvider);
+                    if (!operationState.isLoading) {
+                      _deleteCurrency(context, ref);
+                    }
+                  },
                   style: TextButton.styleFrom(
                     foregroundColor: TossColors.error,
                   ),
@@ -415,6 +423,14 @@ class CurrencyOverviewCard extends ConsumerWidget {
   }
 
   void _deleteCurrency(BuildContext context, WidgetRef ref) async {
+    // Haptic feedback for delete action
+    HapticFeedback.lightImpact();
+    
+    // Close dialog immediately for better UX
+    if (context.mounted) {
+      Navigator.of(context).pop();
+    }
+    
     try {
       final appState = ref.read(appStateProvider);
       final companyId = appState.companyChoosen;
@@ -423,13 +439,8 @@ class CurrencyOverviewCard extends ConsumerWidget {
         throw Exception('No company selected');
       }
       
-      // Remove the currency from company
-      await ref.read(currencyOperationsProvider.notifier)
-          .removeCompanyCurrency(currency.id);
-      
+      // Show immediate success message (optimistic)
       if (context.mounted) {
-        Navigator.of(context).pop(); // Close dialog
-        
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('${currency.code} currency removed successfully!'),
@@ -437,13 +448,24 @@ class CurrencyOverviewCard extends ConsumerWidget {
           ),
         );
       }
+      
+      // Success haptic feedback
+      HapticFeedback.selectionClick();
+      
+      // Remove the currency from company (this already has optimistic updates)
+      await ref.read(currencyOperationsProvider.notifier)
+          .removeCompanyCurrency(currency.id);
+      
+      // Refresh available currencies to add provider
+      if (ref.exists(availableCurrenciesToAddProvider)) {
+        ref.invalidate(availableCurrenciesToAddProvider);
+      }
+      
     } catch (e) {
       if (context.mounted) {
-        Navigator.of(context).pop(); // Close dialog
-        
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to remove currency: $e'),
+            content: Text('Failed to remove currency: $e. Change reverted.'),
             backgroundColor: TossColors.error,
           ),
         );

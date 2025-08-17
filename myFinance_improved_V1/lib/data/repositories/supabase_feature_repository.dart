@@ -10,8 +10,14 @@ class SupabaseFeatureRepository implements FeatureRepository {
   @override
   Future<List<CategoryWithFeatures>> getCategoriesWithFeatures() async {
     try {
-      // This would call the existing RPC function get_categories_with_features
-      final response = await _client.rpc('get_categories_with_features');
+      // Try the updated RPC function first, fallback to original if it doesn't exist
+      dynamic response;
+      try {
+        response = await _client.rpc('get_categories_with_features_v2');
+      } catch (e) {
+        // Fallback to original function if v2 doesn't exist yet
+        response = await _client.rpc('get_categories_with_features');
+      }
       
       if (response == null) return [];
       
@@ -28,22 +34,29 @@ class SupabaseFeatureRepository implements FeatureRepository {
     required String userId,
   }) async {
     try {
-      // Query the top_features_by_user view
+      // Query the top_features_by_user view with explicit field selection
       final response = await _client
           .from('top_features_by_user')
-          .select('*')
+          .select('feature_id, feature_name, category_id, click_count, last_clicked, icon, route, icon_key')
           .eq('user_id', userId)
           .order('click_count', ascending: false)
           .limit(10); // Limit to top 10 features
       
       if (response.isEmpty) return [];
       
-      // The response should contain a single row with top_features as JSON array
-      final topFeaturesJson = response.first['top_features'] as List;
-      
-      return topFeaturesJson
-          .map((json) => TopFeature.fromJson(json))
-          .toList();
+      // Handle both single row with JSON array and direct rows
+      if (response.first.containsKey('top_features')) {
+        // Single row with top_features JSON array
+        final topFeaturesJson = response.first['top_features'] as List;
+        return topFeaturesJson
+            .map((json) => TopFeature.fromJson(json))
+            .toList();
+      } else {
+        // Direct rows format
+        return response
+            .map((json) => TopFeature.fromJson(json))
+            .toList();
+      }
     } catch (e) {
       throw Exception('Failed to fetch top features by user: $e');
     }

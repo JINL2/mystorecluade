@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../core/themes/toss_colors.dart';
 import '../../../core/themes/toss_text_styles.dart';
 import '../../../core/themes/toss_spacing.dart';
+import '../../../core/constants/ui_constants.dart';
 import '../toss/toss_primary_button.dart';
 
 class TossErrorView extends StatelessWidget {
@@ -29,15 +30,15 @@ class TossErrorView extends StatelessWidget {
           children: [
             // Error Icon
             Container(
-              width: 80,
-              height: 80,
+              width: UIConstants.avatarSizeLarge,
+              height: UIConstants.avatarSizeLarge,
               decoration: BoxDecoration(
                 color: TossColors.error.withOpacity(0.1),
                 shape: BoxShape.circle,
               ),
               child: const Icon(
                 Icons.error_outline,
-                size: 40,
+                size: UIConstants.iconSizeHuge,
                 color: TossColors.error,
               ),
             ),

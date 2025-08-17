@@ -28,7 +28,7 @@ class TossChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: Colors.transparent,
+      color: TossColors.transparent,
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(TossBorderRadius.sm),
@@ -46,7 +46,7 @@ class TossChip extends StatelessWidget {
               color: isSelected
                   ? TossColors.primary
                   : TossColors.gray200,
-              width: isSelected ? 1.5 : 1,
+              width: isSelected ? TossSpacing.space0 + 1.5 : TossSpacing.space0 + 1,
             ),
           ),
           child: Row(
@@ -55,7 +55,7 @@ class TossChip extends StatelessWidget {
               if (icon != null) ...[
                 Icon(
                   icon,
-                  size: 14,
+                  size: TossSpacing.iconXS - 2,
                   color: isSelected
                       ? TossColors.primary
                       : TossColors.gray600,
@@ -76,7 +76,7 @@ class TossChip extends StatelessWidget {
                 Container(
                   padding: EdgeInsets.symmetric(
                     horizontal: TossSpacing.space1,
-                    vertical: 1,
+                    vertical: TossSpacing.space0 + 1,
                   ),
                   decoration: BoxDecoration(
                     color: isSelected
@@ -90,7 +90,7 @@ class TossChip extends StatelessWidget {
                       color: isSelected
                           ? TossColors.primary
                           : TossColors.gray500,
-                      fontSize: 10,
+                      fontSize: TossSpacing.space2 + 2,
                     ),
                   ),
                 ),
@@ -120,8 +120,8 @@ class TossChipGroup extends StatelessWidget {
     required this.items,
     this.selectedValue,
     this.onChanged,
-    this.spacing = 8.0,
-    this.runSpacing = 8.0,
+    this.spacing = TossSpacing.space2,
+    this.runSpacing = TossSpacing.space2,
   });
 
   @override

@@ -4,31 +4,32 @@ import 'package:myfinance_improved/core/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/core/themes/toss_spacing.dart';
 import 'package:myfinance_improved/core/themes/toss_shadows.dart';
 import 'package:myfinance_improved/core/themes/toss_border_radius.dart';
+import '../../../widgets/toss/toss_bottom_sheet.dart';
+import '../constants/counter_party_colors.dart';
 import '../models/counter_party_models.dart';
 
 class CounterPartyListItem extends StatelessWidget {
   final CounterParty counterParty;
-  final VoidCallback onTap;
+  final VoidCallback? onEdit;
+  final VoidCallback? onAccountSettings;
   final VoidCallback? onDelete;
 
   const CounterPartyListItem({
     super.key,
     required this.counterParty,
-    required this.onTap,
+    this.onEdit,
+    this.onAccountSettings,
     this.onDelete,
   });
 
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-        child: Container(
+      color: TossColors.transparent,
+      child: Container(
           padding: EdgeInsets.all(TossSpacing.space4),
           decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surface,
+            color: TossColors.surface,
             borderRadius: BorderRadius.circular(TossBorderRadius.lg),
             boxShadow: TossShadows.card,
           ),
@@ -36,16 +37,16 @@ class CounterPartyListItem extends StatelessWidget {
             children: [
               // Icon/Avatar
               Container(
-                width: 48,
-                height: 48,
+                width: TossSpacing.inputHeightLG,
+                height: TossSpacing.inputHeightLG,
                 decoration: BoxDecoration(
-                  color: _getTypeColor(counterParty.type).withOpacity(0.1),
+                  color: TossColors.gray100,
                   borderRadius: BorderRadius.circular(TossBorderRadius.md),
                 ),
                 child: Icon(
-                  _getTypeIcon(counterParty.type),
-                  color: _getTypeColor(counterParty.type),
-                  size: 24,
+                  CounterPartyColors.getTypeIcon(counterParty.type),
+                  color: TossColors.gray700,
+                  size: TossSpacing.iconMD,
                 ),
               ),
               SizedBox(width: TossSpacing.space3),
@@ -62,7 +63,7 @@ class CounterPartyListItem extends StatelessWidget {
                           child: Text(
                             counterParty.name,
                             style: TossTextStyles.body.copyWith(
-                              color: Theme.of(context).colorScheme.onSurface,
+                              color: TossColors.textPrimary,
                               fontWeight: FontWeight.w600,
                             ),
                             maxLines: 1,
@@ -77,7 +78,7 @@ class CounterPartyListItem extends StatelessWidget {
                               vertical: 2,
                             ),
                             decoration: BoxDecoration(
-                              color: TossColors.info.withOpacity(0.1),
+                              color: TossColors.gray100,
                               borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                             ),
                             child: Text(
@@ -100,7 +101,7 @@ class CounterPartyListItem extends StatelessWidget {
                         Text(
                           counterParty.type.displayName,
                           style: TossTextStyles.bodySmall.copyWith(
-                            color: _getTypeColor(counterParty.type),
+                            color: TossColors.gray600,
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -108,14 +109,14 @@ class CounterPartyListItem extends StatelessWidget {
                           Text(
                             ' • ',
                             style: TossTextStyles.bodySmall.copyWith(
-                              color: Theme.of(context).colorScheme.onSurfaceVariant,
+                              color: TossColors.textSecondary,
                             ),
                           ),
                           Expanded(
                             child: Text(
                               counterParty.email!,
                               style: TossTextStyles.bodySmall.copyWith(
-                                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                color: TossColors.textSecondary,
                               ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
@@ -131,7 +132,7 @@ class CounterPartyListItem extends StatelessWidget {
                       Text(
                         'Last transaction: ${_formatDate(counterParty.lastTransactionDate!)}',
                         style: TossTextStyles.caption.copyWith(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.7),
+                          color: TossColors.textTertiary,
                         ),
                       ),
                     ],
@@ -139,67 +140,93 @@ class CounterPartyListItem extends StatelessWidget {
                 ),
               ),
               
-              // Actions
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (onDelete != null)
-                    IconButton(
-                      icon: Icon(
-                        Icons.delete_outline,
-                        color: Theme.of(context).colorScheme.error.withOpacity(0.7),
-                        size: 20,
-                      ),
-                      onPressed: onDelete,
-                      tooltip: 'Delete',
-                    ),
-                  Icon(
-                    Icons.chevron_right,
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    size: 20,
-                  ),
-                ],
+              // More Options Button
+              IconButton(
+                icon: Icon(
+                  Icons.more_vert,
+                  color: TossColors.textSecondary,
+                  size: TossSpacing.iconMD,
+                ),
+                onPressed: () => _showOptionsSheet(context),
+                tooltip: 'More options',
               ),
             ],
           ),
-        ),
       ),
     );
   }
 
-  IconData _getTypeIcon(CounterPartyType type) {
-    switch (type) {
-      case CounterPartyType.myCompany:
-        return Icons.business;
-      case CounterPartyType.teamMember:
-        return Icons.group;
-      case CounterPartyType.supplier:
-        return Icons.local_shipping;
-      case CounterPartyType.employee:
-        return Icons.badge;
-      case CounterPartyType.customer:
-        return Icons.people;
-      case CounterPartyType.other:
-        return Icons.category;
-    }
+  void _showOptionsSheet(BuildContext context) {
+    TossBottomSheet.show(
+      context: context,
+      title: 'Options',
+      content: SizedBox.shrink(),
+      actions: [
+        TossActionItem(
+          title: 'Edit',
+          icon: Icons.edit_outlined,
+          onTap: () => onEdit?.call(),
+        ),
+        TossActionItem(
+          title: 'Account Settings',
+          icon: Icons.settings_outlined,
+          onTap: () => onAccountSettings?.call(),
+        ),
+        TossActionItem(
+          title: 'Delete',
+          icon: Icons.delete_outline,
+          isDestructive: true,
+          onTap: () => _showDeleteConfirmation(context),
+        ),
+      ],
+    );
   }
 
-  Color _getTypeColor(CounterPartyType type) {
-    switch (type) {
-      case CounterPartyType.myCompany:
-        return const Color(0xFF007AFF); // Blue
-      case CounterPartyType.teamMember:
-        return const Color(0xFF34C759); // Green
-      case CounterPartyType.supplier:
-        return const Color(0xFF5856D6); // Purple
-      case CounterPartyType.employee:
-        return const Color(0xFFFF9500); // Orange
-      case CounterPartyType.customer:
-        return const Color(0xFFFF3B30); // Red
-      case CounterPartyType.other:
-        return const Color(0xFF8E8E93); // Gray
-    }
+
+  void _showDeleteConfirmation(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(
+          'Delete Counter Party',
+          style: TossTextStyles.h3.copyWith(
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        content: Text(
+          'Are you sure you want to delete "${counterParty.name}"? This action cannot be undone.',
+          style: TossTextStyles.body.copyWith(
+            color: TossColors.textSecondary,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              'Cancel',
+              style: TossTextStyles.body.copyWith(
+                color: TossColors.textSecondary,
+              ),
+            ),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              onDelete?.call();
+            },
+            child: Text(
+              'Delete',
+              style: TossTextStyles.body.copyWith(
+                color: TossColors.error,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
+
 
   String _formatDate(DateTime date) {
     final now = DateTime.now();

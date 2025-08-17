@@ -6,7 +6,11 @@ import 'package:myfinance_improved/core/themes/toss_spacing.dart';
 import 'package:myfinance_improved/core/themes/toss_border_radius.dart';
 import '../models/counter_party_models.dart' as models;
 import '../models/counter_party_models.dart' show CounterPartyType, CounterPartySortOption;
+import '../constants/counter_party_colors.dart';
 import '../providers/counter_party_providers.dart';
+import '../../../widgets/toss/toss_primary_button.dart';
+import '../../../widgets/toss/toss_secondary_button.dart';
+import '../../../widgets/toss/toss_chip.dart';
 
 class CounterPartyFilter extends ConsumerStatefulWidget {
   const CounterPartyFilter({super.key});
@@ -18,8 +22,6 @@ class CounterPartyFilter extends ConsumerStatefulWidget {
 class _CounterPartyFilterState extends ConsumerState<CounterPartyFilter> {
   late models.CounterPartyFilter _filter;
   final List<CounterPartyType> _selectedTypes = [];
-  CounterPartySortOption _sortBy = CounterPartySortOption.name;
-  bool _ascending = true;
   bool? _isInternal;
 
   @override
@@ -27,16 +29,12 @@ class _CounterPartyFilterState extends ConsumerState<CounterPartyFilter> {
     super.initState();
     _filter = ref.read(counterPartyFilterProvider);
     _selectedTypes.addAll(_filter.types ?? []);
-    _sortBy = _filter.sortBy;
-    _ascending = _filter.ascending;
     _isInternal = _filter.isInternal;
   }
 
   void _applyFilter() {
-    final newFilter = models.CounterPartyFilter(
+    final newFilter = _filter.copyWith(
       types: _selectedTypes.isEmpty ? null : List.from(_selectedTypes),
-      sortBy: _sortBy,
-      ascending: _ascending,
       isInternal: _isInternal,
     );
     ref.read(counterPartyFilterProvider.notifier).state = newFilter;
@@ -46,270 +44,104 @@ class _CounterPartyFilterState extends ConsumerState<CounterPartyFilter> {
   void _resetFilter() {
     setState(() {
       _selectedTypes.clear();
-      _sortBy = CounterPartySortOption.name;
-      _ascending = true;
       _isInternal = null;
+    });
+  }
+
+  void _toggleType(CounterPartyType type) {
+    setState(() {
+      if (_selectedTypes.contains(type)) {
+        _selectedTypes.remove(type);
+      } else {
+        _selectedTypes.add(type);
+      }
     });
   }
 
   @override
   Widget build(BuildContext context) {
     return Container(
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.of(context).size.height * 0.9,
+      ),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(24),
-          topRight: Radius.circular(24),
+        color: TossColors.surface,
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(TossBorderRadius.xl),
+          topRight: Radius.circular(TossBorderRadius.xl),
         ),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Toss-style minimal handle
+          // Toss-style handle
           Center(
             child: Container(
-              margin: EdgeInsets.only(top: 12, bottom: 20),
-              width: 48,
-              height: 4,
+              margin: EdgeInsets.only(top: TossSpacing.space3, bottom: TossSpacing.space4),
+              width: TossSpacing.space12,
+              height: TossSpacing.space1,
               decoration: BoxDecoration(
                 color: TossColors.gray300,
-                borderRadius: BorderRadius.circular(2),
+                borderRadius: BorderRadius.circular(TossSpacing.space1),
               ),
             ),
           ),
 
-          // Clean content with Toss spacing
+          // Header
           Padding(
-            padding: EdgeInsets.symmetric(horizontal: 20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Type section - Visual chips with icons
-                Row(
-                  children: [
-                    Icon(Icons.category_outlined, size: 18, color: TossColors.gray600),
-                    SizedBox(width: 6),
-                    Text(
-                      'Filter by Type',
-                      style: TossTextStyles.labelLarge.copyWith(
-                        color: TossColors.gray700,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(height: 12),
-                // Type grid - 3x2 modern cards
-                Column(
-                  children: [
-                    Row(
-                      children: [
-                        _buildTypeCard(CounterPartyType.myCompany, Icons.business, const Color(0xFF007AFF)),
-                        SizedBox(width: 8),
-                        _buildTypeCard(CounterPartyType.teamMember, Icons.group, const Color(0xFF34C759)),
-                        SizedBox(width: 8),
-                        _buildTypeCard(CounterPartyType.supplier, Icons.local_shipping, const Color(0xFF5856D6)),
-                      ],
-                    ),
-                    SizedBox(height: 8),
-                    Row(
-                      children: [
-                        _buildTypeCard(CounterPartyType.employee, Icons.badge, const Color(0xFFFF9500)),
-                        SizedBox(width: 8),
-                        _buildTypeCard(CounterPartyType.customer, Icons.people, const Color(0xFFFF3B30)),
-                        SizedBox(width: 8),
-                        _buildTypeCard(CounterPartyType.other, Icons.category, const Color(0xFF8E8E93)),
-                      ],
-                    ),
-                  ],
-                ),
-
-                SizedBox(height: 24),
-
-                // Category section - Simple toggle
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      children: [
-                        Icon(Icons.business_center_outlined, size: 18, color: TossColors.gray600),
-                        SizedBox(width: 6),
-                        Text(
-                          'Category',
-                          style: TossTextStyles.labelLarge.copyWith(
-                            color: TossColors.gray700,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ),
-                    // Toss-style segmented control
-                    Container(
-                      decoration: BoxDecoration(
-                        color: TossColors.gray100,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      padding: EdgeInsets.all(2),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          _buildSegmentButton('All', _isInternal == null, () => setState(() => _isInternal = null)),
-                          _buildSegmentButton('Internal', _isInternal == true, () => setState(() => _isInternal = true)),
-                          _buildSegmentButton('External', _isInternal == false, () => setState(() => _isInternal = false)),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-
-                SizedBox(height: 24),
-
-                // Sort section - Clean dropdown
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      children: [
-                        Icon(Icons.sort_outlined, size: 18, color: TossColors.gray600),
-                        SizedBox(width: 6),
-                        Text(
-                          'Sort By',
-                          style: TossTextStyles.labelLarge.copyWith(
-                            color: TossColors.gray700,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ),
-                    Row(
-                      children: [
-                        // Sort field selector
-                        Container(
-                          padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                          decoration: BoxDecoration(
-                            color: TossColors.gray50,
-                            borderRadius: BorderRadius.circular(10),
-                            border: Border.all(color: TossColors.gray200),
-                          ),
-                          child: DropdownButtonHideUnderline(
-                            child: DropdownButton<CounterPartySortOption>(
-                              value: _sortBy,
-                              isDense: true,
-                              icon: Icon(Icons.arrow_drop_down, size: 20, color: TossColors.gray600),
-                              style: TossTextStyles.body.copyWith(color: TossColors.gray900),
-                              items: CounterPartySortOption.values.map((option) {
-                                return DropdownMenuItem(
-                                  value: option,
-                                  child: Text(option.displayName, style: TossTextStyles.bodySmall),
-                                );
-                              }).toList(),
-                              onChanged: (value) {
-                                if (value != null) setState(() => _sortBy = value);
-                              },
-                            ),
-                          ),
-                        ),
-                        SizedBox(width: 8),
-                        // Direction toggle
-                        GestureDetector(
-                          onTap: () => setState(() => _ascending = !_ascending),
-                          child: Container(
-                            padding: EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: TossColors.gray50,
-                              borderRadius: BorderRadius.circular(10),
-                              border: Border.all(color: TossColors.gray200),
-                            ),
-                            child: Icon(
-                              _ascending ? Icons.arrow_upward : Icons.arrow_downward,
-                              size: 20,
-                              color: TossColors.gray700,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-
-                SizedBox(height: 32),
-              ],
+            padding: EdgeInsets.symmetric(horizontal: TossSpacing.space5),
+            child: Text(
+              'Filter by Type',
+              style: TossTextStyles.h3.copyWith(
+                color: TossColors.textPrimary,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
 
-          // Bottom actions - Toss style with safe area
+          SizedBox(height: TossSpacing.space4),
+
+          // Scrollable Content
+          Flexible(
+            child: SingleChildScrollView(
+              padding: EdgeInsets.symmetric(horizontal: TossSpacing.space5),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Type chips
+                  _buildTypeChips(),
+                  
+                  SizedBox(height: TossSpacing.space5),
+                  
+                  // Category section
+                  _buildCategorySection(),
+                  
+                  SizedBox(height: TossSpacing.space6),
+                ],
+              ),
+            ),
+          ),
+
+          // Fixed Action buttons at bottom
           Container(
-            padding: EdgeInsets.fromLTRB(20, 16, 20, 20),
+            padding: EdgeInsets.fromLTRB(
+              TossSpacing.space5,
+              TossSpacing.space3,
+              TossSpacing.space5,
+              TossSpacing.space5,
+            ),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: TossColors.surface,
               border: Border(
-                top: BorderSide(color: TossColors.gray100),
+                top: BorderSide(
+                  color: TossColors.gray100,
+                  width: 1,
+                ),
               ),
             ),
             child: SafeArea(
-              child: Row(
-                children: [
-                  // Reset button - subtle with icon
-                  Expanded(
-                    child: TextButton(
-                      onPressed: _resetFilter,
-                      style: TextButton.styleFrom(
-                        padding: EdgeInsets.symmetric(vertical: 14),
-                        backgroundColor: TossColors.gray50,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.refresh, size: 18, color: TossColors.gray600),
-                          SizedBox(width: 6),
-                          Text(
-                            'Reset',
-                            style: TossTextStyles.body.copyWith(
-                              color: TossColors.gray600,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  SizedBox(width: 12),
-                  // Apply button - primary with icon
-                  Expanded(
-                    flex: 2,
-                    child: ElevatedButton(
-                      onPressed: _applyFilter,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: TossColors.primary,
-                        foregroundColor: Colors.white,
-                        padding: EdgeInsets.symmetric(vertical: 14),
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.check, size: 18, color: Colors.white),
-                          SizedBox(width: 6),
-                          Text(
-                            'Apply Filters',
-                            style: TossTextStyles.body.copyWith(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+              child: _buildActionButtons(),
             ),
           ),
         ],
@@ -317,96 +149,104 @@ class _CounterPartyFilterState extends ConsumerState<CounterPartyFilter> {
     );
   }
 
-  Widget _buildTypeCard(CounterPartyType type, IconData icon, Color color) {
-    final isSelected = _selectedTypes.contains(type);
-    return Expanded(
-      child: GestureDetector(
-        onTap: () {
-          setState(() {
-            if (isSelected) {
-              _selectedTypes.remove(type);
-            } else {
-              _selectedTypes.add(type);
-            }
-          });
-        },
-        child: AnimatedContainer(
-          duration: Duration(milliseconds: 200),
-          height: 64,
-          decoration: BoxDecoration(
-            color: isSelected ? color.withOpacity(0.08) : TossColors.gray50,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(
-              color: isSelected ? color : TossColors.gray200,
-              width: isSelected ? 1.5 : 1,
-            ),
-            boxShadow: isSelected ? [
-              BoxShadow(
-                color: color.withOpacity(0.12),
-                blurRadius: 6,
-                offset: Offset(0, 3),
-              ),
-            ] : [],
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              AnimatedContainer(
-                duration: Duration(milliseconds: 200),
-                padding: EdgeInsets.all(6),
-                decoration: BoxDecoration(
-                  color: isSelected ? color.withOpacity(0.1) : Colors.transparent,
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  icon,
-                  size: 18,
-                  color: isSelected ? color : TossColors.gray500,
-                ),
-              ),
-              SizedBox(height: 4),
-              Text(
-                type.displayName,
-                style: TextStyle(
-                  fontSize: 10,
-                  color: isSelected ? color : TossColors.gray600,
-                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
-          ),
-        ),
-      ),
+  Widget _buildTypeChips() {
+    final types = [
+      {'type': CounterPartyType.myCompany, 'icon': Icons.business, 'label': 'My Company'},
+      {'type': CounterPartyType.teamMember, 'icon': Icons.group, 'label': 'Team Member'},
+      {'type': CounterPartyType.supplier, 'icon': Icons.local_shipping, 'label': 'Suppliers'},
+      {'type': CounterPartyType.employee, 'icon': Icons.badge, 'label': 'Employees'},
+      {'type': CounterPartyType.customer, 'icon': Icons.people, 'label': 'Customers'},
+      {'type': CounterPartyType.other, 'icon': Icons.category, 'label': 'Others'},
+    ];
+
+    return Wrap(
+      spacing: TossSpacing.space2,
+      runSpacing: TossSpacing.space2,
+      children: types.map((typeData) {
+        final type = typeData['type'] as CounterPartyType;
+        final icon = typeData['icon'] as IconData;
+        final label = typeData['label'] as String;
+        final isSelected = _selectedTypes.contains(type);
+        
+        return TossChip(
+          label: label,
+          icon: icon,
+          isSelected: isSelected,
+          onTap: () => _toggleType(type),
+        );
+      }).toList(),
     );
   }
 
-  Widget _buildSegmentButton(String label, bool isSelected, VoidCallback onTap) {
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: Duration(milliseconds: 200),
-        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-        decoration: BoxDecoration(
-          color: isSelected ? Colors.white : Colors.transparent,
-          borderRadius: BorderRadius.circular(8),
-          boxShadow: isSelected ? [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.08),
-              blurRadius: 4,
-              offset: Offset(0, 2),
-            ),
-          ] : [],
-        ),
-        child: Text(
-          label,
-          style: TossTextStyles.bodySmall.copyWith(
-            color: isSelected ? TossColors.gray900 : TossColors.gray500,
-            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+  Widget _buildCategorySection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Category',
+          style: TossTextStyles.labelLarge.copyWith(
+            color: TossColors.textPrimary,
+            fontWeight: FontWeight.w500,
           ),
         ),
-      ),
+        SizedBox(height: TossSpacing.space3),
+        Row(
+          children: [
+            Expanded(
+              child: TossChip(
+                label: 'All',
+                isSelected: _isInternal == null,
+                onTap: () => setState(() => _isInternal = null),
+              ),
+            ),
+            SizedBox(width: TossSpacing.space2),
+            Expanded(
+              child: TossChip(
+                label: 'Internal',
+                isSelected: _isInternal == true,
+                onTap: () => setState(() => _isInternal = true),
+              ),
+            ),
+            SizedBox(width: TossSpacing.space2),
+            Expanded(
+              child: TossChip(
+                label: 'External',
+                isSelected: _isInternal == false,
+                onTap: () => setState(() => _isInternal = false),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+
+  Widget _buildActionButtons() {
+    return Row(
+      children: [
+        Expanded(
+          child: TossSecondaryButton(
+            text: 'Reset',
+            onPressed: _resetFilter,
+            fullWidth: true,
+          ),
+        ),
+        SizedBox(width: TossSpacing.space3),
+        Expanded(
+          flex: 2,
+          child: TossPrimaryButton(
+            text: 'Apply Filters',
+            onPressed: _applyFilter,
+            fullWidth: true,
+            leadingIcon: Icon(
+              Icons.check,
+              size: TossSpacing.iconXS,
+              color: TossColors.textInverse,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

@@ -74,14 +74,14 @@ class _TossSecondaryButtonState extends State<TossSecondaryButton>
                 color: _isDisabled 
                     ? TossColors.gray200 
                     : TossColors.gray300,
-                width: 1,
+                width: TossSpacing.space0 + 1,
               ),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(TossBorderRadius.lg),
               ),
               minimumSize: widget.fullWidth 
-                  ? const Size(double.infinity, 56)
-                  : const Size(0, 56),
+                  ? Size(double.infinity, TossSpacing.inputHeightLG)
+                  : Size(0, TossSpacing.inputHeightLG),
               padding: EdgeInsets.symmetric(
                 horizontal: TossSpacing.space4,
                 vertical: TossSpacing.space3,
@@ -89,10 +89,10 @@ class _TossSecondaryButtonState extends State<TossSecondaryButton>
             ),
             child: widget.isLoading
                   ? SizedBox(
-                      width: 24,
-                      height: 24,
+                      width: TossSpacing.iconSM,
+                      height: TossSpacing.iconSM,
                       child: CircularProgressIndicator(
-                        strokeWidth: 2.5,
+                        strokeWidth: TossSpacing.space0 + 2.5,
                         valueColor: AlwaysStoppedAnimation<Color>(
                           TossColors.gray600,
                         ),

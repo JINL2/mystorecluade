@@ -29,7 +29,9 @@ class TossBottomSheet extends StatelessWidget {
     return showModalBottomSheet<T>(
       context: context,
       backgroundColor: TossColors.transparent,
+      barrierColor: Colors.black54, // Standard barrier color to prevent double barriers
       isScrollControlled: true,
+      enableDrag: false, // Disable system drag handle, use custom handle bar instead
       builder: (context) => TossBottomSheet(
         title: title,
         content: content,
@@ -55,10 +57,10 @@ class TossBottomSheet extends StatelessWidget {
           if (showHandle) ...[
             const SizedBox(height: TossSpacing.space3),
             Container(
-              width: 36,
+              width: TossSpacing.space9,
               height: 4,
               decoration: BoxDecoration(
-                color: TossColors.gray300,
+                color: TossColors.gray300, // Restore grey handle bar
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -102,7 +104,7 @@ class TossBottomSheet extends StatelessWidget {
             if (action.icon != null) ...[
               Icon(
                 action.icon,
-                size: 24,
+                size: TossSpacing.iconLG,
                 color: action.isDestructive ? TossColors.error : TossColors.gray700,
               ),
               const SizedBox(width: TossSpacing.space4),
@@ -118,7 +120,7 @@ class TossBottomSheet extends StatelessWidget {
             ),
             const Icon(
               Icons.chevron_right,
-              size: 20,
+              size: TossSpacing.iconMD,
               color: TossColors.gray400,
             ),
           ],

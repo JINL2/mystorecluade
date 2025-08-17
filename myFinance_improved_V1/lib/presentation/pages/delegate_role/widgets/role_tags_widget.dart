@@ -198,4 +198,13 @@ class _RoleTagsWidgetState extends State<RoleTagsWidget> {
             SizedBox(width: TossSpacing.space1),
             Text(
               tag,
-              style: TossText
+              style: TossTextStyles.caption.copyWith(
+                color: TossColors.gray600,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

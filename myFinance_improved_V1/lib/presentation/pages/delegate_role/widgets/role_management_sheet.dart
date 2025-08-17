@@ -46,6 +46,8 @@ class RoleManagementSheet extends ConsumerStatefulWidget {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
+      barrierColor: Colors.black54, // Standard barrier color
+      enableDrag: false, // Disable system drag handle to prevent double handler
       builder: (context) => RoleManagementSheet(
         roleId: roleId,
         roleName: roleName,
@@ -140,7 +142,7 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
             width: 40,
             height: 4,
             decoration: BoxDecoration(
-              color: TossColors.gray300,
+              color: TossColors.gray300, // Restore grey handle bar
               borderRadius: BorderRadius.circular(2),
             ),
           ),
@@ -191,21 +193,16 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
           ),
           SizedBox(height: TossSpacing.space4),
 
-          // Tab content with smooth animations
+          // Tab content - Remove AnimatedBuilder wrapping TabBarView to prevent double rendering
           Expanded(
-            child: AnimatedBuilder(
-              animation: _tabController.animation!,
-              builder: (context, child) {
-                return TabBarView(
-                  controller: _tabController,
-                  physics: const ClampingScrollPhysics(), // Smooth tab switching
-                  children: [
-                    _buildDetailsTab(),
-                    _buildPermissionsTab(),
-                    _buildMembersTab(),
-                  ],
-                );
-              },
+            child: TabBarView(
+              controller: _tabController,
+              physics: const NeverScrollableScrollPhysics(), // Disable swipe to prevent conflicts
+              children: [
+                _buildDetailsTab(),
+                _buildPermissionsTab(),
+                _buildMembersTab(),
+              ],
             ),
           ),
 
@@ -525,6 +522,7 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
+      useRootNavigator: true, // Use root navigator to show modal on top
       builder: (context) => _TagSelectionBottomSheet(
         selectedTags: List.from(_selectedTags),
         onTagsSelected: (tags) {
@@ -1263,6 +1261,8 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
+      barrierColor: Colors.black54, // Standard dark barrier
+      useRootNavigator: true, // Use root navigator to show modal on top
       builder: (context) => _AddMemberBottomSheet(
         roleId: widget.roleId,
         roleName: widget.roleName,
@@ -1280,12 +1280,9 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
   Widget _buildUnderlineTab(String text, int index) {
     return Expanded(
       child: AnimatedBuilder(
-        animation: _tabController.animation!,
+        animation: _tabController,
         builder: (context, child) {
           final isSelected = _tabController.index == index;
-          final animationValue = _tabController.animation!.value;
-          final isAnimatingToThis = (animationValue - index).abs() < 0.5;
-          final opacity = isAnimatingToThis ? 1.0 : (isSelected ? 1.0 : 0.6);
           
           return GestureDetector(
             onTap: () {
@@ -1305,7 +1302,7 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
                 border: Border(
                   bottom: BorderSide(
                     color: isSelected 
-                        ? TossColors.gray900.withOpacity(opacity)
+                        ? TossColors.gray900
                         : Colors.transparent,
                     width: 2,
                   ),
@@ -1317,7 +1314,7 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
                   curve: TossAnimations.standard,
                   style: TossTextStyles.body.copyWith(
                     color: isSelected 
-                        ? TossColors.gray900.withOpacity(opacity)
+                        ? TossColors.gray900
                         : TossColors.gray500,
                     fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
                   ),
@@ -1443,7 +1440,7 @@ class _AddMemberBottomSheetState extends ConsumerState<_AddMemberBottomSheet> {
             width: 40,
             height: 4,
             decoration: BoxDecoration(
-              color: TossColors.gray300,
+              color: TossColors.gray300, // Restore grey handle bar
               borderRadius: BorderRadius.circular(2),
             ),
           ),
@@ -1963,7 +1960,7 @@ class _TagSelectionBottomSheetState extends State<_TagSelectionBottomSheet> {
             width: 40,
             height: 4,
             decoration: BoxDecoration(
-              color: TossColors.gray300,
+              color: TossColors.gray300, // Restore grey handle bar
               borderRadius: BorderRadius.circular(2),
             ),
           ),

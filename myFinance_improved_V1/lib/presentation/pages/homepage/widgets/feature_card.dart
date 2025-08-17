@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:myfinance_improved/core/themes/toss_colors.dart';
 import 'package:myfinance_improved/core/themes/toss_text_styles.dart';
-import 'package:myfinance_improved/core/themes/toss_shadows.dart';
+import 'package:myfinance_improved/core/themes/toss_animations.dart';
+import 'package:myfinance_improved/core/constants/icon_mapper.dart';
 import '../models/homepage_models.dart';
 
 class FeatureCard extends StatefulWidget {
@@ -26,15 +27,15 @@ class _FeatureCardState extends State<FeatureCard> with SingleTickerProviderStat
   void initState() {
     super.initState();
     _animationController = AnimationController(
-      duration: const Duration(milliseconds: 100),
+      duration: Duration(milliseconds: UIConstants.quickAnimationMs),
       vsync: this,
     );
     _scaleAnimation = Tween<double>(
-      begin: 1.0,
-      end: 0.95,
+      begin: UIConstants.scaleDefault,
+      end: UIConstants.tapScaleDown,
     ).animate(CurvedAnimation(
       parent: _animationController,
-      curve: Curves.easeInOut,
+      curve: TossAnimations.standard,
     ));
   }
 
@@ -57,61 +58,19 @@ class _FeatureCardState extends State<FeatureCard> with SingleTickerProviderStat
   }
 
   Widget _buildIcon() {
-    // Use actual API icon URL if available, fallback to default icon
-    if (widget.feature.featureIcon.isNotEmpty && 
-        (widget.feature.featureIcon.startsWith('http://') || 
-         widget.feature.featureIcon.startsWith('https://'))) {
-      return Container(
-        width: 32,
-        height: 32,
-        padding: const EdgeInsets.all(4),
-        decoration: BoxDecoration(
-          color: TossColors.primary.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Image.network(
-          widget.feature.featureIcon,
-          width: 24,
-          height: 24,
-          fit: BoxFit.contain,
-          errorBuilder: (context, error, stackTrace) {
-            return Icon(
-              Icons.dashboard,
-              size: 24,
-              color: TossColors.primary,
-            );
-          },
-          loadingBuilder: (context, child, loadingProgress) {
-            if (loadingProgress == null) return child;
-            return Container(
-              width: 24,
-              height: 24,
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-                color: TossColors.primary,
-                value: loadingProgress.expectedTotalBytes != null
-                    ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
-                    : null,
-              ),
-            );
-          },
-        ),
-      );
-    }
-    
-    // Fallback to default icon
     return Container(
-      width: 32,
-      height: 32,
+      width: UIConstants.featureIconContainerCompact,
+      height: UIConstants.featureIconContainerCompact,
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
         color: TossColors.primary.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(UIConstants.borderRadiusSmall),
       ),
-      child: Icon(
-        Icons.dashboard,
-        size: 24,
+      child: DynamicIcon(
+        iconKey: widget.feature.iconKey,
+        size: UIConstants.featureIconSize,
         color: TossColors.primary,
+        useDefaultColor: false,
       ),
     );
   }
@@ -129,20 +88,20 @@ class _FeatureCardState extends State<FeatureCard> with SingleTickerProviderStat
           return Transform.scale(
             scale: _scaleAnimation.value,
             child: Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(UIConstants.contentPadding),
               decoration: BoxDecoration(
                 color: TossColors.background,
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(UIConstants.borderRadiusMedium),
                 border: Border.all(
                   color: TossColors.gray200,
-                  width: 1,
+                  width: UIConstants.borderWidth,
                 ),
                 boxShadow: [
                   BoxShadow(
                     color: TossColors.gray900.withOpacity(0.04),
-                    offset: const Offset(0, 1),
-                    blurRadius: 2,
-                    spreadRadius: 0,
+                    offset: const Offset(0, UIConstants.cardShadowOffset),
+                    blurRadius: UIConstants.cardShadowBlur,
+                    spreadRadius: UIConstants.cardShadowSpread,
                   ),
                 ],
               ),
@@ -152,7 +111,7 @@ class _FeatureCardState extends State<FeatureCard> with SingleTickerProviderStat
                   // Icon with background
                   _buildIcon(),
                   
-                  const SizedBox(height: 12),
+                  SizedBox(height: TossSpacing.space3),
                   
                   // Title with better typography
                   Text(
@@ -160,11 +119,11 @@ class _FeatureCardState extends State<FeatureCard> with SingleTickerProviderStat
                     style: TossTextStyles.caption.copyWith(
                       color: TossColors.gray900,
                       fontWeight: FontWeight.w600,
-                      fontSize: 12,
-                      height: 1.3,
+                      fontSize: UIConstants.textSizeCompact,
+                      height: UIConstants.lineHeightStandard,
                     ),
                     textAlign: TextAlign.center,
-                    maxLines: 2,
+                    maxLines: UIConstants.featureNameMaxLines,
                     overflow: TextOverflow.ellipsis,
                   ),
                 ],
