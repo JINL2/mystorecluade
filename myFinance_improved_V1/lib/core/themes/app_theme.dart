@@ -138,7 +138,7 @@ class AppTheme {
       ),
     ),
     
-    cardTheme: CardTheme(
+    cardTheme: CardThemeData(
       elevation: 0,
       color: TossColors.surface,
       surfaceTintColor: Colors.transparent,
@@ -243,7 +243,7 @@ class AppTheme {
       ),
     ),
     
-    dialogTheme: DialogTheme(
+    dialogTheme: DialogThemeData(
       backgroundColor: TossColors.surface,
       surfaceTintColor: Colors.transparent,
       elevation: 0,
@@ -327,7 +327,7 @@ class AppTheme {
       titleTextStyle: TossTextStyles.h3.copyWith(color: TossColors.white),
     ),
     
-    cardTheme: CardTheme(
+    cardTheme: CardThemeData(
       color: TossColors.gray800,
       surfaceTintColor: Colors.transparent,
     ),
