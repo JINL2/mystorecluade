@@ -3,12 +3,14 @@ class Feature {
   final String featureName;
   final String featureRoute;
   final String featureIcon;
+  final String? iconKey;
 
   const Feature({
     required this.featureId,
     required this.featureName,
     required this.featureRoute,
     required this.featureIcon,
+    this.iconKey,
   });
 
   @override

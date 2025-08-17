@@ -101,14 +101,41 @@ class CurrencyOperationsNotifier extends StateNotifier<AsyncValue<void>> {
     state = const AsyncValue.loading();
     
     try {
+      // First, get the currency type to create a full currency object for optimistic update
+      final allTypes = await _repository.getAvailableCurrencyTypes();
+      final currencyType = allTypes.firstWhere((type) => type.currencyId == currencyId);
+      
+      // Create a temporary currency object for optimistic update
+      final optimisticCurrency = Currency(
+        id: currencyType.currencyId,
+        code: currencyType.currencyCode,
+        name: currencyType.currencyName,
+        fullName: currencyType.currencyName, // CurrencyType doesn't have fullName, use currencyName
+        symbol: currencyType.symbol,
+        flagEmoji: currencyType.flagEmoji,
+      );
+      
+      // OPTIMISTIC UI UPDATE - Add to local state immediately
+      _ref.read(localCurrencyListProvider.notifier).optimisticallyAdd(optimisticCurrency);
+      
+      // Perform database operation in background
       await _repository.addCompanyCurrency(companyId, currencyId);
       
-      // Refresh the company currencies list
+      // Refresh the remote providers after successful database operation
       _ref.invalidate(companyCurrenciesProvider);
+      _ref.invalidate(companyCurrenciesStreamProvider);
       
       state = const AsyncValue.data(null);
     } catch (error, stackTrace) {
-      state = AsyncValue.error(error, stackTrace);
+      // If database operation fails, revert the optimistic update
+      _ref.read(localCurrencyListProvider.notifier).optimisticallyRemove(currencyId);
+      
+      // Enhanced error reporting
+      final errorMessage = error.toString().contains('already exists') 
+          ? 'This currency has already been added to your company'
+          : 'Failed to add currency: Network error or server unavailable';
+      
+      state = AsyncValue.error(errorMessage, stackTrace);
     }
   }
 
@@ -121,17 +148,35 @@ class CurrencyOperationsNotifier extends StateNotifier<AsyncValue<void>> {
       return;
     }
 
+    // Store the current currency for potential rollback
+    final localNotifier = _ref.read(localCurrencyListProvider.notifier);
+    final currentCurrencies = localNotifier.getCurrencies();
+    final currencyToRemove = currentCurrencies.firstWhere((c) => c.id == currencyId);
+
     state = const AsyncValue.loading();
     
     try {
+      // OPTIMISTIC UI UPDATE - Remove from local state immediately
+      localNotifier.optimisticallyRemove(currencyId);
+      
+      // Perform database operation in background
       await _repository.removeCompanyCurrency(companyId, currencyId);
       
-      // Refresh the company currencies list
+      // Refresh the remote providers after successful database operation
       _ref.invalidate(companyCurrenciesProvider);
+      _ref.invalidate(companyCurrenciesStreamProvider);
       
       state = const AsyncValue.data(null);
     } catch (error, stackTrace) {
-      state = AsyncValue.error(error, stackTrace);
+      // If database operation fails, revert the optimistic update
+      localNotifier.optimisticallyAdd(currencyToRemove);
+      
+      // Enhanced error reporting
+      final errorMessage = error.toString().contains('has denominations') 
+          ? 'Cannot remove currency that has denominations. Delete all denominations first.'
+          : 'Failed to remove currency: Network error or server unavailable';
+      
+      state = AsyncValue.error(errorMessage, stackTrace);
     }
   }
 
@@ -221,9 +266,81 @@ final filteredCurrenciesProvider = StateNotifierProvider<FilteredCurrenciesNotif
 // Search query provider
 final currencySearchQueryProvider = StateProvider<String>((ref) => '');
 
-// Combined provider that listens to search query changes
+// Local currency list state for optimistic UI updates
+class LocalCurrencyListNotifier extends StateNotifier<List<Currency>?> {
+  LocalCurrencyListNotifier(this._ref) : super(null);
+  
+  final Ref _ref;
+
+  // Initialize local state with remote data
+  void initializeFromRemote(List<Currency> currencies) {
+    state = currencies;
+  }
+
+  // Get current local currencies
+  List<Currency> getCurrencies() {
+    return state ?? [];
+  }
+
+  // Optimistically add currency to local state
+  void optimisticallyAdd(Currency currency) {
+    final currentList = state ?? [];
+    final updatedList = [...currentList, currency];
+    state = updatedList;
+  }
+
+  // Optimistically remove currency from local state
+  void optimisticallyRemove(String currencyId) {
+    final currentList = state ?? [];
+    final updatedList = currentList.where((c) => c.id != currencyId).toList();
+    state = updatedList;
+  }
+
+  // Update a currency optimistically
+  void optimisticallyUpdate(String currencyId, Currency updatedCurrency) {
+    final currentList = state ?? [];
+    final updatedList = currentList.map((c) => c.id == currencyId ? updatedCurrency : c).toList();
+    state = updatedList;
+  }
+
+  // Reset local state (sync with remote)
+  void reset() {
+    state = null;
+  }
+
+  // Check if we have local state
+  bool hasLocalState() {
+    return state != null;
+  }
+}
+
+final localCurrencyListProvider = StateNotifierProvider<LocalCurrencyListNotifier, List<Currency>?>((ref) {
+  return LocalCurrencyListNotifier(ref);
+});
+
+// Effective company currencies provider that uses local state when available
+final effectiveCompanyCurrenciesProvider = Provider<AsyncValue<List<Currency>>>((ref) {
+  final localState = ref.watch(localCurrencyListProvider);
+  final remoteState = ref.watch(companyCurrenciesStreamProvider);
+  
+  // If we have local state, use it
+  if (localState != null) {
+    return AsyncValue.data(localState);
+  }
+  
+  // Schedule initialization for next frame to avoid modifying during build
+  remoteState.whenData((currencies) {
+    Future.microtask(() {
+      ref.read(localCurrencyListProvider.notifier).initializeFromRemote(currencies);
+    });
+  });
+  
+  return remoteState;
+});
+
+// Combined provider that listens to search query changes and uses effective currencies
 final searchFilteredCurrenciesProvider = Provider<AsyncValue<List<Currency>>>((ref) {
-  final companyCurrencies = ref.watch(companyCurrenciesProvider);
+  final companyCurrencies = ref.watch(effectiveCompanyCurrenciesProvider);
   final searchQuery = ref.watch(currencySearchQueryProvider).toLowerCase();
 
   return companyCurrencies.when(
@@ -242,5 +359,20 @@ final searchFilteredCurrenciesProvider = Provider<AsyncValue<List<Currency>>>((r
     },
     loading: () => const AsyncValue.loading(),
     error: (error, stackTrace) => AsyncValue.error(error, stackTrace),
+  );
+});
+
+// Available currencies to add provider that filters out already added currencies
+final availableCurrenciesToAddProvider = FutureProvider<List<CurrencyType>>((ref) async {
+  final allTypes = await ref.watch(availableCurrencyTypesProvider.future);
+  final companyCurrencies = ref.watch(effectiveCompanyCurrenciesProvider);
+  
+  return companyCurrencies.when(
+    data: (currencies) {
+      final companyCurrencyIds = currencies.map((c) => c.id).toSet();
+      return allTypes.where((type) => !companyCurrencyIds.contains(type.currencyId)).toList();
+    },
+    loading: () => [],
+    error: (_, __) => allTypes,
   );
 });

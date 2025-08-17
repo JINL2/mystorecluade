@@ -453,78 +453,54 @@ final companyUsersProvider = FutureProvider<List<Map<String, dynamic>>>((ref) as
   }
 });
 
-/// Provider for all company roles (for display in cards)
+/// Provider for all company roles (OPTIMIZED - Single RPC call)
 final allCompanyRolesProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
   final appState = ref.watch(appStateProvider);
-  final selectedCompany = ref.read(appStateProvider.notifier).selectedCompany;
+  final user = ref.watch(authStateProvider);
   
-  if (selectedCompany == null || appState.companyChoosen.isEmpty) {
+  if (appState.companyChoosen.isEmpty) {
     return [];
   }
   
   final supabase = Supabase.instance.client;
   
   try {
-    // Fetch all roles for the company
-    final rolesResponse = await supabase
-        .from('roles')
-        .select('*')
-        .eq('company_id', appState.companyChoosen);
+    // PERFORMANCE OPTIMIZATION: 
+    // OLD: 1 + 2N queries (21 queries for 10 roles)
+    // NEW: 1 RPC query (95% reduction)
+    final response = await supabase.rpc(
+      'get_company_roles_optimized',
+      params: {
+        'p_company_id': appState.companyChoosen,
+        'p_current_user_id': user?.id,
+      },
+    );
     
-    final roles = rolesResponse as List;
-    final rolesWithPermissions = <Map<String, dynamic>>[];
-    
-    // Get current user's role to determine edit permissions
-    final userRole = selectedCompany['role'];
-    final currentUserRoleName = userRole['role_name']?.toString().toLowerCase() ?? '';
-    final canEditRoles = currentUserRoleName == 'owner'; // Only owners can edit roles
-    
-    for (final role in roles) {
-      final roleId = role['role_id'] as String;
-      final roleName = role['role_name'] as String;
-      final description = role['description'] as String?;
-      
-      // Get permissions for this role
-      final permissionsResponse = await supabase
-          .from('role_permissions')
-          .select('feature_id')
-          .eq('role_id', roleId);
-      
-      final permissions = (permissionsResponse as List)
-          .map((p) => p['feature_id'] as String)
-          .toList();
-      
-      // Determine if current user can delegate this role
-      bool canDelegate = false;
-      if (currentUserRoleName == 'owner') {
-        canDelegate = true;
-      } else if (currentUserRoleName == 'manager' && roleName.toLowerCase() == 'employee') {
-        canDelegate = true;
-      }
-      
-      // Get member count for this role by counting users in user_roles table
-      final memberCountResponse = await supabase
-          .from('user_roles')
-          .select('user_id')
-          .eq('role_id', roleId)
-          .eq('is_deleted', false);
-      
-      final memberCount = (memberCountResponse as List).length;
-
-      rolesWithPermissions.add({
-        'roleId': roleId,
-        'roleName': roleName,
-        'description': description,
-        'tags': _parseTags(role['tags']), // Add tags parsing
-        'permissions': permissions,
-        'memberCount': memberCount,
-        'canEdit': canEditRoles,
-        'canDelegate': canDelegate,
-      });
+    // Handle error response from RPC
+    if (response is Map && response['error'] == true) {
+      throw Exception(response['message'] ?? 'Failed to fetch roles');
     }
     
-    return rolesWithPermissions;
+    // Parse JSON response from RPC
+    final rolesData = response as List? ?? [];
+    
+    return rolesData.map<Map<String, dynamic>>((role) {
+      return {
+        'roleId': role['roleId'],
+        'roleName': role['roleName'],
+        'description': role['description'],
+        'tags': _parseTags(role['tags']),
+        'permissions': List<String>.from(role['permissions'] ?? []),
+        'memberCount': role['memberCount'] ?? 0,
+        'canEdit': role['canEdit'] ?? false,
+        'canDelegate': role['canDelegate'] ?? false,
+      };
+    }).toList();
+    
   } catch (e) {
+    // Debug logging for troubleshooting
+    print('allCompanyRolesProvider error: $e');
+    // Graceful fallback - return empty list instead of throwing
     return [];
   }
 });

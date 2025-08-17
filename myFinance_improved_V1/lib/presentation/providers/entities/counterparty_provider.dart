@@ -39,8 +39,7 @@ class CounterpartyList extends _$CounterpartyList {
       final List<dynamic> data = response as List<dynamic>;
       return data.map((json) => CounterpartyData.fromJson(json as Map<String, dynamic>)).toList();
     } catch (e) {
-      // Log error but don't throw to prevent UI crashes
-      print('Error fetching counterparties: $e');
+      // Return empty list on error to prevent UI crashes
       return [];
     }
   }

@@ -2,12 +2,24 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'providers/store_shift_providers.dart';
 import '../../providers/app_state_provider.dart';
 import '../../../core/themes/toss_colors.dart';
 import '../../../core/themes/toss_text_styles.dart';
 import '../../../core/themes/toss_spacing.dart';
 import '../../../core/themes/toss_border_radius.dart';
+import '../../../core/themes/toss_animations.dart';
+import '../../widgets/common/toss_app_bar.dart';
+import '../../widgets/toss/toss_time_picker.dart';
+import '../../widgets/toss/toss_primary_button.dart';
+import '../../widgets/toss/toss_text_field.dart';
+import '../../widgets/toss/toss_card.dart';
+import '../../widgets/toss/toss_tab_bar.dart';
+import '../../widgets/toss/toss_selection_bottom_sheet.dart';
+import '../../widgets/common/toss_empty_view.dart';
+import '../../../core/constants/icon_mapper.dart';
+import '../../../core/constants/ui_constants.dart';
 
 class StoreShiftPage extends ConsumerStatefulWidget {
   const StoreShiftPage({super.key});
@@ -16,17 +28,26 @@ class StoreShiftPage extends ConsumerStatefulWidget {
   ConsumerState<StoreShiftPage> createState() => _StoreShiftPageState();
 }
 
-class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBindingObserver {
+class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBindingObserver, SingleTickerProviderStateMixin {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  late TabController _tabController;
+  int _selectedTab = 0;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _tabController = TabController(length: 2, vsync: this);
+    _tabController.addListener(() {
+      setState(() {
+        _selectedTab = _tabController.index;
+      });
+    });
   }
 
   @override
   void dispose() {
+    _tabController.dispose();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
@@ -47,89 +68,56 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
 
     return Scaffold(
       key: _scaffoldKey,
-      backgroundColor: TossColors.background,
-      body: userCompaniesAsync.when(
-        data: (userData) => SafeArea(
-          child: Column(
-            children: [
-              // Header - Similar to Financial Statements
-              Container(
-                height: 56,
-                color: TossColors.background,
-                padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
-                child: Row(
-                  children: [
-                    IconButton(
-                      icon: Icon(Icons.arrow_back_ios_rounded,
-                        color: TossColors.gray700,
-                        size: 22,
-                      ),
-                      onPressed: () => context.pop(),
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(),
-                    ),
-                    const Spacer(),
-                    Text(
-                      'Store Shift',
-                      style: TossTextStyles.h3.copyWith(
-                        color: TossColors.gray900,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const Spacer(),
-                  ],
-                ),
-              ),
-              
-              // Divider
-              Container(
-                height: 1,
-                color: TossColors.gray100,
-              ),
-              
-              // Content Area
-              Expanded(
-                child: Stack(
-                  children: [
-                    RefreshIndicator(
-                      onRefresh: () => _handleRefresh(ref),
-                      color: TossColors.primary,
-                      child: SingleChildScrollView(
-                        padding: const EdgeInsets.all(TossSpacing.space4),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // Store Selector
-                            _buildStoreSelector(userData),
-                            const SizedBox(height: TossSpacing.space6),
-                            
-                            // Add Shift Button Section
-                            _buildAddShiftSection(),
-                            const SizedBox(height: TossSpacing.space6),
-                            
-                            // Existing Shifts Section (Placeholder)
-                            _buildExistingShiftsSection(),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
+      backgroundColor: TossColors.gray100,
+      appBar: TossAppBar(
+        title: 'Store Settings',
+        leading: IconButton(
+          icon: FaIcon(FontAwesomeIcons.chevronLeft,
+            color: TossColors.gray700,
+            size: TossSpacing.iconMD,
           ),
+          onPressed: () => context.pop(),
+        ),
+      ),
+      body: userCompaniesAsync.when(
+        data: (userData) => Column(
+          children: [
+            // Tab Bar
+            TossTabBar(
+              tabs: const ['Shift Settings', 'Store Settings'],
+              controller: _tabController,
+              onTabChanged: (index) {
+                setState(() {
+                  _selectedTab = index;
+                });
+              },
+            ),
+            // Tab Content
+            Expanded(
+              child: TabBarView(
+                controller: _tabController,
+                physics: const NeverScrollableScrollPhysics(),
+                children: [
+                  // Shift Settings Tab
+                  _buildShiftSettingsTab(userData),
+                  // Store Settings Tab
+                  _buildStoreSettingsTab(userData),
+                ],
+              ),
+            ),
+          ],
         ),
         loading: () => Center(
-          child: CircularProgressIndicator(color: Theme.of(context).colorScheme.primary),
+          child: CircularProgressIndicator(color: TossColors.primary),
         ),
         error: (error, stack) => Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.error_outline, size: 48, color: Theme.of(context).colorScheme.error),
-              const SizedBox(height: 16),
+              FaIcon(FontAwesomeIcons.circleExclamation, size: TossSpacing.iconXL, color: TossColors.error),
+              const SizedBox(height: TossSpacing.paddingMD),
               const Text('Something went wrong'),
-              const SizedBox(height: 8),
+              const SizedBox(height: TossSpacing.space2),
               Text(error.toString()),
             ],
           ),
@@ -157,9 +145,9 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: const Text('Data refreshed successfully'),
-            backgroundColor: Theme.of(context).colorScheme.primary,
+            backgroundColor: TossColors.primary,
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(TossBorderRadius.button)),
           ),
         );
       }
@@ -169,19 +157,357 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Failed to refresh: ${e.toString()}'),
-            backgroundColor: Theme.of(context).colorScheme.error,
+            backgroundColor: TossColors.error,
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(TossBorderRadius.button)),
           ),
         );
       }
     }
   }
   
+  // Build Shift Settings Tab
+  Widget _buildShiftSettingsTab(dynamic userData) {
+    return RefreshIndicator(
+      onRefresh: () => _handleRefresh(ref),
+      color: TossColors.primary,
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(TossSpacing.paddingMD),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Store Selector
+            _buildStoreSelector(userData),
+            const SizedBox(height: TossSpacing.space6),
+            
+            // Add Shift Button Section
+            _buildAddShiftSection(),
+            const SizedBox(height: TossSpacing.space6),
+            
+            // Existing Shifts Section
+            _buildExistingShiftsSection(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Build Store Settings Tab
+  Widget _buildStoreSettingsTab(dynamic userData) {
+    final selectedStore = ref.watch(selectedStoreProvider);
+    
+    if (selectedStore == null) {
+      return Center(
+        child: TossEmptyView(
+          icon: Icon(
+            IconMapper.getIcon('building'),
+            size: UIConstants.emptyStateIconSize,
+            color: TossColors.gray400,
+          ),
+          title: 'No Store Selected',
+          description: 'Please select a store from Shift Settings tab to configure store settings.',
+        ),
+      );
+    }
+    
+    return RefreshIndicator(
+      onRefresh: () => _handleRefresh(ref),
+      color: TossColors.primary,
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(TossSpacing.paddingMD),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Store Information Card
+            _buildStoreInfoCard(selectedStore),
+            const SizedBox(height: TossSpacing.space5),
+            
+            // Store Configuration Options
+            _buildStoreConfigSection(selectedStore),
+            const SizedBox(height: TossSpacing.space5),
+            
+            // Store Operating Hours
+            _buildStoreOperatingHours(selectedStore),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Build Store Information Card
+  Widget _buildStoreInfoCard(Map<String, dynamic> store) {
+    return TossCard(
+      padding: const EdgeInsets.all(TossSpacing.space5),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: TossSpacing.iconXL + TossSpacing.space2,
+                height: TossSpacing.iconXL + TossSpacing.space2,
+                decoration: BoxDecoration(
+                  color: TossColors.primary.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+                ),
+                child: Icon(
+                  IconMapper.getIcon('building'),
+                  color: TossColors.primary,
+                  size: TossSpacing.iconMD,
+                ),
+              ),
+              const SizedBox(width: TossSpacing.space3),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Store Information',
+                      style: TossTextStyles.caption.copyWith(
+                        color: TossColors.gray600,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: TossSpacing.space1),
+                    Text(
+                      store['store_name'] ?? 'Unnamed Store',
+                      style: TossTextStyles.bodyLarge.copyWith(
+                        color: TossColors.gray900,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: TossSpacing.space4),
+          
+          // Store Details
+          _buildDetailRow('Store Code', store['store_code'] ?? 'N/A'),
+          const SizedBox(height: TossSpacing.space2),
+          _buildDetailRow('Store ID', store['store_id']?.substring(0, 8) ?? 'N/A'),
+          const SizedBox(height: TossSpacing.space2),
+          _buildDetailRow('Status', 'Active', color: TossColors.success),
+        ],
+      ),
+    );
+  }
+
+  // Build Store Configuration Section
+  Widget _buildStoreConfigSection(Map<String, dynamic> store) {
+    return TossCard(
+      padding: const EdgeInsets.all(TossSpacing.space5),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Store Configuration',
+            style: TossTextStyles.bodyLarge.copyWith(
+              color: TossColors.gray900,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: TossSpacing.space4),
+          
+          // Configuration Options
+          _buildConfigOption(
+            icon: FontAwesomeIcons.cashRegister,
+            title: 'POS Settings',
+            subtitle: 'Configure point of sale settings',
+            onTap: () {
+              // Navigate to POS settings
+            },
+          ),
+          const SizedBox(height: TossSpacing.space3),
+          _buildConfigOption(
+            icon: FontAwesomeIcons.users,
+            title: 'Staff Management',
+            subtitle: 'Manage store employees',
+            onTap: () {
+              // Navigate to staff management
+            },
+          ),
+          const SizedBox(height: TossSpacing.space3),
+          _buildConfigOption(
+            icon: FontAwesomeIcons.warehouse,
+            title: 'Inventory Settings',
+            subtitle: 'Configure inventory management',
+            onTap: () {
+              // Navigate to inventory settings
+            },
+          ),
+          const SizedBox(height: TossSpacing.space3),
+          _buildConfigOption(
+            icon: FontAwesomeIcons.chartLine,
+            title: 'Sales Reports',
+            subtitle: 'View store performance',
+            onTap: () {
+              // Navigate to sales reports
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Build Store Operating Hours
+  Widget _buildStoreOperatingHours(Map<String, dynamic> store) {
+    return TossCard(
+      padding: const EdgeInsets.all(TossSpacing.space5),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Operating Hours',
+                style: TossTextStyles.bodyLarge.copyWith(
+                  color: TossColors.gray900,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              IconButton(
+                onPressed: () {
+                  // Edit operating hours
+                },
+                icon: Icon(
+                  IconMapper.getIcon('editRegular'),
+                  color: TossColors.primary,
+                  size: TossSpacing.iconSM,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: TossSpacing.space3),
+          
+          // Operating hours list
+          _buildDayHours('Monday', '09:00 AM - 10:00 PM'),
+          _buildDayHours('Tuesday', '09:00 AM - 10:00 PM'),
+          _buildDayHours('Wednesday', '09:00 AM - 10:00 PM'),
+          _buildDayHours('Thursday', '09:00 AM - 10:00 PM'),
+          _buildDayHours('Friday', '09:00 AM - 11:00 PM'),
+          _buildDayHours('Saturday', '10:00 AM - 11:00 PM'),
+          _buildDayHours('Sunday', '10:00 AM - 09:00 PM'),
+        ],
+      ),
+    );
+  }
+
+  // Helper method to build detail rows
+  Widget _buildDetailRow(String label, String value, {Color? color}) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          label,
+          style: TossTextStyles.body.copyWith(
+            color: TossColors.gray600,
+          ),
+        ),
+        Text(
+          value,
+          style: TossTextStyles.body.copyWith(
+            color: color ?? TossColors.gray900,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ],
+    );
+  }
+
+  // Helper method to build config options
+  Widget _buildConfigOption({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+      child: Container(
+        padding: const EdgeInsets.all(TossSpacing.space3),
+        decoration: BoxDecoration(
+          color: TossColors.gray50,
+          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: TossSpacing.iconXL,
+              height: TossSpacing.iconXL,
+              decoration: BoxDecoration(
+                color: TossColors.white,
+                borderRadius: BorderRadius.circular(TossBorderRadius.md),
+              ),
+              child: Icon(
+                icon,
+                color: TossColors.primary,
+                size: TossSpacing.iconSM,
+              ),
+            ),
+            const SizedBox(width: TossSpacing.space3),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TossTextStyles.body.copyWith(
+                      color: TossColors.gray900,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  Text(
+                    subtitle,
+                    style: TossTextStyles.caption.copyWith(
+                      color: TossColors.gray600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              FontAwesomeIcons.chevronRight,
+              color: TossColors.gray400,
+              size: TossSpacing.iconSM,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Helper method to build day hours
+  Widget _buildDayHours(String day, String hours) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: TossSpacing.space2),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            day,
+            style: TossTextStyles.body.copyWith(
+              color: TossColors.gray700,
+            ),
+          ),
+          Text(
+            hours,
+            style: TossTextStyles.body.copyWith(
+              color: TossColors.gray900,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   // Store Selector Widget - Using the same data structure as homepage
   Widget _buildStoreSelector(dynamic userData) {
     final appState = ref.watch(appStateProvider);
-    final selectedCompany = ref.watch(selectedCompanyProvider);
     final selectedStore = ref.watch(selectedStoreProvider);
     
     // Get selected store name - Fixed to properly display selected store
@@ -210,19 +536,19 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
         const SizedBox(height: TossSpacing.space2),
         InkWell(
           onTap: () => _showStoreSelector(),
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(TossBorderRadius.xl),
           child: Container(
             padding: const EdgeInsets.all(TossSpacing.space4),
             decoration: BoxDecoration(
               color: TossColors.background,
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(TossBorderRadius.xl),
               border: Border.all(
                 color: selectedStore != null ? TossColors.primary.withOpacity(0.3) : TossColors.gray200,
                 width: selectedStore != null ? 1.5 : 1,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.04),
+                  color: TossColors.black.withOpacity(0.04),
                   blurRadius: 8,
                   offset: const Offset(0, 2),
                 ),
@@ -231,17 +557,17 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
             child: Row(
               children: [
                 Container(
-                  width: 40,
-                  height: 40,
+                  width: TossSpacing.iconXL,
+                  height: TossSpacing.iconXL,
                   decoration: BoxDecoration(
                     color: selectedStore != null
                       ? TossColors.primary.withOpacity(0.1) 
                       : TossColors.gray50,
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(TossBorderRadius.md),
                   ),
                   child: Icon(
-                    Icons.store_outlined,
-                    size: 20,
+                    IconMapper.getIcon('building'),
+                    size: TossSpacing.iconSM,
                     color: selectedStore != null
                       ? TossColors.primary 
                       : TossColors.gray600,
@@ -254,12 +580,11 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
                     children: [
                       Text(
                         'Store',
-                        style: TossTextStyles.caption.copyWith(
+                        style: TossTextStyles.small.copyWith(
                           color: TossColors.gray500,
-                          fontSize: 11,
                         ),
                       ),
-                      const SizedBox(height: 2),
+                      const SizedBox(height: TossSpacing.space1/2),
                       Text(
                         storeName,
                         style: TossTextStyles.body.copyWith(
@@ -275,11 +600,11 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
                   ),
                 ),
                 Icon(
-                  Icons.chevron_right,
+                  FontAwesomeIcons.chevronRight,
                   color: selectedStore != null 
                     ? TossColors.primary 
                     : TossColors.gray400,
-                  size: 24,
+                  size: TossSpacing.iconMD,
                 ),
               ],
             ),
@@ -289,145 +614,23 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
     );
   }
   
-  // Show Store Selector Modal - Using the same data structure as homepage
-  void _showStoreSelector() {
+  // Show Store Selector Modal - Using the reusable TossStoreSelector component
+  void _showStoreSelector() async {
     final appState = ref.read(appStateProvider);
     final selectedCompany = ref.read(selectedCompanyProvider);
     final stores = selectedCompany?['stores'] as List<dynamic>? ?? [];
     
-    showModalBottomSheet(
+    final selectedStore = await TossStoreSelector.show(
       context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      builder: (context) => Container(
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(24),
-            topRight: Radius.circular(24),
-          ),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Handle bar
-            Container(
-              margin: const EdgeInsets.only(top: TossSpacing.space3),
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: TossColors.gray300,
-                borderRadius: BorderRadius.circular(100),
-              ),
-            ),
-            // Title
-            Padding(
-              padding: const EdgeInsets.all(TossSpacing.space5),
-              child: Row(
-                children: [
-                  Text(
-                    'Select Store',
-                    style: TossTextStyles.h3.copyWith(
-                      color: TossColors.gray900,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            // Store list without Headquarters
-            Container(
-              constraints: BoxConstraints(
-                maxHeight: MediaQuery.of(context).size.height * 0.5,
-              ),
-              child: ListView.builder(
-                shrinkWrap: true,
-                padding: EdgeInsets.zero,
-                itemCount: stores.length,
-                itemBuilder: (context, index) {
-                  final store = stores[index];
-                  final isSelected = appState.storeChoosen == store['store_id'];
-                  
-                  return InkWell(
-                    onTap: () async {
-                      // Update app state with selected store
-                      await ref.read(appStateProvider.notifier).setStoreChoosen(store['store_id'] ?? '');
-                      Navigator.pop(context);
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: TossSpacing.space5,
-                        vertical: TossSpacing.space4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: isSelected ? TossColors.primary.withOpacity(0.05) : Colors.transparent,
-                        border: Border(
-                          bottom: BorderSide(
-                            color: TossColors.gray100,
-                            width: index == stores.length - 1 ? 0 : 1, // Last item has no border
-                          ),
-                        ),
-                      ),
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 40,
-                            height: 40,
-                            decoration: BoxDecoration(
-                              color: isSelected 
-                                ? TossColors.primary.withOpacity(0.1) 
-                                : TossColors.gray50,
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: Icon(
-                              Icons.store_outlined,
-                              size: 20,
-                              color: isSelected ? TossColors.primary : TossColors.gray600,
-                            ),
-                          ),
-                          const SizedBox(width: TossSpacing.space3),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  store['store_name'] ?? '',
-                                  style: TossTextStyles.body.copyWith(
-                                    color: TossColors.gray900,
-                                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-                                  ),
-                                ),
-                                if (store['store_code'] != null) ...[
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    'Code: ${store['store_code']}',
-                                    style: TossTextStyles.caption.copyWith(
-                                      color: TossColors.gray500,
-                                    ),
-                                  ),
-                                ],
-                              ],
-                            ),
-                          ),
-                          if (isSelected)
-                            Icon(
-                              Icons.check_circle,
-                              color: TossColors.primary,
-                              size: 24,
-                            ),
-                        ],
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
-            // Bottom padding for safe area
-            SizedBox(height: MediaQuery.of(context).padding.bottom + TossSpacing.space4),
-          ],
-        ),
-      ),
+      stores: stores,
+      selectedStoreId: appState.storeChoosen,
+      title: 'Select Store',
     );
+    
+    if (selectedStore != null) {
+      // Update app state with selected store
+      await ref.read(appStateProvider.notifier).setStoreChoosen(selectedStore['store_id'] ?? '');
+    }
   }
   
   // Build Add Shift Section with + Button
@@ -438,18 +641,18 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
         borderRadius: BorderRadius.circular(TossBorderRadius.xl),
         border: Border.all(
           color: TossColors.gray100,
-          width: 1,
+          width: TossSpacing.space1/4,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: TossColors.black.withOpacity(0.04),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
         ],
       ),
       child: Material(
-        color: Colors.transparent,
+        color: TossColors.transparent,
         child: InkWell(
           onTap: () {
             // Add shift functionality
@@ -462,8 +665,8 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
               children: [
                 // Plus Icon Container
                 Container(
-                  width: 56,
-                  height: 56,
+                  width: TossSpacing.buttonHeightXL,
+                  height: TossSpacing.buttonHeightXL,
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       colors: [
@@ -473,7 +676,7 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(TossBorderRadius.xl),
                     boxShadow: [
                       BoxShadow(
                         color: TossColors.primary.withOpacity(0.3),
@@ -483,9 +686,9 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
                     ],
                   ),
                   child: const Icon(
-                    Icons.add_rounded,
-                    color: Colors.white,
-                    size: 32,
+                    FontAwesomeIcons.plus,
+                    color: TossColors.white,
+                    size: TossSpacing.iconLG,
                   ),
                 ),
                 const SizedBox(width: TossSpacing.space4),
@@ -513,9 +716,9 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
                 ),
                 // Arrow Icon
                 Icon(
-                  Icons.arrow_forward_ios_rounded,
+                  FontAwesomeIcons.chevronRight,
                   color: TossColors.gray400,
-                  size: 18,
+                  size: TossSpacing.iconSM,
                 ),
               ],
             ),
@@ -531,39 +734,15 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
     
     // Check if no store is selected
     if (selectedStore == null) {
-      return Center(
-        child: Container(
-          padding: const EdgeInsets.all(TossSpacing.space6),
-          decoration: BoxDecoration(
-            color: TossColors.gray50,
-            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+      return TossCard(
+        child: TossEmptyView(
+          icon: Icon(
+            IconMapper.getIcon('building'),
+            size: UIConstants.emptyStateIconSize,
+            color: TossColors.gray400,
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                Icons.store_outlined,
-                size: 48,
-                color: TossColors.gray400,
-              ),
-              const SizedBox(height: TossSpacing.space3),
-              Text(
-                'No Store Selected',
-                style: TossTextStyles.bodyLarge.copyWith(
-                  color: TossColors.gray700,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(height: TossSpacing.space2),
-              Text(
-                'Please select a store to manage shifts.',
-                style: TossTextStyles.bodySmall.copyWith(
-                  color: TossColors.gray500,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
+          title: 'No Store Selected',
+          description: 'Please select a store to manage shifts.',
         ),
       );
     }
@@ -574,39 +753,15 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
     return shiftsAsync.when(
       data: (shifts) {
         if (shifts.isEmpty) {
-          return Center(
-            child: Container(
-              padding: const EdgeInsets.all(TossSpacing.space6),
-              decoration: BoxDecoration(
-                color: TossColors.gray50,
-                borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+          return TossCard(
+            child: TossEmptyView(
+              icon: Icon(
+                IconMapper.getIcon('clock'),
+                size: UIConstants.emptyStateIconSize,
+                color: TossColors.gray400,
               ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    Icons.schedule_outlined,
-                    size: 48,
-                    color: TossColors.gray400,
-                  ),
-                  const SizedBox(height: TossSpacing.space3),
-                  Text(
-                    'No Shifts Yet',
-                    style: TossTextStyles.bodyLarge.copyWith(
-                      color: TossColors.gray700,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(height: TossSpacing.space2),
-                  Text(
-                    'Create your first shift for this store.',
-                    style: TossTextStyles.bodySmall.copyWith(
-                      color: TossColors.gray500,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
-              ),
+              title: 'No Shifts Yet',
+              description: 'Create your first shift for this store.',
             ),
           );
         }
@@ -621,10 +776,9 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
                 children: [
                   Text(
                     'Existing Shifts',
-                    style: TossTextStyles.h3.copyWith(
+                    style: TossTextStyles.h4.copyWith(
                       color: TossColors.gray900,
                       fontWeight: FontWeight.w700,
-                      fontSize: 18,
                     ),
                   ),
                   const SizedBox(width: TossSpacing.space2),
@@ -681,8 +835,8 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
         child: Column(
           children: [
             Icon(
-              Icons.error_outline,
-              size: 32,
+              FontAwesomeIcons.circleExclamation,
+              size: TossSpacing.iconLG,
               color: TossColors.error,
             ),
             const SizedBox(height: TossSpacing.space2),
@@ -715,8 +869,8 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
     final shiftId = shift['shift_id'] ?? '';
     final shiftName = shift['shift_name'] ?? 'Unnamed Shift';
     
-    // Determine icon and color based on start time
-    IconData icon = Icons.schedule_outlined;
+    // Determine icon and color based on start time - intuitive time-of-day representation
+    IconData icon = FontAwesomeIcons.clock;
     Color color = TossColors.info;
     
     // Parse start hour to determine icon and color
@@ -724,261 +878,126 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
       try {
         final hour = int.parse(startTime.split(':')[0]);
         if (hour >= 5 && hour < 12) {
-          icon = Icons.wb_sunny_outlined;
+          icon = FontAwesomeIcons.sun; // Morning - sunrise/bright sun
           color = TossColors.success;
         } else if (hour >= 12 && hour < 17) {
-          icon = Icons.wb_twilight_outlined;
+          icon = FontAwesomeIcons.solidSun; // Afternoon - bright day
           color = TossColors.info;
         } else if (hour >= 17 && hour < 22) {
-          icon = Icons.nightlight_outlined;
+          icon = FontAwesomeIcons.cloudSun; // Evening - sun setting
           color = TossColors.warning;
         } else {
-          icon = Icons.nights_stay_outlined;
+          icon = FontAwesomeIcons.moon; // Night - moon
           color = TossColors.gray600;
         }
       } catch (e) {
+        // Use default icon and color on parse error
       }
     }
     
-    return Container(
-      decoration: BoxDecoration(
-        color: TossColors.background,
-        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-        border: Border.all(
-          color: TossColors.gray100,
-          width: 1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.03),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+    return TossCard(
+      onTap: () {
+        // Edit shift functionality - pass shiftId
+      },
+      padding: const EdgeInsets.all(TossSpacing.space4),
+      child: Row(
+        children: [
+          // Icon Container
+          Container(
+            width: TossSpacing.iconXL + TossSpacing.space2,
+            height: TossSpacing.iconXL + TossSpacing.space2,
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+            ),
+            child: Icon(
+              icon,
+              color: color,
+              size: TossSpacing.iconMD,
+            ),
           ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: () {
-            // Edit shift functionality - pass shiftId
-          },
-          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-          child: Padding(
-            padding: const EdgeInsets.all(TossSpacing.space4),
-            child: Row(
+          const SizedBox(width: TossSpacing.space3),
+          // Shift Details
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Icon Container
-                Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    color: color.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(
-                    icon,
-                    color: color,
-                    size: 24,
+                Text(
+                  shiftName,
+                  style: TossTextStyles.body.copyWith(
+                    color: TossColors.gray900,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
-                const SizedBox(width: TossSpacing.space3),
-                // Shift Details
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        shiftName,
-                        style: TossTextStyles.body.copyWith(
-                          color: TossColors.gray900,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        '$startTime - $endTime',
-                        style: TossTextStyles.caption.copyWith(
-                          color: TossColors.gray500,
-                        ),
-                      ),
-                    ],
+                const SizedBox(height: TossSpacing.space1/2),
+                Text(
+                  '$startTime - $endTime',
+                  style: TossTextStyles.caption.copyWith(
+                    color: TossColors.gray500,
                   ),
-                ),
-                // Action Buttons
-                Row(
-                  children: [
-                    IconButton(
-                      onPressed: () {
-                        // Edit functionality with shiftId
-                        _showEditShiftBottomSheet(shift);
-                      },
-                      icon: Icon(
-                        Icons.edit_outlined,
-                        color: TossColors.gray500,
-                        size: 20,
-                      ),
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(
-                        minWidth: 32,
-                        minHeight: 32,
-                      ),
-                    ),
-                    IconButton(
-                      onPressed: () {
-                        // Delete functionality with shiftId
-                        _showDeleteConfirmation(shiftId, shiftName);
-                      },
-                      icon: Icon(
-                        Icons.delete_outline,
-                        color: TossColors.error,
-                        size: 20,
-                      ),
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(
-                        minWidth: 32,
-                        minHeight: 32,
-                      ),
-                    ),
-                  ],
                 ),
               ],
             ),
           ),
-        ),
+          // Action Buttons
+          Row(
+            children: [
+              IconButton(
+                onPressed: () {
+                  // Edit functionality with shiftId
+                  _showEditShiftBottomSheet(shift);
+                },
+                icon: FaIcon(
+                  IconMapper.getIcon('editRegular'),
+                  color: TossColors.gray500,
+                  size: TossSpacing.iconSM,
+                ),
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(
+                  minWidth: TossSpacing.buttonHeightSM,
+                  minHeight: TossSpacing.buttonHeightSM,
+                ),
+              ),
+              IconButton(
+                onPressed: () {
+                  // Delete functionality with shiftId
+                  _showDeleteConfirmation(shiftId, shiftName);
+                },
+                icon: FaIcon(
+                  FontAwesomeIcons.trashCan,
+                  color: TossColors.error,
+                  size: TossSpacing.iconSM,
+                ),
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(
+                  minWidth: TossSpacing.buttonHeightSM,
+                  minHeight: TossSpacing.buttonHeightSM,
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
   
-  // Individual Shift Card Widget (for mock data - kept for reference)
-  Widget _buildShiftCard({
-    required String shiftName,
-    required String time,
-    required Color color,
-    required IconData icon,
-  }) {
-    return Container(
-      decoration: BoxDecoration(
-        color: TossColors.background,
-        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-        border: Border.all(
-          color: TossColors.gray100,
-          width: 1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.03),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: () {
-            // Edit shift functionality
-          },
-          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-          child: Padding(
-            padding: const EdgeInsets.all(TossSpacing.space4),
-            child: Row(
-              children: [
-                // Icon Container
-                Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    color: color.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(
-                    icon,
-                    color: color,
-                    size: 24,
-                  ),
-                ),
-                const SizedBox(width: TossSpacing.space3),
-                // Shift Details
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        shiftName,
-                        style: TossTextStyles.body.copyWith(
-                          color: TossColors.gray900,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        time,
-                        style: TossTextStyles.caption.copyWith(
-                          color: TossColors.gray500,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                // Action Buttons
-                Row(
-                  children: [
-                    IconButton(
-                      onPressed: () {
-                        // Edit functionality
-                      },
-                      icon: Icon(
-                        Icons.edit_outlined,
-                        color: TossColors.gray500,
-                        size: 20,
-                      ),
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(
-                        minWidth: 32,
-                        minHeight: 32,
-                      ),
-                    ),
-                    IconButton(
-                      onPressed: () {
-                        // Delete functionality
-                      },
-                      icon: Icon(
-                        Icons.delete_outline,
-                        color: TossColors.error,
-                        size: 20,
-                      ),
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(
-                        minWidth: 32,
-                        minHeight: 32,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
   
   // Show Create Shift Bottom Sheet
   void _showCreateShiftBottomSheet() {
     // State variables for the bottom sheet
     String shiftName = '';
-    String? selectedStartTime;
-    String? selectedEndTime;
+    TimeOfDay? selectedStartTime;
+    TimeOfDay? selectedEndTime;
     
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      backgroundColor: TossColors.transparent,
       builder: (context) => StatefulBuilder(
         builder: (context, setState) => Container(
           height: MediaQuery.of(context).size.height * 0.85,
           decoration: const BoxDecoration(
-            color: Colors.white,
+            color: TossColors.white,
             borderRadius: BorderRadius.only(
               topLeft: Radius.circular(24),
               topRight: Radius.circular(24),
@@ -989,69 +1008,24 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
               // Handle bar
               Container(
                 margin: const EdgeInsets.only(top: TossSpacing.space3),
-                width: 40,
-                height: 4,
+                width: TossSpacing.iconXL,
+                height: TossSpacing.space1,
                 decoration: BoxDecoration(
                   color: TossColors.gray300,
-                  borderRadius: BorderRadius.circular(100),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.full),
                 ),
               ),
               
               // Header
               Container(
                 padding: const EdgeInsets.all(TossSpacing.space5),
-                decoration: BoxDecoration(
-                  border: Border(
-                    bottom: BorderSide(
-                      color: TossColors.gray100,
-                      width: 1,
-                    ),
+                child: Text(
+                  'Create New Shift',
+                  style: TossTextStyles.h3.copyWith(
+                    color: TossColors.gray900,
+                    fontWeight: FontWeight.w700,
                   ),
-                ),
-                child: Row(
-                  children: [
-                    // Cancel button
-                    TextButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: Text(
-                        'Cancel',
-                        style: TossTextStyles.body.copyWith(
-                          color: TossColors.gray600,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ),
-                    const Spacer(),
-                    Text(
-                      'Create New Shift',
-                      style: TossTextStyles.h3.copyWith(
-                        color: TossColors.gray900,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    const Spacer(),
-                    // Create button
-                    TextButton(
-                      onPressed: (shiftName.isEmpty || selectedStartTime == null || selectedEndTime == null) ? null : () {
-                        // Show confirmation dialog
-                        _showCreateConfirmation(
-                          context: context,
-                          shiftName: shiftName,
-                          startTime: selectedStartTime!,
-                          endTime: selectedEndTime!,
-                        );
-                      },
-                      child: Text(
-                        'Create',
-                        style: TossTextStyles.body.copyWith(
-                          color: (shiftName.isEmpty || selectedStartTime == null || selectedEndTime == null) 
-                            ? TossColors.gray400 
-                            : TossColors.primary,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ],
+                  textAlign: TextAlign.center,
                 ),
               ),
               
@@ -1063,50 +1037,14 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // Shift Name Input Section
-                      Text(
-                        'Shift Name',
-                        style: TossTextStyles.body.copyWith(
-                          color: TossColors.gray700,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      const SizedBox(height: TossSpacing.space3),
-                      Container(
-                        decoration: BoxDecoration(
-                          color: TossColors.gray50,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: shiftName.isNotEmpty 
-                              ? TossColors.primary.withOpacity(0.3)
-                              : TossColors.gray200,
-                            width: shiftName.isNotEmpty ? 1.5 : 1,
-                          ),
-                        ),
-                        child: TextField(
-                          onChanged: (value) {
-                            setState(() {
-                              shiftName = value;
-                            });
-                          },
-                          style: TossTextStyles.bodyLarge.copyWith(
-                            color: TossColors.gray900,
-                          ),
-                          decoration: InputDecoration(
-                            hintText: 'e.g., Morning Shift, Night Shift',
-                            hintStyle: TossTextStyles.body.copyWith(
-                              color: TossColors.gray400,
-                            ),
-                            border: InputBorder.none,
-                            contentPadding: const EdgeInsets.all(TossSpacing.space4),
-                            prefixIcon: Icon(
-                              Icons.badge_outlined,
-                              color: shiftName.isNotEmpty 
-                                ? TossColors.primary
-                                : TossColors.gray400,
-                              size: 20,
-                            ),
-                          ),
-                        ),
+                      TossTextField(
+                        label: 'Shift Name',
+                        hintText: 'e.g., Morning Shift, Night Shift',
+                        onChanged: (value) {
+                          setState(() {
+                            shiftName = value;
+                          });
+                        },
                       ),
                       
                       const SizedBox(height: TossSpacing.space6),
@@ -1116,10 +1054,12 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
                         padding: const EdgeInsets.all(TossSpacing.space4),
                         decoration: BoxDecoration(
                           color: TossColors.primary.withOpacity(0.03),
-                          borderRadius: BorderRadius.circular(16),
+                          borderRadius: BorderRadius.circular(TossBorderRadius.xl),
                           border: Border.all(
-                            color: TossColors.primary.withOpacity(0.1),
-                            width: 1,
+                            color: _getShiftIconAndColorFromTimeString(
+                              selectedStartTime != null ? selectedStartTime!.format(context) : ''
+                            )['color'].withOpacity(0.1),
+                            width: TossSpacing.space1/4,
                           ),
                         ),
                         child: Column(
@@ -1127,10 +1067,10 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
                           children: [
                             Row(
                               children: [
-                                Icon(
-                                  Icons.schedule,
+                                FaIcon(
+                                  IconMapper.getIcon('clock'),
                                   color: TossColors.primary,
-                                  size: 20,
+                                  size: TossSpacing.iconSM,
                                 ),
                                 const SizedBox(width: TossSpacing.space2),
                                 Text(
@@ -1156,64 +1096,15 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
                                   ),
                                 ),
                                 const SizedBox(height: TossSpacing.space2),
-                                InkWell(
-                                  onTap: () {
-                                    _showTimePickerDialog(
-                                      context,
-                                      selectedStartTime,
-                                      (newTime) {
-                                        setState(() {
-                                          selectedStartTime = newTime;
-                                        });
-                                      },
-                                    );
+                                TossSimpleTimePicker(
+                                  time: selectedStartTime,
+                                  placeholder: 'Select start time',
+                                  onTimeChanged: (TimeOfDay time) {
+                                    setState(() {
+                                      selectedStartTime = time;
+                                    });
                                   },
-                                  borderRadius: BorderRadius.circular(12),
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: TossSpacing.space4,
-                                      vertical: TossSpacing.space3,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: Colors.white,
-                                      borderRadius: BorderRadius.circular(12),
-                                      border: Border.all(
-                                        color: selectedStartTime != null 
-                                          ? TossColors.primary.withOpacity(0.3)
-                                          : TossColors.gray200,
-                                        width: selectedStartTime != null ? 1.5 : 1,
-                                      ),
-                                    ),
-                                    child: Row(
-                                      children: [
-                                        Icon(
-                                          Icons.access_time,
-                                          color: selectedStartTime != null 
-                                            ? TossColors.primary
-                                            : TossColors.gray400,
-                                          size: 18,
-                                        ),
-                                        const SizedBox(width: TossSpacing.space3),
-                                        Text(
-                                          selectedStartTime ?? 'Select time',
-                                          style: TossTextStyles.bodyLarge.copyWith(
-                                            color: selectedStartTime != null 
-                                              ? TossColors.gray900
-                                              : TossColors.gray400,
-                                            fontWeight: selectedStartTime != null 
-                                              ? FontWeight.w600
-                                              : FontWeight.w400,
-                                          ),
-                                        ),
-                                        const Spacer(),
-                                        Icon(
-                                          Icons.keyboard_arrow_down,
-                                          color: TossColors.gray400,
-                                          size: 20,
-                                        ),
-                                      ],
-                                    ),
-                                  ),
+                                  use24HourFormat: false,
                                 ),
                               ],
                             ),
@@ -1232,64 +1123,15 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
                                   ),
                                 ),
                                 const SizedBox(height: TossSpacing.space2),
-                                InkWell(
-                                  onTap: () {
-                                    _showTimePickerDialog(
-                                      context,
-                                      selectedEndTime,
-                                      (newTime) {
-                                        setState(() {
-                                          selectedEndTime = newTime;
-                                        });
-                                      },
-                                    );
+                                TossSimpleTimePicker(
+                                  time: selectedEndTime,
+                                  placeholder: 'Select end time',
+                                  onTimeChanged: (TimeOfDay time) {
+                                    setState(() {
+                                      selectedEndTime = time;
+                                    });
                                   },
-                                  borderRadius: BorderRadius.circular(12),
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: TossSpacing.space4,
-                                      vertical: TossSpacing.space3,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: Colors.white,
-                                      borderRadius: BorderRadius.circular(12),
-                                      border: Border.all(
-                                        color: selectedEndTime != null 
-                                          ? TossColors.primary.withOpacity(0.3)
-                                          : TossColors.gray200,
-                                        width: selectedEndTime != null ? 1.5 : 1,
-                                      ),
-                                    ),
-                                    child: Row(
-                                      children: [
-                                        Icon(
-                                          Icons.access_time,
-                                          color: selectedEndTime != null 
-                                            ? TossColors.primary
-                                            : TossColors.gray400,
-                                          size: 18,
-                                        ),
-                                        const SizedBox(width: TossSpacing.space3),
-                                        Text(
-                                          selectedEndTime ?? 'Select time',
-                                          style: TossTextStyles.bodyLarge.copyWith(
-                                            color: selectedEndTime != null 
-                                              ? TossColors.gray900
-                                              : TossColors.gray400,
-                                            fontWeight: selectedEndTime != null 
-                                              ? FontWeight.w600
-                                              : FontWeight.w400,
-                                          ),
-                                        ),
-                                        const Spacer(),
-                                        Icon(
-                                          Icons.keyboard_arrow_down,
-                                          color: TossColors.gray400,
-                                          size: 20,
-                                        ),
-                                      ],
-                                    ),
-                                  ),
+                                  use24HourFormat: false,
                                 ),
                               ],
                             ),
@@ -1304,19 +1146,19 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
                         Container(
                           padding: const EdgeInsets.all(TossSpacing.space4),
                           decoration: BoxDecoration(
-                            color: TossColors.info.withOpacity(0.05),
-                            borderRadius: BorderRadius.circular(12),
+                            color: TossColors.success.withOpacity(0.05),
+                            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                             border: Border.all(
-                              color: TossColors.info.withOpacity(0.2),
-                              width: 1,
+                              color: TossColors.success.withOpacity(0.2),
+                              width: TossSpacing.space1/4,
                             ),
                           ),
                           child: Row(
                             children: [
                               Icon(
-                                Icons.timer_outlined,
-                                color: TossColors.info,
-                                size: 20,
+                                FontAwesomeIcons.stopwatch,
+                                color: TossColors.success,
+                                size: TossSpacing.iconSM,
                               ),
                               const SizedBox(width: TossSpacing.space3),
                               Column(
@@ -1328,9 +1170,9 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
                                       color: TossColors.gray600,
                                     ),
                                   ),
-                                  const SizedBox(height: 2),
+                                  const SizedBox(height: TossSpacing.space1/2),
                                   Text(
-                                    _calculateDuration(selectedStartTime!, selectedEndTime!),
+                                    _calculateDurationFromTimeOfDay(selectedStartTime!, selectedEndTime!),
                                     style: TossTextStyles.body.copyWith(
                                       color: TossColors.gray900,
                                       fontWeight: FontWeight.w600,
@@ -1343,483 +1185,40 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
                         ),
                       
                       const SizedBox(height: TossSpacing.space6),
-                      
-                      // Shift Preview Card
-                      Container(
-                        padding: const EdgeInsets.all(TossSpacing.space4),
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [
-                              TossColors.primary.withOpacity(0.05),
-                              TossColors.primary.withOpacity(0.02),
-                            ],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color: TossColors.primary.withOpacity(0.2),
-                            width: 1,
-                          ),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Preview',
-                              style: TossTextStyles.caption.copyWith(
-                                color: TossColors.gray600,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            const SizedBox(height: TossSpacing.space3),
-                            Row(
-                              children: [
-                                Container(
-                                  width: 48,
-                                  height: 48,
-                                  decoration: BoxDecoration(
-                                    color: TossColors.primary.withOpacity(0.1),
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: Icon(
-                                    _getShiftIcon(selectedStartTime ?? ''),
-                                    color: TossColors.primary,
-                                    size: 24,
-                                  ),
-                                ),
-                                const SizedBox(width: TossSpacing.space3),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        shiftName.isEmpty ? 'New Shift' : shiftName,
-                                        style: TossTextStyles.body.copyWith(
-                                          color: TossColors.gray900,
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        (selectedStartTime != null && selectedEndTime != null)
-                                          ? '$selectedStartTime - $selectedEndTime'
-                                          : 'No time set',
-                                        style: TossTextStyles.caption.copyWith(
-                                          color: TossColors.gray600,
-                                          fontWeight: FontWeight.w500,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
                     ],
                   ),
                 ),
               ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-  
-  // Helper method to get shift icon based on time
-  IconData _getShiftIcon(String startTime) {
-    if (startTime.isEmpty) return Icons.schedule_outlined;
-    
-    try {
-      final hour = int.parse(startTime.split(':')[0]);
-      if (hour >= 5 && hour < 12) {
-        return Icons.wb_sunny_outlined;
-      } else if (hour >= 12 && hour < 17) {
-        return Icons.wb_twilight_outlined;
-      } else if (hour >= 17 && hour < 22) {
-        return Icons.nightlight_outlined;
-      } else {
-        return Icons.nights_stay_outlined;
-      }
-    } catch (e) {
-      return Icons.schedule_outlined;
-    }
-  }
-  
-  // Show Edit Shift Bottom Sheet
-  void _showEditShiftBottomSheet(Map<String, dynamic> shift) {
-    // Parse existing shift data
-    final startTime = shift['start_time'] ?? '09:00';
-    final endTime = shift['end_time'] ?? '17:00';
-    final shiftId = shift['shift_id'] ?? '';
-    final existingShiftName = shift['shift_name'] ?? 'Unnamed Shift';
-    
-    // State variables for the bottom sheet
-    String shiftName = existingShiftName;
-    String selectedStartTime = startTime;
-    String selectedEndTime = endTime;
-    
-    // Create a TextEditingController for the shift name
-    final shiftNameController = TextEditingController(text: existingShiftName);
-    
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setState) => Container(
-          height: MediaQuery.of(context).size.height * 0.85,
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(24),
-              topRight: Radius.circular(24),
-            ),
-          ),
-          child: Column(
-            children: [
-              // Handle bar
-              Container(
-                margin: const EdgeInsets.only(top: TossSpacing.space3),
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: TossColors.gray300,
-                  borderRadius: BorderRadius.circular(100),
-                ),
-              ),
               
-              // Header
+              // Bottom Create Button
               Container(
-                padding: const EdgeInsets.all(TossSpacing.space5),
+                padding: EdgeInsets.fromLTRB(
+                  TossSpacing.space5,
+                  TossSpacing.space4,
+                  TossSpacing.space5,
+                  MediaQuery.of(context).padding.bottom + TossSpacing.space4,
+                ),
                 decoration: BoxDecoration(
+                  color: TossColors.white,
                   border: Border(
-                    bottom: BorderSide(
+                    top: BorderSide(
                       color: TossColors.gray100,
-                      width: 1,
+                      width: 0.5,
                     ),
                   ),
                 ),
-                child: Row(
-                  children: [
-                    // Close button
-                    IconButton(
-                      onPressed: () => Navigator.pop(context),
-                      icon: Icon(
-                        Icons.close,
-                        color: TossColors.gray700,
-                        size: 24,
-                      ),
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(),
-                    ),
-                    const Spacer(),
-                    Text(
-                      'Edit Shift',
-                      style: TossTextStyles.h3.copyWith(
-                        color: TossColors.gray900,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    const Spacer(),
-                    // Save button
-                    TextButton(
-                      onPressed: (shiftName.isEmpty) ? null : () {
-                        // Show confirmation dialog
-                        _showEditConfirmation(
-                          context: context,
-                          shiftId: shiftId,
-                          shiftName: shiftName,
-                          startTime: selectedStartTime,
-                          endTime: selectedEndTime,
-                        );
-                      },
-                      child: Text(
-                        'Save',
-                        style: TossTextStyles.body.copyWith(
-                          color: shiftName.isEmpty ? TossColors.gray400 : TossColors.primary,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              
-              // Content
-              Expanded(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(TossSpacing.space5),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Shift Preview Card
-                      Container(
-                        padding: const EdgeInsets.all(TossSpacing.space4),
-                        decoration: BoxDecoration(
-                          color: TossColors.primary.withOpacity(0.05),
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color: TossColors.primary.withOpacity(0.2),
-                            width: 1,
-                          ),
-                        ),
-                        child: Row(
-                          children: [
-                            Container(
-                              width: 48,
-                              height: 48,
-                              decoration: BoxDecoration(
-                                color: TossColors.primary.withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Icon(
-                                _getShiftIcon(selectedStartTime),
-                                color: TossColors.primary,
-                                size: 24,
-                              ),
-                            ),
-                            const SizedBox(width: TossSpacing.space3),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    shiftName.isEmpty ? 'Unnamed Shift' : shiftName,
-                                    style: TossTextStyles.body.copyWith(
-                                      color: TossColors.gray900,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    '$selectedStartTime - $selectedEndTime',
-                                    style: TossTextStyles.caption.copyWith(
-                                      color: TossColors.gray600,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      
-                      const SizedBox(height: TossSpacing.space6),
-                      
-                      // Shift Name Input Section
-                      Text(
-                        'Shift Name',
-                        style: TossTextStyles.body.copyWith(
-                          color: TossColors.gray700,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      const SizedBox(height: TossSpacing.space3),
-                      Container(
-                        decoration: BoxDecoration(
-                          color: TossColors.gray50,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: shiftName.isNotEmpty 
-                              ? TossColors.primary.withOpacity(0.3)
-                              : TossColors.gray200,
-                            width: shiftName.isNotEmpty ? 1.5 : 1,
-                          ),
-                        ),
-                        child: TextField(
-                          controller: shiftNameController,
-                          onChanged: (value) {
-                            setState(() {
-                              shiftName = value;
-                            });
-                          },
-                          style: TossTextStyles.bodyLarge.copyWith(
-                            color: TossColors.gray900,
-                          ),
-                          decoration: InputDecoration(
-                            hintText: 'e.g., Morning Shift, Night Shift',
-                            hintStyle: TossTextStyles.body.copyWith(
-                              color: TossColors.gray400,
-                            ),
-                            border: InputBorder.none,
-                            contentPadding: const EdgeInsets.all(TossSpacing.space4),
-                            prefixIcon: Icon(
-                              Icons.badge_outlined,
-                              color: shiftName.isNotEmpty 
-                                ? TossColors.primary
-                                : TossColors.gray400,
-                              size: 20,
-                            ),
-                          ),
-                        ),
-                      ),
-                      
-                      const SizedBox(height: TossSpacing.space5),
-                      
-                      // Start Time Section
-                      Text(
-                        'Start Time',
-                        style: TossTextStyles.body.copyWith(
-                          color: TossColors.gray700,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      const SizedBox(height: TossSpacing.space3),
-                      InkWell(
-                        onTap: () {
-                          // Show time picker for start time
-                          _showTimePicker(
-                            context,
-                            selectedStartTime,
-                            (newTime) {
-                              setState(() {
-                                selectedStartTime = newTime;
-                              });
-                            },
-                          );
-                        },
-                        borderRadius: BorderRadius.circular(12),
-                        child: Container(
-                          padding: const EdgeInsets.all(TossSpacing.space4),
-                          decoration: BoxDecoration(
-                            color: TossColors.gray50,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: TossColors.gray200,
-                              width: 1,
-                            ),
-                          ),
-                          child: Row(
-                            children: [
-                              Icon(
-                                Icons.access_time,
-                                color: TossColors.gray600,
-                                size: 20,
-                              ),
-                              const SizedBox(width: TossSpacing.space3),
-                              Text(
-                                selectedStartTime,
-                                style: TossTextStyles.bodyLarge.copyWith(
-                                  color: TossColors.gray900,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                              const Spacer(),
-                              Icon(
-                                Icons.edit,
-                                color: TossColors.gray400,
-                                size: 18,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      
-                      const SizedBox(height: TossSpacing.space5),
-                      
-                      // End Time Section
-                      Text(
-                        'End Time',
-                        style: TossTextStyles.body.copyWith(
-                          color: TossColors.gray700,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      const SizedBox(height: TossSpacing.space3),
-                      InkWell(
-                        onTap: () {
-                          // Show time picker for end time
-                          _showTimePicker(
-                            context,
-                            selectedEndTime,
-                            (newTime) {
-                              setState(() {
-                                selectedEndTime = newTime;
-                              });
-                            },
-                          );
-                        },
-                        borderRadius: BorderRadius.circular(12),
-                        child: Container(
-                          padding: const EdgeInsets.all(TossSpacing.space4),
-                          decoration: BoxDecoration(
-                            color: TossColors.gray50,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: TossColors.gray200,
-                              width: 1,
-                            ),
-                          ),
-                          child: Row(
-                            children: [
-                              Icon(
-                                Icons.access_time,
-                                color: TossColors.gray600,
-                                size: 20,
-                              ),
-                              const SizedBox(width: TossSpacing.space3),
-                              Text(
-                                selectedEndTime,
-                                style: TossTextStyles.bodyLarge.copyWith(
-                                  color: TossColors.gray900,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                              const Spacer(),
-                              Icon(
-                                Icons.edit,
-                                color: TossColors.gray400,
-                                size: 18,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      
-                      const SizedBox(height: TossSpacing.space6),
-                      
-                      // Duration Display
-                      Container(
-                        padding: const EdgeInsets.all(TossSpacing.space4),
-                        decoration: BoxDecoration(
-                          color: TossColors.info.withOpacity(0.05),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: TossColors.info.withOpacity(0.2),
-                            width: 1,
-                          ),
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(
-                              Icons.timer_outlined,
-                              color: TossColors.info,
-                              size: 20,
-                            ),
-                            const SizedBox(width: TossSpacing.space3),
-                            Text(
-                              'Duration: ',
-                              style: TossTextStyles.body.copyWith(
-                                color: TossColors.gray600,
-                              ),
-                            ),
-                            Text(
-                              _calculateDuration(selectedStartTime, selectedEndTime),
-                              style: TossTextStyles.body.copyWith(
-                                color: TossColors.gray900,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
+                child: TossPrimaryButton(
+                  text: 'Create Shift',
+                  fullWidth: true,
+                  isEnabled: shiftName.isNotEmpty && selectedStartTime != null && selectedEndTime != null,
+                  onPressed: (shiftName.isNotEmpty && selectedStartTime != null && selectedEndTime != null) ? () {
+                    _showCreateConfirmation(
+                      context: context,
+                      shiftName: shiftName,
+                      startTime: selectedStartTime!.format(context),
+                      endTime: selectedEndTime!.format(context),
+                    );
+                  } : null,
                 ),
               ),
             ],
@@ -1827,43 +1226,119 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
         ),
       ),
     );
-    
-    // Note: The controller will be automatically garbage collected when the bottom sheet is closed
-    // since it's a local variable and the TextField will properly detach from it
   }
   
-  // Helper method to get shift name based on time
-  String _getShiftName(String startTime) {
-    if (startTime.isEmpty) return 'Shift';
+  
+  // Helper method to get shift icon and color from time string (for preview dialogs)
+  Map<String, dynamic> _getShiftIconAndColorFromTimeString(String timeString) {
+    IconData icon = FontAwesomeIcons.clock;
+    Color color = TossColors.info;
+    
+    if (timeString.isEmpty) {
+      return {'icon': icon, 'color': color};
+    }
     
     try {
-      final hour = int.parse(startTime.split(':')[0]);
-      if (hour >= 5 && hour < 12) {
-        return 'Morning Shift';
-      } else if (hour >= 12 && hour < 17) {
-        return 'Afternoon Shift';
-      } else if (hour >= 17 && hour < 22) {
-        return 'Evening Shift';
-      } else {
-        return 'Night Shift';
+      // Simple parsing for formatted times like "9:00 AM" or "5:30 PM"
+      if (timeString.contains('AM') || timeString.contains('PM')) {
+        final parts = timeString.split(' ');
+        if (parts.length >= 2) {
+          final timePart = parts[0];
+          final period = parts[1];
+          final timeParts = timePart.split(':');
+          
+          if (timeParts.length >= 2) {
+            var hour = int.parse(timeParts[0]);
+            if (period == 'PM' && hour != 12) {
+              hour += 12;
+            } else if (period == 'AM' && hour == 12) {
+              hour = 0;
+            }
+            
+            // Use same intuitive time-based icons as shift cards
+            if (hour >= 5 && hour < 12) {
+              icon = FontAwesomeIcons.sun; // Morning - sunrise/bright sun
+              color = TossColors.success;
+            } else if (hour >= 12 && hour < 17) {
+              icon = FontAwesomeIcons.solidSun; // Afternoon - bright day
+              color = TossColors.info;
+            } else if (hour >= 17 && hour < 22) {
+              icon = FontAwesomeIcons.cloudSun; // Evening - sun setting
+              color = TossColors.warning;
+            } else {
+              icon = FontAwesomeIcons.moon; // Night - moon
+              color = TossColors.gray600;
+            }
+          }
+        }
       }
     } catch (e) {
-      return 'Shift';
+      // Fallback to default icon and color
     }
+    
+    return {'icon': icon, 'color': color};
   }
   
-  // Calculate duration between two times
-  String _calculateDuration(String startTime, String endTime) {
+  // Helper method to calculate duration from time strings (for confirmation dialog)
+  String _calculateDurationFromTimeStrings(String startTimeString, String endTimeString) {
     try {
-      final startParts = startTime.split(':');
-      final endParts = endTime.split(':');
+      // Convert time strings to TimeOfDay objects for calculation
+      TimeOfDay? startTime;
+      TimeOfDay? endTime;
       
-      final startHour = int.parse(startParts[0]);
-      final startMin = int.parse(startParts[1]);
-      final endHour = int.parse(endParts[0]);
-      final endMin = int.parse(endParts[1]);
+      // Parse AM/PM format
+      if (startTimeString.contains('AM') || startTimeString.contains('PM')) {
+        startTime = _parseTimeFromString(startTimeString);
+      }
       
-      var totalMinutes = (endHour * 60 + endMin) - (startHour * 60 + startMin);
+      if (endTimeString.contains('AM') || endTimeString.contains('PM')) {
+        endTime = _parseTimeFromString(endTimeString);
+      }
+      
+      if (startTime != null && endTime != null) {
+        return _calculateDurationFromTimeOfDay(startTime, endTime);
+      }
+    } catch (e) {
+      // Fallback to simple calculation
+    }
+    
+    return 'Unable to calculate';
+  }
+  
+  // Helper method to parse TimeOfDay from AM/PM string
+  TimeOfDay? _parseTimeFromString(String timeString) {
+    try {
+      final parts = timeString.split(' ');
+      if (parts.length >= 2) {
+        final timePart = parts[0];
+        final period = parts[1];
+        final timeParts = timePart.split(':');
+        
+        if (timeParts.length >= 2) {
+          var hour = int.parse(timeParts[0]);
+          final minute = int.parse(timeParts[1]);
+          
+          if (period == 'PM' && hour != 12) {
+            hour += 12;
+          } else if (period == 'AM' && hour == 12) {
+            hour = 0;
+          }
+          
+          return TimeOfDay(hour: hour, minute: minute);
+        }
+      }
+    } catch (e) {
+      // Return null on parse error
+    }
+    
+    return null;
+  }
+  
+  
+  // Calculate duration between two TimeOfDay objects
+  String _calculateDurationFromTimeOfDay(TimeOfDay startTime, TimeOfDay endTime) {
+    try {
+      var totalMinutes = (endTime.hour * 60 + endTime.minute) - (startTime.hour * 60 + startTime.minute);
       
       // Handle overnight shifts
       if (totalMinutes < 0) {
@@ -1883,50 +1358,315 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
     }
   }
   
-  // Show time picker dialog for create shift
-  void _showTimePickerDialog(BuildContext context, String? currentTime, Function(String) onTimeSelected) async {
-    // Parse current time or use default
-    TimeOfDay initialTime = TimeOfDay.now();
-    if (currentTime != null && currentTime.isNotEmpty) {
-      try {
-        final parts = currentTime.split(':');
-        initialTime = TimeOfDay(
-          hour: int.parse(parts[0]),
-          minute: int.parse(parts[1]),
-        );
-      } catch (e) {
-        // Use default if parsing fails
-      }
-    }
+  // Show Edit Shift Bottom Sheet
+  void _showEditShiftBottomSheet(Map<String, dynamic> shift) {
+    // Parse existing shift data
+    final startTime = shift['start_time'] ?? '09:00';
+    final endTime = shift['end_time'] ?? '17:00';
+    final shiftId = shift['shift_id'] ?? '';
+    final existingShiftName = shift['shift_name'] ?? 'Unnamed Shift';
     
-    final TimeOfDay? picked = await showTimePicker(
+    // State variables for the bottom sheet
+    String shiftName = existingShiftName;
+    TimeOfDay selectedStartTime = _parseTimeOfDay(startTime);
+    TimeOfDay selectedEndTime = _parseTimeOfDay(endTime);
+    
+    // Create a TextEditingController for the shift name
+    final shiftNameController = TextEditingController(text: existingShiftName);
+    
+    showModalBottomSheet(
       context: context,
-      initialTime: initialTime,
-      builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: ColorScheme.light(
-              primary: TossColors.primary,
-              onPrimary: Colors.white,
-              onSurface: TossColors.gray900,
+      isScrollControlled: true,
+      backgroundColor: TossColors.transparent,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => Container(
+          height: MediaQuery.of(context).size.height * 0.85,
+          decoration: const BoxDecoration(
+            color: TossColors.white,
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(24),
+              topRight: Radius.circular(24),
             ),
-            dialogBackgroundColor: Colors.white,
           ),
-          child: child!,
-        );
-      },
+          child: Column(
+            children: [
+              // Handle bar
+              Container(
+                margin: const EdgeInsets.only(top: TossSpacing.space3),
+                width: TossSpacing.iconXL,
+                height: TossSpacing.space1,
+                decoration: BoxDecoration(
+                  color: TossColors.gray300,
+                  borderRadius: BorderRadius.circular(TossBorderRadius.full),
+                ),
+              ),
+              
+              // Header
+              Container(
+                padding: const EdgeInsets.all(TossSpacing.space5),
+                child: Text(
+                  'Edit Shift',
+                  style: TossTextStyles.h3.copyWith(
+                    color: TossColors.gray900,
+                    fontWeight: FontWeight.w700,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+              
+              // Content
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(TossSpacing.space5),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Shift Name Input Section - Using TossTextField like Create Shift
+                      TossTextField(
+                        label: 'Shift Name',
+                        hintText: 'e.g., Morning Shift, Night Shift',
+                        controller: shiftNameController,
+                        onChanged: (value) {
+                          setState(() {
+                            shiftName = value;
+                          });
+                        },
+                      ),
+                      
+                      const SizedBox(height: TossSpacing.space6),
+                      
+                      // Time Settings Section - Matching Create Shift design
+                      Container(
+                        padding: const EdgeInsets.all(TossSpacing.space4),
+                        decoration: BoxDecoration(
+                          color: TossColors.primary.withOpacity(0.03),
+                          borderRadius: BorderRadius.circular(TossBorderRadius.xl),
+                          border: Border.all(
+                            color: _getShiftIconAndColorFromTimeString(startTime)['color'].withOpacity(0.1),
+                            width: TossSpacing.space1/4,
+                          ),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                FaIcon(
+                                  IconMapper.getIcon('clock'),
+                                  color: TossColors.primary,
+                                  size: TossSpacing.iconSM,
+                                ),
+                                const SizedBox(width: TossSpacing.space2),
+                                Text(
+                                  'Shift Hours',
+                                  style: TossTextStyles.body.copyWith(
+                                    color: TossColors.gray700,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: TossSpacing.space4),
+                            
+                            // Start Time
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Start Time',
+                                  style: TossTextStyles.caption.copyWith(
+                                    color: TossColors.gray600,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                const SizedBox(height: TossSpacing.space2),
+                                TossSimpleTimePicker(
+                                  time: selectedStartTime,
+                                  onTimeChanged: (TimeOfDay time) {
+                                    setState(() {
+                                      selectedStartTime = time;
+                                    });
+                                  },
+                                  use24HourFormat: false,
+                                ),
+                              ],
+                            ),
+                            
+                            const SizedBox(height: TossSpacing.space4),
+                            
+                            // End Time
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'End Time',
+                                  style: TossTextStyles.caption.copyWith(
+                                    color: TossColors.gray600,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                const SizedBox(height: TossSpacing.space2),
+                                TossSimpleTimePicker(
+                                  time: selectedEndTime,
+                                  onTimeChanged: (TimeOfDay time) {
+                                    setState(() {
+                                      selectedEndTime = time;
+                                    });
+                                  },
+                                  use24HourFormat: false,
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                      
+                      const SizedBox(height: TossSpacing.space5),
+                      
+                      // Duration Display - Matching Create Shift green styling
+                      Container(
+                        padding: const EdgeInsets.all(TossSpacing.space4),
+                        decoration: BoxDecoration(
+                          color: TossColors.success.withOpacity(0.05),
+                          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+                          border: Border.all(
+                            color: TossColors.success.withOpacity(0.2),
+                            width: TossSpacing.space1/4,
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              FontAwesomeIcons.stopwatch,
+                              color: TossColors.success,
+                              size: TossSpacing.iconSM,
+                            ),
+                            const SizedBox(width: TossSpacing.space3),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Total Duration',
+                                  style: TossTextStyles.caption.copyWith(
+                                    color: TossColors.gray600,
+                                  ),
+                                ),
+                                const SizedBox(height: TossSpacing.space1/2),
+                                Text(
+                                  _calculateDurationFromTimeOfDay(selectedStartTime, selectedEndTime),
+                                  style: TossTextStyles.body.copyWith(
+                                    color: TossColors.gray900,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                      
+                      const SizedBox(height: TossSpacing.space6),
+                    ],
+                  ),
+                ),
+              ),
+              
+              // Bottom Save Button - Matching Create Shift design
+              Container(
+                padding: EdgeInsets.fromLTRB(
+                  TossSpacing.space5,
+                  TossSpacing.space4,
+                  TossSpacing.space5,
+                  MediaQuery.of(context).padding.bottom + TossSpacing.space4,
+                ),
+                decoration: BoxDecoration(
+                  color: TossColors.white,
+                  border: Border(
+                    top: BorderSide(
+                      color: TossColors.gray100,
+                      width: 0.5,
+                    ),
+                  ),
+                ),
+                child: TossPrimaryButton(
+                  text: 'Save Changes',
+                  fullWidth: true,
+                  isEnabled: shiftName.isNotEmpty,
+                  onPressed: shiftName.isNotEmpty ? () {
+                    _showEditConfirmation(
+                      context: context,
+                      shiftId: shiftId,
+                      shiftName: shiftName,
+                      startTime: selectedStartTime.format(context),
+                      endTime: selectedEndTime.format(context),
+                    );
+                  } : null,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
     
-    if (picked != null) {
-      final hour = picked.hour.toString().padLeft(2, '0');
-      final minute = picked.minute.toString().padLeft(2, '0');
-      onTimeSelected('$hour:$minute');
+  }
+  
+  // Helper method to parse TimeOfDay from string
+  TimeOfDay _parseTimeOfDay(String timeString) {
+    try {
+      final parts = timeString.split(':');
+      return TimeOfDay(
+        hour: int.parse(parts[0]),
+        minute: int.parse(parts[1]),
+      );
+    } catch (e) {
+      return TimeOfDay.now();
     }
   }
   
-  // Show time picker (for edit shift - kept for compatibility)
-  void _showTimePicker(BuildContext context, String currentTime, Function(String) onTimeSelected) {
-    _showTimePickerDialog(context, currentTime, onTimeSelected);
+  // Helper method to format time for database (converts 12-hour format to 24-hour HH:mm:ss)
+  String _formatTimeForDatabase(String timeString) {
+    try {
+      // Check if it's already in 24-hour format (HH:mm or HH:mm:ss)
+      if (!timeString.contains('AM') && !timeString.contains('PM')) {
+        // Already in 24-hour format, just add seconds if missing
+        if (timeString.split(':').length == 2) {
+          return '$timeString:00';
+        }
+        return timeString;
+      }
+      
+      // Parse 12-hour format (e.g., "6:00 PM" or "11:30 AM")
+      final parts = timeString.trim().split(' ');
+      if (parts.length != 2) {
+        throw Exception('Invalid time format');
+      }
+      
+      final timePart = parts[0];
+      final period = parts[1].toUpperCase();
+      final timeParts = timePart.split(':');
+      
+      if (timeParts.length != 2) {
+        throw Exception('Invalid time format');
+      }
+      
+      var hour = int.parse(timeParts[0]);
+      final minute = int.parse(timeParts[1]);
+      
+      // Convert to 24-hour format
+      if (period == 'PM' && hour != 12) {
+        hour += 12;
+      } else if (period == 'AM' && hour == 12) {
+        hour = 0;
+      }
+      
+      // Format as HH:mm:ss
+      return '${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}:00';
+    } catch (e) {
+      // Fallback: return current time formatted
+      final now = TimeOfDay.now();
+      return '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}:00';
+    }
   }
   
   // Show edit confirmation dialog
@@ -1941,7 +1681,7 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
       context: context,
       builder: (dialogContext) => AlertDialog(
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(TossBorderRadius.xl),
         ),
         title: Text(
           'Update Shift',
@@ -1960,41 +1700,119 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
                 color: TossColors.gray700,
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: TossSpacing.paddingMD),
+            // Enhanced Shift Preview Card - Full width for consistent UI/UX
             Container(
-              padding: const EdgeInsets.all(12),
+              width: double.infinity, // Make horizontally bigger for consistency
+              padding: const EdgeInsets.all(TossSpacing.space4),
               decoration: BoxDecoration(
-                color: TossColors.gray50,
-                borderRadius: BorderRadius.circular(8),
+                gradient: LinearGradient(
+                  colors: [
+                    TossColors.primary.withOpacity(0.05),
+                    TossColors.primary.withOpacity(0.02),
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(TossBorderRadius.xl),
+                border: Border.all(
+                  color: TossColors.primary.withOpacity(0.2),
+                  width: TossSpacing.space1/4,
+                ),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Preview header
+                  Text(
+                    'Shift Preview',
+                    style: TossTextStyles.caption.copyWith(
+                      color: TossColors.gray600,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(height: TossSpacing.space3),
+                  
+                  // Shift details with icon
                   Row(
                     children: [
-                      Icon(Icons.badge_outlined, size: 16, color: TossColors.gray600),
-                      const SizedBox(width: 8),
-                      Text(
-                        shiftName,
-                        style: TossTextStyles.body.copyWith(
-                          color: TossColors.gray900,
-                          fontWeight: FontWeight.w600,
+                      Container(
+                        width: TossSpacing.iconXL + TossSpacing.space2,
+                        height: TossSpacing.iconXL + TossSpacing.space2,
+                        decoration: BoxDecoration(
+                          color: _getShiftIconAndColorFromTimeString(startTime)['color'].withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+                        ),
+                        child: Center(
+                          child: FaIcon(
+                            _getShiftIconAndColorFromTimeString(startTime)['icon'],
+                            color: _getShiftIconAndColorFromTimeString(startTime)['color'],
+                            size: TossSpacing.iconMD,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: TossSpacing.space3),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              shiftName,
+                              style: TossTextStyles.body.copyWith(
+                                color: TossColors.gray900,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            const SizedBox(height: TossSpacing.space1),
+                            Text(
+                              '$startTime - $endTime',
+                              style: TossTextStyles.caption.copyWith(
+                                color: TossColors.gray600,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      Icon(Icons.schedule, size: 16, color: TossColors.gray600),
-                      const SizedBox(width: 8),
-                      Text(
-                        '$startTime - $endTime',
-                        style: TossTextStyles.body.copyWith(
-                          color: TossColors.gray700,
-                        ),
+                  
+                  const SizedBox(height: TossSpacing.space3),
+                  
+                  // Duration info
+                  Container(
+                    padding: const EdgeInsets.all(TossSpacing.space3),
+                    decoration: BoxDecoration(
+                      color: TossColors.success.withOpacity(0.05),
+                      borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+                      border: Border.all(
+                        color: TossColors.success.withOpacity(0.2),
+                        width: TossSpacing.space1/4,
                       ),
-                    ],
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          FontAwesomeIcons.stopwatch,
+                          color: TossColors.success,
+                          size: TossSpacing.iconSM,
+                        ),
+                        const SizedBox(width: TossSpacing.space2),
+                        Text(
+                          'Duration: ',
+                          style: TossTextStyles.caption.copyWith(
+                            color: TossColors.gray600,
+                          ),
+                        ),
+                        Text(
+                          _calculateDurationFromTimeStrings(startTime, endTime),
+                          style: TossTextStyles.caption.copyWith(
+                            color: TossColors.gray900,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
@@ -2017,7 +1835,7 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
               Navigator.pop(dialogContext); // Close confirmation dialog
               Navigator.pop(context); // Close bottom sheet first
               // Small delay to ensure bottom sheet is closed before updating
-              await Future.delayed(const Duration(milliseconds: 100));
+              await Future.delayed(TossAnimations.quick);
               await _updateShift(shiftId, shiftName, startTime, endTime);
             },
             child: Text(
@@ -2044,7 +1862,7 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
       context: context,
       builder: (dialogContext) => AlertDialog(
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(TossBorderRadius.xl),
         ),
         title: Text(
           'Create New Shift',
@@ -2063,41 +1881,119 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
                 color: TossColors.gray700,
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: TossSpacing.paddingMD),
+            // Enhanced Shift Preview Card - Full width for consistent UI/UX
             Container(
-              padding: const EdgeInsets.all(12),
+              width: double.infinity, // Make horizontally bigger for consistency
+              padding: const EdgeInsets.all(TossSpacing.space4),
               decoration: BoxDecoration(
-                color: TossColors.gray50,
-                borderRadius: BorderRadius.circular(8),
+                gradient: LinearGradient(
+                  colors: [
+                    TossColors.primary.withOpacity(0.05),
+                    TossColors.primary.withOpacity(0.02),
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(TossBorderRadius.xl),
+                border: Border.all(
+                  color: TossColors.primary.withOpacity(0.2),
+                  width: TossSpacing.space1/4,
+                ),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Preview header
+                  Text(
+                    'Shift Preview',
+                    style: TossTextStyles.caption.copyWith(
+                      color: TossColors.gray600,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(height: TossSpacing.space3),
+                  
+                  // Shift details with icon
                   Row(
                     children: [
-                      Icon(Icons.badge_outlined, size: 16, color: TossColors.gray600),
-                      const SizedBox(width: 8),
-                      Text(
-                        shiftName,
-                        style: TossTextStyles.body.copyWith(
-                          color: TossColors.gray900,
-                          fontWeight: FontWeight.w600,
+                      Container(
+                        width: TossSpacing.iconXL + TossSpacing.space2,
+                        height: TossSpacing.iconXL + TossSpacing.space2,
+                        decoration: BoxDecoration(
+                          color: _getShiftIconAndColorFromTimeString(startTime)['color'].withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+                        ),
+                        child: Center(
+                          child: FaIcon(
+                            _getShiftIconAndColorFromTimeString(startTime)['icon'],
+                            color: _getShiftIconAndColorFromTimeString(startTime)['color'],
+                            size: TossSpacing.iconMD,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: TossSpacing.space3),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              shiftName,
+                              style: TossTextStyles.body.copyWith(
+                                color: TossColors.gray900,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            const SizedBox(height: TossSpacing.space1),
+                            Text(
+                              '$startTime - $endTime',
+                              style: TossTextStyles.caption.copyWith(
+                                color: TossColors.gray600,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      Icon(Icons.schedule, size: 16, color: TossColors.gray600),
-                      const SizedBox(width: 8),
-                      Text(
-                        '$startTime - $endTime',
-                        style: TossTextStyles.body.copyWith(
-                          color: TossColors.gray700,
-                        ),
+                  
+                  const SizedBox(height: TossSpacing.space3),
+                  
+                  // Duration info
+                  Container(
+                    padding: const EdgeInsets.all(TossSpacing.space3),
+                    decoration: BoxDecoration(
+                      color: TossColors.success.withOpacity(0.05),
+                      borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+                      border: Border.all(
+                        color: TossColors.success.withOpacity(0.2),
+                        width: TossSpacing.space1/4,
                       ),
-                    ],
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          FontAwesomeIcons.stopwatch,
+                          color: TossColors.success,
+                          size: TossSpacing.iconSM,
+                        ),
+                        const SizedBox(width: TossSpacing.space2),
+                        Text(
+                          'Duration: ',
+                          style: TossTextStyles.caption.copyWith(
+                            color: TossColors.gray600,
+                          ),
+                        ),
+                        Text(
+                          _calculateDurationFromTimeStrings(startTime, endTime),
+                          style: TossTextStyles.caption.copyWith(
+                            color: TossColors.gray900,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
@@ -2148,9 +2044,9 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
       final now = DateTime.now();
       final timestamp = now.toIso8601String();
       
-      // Format times with seconds
-      final formattedStartTime = '$startTime:00';
-      final formattedEndTime = '$endTime:00';
+      // Format times to 24-hour format (HH:mm:ss) for database
+      final formattedStartTime = _formatTimeForDatabase(startTime);
+      final formattedEndTime = _formatTimeForDatabase(endTime);
       
       final supabase = Supabase.instance.client;
       
@@ -2176,7 +2072,7 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
             content: Text('Shift created successfully'),
             backgroundColor: TossColors.success,
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(TossBorderRadius.button)),
           ),
         );
       }
@@ -2189,7 +2085,7 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
             content: Text('Failed to create shift: ${e.toString()}'),
             backgroundColor: TossColors.error,
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(TossBorderRadius.button)),
           ),
         );
       }
@@ -2202,7 +2098,7 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
       context: context,
       builder: (dialogContext) => AlertDialog(
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(TossBorderRadius.xl),
         ),
         title: Text(
           'Delete Shift',
@@ -2221,25 +2117,25 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
                 color: TossColors.gray700,
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: TossSpacing.paddingMD),
             Container(
-              padding: const EdgeInsets.all(12),
+              padding: EdgeInsets.all(TossSpacing.space3),
               decoration: BoxDecoration(
                 color: TossColors.error.withOpacity(0.05),
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(TossBorderRadius.button),
                 border: Border.all(
                   color: TossColors.error.withOpacity(0.2),
-                  width: 1,
+                  width: TossSpacing.space1/4,
                 ),
               ),
               child: Row(
                 children: [
                   Icon(
-                    Icons.delete_outline,
-                    size: 20,
+                    FontAwesomeIcons.trashCan,
+                    size: TossSpacing.iconSM,
                     color: TossColors.error,
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: TossSpacing.space2),
                   Expanded(
                     child: Text(
                       shiftName,
@@ -2252,7 +2148,7 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
                 ],
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: TossSpacing.space3),
             Text(
               'This shift will be deactivated and won\'t be visible anymore.',
               style: TossTextStyles.caption.copyWith(
@@ -2293,22 +2189,9 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
   // Update shift in database
   Future<void> _updateShift(String shiftId, String shiftName, String startTime, String endTime) async {
     try {
-      // Format times with seconds (HH:mm:ss)
-      String formattedStartTime;
-      String formattedEndTime;
-      
-      // Check if time already has seconds
-      if (startTime.split(':').length == 3) {
-        formattedStartTime = startTime;
-      } else {
-        formattedStartTime = '$startTime:00';
-      }
-      
-      if (endTime.split(':').length == 3) {
-        formattedEndTime = endTime;
-      } else {
-        formattedEndTime = '$endTime:00';
-      }
+      // Format times to 24-hour format (HH:mm:ss) for database
+      final formattedStartTime = _formatTimeForDatabase(startTime);
+      final formattedEndTime = _formatTimeForDatabase(endTime);
       
       // Get current timestamp in yyyy-MM-dd HH:mm:ss.SSSS format
       final now = DateTime.now();
@@ -2337,7 +2220,7 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
             content: Text('Shift updated successfully'),
             backgroundColor: TossColors.success,
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(TossBorderRadius.button)),
           ),
         );
       }
@@ -2350,7 +2233,7 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
             content: Text('Failed to update shift: ${e.toString()}'),
             backgroundColor: TossColors.error,
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(TossBorderRadius.button)),
           ),
         );
       }
@@ -2381,7 +2264,7 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
             content: Text('Shift "$shiftName" deleted successfully'),
             backgroundColor: TossColors.success,
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(TossBorderRadius.button)),
           ),
         );
       }
@@ -2394,7 +2277,7 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
             content: Text('Failed to delete shift: ${e.toString()}'),
             backgroundColor: TossColors.error,
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(TossBorderRadius.button)),
           ),
         );
       }

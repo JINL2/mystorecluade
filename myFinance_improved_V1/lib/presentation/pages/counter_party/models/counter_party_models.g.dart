@@ -134,8 +134,8 @@ _$CounterPartyFilterImpl _$$CounterPartyFilterImplFromJson(
           .toList(),
       sortBy: $enumDecodeNullable(
               _$CounterPartySortOptionEnumMap, json['sortBy']) ??
-          CounterPartySortOption.name,
-      ascending: json['ascending'] as bool? ?? true,
+          CounterPartySortOption.isInternal,
+      ascending: json['ascending'] as bool? ?? false,
       isInternal: json['isInternal'] as bool?,
       createdAfter: json['createdAfter'] == null
           ? null
@@ -164,8 +164,7 @@ const _$CounterPartySortOptionEnumMap = {
   CounterPartySortOption.name: 'name',
   CounterPartySortOption.type: 'type',
   CounterPartySortOption.createdAt: 'createdAt',
-  CounterPartySortOption.lastTransaction: 'lastTransaction',
-  CounterPartySortOption.balance: 'balance',
+  CounterPartySortOption.isInternal: 'isInternal',
 };
 
 _$CounterPartyResponseSuccessImpl _$$CounterPartyResponseSuccessImplFromJson(

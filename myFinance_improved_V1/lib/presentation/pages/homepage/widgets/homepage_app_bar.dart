@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:myfinance_improved/core/themes/toss_colors.dart';
 import 'package:myfinance_improved/core/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/core/themes/toss_shadows.dart';
+import 'package:myfinance_improved/core/themes/toss_animations.dart';
+import 'package:myfinance_improved/core/themes/toss_spacing.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
 class HomepageAppBar extends StatelessWidget {
@@ -39,7 +41,7 @@ class HomepageAppBar extends StatelessWidget {
         children: [
           // Top Row - Menu, Greeting, Profile
           Container(
-            height: 56,
+            height: UIConstants.appBarHeight,
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Row(
               children: [
@@ -82,7 +84,7 @@ class HomepageAppBar extends StatelessWidget {
                         color: TossColors.gray100,
                         child: const Icon(
                           Icons.person,
-                          size: 20,
+                          size: UIConstants.iconSizeMedium,
                           color: TossColors.gray400,
                         ),
                       ),
@@ -90,7 +92,7 @@ class HomepageAppBar extends StatelessWidget {
                         color: TossColors.gray100,
                         child: const Icon(
                           Icons.person,
-                          size: 20,
+                          size: UIConstants.iconSizeMedium,
                           color: TossColors.gray400,
                         ),
                       ),
@@ -187,11 +189,11 @@ class HomepageAppBar extends StatelessWidget {
                   child: Container(
                     padding: const EdgeInsets.all(6),
                     child: AnimatedRotation(
-                      duration: const Duration(milliseconds: 1000),
+                      duration: TossAnimations.sync,
                       turns: isSyncing ? 1 : 0,
                       child: Icon(
                         Icons.sync,
-                        size: 20,
+                        size: UIConstants.iconSizeMedium,
                         color: isSyncing ? TossColors.primary : TossColors.gray600,
                       ),
                     ),

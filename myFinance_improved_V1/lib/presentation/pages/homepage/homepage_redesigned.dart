@@ -5,7 +5,9 @@ import 'package:myfinance_improved/core/themes/toss_colors.dart';
 import 'package:myfinance_improved/core/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/core/themes/toss_spacing.dart';
 import 'package:myfinance_improved/core/themes/toss_shadows.dart';
-import 'providers/homepage_providers.dart' hide selectedCompanyProvider, selectedStoreProvider;
+import 'package:myfinance_improved/core/themes/toss_animations.dart';
+import 'package:myfinance_improved/core/constants/icon_mapper.dart';
+import 'providers/homepage_providers.dart';
 import '../../providers/app_state_provider.dart';
 import '../../providers/auth_provider.dart';
 import 'models/homepage_models.dart';
@@ -37,34 +39,27 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    // No longer checking for refresh flag
+    // Handle app lifecycle changes if needed
   }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-  }
-
 
   @override
   Widget build(BuildContext context) {
     final userCompaniesAsync = ref.watch(userCompaniesProvider);
     final categoriesAsync = ref.watch(categoriesWithFeaturesProvider);
-    final appState = ref.watch(appStateProvider);
     // Watch the selections so they update when changed
     final selectedCompany = ref.watch(selectedCompanyProvider);
     final selectedStore = ref.watch(selectedStoreProvider);
 
     return Scaffold(
       key: _scaffoldKey,
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: TossColors.gray100, // Proper Toss background color
       body: Stack(
         children: [
           // Main Content
           userCompaniesAsync.when(
             data: (userData) => RefreshIndicator(
               onRefresh: () => _handleRefresh(ref),
-              color: Theme.of(context).colorScheme.primary,
+              color: TossColors.primary,
               child: CustomScrollView(
                 slivers: [
                   // Simple App Bar
@@ -87,13 +82,13 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
               ),
             ),
             loading: () => Center(
-              child: CircularProgressIndicator(color: Theme.of(context).colorScheme.primary),
+              child: CircularProgressIndicator(color: TossColors.primary),
             ),
             error: (error, stack) => Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.error_outline, size: 48, color: Theme.of(context).colorScheme.error),
+                  Icon(Icons.error_outline, size: 48, color: TossColors.error),
                   const SizedBox(height: 16),
                   Text('Something went wrong', style: TossTextStyles.h3),
                   const SizedBox(height: 8),
@@ -112,41 +107,43 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
       pinned: true,
       floating: false,
       snap: false,
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      surfaceTintColor: Colors.transparent, // Prevents color change on scroll
-      shadowColor: Colors.transparent,
+      backgroundColor: TossColors.gray100, // Seamless with body background
+      surfaceTintColor: TossColors.transparent,
+      shadowColor: TossColors.transparent,
       elevation: 0,
-      toolbarHeight: 56, // Standard app bar height
+      toolbarHeight: 64, // Slightly taller for better visual weight
       leading: IconButton(
-        icon: Icon(Icons.menu, color: Theme.of(context).colorScheme.onSurface),
+        icon: Icon(Icons.menu, color: TossColors.textSecondary, size: 24),
         onPressed: () => _showCompanyStoreBottomSheet(context, ref),
+        padding: EdgeInsets.all(TossSpacing.space3),
       ),
       actions: [
-        // Notifications
+        // Notifications with improved Toss styling
         IconButton(
           icon: Badge(
             isLabelVisible: true,
             smallSize: 6,
             largeSize: 6,
-            backgroundColor: Theme.of(context).colorScheme.primary,
+            backgroundColor: TossColors.primary,
             child: Icon(
               Icons.notifications_none_rounded,
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-              size: 26,
+              color: TossColors.textSecondary,
+              size: 24,
             ),
           ),
           onPressed: () {},
+          padding: EdgeInsets.all(TossSpacing.space3),
         ),
-        // Profile
+        // Profile with improved Toss styling
         Padding(
-          padding: const EdgeInsets.only(right: 16),
+          padding: EdgeInsets.only(right: TossSpacing.space4),
           child: PopupMenuButton<String>(
-            offset: const Offset(0, 40),
+            offset: const Offset(0, 48),
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(TossSpacing.space3),
             ),
-            color: Theme.of(context).colorScheme.surface,
-            elevation: 4,
+            color: TossColors.surface,
+            elevation: 2, // Reduced for cleaner look
             onSelected: (value) {
               if (value == 'settings') {
                 // Navigate to settings
@@ -163,14 +160,14 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
                   children: [
                     Icon(
                       Icons.settings_outlined,
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      color: TossColors.textSecondary,
                       size: 20,
                     ),
                     SizedBox(width: TossSpacing.space3),
                     Text(
                       'Settings',
                       style: TossTextStyles.body.copyWith(
-                        color: Theme.of(context).colorScheme.onSurface,
+                        color: TossColors.textPrimary,
                       ),
                     ),
                   ],
@@ -183,14 +180,14 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
                   children: [
                     Icon(
                       Icons.logout_rounded,
-                      color: Theme.of(context).colorScheme.error,
+                      color: TossColors.error,
                       size: 20,
                     ),
                     SizedBox(width: TossSpacing.space3),
                     Text(
                       'Logout',
                       style: TossTextStyles.body.copyWith(
-                        color: Theme.of(context).colorScheme.error,
+                        color: TossColors.error,
                       ),
                     ),
                   ],
@@ -198,16 +195,16 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
               ),
             ],
             child: CircleAvatar(
-              radius: 18,
+              radius: 20, // Slightly larger for better visual weight
               backgroundImage: (userData['profile_image'] ?? '').isNotEmpty
                   ? NetworkImage(userData['profile_image'])
                   : null,
-              backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+              backgroundColor: TossColors.primary.withOpacity(0.1),
               child: (userData['profile_image'] ?? '').isEmpty
                   ? Text(
                       (userData['user_first_name'] ?? '').isNotEmpty ? userData['user_first_name'][0] : 'U',
-                      style: TossTextStyles.body.copyWith(
-                        color: Theme.of(context).colorScheme.primary,
+                      style: TossTextStyles.bodyLarge.copyWith(
+                        color: TossColors.primary,
                         fontWeight: FontWeight.w600,
                       ),
                     )
@@ -245,48 +242,93 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
           final quickFeatures = topFeatures.take(6).toList();
           
           return Container(
-            color: Theme.of(context).scaffoldBackgroundColor,
+            color: TossColors.gray100,
             child: Padding(
               padding: EdgeInsets.symmetric(horizontal: TossSpacing.space4),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Section header with consistent spacing
-                  Text(
-                    'Quick Actions',
-                    style: TossTextStyles.h3.copyWith(
-                      color: Theme.of(context).colorScheme.onSurface,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  SizedBox(height: TossSpacing.space3),
-                  
-                  // Container with consistent padding
+                  // Quick Actions container with white background and blue label
                   Container(
-                    padding: EdgeInsets.all(TossSpacing.space2),
+                    width: double.infinity,
+                    padding: EdgeInsets.all(TossSpacing.space5),
                     decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.surface,
-                      borderRadius: BorderRadius.circular(16),
-                      boxShadow: TossShadows.card,
+                      color: TossColors.surface,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: TossColors.borderLight,
+                        width: 0.5,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: TossColors.textPrimary.withOpacity(0.02),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
                     ),
-                  child: GridView.builder(
-                    padding: EdgeInsets.zero,
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 3,
-                      crossAxisSpacing: 1,
-                      mainAxisSpacing: 1,
-                      childAspectRatio: 1.3, // Adjust for better proportions with spacing
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Blue label header (like Finance section)
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Row(
+                              children: [
+                                Container(
+                                  width: 4,
+                                  height: 20,
+                                  decoration: BoxDecoration(
+                                    color: TossColors.primary, // Blue accent line
+                                    borderRadius: BorderRadius.circular(2),
+                                  ),
+                                ),
+                                SizedBox(width: TossSpacing.space3),
+                                Text(
+                                  'Quick Actions',
+                                  style: TossTextStyles.h3.copyWith(
+                                    color: TossColors.textPrimary,
+                                    fontWeight: FontWeight.w700,
+                                    letterSpacing: -0.4,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            // "Most Used" indicator
+                            Text(
+                              'Most Used',
+                              style: TossTextStyles.caption.copyWith(
+                                color: TossColors.textTertiary,
+                                fontWeight: FontWeight.w500,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: TossSpacing.space4),
+                        
+                        // Grid of Quick Actions
+                        GridView.builder(
+                          padding: EdgeInsets.zero,
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 3,
+                            crossAxisSpacing: TossSpacing.space4,
+                            mainAxisSpacing: TossSpacing.space5,
+                            childAspectRatio: 0.95,
+                          ),
+                          itemCount: quickFeatures.length,
+                          itemBuilder: (context, index) {
+                            final feature = quickFeatures[index];
+                            return _buildQuickActionItemFromTopFeature(feature);
+                          },
+                        ),
+                      ],
                     ),
-                    itemCount: quickFeatures.length,
-                    itemBuilder: (context, index) {
-                      final feature = quickFeatures[index];
-                      return _buildQuickActionItemFromTopFeature(feature);
-                    },
                   ),
-                ),
-                SizedBox(height: TossSpacing.space4),
+                  SizedBox(height: TossSpacing.space6), // Space before next section
                 ],
               ),
             ),
@@ -299,135 +341,170 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
   }
 
   Widget _buildQuickActionsLoading() {
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: TossSpacing.space4),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: TossSpacing.space1),
-            child: Text(
-              'Quick Actions',
-              style: TossTextStyles.h3.copyWith(
-                color: Theme.of(context).colorScheme.onSurface,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-          SizedBox(height: TossSpacing.space4),
-          Container(
-            padding: EdgeInsets.all(TossSpacing.space4),
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surface,
-              borderRadius: BorderRadius.circular(20),
-              boxShadow: TossShadows.card,
-            ),
-            child: GridView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 3,
-                crossAxisSpacing: TossSpacing.space3,
-                mainAxisSpacing: TossSpacing.space3,
-                childAspectRatio: 1.0,
-              ),
-              itemCount: 6,
-              itemBuilder: (context, index) {
-                return Container(
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surfaceContainer,
-                    borderRadius: BorderRadius.circular(12),
+    return Container(
+      color: TossColors.gray100,
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: TossSpacing.space4),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Quick Actions loading container with white background and blue label
+            Container(
+              width: double.infinity,
+              padding: EdgeInsets.all(TossSpacing.space5),
+              decoration: BoxDecoration(
+                color: TossColors.surface,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: TossColors.borderLight,
+                  width: 0.5,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: TossColors.textPrimary.withOpacity(0.02),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
                   ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Blue label header (like Finance section)
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Container(
-                        width: 40,
-                        height: 40,
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                          borderRadius: BorderRadius.circular(10),
-                        ),
+                      Row(
+                        children: [
+                          Container(
+                            width: 4,
+                            height: 20,
+                            decoration: BoxDecoration(
+                              color: TossColors.primary, // Blue accent line
+                              borderRadius: BorderRadius.circular(2),
+                            ),
+                          ),
+                          SizedBox(width: TossSpacing.space3),
+                          Text(
+                            'Quick Actions',
+                            style: TossTextStyles.h3.copyWith(
+                              color: TossColors.textPrimary,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: -0.4,
+                            ),
+                          ),
+                        ],
                       ),
-                      SizedBox(height: TossSpacing.space2),
-                      Container(
-                        width: 50,
-                        height: 12,
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                          borderRadius: BorderRadius.circular(6),
+                      // Loading indicator
+                      Text(
+                        'Loading...',
+                        style: TossTextStyles.caption.copyWith(
+                          color: TossColors.textTertiary,
+                          fontWeight: FontWeight.w500,
+                          fontSize: 12,
                         ),
                       ),
                     ],
                   ),
-                );
-              },
+                  SizedBox(height: TossSpacing.space4),
+                  
+                  // Grid of loading skeletons
+                  GridView.builder(
+                    padding: EdgeInsets.zero,
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 3,
+                      crossAxisSpacing: TossSpacing.space4,
+                      mainAxisSpacing: TossSpacing.space5,
+                      childAspectRatio: 0.95,
+                    ),
+                    itemCount: 6,
+                    itemBuilder: (context, index) {
+                      return Container(
+                        padding: EdgeInsets.symmetric(vertical: TossSpacing.space2),
+                        decoration: BoxDecoration(
+                          color: TossColors.transparent,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            // Skeleton icon container
+                            Container(
+                              width: 48,
+                              height: 48,
+                              decoration: BoxDecoration(
+                                color: TossColors.gray200,
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                            ),
+                            SizedBox(height: TossSpacing.space2),
+                            // Skeleton text
+                            Container(
+                              width: 60,
+                              height: 10,
+                              decoration: BoxDecoration(
+                                color: TossColors.gray200,
+                                borderRadius: BorderRadius.circular(5),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ),
             ),
-          ),
-          SizedBox(height: TossSpacing.space8),
-        ],
+            SizedBox(height: TossSpacing.space6), // Space before next section
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildQuickActionItem(dynamic feature, String categoryId) {
     return Material(
-      color: Colors.transparent,
+      color: TossColors.transparent,
       child: InkWell(
         onTap: () => _handleFeatureTap(feature, categoryId),
         borderRadius: BorderRadius.circular(12),
         child: Container(
-          padding: EdgeInsets.zero,
+          padding: EdgeInsets.symmetric(vertical: TossSpacing.space2),
           decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surface,
+            color: TossColors.transparent,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: Theme.of(context).colorScheme.outline.withOpacity(0.06),
-              width: 1,
-            ),
           ),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // Icon with compact sizing
+              // Icon with ultra-minimal Toss design
               Container(
-                width: 40,
-                height: 40,
+                width: 48,
+                height: 48,
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
+                  color: TossColors.gray100, // Even more subtle background
+                  borderRadius: BorderRadius.circular(14),
+                  // No border for cleaner look
                 ),
-                child: (feature['icon'] ?? '').isNotEmpty &&
-                        ((feature['icon'] ?? '').startsWith('http://') ||
-                         (feature['icon'] ?? '').startsWith('https://'))
-                    ? ClipRRect(
-                        borderRadius: BorderRadius.circular(12),
-                        child: Image.network(
-                          feature['icon'],
-                          width: 40,
-                          height: 40,
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => Icon(
-                            Icons.apps,
-                            color: Theme.of(context).colorScheme.primary,
-                            size: 20,
-                          ),
-                        ),
-                      )
-                    : Icon(
-                        Icons.apps,
-                        color: Theme.of(context).colorScheme.primary,
-                        size: 20,
-                      ),
+                child: DynamicIcon(
+                  iconKey: feature['icon_key'],
+                  featureName: feature['feature_name'],
+                  size: 22,
+                  color: TossColors.gray700, // More neutral, less blue
+                  useDefaultColor: false,
+                ),
               ),
               SizedBox(height: TossSpacing.space1),
               Text(
                 feature['feature_name'] ?? '',
                 style: TossTextStyles.caption.copyWith(
-                  color: Theme.of(context).colorScheme.onSurface,
-                  fontWeight: FontWeight.w500,
-                  fontSize: 12,
-                  height: 1.2,
+                  color: TossColors.textPrimary,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 13, // Increased from 11 to 13 for better readability
+                  height: 1.3,
+                  letterSpacing: -0.2,
                 ),
                 textAlign: TextAlign.center,
                 maxLines: 2,
@@ -442,7 +519,7 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
 
   Widget _buildQuickActionItemFromTopFeature(TopFeature feature) {
     return Material(
-      color: Colors.transparent,
+      color: TossColors.transparent,
       child: InkWell(
         onTap: () {
           // Navigate directly using the route from TopFeature
@@ -457,59 +534,47 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
           );
         },
         borderRadius: BorderRadius.circular(12),
-        child: Container(
-          padding: EdgeInsets.zero,
+        splashColor: TossColors.primary.withOpacity(0.1),
+        highlightColor: TossColors.primary.withOpacity(0.05),
+        child: AnimatedContainer(
+          duration: TossAnimations.normal,
+          curve: TossAnimations.standard,
+          padding: EdgeInsets.symmetric(vertical: TossSpacing.space2),
           decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surface,
+            color: TossColors.transparent,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: Theme.of(context).colorScheme.outline.withOpacity(0.06),
-              width: 1,
-            ),
           ),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // Icon with compact sizing
-              Container(
-                width: 40,
-                height: 40,
+              // Icon with ultra-minimal Toss design and hover effect
+              AnimatedContainer(
+                duration: TossAnimations.normal,
+                curve: TossAnimations.standard,
+                width: 48,
+                height: 48,
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
+                  color: TossColors.gray100, // Even more subtle background
+                  borderRadius: BorderRadius.circular(14),
+                  // No border for cleaner look
                 ),
-                child: feature.icon.isNotEmpty &&
-                        (feature.icon.contains('http://') ||
-                         feature.icon.contains('https://'))
-                    ? ClipRRect(
-                        borderRadius: BorderRadius.circular(12),
-                        child: Image.network(
-                          // Clean up the icon URL by removing any Unicode directional characters
-                          feature.icon.replaceAll(RegExp(r'[\u2066\u2069]'), ''),
-                          width: 40,
-                          height: 40,
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => Icon(
-                            Icons.apps,
-                            color: Theme.of(context).colorScheme.primary,
-                            size: 20,
-                          ),
-                        ),
-                      )
-                    : Icon(
-                        Icons.apps,
-                        color: Theme.of(context).colorScheme.primary,
-                        size: 20,
-                      ),
+                child: DynamicIcon(
+                  iconKey: feature.iconKey,
+                  featureName: feature.featureName,
+                  size: 22,
+                  color: TossColors.gray700, // More neutral, less blue
+                  useDefaultColor: false,
+                ),
               ),
               SizedBox(height: TossSpacing.space1),
               Text(
                 feature.featureName,
                 style: TossTextStyles.caption.copyWith(
-                  color: Theme.of(context).colorScheme.onSurface,
-                  fontWeight: FontWeight.w500,
-                  fontSize: 12,
-                  height: 1.2,
+                  color: TossColors.textPrimary,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 13, // Increased from 11 to 13 for better readability
+                  height: 1.3,
+                  letterSpacing: -0.2,
                 ),
                 textAlign: TextAlign.center,
                 maxLines: 2,
@@ -528,28 +593,31 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
         data: (categories) {
           if (categories.isEmpty) {
             return Container(
-              color: Theme.of(context).scaffoldBackgroundColor,
+              color: TossColors.gray100,
               child: Padding(
                 padding: EdgeInsets.symmetric(horizontal: TossSpacing.space4),
                 child: Container(
-                  padding: EdgeInsets.all(TossSpacing.space10),
+                  padding: EdgeInsets.all(TossSpacing.space8),
                   decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surface,
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: TossShadows.card,
+                    color: TossColors.surface,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: TossColors.borderLight,
+                      width: 0.5,
+                    ),
                   ),
                   child: Column(
                     children: [
                       Icon(
                         Icons.inbox_outlined,
                         size: 48,
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        color: TossColors.textTertiary,
                       ),
                       SizedBox(height: TossSpacing.space4),
                       Text(
                         'No features available',
                         style: TossTextStyles.body.copyWith(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                          color: TossColors.textSecondary,
                         ),
                       ),
                     ],
@@ -560,52 +628,84 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
           }
 
           return Container(
-            color: Theme.of(context).scaffoldBackgroundColor,
+            color: TossColors.gray100,
             child: Padding(
               padding: EdgeInsets.symmetric(horizontal: TossSpacing.space4),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Enhanced "All Features" header
                   Text(
                     'All Features',
-                    style: TossTextStyles.h3.copyWith(
-                      color: Theme.of(context).colorScheme.onSurface,
-                      fontWeight: FontWeight.w600,
+                    style: TossTextStyles.h2.copyWith(
+                      color: TossColors.textPrimary,
+                      fontWeight: FontWeight.w800, // Stronger weight for better hierarchy
+                      letterSpacing: -0.6,
                     ),
                   ),
-                  SizedBox(height: TossSpacing.space3),
+                  SizedBox(height: TossSpacing.space4),
                   ...categories.map((category) => _buildCategorySection(category)),
-                  SizedBox(height: TossSpacing.space24), // Space for debug panel
+                  SizedBox(height: TossSpacing.space10), // Proper bottom spacing
                 ],
               ),
             ),
           );
         },
         loading: () => Container(
-          color: Theme.of(context).scaffoldBackgroundColor,
+          color: TossColors.gray100,
           child: Padding(
             padding: EdgeInsets.symmetric(horizontal: TossSpacing.space4),
-            child: Center(
-              child: CircularProgressIndicator(color: Theme.of(context).colorScheme.primary),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'All Features',
+                  style: TossTextStyles.h2.copyWith(
+                    color: TossColors.textPrimary,
+                    fontWeight: FontWeight.w800, // Stronger weight for better hierarchy
+                    letterSpacing: -0.6,
+                  ),
+                ),
+                SizedBox(height: TossSpacing.space6),
+                Center(
+                  child: CircularProgressIndicator(color: TossColors.primary),
+                ),
+              ],
             ),
           ),
         ),
         error: (error, _) => Container(
-          color: Theme.of(context).scaffoldBackgroundColor,
+          color: TossColors.gray100,
           child: Padding(
             padding: EdgeInsets.symmetric(horizontal: TossSpacing.space4),
             child: Container(
-              padding: EdgeInsets.all(TossSpacing.space4),
+              padding: EdgeInsets.all(TossSpacing.space6),
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surface,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: TossShadows.card,
-              ),
-              child: Text(
-                'Error loading features: $error',
-                style: TossTextStyles.body.copyWith(
-                  color: Theme.of(context).colorScheme.error,
+                color: TossColors.surface,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: TossColors.borderLight,
+                  width: 0.5,
                 ),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.error_outline,
+                    color: TossColors.error,
+                    size: 24,
+                  ),
+                  SizedBox(width: TossSpacing.space3),
+                  Expanded(
+                    child: Text(
+                      'Unable to load features',
+                      style: TossTextStyles.body.copyWith(
+                        color: TossColors.textPrimary,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
@@ -617,11 +717,21 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
   Widget _buildCategorySection(dynamic category) {
     return Container(
       margin: EdgeInsets.only(bottom: TossSpacing.space4),
-      padding: EdgeInsets.all(TossSpacing.space4),
+      padding: EdgeInsets.all(TossSpacing.space5), // More generous padding
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: TossShadows.card,
+        color: TossColors.surface,
+        borderRadius: BorderRadius.circular(20), // More rounded for modern look
+        border: Border.all(
+          color: TossColors.borderLight,
+          width: 0.5,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: TossColors.textPrimary.withOpacity(0.02),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -633,7 +743,7 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
                 width: 4,
                 height: 20,
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primary,
+                  color: TossColors.primary,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -641,15 +751,16 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
               Text(
                 category['category_name'] ?? '',
                 style: TossTextStyles.h3.copyWith(
-                  color: Theme.of(context).colorScheme.onSurface,
-                  fontWeight: FontWeight.w600,
+                  color: TossColors.textPrimary,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: -0.4,
                 ),
               ),
             ],
           ),
           SizedBox(height: TossSpacing.space4),
           
-          // Features List with minimal spacing
+          // Features List with improved spacing
           ...(category['features'] as List<dynamic>? ?? []).asMap().entries.map((entry) {
             final index = entry.key;
             final feature = entry.value;
@@ -658,7 +769,11 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
               children: [
                 _buildFeatureListItem(feature, category['category_id']),
                 if (index < features.length - 1)
-                  SizedBox(height: TossSpacing.space1),
+                  Container(
+                    margin: EdgeInsets.symmetric(vertical: TossSpacing.space2),
+                    height: 0.5,
+                    color: TossColors.borderLight,
+                  ),
               ],
             );
           }),
@@ -669,69 +784,67 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
 
   Widget _buildFeatureListItem(dynamic feature, String categoryId) {
     return Material(
-      color: Colors.transparent,
+      color: TossColors.transparent,
       child: InkWell(
         onTap: () => _handleFeatureTap(feature, categoryId),
         borderRadius: BorderRadius.circular(12),
-        child: Container(
+        splashColor: TossColors.primary.withOpacity(0.08),
+        highlightColor: TossColors.primary.withOpacity(0.04),
+        child: AnimatedContainer(
+          duration: TossAnimations.normal,
+          curve: TossAnimations.standard,
           padding: EdgeInsets.symmetric(
             horizontal: TossSpacing.space3, 
             vertical: TossSpacing.space3,
           ),
           child: Row(
             children: [
-              // Icon with theme colors
-              Container(
-                width: 32,
-                height: 32,
+              // Icon with ultra-minimal Toss design and subtle animation
+              AnimatedContainer(
+                duration: TossAnimations.normal,
+                curve: TossAnimations.standard,
+                width: 44, // Slightly larger for better proportion
+                height: 44,
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8),
+                  color: TossColors.gray100, // Even more subtle background
+                  borderRadius: BorderRadius.circular(12), // More subtle rounding
+                  // No border for cleaner look
                 ),
-                child: (feature['icon'] ?? '').isNotEmpty &&
-                        ((feature['icon'] ?? '').startsWith('http://') ||
-                         (feature['icon'] ?? '').startsWith('https://'))
-                    ? ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: Image.network(
-                          feature['icon'],
-                          width: 32,
-                          height: 32,
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => Icon(
-                            Icons.apps,
-                            color: Theme.of(context).colorScheme.primary,
-                            size: 16,
-                          ),
-                        ),
-                      )
-                    : Icon(
-                        Icons.apps,
-                        color: Theme.of(context).colorScheme.primary,
-                        size: 16,
-                      ),
+                child: DynamicIcon(
+                  iconKey: feature['icon_key'],
+                  featureName: feature['feature_name'],
+                  size: 20,
+                  color: TossColors.gray700, // More neutral, less blue
+                  useDefaultColor: false,
+                ),
               ),
               SizedBox(width: TossSpacing.space3),
               
-              // Feature Name with theme colors
+              // Feature Name with Toss colors
               Expanded(
                 child: Text(
                   feature['feature_name'] ?? '',
                   style: TossTextStyles.body.copyWith(
-                    color: Theme.of(context).colorScheme.onSurface,
-                    fontWeight: FontWeight.w500,
+                    color: TossColors.textPrimary,
+                    fontWeight: FontWeight.w600,
                     fontSize: 15,
+                    letterSpacing: -0.4,
+                    height: 1.3,
                   ),
                   overflow: TextOverflow.ellipsis,
                   maxLines: 1,
                 ),
               ),
               
-              // Arrow with theme colors
-              Icon(
-                Icons.chevron_right,
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-                size: 20,
+              // Arrow with Toss colors and subtle animation
+              AnimatedContainer(
+                duration: TossAnimations.normal,
+                curve: TossAnimations.standard,
+                child: Icon(
+                  Icons.chevron_right,
+                  color: TossColors.textTertiary,
+                  size: 20,
+                ),
               ),
             ],
           ),
@@ -778,7 +891,7 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
         // Reset the flag after navigation completes
         if (mounted) {
           // Add a small delay to prevent immediate re-taps
-          await Future.delayed(const Duration(milliseconds: 500));
+          await Future.delayed(TossAnimations.medium);
           setState(() {
             _isNavigating = false;
           });
@@ -788,9 +901,9 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('${feature['feature_name']} coming soon!'),
-            backgroundColor: Theme.of(context).colorScheme.primary,
+            backgroundColor: TossColors.primary,
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           ),
         );
         // Reset the flag since we're not navigating
@@ -810,9 +923,9 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error opening ${feature['feature_name']}'),
-            backgroundColor: Theme.of(context).colorScheme.error,
+            backgroundColor: TossColors.error,
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           ),
         );
       }
@@ -843,9 +956,9 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: const Text('Data refreshed successfully'),
-            backgroundColor: Theme.of(context).colorScheme.primary,
+            backgroundColor: TossColors.success,
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           ),
         );
       }
@@ -856,9 +969,9 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Failed to refresh: ${e.toString()}'),
-            backgroundColor: Theme.of(context).colorScheme.error,
+            backgroundColor: TossColors.error,
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           ),
         );
       }
@@ -874,11 +987,11 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
         showModalBottomSheet(
           context: context,
           isScrollControlled: true,
-          backgroundColor: Colors.transparent,
+          backgroundColor: TossColors.transparent,
           builder: (context) => Container(
             height: MediaQuery.of(context).size.height * 0.85,
             decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surface,
+              color: TossColors.surface,
               borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(20),
                 topRight: Radius.circular(20),
@@ -893,7 +1006,7 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: const Text('Loading user data...'),
-            backgroundColor: Theme.of(context).colorScheme.primary,
+            backgroundColor: TossColors.primary,
           ),
         );
       },
@@ -902,7 +1015,7 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error loading data: $error'),
-            backgroundColor: Theme.of(context).colorScheme.error,
+            backgroundColor: TossColors.error,
           ),
         );
       },
@@ -932,11 +1045,11 @@ class _PinnedHelloDelegate extends SliverPersistentHeaderDelegate {
   @override
   Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
     return Container(
-      color: Theme.of(context).scaffoldBackgroundColor,
+      color: TossColors.gray100,
       child: Container(
         margin: EdgeInsets.symmetric(horizontal: TossSpacing.space4),
         decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface,
+          color: TossColors.surface,
           borderRadius: BorderRadius.circular(16),
           boxShadow: TossShadows.card,
         ),
@@ -951,8 +1064,9 @@ class _PinnedHelloDelegate extends SliverPersistentHeaderDelegate {
             Text(
               'Hello, ${userData['user_first_name'] ?? 'User'}!',
               style: TossTextStyles.h2.copyWith(
-                color: Theme.of(context).colorScheme.onSurface,
+                color: TossColors.textPrimary,
                 fontWeight: FontWeight.w700,
+                letterSpacing: -0.5,
               ),
               overflow: TextOverflow.ellipsis,
               maxLines: 1,
@@ -964,9 +1078,10 @@ class _PinnedHelloDelegate extends SliverPersistentHeaderDelegate {
                   Text(
                     selectedCompany!['company_name'] ?? '',
                     style: TossTextStyles.body.copyWith(
-                      color: Theme.of(context).colorScheme.primary,
-                      fontWeight: FontWeight.w500,
+                      color: TossColors.primary,
+                      fontWeight: FontWeight.w600,
                       fontSize: 14,
+                      letterSpacing: -0.2,
                     ),
                     overflow: TextOverflow.ellipsis,
                     maxLines: 1,
@@ -975,14 +1090,14 @@ class _PinnedHelloDelegate extends SliverPersistentHeaderDelegate {
                     Text(
                       ' • ',
                       style: TossTextStyles.body.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        color: TossColors.textTertiary,
                       ),
                     ),
                     Expanded(
                       child: Text(
                         selectedStore!['store_name'] ?? '',
                         style: TossTextStyles.caption.copyWith(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                          color: TossColors.textSecondary,
                           fontWeight: FontWeight.w500,
                         ),
                         overflow: TextOverflow.ellipsis,

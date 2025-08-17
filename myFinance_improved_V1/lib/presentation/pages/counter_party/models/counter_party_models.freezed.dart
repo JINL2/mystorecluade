@@ -1460,8 +1460,8 @@ class _$CounterPartyFilterImpl implements _CounterPartyFilter {
   const _$CounterPartyFilterImpl(
       {this.searchQuery,
       final List<CounterPartyType>? types,
-      this.sortBy = CounterPartySortOption.name,
-      this.ascending = true,
+      this.sortBy = CounterPartySortOption.isInternal,
+      this.ascending = false,
       this.isInternal,
       this.createdAfter,
       this.createdBefore,

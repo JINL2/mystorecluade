@@ -67,16 +67,49 @@ class DenominationOperationsNotifier extends StateNotifier<AsyncValue<void>> {
     state = const AsyncValue.loading();
     
     try {
+      // Create a temporary denomination object for optimistic update
+      final optimisticDenomination = Denomination(
+        id: 'temp-${DateTime.now().millisecondsSinceEpoch}', // Temporary ID
+        companyId: input.companyId,
+        currencyId: input.currencyId,
+        value: input.value,
+        type: input.type,
+        displayName: input.displayName ?? _getDefaultDisplayName(input.value, input.type),
+        emoji: input.emoji ?? _getDefaultEmoji(input.type),
+        isActive: true,
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      );
+      
+      // OPTIMISTIC UI UPDATE - Add to local state immediately
+      _ref.read(localDenominationListProvider.notifier)
+          .optimisticallyAdd(input.currencyId, optimisticDenomination);
+      
+      // Perform database operation in background
       await _repository.addDenomination(input);
       
-      // Refresh the denomination list for this currency
+      // Refresh the remote providers after successful database operation
       _ref.invalidate(denominationListProvider(input.currencyId));
       _ref.invalidate(denominationStatsProvider(input.currencyId));
       
       state = const AsyncValue.data(null);
     } catch (error, stackTrace) {
+      // If database operation fails, revert the optimistic update
+      _ref.read(localDenominationListProvider.notifier).reset(input.currencyId);
       state = AsyncValue.error(error, stackTrace);
     }
+  }
+
+  String _getDefaultDisplayName(double value, DenominationType type) {
+    if (type == DenominationType.coin) {
+      return value < 1.0 ? '${(value * 100).toInt()}¢' : '\$${value.toInt()}';
+    } else {
+      return '\$${value.toInt()}';
+    }
+  }
+
+  String _getDefaultEmoji(DenominationType type) {
+    return type == DenominationType.coin ? '🪙' : '💵';
   }
 
   Future<void> updateDenomination(
@@ -325,4 +358,71 @@ class DenominationEditorState {
 
 final denominationEditorProvider = StateNotifierProvider<DenominationEditorNotifier, DenominationEditorState>((ref) {
   return DenominationEditorNotifier();
+});
+
+// Local denomination list state for optimistic UI updates
+class LocalDenominationListNotifier extends StateNotifier<Map<String, List<Denomination>>> {
+  LocalDenominationListNotifier(this._ref) : super({});
+  
+  final Ref _ref;
+
+  // Initialize local state with remote data
+  void initializeFromRemote(String currencyId, List<Denomination> denominations) {
+    state = {...state, currencyId: denominations};
+  }
+
+  // Get current local denominations for a currency
+  List<Denomination> getDenominations(String currencyId) {
+    return state[currencyId] ?? [];
+  }
+
+  // Optimistically remove denomination from local state
+  void optimisticallyRemove(String currencyId, String denominationId) {
+    final currentList = state[currencyId] ?? [];
+    final updatedList = currentList.where((d) => d.id != denominationId).toList();
+    state = {...state, currencyId: updatedList};
+  }
+
+  // Optimistically add denomination to local state
+  void optimisticallyAdd(String currencyId, Denomination denomination) {
+    final currentList = state[currencyId] ?? [];
+    final updatedList = [...currentList, denomination];
+    state = {...state, currencyId: updatedList};
+  }
+
+  // Reset local state for a currency (sync with remote)
+  void reset(String currencyId) {
+    final newState = Map<String, List<Denomination>>.from(state);
+    newState.remove(currencyId);
+    state = newState;
+  }
+
+  // Clear all local state
+  void clearAll() {
+    state = {};
+  }
+}
+
+final localDenominationListProvider = StateNotifierProvider<LocalDenominationListNotifier, Map<String, List<Denomination>>>((ref) {
+  return LocalDenominationListNotifier(ref);
+});
+
+// Combined provider that uses local state when available, falls back to remote
+final effectiveDenominationListProvider = Provider.family<AsyncValue<List<Denomination>>, String>((ref, currencyId) {
+  final localState = ref.watch(localDenominationListProvider);
+  final remoteState = ref.watch(denominationListProvider(currencyId));
+  
+  // If we have local state for this currency, use it
+  if (localState.containsKey(currencyId)) {
+    return AsyncValue.data(localState[currencyId]!);
+  }
+  
+  // Schedule initialization for next frame to avoid modifying during build
+  remoteState.whenData((denominations) {
+    Future.microtask(() {
+      ref.read(localDenominationListProvider.notifier).initializeFromRemote(currencyId, denominations);
+    });
+  });
+  
+  return remoteState;
 });

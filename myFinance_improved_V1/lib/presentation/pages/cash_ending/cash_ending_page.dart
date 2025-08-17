@@ -8,6 +8,7 @@ import '../../../core/themes/toss_text_styles.dart';
 import '../../../core/themes/toss_spacing.dart';
 import '../../../core/themes/toss_border_radius.dart';
 import '../../../core/themes/toss_shadows.dart';
+import '../../../core/themes/toss_animations.dart';
 import '../../providers/app_state_provider.dart';
 import '../../widgets/toss/toss_primary_button.dart';
 import '../../widgets/toss/toss_card.dart';
@@ -1650,7 +1651,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
                 HapticFeedback.selectionClick();
               },
               child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
+                duration: TossAnimations.normal,
                 padding: const EdgeInsets.symmetric(
                   horizontal: TossSpacing.space5,
                   vertical: TossSpacing.space3,
@@ -1830,7 +1831,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
                 HapticFeedback.selectionClick();
               },
               child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
+                duration: TossAnimations.normal,
                 padding: const EdgeInsets.symmetric(
                   horizontal: TossSpacing.space4,
                   vertical: TossSpacing.space2,
@@ -1994,7 +1995,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
                   ),
                 ),
                 AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 300),
+                  duration: TossAnimations.slow,
                   child: Text(
                     total,
                     key: ValueKey(total),
@@ -3029,7 +3030,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
                 HapticFeedback.selectionClick();
               },
               child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
+                duration: TossAnimations.normal,
                 padding: const EdgeInsets.symmetric(
                   horizontal: TossSpacing.space4,
                   vertical: TossSpacing.space3,

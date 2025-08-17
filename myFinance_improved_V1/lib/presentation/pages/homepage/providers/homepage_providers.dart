@@ -111,9 +111,15 @@ final categoriesWithFeaturesProvider = FutureProvider<dynamic>((ref) async {
   final userRole = selectedCompany['role'];
   final permissions = userRole['permissions'] as List<dynamic>? ?? [];
   
-  // Fetch all categories with features using RPC
+  // Try to fetch categories with features using RPC v2, fallback to v1
   final supabase = Supabase.instance.client;
-  final categories = await supabase.rpc('get_categories_with_features');
+  dynamic categories;
+  try {
+    categories = await supabase.rpc('get_categories_with_features_v2');
+  } catch (e) {
+    // Fallback to original function if v2 doesn't exist yet
+    categories = await supabase.rpc('get_categories_with_features');
+  }
   
   // Filter features based on user permissions
   final filteredCategories = [];
@@ -122,7 +128,6 @@ final categoriesWithFeaturesProvider = FutureProvider<dynamic>((ref) async {
     final filteredFeatures = features.where((feature) {
       return permissions.contains(feature['feature_id']);
     }).toList();
-    
     
     if (filteredFeatures.isNotEmpty) {
       filteredCategories.add({
@@ -154,9 +159,15 @@ final forceRefreshCategoriesProvider = FutureProvider<dynamic>((ref) async {
   final userRole = selectedCompany['role'];
   final permissions = userRole['permissions'] as List<dynamic>? ?? [];
   
-  // ALWAYS fetch fresh categories from API using RPC
+  // Try to fetch fresh categories from API using RPC v2, fallback to v1
   final supabase = Supabase.instance.client;
-  final categories = await supabase.rpc('get_categories_with_features');
+  dynamic categories;
+  try {
+    categories = await supabase.rpc('get_categories_with_features_v2');
+  } catch (e) {
+    // Fallback to original function if v2 doesn't exist yet
+    categories = await supabase.rpc('get_categories_with_features');
+  }
   
   // Filter features based on user permissions
   final filteredCategories = [];

@@ -753,7 +753,7 @@ class _SearchCounterpartiesProviderElement
       (origin as SearchCounterpartiesProvider).searchQuery;
 }
 
-String _$counterpartyListHash() => r'4521a11eaec075e315eb9f5cf02b7002e0fd4d38';
+String _$counterpartyListHash() => r'716dc3f410e2580599841f7d7479eb245df52f3d';
 
 abstract class _$CounterpartyList
     extends BuildlessAutoDisposeAsyncNotifier<List<CounterpartyData>> {

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/themes/toss_colors.dart';
 import '../../../../core/themes/toss_text_styles.dart';
 import '../../../../core/themes/toss_spacing.dart';
+import '../../../../core/themes/toss_animations.dart';
 import '../../../providers/app_state_provider.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../widgets/toss/toss_primary_button.dart';
@@ -280,7 +281,7 @@ class _ModernDrawerState extends ConsumerState<ModernDrawer> {
               if (_scrollController.hasClients) {
                 _scrollController.animateTo(
                   0.0,
-                  duration: const Duration(milliseconds: 300),
+                  duration: TossAnimations.slow,
                   curve: Curves.easeOutCubic,
                 );
               }

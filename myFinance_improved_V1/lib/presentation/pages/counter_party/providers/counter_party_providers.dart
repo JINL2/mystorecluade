@@ -89,10 +89,8 @@ String _getSortColumn(CounterPartySortOption option) {
       return 'type';
     case CounterPartySortOption.createdAt:
       return 'created_at';
-    case CounterPartySortOption.lastTransaction:
-      return 'last_transaction_date';
-    case CounterPartySortOption.balance:
-      return 'balance';
+    case CounterPartySortOption.isInternal:
+      return 'is_internal';
   }
 }
 

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/themes/toss_colors.dart';
 import '../../../../core/themes/toss_text_styles.dart';
@@ -7,6 +8,7 @@ import '../../../../core/themes/toss_border_radius.dart';
 import '../../../../core/themes/toss_animations.dart';
 import '../../../../domain/entities/denomination.dart';
 import '../providers/denomination_providers.dart';
+import '../providers/currency_providers.dart';
 
 class DenominationGrid extends ConsumerWidget {
   final List<Denomination> denominations;
@@ -22,10 +24,10 @@ class DenominationGrid extends ConsumerWidget {
       physics: const NeverScrollableScrollPhysics(), // Prevent scroll conflicts
       shrinkWrap: true,
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3,
+        crossAxisCount: 4,
         mainAxisSpacing: TossSpacing.space2,
         crossAxisSpacing: TossSpacing.space2,
-        childAspectRatio: 1.1, // Slightly wider than square
+        childAspectRatio: 0.85, // More compact for 4 columns
       ),
       itemCount: denominations.length,
       itemBuilder: (context, index) => DenominationItem(
@@ -37,11 +39,23 @@ class DenominationGrid extends ConsumerWidget {
   }
 
   void _onDenominationTap(BuildContext context, WidgetRef ref, Denomination denomination) {
-    // Show edit options
+    // Add haptic feedback for better UX
+    HapticFeedback.lightImpact();
+    
+    // Debug print to verify tap is working
+    debugPrint('Denomination tapped: ${denomination.formattedValue}');
+    
+    // Show edit options with proper constraints
     showModalBottomSheet(
       context: context,
-      backgroundColor: TossColors.transparent,
-      builder: (context) => _buildDenominationOptionsSheet(context, ref, denomination),
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (context) => Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+        ),
+        child: _buildDenominationOptionsSheet(context, ref, denomination),
+      ),
     );
   }
 
@@ -74,27 +88,7 @@ class DenominationGrid extends ConsumerWidget {
           TextButton(
             onPressed: () async {
               Navigator.of(context).pop();
-              try {
-                await ref.read(denominationOperationsProvider.notifier)
-                    .removeDenomination(denomination.id, denomination.currencyId);
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('${denomination.formattedValue} deleted'),
-                      backgroundColor: TossColors.success,
-                    ),
-                  );
-                }
-              } catch (e) {
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Failed to delete denomination: $e'),
-                      backgroundColor: TossColors.error,
-                    ),
-                  );
-                }
-              }
+              await _removeDenominationWithRefresh(context, ref, denomination);
             },
             child: Text(
               'Delete',
@@ -138,7 +132,16 @@ class DenominationGrid extends ConsumerWidget {
             '${denomination.formattedValue} ${denomination.displayName}',
             style: TossTextStyles.h3,
           ),
-          const SizedBox(height: TossSpacing.space5),
+          const SizedBox(height: TossSpacing.space2),
+          
+          // Hint text
+          Text(
+            'Choose an action for this denomination',
+            style: TossTextStyles.caption.copyWith(
+              color: TossColors.gray500,
+            ),
+          ),
+          const SizedBox(height: TossSpacing.space4),
           
           // Options
           _buildOptionItem(
@@ -147,28 +150,8 @@ class DenominationGrid extends ConsumerWidget {
             title: 'Delete',
             isDestructive: true,
             onTap: () async {
-              Navigator.of(context).pop();
-              try {
-                await ref.read(denominationOperationsProvider.notifier)
-                    .removeDenomination(denomination.id, denomination.currencyId);
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('${denomination.formattedValue} deleted'),
-                      backgroundColor: TossColors.success,
-                    ),
-                  );
-                }
-              } catch (e) {
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Failed to delete denomination: $e'),
-                      backgroundColor: TossColors.error,
-                    ),
-                  );
-                }
-              }
+              Navigator.of(context).pop(); // Close the bottom sheet first
+              await _removeDenominationWithRefresh(context, ref, denomination);
             },
           ),
           
@@ -176,6 +159,57 @@ class DenominationGrid extends ConsumerWidget {
         ],
       ),
     );
+  }
+
+  Future<void> _removeDenominationWithRefresh(BuildContext context, WidgetRef ref, Denomination denomination) async {
+    // Haptic feedback
+    HapticFeedback.lightImpact();
+    
+    // OPTIMISTIC UI UPDATE - Remove from local state immediately
+    ref.read(localDenominationListProvider.notifier)
+        .optimisticallyRemove(denomination.currencyId, denomination.id);
+    
+    // Show success message immediately
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('${denomination.formattedValue} denomination removed successfully!'),
+          backgroundColor: TossColors.success,
+        ),
+      );
+    }
+    
+    // Success haptic feedback
+    HapticFeedback.selectionClick();
+    
+    try {
+      // Remove the denomination from database in the background
+      await ref.read(denominationOperationsProvider.notifier)
+          .removeDenomination(denomination.id, denomination.currencyId);
+      
+      // Small delay to ensure database operations complete
+      await Future.delayed(const Duration(milliseconds: 100));
+      
+      // Refresh the remote providers after successful database operation
+      ref.invalidate(denominationListProvider(denomination.currencyId));
+      ref.invalidate(companyCurrenciesProvider);
+      ref.invalidate(companyCurrenciesStreamProvider);
+      ref.invalidate(searchFilteredCurrenciesProvider);
+      
+    } catch (e) {
+      // If database operation fails, revert the optimistic update
+      // We need to reset local state to sync with remote
+      ref.read(localDenominationListProvider.notifier).reset(denomination.currencyId);
+      
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to remove denomination: $e. Change reverted.'),
+            backgroundColor: TossColors.error,
+          ),
+        );
+      }
+    }
   }
 
   Widget _buildOptionItem(
@@ -232,24 +266,24 @@ class DenominationItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: onTap,
-      onLongPress: onLongPress,
+      onLongPress: onLongPress, // Keep long press on outer detector
       child: TossAnimatedWidget(
         enableTap: true,
+        onTap: onTap, // Use TossAnimatedWidget's tap handling
         duration: TossAnimations.quick,
         curve: TossAnimations.standard,
         child: Container(
           decoration: BoxDecoration(
             color: TossColors.white,
-            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+            borderRadius: BorderRadius.circular(TossBorderRadius.md),
             border: Border.all(
-              color: TossColors.gray200,
-              width: 1,
+              color: TossColors.gray300, // Slightly more visible border
+              width: 0.8,
             ),
             boxShadow: [
               BoxShadow(
                 color: TossColors.black.withOpacity(0.04),
-                blurRadius: 8,
+                blurRadius: 6,
                 offset: const Offset(0, 2),
               ),
             ],
@@ -257,30 +291,34 @@ class DenominationItem extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // Simple emoji icon
+              // Smaller emoji icon
               Text(
                 denomination.emoji,
-                style: TossTextStyles.h2,
-              ),
-              const SizedBox(height: TossSpacing.space2),
-              
-              // Value
-              Text(
-                denomination.formattedValue,
-                style: TossTextStyles.h3.copyWith(
-                  fontWeight: FontWeight.w700,
-                  color: TossColors.gray900,
-                ),
-                textAlign: TextAlign.center,
+                style: TossTextStyles.body.copyWith(fontSize: 18),
               ),
               const SizedBox(height: TossSpacing.space1),
               
-              // Simple type text
+              // Value - more compact
+              Text(
+                denomination.formattedValue,
+                style: TossTextStyles.body.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: TossColors.gray900,
+                  fontSize: 16,
+                ),
+                textAlign: TextAlign.center,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: 2),
+              
+              // Simple type text - smaller
               Text(
                 denomination.type == DenominationType.coin ? 'Coin' : 'Bill',
                 style: TossTextStyles.caption.copyWith(
                   color: TossColors.gray500,
                   fontWeight: FontWeight.w500,
+                  fontSize: 10,
                 ),
               ),
             ],

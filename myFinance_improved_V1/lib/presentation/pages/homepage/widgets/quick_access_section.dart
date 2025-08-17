@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/themes/toss_colors.dart';
 import '../../../../core/themes/toss_text_styles.dart';
 import '../../../../core/themes/toss_spacing.dart';
+import '../../../../core/constants/icon_mapper.dart';
 import '../models/homepage_models.dart';
 import '../../../widgets/toss/toss_card.dart';
 import '../providers/homepage_providers.dart';
@@ -55,7 +56,7 @@ class QuickAccessSection extends ConsumerWidget {
                 physics: const NeverScrollableScrollPhysics(),
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 3,
-                  childAspectRatio: 1.0,
+                  childAspectRatio: 0.85,
                   crossAxisSpacing: TossSpacing.space3,
                   mainAxisSpacing: TossSpacing.space3,
                 ),
@@ -209,35 +210,20 @@ class QuickAccessFeatureCard extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // Feature icon from URL
+          // Feature icon from database
           Container(
-            width: 48,
-            height: 48,
+            width: 56,
+            height: 56,
             decoration: BoxDecoration(
               color: TossColors.primary.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(14),
             ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: CachedNetworkImage(
-                imageUrl: feature.icon,
-                width: 48,
-                height: 48,
-                fit: BoxFit.contain,
-                placeholder: (context, url) => Center(
-                  child: Icon(
-                    Icons.apps,
-                    color: TossColors.primary,
-                    size: 24,
-                  ),
-                ),
-                errorWidget: (context, url, error) => Center(
-                  child: Icon(
-                    Icons.apps,
-                    color: TossColors.primary,
-                    size: 24,
-                  ),
-                ),
+            child: Center(
+              child: DynamicIcon(
+                iconKey: feature.iconKey,
+                size: 22,
+                color: TossColors.primary,
+                useDefaultColor: false,
               ),
             ),
           ),

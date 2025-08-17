@@ -7,6 +7,7 @@ import '../../../core/themes/toss_spacing.dart';
 import '../../../core/themes/toss_border_radius.dart';
 import '../../../core/themes/toss_shadows.dart';
 import '../../providers/app_state_provider.dart';
+import '../../widgets/toss/toss_tab_bar.dart';
 import '../../../data/services/cash_location_service.dart';
 import 'add_account_page.dart';
 import 'total_journal_page.dart';
@@ -189,42 +190,14 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
   }
   
   Widget _buildTabBar() {
-    return Container(
-      margin: EdgeInsets.symmetric(horizontal: TossSpacing.space4),
-      child: Theme(
-        data: ThemeData(
-          splashColor: Colors.transparent,
-          highlightColor: Colors.transparent,
-        ),
-        child: TabBar(
-          controller: _tabController,
-          indicatorSize: TabBarIndicatorSize.tab,
-          indicator: UnderlineTabIndicator(
-            borderSide: BorderSide(
-              width: 2.0,
-              color: Colors.black87,
-            ),
-            insets: EdgeInsets.zero,
-          ),
-          indicatorColor: Colors.black87,
-          labelColor: Colors.black87,
-          unselectedLabelColor: Colors.grey[400],
-          labelStyle: TossTextStyles.body.copyWith(
-            fontWeight: FontWeight.w600,
-            fontSize: 17,
-          ),
-          unselectedLabelStyle: TossTextStyles.body.copyWith(
-            fontSize: 17,
-          ),
-          dividerColor: Colors.transparent,
-          overlayColor: WidgetStateProperty.all(Colors.transparent),
-          tabs: const [
-            Tab(text: 'Cash'),
-            Tab(text: 'Bank'),
-            Tab(text: 'Vault'),
-          ],
-        ),
-      ),
+    return TossTabBar(
+      tabs: const ['Cash', 'Bank', 'Vault'],
+      controller: _tabController,
+      onTabChanged: (index) {
+        setState(() {
+          _selectedTab = index;
+        });
+      },
     );
   }
   

@@ -196,7 +196,7 @@ class AppTheme {
           topRight: Radius.circular(TossBorderRadius.bottomSheet),
         ),
       ),
-      showDragHandle: true,
+      showDragHandle: false, // Disable default drag handle to prevent double handler confusion
       dragHandleColor: TossColors.gray300,
       dragHandleSize: const Size(40, 4),
     ),

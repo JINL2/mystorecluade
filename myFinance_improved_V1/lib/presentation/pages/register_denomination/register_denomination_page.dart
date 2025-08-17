@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../widgets/toss/toss_primary_button.dart';
 import '../../widgets/toss/toss_search_field.dart';
@@ -12,6 +13,7 @@ import '../../../core/themes/toss_colors.dart';
 import '../../../core/themes/toss_text_styles.dart';
 import '../../../core/themes/toss_spacing.dart';
 import '../../../core/themes/toss_border_radius.dart';
+import '../../../core/themes/toss_animations.dart';
 import 'providers/currency_providers.dart';
 import 'widgets/currency_overview_card.dart';
 import 'widgets/add_currency_bottom_sheet.dart';
@@ -32,8 +34,13 @@ class RegisterDenominationPage extends ConsumerWidget {
         backgroundColor: TossColors.background,
       ),
       body: SafeArea(
-        child: CustomScrollView(
-          slivers: [
+        child: RefreshIndicator(
+          onRefresh: () => _onRefresh(ref),
+          color: TossColors.primary,
+          backgroundColor: TossColors.white,
+          child: CustomScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            slivers: [
             // Search bar
             SliverToBoxAdapter(
               child: Padding(
@@ -104,6 +111,7 @@ class RegisterDenominationPage extends ConsumerWidget {
               child: SizedBox(height: TossSpacing.space8),
             ),
           ],
+          ),
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
@@ -142,7 +150,7 @@ class RegisterDenominationPage extends ConsumerWidget {
         ),
       ),
       title: 'No currencies yet',
-      description: 'Add your first currency to\nstart managing denominations',
+      description: 'Add your first currency to start managing denominations\n\nPull down to refresh if currencies don\'t appear',
       action: SizedBox(
         width: 200,
         child: TossPrimaryButton(
@@ -166,6 +174,37 @@ class RegisterDenominationPage extends ConsumerWidget {
   }
 
   // This method is no longer needed as we're using TossErrorView directly
+
+  Future<void> _onRefresh(WidgetRef ref) async {
+    // Haptic feedback for better UX
+    HapticFeedback.lightImpact();
+    
+    // Clear search query to show all currencies during refresh
+    ref.read(currencySearchQueryProvider.notifier).state = '';
+    
+    // Invalidate all currency-related providers to force fresh data
+    ref.invalidate(companyCurrenciesProvider);
+    ref.invalidate(companyCurrenciesStreamProvider);
+    ref.invalidate(searchFilteredCurrenciesProvider);
+    ref.invalidate(availableCurrenciesToAddProvider);
+    
+    try {
+      // Force refresh of the main provider
+      ref.refresh(searchFilteredCurrenciesProvider);
+      
+      // Wait a bit for the refresh to propagate
+      await Future.delayed(TossAnimations.medium);
+      
+      // Additional haptic feedback on successful refresh
+      HapticFeedback.selectionClick();
+    } catch (e) {
+      // Handle refresh errors gracefully
+      debugPrint('Refresh failed: $e');
+    }
+    
+    // Small delay for smooth UX
+    await Future.delayed(TossAnimations.normal);
+  }
 
   void _showAddCurrencySheet(BuildContext context) {
     TossBottomSheet.show(
