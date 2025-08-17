@@ -324,7 +324,7 @@ class _TransactionTemplatePageState extends ConsumerState<TransactionTemplatePag
           color: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.2),
           width: 1,
         ),
-        boxShadow: TossShadows.shadow1,
+        boxShadow: TossShadows.card,
       ),
       child: Material(
         color: Colors.transparent,
