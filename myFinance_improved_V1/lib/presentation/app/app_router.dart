@@ -10,7 +10,7 @@ import '../pages/attendance/attendance_main_page.dart';
 import '../pages/time_table_manage/time_table_manage_page.dart';
 import '../pages/cash_ending/cash_ending_page.dart';
 import '../pages/journal_input/journal_input_page.dart';
-import '../pages/employee_setting/enhanced_employee_setting_page.dart';
+import '../pages/employee_setting/employee_setting_page_v2.dart';
 import '../pages/role_permission/role_permission_page.dart';
 import '../pages/delegate_role/delegate_role_page.dart';
 import '../pages/timetable/timetable_page.dart';
@@ -18,7 +18,10 @@ import '../pages/balance_sheet/balance_sheet_page.dart';
 import '../pages/store_shift/store_shift_page.dart';
 import '../pages/counter_party/counter_party_page.dart';
 import '../pages/add_fix_asset/add_fix_asset_page.dart';
-import '../pages/transaction_template/transaction_template_page.dart';
+import '../pages/register_denomination/register_denomination_page.dart';
+import '../pages/cash_location/cash_location_page.dart';
+import '../pages/cash_location/account_detail_page.dart';
+import '../pages/transactions/transaction_history_page.dart';
 
 
 // Router notifier to listen to auth state changes
@@ -29,7 +32,6 @@ class RouterNotifier extends ChangeNotifier {
     _ref.listen<bool>(
       isAuthenticatedProvider,
       (previous, next) {
-        print('RouterNotifier: Auth state changed from $previous to $next');
         notifyListeners();
       },
     );
@@ -45,21 +47,17 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       final isAuth = ref.read(isAuthenticatedProvider);
       final isAuthRoute = state.matchedLocation.startsWith('/auth');
       
-      print('Router redirect: isAuth=$isAuth, location=${state.matchedLocation}, isAuthRoute=$isAuthRoute');
       
       // If not authenticated and not on auth route, go to login
       if (!isAuth && !isAuthRoute) {
-        print('Router redirect: Not authenticated, redirecting to login');
         return '/auth/login';
       }
       
       // If authenticated and on auth route, go to home
       if (isAuth && isAuthRoute) {
-        print('Router redirect: Authenticated on auth route, redirecting to home');
         return '/';
       }
       
-      print('Router redirect: No redirect needed');
       return null;
     },
     routes: [
@@ -108,7 +106,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           // Additional HR Features
           GoRoute(
             path: 'employeeSetting',
-            builder: (context, state) => const EnhancedEmployeeSettingPage(),
+            builder: (context, state) => const EmployeeSettingPageV2(),
           ),
           GoRoute(
             path: 'rolePermissionPage',
@@ -140,10 +138,39 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             path: 'addFixAsset',
             builder: (context, state) => const AddFixAssetPage(),
           ),
-          // Transaction Template
+          // Register Denomination Page
           GoRoute(
-            path: 'transactionTemplate',
-            builder: (context, state) => const TransactionTemplatePage(),
+            path: 'registerDenomination',
+            builder: (context, state) => const RegisterDenominationPage(),
+          ),
+          // Transaction History Page
+          GoRoute(
+            path: 'transactionHistory',
+            builder: (context, state) => const TransactionHistoryPage(),
+          ),
+          GoRoute(
+            path: 'cashLocation',
+            builder: (context, state) => const CashLocationPage(),
+            routes: [
+              GoRoute(
+                path: 'account/:accountName',
+                builder: (context, state) {
+                  final accountName = state.pathParameters['accountName'] ?? '';
+                  final extra = state.extra as Map<String, dynamic>?;
+                  return AccountDetailPage(
+                    locationId: extra?['locationId'],
+                    accountName: accountName,
+                    locationType: extra?['locationType'] ?? 'cash',
+                    balance: extra?['balance'] ?? 0,
+                    errors: extra?['errors'] ?? 0,
+                    totalJournal: extra?['totalJournal'],
+                    totalReal: extra?['totalReal'],
+                    cashDifference: extra?['cashDifference'],
+                    currencySymbol: extra?['currencySymbol'],
+                  );
+                },
+              ),
+            ],
           ),
         ],
       ),

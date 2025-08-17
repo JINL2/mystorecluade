@@ -62,7 +62,7 @@
 /lib/presentation/pages/
 ├── attendance/attendance_main_page.dart
 ├── time_table_manage/time_table_manage_page.dart
-├── employee_setting/enhanced_employee_setting_page.dart
+├── employee_setting/employee_setting_page_v2.dart
 ├── delegate_role/delegate_role_page.dart
 ├── role_permission/role_permission_page.dart
 ├── store_shift/store_shift_page.dart

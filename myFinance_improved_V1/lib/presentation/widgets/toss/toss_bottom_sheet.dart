@@ -28,7 +28,7 @@ class TossBottomSheet extends StatelessWidget {
   }) {
     return showModalBottomSheet<T>(
       context: context,
-      backgroundColor: Colors.transparent,
+      backgroundColor: TossColors.transparent,
       isScrollControlled: true,
       builder: (context) => TossBottomSheet(
         title: title,
@@ -42,12 +42,12 @@ class TossBottomSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: TossColors.surface,
         borderRadius: const BorderRadius.only(
           topLeft: Radius.circular(TossBorderRadius.xxl),
           topRight: Radius.circular(TossBorderRadius.xxl),
         ),
-        boxShadow: TossShadows.bottomSheetShadow,
+        boxShadow: TossShadows.bottomSheet,
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,

@@ -63,7 +63,6 @@ class SupabaseFeatureRepository implements FeatureRepository {
       });
     } catch (e) {
       // Fail silently for tracking - we don't want to interrupt user flow
-      print('Failed to track feature click: $e');
     }
   }
 }

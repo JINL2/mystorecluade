@@ -11,11 +11,6 @@ class AttendanceService {
     required String storeId,
   }) async {
     try {
-      print('AttendanceService.getUserShiftOverview called with:');
-      print('  requestDate: $requestDate');
-      print('  userId: $userId');
-      print('  companyId: $companyId');
-      print('  storeId: $storeId');
       
       final response = await _supabase.rpc(
         'user_shift_overview',
@@ -27,11 +22,8 @@ class AttendanceService {
         },
       );
 
-      print('AttendanceService: Raw response = $response');
-      print('AttendanceService: Response type = ${response.runtimeType}');
 
       if (response == null) {
-        print('AttendanceService: Response is null, returning empty data');
         // Return empty data structure instead of throwing
         return {
           'request_month': requestDate.substring(0, 7), // yyyy-MM from yyyy-MM-dd
@@ -49,7 +41,6 @@ class AttendanceService {
       // Return the first item if it's a list, otherwise return as is
       if (response is List) {
         if (response.isEmpty) {
-          print('AttendanceService: Empty list response, returning default data');
           return {
             'request_month': requestDate.substring(0, 7),
             'actual_work_days': 0,
@@ -62,14 +53,11 @@ class AttendanceService {
             'overtime_total': 0,
           };
         }
-        print('AttendanceService: Returning first item from list');
         return response.first as Map<String, dynamic>;
       }
       
-      print('AttendanceService: Returning response as is');
       return response as Map<String, dynamic>;
     } catch (e) {
-      print('AttendanceService: Error - $e');
       rethrow;
     }
   }
@@ -93,7 +81,6 @@ class AttendanceService {
 
       return List<Map<String, dynamic>>.from(response);
     } catch (e) {
-      print('Error fetching shift requests: $e');
       rethrow;
     }
   }
@@ -110,7 +97,6 @@ class AttendanceService {
         'checkin_location': 'POINT($longitude $latitude)',
       }).eq('shift_request_id', shiftRequestId);
     } catch (e) {
-      print('Error checking in: $e');
       rethrow;
     }
   }
@@ -127,7 +113,6 @@ class AttendanceService {
         'checkout_location': 'POINT($longitude $latitude)',
       }).eq('shift_request_id', shiftRequestId);
     } catch (e) {
-      print('Error checking out: $e');
       rethrow;
     }
   }
@@ -140,11 +125,6 @@ class AttendanceService {
     required String storeId,
   }) async {
     try {
-      print('AttendanceService.getUserShiftCards called with:');
-      print('  requestDate: $requestDate');
-      print('  userId: $userId');
-      print('  companyId: $companyId');
-      print('  storeId: $storeId');
       
       final response = await _supabase.rpc(
         'user_shift_cards',
@@ -156,24 +136,18 @@ class AttendanceService {
         },
       );
 
-      print('AttendanceService: Shift cards response = $response');
-      print('AttendanceService: Response type = ${response.runtimeType}');
 
       if (response == null) {
-        print('AttendanceService: Response is null, returning empty list');
         return [];
       }
 
       // Return the response as a list
       if (response is List) {
-        print('AttendanceService: Returning ${response.length} shift cards');
         return List<Map<String, dynamic>>.from(response);
       }
       
-      print('AttendanceService: Unexpected response type, returning empty list');
       return [];
     } catch (e) {
-      print('AttendanceService: Error fetching shift cards - $e');
       rethrow;
     }
   }
@@ -195,7 +169,6 @@ class AttendanceService {
 
       return response;
     } catch (e) {
-      print('Error fetching current shift: $e');
       return null;
     }
   }
@@ -205,12 +178,10 @@ class AttendanceService {
     required String shiftRequestId,
   }) async {
     try {
-      print('AttendanceService.reportShiftIssue called with:');
-      print('  shiftRequestId: $shiftRequestId');
       
       // Update the shift_requests table
       // Set is_reported to TRUE and is_problem_solved to FALSE
-      final response = await _supabase
+      await _supabase
           .from('shift_requests')
           .update({
             'is_reported': true,
@@ -218,10 +189,8 @@ class AttendanceService {
           })
           .eq('shift_request_id', shiftRequestId);
       
-      print('AttendanceService.reportShiftIssue: Update successful');
       return true;
     } catch (e) {
-      print('Error reporting shift issue: $e');
       return false;
     }
   }
@@ -236,13 +205,6 @@ class AttendanceService {
     required double lng,
   }) async {
     try {
-      print('AttendanceService.updateShiftRequest called with:');
-      print('  userId: $userId');
-      print('  storeId: $storeId');
-      print('  requestDate: $requestDate');
-      print('  timestamp: $timestamp');
-      print('  lat: $lat');
-      print('  lng: $lng');
       
       final response = await _supabase.rpc(
         'update_shift_requests_v3',
@@ -256,7 +218,6 @@ class AttendanceService {
         },
       );
       
-      print('AttendanceService.updateShiftRequest: Response = $response');
       
       if (response == null) {
         return null;
@@ -271,7 +232,6 @@ class AttendanceService {
       
       return null;
     } catch (e) {
-      print('Error updating shift request: $e');
       return null;
     }
   }

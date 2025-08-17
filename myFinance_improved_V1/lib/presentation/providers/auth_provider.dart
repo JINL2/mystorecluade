@@ -11,7 +11,6 @@ class AuthStateNotifier extends StateNotifier<User?> {
     _subscription = Supabase.instance.client.auth.onAuthStateChange.listen(
       (data) {
         final newUser = data.session?.user;
-        print('AuthStateNotifier: Auth state changed - User: ${newUser?.id}, Email: ${newUser?.email}');
         state = newUser;
       },
     );
@@ -51,7 +50,6 @@ class AuthStateNotifier extends StateNotifier<User?> {
     required String name,
   }) async {
     try {
-      print('Starting signup for: $email');
       
       final response = await Supabase.instance.client.auth.signUp(
         email: email,
@@ -61,7 +59,6 @@ class AuthStateNotifier extends StateNotifier<User?> {
         },
       );
       
-      print('Signup response: user=${response.user?.id}, session=${response.session?.accessToken?.substring(0, 10)}...');
       
       // Supabase signup can succeed even with email confirmation enabled
       // The user just won't be fully authenticated until they confirm
@@ -72,11 +69,9 @@ class AuthStateNotifier extends StateNotifier<User?> {
       // Don't try to create profile - let Supabase handle user metadata
       // The user data will be stored in auth.users automatically
       
-      print('Signup successful for user: ${response.user!.id}');
       
       // Don't set state - user needs to verify email if confirmation is enabled
     } catch (e) {
-      print('Signup error: $e');
       
       // Parse the error message for better user feedback
       String errorMessage = e.toString().toLowerCase();
@@ -105,7 +100,6 @@ class AuthStateNotifier extends StateNotifier<User?> {
   
   Future<void> resetPassword(String email) async {
     try {
-      print('Starting password reset for: $email');
       
       // Use a simple web redirect or remove redirectTo entirely
       await Supabase.instance.client.auth.resetPasswordForEmail(
@@ -113,9 +107,7 @@ class AuthStateNotifier extends StateNotifier<User?> {
         // Remove custom redirect to avoid configuration issues
       );
       
-      print('Password reset email sent successfully');
     } catch (e) {
-      print('Password reset error: $e');
       
       // Parse the error message for better user feedback
       String errorMessage = e.toString().toLowerCase();

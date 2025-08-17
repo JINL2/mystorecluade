@@ -69,10 +69,8 @@ class AppStateNotifier extends StateNotifier<AppState> {
       if (jsonString != null) {
         final json = jsonDecode(jsonString) as Map<String, dynamic>;
         state = AppState.fromJson(json);
-        print('AppState: Loaded from storage');
       }
     } catch (e) {
-      print('AppState: Failed to load from storage: $e');
     }
   }
 
@@ -82,9 +80,7 @@ class AppStateNotifier extends StateNotifier<AppState> {
       final prefs = await SharedPreferences.getInstance();
       final jsonString = jsonEncode(state.toJson());
       await prefs.setString(_storageKey, jsonString);
-      print('AppState: Saved to storage');
     } catch (e) {
-      print('AppState: Failed to save to storage: $e');
     }
   }
 
@@ -92,14 +88,12 @@ class AppStateNotifier extends StateNotifier<AppState> {
   Future<void> setCategoryFeatures(dynamic features) async {
     state = state.copyWith(categoryFeatures: features);
     await _saveToStorage();
-    print('AppState: Updated categoryFeatures');
   }
 
   // Set user from get_user_companies_and_stores(user_id) RPC
   Future<void> setUser(dynamic userData) async {
     state = state.copyWith(user: userData);
     await _saveToStorage();
-    print('AppState: Updated user data');
   }
 
   // Set companyChoosen (now persisted as per updated requirements)
@@ -109,14 +103,12 @@ class AppStateNotifier extends StateNotifier<AppState> {
       // Note: Don't automatically clear storeChoosen here - let the caller decide
     );
     await _saveToStorage(); // Now persisting to storage
-    print('AppState: Selected company (persisted): $companyId');
   }
 
   // Set storeChoosen (now persisted as per updated requirements)
   Future<void> setStoreChoosen(String storeId) async {
     state = state.copyWith(storeChoosen: storeId);
     await _saveToStorage(); // Now persisting to storage
-    print('AppState: Selected store (persisted): $storeId');
   }
 
   // Clear all data (logout)
@@ -124,7 +116,6 @@ class AppStateNotifier extends StateNotifier<AppState> {
     state = const AppState();
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_storageKey);
-    print('AppState: Cleared all data');
   }
 
   // Get selected company from user JSON
@@ -180,7 +171,6 @@ class AppStateNotifier extends StateNotifier<AppState> {
       user: {},
     );
     await _saveToStorage();
-    print('AppState: Cleared all cached data for refresh');
   }
 
 }

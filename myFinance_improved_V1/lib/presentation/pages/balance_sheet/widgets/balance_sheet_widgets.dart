@@ -102,7 +102,7 @@ class BalanceSheetSection extends StatelessWidget {
       decoration: BoxDecoration(
         color: backgroundColor ?? Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: TossShadows.cardShadow,
+        boxShadow: TossShadows.card,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

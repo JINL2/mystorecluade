@@ -25,13 +25,10 @@ final userCompaniesProvider = FutureProvider<dynamic>((ref) async {
   
   // Check if we have cached data and don't need to refresh
   if (appStateNotifier.hasUserData && !needsRefresh) {
-    print('UserCompaniesProvider: Using cached data (needsRefresh: $needsRefresh)');
     return appState.user;
   }
   
   // Fetch fresh data from API using RPC function
-  print('UserCompaniesProvider: Fetching fresh data from API for user: ${user.id}');
-  print('UserCompaniesProvider: Reason - needsRefresh: $needsRefresh');
   
   // Call get_user_companies_and_stores(user_id) RPC
   final supabase = Supabase.instance.client;
@@ -41,10 +38,8 @@ final userCompaniesProvider = FutureProvider<dynamic>((ref) async {
   await appStateNotifier.setUser(response);
   
   final companies = response['companies'] as List<dynamic>? ?? [];
-  print('UserCompaniesProvider: Fetched ${companies.length} companies:');
   for (final company in companies) {
     final stores = company['stores'] as List<dynamic>? ?? [];
-    print('  - ${company['company_name']} (${company['company_id']}) with ${stores.length} stores');
   }
   
   // Auto-select first company if none selected
@@ -57,8 +52,6 @@ final userCompaniesProvider = FutureProvider<dynamic>((ref) async {
 
 /// Force refresh provider - ALWAYS fetches from API
 final forceRefreshUserCompaniesProvider = FutureProvider<dynamic>((ref) async {
-  print('🔵🔵🔵 ForceRefreshUserCompanies: PROVIDER CALLED');
-  print('🔵 This provider ALWAYS calls the API - no cache!');
   
   final user = ref.watch(authStateProvider);
   final appStateNotifier = ref.read(appStateProvider.notifier);
@@ -68,7 +61,6 @@ final forceRefreshUserCompaniesProvider = FutureProvider<dynamic>((ref) async {
   }
   
   // ALWAYS fetch fresh data from API - no cache check
-  print('🔵 ForceRefreshUserCompanies: About to call API for user: ${user.id}');
   
   // Call get_user_companies_and_stores(user_id) RPC
   final supabase = Supabase.instance.client;
@@ -78,10 +70,8 @@ final forceRefreshUserCompaniesProvider = FutureProvider<dynamic>((ref) async {
   await appStateNotifier.setUser(response);
   
   final companies = response['companies'] as List<dynamic>? ?? [];
-  print('ForceRefreshUserCompanies: Fetched ${companies.length} companies:');
   for (final company in companies) {
     final stores = company['stores'] as List<dynamic>? ?? [];
-    print('  - ${company['company_name']} (${company['company_id']}) with ${stores.length} stores');
   }
   
   // Auto-select first company if none selected
@@ -102,14 +92,12 @@ final categoriesWithFeaturesProvider = FutureProvider<dynamic>((ref) async {
   final appState = ref.watch(appStateProvider);
   final appStateNotifier = ref.read(appStateProvider.notifier);
   
-  print('CategoriesProvider: App state companyChoosen: ${appState.companyChoosen}');
   
   // Check if we need to refresh (no cached data)
   final needsRefresh = !appStateNotifier.hasCategoryFeatures;
   
   // Check if we have cached categories and don't need to refresh
   if (appStateNotifier.hasCategoryFeatures && !needsRefresh) {
-    print('CategoriesProvider: Using cached categories (needsRefresh: $needsRefresh)');
     return appState.categoryFeatures;
   }
   
@@ -117,19 +105,15 @@ final categoriesWithFeaturesProvider = FutureProvider<dynamic>((ref) async {
   final selectedCompany = appStateNotifier.selectedCompany;
   
   if (selectedCompany == null) {
-    print('CategoriesProvider: No selected company, returning empty list');
     return [];
   }
   
-  print('CategoriesProvider: Selected company: ${selectedCompany['company_name']}');
   final userRole = selectedCompany['role'];
   final permissions = userRole['permissions'] as List<dynamic>? ?? [];
-  print('CategoriesProvider: User permissions count: ${permissions.length}');
   
   // Fetch all categories with features using RPC
   final supabase = Supabase.instance.client;
   final categories = await supabase.rpc('get_categories_with_features');
-  print('CategoriesProvider: Fetched ${(categories as List).length} categories from RPC');
   
   // Filter features based on user permissions
   final filteredCategories = [];
@@ -139,7 +123,6 @@ final categoriesWithFeaturesProvider = FutureProvider<dynamic>((ref) async {
       return permissions.contains(feature['feature_id']);
     }).toList();
     
-    print('CategoriesProvider: Category "${category['category_name']}" has ${filteredFeatures.length}/${features.length} permitted features');
     
     if (filteredFeatures.isNotEmpty) {
       filteredCategories.add({
@@ -153,14 +136,11 @@ final categoriesWithFeaturesProvider = FutureProvider<dynamic>((ref) async {
   // Save to app state for caching
   await appStateNotifier.setCategoryFeatures(filteredCategories);
   
-  print('CategoriesProvider: Returning ${filteredCategories.length} categories with features');
   return filteredCategories;
 });
 
 /// Force refresh provider for categories - ALWAYS fetches from API
 final forceRefreshCategoriesProvider = FutureProvider<dynamic>((ref) async {
-  print('🔵🔵🔵 ForceRefreshCategories: PROVIDER CALLED');
-  print('🔵 This provider ALWAYS calls the API - no cache!');
   
   final appStateNotifier = ref.read(appStateProvider.notifier);
   
@@ -168,18 +148,15 @@ final forceRefreshCategoriesProvider = FutureProvider<dynamic>((ref) async {
   final selectedCompany = appStateNotifier.selectedCompany;
   
   if (selectedCompany == null) {
-    print('🔵 ForceRefreshCategories: No selected company, returning empty list');
     return [];
   }
   
-  print('🔵 ForceRefreshCategories: About to call API for categories');
   final userRole = selectedCompany['role'];
   final permissions = userRole['permissions'] as List<dynamic>? ?? [];
   
   // ALWAYS fetch fresh categories from API using RPC
   final supabase = Supabase.instance.client;
   final categories = await supabase.rpc('get_categories_with_features');
-  print('ForceRefreshCategories: Fetched ${(categories as List).length} categories from RPC');
   
   // Filter features based on user permissions
   final filteredCategories = [];
@@ -189,7 +166,6 @@ final forceRefreshCategoriesProvider = FutureProvider<dynamic>((ref) async {
       return permissions.contains(feature['feature_id']);
     }).toList();
     
-    print('ForceRefreshCategories: Category "${category['category_name']}" has ${filteredFeatures.length}/${features.length} permitted features');
     
     if (filteredFeatures.isNotEmpty) {
       filteredCategories.add({
@@ -203,7 +179,6 @@ final forceRefreshCategoriesProvider = FutureProvider<dynamic>((ref) async {
   // Save to app state for caching
   await appStateNotifier.setCategoryFeatures(filteredCategories);
   
-  print('ForceRefreshCategories: Returning ${filteredCategories.length} categories with features');
   return filteredCategories;
 });
 

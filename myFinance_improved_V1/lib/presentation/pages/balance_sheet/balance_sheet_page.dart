@@ -10,7 +10,6 @@ import 'package:myfinance_improved/core/themes/toss_shadows.dart';
 import 'package:myfinance_improved/core/themes/toss_border_radius.dart';
 import 'providers/balance_sheet_providers.dart';
 import '../../providers/app_state_provider.dart';
-import '../../providers/auth_provider.dart';
 import 'widgets/balance_sheet_display.dart';
 import 'widgets/income_statement_display.dart';
 
@@ -164,7 +163,6 @@ class _BalanceSheetPageState extends ConsumerState<BalanceSheetPage>
       }
     } catch (e) {
       // Keep default currency on error
-      print('Error fetching currency data: $e');
     } finally {
       setState(() {
         isLoadingCurrency = false;
@@ -585,7 +583,7 @@ class _BalanceSheetPageState extends ConsumerState<BalanceSheetPage>
                           SizedBox(width: TossSpacing.space2),
                           Text(
                             selectedCompany['company_name'] ?? '',
-                            style: TossTextStyles.labelSmall.copyWith(
+                            style: TossTextStyles.small.copyWith(
                               color: TossColors.primary,
                               fontWeight: FontWeight.w600,
                             ),
@@ -599,7 +597,7 @@ class _BalanceSheetPageState extends ConsumerState<BalanceSheetPage>
                             ),
                             Text(
                               selectedStore['store_name'] ?? '',
-                              style: TossTextStyles.labelSmall.copyWith(
+                              style: TossTextStyles.small.copyWith(
                                 color: TossColors.primary.withOpacity(0.7),
                               ),
                             ),
@@ -625,7 +623,7 @@ class _BalanceSheetPageState extends ConsumerState<BalanceSheetPage>
                   end: Alignment.bottomRight,
                 ),
                 borderRadius: BorderRadius.circular(TossBorderRadius.xl),
-                boxShadow: TossShadows.shadow2,
+                boxShadow: TossShadows.elevation2,
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -842,7 +840,7 @@ class _BalanceSheetPageState extends ConsumerState<BalanceSheetPage>
       decoration: BoxDecoration(
         color: TossColors.background,
         borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-        boxShadow: TossShadows.cardShadow,
+        boxShadow: TossShadows.card,
       ),
       child: Column(
         children: [
@@ -1230,7 +1228,7 @@ class _BalanceSheetPageState extends ConsumerState<BalanceSheetPage>
       decoration: BoxDecoration(
         color: TossColors.background,
         borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-        boxShadow: TossShadows.cardShadow,
+        boxShadow: TossShadows.card,
       ),
       child: Column(
         children: [
@@ -2321,7 +2319,7 @@ class _BalanceSheetPageState extends ConsumerState<BalanceSheetPage>
       decoration: BoxDecoration(
         color: TossColors.background,
         borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-        boxShadow: TossShadows.cardShadow,
+        boxShadow: TossShadows.card,
       ),
       child: Column(
         children: [
@@ -2398,7 +2396,7 @@ class _BalanceSheetPageState extends ConsumerState<BalanceSheetPage>
       decoration: BoxDecoration(
         color: TossColors.background,
         borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-        boxShadow: TossShadows.cardShadow,
+        boxShadow: TossShadows.card,
       ),
       child: Column(
         children: [
@@ -2473,7 +2471,7 @@ class _BalanceSheetPageState extends ConsumerState<BalanceSheetPage>
       decoration: BoxDecoration(
         color: TossColors.background,
         borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-        boxShadow: TossShadows.cardShadow,
+        boxShadow: TossShadows.card,
       ),
       child: Column(
         children: [

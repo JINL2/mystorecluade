@@ -149,10 +149,8 @@ class ShiftOverviewNotifier extends StateNotifier<ShiftOverview> {
       final companyId = appState.companyChoosen;
       final storeId = appState.storeChoosen;
       
-      print('AttendanceProvider: companyId = $companyId, storeId = $storeId');
 
       if (companyId.isEmpty || storeId.isEmpty) {
-        print('AttendanceProvider: No company or store selected');
         state = state.copyWith(
           isLoading: false,
           error: 'Please select a company and store',
@@ -166,11 +164,6 @@ class ShiftOverviewNotifier extends StateNotifier<ShiftOverview> {
       final lastDayOfMonth = DateTime(now.year, now.month + 1, 0);
       final requestDate = '${lastDayOfMonth.year}-${lastDayOfMonth.month.toString().padLeft(2, '0')}-${lastDayOfMonth.day.toString().padLeft(2, '0')}';
 
-      print('AttendanceProvider: Calling getUserShiftOverview with:');
-      print('  requestDate: $requestDate (last day of month for ${now.year}-${now.month.toString().padLeft(2, '0')})');
-      print('  userId: $userId');
-      print('  companyId: $companyId');
-      print('  storeId: $storeId');
       
       final response = await service.getUserShiftOverview(
         requestDate: requestDate,
@@ -179,11 +172,9 @@ class ShiftOverviewNotifier extends StateNotifier<ShiftOverview> {
         storeId: storeId,
       );
       
-      print('AttendanceProvider: Response received: $response');
 
       state = ShiftOverview.fromJson(response);
     } catch (e) {
-      print('AttendanceProvider: Error - $e');
       state = state.copyWith(
         isLoading: false,
         error: e.toString(),

@@ -27,7 +27,7 @@ class DelegationListItem extends StatelessWidget {
       decoration: BoxDecoration(
         color: TossColors.surface,
         borderRadius: BorderRadius.circular(TossBorderRadius.md),
-        boxShadow: TossShadows.cardShadow,
+        boxShadow: TossShadows.card,
       ),
       margin: EdgeInsets.symmetric(
         horizontal: TossSpacing.space4,

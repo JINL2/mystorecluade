@@ -207,11 +207,13 @@ class YourFeature extends _$YourFeature {
 
 ```dart
 // 1. Toss Components (USE THESE FIRST)
-import '../../widgets/toss/toss_primary_button.dart';
-import '../../widgets/toss/toss_card.dart';
-import '../../widgets/toss/toss_text_field.dart';
-import '../../widgets/toss/toss_bottom_sheet.dart';
-import '../../widgets/toss/toss_dropdown.dart';
+// For pages in subdirectories like /pages/[feature]/[page].dart:
+import '../../../widgets/toss/toss_primary_button.dart';
+import '../../../widgets/toss/toss_card.dart';
+import '../../../widgets/toss/toss_text_field.dart';
+import '../../../widgets/toss/toss_bottom_sheet.dart';
+import '../../../widgets/toss/toss_dropdown.dart';
+// For pages directly in /pages/ use: '../../widgets/toss/'
 
 // 2. Common Components (USE IF TOSS DOESN'T HAVE)
 import '../../widgets/common/toss_app_bar.dart';

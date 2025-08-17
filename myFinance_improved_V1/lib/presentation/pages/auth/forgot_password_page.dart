@@ -4,6 +4,9 @@ import 'package:go_router/go_router.dart';
 import '../../../core/themes/toss_colors.dart';
 import '../../../core/themes/toss_text_styles.dart';
 import '../../../core/themes/toss_spacing.dart';
+import '../../widgets/toss/toss_text_field.dart';
+import '../../widgets/toss/toss_primary_button.dart';
+import '../../widgets/common/toss_scaffold.dart';
 import '../../widgets/toss/toss_primary_button.dart';
 import '../../widgets/toss/toss_bottom_sheet.dart';
 import '../../providers/auth_provider.dart';
@@ -197,66 +200,21 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
   }
 
   Widget _buildEmailField() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Email',
-          style: TossTextStyles.label.copyWith(
-            color: TossColors.gray700,
-          ),
-        ),
-        const SizedBox(height: TossSpacing.space2),
-        TextFormField(
-          controller: _emailController,
-          keyboardType: TextInputType.emailAddress,
-          autocorrect: false,
-          style: TossTextStyles.body,
-          decoration: InputDecoration(
-            hintText: 'email@example.com',
-            hintStyle: TossTextStyles.body.copyWith(
-              color: TossColors.gray400,
-            ),
-            filled: true,
-            fillColor: TossColors.gray50,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide.none,
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide.none,
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(
-                color: TossColors.primary,
-                width: 1.5,
-              ),
-            ),
-            errorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(
-                color: TossColors.error,
-                width: 1.5,
-              ),
-            ),
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: TossSpacing.space4,
-              vertical: TossSpacing.space4,
-            ),
-          ),
-          validator: (value) {
-            if (value == null || value.isEmpty) {
-              return 'Please enter your email';
-            }
-            if (!value.contains('@')) {
-              return 'Please enter a valid email';
-            }
-            return null;
-          },
-        ),
-      ],
+    return TossTextField(
+      label: 'Email',
+      hintText: 'email@example.com',
+      controller: _emailController,
+      keyboardType: TextInputType.emailAddress,
+      autocorrect: false,
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return 'Please enter your email';
+        }
+        if (!value.contains('@')) {
+          return 'Please enter a valid email';
+        }
+        return null;
+      },
     );
   }
 
@@ -270,20 +228,16 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
     });
 
     try {
-      print('ForgotPasswordPage: Starting password reset');
-      print('ForgotPasswordPage: Email=${_emailController.text.trim()}');
       
       await ref.read(authStateProvider.notifier).resetPassword(
         _emailController.text.trim(),
       );
       
-      print('ForgotPasswordPage: Password reset email sent successfully');
       
       setState(() {
         _emailSent = true;
       });
     } catch (e) {
-      print('ForgotPasswordPage: Password reset error: $e');
       // Show error message
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

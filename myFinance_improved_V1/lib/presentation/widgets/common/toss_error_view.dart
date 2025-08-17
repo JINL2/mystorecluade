@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../../../core/themes/toss_colors.dart';
 import '../../../core/themes/toss_text_styles.dart';
@@ -84,8 +85,25 @@ class TossErrorView extends StatelessWidget {
   }
 
   String _getErrorMessage(Object error) {
+    if (kDebugMode) {
+      // In debug mode, show the actual error
+      if (error is Exception) {
+        return error.toString().replaceAll('Exception: ', '');
+      }
+      return error.toString();
+    }
+    
+    // Production mode - user-friendly messages
     if (error is Exception) {
-      return error.toString().replaceAll('Exception: ', '');
+      final message = error.toString().replaceAll('Exception: ', '');
+      // Check for specific error patterns in the message
+      if (message.contains('No company selected')) {
+        return 'Please select a company first.';
+      }
+      if (message.contains('Failed to fetch transactions')) {
+        return 'Unable to load transactions. Please try again.';
+      }
+      return message;
     }
     
     final errorString = error.toString();

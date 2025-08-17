@@ -107,12 +107,12 @@ class _AttendancePageState extends State<AttendancePage> {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              TossColors.primary.withValues(alpha: 0.05),
+              TossColors.primary.withOpacity(0.05),
               TossColors.surface,
             ],
           ),
           borderRadius: BorderRadius.circular(TossBorderRadius.xl),
-          boxShadow: TossShadows.shadow2,
+          boxShadow: TossShadows.elevation2,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -149,7 +149,7 @@ class _AttendancePageState extends State<AttendancePage> {
                   ),
                   decoration: BoxDecoration(
                     color: isWorking 
-                      ? TossColors.success.withValues(alpha: 0.1)
+                      ? TossColors.success.withOpacity(0.1)
                       : TossColors.gray100,
                     borderRadius: BorderRadius.circular(TossBorderRadius.full),
                   ),
@@ -183,7 +183,7 @@ class _AttendancePageState extends State<AttendancePage> {
                   child: _buildStatCard(
                     icon: Icons.calendar_today_outlined,
                     iconColor: TossColors.primary,
-                    backgroundColor: TossColors.primary.withValues(alpha: 0.1),
+                    backgroundColor: TossColors.primary.withOpacity(0.1),
                     label: 'Total Shifts',
                     value: '35',
                     suffix: 'shifts',
@@ -194,7 +194,7 @@ class _AttendancePageState extends State<AttendancePage> {
                   child: _buildStatCard(
                     icon: Icons.access_time,
                     iconColor: TossColors.info,
-                    backgroundColor: TossColors.info.withValues(alpha: 0.1),
+                    backgroundColor: TossColors.info.withOpacity(0.1),
                     label: 'Total Hours',
                     value: '176',
                     suffix: 'hrs',
@@ -211,7 +211,7 @@ class _AttendancePageState extends State<AttendancePage> {
                   child: _buildStatCard(
                     icon: Icons.trending_up,
                     iconColor: TossColors.success,
-                    backgroundColor: TossColors.success.withValues(alpha: 0.1),
+                    backgroundColor: TossColors.success.withOpacity(0.1),
                     label: 'Overtime',
                     value: '750',
                     suffix: 'min',
@@ -222,7 +222,7 @@ class _AttendancePageState extends State<AttendancePage> {
                   child: _buildStatCard(
                     icon: Icons.trending_down,
                     iconColor: TossColors.warning,
-                    backgroundColor: TossColors.warning.withValues(alpha: 0.1),
+                    backgroundColor: TossColors.warning.withOpacity(0.1),
                     label: 'Late Deduct',
                     value: '15',
                     suffix: 'min',
@@ -241,13 +241,13 @@ class _AttendancePageState extends State<AttendancePage> {
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
-                    TossColors.primary.withValues(alpha: 0.15),
-                    TossColors.primary.withValues(alpha: 0.05),
+                    TossColors.primary.withOpacity(0.15),
+                    TossColors.primary.withOpacity(0.05),
                   ],
                 ),
                 borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                 border: Border.all(
-                  color: TossColors.primary.withValues(alpha: 0.2),
+                  color: TossColors.primary.withOpacity(0.2),
                   width: 1,
                 ),
               ),
@@ -256,7 +256,7 @@ class _AttendancePageState extends State<AttendancePage> {
                   Container(
                     padding: const EdgeInsets.all(TossSpacing.space2),
                     decoration: BoxDecoration(
-                      color: TossColors.primary.withValues(alpha: 0.15),
+                      color: TossColors.primary.withOpacity(0.15),
                       borderRadius: BorderRadius.circular(TossBorderRadius.md),
                     ),
                     child: const Icon(
@@ -332,7 +332,7 @@ class _AttendancePageState extends State<AttendancePage> {
                       borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                       boxShadow: [
                         BoxShadow(
-                          color: TossColors.primary.withValues(alpha: 0.3),
+                          color: TossColors.primary.withOpacity(0.3),
                           blurRadius: 8,
                           offset: const Offset(0, 4),
                         ),
@@ -380,7 +380,7 @@ class _AttendancePageState extends State<AttendancePage> {
         color: backgroundColor,
         borderRadius: BorderRadius.circular(TossBorderRadius.lg),
         border: Border.all(
-          color: iconColor.withValues(alpha: 0.2),
+          color: iconColor.withOpacity(0.2),
           width: 1,
         ),
       ),
@@ -530,7 +530,7 @@ class _AttendancePageState extends State<AttendancePage> {
                             : Colors.transparent,
                         width: isToday ? 2 : 1,
                       ),
-                      boxShadow: isToday ? TossShadows.shadow2 : TossShadows.shadow1,
+                      boxShadow: isToday ? TossShadows.elevation2 : TossShadows.elevation1,
                     ),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -571,7 +571,7 @@ class _AttendancePageState extends State<AttendancePage> {
                             'Off',
                             style: TossTextStyles.caption.copyWith(
                               color: isToday 
-                                ? Colors.white.withValues(alpha: 0.7)
+                                ? Colors.white.withOpacity(0.7)
                                 : TossColors.gray400,
                               fontSize: 10,
                             ),
@@ -651,7 +651,7 @@ class _AttendancePageState extends State<AttendancePage> {
             decoration: BoxDecoration(
               color: TossColors.surface,
               borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-              boxShadow: TossShadows.shadow1,
+              boxShadow: TossShadows.elevation1,
             ),
             child: Column(
               children: recentActivities.asMap().entries.map((entry) {
@@ -941,7 +941,7 @@ class _AttendancePageState extends State<AttendancePage> {
                   decoration: BoxDecoration(
                     color: TossColors.surface,
                     borderRadius: BorderRadius.circular(TossBorderRadius.xl),
-                    boxShadow: TossShadows.shadow1,
+                    boxShadow: TossShadows.elevation1,
                   ),
                   child: Column(
                     children: [
@@ -1025,10 +1025,10 @@ class _AttendancePageState extends State<AttendancePage> {
                   margin: const EdgeInsets.all(TossSpacing.space5),
                   padding: const EdgeInsets.all(TossSpacing.space4),
                   decoration: BoxDecoration(
-                    color: TossColors.primary.withValues(alpha: 0.05),
+                    color: TossColors.primary.withOpacity(0.05),
                     borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                     border: Border.all(
-                      color: TossColors.primary.withValues(alpha: 0.2),
+                      color: TossColors.primary.withOpacity(0.2),
                       width: 1,
                     ),
                   ),
@@ -1037,7 +1037,7 @@ class _AttendancePageState extends State<AttendancePage> {
                       Container(
                         padding: const EdgeInsets.all(TossSpacing.space2),
                         decoration: BoxDecoration(
-                          color: TossColors.primary.withValues(alpha: 0.15),
+                          color: TossColors.primary.withOpacity(0.15),
                           borderRadius: BorderRadius.circular(TossBorderRadius.md),
                         ),
                         child: const Icon(
@@ -1145,7 +1145,7 @@ class _AttendancePageState extends State<AttendancePage> {
               color: isSelected
                   ? TossColors.primary
                   : isToday
-                      ? TossColors.primary.withValues(alpha: 0.1)
+                      ? TossColors.primary.withOpacity(0.1)
                       : Colors.transparent,
               borderRadius: BorderRadius.circular(TossBorderRadius.md),
               border: Border.all(

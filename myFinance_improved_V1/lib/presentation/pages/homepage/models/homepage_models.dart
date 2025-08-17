@@ -25,7 +25,6 @@ class UserWithCompanies {
     final companiesData = (json['companies'] as List<dynamic>?) ?? [];
     
     // Debug logging
-    print('UserWithCompanies.fromJson: Parsing ${companiesData.length} companies');
     
     // Remove duplicates while parsing
     final uniqueCompanies = <String, Company>{};
@@ -54,12 +53,10 @@ class UserWithCompanies {
               .toList() ?? [],
         );
       } else {
-        print('UserWithCompanies.fromJson: Duplicate company found: $companyId - ${company['company_name']}');
       }
     }
     
     final companiesList = uniqueCompanies.values.toList();
-    print('UserWithCompanies.fromJson: Returning ${companiesList.length} unique companies');
     
     return UserWithCompanies(
       userId: json['user_id'] as String,

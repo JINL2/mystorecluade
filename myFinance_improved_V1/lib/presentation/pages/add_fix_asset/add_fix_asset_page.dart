@@ -38,13 +38,11 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
         setState(() {
           baseCurrencyId = currency;
         });
-        print('Base currency loaded: $baseCurrencyId');
         
         // Now fetch the currency symbol
         _fetchCurrencySymbol(currency);
       }
     } catch (e) {
-      print('Error loading base currency: $e');
     }
   }
   
@@ -55,10 +53,8 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
         setState(() {
           currencySymbol = symbol;
         });
-        print('Currency symbol loaded: $currencySymbol');
       }
     } catch (e) {
-      print('Error loading currency symbol: $e');
     }
   }
 
@@ -178,13 +174,10 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
   }
 
   String _getStoreName(String? storeId, List<dynamic> stores) {
-    print('_getStoreName called with storeId: $storeId'); // Debug
     if (storeId == null) {
-      print('Returning Headquarters'); // Debug
       return 'Headquarters';
     }
     if (storeId.isEmpty || stores.isEmpty) {
-      print('Returning Select Store - empty or no stores'); // Debug
       return 'Select Store';
     }
     
@@ -194,10 +187,8 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
         orElse: () => null,
       );
       final storeName = store?['store_name'] ?? 'Select Store';
-      print('Returning store name: $storeName'); // Debug
       return storeName;
     } catch (e) {
-      print('Exception in _getStoreName: $e'); // Debug
       return 'Select Store';
     }
   }
@@ -379,7 +370,6 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
                       _showEditAssetBottomSheet(asset);
                     } else if (value == 'delete') {
                       // TODO: Implement delete functionality
-                      print('Delete asset: ${asset['asset_id']}');
                     }
                   },
                   itemBuilder: (context) => [
@@ -2030,18 +2020,15 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
     
     return InkWell(
       onTap: () async {
-        print('Store option tapped: $storeId ($storeName)'); // Debug
         Navigator.pop(context);
         
         setState(() {
           selectedStoreId = storeId;
-          print('selectedStoreId set to: $selectedStoreId'); // Debug
         });
         
         // Update app state with the new store selection
         // For headquarters (null), we set empty string in app state but keep local selectedStoreId as null
         final appStateValue = storeId ?? '';
-        print('Setting app state store to: "$appStateValue"'); // Debug
         await ref.read(appStateProvider.notifier).setStoreChoosen(appStateValue);
       },
       child: Container(

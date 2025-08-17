@@ -41,12 +41,9 @@ class StoreService {
       final storeId = storeResponse['store_id'];
       
       // Don't insert into user_stores - let the database trigger handle it
-      print('StoreService: Store created successfully with ID: $storeId');
-      print('StoreService: Database trigger will handle user_stores insertion');
       
       return storeId;
     } catch (e) {
-      print('StoreService Error: Failed to create store: $e');
       return null;
     }
   }

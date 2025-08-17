@@ -55,7 +55,6 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
         desiredAccuracy: LocationAccuracy.high,
       );
     } catch (e) {
-      print('Error getting location: $e');
       _showErrorDialog('Failed to get current location. Please try again.');
       return null;
     }
@@ -236,7 +235,7 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
               Container(
                 padding: const EdgeInsets.all(TossSpacing.space4),
                 decoration: BoxDecoration(
-                  color: TossColors.primary.withValues(alpha: 0.1),
+                  color: TossColors.primary.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Column(
@@ -363,7 +362,6 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
         cameraController.start();
       }
     } catch (e) {
-      print('Error processing QR code: $e');
       _showErrorDialog('An error occurred. Please try again.');
       setState(() {
         isProcessing = false;
@@ -401,7 +399,6 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
               for (final barcode in barcodes) {
                 final String? code = barcode.rawValue;
                 if (code != null && !isProcessing) {
-                  print('QR Code detected: $code');
                   HapticFeedback.mediumImpact();
                   _processQRCode(code);
                   break;

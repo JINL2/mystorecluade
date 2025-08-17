@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../core/themes/toss_colors.dart';
 import '../../../core/themes/toss_spacing.dart';
 import '../../../core/themes/toss_text_styles.dart';
+import '../../../core/themes/toss_animations.dart';
 
 class TossCheckbox extends StatelessWidget {
   final bool value;
@@ -30,7 +31,7 @@ class TossCheckbox extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
+            duration: TossAnimations.normal,
             width: 24,
             height: 24,
             decoration: BoxDecoration(
@@ -46,7 +47,7 @@ class TossCheckbox extends StatelessWidget {
               ),
             ),
             child: AnimatedScale(
-              duration: const Duration(milliseconds: 100),
+              duration: TossAnimations.quick,
               scale: value ? 1.0 : 0.0,
               child: Icon(
                 Icons.check,

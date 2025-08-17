@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../core/theme/toss_colors.dart';
-import '../../../core/theme/toss_spacing.dart';
-import '../../../core/theme/toss_text_styles.dart';
+import '../../../core/themes/toss_colors.dart';
+import '../../../core/themes/toss_spacing.dart';
+import '../../../core/themes/toss_text_styles.dart';
 import '../../providers/attendance_provider.dart';
 import '../../providers/app_state_provider.dart';
 import '../../../data/services/attendance_service.dart';
@@ -39,17 +39,17 @@ class _AttendanceMainPageState extends State<AttendanceMainPage> with SingleTick
         elevation: 0,
         title: Text(
           'Attendance',
-          style: TossTextStyles.heading1.copyWith(
+          style: TossTextStyles.h1.copyWith(
             color: TossColors.gray900,
           ),
         ),
         bottom: TabBar(
           controller: _tabController,
-          indicatorColor: TossColors.blue500,
+          indicatorColor: TossColors.primary,
           indicatorWeight: 3,
-          labelColor: TossColors.blue500,
+          labelColor: TossColors.primary,
           unselectedLabelColor: TossColors.gray500,
-          labelStyle: TossTextStyles.body1.copyWith(
+          labelStyle: TossTextStyles.body.copyWith(
             fontWeight: FontWeight.w600,
           ),
           tabs: const [

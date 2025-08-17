@@ -37,7 +37,7 @@ class TossScaffold extends StatelessWidget {
       key: scaffoldKey,
       appBar: appBar,
       body: body,
-      backgroundColor: backgroundColor ?? TossColors.background,
+      backgroundColor: backgroundColor ?? TossColors.gray100,
       resizeToAvoidBottomInset: resizeToAvoidBottomInset,
       floatingActionButton: floatingActionButton,
       floatingActionButtonLocation: floatingActionButtonLocation,
