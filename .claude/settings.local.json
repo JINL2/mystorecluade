@@ -21,7 +21,12 @@
       "Bash(flutter pub run build_runner build:*)",
       "Bash(rm:*)",
       "Bash(flutter packages pub run build_runner build:*)",
-      "Bash(git checkout:*)"
+      "Bash(git checkout:*)",
+      "Bash(cat:*)",
+      "Bash(flutter clean:*)",
+      "Bash(flutter pub:*)",
+      "Bash(flutter:*)",
+      "Bash(pkill:*)"
     ],
     "deny": []
   }
