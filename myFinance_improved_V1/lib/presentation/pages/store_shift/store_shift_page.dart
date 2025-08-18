@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../helpers/navigation_helper.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'providers/store_shift_providers.dart';
@@ -76,7 +77,7 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
             color: TossColors.gray700,
             size: TossSpacing.iconMD,
           ),
-          onPressed: () => context.pop(),
+          onPressed: () => NavigationHelper.safeGoBack(context),
         ),
       ),
       body: userCompaniesAsync.when(

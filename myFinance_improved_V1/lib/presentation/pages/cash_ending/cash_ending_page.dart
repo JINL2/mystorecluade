@@ -3,15 +3,26 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../../../core/themes/toss_colors.dart';
 import '../../../core/themes/toss_text_styles.dart';
 import '../../../core/themes/toss_spacing.dart';
 import '../../../core/themes/toss_border_radius.dart';
 import '../../../core/themes/toss_shadows.dart';
 import '../../../core/themes/toss_animations.dart';
+import '../../../core/themes/toss_icons.dart';
+import '../../../core/constants/ui_constants.dart';
 import '../../providers/app_state_provider.dart';
 import '../../widgets/toss/toss_primary_button.dart';
 import '../../widgets/toss/toss_card.dart';
+import '../../widgets/toss/toss_tab_bar.dart';
+import '../../widgets/common/toss_app_bar.dart';
+import '../../widgets/common/toss_empty_state_card.dart';
+import '../../widgets/common/toss_white_card.dart';
+import '../../widgets/common/toss_currency_chip.dart';
+import '../../widgets/common/toss_section_header.dart';
+import '../../widgets/common/toss_number_input.dart';
+import '../../widgets/common/toss_toggle_button.dart';
 
 // Page for cash ending functionality with tabs
 class CashEndingPage extends ConsumerStatefulWidget {
@@ -448,7 +459,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
     // Show loading indicator while fetching initial data
     if (isLoadingCurrency || isLoadingStores) {
       return Scaffold(
-        backgroundColor: TossColors.background,
+        backgroundColor: TossColors.gray100,
         body: const Center(
           child: CircularProgressIndicator(color: TossColors.primary),
         ),
@@ -458,121 +469,44 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
     final hasVaultBankAccess = _hasVaultBankPermission();
     
     return Scaffold(
-      backgroundColor: TossColors.background,
+      backgroundColor: TossColors.gray100,
+      appBar: TossAppBar(
+        title: 'Cash Ending',
+        backgroundColor: TossColors.gray100,
+        leading: IconButton(
+          icon: FaIcon(
+            FontAwesomeIcons.chevronLeft,
+            color: TossColors.gray700,
+            size: TossSpacing.iconMD,
+          ),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+      ),
       body: SafeArea(
         child: Column(
           children: [
-            // App Bar with Tabs
+            // Tab Bar with white background
             Container(
-              color: TossColors.background,
-              child: Column(
-                children: [
-                  // Title Bar
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: TossSpacing.space5,
-                      vertical: TossSpacing.space3,
-                    ),
-                    child: Row(
-                      children: [
-                        // Back button
-                        IconButton(
-                          icon: const Icon(
-                            Icons.arrow_back_ios,
-                            size: 20,
-                            color: TossColors.gray900,
-                          ),
-                          onPressed: () {
-                            Navigator.of(context).pop();
-                          },
-                          padding: EdgeInsets.zero,
-                          constraints: const BoxConstraints(),
-                        ),
-                        const SizedBox(width: TossSpacing.space3),
-                        Text(
-                          'Cash Ending',
-                          style: TossTextStyles.h2.copyWith(
-                            color: TossColors.gray900,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  // Tab Bar - Time Table Manage style
-                  Container(
-                    margin: const EdgeInsets.symmetric(
-                      horizontal: TossSpacing.space5,
-                      vertical: TossSpacing.space3,
-                    ),
-                    height: 48,
-                    child: Stack(
-                      children: [
-                        // Background
-                        Container(
-                          decoration: BoxDecoration(
-                            color: TossColors.gray100,
-                            borderRadius: BorderRadius.circular(24),
-                          ),
-                        ),
-                        // Tab Bar
-                        TabBar(
-                          controller: _tabController,
-                          onTap: (index) {
-                            // Prevent switching to Bank or Vault tabs if no permission
-                            if (index > 0 && !hasVaultBankAccess) {
-                              // Reset to Cash tab
-                              _tabController.index = 0;
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('You do not have permission to access Bank/Vault features'),
-                                  duration: Duration(seconds: 2),
-                                ),
-                              );
-                            }
-                          },
-                          indicator: BoxDecoration(
-                            color: TossColors.background,
-                            borderRadius: BorderRadius.circular(22),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.08),
-                                blurRadius: 4,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
-                          ),
-                          indicatorSize: TabBarIndicatorSize.tab,
-                          indicatorPadding: const EdgeInsets.all(2),
-                          dividerColor: Colors.transparent,
-                          labelColor: TossColors.gray900,
-                          unselectedLabelColor: TossColors.gray500,
-                          labelStyle: TossTextStyles.body.copyWith(
-                            fontWeight: FontWeight.w600,
-                          ),
-                          unselectedLabelStyle: TossTextStyles.body.copyWith(
-                            fontWeight: FontWeight.w400,
-                          ),
-                          tabs: [
-                            Tab(text: 'Cash'),
-                            Tab(
-                              child: Opacity(
-                                opacity: hasVaultBankAccess ? 1.0 : 0.4,
-                                child: Text('Bank'),
-                              ),
-                            ),
-                            Tab(
-                              child: Opacity(
-                                opacity: hasVaultBankAccess ? 1.0 : 0.4,
-                                child: Text('Vault'),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+              color: TossColors.white,
+              child: TossTabBar(
+                tabs: const ['Cash', 'Bank', 'Vault'],
+                controller: _tabController,
+                unselectedColor: hasVaultBankAccess 
+                    ? TossColors.gray400 
+                    : TossColors.gray300, // Lighter gray for disabled tabs
+                onTabChanged: (index) {
+                  // Prevent switching to Bank or Vault tabs if no permission
+                  if (index > 0 && !hasVaultBankAccess) {
+                    // Reset to Cash tab
+                    _tabController.index = 0;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('You do not have permission to access Bank/Vault features'),
+                        duration: const Duration(seconds: 2),
+                      ),
+                    );
+                  }
+                },
               ),
             ),
             // Tab Content
@@ -599,8 +533,8 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(
-            Icons.lock_outline,
-            size: 64,
+            TossIcons.lock,
+            size: UIConstants.iconSizeHuge + 16, // 64px for large empty state
             color: TossColors.gray400,
           ),
           const SizedBox(height: TossSpacing.space4),
@@ -625,11 +559,12 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
   
   Widget _buildCashTab() {
     return SingleChildScrollView(
+      padding: const EdgeInsets.all(TossSpacing.paddingMD),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Input Section
-          Padding(
+          // Input Section - wrapped in white card
+          TossCard(
             padding: const EdgeInsets.all(TossSpacing.space5),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -653,24 +588,16 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
           
           // Show Recent Cash Ending only when location is selected
           if (selectedLocationId != null && selectedLocationId!.isNotEmpty) ...[
-            const Divider(
-              color: TossColors.gray100,
-              thickness: 8,
-              height: 32,
-            ),
+            const SizedBox(height: TossSpacing.space5),
             
-            // History Section
-            Padding(
+            // History Section - wrapped in white card
+            TossCard(
               padding: const EdgeInsets.all(TossSpacing.space5),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'Most Recent Cash Ending',
-                    style: TossTextStyles.h3.copyWith(
-                      color: TossColors.gray900,
-                      fontWeight: FontWeight.w700,
-                    ),
+                  TossSectionHeader(
+                    title: 'Most Recent Cash Ending',
                   ),
                   const SizedBox(height: TossSpacing.space4),
                   // Show loading, data or empty state
@@ -687,20 +614,8 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
                   ] else if (recentCashEndings.isNotEmpty) ...[
                     _buildRecentEndingDetail(recentCashEndings.first),
                   ] else ...[
-                    Container(
-                      padding: const EdgeInsets.all(TossSpacing.space4),
-                      decoration: BoxDecoration(
-                        color: TossColors.gray50,
-                        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-                      ),
-                      child: Center(
-                        child: Text(
-                          'No recent cash ending found for this location',
-                          style: TossTextStyles.body.copyWith(
-                            color: TossColors.gray500,
-                          ),
-                        ),
-                      ),
+                    TossEmptyStateCard(
+                      message: 'No recent cash ending found for this location',
                     ),
                   ],
                 ],
@@ -723,23 +638,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
     final denominationData = ending['denomination_data'] ?? {};
     final currencyData = ending['currency_data'] ?? {};
     
-    return Container(
-      padding: const EdgeInsets.all(TossSpacing.space4),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-        border: Border.all(
-          color: TossColors.gray200,
-          width: 1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
+    return TossWhiteCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -767,8 +666,8 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
           Row(
             children: [
               Icon(
-                Icons.person_outline,
-                size: 16,
+                TossIcons.person,
+                size: UIConstants.iconSizeXS,
                 color: TossColors.gray500,
               ),
               const SizedBox(width: TossSpacing.space2),
@@ -955,90 +854,25 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
   }
   
   Widget _buildDebitCreditToggle() {
-    return Row(
-      children: [
-        Expanded(
-          child: GestureDetector(
-            onTap: () {
-              setState(() {
-                vaultTransactionType = 'debit';
-              });
-              HapticFeedback.selectionClick();
-            },
-            child: Container(
-              padding: const EdgeInsets.symmetric(
-                vertical: TossSpacing.space4,
-              ),
-              decoration: BoxDecoration(
-                color: vaultTransactionType == 'debit' 
-                  ? TossColors.primary 
-                  : Colors.white,
-                borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-                border: Border.all(
-                  color: vaultTransactionType == 'debit'
-                    ? TossColors.primary
-                    : TossColors.gray300,
-                  width: vaultTransactionType == 'debit' ? 2 : 1,
-                ),
-              ),
-              child: Center(
-                child: Text(
-                  'Debit',
-                  style: TossTextStyles.bodyLarge.copyWith(
-                    color: vaultTransactionType == 'debit'
-                      ? Colors.white
-                      : TossColors.gray600,
-                    fontWeight: vaultTransactionType == 'debit'
-                      ? FontWeight.w700
-                      : FontWeight.w500,
-                  ),
-                ),
-              ),
-            ),
-          ),
+    return TossToggleButtonGroup(
+      buttons: [
+        TossToggleButtonData(
+          label: 'Debit',
+          value: 'debit',
+          activeColor: TossColors.primary,
         ),
-        const SizedBox(width: TossSpacing.space3),
-        Expanded(
-          child: GestureDetector(
-            onTap: () {
-              setState(() {
-                vaultTransactionType = 'credit';
-              });
-              HapticFeedback.selectionClick();
-            },
-            child: Container(
-              padding: const EdgeInsets.symmetric(
-                vertical: TossSpacing.space4,
-              ),
-              decoration: BoxDecoration(
-                color: vaultTransactionType == 'credit' 
-                  ? TossColors.success 
-                  : Colors.white,
-                borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-                border: Border.all(
-                  color: vaultTransactionType == 'credit'
-                    ? TossColors.success
-                    : TossColors.gray300,
-                  width: vaultTransactionType == 'credit' ? 2 : 1,
-                ),
-              ),
-              child: Center(
-                child: Text(
-                  'Credit',
-                  style: TossTextStyles.bodyLarge.copyWith(
-                    color: vaultTransactionType == 'credit'
-                      ? Colors.white
-                      : TossColors.gray600,
-                    fontWeight: vaultTransactionType == 'credit'
-                      ? FontWeight.w700
-                      : FontWeight.w500,
-                  ),
-                ),
-              ),
-            ),
-          ),
+        TossToggleButtonData(
+          label: 'Credit',
+          value: 'credit',
+          activeColor: TossColors.success,
         ),
       ],
+      selectedValue: vaultTransactionType,
+      onPressed: (value) {
+        setState(() {
+          vaultTransactionType = value;
+        });
+      },
     );
   }
   
@@ -1056,20 +890,8 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
     }
     
     if (vaultBalanceData == null || vaultBalanceData!['vaults'] == null) {
-      return Container(
-        padding: const EdgeInsets.all(TossSpacing.space4),
-        decoration: BoxDecoration(
-          color: TossColors.gray50,
-          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-        ),
-        child: Center(
-          child: Text(
-            'No vault balance data available',
-            style: TossTextStyles.body.copyWith(
-              color: TossColors.gray500,
-            ),
-          ),
-        ),
+      return TossEmptyStateCard(
+        message: 'No vault balance data available',
       );
     }
     
@@ -1081,20 +903,8 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
     );
     
     if (selectedVault == null) {
-      return Container(
-        padding: const EdgeInsets.all(TossSpacing.space4),
-        decoration: BoxDecoration(
-          color: TossColors.gray50,
-          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-        ),
-        child: Center(
-          child: Text(
-            'No balance data for this vault',
-            style: TossTextStyles.body.copyWith(
-              color: TossColors.gray500,
-            ),
-          ),
-        ),
+      return TossEmptyStateCard(
+        message: 'No balance data for this vault',
       );
     }
     
@@ -1118,9 +928,9 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
           child: Row(
             children: [
               Icon(
-                Icons.account_balance_wallet,
+                TossIcons.wallet,
                 color: TossColors.primary,
-                size: 20,
+                size: UIConstants.iconSizeMedium,
               ),
               const SizedBox(width: TossSpacing.space2),
               Text(
@@ -1136,22 +946,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
         const SizedBox(height: TossSpacing.space4),
         
         // Currency balances
-        Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-            border: Border.all(
-              color: TossColors.gray200,
-              width: 1,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.04),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
+        TossWhiteCard(
           child: Column(
             children: [
               // Display each currency balance
@@ -1247,7 +1042,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
                                   Row(
                                     children: [
                                       Icon(
-                                        Icons.currency_exchange,
+                                        TossIcons.currency,
                                         size: 14,
                                         color: TossColors.gray600,
                                       ),
@@ -1276,7 +1071,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
                                       borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                                       border: Border.all(
                                         color: TossColors.gray200,
-                                        width: 1,
+                                        width: UIConstants.borderWidth,
                                       ),
                                     ),
                                     child: Row(
@@ -1310,7 +1105,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
                       const Divider(
                         color: TossColors.gray100,
                         thickness: 1,
-                        height: 1,
+                        height: UIConstants.borderWidth,
                       ),
                   ],
                 );
@@ -1359,69 +1154,63 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
   Widget _buildHistoryItem(int index) {
     return Container(
       margin: const EdgeInsets.only(bottom: TossSpacing.space4),
-      padding: const EdgeInsets.all(TossSpacing.space4),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-        border: Border.all(
-          color: TossColors.gray100,
-          width: 1,
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: TossSpacing.space2,
-                  vertical: TossSpacing.space1,
-                ),
-                decoration: BoxDecoration(
-                  color: TossColors.primary.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(TossBorderRadius.sm),
-                ),
-                child: Text(
-                  cashLocations.isNotEmpty 
-                      ? (cashLocations[index % cashLocations.length]['location_name'] ?? 'Location ${index + 1}')
-                      : 'Location ${index + 1}',
-                  style: TossTextStyles.caption.copyWith(
-                    color: TossColors.primary,
-                    fontWeight: FontWeight.w600,
+      child: TossWhiteCard(
+        padding: const EdgeInsets.all(TossSpacing.space4),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: TossSpacing.space2,
+                    vertical: TossSpacing.space1,
+                  ),
+                  decoration: BoxDecoration(
+                    color: TossColors.primary.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(TossBorderRadius.sm),
+                  ),
+                  child: Text(
+                    cashLocations.isNotEmpty 
+                        ? (cashLocations[index % cashLocations.length]['location_name'] ?? 'Location ${index + 1}')
+                        : 'Location ${index + 1}',
+                    style: TossTextStyles.caption.copyWith(
+                      color: TossColors.primary,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
-              ),
-              Text(
-                '2024.01.${15 - index}',
-                style: TossTextStyles.caption.copyWith(
-                  color: TossColors.gray500,
+                Text(
+                  '2024.01.${15 - index}',
+                  style: TossTextStyles.caption.copyWith(
+                    color: TossColors.gray500,
+                  ),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: TossSpacing.space3),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                '09:${30 + index}:00',
-                style: TossTextStyles.bodySmall.copyWith(
-                  color: TossColors.gray500,
+              ],
+            ),
+            const SizedBox(height: TossSpacing.space3),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  '09:${30 + index}:00',
+                  style: TossTextStyles.bodySmall.copyWith(
+                    color: TossColors.gray500,
+                  ),
                 ),
-              ),
-              Text(
-                formatCurrency(1234560 + index * 10000),
-                style: TossTextStyles.bodyLarge.copyWith(
-                  fontWeight: FontWeight.w700,
-                  color: TossColors.gray900,
-                  fontFamily: 'JetBrains Mono',
+                Text(
+                  formatCurrency(1234560 + index * 10000),
+                  style: TossTextStyles.bodyLarge.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: TossColors.gray900,
+                    fontFamily: 'JetBrains Mono',
+                  ),
                 ),
-              ),
-            ],
-          ),
-        ],
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -1429,23 +1218,9 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
   Widget _buildStoreSelector() {
     // If no stores available
     if (stores.isEmpty) {
-      return Container(
-        padding: const EdgeInsets.all(TossSpacing.space4),
-        decoration: BoxDecoration(
-          color: TossColors.gray50,
-          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.info_outline, color: TossColors.gray500, size: 20),
-            const SizedBox(width: TossSpacing.space2),
-            Text(
-              'No stores available',
-              style: TossTextStyles.body.copyWith(color: TossColors.gray500),
-            ),
-          ],
-        ),
+      return TossEmptyStateCard(
+        message: 'No stores available',
+        icon: TossIcons.info,
       );
     }
     
@@ -1499,15 +1274,15 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
             child: Row(
               children: [
                 Container(
-                  width: 40,
-                  height: 40,
+                  width: UIConstants.avatarSizeSmall,
+                  height: UIConstants.avatarSizeSmall,
                   decoration: BoxDecoration(
                     color: TossColors.gray50,
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Icon(
-                    selectedStoreId == 'headquarter' ? Icons.business : Icons.store_outlined,
-                    size: 20,
+                    TossIcons.getStoreIcon(selectedStoreId == 'headquarter' ? 'headquarter' : 'store'),
+                    size: UIConstants.iconSizeMedium,
                     color: TossColors.gray600,
                   ),
                 ),
@@ -1534,10 +1309,10 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
                     ],
                   ),
                 ),
-                const Icon(
-                  Icons.chevron_right,
+                Icon(
+                  TossIcons.forward,
                   color: TossColors.gray400,
-                  size: 24,
+                  size: UIConstants.iconSizeLarge,
                 ),
               ],
             ),
@@ -1579,23 +1354,9 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
     }
     
     if (locations.isEmpty) {
-      return Container(
-        padding: const EdgeInsets.all(TossSpacing.space4),
-        decoration: BoxDecoration(
-          color: TossColors.gray50,
-          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.location_off, color: TossColors.gray500, size: 20),
-            const SizedBox(width: TossSpacing.space2),
-            Text(
-              'No ${locationType} locations available for this store',
-              style: TossTextStyles.body.copyWith(color: TossColors.gray500),
-            ),
-          ],
-        ),
+      return TossEmptyStateCard(
+        message: 'No ${locationType} locations available for this store',
+        icon: TossIcons.locationOff,
       );
     }
     
@@ -1694,15 +1455,8 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
     
     
     if (selectedCurrencyId == null || !currencyDenominations.containsKey(selectedCurrencyId)) {
-      return Container(
-        padding: const EdgeInsets.all(TossSpacing.space4),
-        decoration: BoxDecoration(
-          color: TossColors.gray50,
-          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-        ),
-        child: const Center(
-          child: Text('Loading currency data...'),
-        ),
+      return TossEmptyStateCard(
+        message: 'Loading currency data...',
       );
     }
     
@@ -1729,31 +1483,31 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
           _buildCurrencySelector(tabType),
           const SizedBox(height: TossSpacing.space6),
         ],
-        Row(
-          children: [
-            Text(
-              'Cash Count',
-              style: TossTextStyles.h3.copyWith(color: TossColors.gray900),
-            ),
-            const SizedBox(width: TossSpacing.space2),
-            Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: TossSpacing.space2,
-                vertical: TossSpacing.space1,
-              ),
-              decoration: BoxDecoration(
-                color: TossColors.primary.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(TossBorderRadius.sm),
-              ),
-              child: Text(
-                currencyType['currency_code'] ?? 'N/A',
-                style: TossTextStyles.caption.copyWith(
-                  color: TossColors.primary,
-                  fontWeight: FontWeight.w600,
+        TossSectionHeader(
+          title: 'Cash Count',
+          trailing: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(width: TossSpacing.space2),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: TossSpacing.space2,
+                  vertical: TossSpacing.space1,
+                ),
+                decoration: BoxDecoration(
+                  color: TossColors.primary.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.sm),
+                ),
+                child: Text(
+                  currencyType['currency_code'] ?? 'N/A',
+                  style: TossTextStyles.caption.copyWith(
+                    color: TossColors.primary,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
         const SizedBox(height: TossSpacing.space5),
         ...denominations.map((denom) {
@@ -1802,7 +1556,11 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
             );
             final isSelected = selectedCurrencyId == currencyId;
             
-            return GestureDetector(
+            return TossCurrencyChip(
+              currencyId: currencyId,
+              symbol: currencyType['symbol'] ?? '',
+              currencyCode: currencyType['currency_code'] ?? 'N/A',
+              isSelected: isSelected,
               onTap: () {
                 setState(() {
                   // Store the previously selected currency ID
@@ -1830,41 +1588,6 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
                 });
                 HapticFeedback.selectionClick();
               },
-              child: AnimatedContainer(
-                duration: TossAnimations.normal,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: TossSpacing.space4,
-                  vertical: TossSpacing.space2,
-                ),
-                decoration: BoxDecoration(
-                  color: isSelected ? TossColors.primary : Colors.white,
-                  borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                  border: Border.all(
-                    color: isSelected ? TossColors.primary : TossColors.gray300,
-                    width: 1.5,
-                  ),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      currencyType['symbol'] ?? '',
-                      style: TossTextStyles.body.copyWith(
-                        color: isSelected ? Colors.white : TossColors.gray700,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(width: TossSpacing.space1),
-                    Text(
-                      currencyType['currency_code'] ?? 'N/A',
-                      style: TossTextStyles.caption.copyWith(
-                        color: isSelected ? Colors.white.withOpacity(0.9) : TossColors.gray500,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
             );
           }).toList(),
         ),
@@ -1886,11 +1609,11 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
         children: [
           // Denomination label
           SizedBox(
-            width: 100,
+            width: 100, // Fixed width for cash count button
             child: Row(
               children: [
                 Container(
-                  width: 8,
+                  width: 8, // Small indicator dot
                   height: 8,
                   decoration: BoxDecoration(
                     color: amount >= 10000 ? TossColors.primary : TossColors.gray400,
@@ -1925,23 +1648,10 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
               child: Row(
                 children: [
                   Expanded(
-                    child: TextField(
+                    child: TossNumberInput(
                       controller: controller,
-                      keyboardType: TextInputType.number,
-                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                      hintText: '0',
                       textAlign: TextAlign.center,
-                      style: TossTextStyles.bodyLarge.copyWith(
-                        fontWeight: FontWeight.w600,
-                        fontFamily: 'JetBrains Mono',
-                      ),
-                      decoration: InputDecoration(
-                        hintText: '0',
-                        hintStyle: TossTextStyles.body.copyWith(
-                          color: TossColors.gray300,
-                        ),
-                        border: InputBorder.none,
-                        contentPadding: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
-                      ),
                       onChanged: (_) => setState(() {}),
                     ),
                   ),
@@ -1961,7 +1671,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
           const SizedBox(width: TossSpacing.space3),
           // Subtotal
           SizedBox(
-            width: 100,
+            width: 100, // Fixed width for cash count button
             child: Text(
               _calculateSubtotal(denomination['value'].toString(), controller.text, currencySymbol),
               style: TossTextStyles.body.copyWith(
@@ -2062,11 +1772,12 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
   
   Widget _buildBankTab() {
     return SingleChildScrollView(
+      padding: const EdgeInsets.all(TossSpacing.paddingMD),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Input Section
-          Padding(
+          // Input Section - wrapped in white card
+          TossCard(
             padding: const EdgeInsets.all(TossSpacing.space5),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -2090,39 +1801,26 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
           
           // Recent Bank Transactions Section
           if (selectedBankLocationId != null) ...[
-            const Divider(
-              color: TossColors.gray100,
-              thickness: 8,
-              height: 32,
-            ),
-            Padding(
+            const SizedBox(height: TossSpacing.space5),
+            TossCard(
               padding: const EdgeInsets.all(TossSpacing.space5),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Recent Bank Transaction',
-                        style: TossTextStyles.h3.copyWith(
-                          color: TossColors.gray900,
-                          fontWeight: FontWeight.w700,
+                  TossSectionHeader(
+                    title: 'Recent Bank Transaction',
+                    trailing: TextButton(
+                      onPressed: () {
+                        _showAllTransactionsBottomSheet();
+                      },
+                      child: Text(
+                        'View All',
+                        style: TossTextStyles.body.copyWith(
+                          color: TossColors.primary,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
-                      TextButton(
-                        onPressed: () {
-                          _showAllTransactionsBottomSheet();
-                        },
-                        child: Text(
-                          'View All',
-                          style: TossTextStyles.body.copyWith(
-                            color: TossColors.primary,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
                   const SizedBox(height: TossSpacing.space4),
                   _buildBankTransactionHistory(),
@@ -2143,8 +1841,8 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
         Row(
           children: [
             Icon(
-              Icons.account_balance,
-              size: 20,
+              TossIcons.bank,
+              size: UIConstants.iconSizeMedium,
               color: TossColors.primary,
             ),
             const SizedBox(width: TossSpacing.space2),
@@ -2176,9 +1874,9 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
               ),
             ],
           ),
-          child: TextField(
+          child: TossNumberInput(
             controller: bankAmountController,
-            keyboardType: TextInputType.number,
+            hintText: '0',
             inputFormatters: [
               FilteringTextInputFormatter.digitsOnly,
               TextInputFormatter.withFunction((oldValue, newValue) {
@@ -2191,23 +1889,6 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
                 );
               }),
             ],
-            style: TossTextStyles.h3.copyWith(
-              fontWeight: FontWeight.w600,
-              color: TossColors.gray900,
-              fontFamily: 'JetBrains Mono',
-            ),
-            decoration: InputDecoration(
-              hintText: '0',
-              hintStyle: TossTextStyles.h3.copyWith(
-                color: TossColors.gray300,
-                fontFamily: 'JetBrains Mono',
-              ),
-              border: InputBorder.none,
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: TossSpacing.space4,
-                vertical: TossSpacing.space4,
-              ),
-            ),
             onChanged: (_) => setState(() {}),
           ),
         ),
@@ -2637,8 +2318,8 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
                   // Handle bar
                   Container(
                     margin: const EdgeInsets.only(top: TossSpacing.space3),
-                    width: 48,
-                    height: 4,
+                    width: UIConstants.iconSizeHuge,
+                    height: UIConstants.modalDragHandleHeight,
                     decoration: BoxDecoration(
                       color: TossColors.gray300,
                       borderRadius: BorderRadius.circular(TossBorderRadius.full),
@@ -2659,7 +2340,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
                         ),
                         IconButton(
                           onPressed: () => Navigator.of(context).pop(),
-                          icon: Icon(Icons.close, color: TossColors.gray700),
+                          icon: Icon(TossIcons.close, color: TossColors.gray700),
                         ),
                       ],
                     ),
@@ -2680,9 +2361,9 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
                                     Icon(
-                                      Icons.receipt_long,
+                                      TossIcons.receipt,
                                       color: TossColors.gray400,
-                                      size: 64,
+                                      size: UIConstants.iconSizeHuge + 16, // 64px for empty state
                                     ),
                                     const SizedBox(height: TossSpacing.space4),
                                     Text(
@@ -2761,82 +2442,68 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
     
     return Container(
       margin: const EdgeInsets.only(bottom: TossSpacing.space4),
-      padding: const EdgeInsets.all(TossSpacing.space4),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-        border: Border.all(
-          color: TossColors.gray200,
-          width: 1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          // Header row with location and amount
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(TossSpacing.space2),
-                    decoration: BoxDecoration(
-                      color: TossColors.primary.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(TossBorderRadius.sm),
-                    ),
-                    child: Icon(
-                      Icons.account_balance,
-                      size: 16,
-                      color: TossColors.primary,
-                    ),
-                  ),
-                  const SizedBox(width: TossSpacing.space3),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        locationName,
-                        style: TossTextStyles.body.copyWith(
-                          color: TossColors.gray900,
-                          fontWeight: FontWeight.w600,
-                        ),
+      child: TossWhiteCard(
+        padding: const EdgeInsets.all(TossSpacing.space4),
+        child: Column(
+          children: [
+            // Header row with location and amount
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(TossSpacing.space2),
+                      decoration: BoxDecoration(
+                        color: TossColors.primary.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(TossBorderRadius.sm),
                       ),
+                      child: Icon(
+                        TossIcons.bank,
+                        size: UIConstants.iconSizeXS,
+                        color: TossColors.primary,
+                      ),
+                    ),
+                    const SizedBox(width: TossSpacing.space3),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          locationName,
+                          style: TossTextStyles.body.copyWith(
+                            color: TossColors.gray900,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        Text(
+                          '$dateStr $timeStr',
+                          style: TossTextStyles.caption.copyWith(
+                            color: TossColors.gray500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      '$currencySymbol${NumberFormat('#,###').format(amount)}',
+                      style: TossTextStyles.bodyLarge.copyWith(
+                        color: TossColors.gray900,
+                        fontWeight: FontWeight.w700,
+                        fontFamily: 'JetBrains Mono',
+                      ),
+                    ),
+                    if (currencyCode.isNotEmpty)
                       Text(
-                        '$dateStr $timeStr',
+                        currencyCode,
                         style: TossTextStyles.caption.copyWith(
                           color: TossColors.gray500,
                         ),
                       ),
-                    ],
-                  ),
-                ],
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text(
-                    '$currencySymbol${NumberFormat('#,###').format(amount)}',
-                    style: TossTextStyles.bodyLarge.copyWith(
-                      color: TossColors.gray900,
-                      fontWeight: FontWeight.w700,
-                      fontFamily: 'JetBrains Mono',
-                    ),
-                  ),
-                  if (currencyCode.isNotEmpty)
-                    Text(
-                      currencyCode,
-                      style: TossTextStyles.caption.copyWith(
-                        color: TossColors.gray500,
-                      ),
-                    ),
-                ],
+                  ],
               ),
             ],
           ),
@@ -2854,8 +2521,8 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
               Row(
                 children: [
                   Icon(
-                    Icons.person_outline,
-                    size: 14,
+                    TossIcons.person,
+                    size: UIConstants.textSizeRegular,
                     color: TossColors.gray400,
                   ),
                   const SizedBox(width: TossSpacing.space1),
@@ -2870,8 +2537,8 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
               Row(
                 children: [
                   Icon(
-                    Icons.calendar_today,
-                    size: 14,
+                    TossIcons.calendar,
+                    size: UIConstants.textSizeRegular,
                     color: TossColors.gray400,
                   ),
                   const SizedBox(width: TossSpacing.space1),
@@ -2887,7 +2554,8 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
           ),
         ],
       ),
-    );
+    ),
+  );
   }
   
   // Show result dialog for bank balance save
@@ -2915,7 +2583,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
               children: [
                 // Icon
                 Container(
-                  width: 72,
+                  width: 72, // Custom size for transaction result
                   height: 72,
                   decoration: BoxDecoration(
                     color: isSuccess 
@@ -2924,9 +2592,9 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
-                    isSuccess ? Icons.check_circle : Icons.error,
+                    isSuccess ? TossIcons.checkCircle : TossIcons.error,
                     color: isSuccess ? TossColors.success : TossColors.error,
-                    size: 40,
+                    size: UIConstants.avatarSizeSmall,
                   ),
                 ),
                 const SizedBox(height: TossSpacing.space5),
@@ -3098,9 +2766,9 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
           child: Column(
             children: [
               Icon(
-                Icons.receipt_long,
+                TossIcons.receipt,
                 color: TossColors.gray400,
-                size: 48,
+                size: UIConstants.iconSizeHuge,
               ),
               const SizedBox(height: TossSpacing.space3),
               Text(
@@ -3145,24 +2813,10 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
         
         return Container(
           margin: const EdgeInsets.only(bottom: TossSpacing.space4),
-          padding: const EdgeInsets.all(TossSpacing.space4),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-            border: Border.all(
-              color: TossColors.gray200,
-              width: 1,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.04),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: Column(
-            children: [
+          child: TossWhiteCard(
+            padding: const EdgeInsets.all(TossSpacing.space4),
+            child: Column(
+              children: [
               // Header row with location and amount
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -3176,8 +2830,8 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
                           borderRadius: BorderRadius.circular(TossBorderRadius.sm),
                         ),
                         child: Icon(
-                          Icons.account_balance,
-                          size: 16,
+                          TossIcons.bank,
+                          size: UIConstants.iconSizeXS,
                           color: TossColors.primary,
                         ),
                       ),
@@ -3227,7 +2881,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
               const SizedBox(height: TossSpacing.space3),
               // Divider
               Container(
-                height: 1,
+                height: UIConstants.borderWidth,
                 color: TossColors.gray100,
               ),
               const SizedBox(height: TossSpacing.space3),
@@ -3238,8 +2892,8 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
                   Row(
                     children: [
                       Icon(
-                        Icons.person_outline,
-                        size: 14,
+                        TossIcons.person,
+                        size: UIConstants.textSizeRegular,
                         color: TossColors.gray400,
                       ),
                       const SizedBox(width: TossSpacing.space1),
@@ -3254,8 +2908,8 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
                   Row(
                     children: [
                       Icon(
-                        Icons.calendar_today,
-                        size: 14,
+                        TossIcons.calendar,
+                        size: UIConstants.textSizeRegular,
                         color: TossColors.gray400,
                       ),
                       const SizedBox(width: TossSpacing.space1),
@@ -3271,18 +2925,20 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
               ),
             ],
           ),
-        );
+        ),
+      );
       }).toList(),
     );
   }
   
   Widget _buildVaultTab() {
     return SingleChildScrollView(
+      padding: const EdgeInsets.all(TossSpacing.paddingMD),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Input Section
-          Padding(
+          // Input Section - wrapped in white card
+          TossCard(
             padding: const EdgeInsets.all(TossSpacing.space5),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -3307,22 +2963,14 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
           ),
           // Vault Balance Section
           if (selectedVaultLocationId != null) ...[
-            const Divider(
-              color: TossColors.gray100,
-              thickness: 8,
-              height: 32,
-            ),
-            Padding(
+            const SizedBox(height: TossSpacing.space5),
+            TossCard(
               padding: const EdgeInsets.all(TossSpacing.space5),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'Vault Balance',
-                    style: TossTextStyles.h3.copyWith(
-                      color: TossColors.gray900,
-                      fontWeight: FontWeight.w700,
-                    ),
+                  TossSectionHeader(
+                    title: 'Vault Balance',
                   ),
                   const SizedBox(height: TossSpacing.space4),
                   _buildVaultBalance(),
@@ -3371,7 +3019,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
       final denomValue = denom['value'].toString();
       final controller = controllers[denomValue];
       if (controller != null) {
-        final value = (denom['value'] ?? 0) as int;
+        final value = ((denom['value'] ?? 0) as num).toInt();
         final qty = int.tryParse(controller.text) ?? 0;
         total += value * qty;
       }
@@ -3404,7 +3052,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
       final denomValue = denom['value'].toString();
       final controller = controllers[denomValue];
       if (controller != null) {
-        final value = (denom['value'] ?? 0) as int;
+        final value = ((denom['value'] ?? 0) as num).toInt();
         final qty = int.tryParse(controller.text) ?? 0;
         total += value * qty;
       }
@@ -3693,16 +3341,16 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              width: 64,
-              height: 64,
+              width: UIConstants.iconSizeHuge + 16, // 64px for success state
+              height: UIConstants.iconSizeHuge + 16,
               decoration: BoxDecoration(
                 color: TossColors.success.withOpacity(0.1),
                 shape: BoxShape.circle,
               ),
               child: const Icon(
-                Icons.check,
+                TossIcons.check,
                 color: TossColors.success,
-                size: 32,
+                size: UIConstants.iconSizeXL,
               ),
             ),
             const SizedBox(height: TossSpacing.space4),
@@ -3763,8 +3411,8 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
             // Handle bar
             Container(
               margin: const EdgeInsets.only(top: TossSpacing.space3),
-              width: 40,
-              height: 4,
+              width: UIConstants.modalDragHandleWidth,
+              height: UIConstants.modalDragHandleHeight,
               decoration: BoxDecoration(
                 color: TossColors.gray600,
                 borderRadius: BorderRadius.circular(100),
@@ -3840,7 +3488,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
                                 borderRadius: BorderRadius.circular(10),
                               ),
                               child: Icon(
-                                Icons.business,
+                                TossIcons.business,
                                 size: 20,
                                 color: isSelected ? TossColors.primary : TossColors.gray500,
                               ),
@@ -3874,7 +3522,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
                                   shape: BoxShape.circle,
                                 ),
                                 child: const Icon(
-                                  Icons.check,
+                                  TossIcons.check,
                                   size: 16,
                                   color: Colors.white,
                                 ),
@@ -3934,7 +3582,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
                               borderRadius: BorderRadius.circular(10),
                             ),
                             child: Icon(
-                              Icons.store_outlined,
+                              TossIcons.store,
                               size: 20,
                               color: isSelected ? TossColors.primary : TossColors.gray500,
                             ),
@@ -3969,9 +3617,9 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
                                 color: TossColors.primary,
                                 shape: BoxShape.circle,
                               ),
-                              child: const Icon(
-                                Icons.check,
-                                size: 16,
+                              child: Icon(
+                                TossIcons.check,
+                                size: UIConstants.iconSizeXS,
                                 color: Colors.white,
                               ),
                             ),

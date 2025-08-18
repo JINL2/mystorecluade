@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../helpers/navigation_helper.dart';
 import 'package:intl/intl.dart';
 import 'models/journal_entry_model.dart';
 import 'providers/journal_input_providers.dart';
@@ -260,7 +261,7 @@ class _JournalInputPageState extends ConsumerState<JournalInputPage>
         ),
         leading: IconButton(
           icon: Icon(Icons.arrow_back_ios, color: TossColors.gray700, size: 20),
-          onPressed: () => context.pop(),
+          onPressed: () => NavigationHelper.safeGoBack(context),
         ),
         actions: [
           Padding(
