@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../helpers/navigation_helper.dart';
 import 'providers/add_fix_asset_providers.dart';
 import '../../providers/app_state_provider.dart';
 import '../../../core/themes/toss_colors.dart';
@@ -83,7 +84,7 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
             size: 20,
             color: TossColors.gray900,
           ),
-          onPressed: () => context.pop(),
+          onPressed: () => NavigationHelper.safeGoBack(context),
         ),
         title: const Text(
           'Fixed Assets',

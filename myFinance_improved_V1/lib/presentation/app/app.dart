@@ -16,6 +16,7 @@ class MyFinanceApp extends ConsumerWidget {
       darkTheme: AppTheme.darkTheme,
       routerConfig: router,
       debugShowCheckedModeBanner: false,
+      restorationScopeId: 'myfinance_app',
     );
   }
 }

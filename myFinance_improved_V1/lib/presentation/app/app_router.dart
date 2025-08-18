@@ -44,13 +44,15 @@ class RouterNotifier extends ChangeNotifier {
 
 final appRouterProvider = Provider<GoRouter>((ref) {
   // Create router with refresh listenable
+  final routerNotifier = RouterNotifier(ref);
+  
   final router = GoRouter(
     initialLocation: '/auth/login',
-    refreshListenable: RouterNotifier(ref),
+    refreshListenable: routerNotifier,
+    restorationScopeId: 'app_router',
     redirect: (context, state) {
       final isAuth = ref.read(isAuthenticatedProvider);
       final isAuthRoute = state.matchedLocation.startsWith('/auth');
-      
       
       // If not authenticated and not on auth route, go to login
       if (!isAuth && !isAuthRoute) {
@@ -63,6 +65,43 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       }
       
       return null;
+    },
+    errorBuilder: (context, state) {
+      return Scaffold(
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(
+                Icons.error_outline,
+                size: 64,
+                color: Colors.red,
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Page Not Found',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'The page you are looking for does not exist.',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.grey[600],
+                ),
+              ),
+              const SizedBox(height: 24),
+              ElevatedButton(
+                onPressed: () => context.go('/'),
+                child: const Text('Go to Home'),
+              ),
+            ],
+          ),
+        ),
+      );
     },
     routes: [
       // Auth Routes
