@@ -1,167 +1,347 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:go_router/go_router.dart';
 import 'package:myfinance_improved/core/themes/toss_colors.dart';
 import 'package:myfinance_improved/core/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/core/themes/toss_spacing.dart';
-import 'package:myfinance_improved/core/themes/toss_shadows.dart';
 import 'package:myfinance_improved/core/themes/toss_border_radius.dart';
-import '../../providers/app_state_provider.dart';
+import 'package:myfinance_improved/presentation/widgets/common/toss_app_bar.dart';
+import 'package:myfinance_improved/presentation/widgets/common/toss_scaffold.dart';
+import 'package:myfinance_improved/presentation/widgets/common/toss_loading_view.dart';
+import 'package:myfinance_improved/presentation/widgets/common/toss_error_view.dart';
+import 'package:myfinance_improved/presentation/widgets/common/toss_empty_view.dart';
+import 'package:myfinance_improved/presentation/widgets/toss/toss_list_tile.dart';
+import 'package:myfinance_improved/presentation/widgets/toss/toss_refresh_indicator.dart';
+import 'package:myfinance_improved/data/services/supabase_service.dart';
 import 'providers/transaction_template_providers.dart';
-import 'models/transaction_template_model.dart';
-import 'transaction_template_page_step_based.dart';
-import 'template_usage_bottom_sheet.dart';
+import 'widgets/add_template_bottom_sheet.dart';
+import 'widgets/template_usage_bottom_sheet.dart';
 
-class TransactionTemplatePage extends ConsumerStatefulWidget {
+class TransactionTemplatePage extends ConsumerWidget {
   const TransactionTemplatePage({super.key});
 
   @override
-  ConsumerState<TransactionTemplatePage> createState() => _TransactionTemplatePageState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Watch the templates provider
+    final templatesAsync = ref.watch(transactionTemplatesProvider);
+    final companyChoosen = ref.watch(templateCompanyChoosenProvider);
+    final storeChoosen = ref.watch(templateStoreChoosenProvider);
 
-class _TransactionTemplatePageState extends ConsumerState<TransactionTemplatePage> {
-  final TextEditingController _searchController = TextEditingController();
-  bool _isSearching = false;
+    return TossScaffold(
+      backgroundColor: TossColors.gray100,
+      appBar: TossAppBar(
+        title: 'Transaction Templates',
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back_ios, color: TossColors.textPrimary),
+          onPressed: () => context.pop(),
+        ),
+      ),
+      body: Stack(
+        children: [
+          templatesAsync.when(
+        data: (templates) {
+          if (companyChoosen.isEmpty || storeChoosen.isEmpty) {
+            return Center(
+              child: Container(
+                padding: EdgeInsets.all(TossSpacing.space6),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.business_outlined,
+                      size: 64,
+                      color: TossColors.gray400,
+                    ),
+                    SizedBox(height: TossSpacing.space4),
+                    Text(
+                      'No Company or Store Selected',
+                      style: TossTextStyles.h3.copyWith(
+                        color: TossColors.textPrimary,
+                      ),
+                    ),
+                    SizedBox(height: TossSpacing.space2),
+                    Text(
+                      'Please select a company and store from the menu',
+                      style: TossTextStyles.body.copyWith(
+                        color: TossColors.textSecondary,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }
 
-  @override
-  void initState() {
-    super.initState();
-    // Initialize data loading
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _initializeData();
-    });
-  }
+          if (templates.isEmpty) {
+            return TossEmptyView(
+              icon: Icon(
+                Icons.receipt_long_outlined,
+                size: 64,
+                color: TossColors.gray400,
+              ),
+              title: 'No Templates Found',
+              description: 'Create your first transaction template to get started',
+            );
+          }
 
-  @override
-  void dispose() {
-    _searchController.dispose();
-    super.dispose();
-  }
-
-  Future<void> _initializeData() async {
-    // Load user companies and categories if not already loaded
-    final appState = ref.read(appStateProvider);
-    
-    // Check if we need to load user data
-    if (appState.user.isEmpty) {
-      await ref.read(userCompaniesProvider.future);
-    }
-    
-    // Check if we need to load categories
-    if (appState.categoryFeatures.isEmpty) {
-      await ref.read(categoriesWithFeaturesProvider.future);
-    }
-  }
-
-  Future<void> _deleteTemplate(String templateId) async {
-    try {
-      final supabase = Supabase.instance.client;
-      
-      // Soft delete by setting is_active to false
-      await supabase
-          .from('transaction_templates')
-          .update({'is_active': false})
-          .eq('template_id', templateId);
-      
-      // Refresh the templates list
-      ref.invalidate(transactionTemplatesProvider);
-      
-      // Show success message
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Template deleted successfully'),
-            backgroundColor: TossColors.success,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          return TossRefreshIndicator(
+            onRefresh: () async {
+              // Refresh the provider
+              ref.invalidate(transactionTemplatesProvider);
+            },
+            child: ListView.builder(
+              padding: EdgeInsets.all(TossSpacing.space4),
+              itemCount: templates.length,
+              itemBuilder: (context, index) {
+                final template = templates[index];
+                return _buildTemplateCard(context, template);
+              },
+            ),
+          );
+        },
+        loading: () => const TossLoadingView(
+          message: 'Loading templates...',
+        ),
+        error: (error, stack) => TossErrorView(
+          title: 'Failed to load templates',
+          error: error,
+          onRetry: () {
+            ref.invalidate(transactionTemplatesProvider);
+          },
+        ),
           ),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to delete template: $e'),
-            backgroundColor: TossColors.error,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-          ),
-        );
-      }
-    }
+          // Floating Action Button
+          if (companyChoosen.isNotEmpty && storeChoosen.isNotEmpty)
+            Positioned(
+              bottom: TossSpacing.space6,
+              right: TossSpacing.space6,
+              child: _buildFloatingActionButton(context),
+            ),
+        ],
+      ),
+    );
   }
 
-  void _showDeleteConfirmation(BuildContext context, String templateId, String templateName) {
+  Widget _buildFloatingActionButton(BuildContext context) {
+    return Container(
+      width: 56,
+      height: 56,
+      decoration: BoxDecoration(
+        color: TossColors.primary,
+        borderRadius: BorderRadius.circular(28),
+        boxShadow: [
+          BoxShadow(
+            color: TossColors.shadow,
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Material(
+        color: TossColors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(28),
+          onTap: () {
+            AddTemplateBottomSheet.show(context);
+          },
+          child: Icon(
+            Icons.add,
+            color: TossColors.white,
+            size: 28,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTemplateCard(BuildContext context, Map<String, dynamic> template) {
+    return Container(
+      margin: EdgeInsets.only(bottom: TossSpacing.space3),
+      decoration: BoxDecoration(
+        color: TossColors.surface,
+        borderRadius: BorderRadius.circular(TossBorderRadius.card),
+        boxShadow: [
+          BoxShadow(
+            color: TossColors.shadow,
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Consumer(
+        builder: (context, ref, child) {
+          return TossListTile(
+            title: template['name'] ?? 'Unnamed Template',
+            subtitle: _buildSubtitle(template),
+            leading: Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: TossColors.primarySurface,
+                borderRadius: BorderRadius.circular(TossBorderRadius.md),
+              ),
+              child: Icon(
+                Icons.receipt,
+                color: TossColors.primary,
+                size: 24,
+              ),
+            ),
+            trailing: IconButton(
+              icon: Icon(
+                Icons.delete_outline,
+                color: TossColors.error,
+                size: 22,
+              ),
+              onPressed: () {
+                _showDeleteConfirmationDialog(context, ref, template);
+              },
+            ),
+            onTap: () {
+              // Show template usage bottom sheet
+              TemplateUsageBottomSheet.show(context, template);
+            },
+            showDivider: false,
+          );
+        },
+      ),
+    );
+  }
+
+  String _buildSubtitle(Map<String, dynamic> template) {
+    final parts = <String>[];
+    
+    // Add template description if exists
+    final description = template['template_description'];
+    if (description != null && description.toString().isNotEmpty) {
+      parts.add(description.toString());
+    }
+    
+    // Add categories from tags
+    final tags = template['tags'];
+    if (tags is Map) {
+      final categories = tags['categories'];
+      if (categories is List && categories.isNotEmpty) {
+        // Join categories with slash for display
+        final categoryDisplay = categories.join(' / ');
+        parts.add('Category: $categoryDisplay');
+      }
+    }
+    
+    // Add account count from data
+    final data = template['data'];
+    if (data is List) {
+      parts.add('${data.length} entries');
+    }
+    
+    return parts.isEmpty ? 'No description' : parts.join(' • ');
+  }
+
+  void _showDeleteConfirmationDialog(BuildContext context, WidgetRef ref, Map<String, dynamic> template) {
     showDialog(
       context: context,
-      builder: (BuildContext context) {
+      builder: (BuildContext dialogContext) {
         return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+          ),
           title: Row(
             children: [
               Container(
-                padding: EdgeInsets.all(8),
+                width: 40,
+                height: 40,
                 decoration: BoxDecoration(
-                  color: TossColors.error.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8),
+                  color: TossColors.errorLight,
+                  shape: BoxShape.circle,
                 ),
                 child: Icon(
-                  Icons.delete_outline,
+                  Icons.warning_amber_rounded,
                   color: TossColors.error,
                   size: 24,
                 ),
               ),
-              SizedBox(width: 12),
+              SizedBox(width: TossSpacing.space3),
               Expanded(
                 child: Text(
                   'Delete Template',
                   style: TossTextStyles.h3.copyWith(
-                    color: TossColors.gray900,
-                    fontWeight: FontWeight.w700,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ),
             ],
           ),
-          content: Text(
-            'Are you sure you want to delete "$templateName"?\n\nThis action cannot be undone.',
-            style: TossTextStyles.body.copyWith(
-              color: TossColors.gray700,
-              height: 1.5,
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              style: TextButton.styleFrom(
-                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              ),
-              child: Text(
-                'Cancel',
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Are you sure you want to delete this template?',
                 style: TossTextStyles.body.copyWith(
-                  color: TossColors.gray600,
+                  color: TossColors.textPrimary,
+                ),
+              ),
+              SizedBox(height: TossSpacing.space3),
+              Container(
+                padding: EdgeInsets.all(TossSpacing.space3),
+                decoration: BoxDecoration(
+                  color: TossColors.gray50,
+                  borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      template['name'] ?? 'Unnamed Template',
+                      style: TossTextStyles.bodyLarge.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: TossColors.textPrimary,
+                      ),
+                    ),
+                    if (template['template_description'] != null && 
+                        template['template_description'].toString().isNotEmpty) ...[
+                      SizedBox(height: TossSpacing.space1),
+                      Text(
+                        template['template_description'].toString(),
+                        style: TossTextStyles.caption.copyWith(
+                          color: TossColors.textSecondary,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              SizedBox(height: TossSpacing.space3),
+              Text(
+                'This action cannot be undone.',
+                style: TossTextStyles.caption.copyWith(
+                  color: TossColors.error,
                   fontWeight: FontWeight.w500,
                 ),
               ),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                _deleteTemplate(templateId);
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: TossColors.error,
-                foregroundColor: Colors.white,
-                padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: Text(
+                'Cancel',
+                style: TossTextStyles.button.copyWith(
+                  color: TossColors.gray600,
                 ),
-                elevation: 0,
               ),
+            ),
+            TextButton(
+              onPressed: () async {
+                Navigator.of(dialogContext).pop();
+                await _deleteTemplate(context, ref, template);
+              },
               child: Text(
                 'Delete',
-                style: TossTextStyles.body.copyWith(
-                  color: Colors.white,
+                style: TossTextStyles.button.copyWith(
+                  color: TossColors.error,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -172,409 +352,101 @@ class _TransactionTemplatePageState extends ConsumerState<TransactionTemplatePag
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final templatesAsync = ref.watch(transactionTemplatesProvider);
+  Future<void> _deleteTemplate(BuildContext context, WidgetRef ref, Map<String, dynamic> template) async {
+    final supabaseService = ref.read(supabaseServiceProvider);
+    final templateId = template['template_id'];
     
-    return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.surface,
-      body: SafeArea(
-        child: Column(
+    if (templateId == null) {
+      // Show error if template_id is missing
+      _showErrorSnackBar(context, 'Unable to delete template: Invalid template ID');
+      return;
+    }
+    
+    try {
+      // Update the template to set is_active to false
+      await supabaseService.client
+          .from('transaction_templates')
+          .update({
+            'is_active': false,
+            'updated_at': DateTime.now().toIso8601String(),
+          })
+          .eq('template_id', templateId);
+      
+      // Refresh the template list
+      ref.invalidate(transactionTemplatesProvider);
+      
+      // Show success message
+      if (context.mounted) {
+        _showSuccessSnackBar(context, 'Template deleted successfully');
+      }
+    } catch (e) {
+      // Show error message
+      if (context.mounted) {
+        _showErrorSnackBar(context, 'Failed to delete template: ${e.toString()}');
+      }
+    }
+  }
+
+  void _showSuccessSnackBar(BuildContext context, String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
           children: [
-            // Header with Search
-            Container(
-              padding: EdgeInsets.all(TossSpacing.space4),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surface,
-                border: Border(
-                  bottom: BorderSide(
-                    color: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.1),
-                    width: 0.5,
-                  ),
-                ),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Title Row
-                  Row(
-                    children: [
-                      IconButton(
-                        icon: Icon(Icons.arrow_back),
-                        onPressed: () => Navigator.pop(context),
-                      ),
-                      Text(
-                        'Transaction Templates',
-                        style: TossTextStyles.h2.copyWith(
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      Spacer(),
-                      IconButton(
-                        icon: Icon(_isSearching ? Icons.close : Icons.search),
-                        onPressed: () {
-                          setState(() {
-                            _isSearching = !_isSearching;
-                            if (!_isSearching) {
-                              _searchController.clear();
-                            }
-                          });
-                        },
-                      ),
-                    ],
-                  ),
-                  
-                  // Search Bar (shown when searching)
-                  if (_isSearching) ...[
-                    SizedBox(height: TossSpacing.space3),
-                    Container(
-                      height: 44,
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.3),
-                        borderRadius: BorderRadius.circular(TossBorderRadius.full),
-                      ),
-                      child: TextField(
-                        controller: _searchController,
-                        autofocus: true,
-                        style: TossTextStyles.body,
-                        decoration: InputDecoration(
-                          hintText: 'Search templates...',
-                          hintStyle: TossTextStyles.body.copyWith(
-                            color: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.5),
-                          ),
-                          prefixIcon: Icon(
-                            Icons.search,
-                            color: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.5),
-                            size: 20,
-                          ),
-                          border: InputBorder.none,
-                          contentPadding: EdgeInsets.symmetric(
-                            horizontal: TossSpacing.space4,
-                            vertical: TossSpacing.space2,
-                          ),
-                        ),
-                        onChanged: (value) {
-                          setState(() {
-                            // Trigger rebuild for filtering
-                          });
-                        },
-                      ),
-                    ),
-                  ],
-                ],
-              ),
+            Icon(
+              Icons.check_circle,
+              color: TossColors.white,
+              size: 20,
             ),
-            
-            // Templates List
+            SizedBox(width: TossSpacing.space2),
             Expanded(
-              child: Stack(
-                children: [
-                  templatesAsync.when(
-                    data: (templates) {
-                      // Filter templates based on search
-                      final filteredTemplates = templates.where((template) {
-                        if (_searchController.text.isEmpty) return true;
-                        return template.name.toLowerCase().contains(_searchController.text.toLowerCase());
-                      }).toList();
-                      
-                      if (filteredTemplates.isEmpty) {
-                        return _buildEmptyState(context);
-                      }
-                      
-                      return ListView.separated(
-                        padding: EdgeInsets.only(
-                          top: TossSpacing.space3,
-                          left: TossSpacing.space4,
-                          right: TossSpacing.space4,
-                          bottom: TossSpacing.space20, // Extra space for FAB
-                        ),
-                        itemCount: filteredTemplates.length,
-                        separatorBuilder: (context, index) => SizedBox(height: TossSpacing.space3),
-                        itemBuilder: (context, index) {
-                          final template = filteredTemplates[index];
-                          return _buildTemplateCard(context, template);
-                        },
-                      );
-                    },
-                    loading: () => Center(
-                      child: CircularProgressIndicator(
-                        color: Theme.of(context).colorScheme.primary,
-                      ),
-                    ),
-                    error: (error, stack) => _buildErrorState(context, error),
-                  ),
-                  // FAB is now outside the when() so it's always visible
-                  _buildFloatingActionButton(context),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // Template Card Widget
-  Widget _buildTemplateCard(BuildContext context, TransactionTemplate template) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-        border: Border.all(
-          color: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.2),
-          width: 1,
-        ),
-        boxShadow: TossShadows.card,
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-          onTap: () {
-            // Show template usage bottom sheet
-            _showTemplateUsageBottomSheet(context, template);
-          },
-          child: Padding(
-            padding: EdgeInsets.all(TossSpacing.space4),
-            child: Row(
-              children: [
-                // Icon based on transaction type
-                Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    color: template.transactionType == 'income'
-                        ? Colors.green.withOpacity(0.1)
-                        : template.transactionType == 'expense'
-                        ? Colors.red.withOpacity(0.1)
-                        : Colors.blue.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(TossBorderRadius.full),
-                  ),
-                  child: Icon(
-                    template.transactionType == 'income'
-                        ? Icons.arrow_downward
-                        : template.transactionType == 'expense'
-                        ? Icons.arrow_upward
-                        : Icons.swap_horiz,
-                    color: template.transactionType == 'income'
-                        ? Colors.green
-                        : template.transactionType == 'expense'
-                        ? Colors.red
-                        : Colors.blue,
-                    size: 24,
-                  ),
-                ),
-                SizedBox(width: TossSpacing.space3),
-                
-                // Template Details
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        template.name,
-                        style: TossTextStyles.body.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      SizedBox(height: TossSpacing.space1),
-                      Text(
-                        template.description,
-                        style: TossTextStyles.bodySmall.copyWith(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ),
-                ),
-                
-                // Delete button
-                IconButton(
-                  icon: Icon(
-                    Icons.delete_outline,
-                    color: TossColors.gray600,
-                    size: 20,
-                  ),
-                  onPressed: () {
-                    _showDeleteConfirmation(context, template.templateId, template.name);
-                  },
-                  padding: EdgeInsets.zero,
-                  constraints: BoxConstraints(minWidth: 40, minHeight: 40),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  // Empty State Widget
-  Widget _buildEmptyState(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: EdgeInsets.all(TossSpacing.space8),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              width: 100,
-              height: 100,
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                Icons.receipt_long_outlined,
-                size: 56,
-                color: Theme.of(context).colorScheme.primary.withOpacity(0.5),
-              ),
-            ),
-            SizedBox(height: TossSpacing.space6),
-            Text(
-              'No Templates Yet',
-              style: TossTextStyles.h3.copyWith(
-                color: Theme.of(context).colorScheme.onSurface,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            SizedBox(height: TossSpacing.space2),
-            Text(
-              'Create your first template to\nspeed up transaction entry',
-              style: TossTextStyles.body.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            SizedBox(height: TossSpacing.space8),
-            ElevatedButton.icon(
-              onPressed: () {
-                _showCreateTemplateBottomSheet(context);
-              },
-              icon: Icon(Icons.add),
-              label: Text('Create Template'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Theme.of(context).colorScheme.primary,
-                foregroundColor: Theme.of(context).colorScheme.onPrimary,
-                padding: EdgeInsets.symmetric(
-                  horizontal: TossSpacing.space6,
-                  vertical: TossSpacing.space3,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(TossBorderRadius.full),
+              child: Text(
+                message,
+                style: TossTextStyles.body.copyWith(
+                  color: TossColors.white,
                 ),
               ),
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  // Floating Action Button
-  Widget _buildFloatingActionButton(BuildContext context) {
-    return Positioned(
-      bottom: TossSpacing.space8, // Increased from space4 to space8 (32px)
-      right: TossSpacing.space4,
-      child: FloatingActionButton.extended(
-        onPressed: () {
-          // Show create template bottom sheet
-          _showCreateTemplateBottomSheet(context);
-        },
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        foregroundColor: Theme.of(context).colorScheme.onPrimary,
-        elevation: 4,
-        icon: Icon(Icons.add),
-        label: Text(
-          'Add Transaction',
-          style: TossTextStyles.body.copyWith(
-            fontWeight: FontWeight.w600,
-            color: Theme.of(context).colorScheme.onPrimary,
-          ),
-        ),
+        backgroundColor: TossColors.success,
+        behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(TossBorderRadius.full),
+          borderRadius: BorderRadius.circular(TossBorderRadius.md),
         ),
+        margin: EdgeInsets.all(TossSpacing.space4),
+        duration: const Duration(seconds: 3),
       ),
     );
   }
 
-  // Create Template Bottom Sheet
-  void _showCreateTemplateBottomSheet(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      useSafeArea: true,
-      builder: (context) {
-        return Padding(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom,
-          ),
-          child: CreateTemplateContent(),
-        );
-      },
-    );
-  }
-  
-  // Template Usage Bottom Sheet
-  void _showTemplateUsageBottomSheet(BuildContext context, TransactionTemplate template) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      useSafeArea: true,
-      builder: (context) {
-        return Padding(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom,
-          ),
-          child: TemplateUsageBottomSheet(template: template),
-        );
-      },
-    );
-  }
-  
-  // Error State method
-  Widget _buildErrorState(BuildContext context, dynamic error) {
-    return Center(
-      child: Padding(
-        padding: EdgeInsets.all(TossSpacing.space8),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+  void _showErrorSnackBar(BuildContext context, String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
           children: [
-            Container(
-              width: 80,
-              height: 80,
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.error.withOpacity(0.1),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                Icons.error_outline,
-                size: 40,
-                color: Theme.of(context).colorScheme.error,
-              ),
+            Icon(
+              Icons.error_outline,
+              color: TossColors.white,
+              size: 20,
             ),
-            SizedBox(height: TossSpacing.space4),
-            Text(
-              'Something went wrong',
-              style: TossTextStyles.h3.copyWith(
-                fontWeight: FontWeight.w600,
+            SizedBox(width: TossSpacing.space2),
+            Expanded(
+              child: Text(
+                message,
+                style: TossTextStyles.body.copyWith(
+                  color: TossColors.white,
+                ),
               ),
-            ),
-            SizedBox(height: TossSpacing.space2),
-            Text(
-              error.toString(),
-              style: TossTextStyles.body.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-              textAlign: TextAlign.center,
             ),
           ],
         ),
+        backgroundColor: TossColors.error,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(TossBorderRadius.md),
+        ),
+        margin: EdgeInsets.all(TossSpacing.space4),
+        duration: const Duration(seconds: 4),
       ),
     );
   }

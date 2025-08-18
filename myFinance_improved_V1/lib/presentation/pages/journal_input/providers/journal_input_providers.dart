@@ -21,11 +21,8 @@ final journalAccountsProvider = FutureProvider<List<Map<String, dynamic>>>((ref)
         .select('account_id, account_name, category_tag')
         .order('account_name');
     
-    print('Journal Accounts: Fetched ${response.length} accounts');
-    
     return List<Map<String, dynamic>>.from(response);
   } catch (e) {
-    print('Journal Accounts: Error fetching accounts: $e');
     throw Exception('Failed to fetch accounts: $e');
   }
 });
@@ -39,7 +36,6 @@ final journalCashLocationsProvider = FutureProvider<List<Map<String, dynamic>>>(
     final storeId = appState.storeChoosen;
     
     if (companyId.isEmpty) {
-      print('Journal CashLocations: No company selected, returning empty list');
       return [];
     }
     
@@ -58,11 +54,8 @@ final journalCashLocationsProvider = FutureProvider<List<Map<String, dynamic>>>(
     
     final response = await query.order('location_name');
     
-    print('Journal CashLocations: Fetched ${response.length} cash locations');
-    
     return List<Map<String, dynamic>>.from(response);
   } catch (e) {
-    print('Journal CashLocations: Error fetching cash locations: $e');
     throw Exception('Failed to fetch cash locations: $e');
   }
 });
@@ -75,7 +68,6 @@ final journalCounterpartiesProvider = FutureProvider<List<Map<String, dynamic>>>
     final companyId = appState.companyChoosen;
     
     if (companyId.isEmpty) {
-      print('Journal Counterparties: No company selected, returning empty list');
       return [];
     }
     
@@ -86,23 +78,8 @@ final journalCounterpartiesProvider = FutureProvider<List<Map<String, dynamic>>>
         .eq('company_id', companyId)
         .order('name');
     
-    print('Journal Counterparties: Fetched ${response.length} counterparties');
-    
-    // Debug: Print first few counterparties to see data structure
-    if (response.isNotEmpty) {
-      print('Sample counterparty data:');
-      for (var i = 0; i < (response.length > 3 ? 3 : response.length); i++) {
-        final cp = response[i];
-        print('  Counterparty ${i + 1}:');
-        print('    name: ${cp['name']}');
-        print('    is_internal: ${cp['is_internal']} (type: ${cp['is_internal'].runtimeType})');
-        print('    linked_company_id: ${cp['linked_company_id']} (type: ${cp['linked_company_id']?.runtimeType})');
-      }
-    }
-    
     return List<Map<String, dynamic>>.from(response);
   } catch (e) {
-    print('Journal Counterparties: Error fetching counterparties: $e');
     throw Exception('Failed to fetch counterparties: $e');
   }
 });
@@ -115,7 +92,6 @@ final journalFilteredCounterpartiesProvider = FutureProvider.family<List<Map<Str
     final companyId = appState.companyChoosen;
     
     if (companyId.isEmpty) {
-      print('Journal Filtered Counterparties: No company selected, returning empty list');
       return [];
     }
     
@@ -123,11 +99,8 @@ final journalFilteredCounterpartiesProvider = FutureProvider.family<List<Map<Str
     if (accountCategoryTag == null || 
         (accountCategoryTag.toLowerCase() != 'payable' && 
          accountCategoryTag.toLowerCase() != 'receivable')) {
-      print('Journal Filtered Counterparties: Not payable/receivable, returning all counterparties');
       return ref.watch(journalCounterpartiesProvider).value ?? [];
     }
-    
-    print('Journal Filtered Counterparties: Filtering for payable/receivable account');
     
     // Step 1: Get mapped counterparty IDs from account_mappings
     final mappingsResponse = await supabase
@@ -138,8 +111,6 @@ final journalFilteredCounterpartiesProvider = FutureProvider.family<List<Map<Str
     final mappedCounterpartyIds = List<String>.from(
       mappingsResponse.map((row) => row['counterparty_id'] as String)
     );
-    
-    print('Journal Filtered Counterparties: Found ${mappedCounterpartyIds.length} mapped counterparties');
     
     // Step 2: Get all counterparties for the company
     final allCounterparties = await supabase
@@ -175,23 +146,8 @@ final journalFilteredCounterpartiesProvider = FutureProvider.family<List<Map<Str
       }
     }).toList();
     
-    print('Journal Filtered Counterparties: Returning ${filteredCounterparties.length} filtered counterparties');
-    print('  - External counterparties: ${filteredCounterparties.where((c) {
-      final isInternal = c['is_internal'];
-      if (isInternal is bool) return !isInternal;
-      if (isInternal is String) return isInternal.toLowerCase() != 'true';
-      return isInternal != 1 && isInternal != '1';
-    }).length}');
-    print('  - Mapped internal counterparties: ${filteredCounterparties.where((c) {
-      final isInternal = c['is_internal'];
-      if (isInternal is bool) return isInternal;
-      if (isInternal is String) return isInternal.toLowerCase() == 'true';
-      return isInternal == 1 || isInternal == '1';
-    }).length}');
-    
     return List<Map<String, dynamic>>.from(filteredCounterparties);
   } catch (e) {
-    print('Journal Filtered Counterparties: Error fetching filtered counterparties: $e');
     throw Exception('Failed to fetch filtered counterparties: $e');
   }
 });
@@ -200,7 +156,6 @@ final journalFilteredCounterpartiesProvider = FutureProvider.family<List<Map<Str
 final journalCounterpartyCashLocationsProvider = FutureProvider.family<List<Map<String, dynamic>>, String?>((ref, linkedCompanyId) async {
   try {
     if (linkedCompanyId == null || linkedCompanyId.isEmpty) {
-      print('Journal CounterpartyCashLocations: No linked company ID, returning empty list');
       return [];
     }
     
@@ -214,11 +169,8 @@ final journalCounterpartyCashLocationsProvider = FutureProvider.family<List<Map<
         .eq('company_id', linkedCompanyId)
         .order('location_name');
     
-    print('Journal CounterpartyCashLocations: Fetched ${response.length} cash locations for company: $linkedCompanyId');
-    
     return List<Map<String, dynamic>>.from(response);
   } catch (e) {
-    print('Journal CounterpartyCashLocations: Error fetching cash locations: $e');
     throw Exception('Failed to fetch counterparty cash locations: $e');
   }
 });
@@ -227,7 +179,6 @@ final journalCounterpartyCashLocationsProvider = FutureProvider.family<List<Map<
 final journalCounterpartyStoreCashLocationsProvider = FutureProvider.family<List<Map<String, dynamic>>, String?>((ref, storeId) async {
   try {
     if (storeId == null || storeId.isEmpty) {
-      print('Journal CounterpartyStoreCashLocations: No store ID, returning empty list');
       return [];
     }
     
@@ -240,11 +191,8 @@ final journalCounterpartyStoreCashLocationsProvider = FutureProvider.family<List
         .eq('store_id', storeId)
         .order('location_name');
     
-    print('Journal CounterpartyStoreCashLocations: Fetched ${response.length} cash locations for store: $storeId');
-    
     return List<Map<String, dynamic>>.from(response);
   } catch (e) {
-    print('Journal CounterpartyStoreCashLocations: Error fetching cash locations: $e');
     throw Exception('Failed to fetch counterparty store cash locations: $e');
   }
 });
@@ -253,7 +201,6 @@ final journalCounterpartyStoreCashLocationsProvider = FutureProvider.family<List
 final journalCounterpartyStoresProvider = FutureProvider.family<List<Map<String, dynamic>>, String?>((ref, linkedCompanyId) async {
   try {
     if (linkedCompanyId == null || linkedCompanyId.isEmpty) {
-      print('Journal CounterpartyStores: No linked company ID, returning empty list');
       return [];
     }
     
@@ -266,11 +213,8 @@ final journalCounterpartyStoresProvider = FutureProvider.family<List<Map<String,
         .eq('company_id', linkedCompanyId)
         .order('store_name');
     
-    print('Journal CounterpartyStores: Fetched ${response.length} stores for company: $linkedCompanyId');
-    
     return List<Map<String, dynamic>>.from(response);
   } catch (e) {
-    print('Journal CounterpartyStores: Error fetching stores: $e');
     throw Exception('Failed to fetch counterparty stores: $e');
   }
 });
@@ -300,7 +244,6 @@ final checkAccountMappingProvider = Provider<Future<Map<String, dynamic>?> Funct
       
       return null;
     } catch (e) {
-      print('Error checking account mapping: $e');
       return null;
     }
   };
@@ -331,8 +274,6 @@ final submitJournalEntryProvider = Provider<Future<void> Function(JournalEntryMo
       final currentDeviceTime = DateTime.now();
       final entryDate = DateFormat('yyyy-MM-dd HH:mm:ss.SSS').format(currentDeviceTime);
       
-      print('Journal Entry: Submitting with device time: $entryDate');
-      
       // Prepare journal lines
       final pLines = journalEntry.transactionLines.map((line) => line.toJson()).toList();
       
@@ -350,7 +291,7 @@ final submitJournalEntryProvider = Provider<Future<void> Function(JournalEntryMo
       final storeId = appState.storeChoosen;
       
       // Call the journal RPC with properly formatted parameters
-      final response = await supabase.rpc(
+      await supabase.rpc(
         'insert_journal_with_everything',
         params: {
           'p_base_amount': journalEntry.totalDebits,
@@ -365,14 +306,10 @@ final submitJournalEntryProvider = Provider<Future<void> Function(JournalEntryMo
         },
       );
       
-      print('Journal Entry: Created journal entry successfully');
-      print('RPC Response: $response');
-      
       // Clear the journal entry after successful submission
       journalEntry.clear();
       
     } catch (e) {
-      print('Journal Entry: Error creating journal entry: $e');
       throw Exception('Failed to create journal entry: $e');
     }
   };

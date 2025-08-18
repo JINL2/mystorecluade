@@ -32,7 +32,7 @@ class AppIcons {
   static const IconData summary = FontAwesomeIcons.listCheck;
   static const IconData workspace = FontAwesomeIcons.desktop;
   static const IconData control = FontAwesomeIcons.gamepad;
-  static const IconData panel = FontAwesomeIcons.solar;
+  static const IconData panel = FontAwesomeIcons.tablet;
   static const IconData monitor = FontAwesomeIcons.tv;
 
   // ==================== 2. 매장 & 비즈니스 (20개) ====================
@@ -295,7 +295,7 @@ class AppIcons {
   static const IconData certificate = FontAwesomeIcons.certificate;
   static const IconData stamp = FontAwesomeIcons.stamp;
   static const IconData signature = FontAwesomeIcons.signature;
-  static const IconData userSecret = FontAwesomeIcons.userSecret;
+  static const IconData userSecret2 = FontAwesomeIcons.userSecret;
   static const IconData mask = FontAwesomeIcons.mask;
   static const IconData eyeSlash = FontAwesomeIcons.eyeSlash;
   static const IconData ban = FontAwesomeIcons.ban;
@@ -320,7 +320,7 @@ class AppIcons {
   static const IconData taxi = FontAwesomeIcons.taxi;
   static const IconData helicopter = FontAwesomeIcons.helicopter;
   static const IconData rocket = FontAwesomeIcons.rocket;
-  static const IconData drone = FontAwesomeIcons.drone;
+  static const IconData drone = FontAwesomeIcons.satelliteDish;
 
   // ==================== 13. 액션 & 조작 (30개) ====================
   static const IconData add = FontAwesomeIcons.plus;
