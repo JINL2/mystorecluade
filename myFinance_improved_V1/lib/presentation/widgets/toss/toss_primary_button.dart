@@ -69,7 +69,7 @@ class _TossPrimaryButtonState extends State<TossPrimaryButton>
                   : TossColors.primary,
               foregroundColor: _isDisabled 
                   ? TossColors.gray400 
-                  : Colors.white,
+                  : TossColors.textInverse,
               elevation: 0,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(TossBorderRadius.lg),
@@ -89,7 +89,7 @@ class _TossPrimaryButtonState extends State<TossPrimaryButton>
                       child: CircularProgressIndicator(
                         strokeWidth: 2.5,
                         valueColor: AlwaysStoppedAnimation<Color>(
-                          Colors.white.withValues(alpha: 0.8),
+                          TossColors.textInverse.withValues(alpha: 0.8),
                         ),
                       ),
                     )
@@ -106,7 +106,7 @@ class _TossPrimaryButtonState extends State<TossPrimaryButton>
                             fontWeight: FontWeight.w600,
                             color: _isDisabled 
                                 ? TossColors.gray400 
-                                : Colors.white,
+                                : TossColors.textInverse,
                           ),
                         ),
                       ],

@@ -4,10 +4,14 @@ import 'package:myfinance_improved/core/themes/toss_colors.dart';
 import 'package:myfinance_improved/core/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/core/themes/toss_spacing.dart';
 import 'package:myfinance_improved/core/themes/toss_border_radius.dart';
+import 'package:myfinance_improved/core/themes/toss_animations.dart';
+import '../constants/counter_party_colors.dart';
 import '../models/counter_party_models.dart';
 import '../providers/counter_party_providers.dart';
 import '../../../providers/app_state_provider.dart';
 import '../../../widgets/toss/toss_dropdown.dart';
+import '../../../widgets/toss/toss_text_field.dart';
+import '../../../widgets/common/toss_type_selector.dart';
 
 class CounterPartyForm extends ConsumerStatefulWidget {
   final CounterParty? counterParty;
@@ -51,7 +55,7 @@ class _CounterPartyFormState extends ConsumerState<CounterPartyForm> with Ticker
   void initState() {
     super.initState();
     _animationController = AnimationController(
-      duration: const Duration(milliseconds: 300),
+      duration: TossAnimations.slow,
       vsync: this,
     );
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
@@ -158,7 +162,7 @@ class _CounterPartyFormState extends ConsumerState<CounterPartyForm> with Ticker
         content: Text(message),
         backgroundColor: TossColors.error,
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(TossBorderRadius.md)),
       ),
     );
   }
@@ -169,7 +173,7 @@ class _CounterPartyFormState extends ConsumerState<CounterPartyForm> with Ticker
         content: Text(message),
         backgroundColor: TossColors.success,
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(TossBorderRadius.md)),
       ),
     );
   }
@@ -179,22 +183,22 @@ class _CounterPartyFormState extends ConsumerState<CounterPartyForm> with Ticker
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(TossBorderRadius.lg)),
           title: Row(
             children: [
               Container(
-                padding: EdgeInsets.all(8),
+                padding: EdgeInsets.all(TossSpacing.space2),
                 decoration: BoxDecoration(
                   color: TossColors.error.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.sm),
                 ),
                 child: Icon(
                   Icons.delete_outline,
                   color: TossColors.error,
-                  size: 24,
+                  size: TossSpacing.iconMD,
                 ),
               ),
-              SizedBox(width: 12),
+              SizedBox(width: TossSpacing.space3),
               Expanded(
                 child: Text(
                   'Delete Counter Party',
@@ -217,7 +221,7 @@ class _CounterPartyFormState extends ConsumerState<CounterPartyForm> with Ticker
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
               style: TextButton.styleFrom(
-                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: EdgeInsets.symmetric(horizontal: TossSpacing.space4, vertical: TossSpacing.space2),
               ),
               child: Text(
                 'Cancel',
@@ -231,17 +235,17 @@ class _CounterPartyFormState extends ConsumerState<CounterPartyForm> with Ticker
               onPressed: _deleteCounterParty,
               style: ElevatedButton.styleFrom(
                 backgroundColor: TossColors.error,
-                foregroundColor: Colors.white,
-                padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                foregroundColor: TossColors.textInverse,
+                padding: EdgeInsets.symmetric(horizontal: TossSpacing.space5, vertical: TossSpacing.space2 + 2),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.sm),
                 ),
-                elevation: 0,
+                elevation: TossSpacing.space0,
               ),
               child: Text(
                 'Delete',
                 style: TossTextStyles.body.copyWith(
-                  color: Colors.white,
+                  color: TossColors.textInverse,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -288,9 +292,49 @@ class _CounterPartyFormState extends ConsumerState<CounterPartyForm> with Ticker
           _currentStep++;
         });
         _animateStepTransition();
+      } else {
+        // Show validation error message
+        _showValidationError();
       }
     } else {
-      _saveCounterParty();
+      // Final step - validate before saving
+      if (_validateCurrentStep()) {
+        _saveCounterParty();
+      } else {
+        _showValidationError();
+      }
+    }
+  }
+  
+  void _showValidationError() {
+    String message = '';
+    switch (_currentStep) {
+      case 0:
+        message = 'Please enter a name for the counter party';
+        break;
+      case 2:
+        if (_isInternal && _linkedCompanyId == null) {
+          message = 'Please select a linked company or disable internal company';
+        }
+        break;
+    }
+    
+    if (message.isNotEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              Icon(Icons.warning_amber_rounded, color: TossColors.textInverse, size: 20),
+              SizedBox(width: TossSpacing.space2),
+              Expanded(child: Text(message)),
+            ],
+          ),
+          backgroundColor: TossColors.warning,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(TossBorderRadius.md)),
+          margin: EdgeInsets.all(TossSpacing.space4),
+        ),
+      );
     }
   }
 
@@ -317,7 +361,10 @@ class _CounterPartyFormState extends ConsumerState<CounterPartyForm> with Ticker
         // Contact Details - optional validation
         return true;
       case 2:
-        // Additional Settings
+        // Additional Settings - validate internal company selection
+        if (_isInternal && _linkedCompanyId == null) {
+          return false; // Must select a linked company when internal is enabled
+        }
         return true;
       default:
         return true;
@@ -329,27 +376,27 @@ class _CounterPartyFormState extends ConsumerState<CounterPartyForm> with Ticker
 
   Widget _buildStepIndicator() {
     return Container(
-      padding: EdgeInsets.symmetric(vertical: 12),
+      padding: EdgeInsets.symmetric(vertical: TossSpacing.space3),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: List.generate(_totalSteps, (index) {
           return Row(
             children: [
               AnimatedContainer(
-                duration: Duration(milliseconds: 300),
-                width: index == _currentStep ? 32 : 8,
-                height: 8,
+                duration: TossAnimations.slow,
+                width: index == _currentStep ? TossSpacing.space8 : TossSpacing.space2,
+                height: TossSpacing.space2,
                 decoration: BoxDecoration(
                   color: index <= _currentStep ? TossColors.primary : TossColors.gray300,
-                  borderRadius: BorderRadius.circular(4),
+                  borderRadius: BorderRadius.circular(TossSpacing.space1),
                 ),
               ),
               if (index < _totalSteps - 1)
                 Container(
-                  width: 16,
-                  height: 1,
+                  width: TossSpacing.space4,
+                  height: TossSpacing.space0 + 1,
                   color: index < _currentStep ? TossColors.primary : TossColors.gray200,
-                  margin: EdgeInsets.symmetric(horizontal: 6),
+                  margin: EdgeInsets.symmetric(horizontal: TossSpacing.space1 + 2),
                 ),
             ],
           );
@@ -376,47 +423,64 @@ class _CounterPartyFormState extends ConsumerState<CounterPartyForm> with Ticker
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Name field
-        _buildModernTextField(
+        TossTextField(
           controller: _nameController,
-          label: 'Name',
-          placeholder: 'Enter full name',
-          icon: Icons.person_outline,
-          required: true,
+          label: 'Name *',
+          hintText: 'Enter full name',
           validator: (value) {
             if (value == null || value.isEmpty) return 'Name is required';
             return null;
           },
         ),
         
-        SizedBox(height: 24),
+        SizedBox(height: TossSpacing.space6),
 
-        // Type selector
-        Text(
-          'Select Type',
-          style: TossTextStyles.labelLarge.copyWith(
-            color: TossColors.gray700,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-        SizedBox(height: 12),
-        GridView.count(
-          shrinkWrap: true,
-          physics: NeverScrollableScrollPhysics(),
-          crossAxisCount: 3,
-          mainAxisSpacing: 12,
-          crossAxisSpacing: 12,
-          childAspectRatio: 1.1,
-          children: [
-            _buildTypeOption(CounterPartyType.myCompany, Icons.business, const Color(0xFF007AFF)),
-            _buildTypeOption(CounterPartyType.teamMember, Icons.group, const Color(0xFF34C759)),
-            _buildTypeOption(CounterPartyType.supplier, Icons.local_shipping, const Color(0xFF5856D6)),
-            _buildTypeOption(CounterPartyType.employee, Icons.badge, const Color(0xFFFF9500)),
-            _buildTypeOption(CounterPartyType.customer, Icons.people, const Color(0xFFFF3B30)),
-            _buildTypeOption(CounterPartyType.other, Icons.category, const Color(0xFF8E8E93)),
+        // Type selector using reusable component
+        TossTypeSelector<CounterPartyType>(
+          label: 'Select Type',
+          selectedValue: _selectedType,
+          onChanged: (type) => setState(() => _selectedType = type),
+          options: [
+            TossTypeOption(
+              value: CounterPartyType.myCompany,
+              label: CounterPartyType.myCompany.displayName,
+              icon: CounterPartyColors.getTypeIcon(CounterPartyType.myCompany),
+              color: CounterPartyColors.getTypeColor(CounterPartyType.myCompany),
+            ),
+            TossTypeOption(
+              value: CounterPartyType.teamMember,
+              label: CounterPartyType.teamMember.displayName,
+              icon: CounterPartyColors.getTypeIcon(CounterPartyType.teamMember),
+              color: CounterPartyColors.getTypeColor(CounterPartyType.teamMember),
+            ),
+            TossTypeOption(
+              value: CounterPartyType.supplier,
+              label: CounterPartyType.supplier.displayName,
+              icon: CounterPartyColors.getTypeIcon(CounterPartyType.supplier),
+              color: CounterPartyColors.getTypeColor(CounterPartyType.supplier),
+            ),
+            TossTypeOption(
+              value: CounterPartyType.employee,
+              label: CounterPartyType.employee.displayName,
+              icon: CounterPartyColors.getTypeIcon(CounterPartyType.employee),
+              color: CounterPartyColors.getTypeColor(CounterPartyType.employee),
+            ),
+            TossTypeOption(
+              value: CounterPartyType.customer,
+              label: CounterPartyType.customer.displayName,
+              icon: CounterPartyColors.getTypeIcon(CounterPartyType.customer),
+              color: CounterPartyColors.getTypeColor(CounterPartyType.customer),
+            ),
+            TossTypeOption(
+              value: CounterPartyType.other,
+              label: CounterPartyType.other.displayName,
+              icon: CounterPartyColors.getTypeIcon(CounterPartyType.other),
+              color: CounterPartyColors.getTypeColor(CounterPartyType.other),
+            ),
           ],
         ),
 
-        SizedBox(height: 16),
+        SizedBox(height: TossSpacing.space4),
       ],
     );
   }
@@ -425,34 +489,31 @@ class _CounterPartyFormState extends ConsumerState<CounterPartyForm> with Ticker
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildModernTextField(
+        TossTextField(
           controller: _emailController,
           label: 'Email',
-          placeholder: 'email@example.com',
-          icon: Icons.email_outlined,
+          hintText: 'email@example.com',
           keyboardType: TextInputType.emailAddress,
         ),
 
-        SizedBox(height: 20),
+        SizedBox(height: TossSpacing.space5),
 
-        _buildModernTextField(
+        TossTextField(
           controller: _phoneController,
           label: 'Phone',
-          placeholder: '+1 234 567 8900',
-          icon: Icons.phone_outlined,
+          hintText: '+1 234 567 8900',
           keyboardType: TextInputType.phone,
         ),
 
-        SizedBox(height: 20),
+        SizedBox(height: TossSpacing.space5),
 
-        _buildModernTextField(
+        TossTextField(
           controller: _addressController,
           label: 'Address',
-          placeholder: 'Enter address',
-          icon: Icons.location_on_outlined,
+          hintText: 'Enter address',
         ),
 
-        SizedBox(height: 16),
+        SizedBox(height: TossSpacing.space4),
       ],
     );
   }
@@ -464,15 +525,14 @@ class _CounterPartyFormState extends ConsumerState<CounterPartyForm> with Ticker
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildModernTextField(
+        TossTextField(
           controller: _notesController,
           label: 'Notes',
-          placeholder: 'Additional notes or comments',
-          icon: Icons.note_outlined,
+          hintText: 'Additional notes or comments',
           maxLines: 3,
         ),
 
-        SizedBox(height: 24),
+        SizedBox(height: TossSpacing.space6),
 
         // Internal toggle
         GestureDetector(
@@ -481,13 +541,21 @@ class _CounterPartyFormState extends ConsumerState<CounterPartyForm> with Ticker
             if (!_isInternal) _linkedCompanyId = null;
           }),
           child: Container(
-            padding: EdgeInsets.all(16),
+            padding: EdgeInsets.all(TossSpacing.space4),
             decoration: BoxDecoration(
-              color: _isInternal ? TossColors.primary.withOpacity(0.05) : TossColors.gray50,
-              borderRadius: BorderRadius.circular(16),
+              color: _isInternal 
+                ? (_linkedCompanyId == null 
+                  ? TossColors.warning.withOpacity(0.05) 
+                  : TossColors.primary.withOpacity(0.05))
+                : TossColors.gray50,
+              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
               border: Border.all(
-                color: _isInternal ? TossColors.primary.withOpacity(0.3) : TossColors.gray200,
-                width: 1,
+                color: _isInternal 
+                  ? (_linkedCompanyId == null 
+                    ? TossColors.warning.withOpacity(0.3) 
+                    : TossColors.primary.withOpacity(0.3))
+                  : TossColors.gray200,
+                width: TossSpacing.space0 + 1,
               ),
             ),
             child: Column(
@@ -495,18 +563,26 @@ class _CounterPartyFormState extends ConsumerState<CounterPartyForm> with Ticker
                 Row(
                   children: [
                     Container(
-                      padding: EdgeInsets.all(8),
+                      padding: EdgeInsets.all(TossSpacing.space2),
                       decoration: BoxDecoration(
-                        color: _isInternal ? TossColors.primary.withOpacity(0.1) : TossColors.gray100,
+                        color: _isInternal 
+                          ? (_linkedCompanyId == null 
+                            ? TossColors.warning.withOpacity(0.1) 
+                            : TossColors.primary.withOpacity(0.1))
+                          : TossColors.gray100,
                         shape: BoxShape.circle,
                       ),
                       child: Icon(
                         Icons.link, 
-                        size: 20, 
-                        color: _isInternal ? TossColors.primary : TossColors.gray600,
+                        size: TossSpacing.iconMD, 
+                        color: _isInternal 
+                          ? (_linkedCompanyId == null 
+                            ? TossColors.warning 
+                            : TossColors.primary)
+                          : TossColors.gray600,
                       ),
                     ),
-                    SizedBox(width: 12),
+                    SizedBox(width: TossSpacing.space3),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -518,7 +594,7 @@ class _CounterPartyFormState extends ConsumerState<CounterPartyForm> with Ticker
                               fontWeight: FontWeight.w600,
                             ),
                           ),
-                          SizedBox(height: 2),
+                          SizedBox(height: TossSpacing.space1),
                           Text(
                             'Link to another company in your group',
                             style: TossTextStyles.caption.copyWith(
@@ -533,7 +609,9 @@ class _CounterPartyFormState extends ConsumerState<CounterPartyForm> with Ticker
                       onChanged: (value) {
                         setState(() {
                           _isInternal = value;
-                          if (!value) _linkedCompanyId = null;
+                          if (!value) {
+                            _linkedCompanyId = null;
+                          }
                         });
                       },
                       activeColor: TossColors.primary,
@@ -541,26 +619,48 @@ class _CounterPartyFormState extends ConsumerState<CounterPartyForm> with Ticker
                   ],
                 ),
                 if (_isInternal) ...[
-                  SizedBox(height: 16),
+                  SizedBox(height: TossSpacing.space4),
                   _buildCompanyDropdown(unlinkedCompaniesAsync),
+                  if (_linkedCompanyId == null) ...[
+                    SizedBox(height: TossSpacing.space2),
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.info_outline,
+                          size: 14,
+                          color: TossColors.warning,
+                        ),
+                        SizedBox(width: TossSpacing.space1),
+                        Expanded(
+                          child: Text(
+                            'You must select a linked company to continue',
+                            style: TossTextStyles.caption.copyWith(
+                              color: TossColors.warning,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ],
               ],
             ),
           ),
         ),
 
-        SizedBox(height: 16),
+        SizedBox(height: TossSpacing.space4),
       ],
     );
   }
 
   Widget _buildStepNavigation() {
     return Container(
-      padding: EdgeInsets.all(20),
+      padding: EdgeInsets.all(TossSpacing.space5),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: TossColors.textInverse,
         border: Border(
-          top: BorderSide(color: TossColors.gray100),
+          top: BorderSide(color: TossColors.gray100, width: TossSpacing.space0 + 1),
         ),
       ),
       child: SafeArea(
@@ -572,17 +672,17 @@ class _CounterPartyFormState extends ConsumerState<CounterPartyForm> with Ticker
                 child: TextButton(
                   onPressed: _isLoading ? null : _previousStep,
                   style: TextButton.styleFrom(
-                    padding: EdgeInsets.symmetric(vertical: 16),
+                    padding: EdgeInsets.symmetric(vertical: TossSpacing.space4),
                     backgroundColor: TossColors.gray50,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
+                      borderRadius: BorderRadius.circular(TossBorderRadius.md),
                     ),
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.arrow_back, size: 18, color: TossColors.gray600),
-                      SizedBox(width: 6),
+                      Icon(Icons.arrow_back, size: TossSpacing.iconSM, color: TossColors.gray600),
+                      SizedBox(width: TossSpacing.space1 + 2),
                       Text(
                         'Back',
                         style: TossTextStyles.body.copyWith(
@@ -599,9 +699,9 @@ class _CounterPartyFormState extends ConsumerState<CounterPartyForm> with Ticker
                 child: TextButton(
                   onPressed: _isLoading ? null : () => Navigator.of(context).pop(),
                   style: TextButton.styleFrom(
-                    padding: EdgeInsets.symmetric(vertical: 16),
+                    padding: EdgeInsets.symmetric(vertical: TossSpacing.space4),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
+                      borderRadius: BorderRadius.circular(TossBorderRadius.md),
                     ),
                   ),
                   child: Text(
@@ -614,7 +714,7 @@ class _CounterPartyFormState extends ConsumerState<CounterPartyForm> with Ticker
                 ),
               ),
 
-            SizedBox(width: 12),
+            SizedBox(width: TossSpacing.space3),
 
             // Next/Create button
             Expanded(
@@ -623,22 +723,22 @@ class _CounterPartyFormState extends ConsumerState<CounterPartyForm> with Ticker
                 onPressed: _isLoading || !_isCurrentStepValid ? null : _nextStep,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: _isCurrentStepValid ? TossColors.primary : TossColors.gray300,
-                  foregroundColor: _isCurrentStepValid ? Colors.white : TossColors.gray500,
-                  padding: EdgeInsets.symmetric(vertical: 16),
-                  elevation: 0,
+                  foregroundColor: _isCurrentStepValid ? TossColors.textInverse : TossColors.gray500,
+                  padding: EdgeInsets.symmetric(vertical: TossSpacing.space4),
+                  elevation: TossSpacing.space0,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
+                    borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                   ),
                   disabledBackgroundColor: TossColors.gray300,
                   disabledForegroundColor: TossColors.gray500,
                 ),
                 child: _isLoading
                     ? SizedBox(
-                        height: 20,
-                        width: 20,
+                        height: TossSpacing.iconMD,
+                        width: TossSpacing.iconMD,
                         child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                          strokeWidth: TossSpacing.space0 + 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(TossColors.textInverse),
                         ),
                       )
                     : Row(
@@ -649,17 +749,17 @@ class _CounterPartyFormState extends ConsumerState<CounterPartyForm> with Ticker
                                 ? 'Next' 
                                 : (widget.counterParty == null ? 'Create' : 'Update'),
                             style: TossTextStyles.body.copyWith(
-                              color: _isCurrentStepValid ? Colors.white : TossColors.gray500,
+                              color: _isCurrentStepValid ? TossColors.textInverse : TossColors.gray500,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
-                          SizedBox(width: 6),
+                          SizedBox(width: TossSpacing.space1 + 2),
                           Icon(
                             _currentStep < _totalSteps - 1 
                                 ? Icons.arrow_forward 
                                 : Icons.check,
-                            size: 18,
-                            color: _isCurrentStepValid ? Colors.white : TossColors.gray500,
+                            size: TossSpacing.iconSM,
+                            color: _isCurrentStepValid ? TossColors.textInverse : TossColors.gray500,
                           ),
                         ],
                       ),
@@ -677,10 +777,10 @@ class _CounterPartyFormState extends ConsumerState<CounterPartyForm> with Ticker
 
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: TossColors.textInverse,
         borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(24),
-          topRight: Radius.circular(24),
+          topLeft: Radius.circular(TossBorderRadius.xxl),
+          topRight: Radius.circular(TossBorderRadius.xxl),
         ),
       ),
       child: Column(
@@ -690,16 +790,16 @@ class _CounterPartyFormState extends ConsumerState<CounterPartyForm> with Ticker
           Column(
             children: [
               Container(
-                margin: EdgeInsets.only(top: 12, bottom: 16),
-                width: 48,
-                height: 4,
+                margin: EdgeInsets.only(top: TossSpacing.space3, bottom: TossSpacing.space4),
+                width: TossSpacing.space12,
+                height: TossSpacing.space1,
                 decoration: BoxDecoration(
                   color: TossColors.gray300,
-                  borderRadius: BorderRadius.circular(2),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                 ),
               ),
               Padding(
-                padding: EdgeInsets.symmetric(horizontal: 20),
+                padding: EdgeInsets.symmetric(horizontal: TossSpacing.space5),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -713,12 +813,11 @@ class _CounterPartyFormState extends ConsumerState<CounterPartyForm> with Ticker
                             fontWeight: FontWeight.w700,
                           ),
                         ),
-                        SizedBox(height: 2),
+                        SizedBox(height: TossSpacing.space1),
                         Text(
                           _stepTitles[_currentStep],
                           style: TossTextStyles.body.copyWith(
                             color: TossColors.gray600,
-                            fontSize: 14,
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -733,17 +832,17 @@ class _CounterPartyFormState extends ConsumerState<CounterPartyForm> with Ticker
                             onPressed: _showDeleteConfirmation,
                             icon: Icon(Icons.delete_outline, color: TossColors.error),
                             padding: EdgeInsets.zero,
-                            constraints: BoxConstraints(minWidth: 40, minHeight: 40),
+                            constraints: BoxConstraints(minWidth: TossSpacing.space10, minHeight: TossSpacing.space10),
                             tooltip: 'Delete Counter Party',
                           ),
-                          SizedBox(width: 8),
+                          SizedBox(width: TossSpacing.space2),
                         ],
                         // Close button
                         IconButton(
                           onPressed: () => Navigator.of(context).pop(),
                           icon: Icon(Icons.close, color: TossColors.gray600),
                           padding: EdgeInsets.zero,
-                          constraints: BoxConstraints(minWidth: 40, minHeight: 40),
+                          constraints: BoxConstraints(minWidth: TossSpacing.space10, minHeight: TossSpacing.space10),
                         ),
                       ],
                     ),
@@ -763,7 +862,7 @@ class _CounterPartyFormState extends ConsumerState<CounterPartyForm> with Ticker
                   child: SlideTransition(
                     position: _slideAnimation,
                     child: SingleChildScrollView(
-                      padding: EdgeInsets.all(20),
+                      padding: EdgeInsets.all(TossSpacing.space5),
                       child: Form(
                         key: _formKey,
                         child: Column(
@@ -773,7 +872,7 @@ class _CounterPartyFormState extends ConsumerState<CounterPartyForm> with Ticker
                             _buildCurrentStep(),
                             
                             // Step progress indicator at bottom
-                            SizedBox(height: 12),
+                            SizedBox(height: TossSpacing.space3),
                             _buildStepIndicator(),
                           ],
                         ),
@@ -792,146 +891,22 @@ class _CounterPartyFormState extends ConsumerState<CounterPartyForm> with Ticker
     );
   }
 
-  Widget _buildModernTextField({
-    required TextEditingController controller,
-    required String label,
-    required String placeholder,
-    required IconData icon,
-    TextInputType? keyboardType,
-    int maxLines = 1,
-    bool required = false,
-    String? Function(String?)? validator,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Text(
-              label,
-              style: TossTextStyles.labelLarge.copyWith(
-                color: TossColors.gray700,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            if (required) ...[
-              SizedBox(width: 4),
-              Text(
-                '*',
-                style: TextStyle(color: TossColors.error),
-              ),
-            ],
-          ],
-        ),
-        SizedBox(height: 8),
-        TextFormField(
-          controller: controller,
-          keyboardType: keyboardType,
-          maxLines: maxLines,
-          validator: validator,
-          style: TossTextStyles.body.copyWith(color: TossColors.gray900),
-          decoration: InputDecoration(
-            hintText: placeholder,
-            hintStyle: TossTextStyles.body.copyWith(color: TossColors.gray400),
-            prefixIcon: Padding(
-              padding: EdgeInsets.only(left: 12, right: 8),
-              child: Icon(icon, size: 20, color: TossColors.gray500),
-            ),
-            prefixIconConstraints: BoxConstraints(minWidth: 0, minHeight: 0),
-            filled: true,
-            fillColor: TossColors.gray50,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(14),
-              borderSide: BorderSide.none,
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(14),
-              borderSide: BorderSide(color: TossColors.gray200, width: 1),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(14),
-              borderSide: BorderSide(color: TossColors.primary, width: 1.5),
-            ),
-            errorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(14),
-              borderSide: BorderSide(color: TossColors.error, width: 1),
-            ),
-            contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-          ),
-        ),
-      ],
-    );
-  }
 
-  Widget _buildTypeOption(CounterPartyType type, IconData icon, Color color) {
-    final isSelected = _selectedType == type;
-    return GestureDetector(
-      onTap: () => setState(() => _selectedType = type),
-      child: AnimatedContainer(
-        duration: Duration(milliseconds: 200),
-        decoration: BoxDecoration(
-          color: isSelected ? color.withOpacity(0.08) : TossColors.gray50,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: isSelected ? color : TossColors.gray200,
-            width: isSelected ? 2 : 1,
-          ),
-          boxShadow: isSelected ? [
-            BoxShadow(
-              color: color.withOpacity(0.15),
-              blurRadius: 8,
-              offset: Offset(0, 4),
-            ),
-          ] : [],
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            AnimatedContainer(
-              duration: Duration(milliseconds: 200),
-              padding: EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: isSelected ? color.withOpacity(0.1) : Colors.transparent,
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                icon, 
-                size: 24, 
-                color: isSelected ? color : TossColors.gray500,
-              ),
-            ),
-            SizedBox(height: 4),
-            Text(
-              type.displayName,
-              style: TossTextStyles.caption.copyWith(
-                fontSize: 11,
-                color: isSelected ? color : TossColors.gray600,
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-              ),
-              textAlign: TextAlign.center,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 
   Widget _buildCompanyDropdown(AsyncValue<List<Map<String, dynamic>>> companiesAsync) {
     return companiesAsync.when(
       data: (companies) {
         if (companies.isEmpty) {
           return Container(
-            padding: EdgeInsets.all(12),
+            padding: EdgeInsets.all(TossSpacing.space3),
             decoration: BoxDecoration(
               color: TossColors.warning.withOpacity(0.1),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Row(
               children: [
-                Icon(Icons.info_outline, size: 16, color: TossColors.warning),
-                SizedBox(width: 8),
+                Icon(Icons.info_outline, size: TossSpacing.iconSM, color: TossColors.warning),
+                SizedBox(width: TossSpacing.space2),
                 Text(
                   'No companies available',
                   style: TossTextStyles.caption.copyWith(color: TossColors.warning),
@@ -955,7 +930,11 @@ class _CounterPartyFormState extends ConsumerState<CounterPartyForm> with Ticker
           value: _linkedCompanyId,
           items: dropdownItems,
           hint: 'Select linked company',
-          onChanged: (value) => setState(() => _linkedCompanyId = value),
+          onChanged: (value) {
+            setState(() {
+              _linkedCompanyId = value;
+            });
+          },
         );
       },
       loading: () => TossDropdown<String>(
@@ -967,15 +946,15 @@ class _CounterPartyFormState extends ConsumerState<CounterPartyForm> with Ticker
         onChanged: null,
       ),
       error: (_, __) => Container(
-        padding: EdgeInsets.all(12),
+        padding: EdgeInsets.all(TossSpacing.space3),
         decoration: BoxDecoration(
           color: TossColors.error.withOpacity(0.1),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Row(
           children: [
-            Icon(Icons.error_outline, size: 16, color: TossColors.error),
-            SizedBox(width: 8),
+            Icon(Icons.error_outline, size: TossSpacing.iconSM, color: TossColors.error),
+            SizedBox(width: TossSpacing.space2),
             Text(
               'Error loading companies',
               style: TossTextStyles.caption.copyWith(color: TossColors.error),

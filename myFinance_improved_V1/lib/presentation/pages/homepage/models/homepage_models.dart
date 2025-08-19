@@ -115,6 +115,7 @@ class CategoryWithFeatures {
                 featureName: feature['feature_name'] as String,
                 featureRoute: feature['route'] as String,
                 featureIcon: feature['icon'] as String? ?? '',
+                iconKey: feature['icon_key'] as String? ?? '',
               ))
           .toList(),
     );
@@ -129,6 +130,7 @@ class CategoryWithFeatures {
         'feature_name': feature.featureName,
         'route': feature.featureRoute,
         'icon': feature.featureIcon,
+        'icon_key': feature.iconKey,
       }).toList(),
     };
   }
@@ -170,6 +172,7 @@ class TopFeature {
     required this.lastClicked,
     required this.icon,
     required this.route,
+    this.iconKey,
   });
 
   final String featureId;
@@ -179,16 +182,21 @@ class TopFeature {
   final DateTime lastClicked;
   final String icon;
   final String route;
+  final String? iconKey;
 
   factory TopFeature.fromJson(Map<String, dynamic> json) {
+    final iconKey = json['icon_key'] as String?;
+    final featureName = json['feature_name'] as String;
+    
     return TopFeature(
       featureId: json['feature_id'] as String,
-      featureName: json['feature_name'] as String,
+      featureName: featureName,
       categoryId: json['category_id'] as String?,
       clickCount: json['click_count'] as int,
       lastClicked: DateTime.parse(json['last_clicked'] as String),
       icon: json['icon'] as String,
       route: json['route'] as String,
+      iconKey: iconKey,
     );
   }
 }

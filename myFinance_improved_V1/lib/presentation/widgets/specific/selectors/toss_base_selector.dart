@@ -112,6 +112,7 @@ class _TossMultiSelectorState<T> extends State<TossMultiSelector<T>> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
+      barrierColor: Colors.black54, // Standard barrier color to prevent double barriers
       builder: (context) => TossBottomSheet(
         content: StatefulBuilder(
           builder: (context, setModalState) => Column(
@@ -573,6 +574,7 @@ class _TossSingleSelectorState<T> extends State<TossSingleSelector<T>> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
+      barrierColor: Colors.black54, // Standard barrier color to prevent double barriers
       builder: (context) => TossBottomSheet(
         content: StatefulBuilder(
           builder: (context, setModalState) => Column(

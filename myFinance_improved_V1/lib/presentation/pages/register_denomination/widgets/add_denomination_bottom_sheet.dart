@@ -270,12 +270,32 @@ class _AddDenominationBottomSheetState extends ConsumerState<AddDenominationBott
       return;
     }
     
-    setState(() => isLoading = true);
+    // Create formatted value for display
+    String displayValue;
+    if (widget.currency.code == 'KRW') {
+      displayValue = '₩${amount.toInt()}';
+    } else if (amount < 1.0) {
+      displayValue = '${(amount * 100).toInt()}¢';
+    } else {
+      displayValue = '${widget.currency.symbol}${amount.toStringAsFixed(amount.truncateToDouble() == amount ? 0 : 2)}';
+    }
+    
+    // Close bottom sheet immediately for better UX
+    if (mounted) {
+      Navigator.of(context).pop();
+      
+      // Show immediate success message (optimistic)
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('$displayValue ${selectedType.name} added successfully!'),
+          backgroundColor: TossColors.success,
+        ),
+      );
+    }
     
     try {
       final appState = ref.read(appStateProvider);
       final companyId = appState.companyChoosen;
-      
       
       if (companyId.isEmpty) {
         throw Exception('No company selected');
@@ -288,47 +308,21 @@ class _AddDenominationBottomSheetState extends ConsumerState<AddDenominationBott
         type: selectedType,
       );
       
+      // Add denomination (this already has optimistic updates)
       await ref.read(denominationOperationsProvider.notifier)
           .addDenomination(denominationInput);
       
-      // Refresh the denomination list for this currency
-      ref.invalidate(denominationListProvider(widget.currency.id));
-      // Also refresh the company currencies to update the count
+      // Refresh the company currencies to update the count
       ref.invalidate(companyCurrenciesProvider);
       
-      if (mounted) {
-        Navigator.of(context).pop();
-        
-        // Create formatted value for display
-        String displayValue;
-        if (widget.currency.code == 'KRW') {
-          displayValue = '₩${amount.toInt()}';
-        } else if (amount < 1.0) {
-          displayValue = '${(amount * 100).toInt()}¢';
-        } else {
-          displayValue = '${widget.currency.symbol}${amount.toStringAsFixed(amount.truncateToDouble() == amount ? 0 : 2)}';
-        }
-        
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('$displayValue ${selectedType.name} added successfully!'),
-            backgroundColor: TossColors.success,
-          ),
-        );
-      }
-    } catch (e, stackTrace) {
-      
+    } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to add denomination: $e'),
+            content: Text('Failed to add denomination: $e. Change reverted.'),
             backgroundColor: TossColors.error,
           ),
         );
-      }
-    } finally {
-      if (mounted) {
-        setState(() => isLoading = false);
       }
     }
   }

@@ -20,6 +20,7 @@ import '../../../core/themes/toss_text_styles.dart';
 import '../../../core/themes/toss_spacing.dart';
 import '../../../core/themes/toss_border_radius.dart';
 import '../../../core/themes/toss_shadows.dart';
+import '../../../core/themes/toss_animations.dart';
 
 class RolePermissionPage extends ConsumerStatefulWidget {
   const RolePermissionPage({super.key});
@@ -872,7 +873,7 @@ class _CreateRoleBottomSheetState extends ConsumerState<_CreateRoleBottomSheet> 
                         child: Padding(
                           padding: EdgeInsets.all(4),
                           child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 200),
+                            duration: TossAnimations.normal,
                             width: 20,
                             height: 20,
                             decoration: BoxDecoration(
@@ -934,7 +935,7 @@ class _CreateRoleBottomSheetState extends ConsumerState<_CreateRoleBottomSheet> 
                     ),
                     AnimatedRotation(
                       turns: isExpanded ? 0.5 : 0,
-                      duration: const Duration(milliseconds: 200),
+                      duration: TossAnimations.normal,
                       child: Icon(
                         Icons.expand_more,
                         color: TossColors.textTertiary,
@@ -979,7 +980,7 @@ class _CreateRoleBottomSheetState extends ConsumerState<_CreateRoleBottomSheet> 
                               children: [
                                 SizedBox(width: TossSpacing.space6),
                                 AnimatedContainer(
-                                  duration: const Duration(milliseconds: 200),
+                                  duration: TossAnimations.normal,
                                   width: 20,
                                   height: 20,
                                   decoration: BoxDecoration(

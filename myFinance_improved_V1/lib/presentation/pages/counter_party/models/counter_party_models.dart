@@ -174,8 +174,8 @@ class CounterPartyFilter with _$CounterPartyFilter {
   const factory CounterPartyFilter({
     String? searchQuery,
     List<CounterPartyType>? types,
-    @Default(CounterPartySortOption.name) CounterPartySortOption sortBy,
-    @Default(true) bool ascending,
+    @Default(CounterPartySortOption.isInternal) CounterPartySortOption sortBy,
+    @Default(false) bool ascending,
     bool? isInternal,
     DateTime? createdAfter,
     DateTime? createdBefore,
@@ -191,8 +191,7 @@ enum CounterPartySortOption {
   name('Name'),
   type('Type'),
   createdAt('Created Date'),
-  lastTransaction('Last Transaction'),
-  balance('Balance');
+  isInternal('Internal/External');
 
   final String displayName;
   const CounterPartySortOption(this.displayName);

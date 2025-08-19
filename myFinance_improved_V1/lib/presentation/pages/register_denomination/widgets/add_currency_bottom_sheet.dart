@@ -3,31 +3,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../widgets/toss/toss_primary_button.dart';
 import '../../../widgets/toss/toss_secondary_button.dart';
 import '../../../widgets/toss/toss_search_field.dart';
+import '../../../widgets/toss/toss_checkbox.dart';
 import '../../../../core/themes/toss_colors.dart';
 import '../../../../core/themes/toss_text_styles.dart';
 import '../../../../core/themes/toss_spacing.dart';
 import '../../../../domain/entities/currency.dart';
 import '../providers/currency_providers.dart';
 
-// Provider to get available currencies (not yet added to company)
-final availableCurrenciesToAddProvider = FutureProvider<List<CurrencyType>>((ref) async {
-  try {
-    // Get all currency types
-    final allCurrencies = await ref.watch(availableCurrencyTypesProvider.future);
-    
-    // Get company's existing currencies
-    final companyCurrencies = await ref.watch(companyCurrenciesProvider.future);
-    
-    // Filter out currencies that are already added to the company
-    final existingCurrencyIds = companyCurrencies.map((c) => c.id).toSet();
-    
-    return allCurrencies.where((currency) => 
-      !existingCurrencyIds.contains(currency.currencyId)
-    ).toList();
-  } catch (e) {
-    throw Exception('Failed to load available currencies: $e');
-  }
-});
+// Note: availableCurrenciesToAddProvider is now defined in currency_providers.dart
 
 class AddCurrencyBottomSheet extends ConsumerStatefulWidget {
   const AddCurrencyBottomSheet({super.key});
@@ -228,76 +211,26 @@ class _AddCurrencyBottomSheetState extends ConsumerState<AddCurrencyBottomSheet>
                             padding: EdgeInsets.only(
                               bottom: index == availableCurrencies.length - 1 ? 0 : TossSpacing.space2,
                             ),
-                            child: InkWell(
-                              onTap: () {
+                            child: TossCheckboxListTile(
+                              value: isSelected,
+                              onChanged: (value) {
                                 setState(() {
-                                  if (isSelected) {
-                                    selectedCurrencyIds.remove(currency.currencyId);
-                                  } else {
+                                  if (value) {
                                     selectedCurrencyIds.add(currency.currencyId);
+                                  } else {
+                                    selectedCurrencyIds.remove(currency.currencyId);
                                   }
                                 });
                               },
-                              borderRadius: BorderRadius.circular(8),
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: TossSpacing.space4,
-                                  vertical: TossSpacing.space3,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: isSelected ? TossColors.primary.withOpacity(0.05) : TossColors.transparent,
-                                  border: Border.all(
-                                    color: isSelected ? TossColors.primary : TossColors.gray200,
-                                    width: isSelected ? 1.5 : 1,
-                                  ),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Row(
-                                  children: [
-                                    // Checkbox
-                                    Container(
-                                      width: 20,
-                                      height: 20,
-                                      decoration: BoxDecoration(
-                                        color: isSelected ? TossColors.primary : TossColors.transparent,
-                                        border: Border.all(
-                                          color: isSelected ? TossColors.primary : TossColors.gray400,
-                                          width: isSelected ? 0 : 1.5,
-                                        ),
-                                        borderRadius: BorderRadius.circular(4),
-                                      ),
-                                      child: isSelected
-                                          ? const Icon(
-                                              Icons.check,
-                                              color: TossColors.white,
-                                            )
-                                          : null,
-                                    ),
-                                    const SizedBox(width: TossSpacing.space3),
-                                    // Flag emoji
-                                    Text(
-                                      currency.flagEmoji,
-                                      style: TossTextStyles.h3,
-                                    ),
-                                    const SizedBox(width: TossSpacing.space3),
-                                    // Currency details
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            '${currency.currencyCode} - ${currency.currencyName}',
-                                            style: TossTextStyles.body.copyWith(
-                                              fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                                              color: TossColors.gray900,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                ),
+                              leading: Text(
+                                currency.flagEmoji,
+                                style: TossTextStyles.h3,
                               ),
+                              title: Text(
+                                '${currency.currencyCode} - ${currency.currencyName}',
+                              ),
+                              enabled: true,
+                              selected: isSelected,
                             ),
                           );
                         },
@@ -401,48 +334,48 @@ class _AddCurrencyBottomSheetState extends ConsumerState<AddCurrencyBottomSheet>
   void _addCurrencies() async {
     if (selectedCurrencyIds.isEmpty) return;
     
-    setState(() => isLoading = true);
+    // Get the currency details for the success message before closing
+    final currencies = ref.read(availableCurrenciesToAddProvider).valueOrNull ?? [];
+    final addedCurrencies = currencies
+        .where((c) => selectedCurrencyIds.contains(c.currencyId))
+        .map((c) => c.currencyCode)
+        .toList();
+    
+    final message = addedCurrencies.length == 1
+        ? '${addedCurrencies.first} currency added successfully!'
+        : '${addedCurrencies.length} currencies added successfully!';
+    
+    // Close bottom sheet immediately for better UX
+    if (mounted) {
+      Navigator.of(context).pop();
+      
+      // Show immediate success message (optimistic)
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: TossColors.success,
+        ),
+      );
+    }
     
     try {
-      // Add each selected currency to the company
+      // Add each selected currency to the company (these already have optimistic updates)
       for (final currencyId in selectedCurrencyIds) {
         await ref.read(currencyOperationsProvider.notifier)
             .addCompanyCurrency(currencyId);
       }
       
-      if (mounted) {
-        Navigator.of(context).pop();
-        
-        // Get the currency details for the success message
-        final currencies = ref.read(availableCurrenciesToAddProvider).valueOrNull ?? [];
-        final addedCurrencies = currencies
-            .where((c) => selectedCurrencyIds.contains(c.currencyId))
-            .map((c) => c.currencyCode)
-            .toList();
-        
-        final message = addedCurrencies.length == 1
-            ? '${addedCurrencies.first} currency added successfully!'
-            : '${addedCurrencies.length} currencies added successfully!';
-        
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(message),
-            backgroundColor: TossColors.success,
-          ),
-        );
-      }
+      // Refresh available currencies to add provider
+      ref.invalidate(availableCurrenciesToAddProvider);
+      
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to add currencies: $e'),
+            content: Text('Failed to add currencies: $e. Changes reverted.'),
             backgroundColor: TossColors.error,
           ),
         );
-      }
-    } finally {
-      if (mounted) {
-        setState(() => isLoading = false);
       }
     }
   }

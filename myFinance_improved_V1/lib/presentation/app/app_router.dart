@@ -23,6 +23,10 @@ import '../pages/cash_location/cash_location_page.dart';
 import '../pages/cash_location/account_detail_page.dart';
 import '../pages/transactions/transaction_history_page.dart';
 import '../pages/transaction_template/transaction_template_page.dart';
+import '../pages/my_page/my_page.dart';
+import '../pages/debt_account_settings/debt_account_settings_page.dart';
+import '../pages/component_test/component_test_page.dart';
+import '../pages/notification_debug/notification_debug_page.dart';
 
 
 // Router notifier to listen to auth state changes
@@ -41,13 +45,15 @@ class RouterNotifier extends ChangeNotifier {
 
 final appRouterProvider = Provider<GoRouter>((ref) {
   // Create router with refresh listenable
+  final routerNotifier = RouterNotifier(ref);
+  
   final router = GoRouter(
     initialLocation: '/auth/login',
-    refreshListenable: RouterNotifier(ref),
+    refreshListenable: routerNotifier,
+    restorationScopeId: 'app_router',
     redirect: (context, state) {
       final isAuth = ref.read(isAuthenticatedProvider);
       final isAuthRoute = state.matchedLocation.startsWith('/auth');
-      
       
       // If not authenticated and not on auth route, go to login
       if (!isAuth && !isAuthRoute) {
@@ -60,6 +66,43 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       }
       
       return null;
+    },
+    errorBuilder: (context, state) {
+      return Scaffold(
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(
+                Icons.error_outline,
+                size: 64,
+                color: Colors.red,
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Page Not Found',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'The page you are looking for does not exist.',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.grey[600],
+                ),
+              ),
+              const SizedBox(height: 24),
+              ElevatedButton(
+                onPressed: () => context.go('/'),
+                child: const Text('Go to Home'),
+              ),
+            ],
+          ),
+        ),
+      );
     },
     routes: [
       // Auth Routes
@@ -135,6 +178,18 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             path: 'registerCounterparty',
             builder: (context, state) => const CounterPartyPage(),
           ),
+          // Debt Account Settings
+          GoRoute(
+            path: 'debtAccountSettings/:counterpartyId/:counterpartyName',
+            builder: (context, state) {
+              final counterpartyId = state.pathParameters['counterpartyId'] ?? '';
+              final counterpartyName = state.pathParameters['counterpartyName'] ?? '';
+              return DebtAccountSettingsPage(
+                counterpartyId: counterpartyId,
+                counterpartyName: counterpartyName,
+              );
+            },
+          ),
           GoRoute(
             path: 'addFixAsset',
             builder: (context, state) => const AddFixAssetPage(),
@@ -153,6 +208,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: 'transactionTemplate',
             builder: (context, state) => const TransactionTemplatePage(),
+          ),
+          // My Page
+          GoRoute(
+            path: 'myPage',
+            builder: (context, state) => const MyPage(),
           ),
           GoRoute(
             path: 'cashLocation',
@@ -177,6 +237,16 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 },
               ),
             ],
+          ),
+          // Component Test Page
+          GoRoute(
+            path: 'test',
+            builder: (context, state) => const ComponentTestPage(),
+          ),
+          // Notification Debug Page
+          GoRoute(
+            path: 'notification-debug',
+            builder: (context, state) => const NotificationDebugPage(),
           ),
         ],
       ),

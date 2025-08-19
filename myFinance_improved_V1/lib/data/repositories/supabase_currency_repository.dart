@@ -9,31 +9,8 @@ class SupabaseCurrencyRepository implements CurrencyRepository {
 
   SupabaseCurrencyRepository(this._client);
   
-  // Helper method to get flag emoji based on currency code
-  String _getFlagEmoji(String currencyCode) {
-    final flagMap = {
-      'USD': '🇺🇸',
-      'EUR': '🇪🇺',
-      'GBP': '🇬🇧',
-      'JPY': '🇯🇵',
-      'KRW': '🇰🇷',
-      'CNY': '🇨🇳',
-      'CAD': '🇨🇦',
-      'AUD': '🇦🇺',
-      'CHF': '🇨🇭',
-      'SEK': '🇸🇪',
-      'NZD': '🇳🇿',
-      'MXN': '🇲🇽',
-      'SGD': '🇸🇬',
-      'HKD': '🇭🇰',
-      'NOK': '🇳🇴',
-      'INR': '🇮🇳',
-      'RUB': '🇷🇺',
-      'BRL': '🇧🇷',
-      'ZAR': '🇿🇦',
-    };
-    return flagMap[currencyCode.toUpperCase()] ?? '🏴';
-  }
+  // Default flag emoji for currencies without a flag
+  static const String _defaultFlagEmoji = '🏳️';
 
   @override
   Future<List<CurrencyType>> getAvailableCurrencyTypes() async {
@@ -49,7 +26,7 @@ class SupabaseCurrencyRepository implements CurrencyRepository {
             currencyCode: json['currency_code'] as String,
             currencyName: json['currency_name'] as String,
             symbol: json['symbol'] as String,
-            flagEmoji: json['flag_emoji'] as String? ?? _getFlagEmoji(json['currency_code'] as String),
+            flagEmoji: json['flag_emoji'] as String? ?? _defaultFlagEmoji,
             createdAt: json['created_at'] != null ? DateTime.parse(json['created_at']) : null,
           ))
           .toList();
@@ -114,7 +91,7 @@ class SupabaseCurrencyRepository implements CurrencyRepository {
           name: ct['currency_name'] as String,
           fullName: ct['currency_name'] as String, // Use same as name since no full_name column
           symbol: ct['symbol'] as String,
-          flagEmoji: ct['flag_emoji'] as String? ?? _getFlagEmoji(ct['currency_code'] as String), // Use from DB or generate
+          flagEmoji: ct['flag_emoji'] as String? ?? _defaultFlagEmoji,
           denominations: denominationMap[currencyId] ?? [],
           createdAt: ct['created_at'] != null ? DateTime.parse(ct['created_at']) : null,
         );
@@ -149,7 +126,7 @@ class SupabaseCurrencyRepository implements CurrencyRepository {
         name: currencyType['currency_name'],
         fullName: currencyType['currency_name'],
         symbol: currencyType['symbol'],
-        flagEmoji: currencyType['flag_emoji'] ?? _getFlagEmoji(currencyType['currency_code']),
+        flagEmoji: currencyType['flag_emoji'] as String? ?? _defaultFlagEmoji,
         denominations: [],
         createdAt: DateTime.now(),
       );
@@ -182,14 +159,57 @@ class SupabaseCurrencyRepository implements CurrencyRepository {
   @override
   Future<Currency?> getCompanyCurrency(String companyId, String currencyId) async {
     try {
-      final response = await _client.rpc('get_company_currency_with_denominations', params: {
-        'p_company_id': companyId,
-        'p_currency_id': currencyId,
-      });
+      // Check if the currency is associated with the company
+      final companyCurrency = await _client
+          .from('company_currency')
+          .select('currency_id')
+          .eq('company_id', companyId)
+          .eq('currency_id', currencyId)
+          .maybeSingle();
 
-      if (response == null || (response as List).isEmpty) return null;
+      if (companyCurrency == null) return null;
 
-      return Currency.fromJson((response as List).first);
+      // Get currency details
+      final currencyType = await _client
+          .from('currency_types')
+          .select('*')
+          .eq('currency_id', currencyId)
+          .single();
+
+      // Get denominations for this currency
+      final denominations = await _client
+          .from('currency_denominations')
+          .select('*')
+          .eq('company_id', companyId)
+          .eq('currency_id', currencyId)
+          .order('value');
+
+      // Build denominations list
+      final denominationList = (denominations as List).map((denom) {
+        return Denomination(
+          id: denom['denomination_id'] as String,
+          companyId: denom['company_id'] as String,
+          currencyId: denom['currency_id'] as String,
+          value: (denom['value'] as num).toDouble(),
+          type: (denom['type'] as String? ?? 'bill') == 'coin' ? DenominationType.coin : DenominationType.bill,
+          displayName: (denom['type'] as String? ?? 'bill') == 'coin' ? 'Coin' : 'Bill',
+          emoji: (denom['type'] as String? ?? 'bill') == 'coin' ? '🪙' : '💵',
+          isActive: denom['is_active'] as bool? ?? true,
+          createdAt: denom['created_at'] != null ? DateTime.parse(denom['created_at']) : null,
+        );
+      }).toList();
+
+      // Build and return Currency object
+      return Currency(
+        id: currencyType['currency_id'] as String,
+        code: currencyType['currency_code'] as String,
+        name: currencyType['currency_name'] as String,
+        fullName: currencyType['currency_name'] as String,
+        symbol: currencyType['symbol'] as String,
+        flagEmoji: currencyType['flag_emoji'] as String? ?? _defaultFlagEmoji,
+        denominations: denominationList,
+        createdAt: currencyType['created_at'] != null ? DateTime.parse(currencyType['created_at']) : null,
+      );
     } catch (e) {
       throw Exception('Failed to fetch company currency: $e');
     }
@@ -235,7 +255,7 @@ class SupabaseCurrencyRepository implements CurrencyRepository {
             currencyCode: json['currency_code'] as String,
             currencyName: json['currency_name'] as String,
             symbol: json['symbol'] as String,
-            flagEmoji: json['flag_emoji'] as String? ?? _getFlagEmoji(json['currency_code'] as String),
+            flagEmoji: json['flag_emoji'] as String? ?? _defaultFlagEmoji,
             createdAt: json['created_at'] != null ? DateTime.parse(json['created_at']) : null,
           ))
           .toList();
@@ -248,16 +268,62 @@ class SupabaseCurrencyRepository implements CurrencyRepository {
   Stream<List<Currency>> watchCompanyCurrencies(String companyId) {
     return _client
         .from('company_currency')
-        .select()
+        .select('currency_id')
         .eq('company_id', companyId)
         .asStream()
-        .asyncMap((data) async {
-          // For each company_currency record, fetch full currency with denominations
-          final futures = data.map((record) => 
-            getCompanyCurrency(companyId, record['currency_id'] as String));
-          
-          final currencies = await Future.wait(futures);
-          return currencies.whereType<Currency>().toList();
+        .asyncMap((companyCurrencyData) async {
+          if (companyCurrencyData.isEmpty) return <Currency>[];
+
+          // Extract currency IDs
+          final currencyIds = companyCurrencyData
+              .map((cc) => cc['currency_id'] as String)
+              .toList();
+
+          // Get currency details
+          final currencyTypes = await _client
+              .from('currency_types')
+              .select('*')
+              .inFilter('currency_id', currencyIds);
+
+          // Get denominations for all currencies
+          final denominations = await _client
+              .from('currency_denominations')
+              .select('*')
+              .eq('company_id', companyId)
+              .inFilter('currency_id', currencyIds);
+
+          // Map denominations by currency_id
+          final denominationMap = <String, List<Denomination>>{};
+          for (final denom in denominations) {
+            final currencyId = denom['currency_id'] as String;
+            denominationMap[currencyId] ??= [];
+            denominationMap[currencyId]!.add(Denomination(
+              id: denom['denomination_id'] as String,
+              companyId: denom['company_id'] as String,
+              currencyId: currencyId,
+              value: (denom['value'] as num).toDouble(),
+              type: (denom['type'] as String? ?? 'bill') == 'coin' ? DenominationType.coin : DenominationType.bill,
+              displayName: (denom['type'] as String? ?? 'bill') == 'coin' ? 'Coin' : 'Bill',
+              emoji: (denom['type'] as String? ?? 'bill') == 'coin' ? '🪙' : '💵',
+              isActive: denom['is_active'] as bool? ?? true,
+              createdAt: denom['created_at'] != null ? DateTime.parse(denom['created_at']) : null,
+            ));
+          }
+
+          // Build Currency objects
+          return (currencyTypes as List).map((ct) {
+            final currencyId = ct['currency_id'] as String;
+            return Currency(
+              id: currencyId,
+              code: ct['currency_code'] as String,
+              name: ct['currency_name'] as String,
+              fullName: ct['currency_name'] as String,
+              symbol: ct['symbol'] as String,
+              flagEmoji: ct['flag_emoji'] as String? ?? _defaultFlagEmoji,
+              denominations: denominationMap[currencyId] ?? [],
+              createdAt: ct['created_at'] != null ? DateTime.parse(ct['created_at']) : null,
+            );
+          }).toList();
         });
   }
 }
