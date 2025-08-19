@@ -26,6 +26,7 @@ import '../pages/transaction_template/transaction_template_page.dart';
 import '../pages/my_page/my_page.dart';
 import '../pages/debt_account_settings/debt_account_settings_page.dart';
 import '../pages/component_test/component_test_page.dart';
+import '../pages/notification_debug/notification_debug_page.dart';
 
 
 // Router notifier to listen to auth state changes
@@ -241,6 +242,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: 'test',
             builder: (context, state) => const ComponentTestPage(),
+          ),
+          // Notification Debug Page
+          GoRoute(
+            path: 'notification-debug',
+            builder: (context, state) => const NotificationDebugPage(),
           ),
         ],
       ),
