@@ -7,7 +7,6 @@ import '../providers/journal_input_providers.dart';
 import '../../../providers/app_state_provider.dart';
 import '../../../../core/themes/toss_colors.dart';
 import '../../../../core/themes/toss_text_styles.dart';
-import '../../../../core/themes/toss_spacing.dart';
 import '../../../../core/themes/toss_border_radius.dart';
 
 // Custom formatter for thousand separators
@@ -134,7 +133,6 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
   
   // Account mapping
   Map<String, dynamic>? _accountMapping;
-  bool _isCheckingMapping = false;
   String? _mappingError;
   
   final List<String> _debtCategories = ['note', 'account', 'loan', 'other'];
@@ -224,11 +222,9 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
           _linkedCompanyId = counterparty['linked_company_id']?.toString();
           _isInternal = counterparty['is_internal'] == true;
         });
-        
-        print('Loaded counterparty details - isInternal: $_isInternal, linkedCompanyId: $_linkedCompanyId');
       }
     } catch (e) {
-      print('Error loading counterparty details: $e');
+      // Silently handle error loading counterparty details
     }
   }
   
@@ -245,7 +241,6 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
     }
     
     setState(() {
-      _isCheckingMapping = true;
       _mappingError = null;
     });
     
@@ -268,10 +263,6 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
     } catch (e) {
       setState(() {
         _mappingError = 'Error checking account mapping';
-      });
-    } finally {
-      setState(() {
-        _isCheckingMapping = false;
       });
     }
   }
@@ -298,7 +289,7 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
                   width: 64,
                   height: 64,
                   decoration: BoxDecoration(
-                    color: TossColors.warning.withOpacity(0.1),
+                    color: TossColors.warning.withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
@@ -692,7 +683,7 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
                                     BoxShadow(
                                       color: (_isDebit 
                                         ? TossColors.primary 
-                                        : TossColors.success).withOpacity(0.3),
+                                        : TossColors.success).withValues(alpha: 0.3),
                                       blurRadius: 8,
                                       offset: Offset(0, 2),
                                     ),
@@ -731,7 +722,7 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
                             borderRadius: BorderRadius.circular(TossBorderRadius.md),
                             border: Border.all(
                               color: _selectedAccountId != null 
-                                ? TossColors.primary.withOpacity(0.3)
+                                ? TossColors.primary.withValues(alpha: 0.3)
                                 : TossColors.gray300,
                               width: 1,
                             ),
@@ -812,10 +803,10 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
                                   Container(
                                     padding: EdgeInsets.symmetric(horizontal: 6, vertical: 1),
                                     decoration: BoxDecoration(
-                                      color: _getLocationTypeColor(location['location_type']).withOpacity(0.1),
+                                      color: _getLocationTypeColor(location['location_type']).withValues(alpha: 0.1),
                                       borderRadius: BorderRadius.circular(4),
                                       border: Border.all(
-                                        color: _getLocationTypeColor(location['location_type']).withOpacity(0.3),
+                                        color: _getLocationTypeColor(location['location_type']).withValues(alpha: 0.3),
                                         width: 1,
                                       ),
                                     ),
@@ -850,10 +841,10 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
                         Container(
                           padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                           decoration: BoxDecoration(
-                            color: _getLocationTypeColor(_selectedCashLocationType!).withOpacity(0.05),
+                            color: _getLocationTypeColor(_selectedCashLocationType!).withValues(alpha: 0.05),
                             borderRadius: BorderRadius.circular(TossBorderRadius.sm),
                             border: Border.all(
-                              color: _getLocationTypeColor(_selectedCashLocationType!).withOpacity(0.2),
+                              color: _getLocationTypeColor(_selectedCashLocationType!).withValues(alpha: 0.2),
                               width: 1,
                             ),
                           ),
@@ -906,7 +897,7 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
                                     Container(
                                       padding: EdgeInsets.symmetric(horizontal: 6, vertical: 1),
                                       decoration: BoxDecoration(
-                                        color: TossColors.info.withOpacity(0.1),
+                                        color: TossColors.info.withValues(alpha: 0.1),
                                         borderRadius: BorderRadius.circular(4),
                                       ),
                                       child: Text(
@@ -1085,10 +1076,10 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
                                         Container(
                                           padding: EdgeInsets.symmetric(horizontal: 6, vertical: 1),
                                           decoration: BoxDecoration(
-                                            color: _getLocationTypeColor(location['location_type']).withOpacity(0.1),
+                                            color: _getLocationTypeColor(location['location_type']).withValues(alpha: 0.1),
                                             borderRadius: BorderRadius.circular(4),
                                             border: Border.all(
-                                              color: _getLocationTypeColor(location['location_type']).withOpacity(0.3),
+                                              color: _getLocationTypeColor(location['location_type']).withValues(alpha: 0.3),
                                               width: 1,
                                             ),
                                           ),
@@ -1127,10 +1118,10 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
                         Container(
                           padding: EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: TossColors.success.withOpacity(0.1),
+                            color: TossColors.success.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(TossBorderRadius.md),
                             border: Border.all(
-                              color: TossColors.success.withOpacity(0.3),
+                              color: TossColors.success.withValues(alpha: 0.3),
                               width: 1,
                             ),
                           ),
@@ -1155,10 +1146,10 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
                         Container(
                           padding: EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: TossColors.error.withOpacity(0.1),
+                            color: TossColors.error.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(TossBorderRadius.md),
                             border: Border.all(
-                              color: TossColors.error.withOpacity(0.3),
+                              color: TossColors.error.withValues(alpha: 0.3),
                               width: 1,
                             ),
                           ),
@@ -1367,33 +1358,6 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
     );
   }
   
-  Widget _buildTypeButton(String label, bool isDebit) {
-    final isSelected = _isDebit == isDebit;
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          _isDebit = isDebit;
-        });
-      },
-      child: Container(
-        padding: EdgeInsets.symmetric(vertical: 12),
-        decoration: BoxDecoration(
-          color: isSelected ? (isDebit ? TossColors.primary : TossColors.success) : Colors.transparent,
-          borderRadius: BorderRadius.circular(TossBorderRadius.md),
-        ),
-        child: Center(
-          child: Text(
-            label,
-            style: TossTextStyles.body.copyWith(
-              color: isSelected ? Colors.white : TossColors.gray600,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-  
   Widget _buildDropdown({
     required String? value,
     required String hint,
@@ -1405,7 +1369,7 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
         color: TossColors.gray50,
         borderRadius: BorderRadius.circular(TossBorderRadius.md),
         border: Border.all(
-          color: TossColors.primary.withOpacity(0.2),
+          color: TossColors.primary.withValues(alpha: 0.2),
           width: 1,
         ),
       ),

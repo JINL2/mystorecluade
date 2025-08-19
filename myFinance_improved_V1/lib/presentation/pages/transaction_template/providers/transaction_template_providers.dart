@@ -1,17 +1,14 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:intl/intl.dart';
-import 'package:myfinance_improved/presentation/providers/auth_provider.dart';
-import 'package:myfinance_improved/presentation/providers/app_state_provider.dart';
-import '../models/transaction_template_model.dart';
+import '../../../providers/app_state_provider.dart';
+import '../../../../data/services/supabase_service.dart';
 
-/// Provider for user data with companies (integrates with app state)
-/// This is exactly the same as homepage providers to maintain consistency
-final userCompaniesProvider = FutureProvider<dynamic>((ref) async {
-  final user = ref.watch(authStateProvider);
-  final appStateNotifier = ref.read(appStateProvider.notifier);
-  // Watch app state to rebuild when data changes
+// Provider to watch user data from app state with authentication and caching
+final templateUserProvider = Provider<dynamic>((ref) async {
   final appState = ref.watch(appStateProvider);
+  final appStateNotifier = ref.read(appStateProvider.notifier);
+  final user = ref.watch(authStateProvider);
   
   if (user == null) {
     throw Exception('User not authenticated');
@@ -26,9 +23,10 @@ final userCompaniesProvider = FutureProvider<dynamic>((ref) async {
   }
   
   // Fetch fresh data from API using RPC function
-  // Call get_user_companies_and_stores(user_id) RPC
   final supabase = Supabase.instance.client;
-  final response = await supabase.rpc('get_user_companies_and_stores', params: {'p_user_id': user.id});
+  final response = await supabase.rpc('get_user_companies_and_stores', 
+    params: {'p_user_id': user.id}
+  );
   
   // Save to app state for persistence
   await appStateNotifier.setUser(response);
@@ -43,13 +41,10 @@ final userCompaniesProvider = FutureProvider<dynamic>((ref) async {
   return response;
 });
 
-/// Provider for categories with features filtered by permissions
-/// This is exactly the same as homepage providers to maintain consistency
-final categoriesWithFeaturesProvider = FutureProvider<dynamic>((ref) async {
-  // Watch app state to rebuild when data changes
+// Provider to watch categoryFeatures from app state with permission filtering
+final templateCategoryFeaturesProvider = Provider<dynamic>((ref) async {
   final appState = ref.watch(appStateProvider);
   final appStateNotifier = ref.read(appStateProvider.notifier);
-  
   
   // Check if we need to refresh (no cached data)
   final needsRefresh = !appStateNotifier.hasCategoryFeatures;
@@ -81,7 +76,6 @@ final categoriesWithFeaturesProvider = FutureProvider<dynamic>((ref) async {
       return permissions.contains(feature['feature_id']);
     }).toList();
     
-    
     if (filteredFeatures.isNotEmpty) {
       filteredCategories.add({
         'category_id': category['category_id'],
@@ -97,9 +91,21 @@ final categoriesWithFeaturesProvider = FutureProvider<dynamic>((ref) async {
   return filteredCategories;
 });
 
-// Provider for fetching transaction templates from Supabase
-final transactionTemplatesProvider = FutureProvider<List<TransactionTemplate>>((ref) async {
-  // Get app state for company and store IDs
+// Provider to watch selected company from app state
+final templateCompanyChoosenProvider = Provider<String>((ref) {
+  final appState = ref.watch(appStateProvider);
+  return appState.companyChoosen;
+});
+
+// Provider to watch selected store from app state
+final templateStoreChoosenProvider = Provider<String>((ref) {
+  final appState = ref.watch(appStateProvider);
+  return appState.storeChoosen;
+});
+
+// Provider for fetching transaction templates from Supabase with visibility filtering
+final transactionTemplatesProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
+  final supabaseService = ref.read(supabaseServiceProvider);
   final appState = ref.watch(appStateProvider);
   final companyId = appState.companyChoosen;
   final storeId = appState.storeChoosen;
@@ -107,103 +113,100 @@ final transactionTemplatesProvider = FutureProvider<List<TransactionTemplate>>((
   // Get current user for visibility filtering
   final currentUser = ref.watch(authStateProvider);
   
-  // Return empty list if no company selected
-  if (companyId.isEmpty) {
+  // If no company selected or user not authenticated, return empty list
+  if (companyId.isEmpty || currentUser == null) {
     return [];
   }
-  
-  if (currentUser == null) {
-    return [];
-  }
-  
+
   try {
     final supabase = Supabase.instance.client;
     
-    // Query transaction_templates table with filters
+    // Query transaction_templates table with all needed fields
     final query = supabase
         .from('transaction_templates')
-        .select('template_id, name, data, permission, tags, visibility_level, is_active, updated_by, company_id, store_id, counterparty_id, counterparty_cash_location_id')
+        .select('''
+          template_id, 
+          name, 
+          template_description,
+          data, 
+          permission, 
+          tags, 
+          visibility_level, 
+          is_active, 
+          updated_by, 
+          company_id, 
+          store_id, 
+          counterparty_id, 
+          counterparty_cash_location_id,
+          created_at
+        ''')
         .eq('company_id', companyId)
-        .eq('is_active', true); // Only get active templates
+        .eq('is_active', true)
+        .order('created_at', ascending: false);
     
     // Add store filter if store is selected
+    List<dynamic> response;
     if (storeId.isNotEmpty) {
       // Get templates that are either for this specific store OR company-wide (null store_id)
-      final response = await query.or('store_id.eq.$storeId,store_id.is.null');
-      
-      // Ensure response is a List
-      final responseList = response is List ? response : [response];
-      
-      
-      // Filter templates based on visibility level
-      final filteredTemplates = responseList.where((item) {
-        final template = item as Map<String, dynamic>;
-        final visibilityLevel = template['visibility_level']?.toString() ?? 'public';
-        final updatedBy = template['updated_by']?.toString() ?? '';
-        
-        // If template is public, show to everyone
-        if (visibilityLevel == 'public') {
-          return true;
-        }
-        
-        // If template is private, only show to the creator
-        if (visibilityLevel == 'private') {
-          return updatedBy == currentUser.id;
-        }
-        
-        // Default to not showing (shouldn't reach here)
-        return false;
-      }).toList();
-      
-      
-      // Convert to TransactionTemplate models
-      final templates = filteredTemplates
-          .map((json) => TransactionTemplate.fromJson(json as Map<String, dynamic>))
-          .toList();
-      
-      return templates;
+      response = await query.or('store_id.eq.$storeId,store_id.is.null');
     } else {
       // If no store selected, get only company-wide templates (store_id is null)
-      final response = await query.isFilter('store_id', null);
-      
-      // Ensure response is a List
-      final responseList = response is List ? response : [response];
-      
-      
-      // Filter templates based on visibility level
-      final filteredTemplates = responseList.where((item) {
-        final template = item as Map<String, dynamic>;
-        final visibilityLevel = template['visibility_level']?.toString() ?? 'public';
-        final updatedBy = template['updated_by']?.toString() ?? '';
-        
-        // If template is public, show to everyone
-        if (visibilityLevel == 'public') {
-          return true;
-        }
-        
-        // If template is private, only show to the creator
-        if (visibilityLevel == 'private') {
-          return updatedBy == currentUser.id;
-        }
-        
-        // Default to not showing (shouldn't reach here)
-        return false;
-      }).toList();
-      
-      
-      // Convert to TransactionTemplate models
-      final templates = filteredTemplates
-          .map((json) => TransactionTemplate.fromJson(json as Map<String, dynamic>))
-          .toList();
-      
-      return templates;
+      response = await query.isFilter('store_id', null);
     }
+    
+    // Ensure response is a List
+    final responseList = response is List ? response : [response];
+    
+    // Filter templates based on visibility level
+    final filteredTemplates = responseList.where((item) {
+      final template = item as Map<String, dynamic>;
+      final visibilityLevel = template['visibility_level']?.toString() ?? 'public';
+      final updatedBy = template['updated_by']?.toString() ?? '';
+      
+      // If template is public, show to everyone
+      if (visibilityLevel == 'public') {
+        return true;
+      }
+      
+      // If template is private, only show to the creator
+      if (visibilityLevel == 'private') {
+        return updatedBy == currentUser.id;
+      }
+      
+      // Default to not showing (shouldn't reach here)
+      return false;
+    }).toList();
+    
+    // Convert to proper Map<String, dynamic> format
+    final templates = <Map<String, dynamic>>[];
+    for (var item in filteredTemplates) {
+      try {
+        if (item is Map<String, dynamic>) {
+          templates.add(item);
+        } else if (item is Map) {
+          templates.add(Map<String, dynamic>.from(item));
+        }
+      } catch (e) {
+        // Skip items that can't be converted
+        continue;
+      }
+    }
+    
+    return templates;
+    
   } catch (e) {
-    throw Exception('Failed to fetch transaction templates: $e');
+    // Log error in debug mode only
+    assert(() {
+      print('Transaction Templates Error: $e');
+      return true;
+    }());
+    
+    // Return empty list to prevent crash
+    return [];
   }
 });
 
-// Provider for fetching all accounts
+// Provider for fetching all accounts (excluding fixedAsset)
 final accountsProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
   try {
     final supabase = Supabase.instance.client;
@@ -214,13 +217,11 @@ final accountsProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async 
         .select('account_id, account_name, category_tag')
         .order('account_name');
     
-    
     // Filter out fixedAsset accounts for transaction templates
     final filteredAccounts = response.where((account) {
       final categoryTag = account['category_tag']?.toString().toLowerCase() ?? '';
       return categoryTag != 'fixedasset';
     }).toList();
-    
     
     return List<Map<String, dynamic>>.from(filteredAccounts);
   } catch (e) {
@@ -255,7 +256,6 @@ final cashLocationsProvider = FutureProvider<List<Map<String, dynamic>>>((ref) a
     
     final response = await query.order('location_name');
     
-    
     return List<Map<String, dynamic>>.from(response);
   } catch (e) {
     throw Exception('Failed to fetch cash locations: $e');
@@ -280,7 +280,6 @@ final counterpartiesProvider = FutureProvider<List<Map<String, dynamic>>>((ref) 
         .eq('company_id', companyId)
         .order('name');
     
-    
     return List<Map<String, dynamic>>.from(response);
   } catch (e) {
     throw Exception('Failed to fetch counterparties: $e');
@@ -303,8 +302,7 @@ final counterpartyCashLocationsProvider = FutureProvider.family<List<Map<String,
         .eq('company_id', linkedCompanyId)
         .order('location_name');
     
-    
-    // Add "None" option at the beginning (it should be first in the list)
+    // Add "None" option at the beginning
     final locations = <Map<String, dynamic>>[
       {'cash_location_id': null, 'location_name': 'None', 'location_type': 'none'},
     ];
@@ -318,182 +316,227 @@ final counterpartyCashLocationsProvider = FutureProvider.family<List<Map<String,
   }
 });
 
-// Provider for creating a new transaction template
-final createTransactionTemplateProvider = Provider<Future<void> Function(Map<String, dynamic>)>((ref) {
-  return (Map<String, dynamic> templateData) async {
+// Function to create a transaction template
+Future<void> createTransactionTemplate({
+  required WidgetRef ref,
+  required String name,
+  required String? description,
+  required List<Map<String, dynamic>> data,
+  required String permission,
+  required List<String> tags,
+  required String visibilityLevel,
+  String? counterpartyId,
+  String? counterpartyCashLocationId,
+}) async {
+  try {
+    final supabase = Supabase.instance.client;
     final appState = ref.read(appStateProvider);
-    final companyId = appState.companyChoosen;
-    final storeId = appState.storeChoosen;
     final user = ref.read(authStateProvider);
-    
-    if (companyId.isEmpty) {
-      throw Exception('No company selected');
-    }
     
     if (user == null) {
       throw Exception('User not authenticated');
     }
     
-    try {
-      final supabase = Supabase.instance.client;
+    final companyId = appState.companyChoosen;
+    final storeId = appState.storeChoosen;
+    
+    if (companyId.isEmpty) {
+      throw Exception('No company selected');
+    }
+    
+    await supabase.from('transaction_templates').insert({
+      'name': name,
+      'template_description': description,
+      'data': data,
+      'permission': permission,
+      'tags': tags,
+      'visibility_level': visibilityLevel,
+      'company_id': companyId,
+      'store_id': storeId.isNotEmpty ? storeId : null,
+      'counterparty_id': counterpartyId,
+      'counterparty_cash_location_id': counterpartyCashLocationId,
+      'updated_by': user.id,
+      'is_active': true,
+    });
+    
+  } catch (e) {
+    throw Exception('Failed to create transaction template: $e');
+  }
+}
+
+// Function to execute a transaction template
+Future<void> executeTransactionTemplate({
+  required WidgetRef ref,
+  required TransactionTemplate template,
+  required double amount,
+  Map<String, dynamic>? debtInfo,
+}) async {
+  try {
+    final supabase = Supabase.instance.client;
+    final appState = ref.read(appStateProvider);
+    final user = ref.read(authStateProvider);
+    
+    if (user == null) {
+      throw Exception('User not authenticated');
+    }
+    
+    final companyId = appState.companyChoosen;
+    final storeId = appState.storeChoosen;
+    
+    // Get current timestamp with proper PostgreSQL format
+    final now = DateTime.now();
+    final entryDate = DateFormat('yyyy-MM-dd HH:mm:ss.SSS').format(now);
+    
+    // Parse template data (array of transactions)
+    final templateTransactions = template.data as List;
+    final pLines = <Map<String, dynamic>>[];
+    
+    // Create journal lines from template
+    for (final templateTx in templateTransactions) {
+      final isDebit = templateTx['type'] == 'debit';
+      final categoryTag = templateTx['category_tag']?.toString().toLowerCase() ?? '';
       
-      // Get current timestamp in required format
-      final now = DateTime.now();
-      final timestamp = now.toIso8601String().replaceAll('T', ' ').substring(0, 23);
-      
-      // Prepare the template data
-      final data = {
-        'name': templateData['name'],
-        'data': templateData['data'], // JSON array structure
-        'company_id': companyId,
-        'store_id': storeId.isNotEmpty ? storeId : null,
-        'permission': templateData['permission'], // UUID for manager or all
-        'tags': templateData['tags'], // JSON structure with accounts, category, cash_locations
-        'visibility_level': templateData['visibility_level'], // private or public
-        'counterparty_id': templateData['counterparty_id'], // Store the main counterparty ID
-        'counterparty_cash_location_id': templateData['counterparty_cash_location_id'], // Store counterparty cash location ID
-        'is_active': true,
-        'created_at': timestamp,
-        'updated_at': timestamp,
-        'updated_by': user.id,
+      // Prepare basic line data
+      final line = <String, dynamic>{
+        'account_id': templateTx['account_id'],
+        'description': (templateTx['description'] != null && templateTx['description'].toString().isNotEmpty) 
+            ? templateTx['description'] 
+            : null,
+        'debit': isDebit ? amount.toString() : '0',
+        'credit': isDebit ? '0' : amount.toString(),
       };
       
-      await supabase.from('transaction_templates').insert(data);
-      
-      // Invalidate the templates provider to refresh the list
-      ref.invalidate(transactionTemplatesProvider);
-      
-    } catch (e) {
-      throw Exception('Failed to create transaction template: $e');
-    }
-  };
-});
-
-// Provider for executing a transaction template (creating actual transactions)
-final executeTransactionTemplateProvider = Provider<Future<void> Function(TransactionTemplate, double, {Map<String, dynamic>? debtInfo})>((ref) {
-  return (TransactionTemplate template, double amount, {Map<String, dynamic>? debtInfo}) async {
-    final appState = ref.read(appStateProvider);
-    final companyId = appState.companyChoosen;
-    final storeId = appState.storeChoosen;
-    final user = ref.read(authStateProvider);
-    
-    if (companyId.isEmpty) {
-      throw Exception('No company selected');
-    }
-    
-    if (user == null) {
-      throw Exception('User not authenticated');
-    }
-    
-    try {
-      final supabase = Supabase.instance.client;
-      
-      // Get current timestamp with proper PostgreSQL format
-      final now = DateTime.now();
-      final entryDate = DateFormat('yyyy-MM-dd HH:mm:ss.SSS').format(now);
-      
-      // Parse template data (array of transactions)
-      final templateTransactions = template.data as List;
-      final pLines = <Map<String, dynamic>>[];
-      
-      // Create journal lines from template
-      for (final templateTx in templateTransactions) {
-        final isDebit = templateTx['type'] == 'debit';
-        final categoryTag = templateTx['category_tag']?.toString().toLowerCase() ?? '';
-        
-        // Prepare basic line data
-        final line = <String, dynamic>{
-          'account_id': templateTx['account_id'],
-          'description': (templateTx['description'] != null && templateTx['description'].toString().isNotEmpty) 
-              ? templateTx['description'] 
-              : null,
-          'debit': isDebit ? amount.toString() : '0',
-          'credit': isDebit ? '0' : amount.toString(),
+      // Add cash location if account is cash type
+      if (categoryTag == 'cash' && templateTx['cash_location_id'] != null) {
+        line['cash'] = {
+          'cash_location_id': templateTx['cash_location_id'],
         };
-        
-        // Add cash location if account is cash type
-        if (categoryTag == 'cash' && templateTx['cash_location_id'] != null) {
-          line['cash'] = {
-            'cash_location_id': templateTx['cash_location_id'],
-          };
-        }
-        
-        // Add counterparty if present (for payable/receivable accounts)
-        if (templateTx['counterparty_id'] != null && templateTx['counterparty_id'] != '') {
-          line['counterparty_id'] = templateTx['counterparty_id'];
-        }
-        
-        // Add account mapping information if available (for internal counterparties)
-        if ((categoryTag == 'payable' || categoryTag == 'receivable') && 
-            debtInfo != null && 
-            debtInfo['account_mapping'] != null) {
-          final accountMapping = debtInfo['account_mapping'] as Map<String, dynamic>;
-          // Store account mapping data with the transaction for reference
-          line['account_mapping'] = {
-            'my_account_id': accountMapping['my_account_id'],
-            'linked_account_id': accountMapping['linked_account_id'],
-            'direction': accountMapping['direction'],
-          };
-        }
-        
-        // Add debt information if this is a payable/receivable account with debt info
-        if ((categoryTag == 'payable' || categoryTag == 'receivable') && 
-            debtInfo != null && 
-            templateTx['counterparty_id'] != null &&
-            templateTx['counterparty_id'] != '') {
-          final debt = {
-            'direction': categoryTag,
-            'category': debtInfo['category'] ?? 'other',
-            'counterparty_id': templateTx['counterparty_id'],
-            'original_amount': amount.toString(),
-            'interest_rate': (debtInfo['interest_rate'] ?? 0.0).toString(),
-            'interest_account_id': '',
-            'interest_due_day': 0,
-            'issue_date': debtInfo['issue_date'] ?? DateFormat('yyyy-MM-dd').format(now),
-            'due_date': debtInfo['due_date'] ?? DateFormat('yyyy-MM-dd').format(now.add(Duration(days: 30))),
-            'description': debtInfo['description'] ?? '',
-          };
-          line['debt'] = debt;
-        }
-        
-        pLines.add(line);
       }
       
-      // Determine p_counterparty_id and p_if_cash_location_id from template and user input
-      String? pCounterpartyId;
-      String? pIfCashLocationId;
-      
-      // Use template's counterparty_id if available
-      if (template.counterpartyId != null && template.counterpartyId!.isNotEmpty) {
-        pCounterpartyId = template.counterpartyId;
+      // Add counterparty if present (for payable/receivable accounts)
+      if (templateTx['counterparty_id'] != null && templateTx['counterparty_id'] != '') {
+        line['counterparty_id'] = templateTx['counterparty_id'];
       }
       
-      // Use the counterparty cash location if provided (from user selection or template)
-      if (debtInfo != null && debtInfo['counterparty_cash_location_id'] != null) {
-        pIfCashLocationId = debtInfo['counterparty_cash_location_id'];
-      } else if (template.counterpartyCashLocationId != null && template.counterpartyCashLocationId!.isNotEmpty) {
-        pIfCashLocationId = template.counterpartyCashLocationId;
+      // Add account mapping information if available (for internal counterparties)
+      if ((categoryTag == 'payable' || categoryTag == 'receivable') && 
+          debtInfo != null && 
+          debtInfo['account_mapping'] != null) {
+        final accountMapping = debtInfo['account_mapping'] as Map<String, dynamic>;
+        line['account_mapping'] = {
+          'my_account_id': accountMapping['my_account_id'],
+          'linked_account_id': accountMapping['linked_account_id'],
+          'direction': accountMapping['direction'],
+        };
       }
       
-      // Call the journal RPC with properly formatted parameters
-      final response = await supabase.rpc(
-        'insert_journal_with_everything',
-        params: {
-          'p_base_amount': amount,
-          'p_company_id': companyId,
-          'p_created_by': user.id,
-          'p_description': null,  // Always send null for description since individual lines have their own descriptions
-          'p_entry_date': entryDate,
-          'p_lines': pLines,
-          'p_counterparty_id': pCounterpartyId,
-          'p_if_cash_location_id': pIfCashLocationId,
-          'p_store_id': storeId.isNotEmpty ? storeId : null,
-        },
-      );
+      // Add debt information if this is a payable/receivable account with debt info
+      if ((categoryTag == 'payable' || categoryTag == 'receivable') && 
+          debtInfo != null && 
+          templateTx['counterparty_id'] != null &&
+          templateTx['counterparty_id'] != '') {
+        final debt = {
+          'direction': categoryTag,
+          'category': debtInfo['category'] ?? 'other',
+          'counterparty_id': templateTx['counterparty_id'],
+          'original_amount': amount.toString(),
+          'interest_rate': (debtInfo['interest_rate'] ?? 0.0).toString(),
+          'interest_account_id': '',
+          'interest_due_day': 0,
+          'issue_date': debtInfo['issue_date'] ?? DateFormat('yyyy-MM-dd').format(now),
+          'due_date': debtInfo['due_date'] ?? DateFormat('yyyy-MM-dd').format(now.add(Duration(days: 30))),
+          'description': debtInfo['description'] ?? '',
+        };
+        line['debt'] = debt;
+      }
       
-      
-    } catch (e) {
-      throw Exception('Failed to execute transaction template: $e');
+      pLines.add(line);
     }
-  };
-});
+    
+    // Determine p_counterparty_id and p_if_cash_location_id from template and user input
+    String? pCounterpartyId;
+    String? pIfCashLocationId;
+    
+    // Use template's counterparty_id if available
+    if (template.counterpartyId != null && template.counterpartyId!.isNotEmpty) {
+      pCounterpartyId = template.counterpartyId;
+    }
+    
+    // Use the counterparty cash location if provided (from user selection or template)
+    if (debtInfo != null && debtInfo['counterparty_cash_location_id'] != null) {
+      pIfCashLocationId = debtInfo['counterparty_cash_location_id'];
+    } else if (template.counterpartyCashLocationId != null && template.counterpartyCashLocationId!.isNotEmpty) {
+      pIfCashLocationId = template.counterpartyCashLocationId;
+    }
+    
+    // Call the journal RPC with properly formatted parameters
+    final response = await supabase.rpc(
+      'insert_journal_with_everything',
+      params: {
+        'p_base_amount': amount,
+        'p_company_id': companyId,
+        'p_created_by': user.id,
+        'p_description': null,
+        'p_entry_date': entryDate,
+        'p_lines': pLines,
+        'p_counterparty_id': pCounterpartyId,
+        'p_if_cash_location_id': pIfCashLocationId,
+        'p_store_id': storeId.isNotEmpty ? storeId : null,
+      },
+    );
+    
+  } catch (e) {
+    throw Exception('Failed to execute transaction template: $e');
+  }
+}
+
+// TransactionTemplate model class (assuming it exists elsewhere)
+class TransactionTemplate {
+  final String templateId;
+  final String name;
+  final String? templateDescription;
+  final dynamic data;
+  final String? permission;
+  final List<String>? tags;
+  final String? visibilityLevel;
+  final String? counterpartyId;
+  final String? counterpartyCashLocationId;
+  final String? companyId;
+  final String? storeId;
+  final String? updatedBy;
+  final bool isActive;
+  
+  TransactionTemplate({
+    required this.templateId,
+    required this.name,
+    this.templateDescription,
+    required this.data,
+    this.permission,
+    this.tags,
+    this.visibilityLevel,
+    this.counterpartyId,
+    this.counterpartyCashLocationId,
+    this.companyId,
+    this.storeId,
+    this.updatedBy,
+    this.isActive = true,
+  });
+  
+  factory TransactionTemplate.fromJson(Map<String, dynamic> json) {
+    return TransactionTemplate(
+      templateId: json['template_id'],
+      name: json['name'],
+      templateDescription: json['template_description'],
+      data: json['data'],
+      permission: json['permission'],
+      tags: json['tags'] != null ? List<String>.from(json['tags']) : null,
+      visibilityLevel: json['visibility_level'],
+      counterpartyId: json['counterparty_id'],
+      counterpartyCashLocationId: json['counterparty_cash_location_id'],
+      companyId: json['company_id'],
+      storeId: json['store_id'],
+      updatedBy: json['updated_by'],
+      isActive: json['is_active'] ?? true,
+    );
+  }
+}

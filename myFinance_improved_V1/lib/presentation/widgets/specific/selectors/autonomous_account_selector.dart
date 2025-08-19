@@ -71,9 +71,17 @@ class AutonomousAccountSelector extends ConsumerWidget {
         searchHint: 'Search ${_getAccountTypeLabel().toLowerCase()}',
       ),
       itemTitleBuilder: (account) => account.displayName,
-      itemSubtitleBuilder: showTransactionCount 
-          ? (account) => account.subtitle
-          : null,
+      itemSubtitleBuilder: (account) {
+        // Only show category tag
+        final parts = <String>[];
+        if (account.categoryTag != null && account.categoryTag!.isNotEmpty) {
+          parts.add(account.categoryTag!);
+        }
+        if (showTransactionCount && account.transactionCount > 0) {
+          parts.add('${account.transactionCount} transactions');
+        }
+        return parts.isNotEmpty ? parts.join(' • ') : '';
+      },
       itemIdBuilder: (account) => account.id,
       itemFilterBuilder: (account, query) {
         final queryLower = query.toLowerCase();
@@ -203,9 +211,17 @@ class _AutonomousMultiAccountSelectorState extends ConsumerState<AutonomousMulti
         searchHint: 'Search ${_getAccountTypeLabel().toLowerCase()}',
       ),
       itemTitleBuilder: (account) => account.displayName,
-      itemSubtitleBuilder: widget.showTransactionCount 
-          ? (account) => account.subtitle
-          : null,
+      itemSubtitleBuilder: (account) {
+        // Only show category tag
+        final parts = <String>[];
+        if (account.categoryTag != null && account.categoryTag!.isNotEmpty) {
+          parts.add(account.categoryTag!);
+        }
+        if (widget.showTransactionCount && account.transactionCount > 0) {
+          parts.add('${account.transactionCount} transactions');
+        }
+        return parts.isNotEmpty ? parts.join(' • ') : '';
+      },
       itemIdBuilder: (account) => account.id,
       itemFilterBuilder: (account, query) {
         final queryLower = query.toLowerCase();

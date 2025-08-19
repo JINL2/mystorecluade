@@ -33,12 +33,12 @@ class TransactionLineCard extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(TossBorderRadius.lg),
         border: Border.all(
-          color: line.isDebit ? TossColors.primary.withOpacity(0.2) : TossColors.success.withOpacity(0.2),
+          color: line.isDebit ? TossColors.primary.withValues(alpha: 0.2) : TossColors.success.withValues(alpha: 0.2),
           width: 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 8,
             offset: Offset(0, 2),
           ),
@@ -51,8 +51,8 @@ class TransactionLineCard extends StatelessWidget {
             padding: EdgeInsets.all(TossSpacing.space3),
             decoration: BoxDecoration(
               color: line.isDebit 
-                ? TossColors.primary.withOpacity(0.05)
-                : TossColors.success.withOpacity(0.05),
+                ? TossColors.primary.withValues(alpha: 0.05)
+                : TossColors.success.withValues(alpha: 0.05),
               borderRadius: BorderRadius.vertical(
                 top: Radius.circular(TossBorderRadius.lg),
               ),
@@ -215,10 +215,10 @@ class TransactionLineCard extends StatelessWidget {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(TossBorderRadius.full),
         border: Border.all(
-          color: color.withOpacity(0.2),
+          color: color.withValues(alpha: 0.2),
           width: 1,
         ),
       ),

@@ -42,7 +42,11 @@ class TossBottomSheet extends StatelessWidget {
   
   @override
   Widget build(BuildContext context) {
+    // Use DraggableScrollableSheet for better handling of large content
     return Container(
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.of(context).size.height * 0.9, // 90% of screen height
+      ),
       decoration: BoxDecoration(
         color: TossColors.surface,
         borderRadius: const BorderRadius.only(
@@ -73,9 +77,11 @@ class TossBottomSheet extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
           ],
-          Padding(
-            padding: const EdgeInsets.all(TossSpacing.space5),
-            child: content,
+          Flexible(
+            child: Padding(
+              padding: const EdgeInsets.all(TossSpacing.space5),
+              child: content,
+            ),
           ),
           if (actions != null) ...[
             const Divider(color: TossColors.gray200, height: 1),
