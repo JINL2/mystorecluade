@@ -26,7 +26,8 @@ import '../pages/transaction_template/transaction_template_page.dart';
 import '../pages/my_page/my_page.dart';
 import '../pages/debt_account_settings/debt_account_settings_page.dart';
 import '../pages/component_test/component_test_page.dart';
-import '../pages/notification_debug/notification_debug_page.dart';
+import '../../core/themes/toss_text_styles.dart';
+import '../../core/themes/toss_colors.dart';
 
 
 // Router notifier to listen to auth state changes
@@ -76,22 +77,20 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               const Icon(
                 Icons.error_outline,
                 size: 64,
-                color: Colors.red,
+                color: TossColors.error,
               ),
               const SizedBox(height: 16),
-              const Text(
+              Text(
                 'Page Not Found',
-                style: TextStyle(
-                  fontSize: 24,
+                style: TossTextStyles.h2.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
               ),
               const SizedBox(height: 8),
               Text(
                 'The page you are looking for does not exist.',
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.grey[600],
+                style: TossTextStyles.bodyLarge.copyWith(
+                  color: TossColors.gray600,
                 ),
               ),
               const SizedBox(height: 24),
@@ -238,15 +237,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               ),
             ],
           ),
-          // Component Test Page
+          // Test Page (Notification Debug)
           GoRoute(
             path: 'test',
             builder: (context, state) => const ComponentTestPage(),
-          ),
-          // Notification Debug Page
-          GoRoute(
-            path: 'notification-debug',
-            builder: (context, state) => const NotificationDebugPage(),
           ),
         ],
       ),

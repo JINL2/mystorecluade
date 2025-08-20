@@ -44,9 +44,9 @@ Map<String, dynamic> _$$NotificationPayloadImplToJson(
       'updatedAt': instance.updatedAt?.toIso8601String(),
     };
 
-_$NotificationSettingsImpl _$$NotificationSettingsImplFromJson(
+_$UserNotificationSettingsImpl _$$UserNotificationSettingsImplFromJson(
         Map<String, dynamic> json) =>
-    _$NotificationSettingsImpl(
+    _$UserNotificationSettingsImpl(
       userId: json['userId'] as String,
       pushEnabled: json['pushEnabled'] as bool? ?? true,
       emailEnabled: json['emailEnabled'] as bool? ?? true,
@@ -61,8 +61,8 @@ _$NotificationSettingsImpl _$$NotificationSettingsImplFromJson(
       ),
     );
 
-Map<String, dynamic> _$$NotificationSettingsImplToJson(
-        _$NotificationSettingsImpl instance) =>
+Map<String, dynamic> _$$UserNotificationSettingsImplToJson(
+        _$UserNotificationSettingsImpl instance) =>
     <String, dynamic>{
       'userId': instance.userId,
       'pushEnabled': instance.pushEnabled,

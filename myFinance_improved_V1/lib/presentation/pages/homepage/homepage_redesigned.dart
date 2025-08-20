@@ -10,8 +10,10 @@ import 'package:myfinance_improved/core/constants/icon_mapper.dart';
 import 'providers/homepage_providers.dart';
 import '../../providers/app_state_provider.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/notification_provider.dart';
 import 'models/homepage_models.dart';
 import 'widgets/modern_drawer.dart';
+import '../notifications/notifications_page.dart';
 import '../../../data/services/click_tracking_service.dart';
 
 class HomePageRedesigned extends ConsumerStatefulWidget {
@@ -118,21 +120,57 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
         padding: EdgeInsets.all(TossSpacing.space3),
       ),
       actions: [
-        // Notifications with improved Toss styling
-        IconButton(
-          icon: Badge(
-            isLabelVisible: true,
-            smallSize: 6,
-            largeSize: 6,
-            backgroundColor: TossColors.primary,
-            child: Icon(
-              Icons.notifications_none_rounded,
-              color: TossColors.textSecondary,
-              size: 24,
-            ),
-          ),
-          onPressed: () {},
-          padding: EdgeInsets.all(TossSpacing.space3),
+        // Notifications with unread count badge
+        Consumer(
+          builder: (context, ref, child) {
+            final unreadCountAsync = ref.watch(unreadNotificationCountProvider);
+            
+            return IconButton(
+              icon: unreadCountAsync.when(
+                data: (unreadCount) => Badge(
+                  isLabelVisible: unreadCount > 0,
+                  label: unreadCount > 99 ? const Text('99+') : Text('$unreadCount'),
+                  backgroundColor: TossColors.primary,
+                  textColor: Colors.white,
+                  child: Icon(
+                    Icons.notifications_none_rounded,
+                    color: TossColors.textSecondary,
+                    size: 24,
+                  ),
+                ),
+                loading: () => Badge(
+                  isLabelVisible: false,
+                  backgroundColor: TossColors.primary,
+                  child: Icon(
+                    Icons.notifications_none_rounded,
+                    color: TossColors.textSecondary,
+                    size: 24,
+                  ),
+                ),
+                error: (_, __) => Badge(
+                  isLabelVisible: false,
+                  backgroundColor: TossColors.primary,
+                  child: Icon(
+                    Icons.notifications_none_rounded,
+                    color: TossColors.textSecondary,
+                    size: 24,
+                  ),
+                ),
+              ),
+              onPressed: () {
+                // Navigate to notifications page
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => const NotificationsPage(),
+                  ),
+                ).then((_) {
+                  // Refresh unread count when returning from notifications page
+                  ref.invalidate(unreadNotificationCountProvider);
+                });
+              },
+              padding: EdgeInsets.all(TossSpacing.space3),
+            );
+          },
         ),
         // Profile with improved Toss styling
         Padding(

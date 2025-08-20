@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:intl/intl.dart';
 import '../../../providers/app_state_provider.dart';
+import '../../../providers/auth_provider.dart';
 import '../../../../data/services/supabase_service.dart';
 
 // Provider to watch user data from app state with authentication and caching
@@ -148,10 +149,35 @@ final transactionTemplatesProvider = FutureProvider<List<Map<String, dynamic>>>(
     List<dynamic> response;
     if (storeId.isNotEmpty) {
       // Get templates that are either for this specific store OR company-wide (null store_id)
-      response = await query.or('store_id.eq.$storeId,store_id.is.null');
+      response = await supabase
+          .from('transaction_templates')
+          .select()
+          .eq('company_id', companyId)
+          .eq('is_active', true)
+          .or('store_id.eq.$storeId,store_id.is.null')
+          .order('created_at', ascending: false);
     } else {
       // If no store selected, get only company-wide templates (store_id is null)
-      response = await query.isFilter('store_id', null);
+      response = await supabase
+          .from('transaction_templates')
+          .select('''
+          template_id, 
+          template_name, 
+          template_type, 
+          amount, 
+          journal_type, 
+          notes, 
+          visibility_level, 
+          company_id, 
+          store_id, 
+          counterparty_id, 
+          counterparty_cash_location_id,
+          created_at
+        ''')
+          .eq('company_id', companyId)
+          .eq('is_active', true)
+          .isFilter('store_id', null)
+          .order('created_at', ascending: false);
     }
     
     // Ensure response is a List

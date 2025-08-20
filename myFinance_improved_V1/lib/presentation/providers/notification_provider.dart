@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:logger/logger.dart';
+// import 'package:logger/logger.dart';
 import '../../core/notifications/models/notification_payload.dart';
+import '../../core/notifications/models/notification_db_model.dart';
 import '../../core/notifications/services/notification_service.dart';
 import '../../core/notifications/utils/notification_logger.dart';
 
@@ -18,7 +19,7 @@ final notificationLoggerProvider = Provider<NotificationLogger>((ref) {
 class NotificationNotifier extends StateNotifier<NotificationState> {
   final NotificationService _notificationService;
   final NotificationLogger _notificationLogger;
-  final Logger _logger = Logger();
+  // final Logger _logger = Logger();
   
   NotificationNotifier({
     required NotificationService notificationService,
@@ -49,11 +50,10 @@ class NotificationNotifier extends StateNotifier<NotificationState> {
         error: null,
       );
       
-      _logger.i('✅ Notifications initialized in provider');
+      // Notifications initialized in provider
       
     } catch (e, stackTrace) {
-      _logger.e('Failed to initialize notifications', 
-                error: e, stackTrace: stackTrace);
+      // Failed to initialize notifications
       
       state = state.copyWith(
         isLoading: false,
@@ -71,31 +71,52 @@ class NotificationNotifier extends StateNotifier<NotificationState> {
         lastTestNotificationTime: DateTime.now(),
       );
       
-      _logger.d('📤 Test notification sent');
+      // Test notification sent
       
     } catch (e) {
-      _logger.e('Failed to send test notification', error: e);
+      // Failed to send test notification
       state = state.copyWith(error: e.toString());
     }
   }
   
   /// Update notification settings
-  Future<void> updateSettings(NotificationSettings settings) async {
+  Future<void> updateSettings({
+    bool? pushEnabled,
+    bool? emailEnabled,
+    bool? transactionAlerts,
+    bool? reminders,
+    bool? marketingMessages,
+    String? soundPreference,
+    bool? vibrationEnabled,
+    Map<String, dynamic>? categoryPreferences,
+  }) async {
     state = state.copyWith(isLoading: true);
     
     try {
-      await _notificationService.updateNotificationSettings(settings);
+      await _notificationService.updateNotificationSettings(
+        pushEnabled: pushEnabled,
+        emailEnabled: emailEnabled,
+        transactionAlerts: transactionAlerts,
+        reminders: reminders,
+        marketingMessages: marketingMessages,
+        soundPreference: soundPreference,
+        vibrationEnabled: vibrationEnabled,
+        categoryPreferences: categoryPreferences,
+      );
+      
+      // Refresh settings after update
+      final updatedSettings = await _notificationService.getNotificationSettings();
       
       state = state.copyWith(
-        settings: settings,
+        settings: updatedSettings,
         isLoading: false,
         error: null,
       );
       
-      _logger.i('✅ Notification settings updated');
+      // Notification settings updated
       
     } catch (e) {
-      _logger.e('Failed to update notification settings', error: e);
+      // Failed to update notification settings
       
       state = state.copyWith(
         isLoading: false,
@@ -106,15 +127,7 @@ class NotificationNotifier extends StateNotifier<NotificationState> {
   
   /// Toggle push notifications
   Future<void> togglePushNotifications(bool enabled) async {
-    final currentSettings = state.settings;
-    
-    if (currentSettings == null) return;
-    
-    final updatedSettings = currentSettings.copyWith(
-      pushEnabled: enabled,
-    );
-    
-    await updateSettings(updatedSettings);
+    await updateSettings(pushEnabled: enabled);
   }
   
   /// Toggle notification category
@@ -123,16 +136,12 @@ class NotificationNotifier extends StateNotifier<NotificationState> {
     
     if (currentSettings == null) return;
     
-    final categoryPreferences = Map<String, bool>.from(
-      currentSettings.categoryPreferences ?? {},
+    final categoryPreferences = Map<String, dynamic>.from(
+      currentSettings.categoryPreferences,
     );
     categoryPreferences[category] = enabled;
     
-    final updatedSettings = currentSettings.copyWith(
-      categoryPreferences: categoryPreferences,
-    );
-    
-    await updateSettings(updatedSettings);
+    await updateSettings(categoryPreferences: categoryPreferences);
   }
   
   /// Get notification logs
@@ -148,7 +157,7 @@ class NotificationNotifier extends StateNotifier<NotificationState> {
   /// Clear notification logs
   Future<void> clearLogs() async {
     await _notificationLogger.clearLogs();
-    _logger.d('🧹 Notification logs cleared');
+    // Notification logs cleared
   }
   
   /// Export logs
@@ -173,10 +182,10 @@ class NotificationNotifier extends StateNotifier<NotificationState> {
         error: null,
       );
       
-      _logger.i('✅ Tokens refreshed');
+      // Tokens refreshed
       
     } catch (e) {
-      _logger.e('Failed to refresh tokens', error: e);
+      // Failed to refresh tokens
       
       state = state.copyWith(
         isLoading: false,
@@ -196,7 +205,7 @@ class NotificationState {
   final bool isInitialized;
   final bool isLoading;
   final String? error;
-  final NotificationSettings? settings;
+  final UserNotificationSettingsModel? settings;
   final String? fcmToken;
   final String? apnsToken;
   final DateTime? lastTestNotificationTime;
@@ -215,7 +224,7 @@ class NotificationState {
     bool? isInitialized,
     bool? isLoading,
     String? error,
-    NotificationSettings? settings,
+    UserNotificationSettingsModel? settings,
     String? fcmToken,
     String? apnsToken,
     DateTime? lastTestNotificationTime,
@@ -242,3 +251,12 @@ final notificationProvider = StateNotifierProvider<NotificationNotifier, Notific
     notificationLogger: notificationLogger,
   );
 });
+
+/// Provider for unread notification count
+final unreadNotificationCountProvider = FutureProvider.autoDispose<int>((ref) async {
+  final notificationService = ref.watch(notificationServiceProvider);
+  return await notificationService.getUnreadNotificationCount();
+});
+
+/// Provider that can be used to refresh the unread count
+final refreshUnreadCountProvider = StateProvider<int>((ref) => 0);

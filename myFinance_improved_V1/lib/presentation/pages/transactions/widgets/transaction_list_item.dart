@@ -71,7 +71,7 @@ class TransactionListItem extends ConsumerWidget {
                           vertical: 1,
                         ),
                         decoration: BoxDecoration(
-                          color: TossColors.primaryLight.withValues(alpha: 0.1),
+                          color: TossColors.primarySurface.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(4),
                           border: Border.all(
                             color: TossColors.primary.withValues(alpha: 0.2),

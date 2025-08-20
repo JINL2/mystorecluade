@@ -49,7 +49,7 @@ class TossToggleButton extends StatelessWidget {
         decoration: BoxDecoration(
           color: isSelected
               ? (activeColor ?? TossColors.primary)
-              : Colors.white,
+              : TossColors.white,
           borderRadius: BorderRadius.circular(TossBorderRadius.lg),
           border: Border.all(
             color: isSelected
@@ -67,7 +67,7 @@ class TossToggleButton extends StatelessWidget {
                 icon,
                 size: 18,
                 color: isSelected
-                    ? (activeTextColor ?? Colors.white)
+                    ? (activeTextColor ?? TossColors.white)
                     : TossColors.gray600,
               ),
               const SizedBox(width: TossSpacing.space2),
@@ -76,7 +76,7 @@ class TossToggleButton extends StatelessWidget {
               label,
               style: TossTextStyles.bodyLarge.copyWith(
                 color: isSelected
-                    ? (activeTextColor ?? Colors.white)
+                    ? (activeTextColor ?? TossColors.white)
                     : TossColors.gray600,
                 fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
               ),

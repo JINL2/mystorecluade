@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
-import 'package:logger/logger.dart';
+// import 'package:logger/logger.dart';
 import 'package:path_provider/path_provider.dart';
 
 /// Logger specifically for notification debugging
@@ -11,19 +11,19 @@ class NotificationLogger {
   factory NotificationLogger() => _instance;
   NotificationLogger._internal();
 
-  final Logger _logger = Logger(
-    printer: PrettyPrinter(
-      methodCount: 2,
-      errorMethodCount: 8,
-      lineLength: 120,
-      colors: true,
-      printEmojis: true,
-      printTime: true,
-    ),
-  );
+  // final Logger _logger = Logger(
+  //   printer: PrettyPrinter(
+  //     methodCount: 2,
+  //     errorMethodCount: 8,
+  //     lineLength: 120,
+  //     colors: true,
+  //     printEmojis: false,
+  //     dateTimeFormat: DateTimeFormat.onlyTimeAndSinceStart,
+  //   ),
+  // );
   
   File? _logFile;
-  List<NotificationLog> _logs = [];
+  final List<NotificationLog> _logs = [];
   
   /// Initialize the notification logger
   Future<void> initialize() async {
@@ -40,10 +40,10 @@ class NotificationLogger {
       
       await _logFile!.writeAsString('=== Notification Log Started at $timestamp ===\n');
       
-      _logger.d('📝 Notification logger initialized');
+      // Notification logger initialized
       
     } catch (e) {
-      _logger.e('Failed to initialize notification logger', error: e);
+      // Failed to initialize notification logger
     }
   }
   
@@ -94,7 +94,7 @@ class NotificationLogger {
     
     _addLog(log);
     _writeToFile(log);
-    _logger.e(error, error: details);
+    // Log error: $error
   }
   
   /// Add log to memory
@@ -112,30 +112,28 @@ class NotificationLogger {
     if (_logFile == null) return;
     
     try {
+      // Ensure the directory exists before writing
+      final directory = _logFile!.parent;
+      if (!await directory.exists()) {
+        await directory.create(recursive: true);
+      }
+      
       final logString = _formatLog(log);
       await _logFile!.writeAsString('$logString\n', mode: FileMode.append);
     } catch (e) {
-      _logger.e('Failed to write to log file', error: e);
+      // Don't log the error to avoid infinite loop
+      if (kDebugMode) {
+        // Failed to write to log file: $e
+      }
     }
   }
   
-  /// Print log to console
+  /// Print log to console (only in debug mode)
   void _printLog(NotificationLog log) {
-    final emoji = _getEmoji(log.type);
-    
-    _logger.d('''
-$emoji Notification Log
-┌────────────────────────────────────────
-│ Type: ${log.type}
-│ Time: ${log.timestamp}
-│ Message ID: ${log.messageId ?? 'N/A'}
-│ Title: ${log.title ?? 'N/A'}
-│ Body: ${log.body ?? 'N/A'}
-│ Data: ${log.data}
-│ Category: ${log.category ?? 'N/A'}
-│ From: ${log.from ?? 'N/A'}
-└────────────────────────────────────────
-    ''');
+    if (kDebugMode) {
+      final emoji = _getEmoji(log.type);
+      // $emoji ${log.type} notification: ${log.title ?? "N/A"}
+    }
   }
   
   /// Format log for file writing
@@ -204,7 +202,7 @@ $emoji Notification Log
       await _logFile!.writeAsString('=== Logs cleared at $timestamp ===\n');
     }
     
-    _logger.d('🧹 Notification logs cleared');
+    // Notification logs cleared
   }
   
   /// Get debug statistics

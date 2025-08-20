@@ -597,10 +597,9 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
                             const SizedBox(height: TossSpacing.space1),
                             Text(
                               shiftName,
-                              style: TossTextStyles.h3.copyWith(
+                              style: TossTextStyles.h4.copyWith(
                                 color: TossColors.primary,
                                 fontWeight: FontWeight.w700,
-                                fontSize: 18,
                               ),
                             ),
                             const SizedBox(height: TossSpacing.space1),
@@ -1614,7 +1613,6 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
             style: TossTextStyles.caption.copyWith(
               color: isWeekend ? TossColors.gray400 : TossColors.gray500,
               fontWeight: FontWeight.w500,
-              fontSize: 12,
             ),
           ),
         ),
@@ -1680,7 +1678,6 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
                         fontWeight: isSelected || isToday
                             ? FontWeight.w700
                             : FontWeight.w400,
-                        fontSize: 14,
                       ),
                     ),
                     if (hasShift) ...[
@@ -3547,7 +3544,6 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                 style: TossTextStyles.h3.copyWith(
                   color: TossColors.gray900,
                   fontWeight: FontWeight.w700,
-                  fontSize: 20,
                 ),
               ),
               const SizedBox(width: TossSpacing.space1),
@@ -3761,7 +3757,6 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                                 ? TossColors.surface 
                                 : TossColors.gray900,
                               fontWeight: FontWeight.w700,
-                              fontSize: 20,
                             ),
                           ),
                           const SizedBox(height: TossSpacing.space2),

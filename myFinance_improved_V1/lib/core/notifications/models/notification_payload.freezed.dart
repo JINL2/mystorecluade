@@ -396,12 +396,13 @@ abstract class _NotificationPayload implements NotificationPayload {
       throw _privateConstructorUsedError;
 }
 
-NotificationSettings _$NotificationSettingsFromJson(Map<String, dynamic> json) {
-  return _NotificationSettings.fromJson(json);
+UserNotificationSettings _$UserNotificationSettingsFromJson(
+    Map<String, dynamic> json) {
+  return _UserNotificationSettings.fromJson(json);
 }
 
 /// @nodoc
-mixin _$NotificationSettings {
+mixin _$UserNotificationSettings {
   String get userId => throw _privateConstructorUsedError;
   bool get pushEnabled => throw _privateConstructorUsedError;
   bool get emailEnabled => throw _privateConstructorUsedError;
@@ -413,21 +414,21 @@ mixin _$NotificationSettings {
   Map<String, bool>? get categoryPreferences =>
       throw _privateConstructorUsedError;
 
-  /// Serializes this NotificationSettings to a JSON map.
+  /// Serializes this UserNotificationSettings to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
 
-  /// Create a copy of NotificationSettings
+  /// Create a copy of UserNotificationSettings
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
-  $NotificationSettingsCopyWith<NotificationSettings> get copyWith =>
+  $UserNotificationSettingsCopyWith<UserNotificationSettings> get copyWith =>
       throw _privateConstructorUsedError;
 }
 
 /// @nodoc
-abstract class $NotificationSettingsCopyWith<$Res> {
-  factory $NotificationSettingsCopyWith(NotificationSettings value,
-          $Res Function(NotificationSettings) then) =
-      _$NotificationSettingsCopyWithImpl<$Res, NotificationSettings>;
+abstract class $UserNotificationSettingsCopyWith<$Res> {
+  factory $UserNotificationSettingsCopyWith(UserNotificationSettings value,
+          $Res Function(UserNotificationSettings) then) =
+      _$UserNotificationSettingsCopyWithImpl<$Res, UserNotificationSettings>;
   @useResult
   $Res call(
       {String userId,
@@ -442,17 +443,17 @@ abstract class $NotificationSettingsCopyWith<$Res> {
 }
 
 /// @nodoc
-class _$NotificationSettingsCopyWithImpl<$Res,
-        $Val extends NotificationSettings>
-    implements $NotificationSettingsCopyWith<$Res> {
-  _$NotificationSettingsCopyWithImpl(this._value, this._then);
+class _$UserNotificationSettingsCopyWithImpl<$Res,
+        $Val extends UserNotificationSettings>
+    implements $UserNotificationSettingsCopyWith<$Res> {
+  _$UserNotificationSettingsCopyWithImpl(this._value, this._then);
 
   // ignore: unused_field
   final $Val _value;
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of NotificationSettings
+  /// Create a copy of UserNotificationSettings
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
@@ -509,11 +510,12 @@ class _$NotificationSettingsCopyWithImpl<$Res,
 }
 
 /// @nodoc
-abstract class _$$NotificationSettingsImplCopyWith<$Res>
-    implements $NotificationSettingsCopyWith<$Res> {
-  factory _$$NotificationSettingsImplCopyWith(_$NotificationSettingsImpl value,
-          $Res Function(_$NotificationSettingsImpl) then) =
-      __$$NotificationSettingsImplCopyWithImpl<$Res>;
+abstract class _$$UserNotificationSettingsImplCopyWith<$Res>
+    implements $UserNotificationSettingsCopyWith<$Res> {
+  factory _$$UserNotificationSettingsImplCopyWith(
+          _$UserNotificationSettingsImpl value,
+          $Res Function(_$UserNotificationSettingsImpl) then) =
+      __$$UserNotificationSettingsImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call(
@@ -529,14 +531,16 @@ abstract class _$$NotificationSettingsImplCopyWith<$Res>
 }
 
 /// @nodoc
-class __$$NotificationSettingsImplCopyWithImpl<$Res>
-    extends _$NotificationSettingsCopyWithImpl<$Res, _$NotificationSettingsImpl>
-    implements _$$NotificationSettingsImplCopyWith<$Res> {
-  __$$NotificationSettingsImplCopyWithImpl(_$NotificationSettingsImpl _value,
-      $Res Function(_$NotificationSettingsImpl) _then)
+class __$$UserNotificationSettingsImplCopyWithImpl<$Res>
+    extends _$UserNotificationSettingsCopyWithImpl<$Res,
+        _$UserNotificationSettingsImpl>
+    implements _$$UserNotificationSettingsImplCopyWith<$Res> {
+  __$$UserNotificationSettingsImplCopyWithImpl(
+      _$UserNotificationSettingsImpl _value,
+      $Res Function(_$UserNotificationSettingsImpl) _then)
       : super(_value, _then);
 
-  /// Create a copy of NotificationSettings
+  /// Create a copy of UserNotificationSettings
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
@@ -551,7 +555,7 @@ class __$$NotificationSettingsImplCopyWithImpl<$Res>
     Object? vibrationEnabled = null,
     Object? categoryPreferences = freezed,
   }) {
-    return _then(_$NotificationSettingsImpl(
+    return _then(_$UserNotificationSettingsImpl(
       userId: null == userId
           ? _value.userId
           : userId // ignore: cast_nullable_to_non_nullable
@@ -594,8 +598,8 @@ class __$$NotificationSettingsImplCopyWithImpl<$Res>
 
 /// @nodoc
 @JsonSerializable()
-class _$NotificationSettingsImpl implements _NotificationSettings {
-  const _$NotificationSettingsImpl(
+class _$UserNotificationSettingsImpl implements _UserNotificationSettings {
+  const _$UserNotificationSettingsImpl(
       {required this.userId,
       this.pushEnabled = true,
       this.emailEnabled = true,
@@ -607,8 +611,8 @@ class _$NotificationSettingsImpl implements _NotificationSettings {
       final Map<String, bool>? categoryPreferences})
       : _categoryPreferences = categoryPreferences;
 
-  factory _$NotificationSettingsImpl.fromJson(Map<String, dynamic> json) =>
-      _$$NotificationSettingsImplFromJson(json);
+  factory _$UserNotificationSettingsImpl.fromJson(Map<String, dynamic> json) =>
+      _$$UserNotificationSettingsImplFromJson(json);
 
   @override
   final String userId;
@@ -646,14 +650,14 @@ class _$NotificationSettingsImpl implements _NotificationSettings {
 
   @override
   String toString() {
-    return 'NotificationSettings(userId: $userId, pushEnabled: $pushEnabled, emailEnabled: $emailEnabled, transactionAlerts: $transactionAlerts, reminders: $reminders, marketingMessages: $marketingMessages, soundPreference: $soundPreference, vibrationEnabled: $vibrationEnabled, categoryPreferences: $categoryPreferences)';
+    return 'UserNotificationSettings(userId: $userId, pushEnabled: $pushEnabled, emailEnabled: $emailEnabled, transactionAlerts: $transactionAlerts, reminders: $reminders, marketingMessages: $marketingMessages, soundPreference: $soundPreference, vibrationEnabled: $vibrationEnabled, categoryPreferences: $categoryPreferences)';
   }
 
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$NotificationSettingsImpl &&
+            other is _$UserNotificationSettingsImpl &&
             (identical(other.userId, userId) || other.userId == userId) &&
             (identical(other.pushEnabled, pushEnabled) ||
                 other.pushEnabled == pushEnabled) &&
@@ -687,26 +691,25 @@ class _$NotificationSettingsImpl implements _NotificationSettings {
       vibrationEnabled,
       const DeepCollectionEquality().hash(_categoryPreferences));
 
-  /// Create a copy of NotificationSettings
+  /// Create a copy of UserNotificationSettings
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
-  _$$NotificationSettingsImplCopyWith<_$NotificationSettingsImpl>
-      get copyWith =>
-          __$$NotificationSettingsImplCopyWithImpl<_$NotificationSettingsImpl>(
-              this, _$identity);
+  _$$UserNotificationSettingsImplCopyWith<_$UserNotificationSettingsImpl>
+      get copyWith => __$$UserNotificationSettingsImplCopyWithImpl<
+          _$UserNotificationSettingsImpl>(this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$NotificationSettingsImplToJson(
+    return _$$UserNotificationSettingsImplToJson(
       this,
     );
   }
 }
 
-abstract class _NotificationSettings implements NotificationSettings {
-  const factory _NotificationSettings(
+abstract class _UserNotificationSettings implements UserNotificationSettings {
+  const factory _UserNotificationSettings(
           {required final String userId,
           final bool pushEnabled,
           final bool emailEnabled,
@@ -716,10 +719,10 @@ abstract class _NotificationSettings implements NotificationSettings {
           final String soundPreference,
           final bool vibrationEnabled,
           final Map<String, bool>? categoryPreferences}) =
-      _$NotificationSettingsImpl;
+      _$UserNotificationSettingsImpl;
 
-  factory _NotificationSettings.fromJson(Map<String, dynamic> json) =
-      _$NotificationSettingsImpl.fromJson;
+  factory _UserNotificationSettings.fromJson(Map<String, dynamic> json) =
+      _$UserNotificationSettingsImpl.fromJson;
 
   @override
   String get userId;
@@ -740,11 +743,11 @@ abstract class _NotificationSettings implements NotificationSettings {
   @override
   Map<String, bool>? get categoryPreferences;
 
-  /// Create a copy of NotificationSettings
+  /// Create a copy of UserNotificationSettings
   /// with the given fields replaced by the non-null parameter values.
   @override
   @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$NotificationSettingsImplCopyWith<_$NotificationSettingsImpl>
+  _$$UserNotificationSettingsImplCopyWith<_$UserNotificationSettingsImpl>
       get copyWith => throw _privateConstructorUsedError;
 }
 

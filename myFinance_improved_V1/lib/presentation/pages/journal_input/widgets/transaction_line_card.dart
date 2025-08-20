@@ -174,7 +174,7 @@ class TransactionLineCard extends StatelessWidget {
                       _buildTag(
                         Icons.business,
                         line.fixedAssetName!,
-                        TossColors.primaryDark,
+                        TossColors.primary,
                       ),
                   ],
                 ),
@@ -276,7 +276,7 @@ class TransactionLineCard extends StatelessWidget {
       case 'receivable':
         return TossColors.success;
       case 'fixedasset':
-        return TossColors.primaryDark;
+        return TossColors.primary;
       case 'expense':
         return TossColors.error;
       case 'revenue':

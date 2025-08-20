@@ -6,6 +6,7 @@ import '../../../core/themes/toss_text_styles.dart';
 import '../../../core/themes/toss_spacing.dart';
 import '../../../core/themes/toss_border_radius.dart';
 import '../../../core/themes/toss_shadows.dart';
+import '../../../core/themes/toss_colors.dart';
 import '../../providers/app_state_provider.dart';
 import '../../../data/services/cash_location_service.dart';
 
@@ -183,7 +184,7 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage> {
       ),
       padding: EdgeInsets.all(TossSpacing.space5),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: TossColors.white,
         borderRadius: BorderRadius.circular(TossBorderRadius.lg),
         boxShadow: TossShadows.card,
       ),
@@ -208,7 +209,7 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage> {
           Text(
             '${_getAccountTypeText()} Account',
             style: TossTextStyles.caption.copyWith(
-              color: Colors.grey[600],
+              color: TossColors.gray600,
               fontSize: 13,
             ),
           ),
@@ -227,7 +228,7 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage> {
         TossSpacing.space4,
       ),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: TossColors.white,
         borderRadius: BorderRadius.circular(TossBorderRadius.lg),
         boxShadow: TossShadows.card,
       ),
@@ -284,7 +285,7 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage> {
                   style: TossTextStyles.body.copyWith(
                     fontSize: 16,
                     fontWeight: FontWeight.w400,
-                    color: Colors.grey[700],
+                    color: TossColors.gray700,
                   ),
                 ),
                 const Spacer(),
@@ -326,7 +327,7 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage> {
               style: TossTextStyles.body.copyWith(
                 fontSize: 16,
                 fontWeight: FontWeight.w400,
-                color: Colors.grey[700],
+                color: TossColors.gray700,
               ),
             ),
             
@@ -339,7 +340,7 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage> {
               style: TossTextStyles.body.copyWith(
                 fontSize: 16,
                 fontWeight: controller.text.isEmpty ? FontWeight.w400 : FontWeight.w600,
-                color: controller.text.isEmpty ? Colors.grey[400] : Colors.black87,
+                color: controller.text.isEmpty ? TossColors.gray400 : TossColors.gray800,
               ),
             ),
             
@@ -347,7 +348,7 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage> {
             SizedBox(width: TossSpacing.space2),
             Icon(
               Icons.chevron_right,
-              color: Colors.grey[400],
+              color: TossColors.gray400,
               size: 20,
             ),
           ],
@@ -367,7 +368,7 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage> {
         child: Container(
           padding: EdgeInsets.all(TossSpacing.space5),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: TossColors.white,
             borderRadius: BorderRadius.circular(TossBorderRadius.lg),
             boxShadow: TossShadows.card,
           ),
@@ -392,7 +393,7 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      backgroundColor: TossColors.transparent,
       isDismissible: true,
       enableDrag: true,
       builder: (BuildContext modalContext) {
@@ -425,7 +426,7 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      backgroundColor: TossColors.transparent,
       isDismissible: true,
       enableDrag: true,
       builder: (BuildContext modalContext) {
@@ -457,7 +458,7 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      backgroundColor: TossColors.transparent,
       isDismissible: true,
       enableDrag: true,
       builder: (BuildContext modalContext) {
@@ -487,7 +488,7 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      backgroundColor: TossColors.transparent,
       isDismissible: true,
       enableDrag: true,
       builder: (BuildContext modalContext) {
@@ -532,7 +533,7 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage> {
               child: Text(
                 'Cancel',
                 style: TossTextStyles.body.copyWith(
-                  color: Colors.grey[600],
+                  color: TossColors.gray600,
                 ),
               ),
             ),
@@ -602,7 +603,7 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Account name updated successfully'),
-            backgroundColor: Colors.green,
+            backgroundColor: TossColors.success,
           ),
         );
       }
@@ -611,7 +612,7 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Failed to update name: ${e.toString()}'),
-            backgroundColor: Colors.red,
+            backgroundColor: TossColors.error,
           ),
         );
       }
@@ -641,7 +642,7 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Note updated successfully'),
-            backgroundColor: Colors.green,
+            backgroundColor: TossColors.success,
           ),
         );
       }
@@ -650,7 +651,7 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Failed to update note: ${e.toString()}'),
-            backgroundColor: Colors.red,
+            backgroundColor: TossColors.error,
           ),
         );
       }
@@ -699,7 +700,7 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(isMain ? 'Set as main account' : 'Removed as main account'),
-            backgroundColor: Colors.green,
+            backgroundColor: TossColors.success,
           ),
         );
       }
@@ -712,7 +713,7 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Failed to update main account: ${e.toString()}'),
-            backgroundColor: Colors.red,
+            backgroundColor: TossColors.error,
           ),
         );
       }
@@ -746,7 +747,7 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Account deleted successfully'),
-            backgroundColor: Colors.green,
+            backgroundColor: TossColors.success,
           ),
         );
       }
@@ -755,7 +756,7 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Failed to delete account: ${e.toString()}'),
-            backgroundColor: Colors.red,
+            backgroundColor: TossColors.error,
           ),
         );
       }
@@ -786,7 +787,7 @@ class _SimpleNameEditSheet extends StatelessWidget {
     
     return Container(
       decoration: const BoxDecoration(
-        color: Colors.white,
+        color: TossColors.white,
         borderRadius: BorderRadius.only(
           topLeft: Radius.circular(20),
           topRight: Radius.circular(20),
@@ -806,7 +807,7 @@ class _SimpleNameEditSheet extends StatelessWidget {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: Colors.grey[300],
+                  color: TossColors.gray300,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -839,7 +840,7 @@ class _SimpleNameEditSheet extends StatelessWidget {
                       style: TossTextStyles.body.copyWith(
                         fontSize: 18,
                         fontWeight: FontWeight.w700,
-                        color: Colors.black87,
+                        color: TossColors.gray800,
                       ),
                       decoration: InputDecoration(
                         border: UnderlineInputBorder(
@@ -864,12 +865,12 @@ class _SimpleNameEditSheet extends StatelessWidget {
                           bottom: TossSpacing.space2,
                           top: TossSpacing.space1,
                         ),
-                        fillColor: Colors.transparent,
+                        fillColor: TossColors.transparent,
                         filled: false,
                         suffixIcon: IconButton(
                           icon: Icon(
                             Icons.cancel,
-                            color: Colors.grey[400],
+                            color: TossColors.gray400,
                             size: 20,
                           ),
                           onPressed: () {
@@ -897,7 +898,7 @@ class _SimpleNameEditSheet extends StatelessWidget {
                         child: Text(
                           'Save',
                           style: TossTextStyles.body.copyWith(
-                            color: Colors.white,
+                            color: TossColors.white,
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
                           ),
@@ -940,7 +941,7 @@ class _SimpleNoteEditSheet extends StatelessWidget {
     
     return Container(
       decoration: const BoxDecoration(
-        color: Colors.white,
+        color: TossColors.white,
         borderRadius: BorderRadius.only(
           topLeft: Radius.circular(20),
           topRight: Radius.circular(20),
@@ -960,7 +961,7 @@ class _SimpleNoteEditSheet extends StatelessWidget {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: Colors.grey[300],
+                  color: TossColors.gray300,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -994,7 +995,7 @@ class _SimpleNoteEditSheet extends StatelessWidget {
                       style: TossTextStyles.body.copyWith(
                         fontSize: 18,
                         fontWeight: FontWeight.w700,
-                        color: Colors.black87,
+                        color: TossColors.gray800,
                         height: 1.4,
                       ),
                       decoration: InputDecoration(
@@ -1020,13 +1021,13 @@ class _SimpleNoteEditSheet extends StatelessWidget {
                           bottom: TossSpacing.space2,
                           top: TossSpacing.space1,
                         ),
-                        fillColor: Colors.transparent,
+                        fillColor: TossColors.transparent,
                         filled: false,
                         hintText: 'Add note...',
                         hintStyle: TossTextStyles.body.copyWith(
                           fontSize: 18,
                           fontWeight: FontWeight.w400,
-                          color: Colors.grey[400],
+                          color: TossColors.gray400,
                         ),
                       ),
                     ),
@@ -1049,7 +1050,7 @@ class _SimpleNoteEditSheet extends StatelessWidget {
                         child: Text(
                           'Save',
                           style: TossTextStyles.body.copyWith(
-                            color: Colors.white,
+                            color: TossColors.white,
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
                           ),

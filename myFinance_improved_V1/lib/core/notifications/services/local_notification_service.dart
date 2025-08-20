@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:logger/logger.dart';
+// import 'package:logger/logger.dart';
+import 'package:timezone/data/latest.dart' as tz_data;
+import 'package:timezone/timezone.dart' as tz;
 import '../config/notification_config.dart';
 import '../models/notification_payload.dart';
 
@@ -11,7 +13,7 @@ class LocalNotificationService {
   LocalNotificationService._internal();
 
   final FlutterLocalNotificationsPlugin _notifications = FlutterLocalNotificationsPlugin();
-  final Logger _logger = Logger();
+  // final Logger _logger = Logger();
   
   bool _isInitialized = false;
   
@@ -21,12 +23,15 @@ class LocalNotificationService {
     void Function(NotificationResponse)? onDidReceiveBackgroundNotificationResponse,
   }) async {
     if (_isInitialized) {
-      _logger.w('Local notifications already initialized');
+      // Local notifications already initialized
       return;
     }
     
     try {
-      _logger.d('🔔 Initializing local notifications...');
+      // Initializing local notifications
+      
+      // Initialize timezone
+      tz_data.initializeTimeZones();
       
       // Initialize with settings
       await _notifications.initialize(
@@ -44,11 +49,10 @@ class LocalNotificationService {
       await _requestIOSPermissions();
       
       _isInitialized = true;
-      _logger.i('✅ Local notifications initialized');
+      // Local notifications initialized
       
     } catch (e, stackTrace) {
-      _logger.e('Failed to initialize local notifications', 
-                error: e, stackTrace: stackTrace);
+      // Failed to initialize local notifications: $e
       rethrow;
     }
   }
@@ -60,7 +64,7 @@ class LocalNotificationService {
             AndroidFlutterLocalNotificationsPlugin>()
         ?.createNotificationChannel(NotificationConfig.androidChannel);
     
-    _logger.d('📱 Android notification channel created');
+    // Android notification channel created
   }
   
   /// Request iOS permissions
@@ -74,7 +78,7 @@ class LocalNotificationService {
       sound: true,
     );
     
-    _logger.d('🍎 iOS permissions granted: $granted');
+    // iOS permissions granted: $granted
   }
   
   /// Show a local notification
@@ -87,7 +91,7 @@ class LocalNotificationService {
     NotificationDetails? details,
   }) async {
     if (!_isInitialized) {
-      _logger.e('Local notifications not initialized');
+      // Local notifications not initialized
       return;
     }
     
@@ -102,17 +106,20 @@ class LocalNotificationService {
         payload: payload,
       );
       
-      _logger.d('📤 Notification shown: $title');
+      // Notification shown: $title
       
     } catch (e) {
-      _logger.e('Failed to show notification', error: e);
+      // Failed to show notification: $e
     }
   }
   
   /// Show notification from payload
   Future<void> showNotificationFromPayload(NotificationPayload payload) async {
+    // Use a safe ID by taking only the last 6 digits of hashCode to ensure it fits in 32-bit range
+    final safeId = payload.id.hashCode.abs() % 999999;
+    
     await showNotification(
-      id: payload.id.hashCode,
+      id: safeId,
       title: payload.title,
       body: payload.body,
       payload: jsonEncode(payload.toJson()),
@@ -131,18 +138,21 @@ class LocalNotificationService {
     NotificationDetails? details,
   }) async {
     if (!_isInitialized) {
-      _logger.e('Local notifications not initialized');
+      // Local notifications not initialized
       return;
     }
     
     try {
       final notificationDetails = details ?? _getDefaultNotificationDetails(category);
       
+      // Convert DateTime to TZDateTime
+      final tzScheduledDate = tz.TZDateTime.from(scheduledDate, tz.local);
+      
       await _notifications.zonedSchedule(
         id,
         title,
         body,
-        scheduledDate,
+        tzScheduledDate,
         notificationDetails,
         payload: payload,
         androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
@@ -150,29 +160,29 @@ class LocalNotificationService {
             UILocalNotificationDateInterpretation.absoluteTime,
       );
       
-      _logger.d('⏰ Notification scheduled for: $scheduledDate');
+      // Notification scheduled for: $scheduledDate
       
     } catch (e) {
-      _logger.e('Failed to schedule notification', error: e);
+      // Failed to schedule notification: $e
     }
   }
   
   /// Cancel a notification
   Future<void> cancelNotification(int id) async {
     await _notifications.cancel(id);
-    _logger.d('❌ Notification cancelled: $id');
+    // Notification cancelled: $id
   }
   
   /// Cancel all notifications
   Future<void> cancelAllNotifications() async {
     await _notifications.cancelAll();
-    _logger.d('❌ All notifications cancelled');
+    // All notifications cancelled
   }
   
   /// Get pending notifications
   Future<List<PendingNotificationRequest>> getPendingNotifications() async {
     final pending = await _notifications.pendingNotificationRequests();
-    _logger.d('📋 Pending notifications: ${pending.length}');
+    // Pending notifications: ${pending.length}
     return pending;
   }
   
@@ -183,7 +193,7 @@ class LocalNotificationService {
     
     if (android != null) {
       final active = await android.getActiveNotifications();
-      _logger.d('📋 Active notifications: ${active.length}');
+      // Active notifications: ${active.length}
       return active;
     }
     
@@ -253,18 +263,15 @@ class LocalNotificationService {
   
   /// Default notification response handler
   void _defaultNotificationResponseHandler(NotificationResponse response) {
-    _logger.d('🔔 Notification response:');
-    _logger.d('  Action: ${response.actionId}');
-    _logger.d('  Payload: ${response.payload}');
-    _logger.d('  Input: ${response.input}');
+    // Notification response handled
     
     // Parse payload and handle navigation
     if (response.payload != null) {
       try {
-        final data = jsonDecode(response.payload!);
-        // TODO: Handle navigation based on payload
+        jsonDecode(response.payload!);
+        // Handle navigation based on payload - implementation pending
       } catch (e) {
-        _logger.e('Failed to parse notification payload', error: e);
+        // Failed to parse notification payload: $e
       }
     }
   }
@@ -272,6 +279,6 @@ class LocalNotificationService {
   /// Update badge count (iOS)
   Future<void> updateBadgeCount(int count) async {
     // This is typically handled by the OS, but we can track it
-    _logger.d('🔢 Badge count updated: $count');
+    // Badge count updated: $count
   }
 }

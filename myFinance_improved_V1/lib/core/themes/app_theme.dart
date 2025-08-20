@@ -25,29 +25,29 @@ class AppTheme {
     // Color scheme
     colorScheme: const ColorScheme.light(
       primary: TossColors.primary,
-      onPrimary: Colors.white,
-      primaryContainer: TossColors.primaryLight,
-      onPrimaryContainer: TossColors.primaryDark,
+      onPrimary: TossColors.white,
+      primaryContainer: TossColors.primarySurface,
+      onPrimaryContainer: TossColors.primary,
       
-      secondary: TossColors.secondary,
-      onSecondary: Colors.white,
+      secondary: TossColors.gray800,
+      onSecondary: TossColors.white,
       
       error: TossColors.error,
-      onError: Colors.white,
+      onError: TossColors.white,
       
       surface: TossColors.surface,
       onSurface: TossColors.textPrimary,
       
-      surfaceContainer: TossColors.backgroundGray,
+      surfaceContainer: TossColors.gray50,
       surfaceContainerHighest: TossColors.gray100,
-      surfaceVariant: TossColors.surfaceHover,
+      surfaceVariant: TossColors.gray50,
       onSurfaceVariant: TossColors.textSecondary,
       
       outline: TossColors.border,
       outlineVariant: TossColors.gray200,
       
-      shadow: Colors.black12,
-      scrim: Colors.black54,
+      shadow: TossColors.shadow,
+      scrim: TossColors.overlay,
     ),
     
     // Background - Clean white like Toss
@@ -141,7 +141,7 @@ class AppTheme {
     cardTheme: CardThemeData(
       elevation: 0,
       color: TossColors.surface,
-      surfaceTintColor: Colors.transparent,
+      surfaceTintColor: TossColors.transparent,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(TossBorderRadius.card),
         side: BorderSide(color: TossColors.border, width: 1),
@@ -188,7 +188,7 @@ class AppTheme {
     
     bottomSheetTheme: BottomSheetThemeData(
       backgroundColor: TossColors.surface,
-      surfaceTintColor: Colors.transparent,
+      surfaceTintColor: TossColors.transparent,
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.only(
@@ -202,7 +202,7 @@ class AppTheme {
     ),
     
     dividerTheme: const DividerThemeData(
-      color: TossColors.divider,
+      color: TossColors.border,
       thickness: 0.5,  // Toss uses very thin dividers
       space: 0,
       indent: 0,
@@ -211,7 +211,7 @@ class AppTheme {
     
     // Additional themes
     chipTheme: ChipThemeData(
-      backgroundColor: TossColors.backgroundGray,
+      backgroundColor: TossColors.gray50,
       selectedColor: TossColors.primarySurface,
       disabledColor: TossColors.gray100,
       labelStyle: TossTextStyles.label,
@@ -245,7 +245,7 @@ class AppTheme {
     
     dialogTheme: DialogThemeData(
       backgroundColor: TossColors.surface,
-      surfaceTintColor: Colors.transparent,
+      surfaceTintColor: TossColors.transparent,
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(TossBorderRadius.dialog),
@@ -266,7 +266,7 @@ class AppTheme {
     
     navigationBarTheme: NavigationBarThemeData(
       backgroundColor: TossColors.surface,
-      surfaceTintColor: Colors.transparent,
+      surfaceTintColor: TossColors.transparent,
       elevation: 0,
       height: 64,
       labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
@@ -278,7 +278,7 @@ class AppTheme {
     
     drawerTheme: const DrawerThemeData(
       backgroundColor: TossColors.surface,
-      surfaceTintColor: Colors.transparent,
+      surfaceTintColor: TossColors.transparent,
       elevation: 0,
       width: 280,
     ),
@@ -290,15 +290,15 @@ class AppTheme {
     
     colorScheme: const ColorScheme.dark(
       primary: TossColors.primary,
-      onPrimary: Colors.white,
-      primaryContainer: TossColors.primaryDark,
-      onPrimaryContainer: Colors.white,
+      onPrimary: TossColors.white,
+      primaryContainer: TossColors.primary,
+      onPrimaryContainer: TossColors.white,
       
       secondary: TossColors.gray700,
-      onSecondary: Colors.white,
+      onSecondary: TossColors.white,
       
       error: TossColors.error,
-      onError: Colors.white,
+      onError: TossColors.white,
       
       surface: TossColors.gray900,
       onSurface: TossColors.white,
@@ -311,8 +311,8 @@ class AppTheme {
       outline: TossColors.gray600,
       outlineVariant: TossColors.gray700,
       
-      shadow: Colors.black26,
-      scrim: Colors.black87,
+      shadow: TossColors.shadow,
+      scrim: TossColors.overlay,
     ),
     
     scaffoldBackgroundColor: TossColors.black,
@@ -329,7 +329,7 @@ class AppTheme {
     
     cardTheme: CardThemeData(
       color: TossColors.gray800,
-      surfaceTintColor: Colors.transparent,
+      surfaceTintColor: TossColors.transparent,
     ),
     
     inputDecorationTheme: InputDecorationTheme(

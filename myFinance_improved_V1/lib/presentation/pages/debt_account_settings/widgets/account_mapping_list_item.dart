@@ -254,7 +254,7 @@ class _AccountMappingListItemState extends State<AccountMappingListItem>
         onTap: _showOptionsBottomSheet,
         child: Container(
           decoration: BoxDecoration(
-            color: _isPressed ? TossColors.surfacePressed : TossColors.surface,
+            color: _isPressed ? TossColors.gray100 : TossColors.surface,
             borderRadius: BorderRadius.circular(TossBorderRadius.lg),
             border: Border.all(
               color: TossColors.borderLight,

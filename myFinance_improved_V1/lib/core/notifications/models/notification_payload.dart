@@ -26,8 +26,8 @@ class NotificationPayload with _$NotificationPayload {
 
 /// Model for notification settings per user
 @freezed
-class NotificationSettings with _$NotificationSettings {
-  const factory NotificationSettings({
+class UserNotificationSettings with _$UserNotificationSettings {
+  const factory UserNotificationSettings({
     required String userId,
     @Default(true) bool pushEnabled,
     @Default(true) bool emailEnabled,
@@ -37,10 +37,10 @@ class NotificationSettings with _$NotificationSettings {
     @Default('default') String soundPreference,
     @Default(true) bool vibrationEnabled,
     Map<String, bool>? categoryPreferences,
-  }) = _NotificationSettings;
+  }) = _UserNotificationSettings;
 
-  factory NotificationSettings.fromJson(Map<String, dynamic> json) =>
-      _$NotificationSettingsFromJson(json);
+  factory UserNotificationSettings.fromJson(Map<String, dynamic> json) =>
+      _$UserNotificationSettingsFromJson(json);
 }
 
 /// Model for FCM token management

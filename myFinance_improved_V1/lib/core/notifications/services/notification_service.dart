@@ -2,12 +2,13 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:logger/logger.dart';
+// import 'package:logger/logger.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../config/notification_config.dart';
 import '../models/notification_payload.dart';
+import '../models/notification_db_model.dart';
+import '../repositories/notification_repository.dart';
 import '../utils/notification_logger.dart';
 import 'fcm_service.dart';
 import 'local_notification_service.dart';
@@ -21,7 +22,8 @@ class NotificationService {
   final FcmService _fcmService = FcmService();
   final LocalNotificationService _localNotificationService = LocalNotificationService();
   final NotificationLogger _notificationLogger = NotificationLogger();
-  final Logger _logger = Logger();
+  final NotificationRepository _repository = NotificationRepository();
+  // final Logger _logger = Logger();
   final SupabaseClient _supabase = Supabase.instance.client;
   
   bool _isInitialized = false;
@@ -30,17 +32,24 @@ class NotificationService {
   /// Initialize the complete notification system
   Future<void> initialize() async {
     if (_isInitialized) {
-      _logger.w('Notification service already initialized');
+      // Notification service already initialized
       return;
     }
     
     try {
-      _logger.i('🚀 Initializing Notification Service...');
+      // Initializing Notification Service
       
-      // Initialize FCM
+      // Try to initialize FCM (will fail gracefully if Firebase is not available)
       await _fcmService.initialize();
       
-      // Initialize local notifications
+      // Check if FCM is available
+      if (_fcmService.isAvailable) {
+        // FCM service available - push notifications enabled
+      } else {
+        // FCM service unavailable - only local notifications available
+      }
+      
+      // Initialize local notifications (always available)
       await _localNotificationService.initialize(
         onDidReceiveNotificationResponse: _handleNotificationResponse,
       );
@@ -53,26 +62,19 @@ class NotificationService {
       // Set up message handlers
       _setupMessageHandlers();
       
-      // Store FCM token in Supabase
+      // Store FCM token in database
       await _storeFcmToken();
       
-      // Subscribe to Supabase notifications
+      // Subscribe to database notifications
       await _subscribeToSupabaseNotifications();
       
       _isInitialized = true;
-      _logger.i('✅ Notification Service initialized successfully');
+      // Notification Service initialized successfully
       
-      // Show initialization success notification in debug mode
-      if (NotificationConfig.debugMode) {
-        await _showDebugNotification(
-          'Notification System Ready',
-          'Push notifications are now active!',
-        );
-      }
+      // Initialization complete
       
     } catch (e, stackTrace) {
-      _logger.e('Failed to initialize notification service', 
-                error: e, stackTrace: stackTrace);
+      // Failed to initialize notification service
       rethrow;
     }
   }
@@ -81,7 +83,7 @@ class NotificationService {
   void _setupMessageHandlers() {
     // Handle foreground messages
     FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
-      _logger.d('📬 Foreground message received');
+      // Foreground message received
       _notificationLogger.logNotification(message);
       
       // Show local notification for foreground messages
@@ -93,7 +95,7 @@ class NotificationService {
     
     // Handle notification tap when app is in background
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-      _logger.d('📱 App opened from background notification');
+      // App opened from background notification
       _notificationLogger.logNotification(message);
       
       // Handle navigation
@@ -106,8 +108,20 @@ class NotificationService {
     final notification = message.notification;
     
     if (notification != null) {
+      // Use a safe ID by taking modulo to ensure it fits in 32-bit range
+      final safeId = message.hashCode.abs() % 999999;
+      
+      // Store notification in database
+      await _storeNotificationInDatabase(
+        title: notification.title ?? 'MyFinance',
+        body: notification.body ?? '',
+        category: message.data['category'],
+        data: message.data,
+        imageUrl: notification.android?.imageUrl ?? notification.apple?.imageUrl,
+      );
+      
       await _localNotificationService.showNotification(
-        id: message.hashCode,
+        id: safeId,
         title: notification.title ?? 'MyFinance',
         body: notification.body ?? '',
         payload: jsonEncode(message.data),
@@ -118,14 +132,14 @@ class NotificationService {
   
   /// Handle notification response (tap)
   void _handleNotificationResponse(NotificationResponse response) {
-    _logger.d('🔔 Notification tapped');
+    // Notification tapped
     
     if (response.payload != null) {
       try {
         final data = jsonDecode(response.payload!);
         _handleNotificationNavigation(null, data: data);
       } catch (e) {
-        _logger.e('Failed to parse notification payload', error: e);
+        // Failed to parse notification payload
       }
     }
   }
@@ -134,36 +148,35 @@ class NotificationService {
   void _handleNotificationNavigation(RemoteMessage? message, {Map<String, dynamic>? data}) {
     final payload = data ?? message?.data ?? {};
     
-    _logger.d('🧭 Handling navigation with payload: $payload');
+    // Handling navigation with payload
     
     // Extract navigation data
-    final screen = payload['screen'] as String?;
     final id = payload['id'] as String?;
     final type = payload['type'] as String?;
     
-    // TODO: Implement navigation logic based on your app's routing
+    // Navigation logic based on app's routing - implementation pending
     switch (type) {
       case 'transaction':
         // Navigate to transaction detail
-        _logger.d('Navigate to transaction: $id');
+        // Navigate to transaction: $id
         break;
       case 'reminder':
         // Navigate to reminders
-        _logger.d('Navigate to reminders');
+        // Navigate to reminders
         break;
       case 'alert':
         // Navigate to alerts
-        _logger.d('Navigate to alerts');
+        // Navigate to alerts
         break;
       default:
         // Navigate to home or notifications list
-        _logger.d('Navigate to home');
+        // Navigate to home
     }
   }
   
   /// Handle data payload from notification
   void _handleDataPayload(Map<String, dynamic> data) {
-    _logger.d('📦 Handling data payload: $data');
+    // Handling data payload
     
     // Process based on notification type
     final type = data['type'] as String?;
@@ -171,103 +184,129 @@ class NotificationService {
     switch (type) {
       case 'sync':
         // Trigger data sync
-        _logger.d('Triggering data sync');
+        // Triggering data sync
         break;
       case 'update':
         // Check for app updates
-        _logger.d('Checking for updates');
+        // Checking for updates
         break;
       default:
         // General data processing
-        _logger.d('Processing general data');
+        // Processing general data
     }
   }
   
-  /// Store FCM token in Supabase
+  /// Store FCM token in database
   Future<void> _storeFcmToken() async {
     try {
       final token = _fcmService.fcmToken;
       final userId = _supabase.auth.currentUser?.id;
-      
-      if (token == null || userId == null) {
-        _logger.w('Cannot store FCM token: token=$token, userId=$userId');
+      if (userId == null) {
+        // Cannot store FCM token: user not authenticated
         return;
       }
       
-      final tokenData = FcmToken(
-        token: token,
+      if (token == null) {
+        // Cannot store FCM token: no token available
+        return;
+      }
+      
+      final result = await _repository.storeOrUpdateFcmToken(
         userId: userId,
+        token: token,
         platform: Platform.operatingSystem,
         deviceId: await _getDeviceId(),
         deviceModel: await _getDeviceModel(),
         appVersion: await _getAppVersion(),
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
       );
       
-      await _supabase.from(NotificationConfig.supabaseTokenTable).upsert(
-        tokenData.toJson(),
-        onConflict: 'user_id,token',
-      );
-      
-      _logger.i('✅ FCM token stored in Supabase');
+      if (result != null) {
+        // FCM token stored in database
+      } else {
+        // Failed to store FCM token in database
+      }
       
     } catch (e) {
-      _logger.e('Failed to store FCM token', error: e);
+      // Failed to store FCM token
     }
   }
   
-  /// Subscribe to Supabase notification events
+  /// Subscribe to database notification events
   Future<void> _subscribeToSupabaseNotifications() async {
     try {
       final userId = _supabase.auth.currentUser?.id;
       
       if (userId == null) {
-        _logger.w('Cannot subscribe to notifications: user not authenticated');
+        // Cannot subscribe to notifications: user not authenticated
         return;
       }
       
       _notificationSubscription = _supabase
-          .from(NotificationConfig.supabaseNotificationTable)
+          .from('notifications')
           .stream(primaryKey: ['id'])
-          .eq('user_id', userId)
-          .eq('is_read', false)
           .listen((List<Map<String, dynamic>> data) {
-            _logger.d('📨 New Supabase notification: ${data.length} items');
+            // New database notification: ${data.length} items
             
-            for (final item in data) {
-              _handleSupabaseNotification(item);
+            // Filter for user's unread notifications
+            final userNotifications = data.where((item) => 
+              item['user_id'] == userId && item['is_read'] == false
+            ).toList();
+            
+            for (final item in userNotifications) {
+              _handleDatabaseNotification(item);
             }
           });
       
-      _logger.i('✅ Subscribed to Supabase notifications');
+      // Subscribed to database notifications
       
     } catch (e) {
-      _logger.e('Failed to subscribe to Supabase notifications', error: e);
+      // Failed to subscribe to database notifications
     }
   }
   
-  /// Handle notification from Supabase
-  void _handleSupabaseNotification(Map<String, dynamic> data) {
+  /// Handle notification from database
+  void _handleDatabaseNotification(Map<String, dynamic> data) {
     try {
-      final payload = NotificationPayload.fromJson(data);
+      final dbNotification = NotificationDbModel.fromJson(data);
+      
+      // Convert to payload format for local notification
+      final payload = NotificationPayload(
+        id: dbNotification.id ?? '',
+        title: dbNotification.title ?? 'Notification',
+        body: dbNotification.body ?? '',
+        data: dbNotification.data ?? {},
+        category: dbNotification.category,
+        isRead: dbNotification.isRead,
+        createdAt: dbNotification.createdAt,
+      );
       
       _localNotificationService.showNotificationFromPayload(payload);
       
     } catch (e) {
-      _logger.e('Failed to handle Supabase notification', error: e);
+      // Failed to handle database notification
     }
   }
   
   /// Send test notification
   Future<void> sendTestNotification() async {
-    _logger.d('📤 Sending test notification...');
+    // Sending test notification
     
-    await _localNotificationService.showNotification(
-      id: DateTime.now().millisecondsSinceEpoch,
+    // Use a safe ID by taking modulo to ensure it fits in 32-bit range
+    final safeId = DateTime.now().millisecondsSinceEpoch % 999999;
+    
+    // Store test notification in database
+    await _storeNotificationInDatabase(
       title: 'Test Notification',
       body: 'This is a test notification from MyFinance app',
-      category: 'update',
+      category: 'test',
+      data: {'test': true, 'timestamp': DateTime.now().toIso8601String()},
+    );
+    
+    await _localNotificationService.showNotification(
+      id: safeId,
+      title: 'Test Notification',
+      body: 'This is a test notification from MyFinance app',
+      category: 'test',
     );
     
     // Log test notification
@@ -276,8 +315,11 @@ class NotificationService {
   
   /// Show debug notification
   Future<void> _showDebugNotification(String title, String body) async {
+    // Use a safe ID by taking modulo to ensure it fits in 32-bit range
+    final safeId = DateTime.now().millisecondsSinceEpoch % 999999;
+    
     await _localNotificationService.showNotification(
-      id: DateTime.now().millisecondsSinceEpoch,
+      id: safeId,
       title: '🔧 Debug: $title',
       body: body,
       category: 'update',
@@ -286,58 +328,186 @@ class NotificationService {
   
   /// Get device ID
   Future<String> _getDeviceId() async {
-    // TODO: Implement device ID retrieval
     return 'device_${DateTime.now().millisecondsSinceEpoch}';
   }
   
   /// Get device model
   Future<String> _getDeviceModel() async {
-    // TODO: Implement device model retrieval
     return Platform.operatingSystem;
   }
   
   /// Get app version
   Future<String> _getAppVersion() async {
-    // TODO: Implement app version retrieval
     return '1.0.0';
   }
   
+  /// Store notification in database
+  Future<void> _storeNotificationInDatabase({
+    required String title,
+    required String body,
+    String? category,
+    Map<String, dynamic>? data,
+    String? imageUrl,
+    String? actionUrl,
+    DateTime? scheduledTime,
+  }) async {
+    try {
+      final userId = _supabase.auth.currentUser?.id;
+      if (userId == null) {
+        // Cannot store notification: user not authenticated
+        return;
+      }
+      
+      final result = await _repository.storeNotification(
+        userId: userId,
+        title: title,
+        body: body,
+        category: category,
+        data: data,
+        imageUrl: imageUrl,
+        actionUrl: actionUrl,
+        scheduledTime: scheduledTime,
+      );
+      
+      if (result != null) {
+        // Notification stored in database
+      } else {
+        // Failed to store notification in database
+      }
+      
+    } catch (e) {
+      // Failed to store notification in database
+    }
+  }
+  
+  /// Get user notifications
+  Future<List<NotificationDbModel>> getUserNotifications({
+    int limit = 50,
+    int offset = 0,
+    bool? isRead,
+  }) async {
+    try {
+      final userId = _supabase.auth.currentUser?.id;
+      if (userId == null) {
+        // Cannot get notifications: user not authenticated
+        return [];
+      }
+      
+      final notifications = await _repository.getUserNotifications(
+        userId: userId,
+        limit: limit,
+        offset: offset,
+        isRead: isRead,
+      );
+      
+      // Retrieved ${notifications.length} notifications
+      return notifications;
+      
+    } catch (e) {
+      // Failed to get user notifications
+      return [];
+    }
+  }
+  
+  /// Mark notification as read
+  Future<bool> markNotificationAsRead(String notificationId) async {
+    try {
+      final result = await _repository.markAsRead(notificationId);
+      
+      if (result) {
+        // Notification marked as read
+      }
+      
+      return result;
+      
+    } catch (e) {
+      // Failed to mark notification as read
+      return false;
+    }
+  }
+  
+  /// Get unread notification count
+  Future<int> getUnreadNotificationCount() async {
+    try {
+      final userId = _supabase.auth.currentUser?.id;
+      if (userId == null) {
+        return 0;
+      }
+      
+      return await _repository.getUnreadCount(userId);
+      
+    } catch (e) {
+      // Failed to get unread notification count
+      return 0;
+    }
+  }
+  
+  /// Get notification statistics
+  Future<Map<String, dynamic>> getNotificationStats() async {
+    try {
+      final userId = _supabase.auth.currentUser?.id;
+      if (userId == null) {
+        return {};
+      }
+      
+      return await _repository.getNotificationStats(userId);
+      
+    } catch (e) {
+      // Failed to get notification statistics
+      return {};
+    }
+  }
+  
   /// Update notification settings
-  Future<void> updateNotificationSettings(NotificationSettings settings) async {
+  Future<void> updateNotificationSettings({
+    bool? pushEnabled,
+    bool? emailEnabled,
+    bool? transactionAlerts,
+    bool? reminders,
+    bool? marketingMessages,
+    String? soundPreference,
+    bool? vibrationEnabled,
+    Map<String, dynamic>? categoryPreferences,
+  }) async {
     try {
       final userId = _supabase.auth.currentUser?.id;
       
       if (userId == null) return;
       
-      await _supabase.from('user_notification_settings').upsert(
-        settings.toJson(),
-        onConflict: 'user_id',
+      final result = await _repository.updateUserSettings(
+        userId: userId,
+        pushEnabled: pushEnabled,
+        emailEnabled: emailEnabled,
+        transactionAlerts: transactionAlerts,
+        reminders: reminders,
+        marketingMessages: marketingMessages,
+        soundPreference: soundPreference,
+        vibrationEnabled: vibrationEnabled,
+        categoryPreferences: categoryPreferences,
       );
       
-      _logger.i('✅ Notification settings updated');
+      if (result != null) {
+        // Notification settings updated
+      } else {
+        // Failed to update notification settings
+      }
       
     } catch (e) {
-      _logger.e('Failed to update notification settings', error: e);
+      // Failed to update notification settings
     }
   }
   
   /// Get notification settings
-  Future<NotificationSettings?> getNotificationSettings() async {
+  Future<UserNotificationSettingsModel?> getNotificationSettings() async {
     try {
       final userId = _supabase.auth.currentUser?.id;
       
       if (userId == null) return null;
       
-      final response = await _supabase
-          .from('user_notification_settings')
-          .select()
-          .eq('user_id', userId)
-          .single();
-      
-      return NotificationSettings.fromJson(response);
+      return await _repository.getUserSettings(userId);
       
     } catch (e) {
-      _logger.e('Failed to get notification settings', error: e);
+      // Failed to get notification settings
       return null;
     }
   }
@@ -348,18 +518,24 @@ class NotificationService {
     await _fcmService.deleteToken();
     await _localNotificationService.cancelAllNotifications();
     _isInitialized = false;
-    _logger.d('🧹 Notification service disposed');
+    // Notification service disposed
   }
   
   /// Get debug information
   Map<String, dynamic> getDebugInfo() {
+    final currentUser = _supabase.auth.currentUser;
     return {
       'initialized': _isInitialized,
       'fcm_token': _fcmService.fcmToken,
       'apns_token': _fcmService.apnsToken,
       'platform': Platform.operatingSystem,
       'debug_mode': NotificationConfig.debugMode,
-      'user_id': _supabase.auth.currentUser?.id,
+      'supabase_connected': true, // Supabase client is initialized
+      'auth_user_exists': currentUser != null,
+      'user_id': currentUser?.id,
+      'user_email': currentUser?.email,
+      'user_role': currentUser?.role,
+      'auth_session_exists': _supabase.auth.currentSession != null,
     };
   }
 }

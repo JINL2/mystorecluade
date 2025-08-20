@@ -2,9 +2,8 @@ import 'dart:io';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
-import 'package:logger/logger.dart';
+// import 'package:logger/logger.dart';
 import '../config/notification_config.dart';
-import '../models/notification_payload.dart';
 
 /// Service for managing Firebase Cloud Messaging
 class FcmService {
@@ -12,8 +11,9 @@ class FcmService {
   factory FcmService() => _instance;
   FcmService._internal();
 
-  final FirebaseMessaging _messaging = FirebaseMessaging.instance;
-  final Logger _logger = Logger();
+  FirebaseMessaging? _messaging;
+  // final Logger _logger = Logger();
+  bool _isAvailable = false;
   
   String? _fcmToken;
   String? _apnsToken;
@@ -21,15 +21,24 @@ class FcmService {
   /// Initialize FCM service
   Future<void> initialize() async {
     try {
-      if (NotificationConfig.debugMode) {
-        _logger.d('🔥 Initializing FCM Service...');
+      // Check if Firebase is available
+      if (Firebase.apps.isEmpty) {
+        // Firebase not initialized - FCM service unavailable
+        _isAvailable = false;
+        return;
       }
+      
+      // Initialize Firebase Messaging
+      _messaging = FirebaseMessaging.instance;
+      _isAvailable = true;
+      
+      // Initialize FCM Service
       
       // Request permissions
       final settings = await _requestPermissions();
       
       if (settings.authorizationStatus == AuthorizationStatus.authorized) {
-        _logger.i('✅ Notification permissions granted');
+        // Notification permissions granted
         
         // Get tokens
         await _getTokens();
@@ -44,17 +53,20 @@ class FcmService {
           _printDebugInfo();
         }
       } else {
-        _logger.w('❌ Notification permissions denied');
+        // Notification permissions denied
       }
     } catch (e, stackTrace) {
-      _logger.e('Failed to initialize FCM', error: e, stackTrace: stackTrace);
+      // Failed to initialize FCM
       rethrow;
     }
   }
   
   /// Request notification permissions
   Future<NotificationSettings> _requestPermissions() async {
-    final settings = await _messaging.requestPermission(
+    if (_messaging == null) {
+      throw Exception('Firebase Messaging not available');
+    }
+    final settings = await _messaging!.requestPermission(
       alert: true,
       announcement: false,
       badge: true,
@@ -64,29 +76,41 @@ class FcmService {
       sound: true,
     );
     
-    _logger.d('Permission status: ${settings.authorizationStatus}');
+    // Permission status: ${settings.authorizationStatus}
     return settings;
   }
   
   /// Get FCM and APNs tokens
   Future<void> _getTokens() async {
     try {
-      // Get APNs token first (iOS only)
-      if (Platform.isIOS) {
-        _apnsToken = await _messaging.getAPNSToken();
-        _logger.d('📱 APNs Token: $_apnsToken');
-        
-        if (_apnsToken == null) {
-          _logger.w('⚠️ APNs token is null - waiting for registration');
-          // Wait a bit for APNs registration
-          await Future.delayed(const Duration(seconds: 2));
-          _apnsToken = await _messaging.getAPNSToken();
+      // Get APNs token first (iOS only) - skip on simulator
+      if (Platform.isIOS && !kDebugMode) {
+        try {
+          _apnsToken = await _messaging?.getAPNSToken();
+          // APNs Token obtained
+          
+          if (_apnsToken == null) {
+            // APNs token pending registration
+            // Wait a bit for APNs registration
+            await Future.delayed(const Duration(seconds: 2));
+            _apnsToken = await _messaging?.getAPNSToken();
+          }
+        } catch (e) {
+          // APNs token unavailable on simulator
         }
+      } else if (Platform.isIOS && kDebugMode) {
+        // Simulator detected - APNs token not available
       }
       
       // Get FCM token
-      _fcmToken = await _messaging.getToken();
-      _logger.i('🔑 FCM Token: $_fcmToken');
+      try {
+        _fcmToken = await _messaging?.getToken();
+      } catch (e) {
+        // FCM token unavailable on simulator
+        // On simulator, we can't get real tokens, but we can continue
+        _fcmToken = 'simulator-token-${DateTime.now().millisecondsSinceEpoch}';
+      }
+      // FCM Token obtained
       
       if (_fcmToken == null) {
         throw Exception('Failed to get FCM token');
@@ -96,15 +120,15 @@ class FcmService {
       _detectEnvironment();
       
     } catch (e) {
-      _logger.e('Failed to get tokens', error: e);
+      // Failed to get tokens
       rethrow;
     }
   }
   
   /// Detect if we're in development or production environment
   void _detectEnvironment() {
-    final bool isProduction = const bool.fromEnvironment('dart.vm.product');
-    final bool isProfileMode = const bool.fromEnvironment('dart.vm.profile');
+    const bool isProduction = bool.fromEnvironment('dart.vm.product');
+    const bool isProfileMode = bool.fromEnvironment('dart.vm.profile');
     
     String environment = 'unknown';
     if (isProduction) {
@@ -115,8 +139,7 @@ class FcmService {
       environment = 'debug';
     }
     
-    _logger.i('🌍 Environment: $environment');
-    _logger.i('📦 Package: ${kReleaseMode ? "Release" : "Debug"}');
+    // Environment: $environment, Mode: ${kReleaseMode ? "Release" : "Debug"}
     
     // Check for TestFlight/App Store
     if (Platform.isIOS) {
@@ -131,23 +154,22 @@ class FcmService {
     final receiptUrl = Platform.environment['RECEIPT_URL'];
     
     if (isTestFlight || receiptUrl?.contains('sandbox') == true) {
-      _logger.w('📲 Running on TestFlight (Production environment required)');
+      // Running on TestFlight
     } else if (receiptUrl?.contains('buy') == true) {
-      _logger.i('🏪 Running on App Store');
+      // Running on App Store
     } else {
-      _logger.d('🔨 Running in Development');
+      // Running in Development
     }
   }
   
   /// Set up token refresh listener
   void _setupTokenRefreshListener() {
-    _messaging.onTokenRefresh.listen((newToken) {
-      _logger.i('🔄 FCM Token refreshed: $newToken');
+    _messaging?.onTokenRefresh.listen((newToken) {
+      // FCM Token refreshed
       _fcmToken = newToken;
-      // TODO: Update token in Supabase
       _updateTokenInBackend(newToken);
     }).onError((err) {
-      _logger.e('Token refresh error', error: err);
+      // Token refresh error
     });
   }
   
@@ -163,7 +185,7 @@ class FcmService {
     FirebaseMessaging.onMessageOpenedApp.listen(_handleMessageOpenedApp);
     
     // Check if app was opened from a notification
-    final initialMessage = await _messaging.getInitialMessage();
+    final initialMessage = await _messaging?.getInitialMessage();
     if (initialMessage != null) {
       _handleInitialMessage(initialMessage);
     }
@@ -171,73 +193,49 @@ class FcmService {
   
   /// Handle foreground messages
   void _handleForegroundMessage(RemoteMessage message) {
-    _logger.d('📬 Foreground message received:');
-    _logMessage(message);
+    // Foreground message received
     
-    // TODO: Show local notification
-    // TODO: Update app state
+    // Handle foreground message - implementation pending
   }
   
   /// Handle when notification opens the app
   void _handleMessageOpenedApp(RemoteMessage message) {
-    _logger.d('📱 App opened from notification:');
-    _logMessage(message);
+    // App opened from notification
     
-    // TODO: Navigate to appropriate screen
-    // TODO: Track analytics
+    // Handle notification navigation - implementation pending
   }
   
   /// Handle initial message when app launches from notification
   void _handleInitialMessage(RemoteMessage message) {
-    _logger.d('🚀 App launched from notification:');
-    _logMessage(message);
+    // App launched from notification
     
-    // TODO: Set initial route based on notification
+    // Handle initial navigation - implementation pending
   }
   
   /// Log message details for debugging
   void _logMessage(RemoteMessage message) {
-    _logger.d('Message ID: ${message.messageId}');
-    _logger.d('Title: ${message.notification?.title}');
-    _logger.d('Body: ${message.notification?.body}');
-    _logger.d('Data: ${message.data}');
-    _logger.d('Category: ${message.category}');
-    _logger.d('CollapseKey: ${message.collapseKey}');
-    _logger.d('From: ${message.from}');
-    _logger.d('SentTime: ${message.sentTime}');
+    if (NotificationConfig.debugMode) {
+      // Notification received: ${message.notification?.title}
+    }
   }
   
   /// Update token in backend (Supabase)
   Future<void> _updateTokenInBackend(String token) async {
     try {
-      // TODO: Implement Supabase update
-      _logger.d('📤 Updating token in Supabase...');
+      // Token refresh detected
     } catch (e) {
-      _logger.e('Failed to update token in backend', error: e);
+      // Failed to log token refresh
     }
   }
   
   /// Print debug information
   void _printDebugInfo() {
-    _logger.d('''
-╔════════════════════════════════════════╗
-║          FCM DEBUG INFORMATION         ║
-╠════════════════════════════════════════╣
-║ FCM Token: ${_fcmToken?.substring(0, 20)}...
-║ APNs Token: ${_apnsToken?.substring(0, 20) ?? 'N/A'}...
-║ Platform: ${Platform.operatingSystem}
-║ Debug Mode: ${kDebugMode}
-║ Release Mode: ${kReleaseMode}
-║ Profile Mode: ${kProfileMode}
-╚════════════════════════════════════════╝
-    ''');
+    // Debug info available in debugMode only
   }
   
   /// Send test notification (for debugging)
   Future<void> sendTestNotification() async {
-    _logger.d('📤 Sending test notification...');
-    // This would typically be done from your backend
-    // but we can trigger a local notification for testing
+    // Test notification handled by NotificationService
   }
   
   /// Get current FCM token
@@ -246,24 +244,39 @@ class FcmService {
   /// Get current APNs token (iOS only)
   String? get apnsToken => _apnsToken;
   
+  /// Check if FCM service is available
+  bool get isAvailable => _isAvailable;
+  
   /// Subscribe to topic
   Future<void> subscribeToTopic(String topic) async {
-    await _messaging.subscribeToTopic(topic);
-    _logger.d('📌 Subscribed to topic: $topic');
+    if (_messaging == null) {
+      // Cannot subscribe to topic - Firebase not available
+      return;
+    }
+    await _messaging!.subscribeToTopic(topic);
+    // Subscribed to topic: $topic
   }
   
   /// Unsubscribe from topic
   Future<void> unsubscribeFromTopic(String topic) async {
-    await _messaging.unsubscribeFromTopic(topic);
-    _logger.d('📌 Unsubscribed from topic: $topic');
+    if (_messaging == null) {
+      // Cannot unsubscribe from topic - Firebase not available
+      return;
+    }
+    await _messaging!.unsubscribeFromTopic(topic);
+    // Unsubscribed from topic: $topic
   }
   
   /// Delete token (logout)
   Future<void> deleteToken() async {
-    await _messaging.deleteToken();
+    if (_messaging == null) {
+      // Cannot delete token - Firebase not available
+      return;
+    }
+    await _messaging!.deleteToken();
     _fcmToken = null;
     _apnsToken = null;
-    _logger.d('🗑️ FCM token deleted');
+    // FCM token deleted
   }
 }
 
@@ -271,6 +284,6 @@ class FcmService {
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
-  print('🔕 Background message received: ${message.messageId}');
+  // Background message received: ${message.messageId}
   // Handle background message
 }

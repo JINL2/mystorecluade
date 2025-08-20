@@ -71,7 +71,7 @@ class _TossCardState extends State<TossCard>
           child: Container(
             padding: widget.padding ?? EdgeInsets.all(TossSpacing.space5),
             decoration: BoxDecoration(
-              color: widget.backgroundColor ?? Colors.white,
+              color: widget.backgroundColor ?? TossColors.white,
               borderRadius: BorderRadius.circular(widget.borderRadius),
               boxShadow: [
                 BoxShadow(

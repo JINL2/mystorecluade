@@ -5,6 +5,7 @@ import '../../../core/themes/toss_text_styles.dart';
 import '../../../core/themes/toss_spacing.dart';
 import '../../../core/themes/toss_border_radius.dart';
 import '../../../core/themes/toss_shadows.dart';
+import '../../../core/themes/toss_colors.dart';
 
 class TotalJournalPage extends ConsumerStatefulWidget {
   final String locationType; // 'cash', 'bank', 'vault'
@@ -196,7 +197,7 @@ class _TotalJournalPageState extends ConsumerState<TotalJournalPage> {
     
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: TossColors.white,
         borderRadius: BorderRadius.circular(TossBorderRadius.lg),
         boxShadow: TossShadows.card,
       ),
@@ -238,7 +239,7 @@ class _TotalJournalPageState extends ConsumerState<TotalJournalPage> {
             Text(
               _selectedFilter,
               style: TossTextStyles.body.copyWith(
-                color: Colors.grey[600],
+                color: TossColors.gray600,
                 fontWeight: FontWeight.w600,
                 fontSize: 14,
               ),
@@ -246,7 +247,7 @@ class _TotalJournalPageState extends ConsumerState<TotalJournalPage> {
             Icon(
               Icons.keyboard_arrow_down,
               size: 18,
-              color: Colors.grey[600],
+              color: TossColors.gray600,
             ),
           ],
         ),
@@ -273,7 +274,7 @@ class _TotalJournalPageState extends ConsumerState<TotalJournalPage> {
                 ? Text(
                     transaction['date'],
                     style: TossTextStyles.caption.copyWith(
-                      color: Colors.grey[600],
+                      color: TossColors.gray600,
                       fontWeight: FontWeight.w600,
                       fontSize: 14,
                     ),
@@ -293,7 +294,7 @@ class _TotalJournalPageState extends ConsumerState<TotalJournalPage> {
                   style: TossTextStyles.body.copyWith(
                     fontWeight: FontWeight.w600,
                     fontSize: 16,
-                    color: Colors.black87,
+                    color: TossColors.gray800,
                   ),
                 ),
                 SizedBox(height: 4),
@@ -317,7 +318,7 @@ class _TotalJournalPageState extends ConsumerState<TotalJournalPage> {
                           Text(
                             ' • ',
                             style: TossTextStyles.caption.copyWith(
-                              color: Colors.grey[400],
+                              color: TossColors.gray400,
                               fontSize: 12,
                             ),
                           ),
@@ -326,7 +327,7 @@ class _TotalJournalPageState extends ConsumerState<TotalJournalPage> {
                             child: Text(
                               transaction['account'] ?? 'Unknown',
                               style: TossTextStyles.caption.copyWith(
-                                color: Colors.grey[500],
+                                color: TossColors.gray500,
                                 fontSize: 12,
                               ),
                               overflow: TextOverflow.ellipsis,
@@ -336,14 +337,14 @@ class _TotalJournalPageState extends ConsumerState<TotalJournalPage> {
                             Text(
                               ' • ',
                               style: TossTextStyles.caption.copyWith(
-                                color: Colors.grey[400],
+                                color: TossColors.gray400,
                                 fontSize: 12,
                               ),
                             ),
                             Text(
                               transaction['time'],
                               style: TossTextStyles.caption.copyWith(
-                                color: Colors.grey[500],
+                                color: TossColors.gray500,
                                 fontSize: 12,
                               ),
                             ),
@@ -364,7 +365,7 @@ class _TotalJournalPageState extends ConsumerState<TotalJournalPage> {
             Text(
               _formatCurrency(transaction['balance']),
               style: TossTextStyles.body.copyWith(
-                color: Colors.black87,
+                color: TossColors.gray800,
                 fontWeight: FontWeight.w600,
                 fontSize: 16,
               ),
@@ -378,7 +379,7 @@ class _TotalJournalPageState extends ConsumerState<TotalJournalPage> {
                   style: TossTextStyles.body.copyWith(
                     color: isIncome 
                         ? Theme.of(context).colorScheme.primary 
-                        : Colors.black87,
+                        : TossColors.gray800,
                     fontWeight: FontWeight.w600,
                     fontSize: 16,
                   ),
@@ -387,7 +388,7 @@ class _TotalJournalPageState extends ConsumerState<TotalJournalPage> {
                 Text(
                   _formatCurrency(transaction['balance']),
                   style: TossTextStyles.caption.copyWith(
-                    color: Colors.grey[500],
+                    color: TossColors.gray500,
                     fontSize: 11,
                   ),
                 ),
@@ -443,12 +444,12 @@ class _TotalJournalPageState extends ConsumerState<TotalJournalPage> {
   void _showFilterBottomSheet() {
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.transparent,
+      backgroundColor: TossColors.transparent,
       isScrollControlled: true,
       builder: (BuildContext context) {
         return Container(
           decoration: const BoxDecoration(
-            color: Colors.white,
+            color: TossColors.white,
             borderRadius: BorderRadius.only(
               topLeft: Radius.circular(20),
               topRight: Radius.circular(20),
@@ -463,7 +464,7 @@ class _TotalJournalPageState extends ConsumerState<TotalJournalPage> {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: Colors.grey[300],
+                  color: TossColors.gray300,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),

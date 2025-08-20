@@ -1499,7 +1499,7 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
             margin: const EdgeInsets.all(TossSpacing.space5),
             padding: const EdgeInsets.all(TossSpacing.space5),
             decoration: BoxDecoration(
-              color: const Color(0xFFE8EFFA),
+              color: TossColors.primarySurface,
               borderRadius: BorderRadius.circular(20),
             ),
             child: SizedBox(
@@ -1542,7 +1542,7 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
                     // Total Request
                     _buildStatCard(
                       icon: Icons.calendar_today,
-                      iconColor: const Color(0xFF5B8DEF),
+                      iconColor: TossColors.primary,
                       backgroundColor: TossColors.background,  // Changed to white
                       title: 'Total Request',
                       value: _getMonthlyStatValue('total_requests'),
@@ -1553,8 +1553,8 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
                     // Problem
                     _buildStatCard(
                       icon: Icons.warning_amber_rounded,
-                      iconColor: const Color(0xFFF56565),
-                      backgroundColor: const Color(0xFFFEE8E8),
+                      iconColor: TossColors.error,
+                      backgroundColor: TossColors.errorLight,
                       title: 'Problem',
                       value: _getMonthlyStatValue('total_problems'),
                       subtitle: 'issues',
@@ -1564,8 +1564,8 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
                     // Total Approve
                     _buildStatCard(
                       icon: Icons.check_circle,
-                      iconColor: const Color(0xFF48BB78),
-                      backgroundColor: const Color(0xFFE6F9F0),
+                      iconColor: TossColors.success,
+                      backgroundColor: TossColors.successLight,
                       title: 'Total Approve',
                       value: _getMonthlyStatValue('total_approved'),
                       subtitle: 'approved',
@@ -1575,8 +1575,8 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
                     // Pending
                     _buildStatCard(
                       icon: Icons.access_time,
-                      iconColor: const Color(0xFFF6AD55),
-                      backgroundColor: const Color(0xFFFEF5E7),
+                      iconColor: TossColors.warning,
+                      backgroundColor: TossColors.warningLight,
                       title: 'Pending',
                       value: _getMonthlyStatValue('total_pending'),
                       subtitle: 'pending',
@@ -1995,7 +1995,7 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
     Color borderColor = TossColors.gray200;
     if (isReportedUnsolvedProblem) {
       // Purple/Indigo color for reported but unsolved problems
-      borderColor = const Color(0xFF6366F1); // Indigo-500
+      borderColor = TossColors.primary; // Using primary blue for highlight
     } else if (hasUnsolvedProblem) {
       borderColor = TossColors.error;
     } else if (isApproved) {
@@ -2014,7 +2014,7 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
       margin: const EdgeInsets.only(bottom: TossSpacing.space3),
       decoration: BoxDecoration(
         color: isReportedUnsolvedProblem
-            ? const Color(0xFF6366F1).withOpacity(0.05) // Light indigo background for reported unsolved
+            ? TossColors.primary.withOpacity(0.05) // Light primary background for reported unsolved
             : TossColors.background,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
@@ -2036,7 +2036,7 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
             padding: const EdgeInsets.all(TossSpacing.space4),
             decoration: BoxDecoration(
               color: isReportedUnsolvedProblem
-                  ? const Color(0xFF6366F1).withOpacity(0.08) // Slightly darker indigo for header
+                  ? TossColors.primary.withOpacity(0.08) // Slightly darker primary for header
                   : hasUnsolvedProblem 
                       ? TossColors.error.withOpacity(0.05)
                       : isApproved
@@ -2294,13 +2294,13 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
                               vertical: 2,
                             ),
                             decoration: BoxDecoration(
-                              color: const Color(0xFF6366F1).withOpacity(0.1),
+                              color: TossColors.primary.withOpacity(0.1),
                               borderRadius: BorderRadius.circular(6),
                             ),
                             child: Text(
                               'Reported',
                               style: TossTextStyles.caption.copyWith(
-                                color: const Color(0xFF6366F1),
+                                color: TossColors.primary,
                                 fontSize: 11,
                               ),
                             ),

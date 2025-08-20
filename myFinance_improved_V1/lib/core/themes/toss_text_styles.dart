@@ -128,15 +128,7 @@ class TossTextStyles {
 
   // ==================== FINANCIAL STYLES ====================
   
-  // Amount Large - Big numbers (28px/32px)
-  static TextStyle get amountLarge => GoogleFonts.jetBrainsMono(
-    fontSize: 28,
-    fontWeight: FontWeight.w700,  // Bold
-    letterSpacing: -0.02,
-    height: 1.143,  // 32px line height
-  );
-
-  // Amount - Money display (20px/24px)
+  // Amount - Money display (20px/24px) - Keep for financial numbers
   static TextStyle get amount => GoogleFonts.jetBrainsMono(
     fontSize: 20,
     fontWeight: FontWeight.w600,  // Semibold
@@ -144,28 +136,6 @@ class TossTextStyles {
     height: 1.2,  // 24px line height
   );
 
-  // Amount Small - Inline money (14px/20px)
-  static TextStyle get amountSmall => GoogleFonts.jetBrainsMono(
-    fontSize: 14,
-    fontWeight: FontWeight.w500,  // Medium
-    letterSpacing: 0,
-    height: 1.429,  // 20px line height
-  );
-
   // ==================== SPECIAL STYLES ====================
-  
-  // Link - Clickable text
-  static TextStyle get link => GoogleFonts.inter(
-    fontSize: 14,
-    fontWeight: FontWeight.w500,
-    decoration: TextDecoration.underline,
-    height: 1.429,
-  );
-
-  // Code - Inline code
-  static TextStyle get code => GoogleFonts.jetBrainsMono(
-    fontSize: 13,
-    fontWeight: FontWeight.w400,
-    height: 1.385,
-  );
+  // (Removed unused link and code styles)
 }

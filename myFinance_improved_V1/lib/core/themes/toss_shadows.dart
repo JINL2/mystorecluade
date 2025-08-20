@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'toss_colors.dart';
 
 /// Toss Shadow System - Ultra-subtle depth
 /// Based on Toss's minimal shadow approach
@@ -165,7 +166,7 @@ class TossShadows {
   }) {
     return [
       BoxShadow(
-        color: color ?? Colors.black.withValues(alpha: opacity),
+        color: color ?? TossColors.black.withValues(alpha: opacity),
         offset: offset,
         blurRadius: blurRadius,
         spreadRadius: spreadRadius,

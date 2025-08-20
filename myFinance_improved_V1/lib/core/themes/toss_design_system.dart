@@ -37,7 +37,7 @@ class TossDesignSystem {
   static const Color brandColor = TossColors.primary;  // #0064FF
   
   /// Secondary brand color - Toss Dark
-  static const Color brandSecondary = TossColors.secondary;  // #202632
+  static const Color brandSecondary = TossColors.gray800;  // #202632
   
   /// Success color - Toss Green
   static const Color brandSuccess = TossColors.success;  // #00C896
@@ -248,7 +248,7 @@ class TossDesignSystem {
       thickness: 0.5,
       indent: indent ?? 0,
       endIndent: endIndent ?? 0,
-      color: color ?? TossColors.divider,
+      color: color ?? TossColors.border,
     );
   }
   

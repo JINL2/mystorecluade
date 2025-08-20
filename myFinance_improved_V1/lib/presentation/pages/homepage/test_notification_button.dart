@@ -9,12 +9,12 @@ class TestNotificationButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return FloatingActionButton(
       onPressed: () {
-        // Navigate to notification debug page
-        context.go('/notification-debug');
+        // Navigate to test page (notification debug)
+        context.go('/test');
       },
       backgroundColor: Colors.orange,
       child: const Icon(Icons.notifications_active),
-      heroTag: 'notification_debug',
+      heroTag: 'notification_test',
     );
   }
 }

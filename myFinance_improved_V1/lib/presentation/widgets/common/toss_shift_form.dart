@@ -596,7 +596,7 @@ class _TossShiftFormState extends State<TossShiftForm>
                     : null,
                 ),
                 child: Material(
-                  color: Colors.transparent,
+                  color: TossColors.transparent,
                   child: InkWell(
                     onTap: _isFormValid && !widget.isLoading ? _handleSubmit : null,
                     borderRadius: BorderRadius.circular(TossBorderRadius.lg),

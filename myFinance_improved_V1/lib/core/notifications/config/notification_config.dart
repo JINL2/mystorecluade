@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 /// Configuration constants and settings for the notification system
@@ -66,8 +67,8 @@ class NotificationConfig {
   static const String supabaseTokenTable = 'user_fcm_tokens';
   static const String supabaseNotificationTable = 'notifications';
   
-  // Debug mode flag
-  static const bool debugMode = true; // Set to false in production
+  // Debug mode flag - automatically determined based on build mode
+  static bool get debugMode => kDebugMode && !const bool.fromEnvironment('dart.vm.product');
   
   // Retry configuration
   static const int maxRetryAttempts = 3;

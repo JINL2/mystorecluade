@@ -205,9 +205,7 @@ class _AddDenominationBottomSheetState extends ConsumerState<AddDenominationBott
                       ),
                       child: Text(
                         'Cancel',
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
+                        style: TossTextStyles.button.copyWith(
                           color: TossColors.gray700,
                         ),
                       ),
@@ -240,10 +238,7 @@ class _AddDenominationBottomSheetState extends ConsumerState<AddDenominationBott
                             )
                           : Text(
                               'Add Denomination',
-                              style: TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w600,
-                              ),
+                              style: TossTextStyles.button,
                             ),
                     ),
                   ),
@@ -367,14 +362,12 @@ class _TypeSelectionButton extends StatelessWidget {
           children: [
             Text(
               emoji,
-              style: const TextStyle(fontSize: 17),
+              style: TossTextStyles.bodyLarge,
             ),
             const SizedBox(width: 6),
             Text(
               label,
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
+              style: TossTextStyles.button.copyWith(
                 color: isSelected ? Colors.white : TossColors.gray700,
               ),
             ),

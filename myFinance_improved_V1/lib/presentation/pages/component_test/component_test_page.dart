@@ -1,514 +1,317 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:myfinance_improved/core/themes/toss_colors.dart';
-import 'package:myfinance_improved/core/themes/toss_text_styles.dart';
-import 'package:myfinance_improved/core/themes/toss_spacing.dart';
-import 'package:myfinance_improved/core/themes/toss_border_radius.dart';
-import 'package:myfinance_improved/core/constants/ui_constants.dart';
-import '../../widgets/common/toss_scaffold.dart';
-import '../../widgets/common/toss_app_bar.dart';
-import '../../widgets/toss/toss_modal.dart';
-import '../../widgets/toss/toss_bottom_sheet.dart';
-import '../debt_account_settings/widgets/account_mapping_form.dart';
-import '../delegate_role/widgets/role_management_sheet.dart';
+import '../../../core/themes/toss_colors.dart';
+import '../../../core/themes/toss_text_styles.dart';
+import '../../../core/themes/toss_spacing.dart';
+import '../../../core/notifications/models/notification_db_model.dart';
+import '../../../core/notifications/services/notification_service.dart';
+import '../../providers/notification_provider.dart';
 
-class ComponentTestPage extends ConsumerWidget {
+/// Debug page for testing and monitoring the notification system
+class ComponentTestPage extends ConsumerStatefulWidget {
   const ComponentTestPage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return TossScaffold(
-      backgroundColor: TossColors.gray100,
-      appBar: TossAppBar(
-        title: 'Component Handle Test',
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: TossColors.textPrimary),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
+  ConsumerState<ComponentTestPage> createState() => _ComponentTestPageState();
+}
+
+class _ComponentTestPageState extends ConsumerState<ComponentTestPage> {
+  final NotificationService _notificationService = NotificationService();
+  List<NotificationDbModel> _notifications = [];
+  Map<String, dynamic> _stats = {};
+  int _unreadCount = 0;
+  bool _isLoadingHistory = false;
+  
+  @override
+  void initState() {
+    super.initState();
+    // Initialize notifications if not already done
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!ref.read(notificationProvider).isInitialized) {
+        ref.read(notificationProvider.notifier).initialize();
+      }
+      _loadNotificationData();
+    });
+  }
+  
+  Future<void> _loadNotificationData() async {
+    setState(() => _isLoadingHistory = true);
+    
+    try {
+      // Loading notification data...
+      final notifications = await _notificationService.getUserNotifications(limit: 10);
+      // Loaded ${notifications.length} notifications
+      
+      final stats = await _notificationService.getNotificationStats();
+      // Stats loaded
+      
+      final unreadCount = await _notificationService.getUnreadNotificationCount();
+      // Unread count: $unreadCount
+      
+      setState(() {
+        _notifications = notifications;
+        _stats = stats;
+        _unreadCount = unreadCount;
+      });
+    } catch (e) {
+      // Error loading notification data: $e
+    } finally {
+      setState(() => _isLoadingHistory = false);
+    }
+  }
+  
+  @override
+  Widget build(BuildContext context) {
+    final notificationState = ref.watch(notificationProvider);
+    final notificationNotifier = ref.read(notificationProvider.notifier);
+    
+    return Scaffold(
+      backgroundColor: TossColors.background,
+      appBar: AppBar(
+        title: const Text('🔔 Notification Test'),
+        backgroundColor: TossColors.white,
+        foregroundColor: TossColors.black,
+        elevation: 0,
       ),
-      body: Padding(
-        padding: EdgeInsets.all(TossSpacing.space4),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Drag Handle Component Tests',
-              style: TossTextStyles.h2.copyWith(
-                color: TossColors.textPrimary,
-                fontWeight: FontWeight.w700,
+      body: notificationState.isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
+              padding: EdgeInsets.all(TossSpacing.space4),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildStatusCard(notificationState),
+                  SizedBox(height: TossSpacing.space4),
+                  _buildTokensCard(notificationState),
+                  SizedBox(height: TossSpacing.space4),
+                  _buildDatabaseStatsCard(),
+                  SizedBox(height: TossSpacing.space4),
+                  _buildTestActionsCard(notificationNotifier),
+                  SizedBox(height: TossSpacing.space4),
+                  _buildNotificationHistoryCard(notificationState),
+                  SizedBox(height: TossSpacing.space4),
+                  _buildDebugInfoCard(notificationState),
+                ],
               ),
             ),
-            
-            SizedBox(height: TossSpacing.space4),
-            
-            Text(
-              'Test different drag handle implementations across components',
-              style: TossTextStyles.body.copyWith(
-                color: TossColors.textSecondary,
-              ),
-            ),
-            
-            SizedBox(height: TossSpacing.space6),
-            
-            // Test buttons
-            Expanded(
-              child: SingleChildScrollView(
-                child: Column(
-                  children: [
-                    _buildTestSection(
-                      'Core Toss Components',
-                      [
-                        _buildTestButton(
-                          context,
-                          'TossModal',
-                          'Handle bar (TossColors.gray300)',
-                          Icons.web_asset,
-                          () => _showTossModal(context),
-                        ),
-                        _buildTestButton(
-                          context,
-                          'TossBottomSheet',
-                          'Handle bar (TossColors.gray300)',
-                          Icons.view_agenda,
-                          () => _showTossBottomSheet(context),
-                        ),
-                        _buildTestButton(
-                          context,
-                          'TossDropdown',
-                          'Handle bar (TossColors.gray300)',
-                          Icons.arrow_drop_down,
-                          () => _showTossDropdown(context),
-                        ),
-                      ],
-                    ),
-                    
-                    SizedBox(height: TossSpacing.space6),
-                    
-                    _buildTestSection(
-                      'Role Management Components',
-                      [
-                        _buildTestButton(
-                          context,
-                          'Role Management Sheet',
-                          '3 handle bars (TossColors.gray300)',
-                          Icons.admin_panel_settings,
-                          () => _showRoleManagementSheet(context),
-                        ),
-                      ],
-                    ),
-                    
-                    SizedBox(height: TossSpacing.space6),
-                    
-                    _buildTestSection(
-                      'Account Mapping Components',
-                      [
-                        _buildTestButton(
-                          context,
-                          'Account Mapping Form',
-                          'Handle bar restored to grey (TossColors.gray300)',
-                          Icons.account_balance,
-                          () => _showAccountMappingForm(context),
-                        ),
-                        _buildTestButton(
-                          context,
-                          'Account Mapping List Item',
-                          'Handle bar (TossColors.gray300)',
-                          Icons.list_alt,
-                          () => _showAccountMappingListOptions(context),
-                        ),
-                      ],
-                    ),
-                    
-                    SizedBox(height: TossSpacing.space6),
-                    
-                    _buildTestSection(
-                      'Theme Level',
-                      [
-                        Container(
-                          padding: EdgeInsets.all(TossSpacing.space4),
-                          decoration: BoxDecoration(
-                            color: TossColors.info.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-                            border: Border.all(
-                              color: TossColors.info.withOpacity(0.3),
-                              width: 1,
-                            ),
-                          ),
-                          child: Row(
-                            children: [
-                              Icon(
-                                Icons.info_outline,
-                                color: TossColors.info,
-                                size: UIConstants.iconSizeMedium,
-                              ),
-                              SizedBox(width: TossSpacing.space3),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      'app_theme.dart',
-                                      style: TossTextStyles.body.copyWith(
-                                        color: TossColors.textPrimary,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                    Text(
-                                      'Disabled default drag handle (showDragHandle: false)',
-                                      style: TossTextStyles.caption.copyWith(
-                                        color: TossColors.info,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
   
-  Widget _buildTestSection(String title, List<Widget> children) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          title,
-          style: TossTextStyles.h4.copyWith(
-            color: TossColors.textPrimary,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        SizedBox(height: TossSpacing.space3),
-        ...children,
-      ],
-    );
-  }
-  
-  Widget _buildTestButton(
-    BuildContext context,
-    String title,
-    String description,
-    IconData icon,
-    VoidCallback onTap,
-  ) {
-    return Container(
-      margin: EdgeInsets.only(bottom: TossSpacing.space3),
-      child: Material(
-        color: TossColors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-          child: Container(
-            padding: EdgeInsets.all(TossSpacing.space4),
-            decoration: BoxDecoration(
-              color: TossColors.surface,
-              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-              border: Border.all(
-                color: TossColors.borderLight,
-                width: 1,
-              ),
-            ),
-            child: Row(
-              children: [
-                Container(
-                  width: UIConstants.featureIconContainerSize,
-                  height: UIConstants.featureIconContainerSize,
-                  decoration: BoxDecoration(
-                    color: TossColors.primary.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(TossBorderRadius.sm),
-                  ),
-                  child: Icon(
-                    icon,
-                    color: TossColors.primary,
-                    size: UIConstants.iconSizeLarge,
-                  ),
-                ),
-                SizedBox(width: TossSpacing.space3),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        title,
-                        style: TossTextStyles.body.copyWith(
-                          color: TossColors.textPrimary,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      SizedBox(height: TossSpacing.space1),
-                      Text(
-                        description,
-                        style: TossTextStyles.caption.copyWith(
-                          color: TossColors.textSecondary,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Icon(
-                  Icons.chevron_right,
-                  color: TossColors.textTertiary,
-                  size: UIConstants.iconSizeMedium,
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-  
-  void _showTossModal(BuildContext context) {
-    TossModal.show<void>(
-      context: context,
-      title: 'Sample Modal Title',
-      subtitle: 'This is a subtitle for testing',
-      showHandleBar: true, // Test with handle bar visible
-      child: Container(
-        height: 300,
-        padding: EdgeInsets.all(TossSpacing.space4),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Modal Content',
-              style: TossTextStyles.h4.copyWith(
-                color: TossColors.textPrimary,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            SizedBox(height: TossSpacing.space3),
-            Text(
-              'This modal tests the drag handle implementation. The handle uses TossColors.gray300 for visibility.',
-              style: TossTextStyles.body.copyWith(
-                color: TossColors.textSecondary,
-              ),
-            ),
-            SizedBox(height: TossSpacing.space4),
-            Container(
-              padding: EdgeInsets.all(TossSpacing.space3),
-              decoration: BoxDecoration(
-                color: TossColors.primary.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(TossBorderRadius.md),
-              ),
-              child: Text(
-                'Handle Status: TossColors.gray300 (grey)',
-                style: TossTextStyles.caption.copyWith(
-                  color: TossColors.primary,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: Text('Close'),
-        ),
-      ],
-    );
-  }
-  
-  void _showTossBottomSheet(BuildContext context) {
-    TossBottomSheet.show<void>(
-      context: context,
-      title: 'Sample Bottom Sheet',
-      content: Container(
-        height: 350,
+  Widget _buildStatusCard(NotificationState state) {
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
         padding: EdgeInsets.all(TossSpacing.space4),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
-                Container(
-                  width: UIConstants.featureIconContainerSize,
-                  height: UIConstants.featureIconContainerSize,
-                  decoration: BoxDecoration(
-                    color: TossColors.success.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(TossBorderRadius.sm),
-                  ),
-                  child: Icon(
-                    Icons.settings,
-                    color: TossColors.success,
-                    size: UIConstants.iconSizeLarge,
-                  ),
+                Icon(
+                  state.isInitialized ? Icons.check_circle : Icons.error,
+                  color: state.isInitialized ? Colors.green : Colors.red,
                 ),
-                SizedBox(width: TossSpacing.space3),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Bottom Sheet Settings',
-                        style: TossTextStyles.body.copyWith(
-                          color: TossColors.textPrimary,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      Text(
-                        'Configure your preferences',
-                        style: TossTextStyles.caption.copyWith(
-                          color: TossColors.textSecondary,
-                        ),
-                      ),
-                    ],
-                  ),
+                SizedBox(width: TossSpacing.space2),
+                Text(
+                  'System Status',
+                  style: TossTextStyles.h3.copyWith(fontWeight: FontWeight.bold),
                 ),
               ],
             ),
-            SizedBox(height: TossSpacing.space4),
-            Container(
-              padding: EdgeInsets.all(TossSpacing.space3),
-              decoration: BoxDecoration(
-                color: TossColors.warning.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(TossBorderRadius.md),
-              ),
-              child: Text(
-                'Handle Status: TossColors.gray300 (grey)',
-                style: TossTextStyles.caption.copyWith(
-                  color: TossColors.warning,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-            SizedBox(height: TossSpacing.space4),
-            Text(
-              'This bottom sheet component tests the drag handle visibility. The handle uses TossColors.gray300 for consistent appearance.',
-              style: TossTextStyles.body.copyWith(
-                color: TossColors.textSecondary,
-              ),
-            ),
+            SizedBox(height: TossSpacing.space3),
+            _buildStatusRow('Notification Service', state.isInitialized),
+            _buildStatusRow('Firebase Connected', state.fcmToken != null),
+            _buildStatusRow('Local Notifications', state.isInitialized),
+            _buildStatusRow('Permissions Granted', state.isInitialized),
           ],
         ),
       ),
     );
   }
   
-  void _showTossDropdown(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: TossColors.transparent,
-      isScrollControlled: true,
-      builder: (context) => Container(
-        height: 450,
-        decoration: BoxDecoration(
-          color: TossColors.surface,
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(TossBorderRadius.xl),
-            topRight: Radius.circular(TossBorderRadius.xl),
-          ),
-        ),
-        child: Column(
-          children: [
-            // Manual drag handle to test - simulating TossDropdown handle
-            Container(
-              margin: EdgeInsets.only(top: TossSpacing.space3, bottom: TossSpacing.space4),
-              width: UIConstants.modalDragHandleWidth,
-              height: UIConstants.modalDragHandleHeight,
-              decoration: BoxDecoration(
-                color: TossColors.gray300, // TossDropdown uses grey handle now
-                borderRadius: BorderRadius.circular(UIConstants.modalDragHandleBorderRadius),
+  Widget _buildStatusRow(String label, bool status) {
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: TossSpacing.space1),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: TossTextStyles.body),
+          Container(
+            padding: EdgeInsets.symmetric(
+              horizontal: TossSpacing.space2,
+              vertical: TossSpacing.space1,
+            ),
+            decoration: BoxDecoration(
+              color: status ? Colors.green.withOpacity(0.1) : Colors.red.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: Text(
+              status ? 'Active' : 'Inactive',
+              style: TossTextStyles.caption.copyWith(
+                color: status ? Colors.green : Colors.red,
+                fontWeight: FontWeight.w600,
               ),
             ),
-            
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: TossSpacing.space4),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Select Company',
-                    style: TossTextStyles.h3.copyWith(
-                      color: TossColors.textPrimary,
-                      fontWeight: FontWeight.w600,
-                    ),
+          ),
+        ],
+      ),
+    );
+  }
+  
+  Widget _buildTokensCard(NotificationState state) {
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: EdgeInsets.all(TossSpacing.space4),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.token, color: TossColors.primary),
+                SizedBox(width: TossSpacing.space2),
+                Text(
+                  'Device Tokens',
+                  style: TossTextStyles.h3.copyWith(fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+            SizedBox(height: TossSpacing.space3),
+            if (state.fcmToken != null) ...[
+              Text('FCM Token:', style: TossTextStyles.body.copyWith(fontWeight: FontWeight.w600)),
+              SizedBox(height: TossSpacing.space1),
+              GestureDetector(
+                onTap: () {
+                  Clipboard.setData(ClipboardData(text: state.fcmToken!));
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('FCM Token copied to clipboard')),
+                  );
+                },
+                child: Container(
+                  padding: EdgeInsets.all(TossSpacing.space2),
+                  decoration: BoxDecoration(
+                    color: TossColors.gray100,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: TossColors.borderLight),
                   ),
-                  SizedBox(height: TossSpacing.space1),
-                  Text(
-                    '5 options available',
-                    style: TossTextStyles.caption.copyWith(
-                      color: TossColors.textSecondary,
-                    ),
-                  ),
-                  SizedBox(height: TossSpacing.space4),
-                  
-                  // Dummy dropdown options
-                  ...['Samsung Electronics', 'Apple Inc.', 'Microsoft Corp.', 'Google LLC', 'Amazon.com Inc.'].map((company) =>
-                    Container(
-                      margin: EdgeInsets.only(bottom: TossSpacing.space2),
-                      child: Material(
-                        color: TossColors.transparent,
-                        child: InkWell(
-                          onTap: () => Navigator.pop(context),
-                          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-                          child: Container(
-                            padding: EdgeInsets.all(TossSpacing.space3),
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-                              border: Border.all(color: TossColors.borderLight),
-                            ),
-                            child: Row(
-                              children: [
-                                Container(
-                                  width: UIConstants.featureIconContainerCompact,
-                                  height: UIConstants.featureIconContainerCompact,
-                                  decoration: BoxDecoration(
-                                    color: TossColors.primary.withOpacity(0.1),
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: Icon(
-                                    Icons.business,
-                                    color: TossColors.primary,
-                                    size: UIConstants.iconSizeSmall,
-                                  ),
-                                ),
-                                SizedBox(width: TossSpacing.space3),
-                                Expanded(
-                                  child: Text(
-                                    company,
-                                    style: TossTextStyles.body.copyWith(
-                                      color: TossColors.textPrimary,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          state.fcmToken!.length > 50 
+                            ? '${state.fcmToken!.substring(0, 50)}...' 
+                            : state.fcmToken!,
+                          style: TossTextStyles.caption.copyWith(fontFamily: 'monospace'),
                         ),
                       ),
-                    ),
-                  ).toList(),
-                  
-                  SizedBox(height: TossSpacing.space3),
-                  Container(
-                    padding: EdgeInsets.all(TossSpacing.space3),
-                    decoration: BoxDecoration(
-                      color: TossColors.info.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                    ),
-                    child: Text(
-                      'Handle Status: Grey handle (TossColors.gray300)',
-                      style: TossTextStyles.caption.copyWith(
-                        color: TossColors.info,
-                        fontWeight: FontWeight.w600,
+                      Icon(Icons.copy, size: 16, color: TossColors.textSecondary),
+                    ],
+                  ),
+                ),
+              ),
+            ] else ...[
+              Container(
+                padding: EdgeInsets.all(TossSpacing.space3),
+                decoration: BoxDecoration(
+                  color: Colors.orange.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.warning, color: Colors.orange),
+                    SizedBox(width: TossSpacing.space2),
+                    Expanded(
+                      child: Text(
+                        'No FCM token available. This is normal on iOS simulator.',
+                        style: TossTextStyles.body.copyWith(color: Colors.orange[700]),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+  
+  Widget _buildTestActionsCard(NotificationNotifier notifier) {
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: EdgeInsets.all(TossSpacing.space4),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.play_arrow, color: Colors.blue),
+                SizedBox(width: TossSpacing.space2),
+                Text(
+                  'Test Actions',
+                  style: TossTextStyles.h3.copyWith(fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+            SizedBox(height: TossSpacing.space3),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: () => _sendTestNotification(notifier),
+                icon: const Icon(Icons.notifications),
+                label: const Text('Send Test Notification'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: TossColors.primary,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                ),
+              ),
+            ),
+            SizedBox(height: TossSpacing.space2),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: () => _sendScheduledNotification(notifier),
+                icon: const Icon(Icons.schedule),
+                label: const Text('Schedule Notification (5s)'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.orange,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                ),
+              ),
+            ),
+            SizedBox(height: TossSpacing.space2),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: () => _testPermissions(notifier),
+                icon: const Icon(Icons.security),
+                label: const Text('Test Permissions'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.green,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                ),
+              ),
+            ),
+            SizedBox(height: TossSpacing.space2),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: _loadNotificationData,
+                icon: const Icon(Icons.refresh),
+                label: const Text('Refresh Database'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.purple,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                ),
               ),
             ),
           ],
@@ -517,109 +320,413 @@ class ComponentTestPage extends ConsumerWidget {
     );
   }
   
-  void _showRoleManagementSheet(BuildContext context) {
-    RoleManagementSheet.show(
-      context,
-      roleId: '22222',
-      roleName: '22222',
-      description: 'Custom role with specific permissions tailored to unique business requirements.',
-      tags: ['Support', 'Temporary', 'Marketing', 'Customer Service', 'Technical'],
-      permissions: [
-        'View Dashboard', 'Manage Users', 'Edit Profiles', 'Delete Records',
-        'Create Reports', 'Export Data', 'Import Data', 'Manage Settings',
-        'View Analytics', 'Manage Roles', 'Assign Permissions', 'Manage Tags',
-        'Create Backups', 'Restore Data', 'Monitor System', 'Configure API',
-        'Manage Billing', 'View Logs', 'Send Notifications', 'Manage Templates',
-        'Approve Requests', 'Reject Requests', 'Manage Workflows', 'Audit Trails'
-      ], // 24 realistic permissions
-      memberCount: 3,
-      canEdit: true,
-      canDelegate: true,
-    );
-  }
-  
-  void _showAccountMappingForm(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: TossColors.transparent,
-      isScrollControlled: true,
-      enableDrag: false,
-      builder: (context) => AccountMappingForm(
-        counterpartyId: 'cp_samsung_electronics',
-        counterpartyName: 'Samsung Electronics Co., Ltd.',
+  Widget _buildNotificationHistoryCard(NotificationState state) {
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: EdgeInsets.all(TossSpacing.space4),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.history, color: Colors.purple),
+                SizedBox(width: TossSpacing.space2),
+                Text(
+                  'Recent Notifications',
+                  style: TossTextStyles.h3.copyWith(fontWeight: FontWeight.bold),
+                ),
+                const Spacer(),
+                if (_unreadCount > 0)
+                  Container(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: TossSpacing.space2,
+                      vertical: TossSpacing.space1,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.red,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      '$_unreadCount',
+                      style: TossTextStyles.caption.copyWith(color: Colors.white),
+                    ),
+                  ),
+                SizedBox(width: TossSpacing.space2),
+                IconButton(
+                  onPressed: _loadNotificationData,
+                  icon: const Icon(Icons.refresh),
+                  tooltip: 'Refresh',
+                ),
+              ],
+            ),
+            SizedBox(height: TossSpacing.space3),
+            if (_isLoadingHistory)
+              const Center(child: CircularProgressIndicator())
+            else if (_notifications.isEmpty)
+              Container(
+                padding: EdgeInsets.all(TossSpacing.space3),
+                decoration: BoxDecoration(
+                  color: TossColors.gray100,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.info_outline, color: TossColors.textSecondary),
+                    SizedBox(width: TossSpacing.space2),
+                    Expanded(
+                      child: Text(
+                        'No notifications found. Send a test notification to see it appear here.',
+                        style: TossTextStyles.body.copyWith(color: TossColors.textSecondary),
+                      ),
+                    ),
+                  ],
+                ),
+              )
+            else
+              Column(
+                children: _notifications.map((notification) => _buildNotificationItem(notification)).toList(),
+              ),
+          ],
+        ),
       ),
     );
   }
   
-  void _showAccountMappingListOptions(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: TossColors.transparent,
-      builder: (context) => Container(
-        decoration: BoxDecoration(
-          color: TossColors.surface,
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(TossBorderRadius.xl),
-            topRight: Radius.circular(TossBorderRadius.xl),
-          ),
+  Widget _buildNotificationItem(NotificationDbModel notification) {
+    return Container(
+      margin: EdgeInsets.only(bottom: TossSpacing.space2),
+      padding: EdgeInsets.all(TossSpacing.space3),
+      decoration: BoxDecoration(
+        color: notification.isRead ? TossColors.gray50 : TossColors.primary.withOpacity(0.05),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: notification.isRead ? TossColors.borderLight : TossColors.primary.withOpacity(0.2),
         ),
-        child: SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
             children: [
-              // Handle from account_mapping_list_item.dart
-              Container(
-                margin: EdgeInsets.only(top: TossSpacing.space2),
-                width: UIConstants.modalDragHandleWidth,
-                height: UIConstants.modalDragHandleHeight,
-                decoration: BoxDecoration(
-                  color: TossColors.gray300, // Consistent grey handle
-                  borderRadius: BorderRadius.circular(UIConstants.modalDragHandleBorderRadius),
+              Expanded(
+                child: Text(
+                  notification.title ?? 'Notification',
+                  style: TossTextStyles.body.copyWith(
+                    fontWeight: notification.isRead ? FontWeight.normal : FontWeight.w600,
+                  ),
                 ),
               ),
-              
-              SizedBox(height: TossSpacing.space4),
-              
-              Text(
-                'Account Mapping List Item Handle Test',
-                style: TossTextStyles.h4.copyWith(
-                  color: TossColors.textPrimary,
-                  fontWeight: FontWeight.w600,
+              if (!notification.isRead)
+                GestureDetector(
+                  onTap: () => _markAsRead(notification.id ?? ''),
+                  child: Container(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: TossSpacing.space2,
+                      vertical: TossSpacing.space1,
+                    ),
+                    decoration: BoxDecoration(
+                      color: TossColors.primary,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Text(
+                      'Mark Read',
+                      style: TossTextStyles.small.copyWith(color: TossColors.white),
+                    ),
+                  ),
                 ),
-              ),
-              
-              SizedBox(height: TossSpacing.space2),
-              
+            ],
+          ),
+          SizedBox(height: TossSpacing.space1),
+          Text(
+            notification.body ?? '',
+            style: TossTextStyles.caption.copyWith(
+              color: TossColors.textSecondary,
+            ),
+          ),
+          SizedBox(height: TossSpacing.space1),
+          Row(
+            children: [
+              if (notification.category != null) ...[
+                Container(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: TossSpacing.space2,
+                    vertical: TossSpacing.space1,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.blue.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(
+                    notification.category!,
+                    style: TossTextStyles.small.copyWith(color: Colors.blue),
+                  ),
+                ),
+                SizedBox(width: TossSpacing.space2),
+              ],
               Text(
-                'Handle bar uses TossColors.gray300',
-                style: TossTextStyles.caption.copyWith(
+                _formatDateTime(notification.createdAt ?? DateTime.now()),
+                style: TossTextStyles.small.copyWith(
                   color: TossColors.textSecondary,
                 ),
               ),
-              
-              SizedBox(height: TossSpacing.space6),
-              
-              Container(
-                padding: EdgeInsets.all(TossSpacing.space4),
-                margin: EdgeInsets.symmetric(horizontal: TossSpacing.space4),
-                decoration: BoxDecoration(
-                  color: TossColors.gray100,
-                  borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-                ),
-                child: Text(
-                  'This simulates the options bottom sheet from AccountMappingListItem',
-                  style: TossTextStyles.body.copyWith(
-                    color: TossColors.textSecondary,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-              
-              SizedBox(height: TossSpacing.space6),
             ],
           ),
+        ],
+      ),
+    );
+  }
+  
+  Widget _buildDebugInfoCard(NotificationState state) {
+    final debugInfo = _notificationService.getDebugInfo();
+    
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: EdgeInsets.all(TossSpacing.space4),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.bug_report, color: Colors.red),
+                SizedBox(width: TossSpacing.space2),
+                Text(
+                  'Debug Information',
+                  style: TossTextStyles.h3.copyWith(fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+            SizedBox(height: TossSpacing.space3),
+            _buildDebugRow('Initialized', state.isInitialized.toString()),
+            _buildDebugRow('Loading', state.isLoading.toString()),
+            _buildDebugRow('Has FCM Token', (state.fcmToken != null).toString()),
+            _buildDebugRow('Has APNs Token', (state.apnsToken != null).toString()),
+            SizedBox(height: TossSpacing.space2),
+            Text(
+              'Supabase Authentication:',
+              style: TossTextStyles.body.copyWith(fontWeight: FontWeight.w600),
+            ),
+            _buildDebugRow('Auth User Exists', debugInfo['auth_user_exists']?.toString() ?? 'false'),
+            _buildDebugRow('User ID', debugInfo['user_id']?.toString() ?? 'null'),
+            _buildDebugRow('User Email', debugInfo['user_email']?.toString() ?? 'null'),
+            _buildDebugRow('Session Exists', debugInfo['auth_session_exists']?.toString() ?? 'false'),
+            _buildDebugRow('Last Test Time', state.lastTestNotificationTime?.toString() ?? 'Never'),
+            _buildDebugRow('Error Message', state.error ?? 'None'),
+          ],
         ),
       ),
     );
+  }
+  
+  Widget _buildDebugRow(String label, String value) {
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: TossSpacing.space1),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 120,
+            child: Text(
+              '$label:',
+              style: TossTextStyles.caption.copyWith(fontWeight: FontWeight.w600),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: TossTextStyles.caption.copyWith(fontFamily: 'monospace'),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+  
+  void _sendTestNotification(NotificationNotifier notifier) async {
+    try {
+      await notifier.sendTestNotification();
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('✅ Test notification sent and stored in database!'),
+          backgroundColor: Colors.green,
+        ),
+      );
+      
+      // Refresh notification data after sending
+      Future.delayed(const Duration(milliseconds: 500), () {
+        _loadNotificationData();
+        // Also refresh the unread count provider for the homepage badge
+        ref.invalidate(unreadNotificationCountProvider);
+      });
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('❌ Failed to send notification: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+  
+  void _sendScheduledNotification(NotificationNotifier notifier) async {
+    try {
+      // For now, just send another test notification as scheduling isn't available
+      await notifier.sendTestNotification();
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('⏰ Test notification sent! (Scheduling feature can be added)'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('❌ Failed to send notification: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+  
+  void _testPermissions(NotificationNotifier notifier) async {
+    try {
+      await notifier.initialize();
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('🔐 Permission check completed!'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('❌ Permission test failed: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+  
+  Widget _buildDatabaseStatsCard() {
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: EdgeInsets.all(TossSpacing.space4),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.storage, color: Colors.indigo),
+                SizedBox(width: TossSpacing.space2),
+                Text(
+                  'Database Statistics',
+                  style: TossTextStyles.h3.copyWith(fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+            SizedBox(height: TossSpacing.space3),
+            Row(
+              children: [
+                Expanded(
+                  child: _buildStatItem('Total', _stats['total']?.toString() ?? '0', Colors.blue),
+                ),
+                Expanded(
+                  child: _buildStatItem('Unread', _stats['unread']?.toString() ?? '0', Colors.red),
+                ),
+                Expanded(
+                  child: _buildStatItem('Today', _stats['today']?.toString() ?? '0', Colors.green),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+  
+  Widget _buildStatItem(String label, String value, Color color) {
+    return Column(
+      children: [
+        Text(
+          value,
+          style: TossTextStyles.h2.copyWith(
+            color: color,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        Text(
+          label,
+          style: TossTextStyles.caption.copyWith(
+            color: TossColors.textSecondary,
+          ),
+        ),
+      ],
+    );
+  }
+  
+  Future<void> _markAsRead(String notificationId) async {
+    final success = await _notificationService.markNotificationAsRead(notificationId);
+    
+    if (success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('📖 Notification marked as read'),
+          backgroundColor: Colors.green,
+        ),
+      );
+      _loadNotificationData(); // Refresh the list
+      // Also refresh the unread count provider for the homepage badge
+      ref.invalidate(unreadNotificationCountProvider);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('❌ Failed to mark as read'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+  
+  String _formatDateTime(DateTime dateTime) {
+    final now = DateTime.now(); // Local device time
+    
+    // Simple approach: treat database UTC time as if it's in the same timezone
+    // Create a local DateTime with the same values as the UTC time
+    final dbAsLocal = DateTime(
+      dateTime.year,
+      dateTime.month,
+      dateTime.day,
+      dateTime.hour,
+      dateTime.minute,
+      dateTime.second,
+      dateTime.millisecond,
+      dateTime.microsecond,
+    );
+    
+    final difference = now.difference(dbAsLocal);
+    
+    // Debug information available in debug mode
+    
+    // Handle time formatting
+    if (difference.isNegative) {
+      // WARNING: Negative time difference detected
+      return 'Just now';
+    } else if (difference.inMinutes < 1) {
+      return 'Just now';
+    } else if (difference.inMinutes < 60) {
+      return '${difference.inMinutes}m ago';
+    } else if (difference.inHours < 24) {
+      return '${difference.inHours}h ago';
+    } else {
+      return '${difference.inDays}d ago';
+    }
   }
 }

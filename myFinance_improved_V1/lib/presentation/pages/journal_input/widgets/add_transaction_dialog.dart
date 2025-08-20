@@ -1491,7 +1491,7 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
       case 'petty cash':
         return TossColors.warning;
       case 'vault':
-        return TossColors.primaryDark;
+        return TossColors.primary;
       default:
         return TossColors.gray600;
     }

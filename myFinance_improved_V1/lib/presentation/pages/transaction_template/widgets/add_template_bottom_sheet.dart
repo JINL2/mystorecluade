@@ -1057,7 +1057,7 @@ class _AddTemplateBottomSheetState extends ConsumerState<AddTemplateBottomSheet>
               color: TossColors.primarySurface,
               borderRadius: BorderRadius.circular(TossBorderRadius.md),
               border: Border.all(
-                color: TossColors.primaryLight,
+                color: TossColors.primarySurface,
                 width: 1,
               ),
             ),

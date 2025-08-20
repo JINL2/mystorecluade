@@ -1,0 +1,22 @@
+dependencies: \
+  /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V1/ios/build/Build/Intermediates.noindex/Pods.build/Debug-iphonesimulator/FirebaseMessaging.build/module.modulemap \
+  /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V1/ios/Pods/FirebaseMessaging/FirebaseMessaging/Sources/Token/FIRMessagingTokenFetchOperation.m \
+  /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V1/ios/Pods/FirebaseMessaging/FirebaseMessaging/Sources/Token/FIRMessagingTokenFetchOperation.h \
+  /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V1/ios/Pods/FirebaseMessaging/FirebaseMessaging/Sources/Token/FIRMessagingTokenOperation.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator.sdk/System/Library/Frameworks/Foundation.framework/Modules/module.modulemap \
+  /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V1/ios/Pods/FirebaseMessaging/FirebaseMessaging/Sources/FIRMessagingCode.h \
+  /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V1/ios/Pods/FirebaseMessaging/FirebaseMessaging/Sources/FIRMessagingConstants.h \
+  /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V1/ios/Pods/FirebaseMessaging/FirebaseMessaging/Sources/FIRMessagingDefines.h \
+  /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V1/ios/Pods/FirebaseMessaging/FirebaseMessaging/Sources/FIRMessagingLogger.h \
+  /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V1/ios/Pods/FirebaseMessaging/FirebaseMessaging/Sources/FIRMessagingUtilities.h \
+  /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V1/ios/Pods/FirebaseMessaging/FirebaseMessaging/Sources/NSError+FIRMessaging.h \
+  /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V1/ios/Pods/FirebaseMessaging/FirebaseMessaging/Sources/Token/FIRMessagingCheckinPreferences.h \
+  /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V1/ios/Pods/FirebaseMessaging/FirebaseCore/Extension/FirebaseCoreInternal.h \
+  /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V1/ios/build/Build/Intermediates.noindex/Pods.build/Debug-iphonesimulator/FirebaseCore.build/module.modulemap \
+  /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V1/ios/Pods/FirebaseMessaging/FirebaseCore/Extension/FIRAppInternal.h \
+  /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V1/ios/Pods/FirebaseMessaging/FirebaseCore/Extension/FIRComponent.h \
+  /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V1/ios/Pods/FirebaseMessaging/FirebaseCore/Extension/FIRComponentContainer.h \
+  /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V1/ios/Pods/FirebaseMessaging/FirebaseCore/Extension/FIRComponentType.h \
+  /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V1/ios/Pods/FirebaseMessaging/FirebaseCore/Extension/FIRHeartbeatLogger.h \
+  /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V1/ios/Pods/FirebaseMessaging/FirebaseCore/Extension/FIRLibrary.h \
+  /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V1/ios/Pods/FirebaseMessaging/FirebaseCore/Extension/FIRLogger.h

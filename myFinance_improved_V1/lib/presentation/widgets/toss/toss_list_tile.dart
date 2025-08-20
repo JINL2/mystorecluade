@@ -116,7 +116,7 @@ class _TossListTileState extends State<TossListTile>
                 border: widget.showDivider
                     ? Border(
                         bottom: BorderSide(
-                          color: TossColors.divider,
+                          color: TossColors.border,
                           width: 0.5,
                         ),
                       )

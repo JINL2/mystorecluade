@@ -27,7 +27,7 @@ class TossWhiteCard extends StatelessWidget {
       margin: margin,
       padding: padding,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: TossColors.white,
         borderRadius: BorderRadius.circular(
           borderRadius ?? TossBorderRadius.lg
         ),
@@ -37,7 +37,7 @@ class TossWhiteCard extends StatelessWidget {
         boxShadow: showShadow
             ? [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.04),
+                  color: TossColors.black.withOpacity(0.04),
                   blurRadius: 8,
                   offset: const Offset(0, 2),
                 ),
