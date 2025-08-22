@@ -2,8 +2,11 @@ import 'dart:io';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 // import 'package:logger/logger.dart';
 import '../config/notification_config.dart';
+import '../config/firebase_options.dart';
+import '../repositories/notification_repository.dart';
 
 /// Service for managing Firebase Cloud Messaging
 class FcmService {
@@ -223,8 +226,36 @@ class FcmService {
   Future<void> _updateTokenInBackend(String token) async {
     try {
       // Token refresh detected
+      print('🔄 FCM Token refreshed, updating in Supabase...');
+      
+      // Import required dependencies
+      final supabase = Supabase.instance.client;
+      final userId = supabase.auth.currentUser?.id;
+      
+      if (userId == null) {
+        print('❌ Cannot update token: User not authenticated');
+        return;
+      }
+      
+      // Update token in database using repository
+      final repository = NotificationRepository();
+      final result = await repository.storeOrUpdateFcmToken(
+        userId: userId,
+        token: token,
+        platform: Platform.operatingSystem,
+        deviceId: 'device_${DateTime.now().millisecondsSinceEpoch}',
+        deviceModel: Platform.operatingSystem,
+        appVersion: '1.0.0',
+      );
+      
+      if (result != null) {
+        print('✅ FCM token updated in Supabase');
+      } else {
+        print('❌ Failed to update FCM token in Supabase');
+      }
     } catch (e) {
-      // Failed to log token refresh
+      // Failed to update token in backend
+      print('❌ Error updating token in backend: $e');
     }
   }
   

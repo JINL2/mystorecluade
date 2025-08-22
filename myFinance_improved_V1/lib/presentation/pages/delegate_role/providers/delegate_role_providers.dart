@@ -368,6 +368,7 @@ final companyUsersProvider = FutureProvider<List<Map<String, dynamic>>>((ref) as
     );
     
     final usersWithRoles = <Map<String, dynamic>>[];
+    final seenUsers = <String>{};  // Track unique users
     
     for (final item in response as List) {
       final firstName = item['first_name'] ?? '';
@@ -375,10 +376,31 @@ final companyUsersProvider = FutureProvider<List<Map<String, dynamic>>>((ref) as
       final fullName = '$firstName $lastName'.trim();
       final userId = item['user_id'];
       
-      // Check if this user is the company owner
-      String role = item['role_name'] ?? 'No Role';
+      // Skip duplicate users
+      if (seenUsers.contains(userId)) {
+        continue;
+      }
+      seenUsers.add(userId);
+      
+      // Handle comma-separated role names from STRING_AGG
+      String roleNames = item['role_name'] ?? 'No Role';
+      String role = roleNames;
+      
+      // If user is company owner, always show as Owner
       if (companyOwnerId == userId) {
-        role = 'Owner'; // Company owners are always "Owner"
+        role = 'Owner';
+      } else if (roleNames.contains(',')) {
+        // Multiple roles - take the highest priority role
+        final roles = roleNames.split(',').map((r) => r.trim()).toList();
+        if (roles.contains('Owner')) {
+          role = 'Owner';
+        } else if (roles.contains('Manager')) {
+          role = 'Manager';
+        } else if (roles.contains('Employee')) {
+          role = 'Employee';
+        } else {
+          role = roles.first; // Take first role if no priority match
+        }
       }
       
       usersWithRoles.add({
@@ -403,10 +425,18 @@ final companyUsersProvider = FutureProvider<List<Map<String, dynamic>>>((ref) as
         .eq('is_deleted', false);
     
     final usersWithRoles = <Map<String, dynamic>>[];
+    final seenUsers = <String>{};  // Track unique users
     
     for (final item in response as List) {
       final user = item['user'];
       final userId = user['user_id'];
+      
+      // Skip duplicate users
+      if (seenUsers.contains(userId)) {
+        continue;
+      }
+      seenUsers.add(userId);
+      
       final firstName = user['first_name'] ?? '';
       final lastName = user['last_name'] ?? '';
       final fullName = '$firstName $lastName'.trim();

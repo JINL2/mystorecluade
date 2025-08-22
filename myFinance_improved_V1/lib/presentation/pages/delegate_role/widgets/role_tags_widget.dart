@@ -207,4 +207,127 @@ class _RoleTagsWidgetState extends State<RoleTagsWidget> {
       ),
     );
   }
+  
+  Widget _buildTagInput() {
+    return Container(
+      constraints: BoxConstraints(minWidth: 120),
+      child: TextField(
+        controller: _tagController,
+        focusNode: _focusNode,
+        autofocus: true,
+        style: TossTextStyles.caption.copyWith(
+          color: TossColors.gray700,
+        ),
+        decoration: InputDecoration(
+          hintText: 'Add tag...',
+          hintStyle: TossTextStyles.caption.copyWith(
+            color: TossColors.gray400,
+          ),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(TossBorderRadius.sm),
+            borderSide: BorderSide(
+              color: TossColors.gray300,
+              width: 1,
+            ),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(TossBorderRadius.sm),
+            borderSide: BorderSide(
+              color: TossColors.primary,
+              width: 1,
+            ),
+          ),
+          contentPadding: EdgeInsets.symmetric(
+            horizontal: TossSpacing.space3,
+            vertical: TossSpacing.space1,
+          ),
+          isDense: true,
+          suffixIcon: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              InkWell(
+                onTap: () => _addTag(_tagController.text.trim()),
+                child: Icon(
+                  Icons.check,
+                  size: 16,
+                  color: TossColors.success,
+                ),
+              ),
+              SizedBox(width: TossSpacing.space1),
+              InkWell(
+                onTap: () {
+                  setState(() {
+                    _isAddingTag = false;
+                    _tagController.clear();
+                  });
+                  _focusNode.unfocus();
+                },
+                child: Icon(
+                  Icons.close,
+                  size: 16,
+                  color: TossColors.gray500,
+                ),
+              ),
+              SizedBox(width: TossSpacing.space1),
+            ],
+          ),
+        ),
+        onSubmitted: (value) => _addTag(value.trim()),
+        onTapOutside: (_) {
+          setState(() {
+            _isAddingTag = false;
+            _tagController.clear();
+          });
+          _focusNode.unfocus();
+        },
+      ),
+    );
+  }
+  
+  Widget _buildAddTagButton() {
+    return InkWell(
+      onTap: () {
+        setState(() {
+          _isAddingTag = true;
+        });
+        // Focus on the input after the widget rebuilds
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _focusNode.requestFocus();
+        });
+      },
+      borderRadius: BorderRadius.circular(TossBorderRadius.sm),
+      child: Container(
+        padding: EdgeInsets.symmetric(
+          horizontal: TossSpacing.space3,
+          vertical: TossSpacing.space1,
+        ),
+        decoration: BoxDecoration(
+          color: TossColors.primary.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(TossBorderRadius.sm),
+          border: Border.all(
+            color: TossColors.primary.withOpacity(0.3),
+            width: 1,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.add,
+              size: 14,
+              color: TossColors.primary,
+            ),
+            SizedBox(width: TossSpacing.space1),
+            Text(
+              'Add tag',
+              style: TossTextStyles.caption.copyWith(
+                color: TossColors.primary,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }

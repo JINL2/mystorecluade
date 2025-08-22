@@ -11,14 +11,32 @@ class MyFinanceApp extends ConsumerStatefulWidget {
   ConsumerState<MyFinanceApp> createState() => _MyFinanceAppState();
 }
 
-class _MyFinanceAppState extends ConsumerState<MyFinanceApp> {
+class _MyFinanceAppState extends ConsumerState<MyFinanceApp> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
+    // Add lifecycle observer
+    WidgetsBinding.instance.addObserver(this);
+    
     // Initialize notifications when app starts
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(notificationProvider.notifier).initialize();
     });
+  }
+  
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+  
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // Handle app lifecycle changes for token management
+    if (state == AppLifecycleState.resumed) {
+      // App came to foreground - refresh token if needed
+      ref.read(notificationProvider.notifier).handleAppResume();
+    }
   }
 
   @override

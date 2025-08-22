@@ -1,16 +1,35 @@
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../domain/repositories/feature_repository.dart';
 import '../../presentation/pages/homepage/models/homepage_models.dart';
 
 class SupabaseFeatureRepository implements FeatureRepository {
   final SupabaseClient _client;
+  
+  // Cache for categories with TTL (6 hours)
+  static List<CategoryWithFeatures>? _cachedCategories;
+  static DateTime? _categoriesCacheTime;
+  static const Duration _categoriesCacheTTL = Duration(hours: 6);
+  
+  // Cache for user top features with TTL (2 hours)
+  static final Map<String, List<TopFeature>> _userFeaturesCache = {};
+  static final Map<String, DateTime> _userFeaturesCacheTime = {};
+  static const Duration _userFeaturesCacheTTL = Duration(hours: 2);
 
   SupabaseFeatureRepository(this._client);
 
   @override
   Future<List<CategoryWithFeatures>> getCategoriesWithFeatures() async {
     try {
-      // Try the updated RPC function first, fallback to original if it doesn't exist
+      // Check cache first
+      if (_cachedCategories != null && _categoriesCacheTime != null) {
+        final cacheAge = DateTime.now().difference(_categoriesCacheTime!);
+        if (cacheAge < _categoriesCacheTTL) {
+          return _cachedCategories!;
+        }
+      }
+      
+      // Fetch fresh data with v2/v1 fallback
       dynamic response;
       try {
         response = await _client.rpc('get_categories_with_features_v2');
@@ -21,9 +40,15 @@ class SupabaseFeatureRepository implements FeatureRepository {
       
       if (response == null) return [];
       
-      return (response as List)
+      final categories = (response as List)
           .map((json) => CategoryWithFeatures.fromJson(json))
           .toList();
+      
+      // Cache the result
+      _cachedCategories = categories;
+      _categoriesCacheTime = DateTime.now();
+      
+      return categories;
     } catch (e) {
       throw Exception('Failed to fetch categories with features: $e');
     }
@@ -34,29 +59,74 @@ class SupabaseFeatureRepository implements FeatureRepository {
     required String userId,
   }) async {
     try {
-      // Query the top_features_by_user view with explicit field selection
-      final response = await _client
-          .from('top_features_by_user')
-          .select('feature_id, feature_name, category_id, click_count, last_clicked, icon, route, icon_key')
-          .eq('user_id', userId)
-          .order('click_count', ascending: false)
-          .limit(10); // Limit to top 10 features
-      
-      if (response.isEmpty) return [];
-      
-      // Handle both single row with JSON array and direct rows
-      if (response.first.containsKey('top_features')) {
-        // Single row with top_features JSON array
-        final topFeaturesJson = response.first['top_features'] as List;
-        return topFeaturesJson
-            .map((json) => TopFeature.fromJson(json))
-            .toList();
-      } else {
-        // Direct rows format
-        return response
-            .map((json) => TopFeature.fromJson(json))
-            .toList();
+      // Check user-specific cache first
+      if (_userFeaturesCache.containsKey(userId) && _userFeaturesCacheTime.containsKey(userId)) {
+        final cacheAge = DateTime.now().difference(_userFeaturesCacheTime[userId]!);
+        if (cacheAge < _userFeaturesCacheTTL) {
+          return _userFeaturesCache[userId]!;
+        }
       }
+      
+      
+      // Use the RPC function instead of the view since the view doesn't exist or has wrong columns
+      final response = await _client.rpc('get_user_quick_access_features', params: {'p_user_id': userId});
+      
+      
+      if (response == null) {
+        return [];
+      }
+      
+      if (response is List) {
+        
+        if (response.isEmpty) {
+          return [];
+        }
+        
+        
+        final features = <TopFeature>[];
+        final realUserFeatures = <TopFeature>[];
+        
+        for (final feature in response) {
+          try {
+            final topFeature = TopFeature.fromJson(feature as Map<String, dynamic>);
+            features.add(topFeature);
+            
+            // Separate real user features (with actual clicks) from defaults
+            final isDefault = feature['is_default'] == true;
+            final hasRealClicks = topFeature.clickCount > 0;
+            
+            if (!isDefault && hasRealClicks) {
+              realUserFeatures.add(topFeature);
+            }
+            
+          } catch (e) {
+          }
+        }
+        
+        // 🎯 SMART LOGIC: Only return features if user has sufficient real usage
+        const minFeaturesForQuickAccess = 6;
+        
+        if (realUserFeatures.length >= minFeaturesForQuickAccess) {
+          // User has enough real usage - show top clicked features
+          realUserFeatures.sort((a, b) => b.clickCount.compareTo(a.clickCount));
+          final topFeatures = realUserFeatures.take(6).toList();
+          
+          
+          // Cache and return real user features only
+          _userFeaturesCache[userId] = topFeatures;
+          _userFeaturesCacheTime[userId] = DateTime.now();
+          return topFeatures;
+        } else {
+          // Insufficient real usage - return empty to hide Quick Access
+          
+          // Cache empty result to avoid repeated API calls
+          _userFeaturesCache[userId] = [];
+          _userFeaturesCacheTime[userId] = DateTime.now();
+          return [];
+        }
+      }
+      
+      return [];
     } catch (e) {
       throw Exception('Failed to fetch top features by user: $e');
     }
@@ -68,6 +138,10 @@ class SupabaseFeatureRepository implements FeatureRepository {
     required String featureId,
   }) async {
     try {
+      // Clear user's cached top features since click data changed
+      _userFeaturesCache.remove(userId);
+      _userFeaturesCacheTime.remove(userId);
+      
       // This would call an RPC function to track feature clicks
       // The RPC function would update the click count and last_clicked timestamp
       await _client.rpc('track_feature_click', params: {
@@ -77,5 +151,19 @@ class SupabaseFeatureRepository implements FeatureRepository {
     } catch (e) {
       // Fail silently for tracking - we don't want to interrupt user flow
     }
+  }
+  
+  /// Clear all caches (useful for testing or manual refresh)
+  static void clearCache() {
+    _cachedCategories = null;
+    _categoriesCacheTime = null;
+    _userFeaturesCache.clear();
+    _userFeaturesCacheTime.clear();
+  }
+  
+  /// Clear cache for specific user
+  static void clearUserCache(String userId) {
+    _userFeaturesCache.remove(userId);
+    _userFeaturesCacheTime.remove(userId);
   }
 }

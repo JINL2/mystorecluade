@@ -1698,8 +1698,10 @@ class _AddMemberBottomSheetState extends ConsumerState<_AddMemberBottomSheet> {
     final normalizedCurrentRole = currentRole.toLowerCase().trim();
     final normalizedTargetRole = widget.roleName.toLowerCase().trim();
     
-    // Layer 1: Role name validation (immediate, reliable for UI display)
-    final hasRoleByName = normalizedCurrentRole == normalizedTargetRole;
+    // Handle comma-separated roles from STRING_AGG (e.g., "Employee, Manager")
+    final hasRoleByName = normalizedCurrentRole == normalizedTargetRole ||
+                         normalizedCurrentRole.contains(', $normalizedTargetRole') ||
+                         normalizedCurrentRole.contains('$normalizedTargetRole,');
     
     // Layer 2: Role ID validation (database-level accuracy)
     final hasRoleById = !_isLoadingRoleAssignments && 

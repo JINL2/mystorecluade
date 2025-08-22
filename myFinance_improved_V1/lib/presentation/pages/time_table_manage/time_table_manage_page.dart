@@ -1535,7 +1535,7 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
                   crossAxisCount: 2,
-                  childAspectRatio: 1.6,
+                  childAspectRatio: 1.45,
                   mainAxisSpacing: TossSpacing.space3,
                   crossAxisSpacing: TossSpacing.space3,
                   children: [
@@ -2652,7 +2652,7 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
       },
       borderRadius: BorderRadius.circular(16),
       child: Container(
-        padding: const EdgeInsets.all(TossSpacing.space4),
+        padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           color: backgroundColor,
           borderRadius: BorderRadius.circular(16),
@@ -2693,39 +2693,56 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
               children: [
                 Icon(
                   icon,
-                  size: 20,
+                  size: 18,
                   color: iconColor,
                 ),
                 const SizedBox(width: TossSpacing.space2),
-                Text(
-                  title,
-                  style: TossTextStyles.bodySmall.copyWith(
-                    color: TossColors.gray600,
-                    fontWeight: FontWeight.w500,
+                Expanded(
+                  child: Text(
+                    title,
+                    style: TossTextStyles.bodySmall.copyWith(
+                      color: TossColors.gray600,
+                      fontWeight: FontWeight.w500,
+                      fontSize: 12,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
                   ),
                 ),
               ],
             ),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.baseline,
-              textBaseline: TextBaseline.alphabetic,
-              children: [
-                Text(
-                  value,
-                  style: TossTextStyles.h1.copyWith(
-                    color: TossColors.gray900,
-                    fontWeight: FontWeight.w700,
-                    fontSize: 32,
+            Flexible(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Flexible(
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.bottomLeft,
+                      child: Text(
+                        value,
+                        style: TossTextStyles.h1.copyWith(
+                          color: TossColors.gray900,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 28,
+                        ),
+                      ),
+                    ),
                   ),
-                ),
-                const SizedBox(width: TossSpacing.space2),
-                Text(
-                  subtitle,
-                  style: TossTextStyles.bodySmall.copyWith(
-                    color: TossColors.gray500,
+                  const SizedBox(width: 4),
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 2),
+                    child: Text(
+                      subtitle,
+                      style: TossTextStyles.bodySmall.copyWith(
+                        color: TossColors.gray500,
+                        fontSize: 11,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ],
         ),

@@ -12,6 +12,7 @@ import '../repositories/notification_repository.dart';
 import '../utils/notification_logger.dart';
 import 'fcm_service.dart';
 import 'local_notification_service.dart';
+import 'token_manager.dart';
 
 /// Main notification service that coordinates all notification functionality
 class NotificationService {
@@ -23,6 +24,7 @@ class NotificationService {
   final LocalNotificationService _localNotificationService = LocalNotificationService();
   final NotificationLogger _notificationLogger = NotificationLogger();
   final NotificationRepository _repository = NotificationRepository();
+  final TokenManager _tokenManager = TokenManager();
   // final Logger _logger = Logger();
   final SupabaseClient _supabase = Supabase.instance.client;
   
@@ -62,8 +64,8 @@ class NotificationService {
       // Set up message handlers
       _setupMessageHandlers();
       
-      // Store FCM token in database
-      await _storeFcmToken();
+      // Initialize token manager for automatic token management
+      await _tokenManager.initialize();
       
       // Subscribe to database notifications
       await _subscribeToSupabaseNotifications();

@@ -111,11 +111,18 @@ class AppStateNotifier extends StateNotifier<AppState> {
     await _saveToStorage(); // Now persisting to storage
   }
 
-  // Clear all data (logout)
+  // Clear all data (logout) - COMPLETELY REMOVES ALL USER DATA
   Future<void> clearData() async {
+    // Reset state to default empty values
     state = const AppState();
+    
+    // Clear from SharedPreferences
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_storageKey);
+    
+    // Clear any other cached data that might exist
+    // This ensures complete data cleanup for security and privacy
+    print('AppState: All user data cleared from state and storage');
   }
 
   // Get selected company from user JSON

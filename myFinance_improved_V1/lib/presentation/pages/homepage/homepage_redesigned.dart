@@ -1,4 +1,6 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:myfinance_improved/core/themes/toss_colors.dart';
@@ -8,8 +10,10 @@ import 'package:myfinance_improved/core/themes/toss_shadows.dart';
 import 'package:myfinance_improved/core/themes/toss_animations.dart';
 import 'package:myfinance_improved/core/constants/icon_mapper.dart';
 import 'providers/homepage_providers.dart';
+import '../../widgets/common/safe_popup_menu.dart';
 import '../../providers/app_state_provider.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/enhanced_auth_provider.dart';
 import '../../providers/notification_provider.dart';
 import 'models/homepage_models.dart';
 import 'widgets/modern_drawer.dart';
@@ -47,7 +51,11 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
   @override
   Widget build(BuildContext context) {
     final userCompaniesAsync = ref.watch(userCompaniesProvider);
-    final categoriesAsync = ref.watch(categoriesWithFeaturesProvider);
+    // Get categories from app state (saved during login)
+    final categoriesFromState = ref.watch(categoryFeaturesProvider);
+    final categoriesAsync = categoriesFromState.isEmpty 
+        ? const AsyncValue.loading() 
+        : AsyncValue.data(categoriesFromState);
     // Watch the selections so they update when changed
     final selectedCompany = ref.watch(selectedCompanyProvider);
     final selectedStore = ref.watch(selectedStoreProvider);
@@ -175,24 +183,53 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
         // Profile with improved Toss styling
         Padding(
           padding: EdgeInsets.only(right: TossSpacing.space4),
-          child: PopupMenuButton<String>(
+          child: SafePopupMenuButton<String>(
             offset: const Offset(0, 48),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(TossSpacing.space3),
             ),
             color: TossColors.surface,
             elevation: 2, // Reduced for cleaner look
-            onSelected: (value) {
+            onSelected: (value) async {
+              // Add safety check for widget lifecycle
+              if (!mounted) return;
+              
               if (value == 'settings') {
-                // Navigate to settings
-                context.push('/settings');
+                // Navigate to settings with safety check
+                if (mounted) {
+                  context.push('/settings');
+                }
+              } else if (value == 'debug') {
+                // Navigate to debug page with safety check
+                if (mounted) {
+                  context.push('/debug/supabase');
+                }
+              } else if (value == 'notifications') {
+                // Navigate to notification debug page
+                if (mounted) {
+                  context.push('/debug/notifications');
+                }
               } else if (value == 'logout') {
-                // Handle logout
-                ref.read(authStateProvider.notifier).signOut();
+                // 🔧 SAFE LOGOUT: Close popup menu first, then execute logout
+                // This prevents popup menu context disposal issues
+                if (mounted && Navigator.of(context).canPop()) {
+                  Navigator.of(context).pop(); // Close popup menu immediately
+                }
+                
+                // Execute logout after popup is safely closed
+                SchedulerBinding.instance.addPostFrameCallback((_) async {
+                  if (mounted) {
+                    try {
+                      final enhancedAuth = ref.read(enhancedAuthProvider);
+                      await enhancedAuth.signOut();
+                    } catch (e) {
+                    }
+                  }
+                });
               }
             },
             itemBuilder: (BuildContext context) => [
-              PopupMenuItem<String>(
+              SafePopupMenuItem<String>(
                 value: 'settings',
                 child: Row(
                   children: [
@@ -211,8 +248,46 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
                   ],
                 ),
               ),
+              SafePopupMenuItem<String>(
+                value: 'debug',
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.bug_report_outlined,
+                      color: TossColors.textSecondary,
+                      size: 20,
+                    ),
+                    SizedBox(width: TossSpacing.space3),
+                    Text(
+                      'Debug Connection',
+                      style: TossTextStyles.body.copyWith(
+                        color: TossColors.textPrimary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              SafePopupMenuItem<String>(
+                value: 'notifications',
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.notifications_outlined,
+                      color: TossColors.textSecondary,
+                      size: 20,
+                    ),
+                    SizedBox(width: TossSpacing.space3),
+                    Text(
+                      '🔔 Test Notifications',
+                      style: TossTextStyles.body.copyWith(
+                        color: TossColors.textPrimary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
               const PopupMenuDivider(),
-              PopupMenuItem<String>(
+              SafePopupMenuItem<String>(
                 value: 'logout',
                 child: Row(
                   children: [
@@ -255,6 +330,77 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
   }
 
   Widget _buildPinnedHelloSection(BuildContext context, dynamic userData, dynamic selectedCompany, dynamic selectedStore) {
+    // Check if user has any companies
+    final companies = userData['companies'] as List<dynamic>? ?? [];
+    final hasNoCompanies = companies.isEmpty;
+    
+    // If no companies, show enhanced onboarding experience
+    if (hasNoCompanies) {
+      return SliverToBoxAdapter(
+        child: Container(
+          margin: EdgeInsets.all(TossSpacing.space4),
+          padding: EdgeInsets.all(TossSpacing.space5),
+          decoration: BoxDecoration(
+            color: TossColors.primary.withOpacity(0.05),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: TossColors.primary.withOpacity(0.2),
+              width: 1,
+            ),
+          ),
+          child: Column(
+            children: [
+              Icon(
+                Icons.business,
+                size: 48,
+                color: TossColors.primary,
+              ),
+              SizedBox(height: TossSpacing.space4),
+              Text(
+                'Welcome to Storebase!',
+                style: TossTextStyles.h2.copyWith(
+                  color: TossColors.textPrimary,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              SizedBox(height: TossSpacing.space2),
+              Text(
+                'Complete your business setup to access powerful features',
+                textAlign: TextAlign.center,
+                style: TossTextStyles.body.copyWith(
+                  color: TossColors.textSecondary,
+                ),
+              ),
+              SizedBox(height: TossSpacing.space4),
+              
+              // Feature preview cards
+              _buildFeaturePreviewCards(),
+              
+              SizedBox(height: TossSpacing.space5),
+              ElevatedButton.icon(
+                onPressed: () {
+                  context.go('/onboarding/choose-role');
+                },
+                icon: Icon(Icons.arrow_forward),
+                label: Text('Get Started'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: TossColors.primary,
+                  foregroundColor: TossColors.white,
+                  padding: EdgeInsets.symmetric(
+                    horizontal: TossSpacing.space5,
+                    vertical: TossSpacing.space3,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+    
     return SliverPersistentHeader(
       pinned: true,
       delegate: _PinnedHelloDelegate(
@@ -268,115 +414,135 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
 
 
   Widget _buildQuickActionsSection(AsyncValue<dynamic> categoriesAsync) {
-    // Use the topFeaturesByUserProvider to get quick access features from RPC
-    final topFeaturesAsync = ref.watch(topFeaturesByUserProvider);
+    // CRITICAL FIX: Ensure categories are loaded FIRST before top features
     
+    // Check if user has companies first
+    final userData = ref.watch(userCompaniesProvider).valueOrNull;
+    final hasNoCompanies = userData == null || 
+                          (userData['companies'] as List?)?.isEmpty == true;
+    
+    // Don't show quick actions if no companies
+    if (hasNoCompanies) {
+      return const SliverToBoxAdapter(child: SizedBox.shrink());
+    }
+    
+    // STEP 1: Wait for categories to be properly loaded through correct provider
     return SliverToBoxAdapter(
-      child: topFeaturesAsync.when(
-        data: (topFeatures) {
-          if (topFeatures.isEmpty) return const SizedBox.shrink();
+      child: ref.watch(categoriesWithFeaturesProvider).when(
+        data: (categoriesData) {
           
-          // Take only the first 6 features for the quick actions grid
-          final quickFeatures = topFeatures.take(6).toList();
+          // STEP 2: Now that categories are loaded, get top features (which will be filtered)
+          final topFeaturesAsync = ref.watch(topFeaturesByUserProvider);
           
-          return Container(
-            color: TossColors.gray100,
-            child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: TossSpacing.space4),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Quick Actions container with white background and blue label
-                  Container(
-                    width: double.infinity,
-                    padding: EdgeInsets.all(TossSpacing.space5),
-                    decoration: BoxDecoration(
-                      color: TossColors.surface,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: TossColors.borderLight,
-                        width: 0.5,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: TossColors.textPrimary.withOpacity(0.02),
-                          blurRadius: 12,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Blue label header (like Finance section)
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Row(
-                              children: [
-                                Container(
-                                  width: 4,
-                                  height: 20,
-                                  decoration: BoxDecoration(
-                                    color: TossColors.primary, // Blue accent line
-                                    borderRadius: BorderRadius.circular(2),
-                                  ),
-                                ),
-                                SizedBox(width: TossSpacing.space3),
-                                Text(
-                                  'Quick Actions',
-                                  style: TossTextStyles.h3.copyWith(
-                                    color: TossColors.textPrimary,
-                                    fontWeight: FontWeight.w700,
-                                    letterSpacing: -0.4,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            // "Most Used" indicator
-                            Text(
-                              'Most Used',
-                              style: TossTextStyles.caption.copyWith(
-                                color: TossColors.textTertiary,
-                                fontWeight: FontWeight.w500,
-                                fontSize: 12,
-                              ),
-                            ),
-                          ],
-                        ),
-                        SizedBox(height: TossSpacing.space4),
-                        
-                        // Grid of Quick Actions
-                        GridView.builder(
-                          padding: EdgeInsets.zero,
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 3,
-                            crossAxisSpacing: TossSpacing.space4,
-                            mainAxisSpacing: TossSpacing.space5,
-                            childAspectRatio: 0.95,
-                          ),
-                          itemCount: quickFeatures.length,
-                          itemBuilder: (context, index) {
-                            final feature = quickFeatures[index];
-                            return _buildQuickActionItemFromTopFeature(feature);
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-                  SizedBox(height: TossSpacing.space6), // Space before next section
-                ],
-              ),
-            ),
+          return topFeaturesAsync.when(
+            data: (topFeatures) => _buildQuickActionsContent(topFeatures),
+            loading: () => _buildQuickActionsLoading(),
+            error: (error, stackTrace) => _buildQuickActionsError(error, stackTrace),
           );
         },
-        loading: () => _buildQuickActionsLoading(),
-        error: (_, __) => const SizedBox.shrink(),
+        loading: () {
+          return _buildQuickActionsLoading();
+        },
+        error: (error, stackTrace) {
+          return _buildQuickActionsError(error, stackTrace);
+        },
       ),
     );
   }
+
+  /// Content builder for quick actions (extracted for clarity)
+  Widget _buildQuickActionsContent(List<TopFeature> topFeatures) {
+    if (topFeatures.isEmpty) {
+      
+      // 🎯 OPTIONAL: Show progress hint to encourage exploration (disabled for now)
+      // return _buildQuickAccessProgress();
+      
+      // Clean UX: Hide completely until user has enough real usage
+      return const SizedBox.shrink();
+    }
+    
+    // Take only the first 6 features for the quick actions grid
+    final quickFeatures = topFeatures.take(6).toList();
+    
+    return Container(
+      color: TossColors.gray100,
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: TossSpacing.space4),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Quick Actions container with white background and blue label
+            Container(
+              width: double.infinity,
+              padding: EdgeInsets.all(TossSpacing.space5),
+              decoration: BoxDecoration(
+                color: TossColors.surface,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: TossColors.borderLight,
+                  width: 0.5,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: TossColors.textPrimary.withOpacity(0.02),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Blue label header (like Finance section)
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            width: 4,
+                            height: 20,
+                            decoration: BoxDecoration(
+                              color: TossColors.primary, // Blue accent line
+                              borderRadius: BorderRadius.circular(2),
+                            ),
+                          ),
+                          SizedBox(width: TossSpacing.space3),
+                          Text(
+                            'Quick Actions',
+                            style: TossTextStyles.h3.copyWith(
+                              color: TossColors.textPrimary,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: -0.4,
+                            ),
+                          ),
+                        ],
+                      ),
+                      // "Most Used" indicator
+                      Text(
+                        'Most Used',
+                        style: TossTextStyles.caption.copyWith(
+                          color: TossColors.textTertiary,
+                          fontWeight: FontWeight.w500,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: TossSpacing.space4),
+                  
+                  // Adaptive Grid/Layout for Quick Actions
+                  _buildAdaptiveQuickActionsLayout(quickFeatures),
+                ],
+              ),
+            ),
+            SizedBox(height: TossSpacing.space6), // Space before next section
+          ],
+        ),
+      ),
+    );
+  }
+
 
   Widget _buildQuickActionsLoading() {
     return Container(
@@ -453,31 +619,32 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
                     physics: const NeverScrollableScrollPhysics(),
                     gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: 3,
-                      crossAxisSpacing: TossSpacing.space4,
-                      mainAxisSpacing: TossSpacing.space5,
-                      childAspectRatio: 0.95,
+                      crossAxisSpacing: TossSpacing.space3, // Reduced from space4 to space3
+                      mainAxisSpacing: TossSpacing.space3,  // Reduced from space5 to space3
+                      childAspectRatio: 0.85, // Reduced from 0.95 to 0.85 for more height
                     ),
                     itemCount: 6,
                     itemBuilder: (context, index) {
                       return Container(
-                        padding: EdgeInsets.symmetric(vertical: TossSpacing.space2),
+                        padding: EdgeInsets.symmetric(vertical: TossSpacing.space1), // Reduced padding
                         decoration: BoxDecoration(
                           color: TossColors.transparent,
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
+                          mainAxisSize: MainAxisSize.min, // Added to prevent overflow
                           children: [
                             // Skeleton icon container
                             Container(
-                              width: 48,
-                              height: 48,
+                              width: 44, // Reduced from 48 to 44 to match updated size
+                              height: 44, // Reduced from 48 to 44 to match updated size
                               decoration: BoxDecoration(
                                 color: TossColors.gray200,
-                                borderRadius: BorderRadius.circular(14),
+                                borderRadius: BorderRadius.circular(12), // Reduced from 14 to 12
                               ),
                             ),
-                            SizedBox(height: TossSpacing.space2),
+                            SizedBox(height: TossSpacing.space1), // Reduced from space2 to space1
                             // Skeleton text
                             Container(
                               width: 60,
@@ -555,6 +722,207 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
     );
   }
 
+  /// Comprehensive error handling with fallback options
+  /// SECURITY: Attempts fallback provider if main provider fails
+  Widget _buildQuickActionsError(Object error, StackTrace stackTrace) {
+    
+    return Container(
+      color: TossColors.gray100,
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: TossSpacing.space4),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Error container with user-friendly message
+            Container(
+              width: double.infinity,
+              padding: EdgeInsets.all(TossSpacing.space5),
+              decoration: BoxDecoration(
+                color: TossColors.surface,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: TossColors.borderLight,
+                  width: 0.5,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: TossColors.textPrimary.withOpacity(0.02),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Error header with retry option
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            width: 4,
+                            height: 20,
+                            decoration: BoxDecoration(
+                              color: TossColors.warning,
+                              borderRadius: BorderRadius.circular(2),
+                            ),
+                          ),
+                          SizedBox(width: TossSpacing.space3),
+                          Text(
+                            'Quick Actions',
+                            style: TossTextStyles.h3.copyWith(
+                              color: TossColors.textPrimary,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: -0.4,
+                            ),
+                          ),
+                        ],
+                      ),
+                      // Retry button
+                      TextButton.icon(
+                        onPressed: () {
+                          // Invalidate the provider to retry
+                          ref.invalidate(topFeaturesByUserProvider);
+                        },
+                        icon: Icon(
+                          Icons.refresh, 
+                          size: 16, 
+                          color: TossColors.primary,
+                        ),
+                        label: Text(
+                          'Retry',
+                          style: TossTextStyles.caption.copyWith(
+                            color: TossColors.primary,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        style: TextButton.styleFrom(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: TossSpacing.space2,
+                            vertical: TossSpacing.space1,
+                          ),
+                          minimumSize: Size.zero,
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: TossSpacing.space3),
+                  
+                  // User-friendly error message
+                  Container(
+                    padding: EdgeInsets.all(TossSpacing.space3),
+                    decoration: BoxDecoration(
+                      color: TossColors.warning.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: TossColors.warning.withOpacity(0.3),
+                        width: 1,
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.info_outline,
+                          size: 20,
+                          color: TossColors.warning,
+                        ),
+                        SizedBox(width: TossSpacing.space2),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Quick Actions Temporarily Unavailable',
+                                style: TossTextStyles.body.copyWith(
+                                  color: TossColors.textPrimary,
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 13,
+                                ),
+                              ),
+                              SizedBox(height: TossSpacing.space1),
+                              Text(
+                                'You can still access all features from the main sections below.',
+                                style: TossTextStyles.caption.copyWith(
+                                  color: TossColors.textSecondary,
+                                  fontSize: 12,
+                                  height: 1.3,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(height: TossSpacing.space6),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Adaptive layout that handles different numbers of features gracefully
+  /// SECURITY: Shows properly filtered features from topFeaturesByUserProvider
+  Widget _buildAdaptiveQuickActionsLayout(List<TopFeature> quickFeatures) {
+    if (quickFeatures.isEmpty) return const SizedBox.shrink();
+    
+    final featureCount = quickFeatures.length;
+    
+    // Handle single item with centered, larger display
+    if (featureCount == 1) {
+      return Center(
+        child: Container(
+          constraints: BoxConstraints(
+            maxWidth: MediaQuery.of(context).size.width * 0.4, // 40% of screen width
+          ),
+          child: _buildQuickActionItemFromTopFeature(quickFeatures.first),
+        ),
+      );
+    }
+    
+    // Handle two items side by side
+    if (featureCount == 2) {
+      return Row(
+        children: quickFeatures.map((feature) => 
+          Expanded(
+            child: Container(
+              margin: EdgeInsets.symmetric(horizontal: TossSpacing.space1),
+              child: _buildQuickActionItemFromTopFeature(feature),
+            ),
+          ),
+        ).toList(),
+      );
+    }
+    
+    // Handle 3+ items with adaptive grid
+    final columns = featureCount >= 6 ? 3 : 
+                   featureCount >= 4 ? 3 : 
+                   featureCount == 3 ? 3 : 2;
+    
+    return GridView.builder(
+      padding: EdgeInsets.zero,
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: columns,
+        crossAxisSpacing: TossSpacing.space3,
+        mainAxisSpacing: TossSpacing.space3,
+        childAspectRatio: 0.85,
+      ),
+      itemCount: featureCount,
+      itemBuilder: (context, index) {
+        final feature = quickFeatures[index];
+        return _buildQuickActionItemFromTopFeature(feature);
+      },
+    );
+  }
+
   Widget _buildQuickActionItemFromTopFeature(TopFeature feature) {
     return Material(
       color: TossColors.transparent,
@@ -577,46 +945,49 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
         child: AnimatedContainer(
           duration: TossAnimations.normal,
           curve: TossAnimations.standard,
-          padding: EdgeInsets.symmetric(vertical: TossSpacing.space2),
+          padding: EdgeInsets.symmetric(vertical: TossSpacing.space1), // Reduced padding
           decoration: BoxDecoration(
             color: TossColors.transparent,
             borderRadius: BorderRadius.circular(12),
           ),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min, // Added to prevent overflow
             children: [
               // Icon with ultra-minimal Toss design and hover effect
               AnimatedContainer(
                 duration: TossAnimations.normal,
                 curve: TossAnimations.standard,
-                width: 48,
-                height: 48,
+                width: 44, // Reduced from 48 to 44
+                height: 44, // Reduced from 48 to 44
                 decoration: BoxDecoration(
                   color: TossColors.gray100, // Even more subtle background
-                  borderRadius: BorderRadius.circular(14),
+                  borderRadius: BorderRadius.circular(12), // Reduced from 14 to 12
                   // No border for cleaner look
                 ),
                 child: DynamicIcon(
                   iconKey: feature.iconKey,
                   featureName: feature.featureName,
-                  size: 22,
+                  size: 20, // Reduced from 22 to 20
                   color: TossColors.gray700, // More neutral, less blue
                   useDefaultColor: false,
                 ),
               ),
               SizedBox(height: TossSpacing.space1),
-              Text(
-                feature.featureName,
-                style: TossTextStyles.caption.copyWith(
-                  color: TossColors.textPrimary,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 13, // Increased from 11 to 13 for better readability
-                  height: 1.3,
-                  letterSpacing: -0.2,
+              Flexible( // Wrap text in Flexible to prevent overflow
+                child: Text(
+                  feature.featureName,
+                  style: TossTextStyles.caption.copyWith(
+                    color: TossColors.textPrimary,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 12, // Reduced from 13 to 12 for better fit
+                    height: 1.2, // Reduced from 1.3 to 1.2 for more compact text
+                    letterSpacing: -0.2,
+                  ),
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                 ),
-                textAlign: TextAlign.center,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
               ),
             ],
           ),
@@ -625,7 +996,84 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
     );
   }
 
+  /// Build feature preview cards for onboarding users
+  Widget _buildFeaturePreviewCards() {
+    final previewFeatures = [
+      {'name': 'Employee Management', 'icon': Icons.people, 'description': 'Manage your team'},
+      {'name': 'Financial Tracking', 'icon': Icons.account_balance, 'description': 'Track your finances'},
+      {'name': 'Inventory Control', 'icon': Icons.inventory, 'description': 'Manage your inventory'},
+    ];
+    
+    return Container(
+      child: Row(
+        children: previewFeatures.map((feature) => Expanded(
+          child: Container(
+            margin: EdgeInsets.symmetric(horizontal: TossSpacing.space1),
+            padding: EdgeInsets.all(TossSpacing.space3),
+            decoration: BoxDecoration(
+              color: TossColors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: TossColors.borderLight,
+                width: 0.5,
+              ),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: TossColors.primary.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(
+                    feature['icon'] as IconData,
+                    size: 18,
+                    color: TossColors.primary,
+                  ),
+                ),
+                SizedBox(height: TossSpacing.space2),
+                Text(
+                  feature['name'] as String,
+                  style: TossTextStyles.caption.copyWith(
+                    color: TossColors.textPrimary,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 12,
+                  ),
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                ),
+                SizedBox(height: TossSpacing.space1),
+                Text(
+                  feature['description'] as String,
+                  style: TossTextStyles.caption.copyWith(
+                    color: TossColors.textTertiary,
+                    fontSize: 10,
+                  ),
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
+                ),
+              ],
+            ),
+          ),
+        )).toList(),
+      ),
+    );
+  }
+
   Widget _buildMainFeaturesSection(AsyncValue<dynamic> categoriesAsync) {
+    // Check if user has companies - don't show features section if no companies
+    final userData = ref.watch(userCompaniesProvider).valueOrNull;
+    final hasNoCompanies = userData == null || 
+                          (userData['companies'] as List?)?.isEmpty == true;
+    
+    // Don't show features section for onboarding users
+    if (hasNoCompanies) {
+      return const SliverToBoxAdapter(child: SizedBox.shrink());
+    }
+    
     return SliverToBoxAdapter(
       child: categoriesAsync.when(
         data: (categories) {
@@ -647,15 +1095,22 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
                   child: Column(
                     children: [
                       Icon(
-                        Icons.inbox_outlined,
+                        Icons.sync,
                         size: 48,
                         color: TossColors.textTertiary,
                       ),
                       SizedBox(height: TossSpacing.space4),
                       Text(
-                        'No features available',
+                        'Setting up your workspace...',
                         style: TossTextStyles.body.copyWith(
                           color: TossColors.textSecondary,
+                        ),
+                      ),
+                      SizedBox(height: TossSpacing.space2),
+                      Text(
+                        'Please wait while we load your features',
+                        style: TossTextStyles.caption.copyWith(
+                          color: TossColors.textTertiary,
                         ),
                       ),
                     ],
@@ -973,20 +1428,12 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
   Future<void> _handleRefresh(WidgetRef ref) async {
     try {
       
-      // First, invalidate the force refresh providers to ensure they re-execute
-      ref.invalidate(forceRefreshUserCompaniesProvider);
-      ref.invalidate(forceRefreshCategoriesProvider);
+      // Use the enhanced auth service for smart refresh
+      final enhancedAuth = ref.read(enhancedAuthProvider);
+      await enhancedAuth.forceRefreshData();
       
-      
-      // Now call the force refresh providers that ALWAYS fetch from API
-      final userCompaniesResult = await ref.read(forceRefreshUserCompaniesProvider.future);
-      final categoriesResult = await ref.read(forceRefreshCategoriesProvider.future);
-      
-      final companies = userCompaniesResult['companies'] as List<dynamic>? ?? [];
-      
-      // Invalidate the regular providers to show the new data
-      ref.invalidate(userCompaniesProvider);
-      ref.invalidate(categoriesWithFeaturesProvider);
+      // Wait for providers to update
+      await Future.delayed(Duration(milliseconds: 500));
       
       
       // Show success feedback

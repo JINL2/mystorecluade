@@ -1,8 +1,10 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 // import 'package:logger/logger.dart';
 import '../../core/notifications/models/notification_payload.dart';
 import '../../core/notifications/models/notification_db_model.dart';
 import '../../core/notifications/services/notification_service.dart';
+import '../../core/notifications/services/token_manager.dart';
 import '../../core/notifications/utils/notification_logger.dart';
 
 /// Provider for notification service
@@ -197,6 +199,25 @@ class NotificationNotifier extends StateNotifier<NotificationState> {
   /// Clear error
   void clearError() {
     state = state.copyWith(error: null);
+  }
+  
+  /// Handle app resume - check and update token if needed
+  Future<void> handleAppResume() async {
+    try {
+      // Token manager will check if token needs update
+      final tokenManager = TokenManager();
+      tokenManager.handleAppLifecycleState(AppLifecycleState.resumed);
+      
+      // Refresh debug info
+      final debugInfo = _notificationService.getDebugInfo();
+      state = state.copyWith(
+        fcmToken: debugInfo['fcm_token'] as String?,
+        apnsToken: debugInfo['apns_token'] as String?,
+      );
+    } catch (e) {
+      // Silent fail - don't interrupt user experience
+      print('Token check on resume failed: $e');
+    }
   }
 }
 

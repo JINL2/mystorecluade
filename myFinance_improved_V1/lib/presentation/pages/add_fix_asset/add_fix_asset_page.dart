@@ -366,11 +366,18 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  onSelected: (value) {
+                  onSelected: (value) async {
+                    // Add safety check for widget lifecycle
+                    if (!mounted) return;
+                    
                     if (value == 'edit') {
-                      _showEditAssetBottomSheet(asset);
+                      if (mounted) {
+                        _showEditAssetBottomSheet(asset);
+                      }
                     } else if (value == 'delete') {
-                      // TODO: Implement delete functionality
+                      if (mounted) {
+                        // TODO: Implement delete functionality
+                      }
                     }
                   },
                   itemBuilder: (context) => [

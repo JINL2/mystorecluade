@@ -7,7 +7,6 @@ import '../../../core/themes/toss_spacing.dart';
 import '../../widgets/toss/toss_text_field.dart';
 import '../../widgets/toss/toss_primary_button.dart';
 import '../../widgets/common/toss_scaffold.dart';
-import '../../widgets/toss/toss_primary_button.dart';
 import '../../widgets/toss/toss_bottom_sheet.dart';
 import '../../providers/auth_provider.dart';
 
@@ -35,6 +34,7 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: TossColors.background,
+      resizeToAvoidBottomInset: true, // Ensure keyboard handling
       appBar: AppBar(
         backgroundColor: TossColors.background,
         elevation: 0,
@@ -44,7 +44,7 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
         ),
       ),
       body: SafeArea(
-        child: Padding(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.all(TossSpacing.space5),
           child: _emailSent ? _buildSuccessView() : _buildFormView(),
         ),
@@ -55,147 +55,170 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
   Widget _buildFormView() {
     return Form(
       key: _formKey,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Title
-          Text(
-            'Reset Password',
-            style: TossTextStyles.h1.copyWith(
-              color: TossColors.gray900,
-            ),
-          ),
-          const SizedBox(height: TossSpacing.space3),
-          Text(
-            'We\'ll send you a password reset link to your email',
-            style: TossTextStyles.body.copyWith(
-              color: TossColors.gray600,
-            ),
-          ),
-          
-          const SizedBox(height: TossSpacing.space8),
-          
-          // Email Input
-          _buildEmailField(),
-          
-          const SizedBox(height: TossSpacing.space3),
-          
-          // Info Box
-          Container(
-            padding: const EdgeInsets.all(TossSpacing.space4),
-            decoration: BoxDecoration(
-              color: TossColors.info.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Row(
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          minHeight: MediaQuery.of(context).size.height - 
+                     MediaQuery.of(context).padding.top - 
+                     MediaQuery.of(context).padding.bottom - 
+                     56, // AppBar height
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(
-                  Icons.info_outline,
-                  size: 20,
-                  color: TossColors.info,
+                Text(
+                  'Reset Password',
+                  style: TossTextStyles.h1.copyWith(
+                    color: TossColors.gray900,
+                  ),
                 ),
-                const SizedBox(width: TossSpacing.space2),
-                Expanded(
-                  child: Text(
-                    'Check your spam folder if you don\'t receive the email',
-                    style: TossTextStyles.caption.copyWith(
-                      color: TossColors.info,
-                    ),
+                const SizedBox(height: TossSpacing.space3),
+                Text(
+                  'We\'ll send you a password reset link to your email',
+                  style: TossTextStyles.body.copyWith(
+                    color: TossColors.gray600,
+                  ),
+                ),
+                
+                const SizedBox(height: TossSpacing.space8),
+                
+                _buildEmailField(),
+                
+                const SizedBox(height: TossSpacing.space3),
+                
+                Container(
+                  padding: const EdgeInsets.all(TossSpacing.space4),
+                  decoration: BoxDecoration(
+                    color: TossColors.info.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(
+                        Icons.info_outline,
+                        size: 20,
+                        color: TossColors.info,
+                      ),
+                      const SizedBox(width: TossSpacing.space2),
+                      Expanded(
+                        child: Text(
+                          'Check your spam folder if you don\'t receive the email',
+                          style: TossTextStyles.caption.copyWith(
+                            color: TossColors.info,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],
             ),
-          ),
-          
-          const Spacer(),
-          
-          // Send Button
-          TossPrimaryButton(
-            text: 'Send Reset Link',
-            onPressed: _isLoading ? null : _handleSendResetLink,
-            isLoading: _isLoading,
-          ),
-          
-          const SizedBox(height: TossSpacing.space5),
-        ],
+            
+            Column(
+              children: [
+                const SizedBox(height: TossSpacing.space8),
+                TossPrimaryButton(
+                  text: 'Send Reset Link',
+                  onPressed: _isLoading ? null : _handleSendResetLink,
+                  isLoading: _isLoading,
+                ),
+                const SizedBox(height: TossSpacing.space5),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildSuccessView() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        const SizedBox(height: TossSpacing.space10),
-        
-        // Success Icon
-        Container(
-          width: 80,
-          height: 80,
-          decoration: BoxDecoration(
-            color: TossColors.success.withOpacity(0.1),
-            shape: BoxShape.circle,
+    return ConstrainedBox(
+      constraints: BoxConstraints(
+        minHeight: MediaQuery.of(context).size.height - 
+                   MediaQuery.of(context).padding.top - 
+                   MediaQuery.of(context).padding.bottom - 
+                   56, // AppBar height
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Column(
+            children: [
+              const SizedBox(height: TossSpacing.space10),
+              
+              Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  color: TossColors.success.withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.check_circle_outline,
+                  size: 48,
+                  color: TossColors.success,
+                ),
+              ),
+              
+              const SizedBox(height: TossSpacing.space6),
+              
+              Text(
+                'Check your email',
+                style: TossTextStyles.h2.copyWith(
+                  color: TossColors.gray900,
+                ),
+              ),
+              const SizedBox(height: TossSpacing.space3),
+              Text(
+                _emailController.text,
+                style: TossTextStyles.body.copyWith(
+                  color: TossColors.primary,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: TossSpacing.space2),
+              Text(
+                'We sent a password reset link',
+                style: TossTextStyles.body.copyWith(
+                  color: TossColors.gray600,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              
+              const SizedBox(height: TossSpacing.space8),
+              
+              TextButton(
+                onPressed: _isLoading ? null : _handleResendEmail,
+                child: Text(
+                  'Didn\'t receive the email?',
+                  style: TossTextStyles.body.copyWith(
+                    color: TossColors.gray600,
+                    decoration: TextDecoration.underline,
+                  ),
+                ),
+              ),
+            ],
           ),
-          child: Icon(
-            Icons.check_circle_outline,
-            size: 48,
-            color: TossColors.success,
+          
+          Column(
+            children: [
+              const SizedBox(height: TossSpacing.space8),
+              TossPrimaryButton(
+                text: 'Back to Sign In',
+                onPressed: () {
+                  context.go('/auth/login');
+                },
+              ),
+              const SizedBox(height: TossSpacing.space5),
+            ],
           ),
-        ),
-        
-        const SizedBox(height: TossSpacing.space6),
-        
-        // Success Message
-        Text(
-          'Check your email',
-          style: TossTextStyles.h2.copyWith(
-            color: TossColors.gray900,
-          ),
-        ),
-        const SizedBox(height: TossSpacing.space3),
-        Text(
-          _emailController.text,
-          style: TossTextStyles.body.copyWith(
-            color: TossColors.primary,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        const SizedBox(height: TossSpacing.space2),
-        Text(
-          'We sent a password reset link',
-          style: TossTextStyles.body.copyWith(
-            color: TossColors.gray600,
-          ),
-          textAlign: TextAlign.center,
-        ),
-        
-        const SizedBox(height: TossSpacing.space8),
-        
-        // Resend Option
-        TextButton(
-          onPressed: _isLoading ? null : _handleResendEmail,
-          child: Text(
-            'Didn\'t receive the email?',
-            style: TossTextStyles.body.copyWith(
-              color: TossColors.gray600,
-              decoration: TextDecoration.underline,
-            ),
-          ),
-        ),
-        
-        const Spacer(),
-        
-        // Back to Login Button
-        TossPrimaryButton(
-          text: 'Back to Sign In',
-          onPressed: () {
-            context.go('/auth/login');
-          },
-        ),
-        
-        const SizedBox(height: TossSpacing.space5),
-      ],
+        ],
+      ),
     );
   }
 
@@ -238,7 +261,6 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
         _emailSent = true;
       });
     } catch (e) {
-      // Show error message
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -267,7 +289,6 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
       );
       
       if (mounted) {
-        // Show success message using TossBottomSheet
         TossBottomSheet.show(
           context: context,
           content: Column(
@@ -302,7 +323,6 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
         );
       }
     } catch (e) {
-      // Show error message
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

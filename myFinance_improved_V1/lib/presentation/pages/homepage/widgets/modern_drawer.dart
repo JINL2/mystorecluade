@@ -1425,7 +1425,7 @@ class _ModernDrawerState extends ConsumerState<ModernDrawer> {
     
     try {
       final companyService = ref.read(companyServiceProvider);
-      final companyId = await companyService.createCompany(
+      final companyDetails = await companyService.createCompany(
         companyName: name,
         companyTypeId: companyTypeId,
         baseCurrencyId: baseCurrencyId,
@@ -1436,7 +1436,10 @@ class _ModernDrawerState extends ConsumerState<ModernDrawer> {
         Navigator.of(context).pop();
       }
       
-      if (companyId != null) {
+      if (companyDetails != null) {
+        // Extract company ID from the response
+        final companyId = companyDetails['company_id'] as String;
+        
         // No longer marking refresh needed - will refresh directly
         final appStateNotifier = ref.read(appStateProvider.notifier);
         
@@ -1556,7 +1559,7 @@ class _ModernDrawerState extends ConsumerState<ModernDrawer> {
     
     try {
       final storeService = ref.read(storeServiceProvider);
-      final storeId = await storeService.createStore(
+      final storeResult = await storeService.createStore(
         storeName: name,
         companyId: company['company_id'],
         storeAddress: address,
@@ -1568,7 +1571,10 @@ class _ModernDrawerState extends ConsumerState<ModernDrawer> {
         Navigator.of(context).pop();
       }
       
-      if (storeId != null) {
+      if (storeResult != null) {
+        // Extract store_id from the result
+        final storeId = storeResult['store_id'] as String;
+        
         // No longer marking refresh needed - will refresh directly
         final appStateNotifier = ref.read(appStateProvider.notifier);
         

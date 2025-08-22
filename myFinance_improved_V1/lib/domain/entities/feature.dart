@@ -4,6 +4,7 @@ class Feature {
   final String featureRoute;
   final String featureIcon;
   final String? iconKey;
+  final bool isShowMain;
 
   const Feature({
     required this.featureId,
@@ -11,6 +12,7 @@ class Feature {
     required this.featureRoute,
     required this.featureIcon,
     this.iconKey,
+    this.isShowMain = true, // Default to true for backward compatibility
   });
 
   @override
@@ -18,7 +20,8 @@ class Feature {
       identical(this, other) ||
       other is Feature &&
           runtimeType == other.runtimeType &&
-          featureId == other.featureId;
+          featureId == other.featureId &&
+          isShowMain == other.isShowMain;
 
   @override
   int get hashCode => featureId.hashCode;

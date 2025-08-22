@@ -2,9 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../pages/auth/login_page.dart';
-import '../pages/auth/signup_page.dart';
+import '../pages/auth/auth_signup_page.dart';
+import '../pages/auth/create_business_page.dart';
+import '../pages/auth/create_store_page.dart';
+import '../pages/auth/choose_role_page.dart';
+import '../pages/auth/join_business_page.dart';
 import '../pages/auth/forgot_password_page.dart';
 import '../providers/auth_provider.dart';
+import '../providers/app_state_provider.dart';
 import '../pages/homepage/homepage_redesigned.dart';
 import '../pages/attendance/attendance_main_page.dart';
 import '../pages/time_table_manage/time_table_manage_page.dart';
@@ -26,17 +31,28 @@ import '../pages/transaction_template/transaction_template_page.dart';
 import '../pages/my_page/my_page.dart';
 import '../pages/debt_account_settings/debt_account_settings_page.dart';
 import '../pages/component_test/component_test_page.dart';
+import '../pages/debug/supabase_connection_test_page.dart';
+import '../pages/debug/notification_debug_page.dart';
 import '../../core/themes/toss_text_styles.dart';
 import '../../core/themes/toss_colors.dart';
 
 
-// Router notifier to listen to auth state changes
+// Router notifier to listen to auth and app state changes
 class RouterNotifier extends ChangeNotifier {
   final Ref _ref;
 
   RouterNotifier(this._ref) {
+    // Listen to authentication state
     _ref.listen<bool>(
       isAuthenticatedProvider,
+      (previous, next) {
+        notifyListeners();
+      },
+    );
+    
+    // Listen to app state changes (includes user companies)
+    _ref.listen<AppState>(
+      appStateProvider,
       (previous, next) {
         notifyListeners();
       },
@@ -49,21 +65,47 @@ final appRouterProvider = Provider<GoRouter>((ref) {
   final routerNotifier = RouterNotifier(ref);
   
   final router = GoRouter(
-    initialLocation: '/auth/login',
+    initialLocation: '/', // Start at home page instead of login page
     refreshListenable: routerNotifier,
     restorationScopeId: 'app_router',
     redirect: (context, state) {
       final isAuth = ref.read(isAuthenticatedProvider);
+      final appState = ref.read(appStateProvider);
       final isAuthRoute = state.matchedLocation.startsWith('/auth');
+      final isOnboardingRoute = state.matchedLocation.startsWith('/onboarding');
       
-      // If not authenticated and not on auth route, go to login
+      // Get company count from app state
+      final userData = appState.user;
+      final hasUserData = userData is Map && userData.isNotEmpty;
+      final companyCount = userData is Map ? (userData['company_count'] ?? 0) : 0;
+      
+      
+      // Priority 1: If not authenticated and not on auth route, go to login
       if (!isAuth && !isAuthRoute) {
         return '/auth/login';
       }
       
-      // If authenticated and on auth route, go to home
+      // Priority 2: If authenticated, redirect away from auth pages to appropriate destination
       if (isAuth && isAuthRoute) {
-        return '/';
+        // If user has companies, go to main page
+        if (hasUserData && companyCount > 0) {
+          return '/';
+        }
+        // If user has no companies but has data, go to onboarding
+        else if (hasUserData && companyCount == 0) {
+          return '/onboarding/choose-role';
+        }
+        // If no user data yet, stay to let auth page load data
+        else {
+          return null;
+        }
+      }
+      
+      // Priority 3: If authenticated, on main pages, but no companies
+      // Only redirect if we have loaded user data
+      if (isAuth && !isAuthRoute && !isOnboardingRoute && 
+          hasUserData && companyCount == 0) {
+        return '/onboarding/choose-role';
       }
       
       return null;
@@ -115,11 +157,49 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           ),
           GoRoute(
             path: 'signup',
-            builder: (context, state) => const SignupPage(),
+            builder: (context, state) {
+              return const AuthSignupPage();
+            },
           ),
           GoRoute(
             path: 'forgot-password',
             builder: (context, state) => const ForgotPasswordPage(),
+          ),
+        ],
+      ),
+      
+      // Onboarding Routes (for authenticated users who need to complete profile)
+      GoRoute(
+        path: '/onboarding',
+        redirect: (context, state) {
+          final isAuth = ref.read(isAuthenticatedProvider);
+          if (!isAuth) {
+            return '/auth/login';
+          }
+          return null;
+        },
+        routes: [
+          GoRoute(
+            path: 'choose-role',
+            builder: (context, state) => const ChooseRolePage(),
+          ),
+          GoRoute(
+            path: 'create-business',
+            builder: (context, state) => const CreateBusinessPage(),
+          ),
+          GoRoute(
+            path: 'create-store',
+            builder: (context, state) {
+              final extra = state.extra as Map<String, dynamic>?;
+              return CreateStorePage(
+                companyId: extra?['companyId'] ?? '',
+                companyName: extra?['companyName'] ?? '',
+              );
+            },
+          ),
+          GoRoute(
+            path: 'join-business',
+            builder: (context, state) => const JoinBusinessPage(),
           ),
         ],
       ),
@@ -241,6 +321,16 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: 'test',
             builder: (context, state) => const ComponentTestPage(),
+          ),
+          // Debug Page (Supabase Connection Test)
+          GoRoute(
+            path: 'debug/supabase',
+            builder: (context, state) => const SupabaseConnectionTestPage(),
+          ),
+          // Debug Page (Notification Debug)
+          GoRoute(
+            path: 'debug/notifications',
+            builder: (context, state) => const NotificationDebugPage(),
           ),
         ],
       ),

@@ -1,8 +1,13 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../data/services/user_profile_service.dart';
+import 'session_manager_provider.dart';
+import 'app_state_provider.dart';
 
 // Auth state notifier
 class AuthStateNotifier extends StateNotifier<User?> {
+  final _userProfileService = UserProfileService();
+  
   AuthStateNotifier() : super(null) {
     // Initialize with current user
     state = Supabase.instance.client.auth.currentUser;
@@ -39,6 +44,11 @@ class AuthStateNotifier extends StateNotifier<User?> {
       }
       
       state = response.user;
+      
+      // After successful login, check if user profile needs fixing
+      if (response.user != null) {
+        _fixUserProfileIfNeeded(response.user!);
+      }
     } catch (e) {
       throw Exception('Sign in failed: ${e.toString()}');
     }
@@ -47,7 +57,8 @@ class AuthStateNotifier extends StateNotifier<User?> {
   Future<void> signUp({
     required String email,
     required String password,
-    required String name,
+    required String firstName,
+    required String lastName,
   }) async {
     try {
       
@@ -55,7 +66,9 @@ class AuthStateNotifier extends StateNotifier<User?> {
         email: email,
         password: password,
         data: {
-          'full_name': name,
+          'first_name': firstName,
+          'last_name': lastName,
+          'full_name': '$firstName $lastName', // Keep for backward compatibility
         },
       );
       
@@ -66,8 +79,19 @@ class AuthStateNotifier extends StateNotifier<User?> {
         throw Exception('Sign up failed - no user returned');
       }
       
-      // Don't try to create profile - let Supabase handle user metadata
-      // The user data will be stored in auth.users automatically
+      // Ensure user profile is created/updated in our custom users table
+      // This handles both new users and existing users with null names
+      try {
+        await _userProfileService.ensureUserProfile(
+          userId: response.user!.id,
+          firstName: firstName,
+          lastName: lastName,
+          email: email,
+        );
+      } catch (profileError) {
+        // If profile creation fails, log error but continue
+        print('Warning: Failed to ensure user profile: $profileError');
+      }
       
       
       // Don't set state - user needs to verify email if confirmation is enabled
@@ -98,6 +122,31 @@ class AuthStateNotifier extends StateNotifier<User?> {
     state = null;
   }
   
+  /// Fix user profile by extracting names from auth metadata
+  Future<void> _fixUserProfileIfNeeded(User user) async {
+    try {
+      // Get user metadata
+      final metadata = user.userMetadata;
+      if (metadata == null) return;
+      
+      // Extract names from metadata
+      final firstName = metadata['first_name'] as String? ?? 
+                       metadata['full_name']?.toString().split(' ').first ?? 'User';
+      
+      final fullName = metadata['full_name']?.toString() ?? '';
+      final nameParts = fullName.split(' ');
+      final lastName = metadata['last_name'] as String? ??
+                      (nameParts.length > 1 
+                        ? nameParts.skip(1).join(' ')
+                        : 'Name');
+      
+      // Fix the user profile
+      await _userProfileService.fixUserProfile(user.id, firstName, lastName);
+    } catch (e) {
+      print('Error fixing user profile on login: $e');
+    }
+  }
+
   Future<void> resetPassword(String email) async {
     try {
       

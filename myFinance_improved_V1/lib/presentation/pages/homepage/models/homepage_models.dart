@@ -116,6 +116,7 @@ class CategoryWithFeatures {
                 featureRoute: feature['route'] as String,
                 featureIcon: feature['icon'] as String? ?? '',
                 iconKey: feature['icon_key'] as String? ?? '',
+                isShowMain: feature['is_show_main'] as bool? ?? true, // Default to true if not specified
               ))
           .toList(),
     );
@@ -131,6 +132,7 @@ class CategoryWithFeatures {
         'route': feature.featureRoute,
         'icon': feature.featureIcon,
         'icon_key': feature.iconKey,
+        'is_show_main': feature.isShowMain,
       }).toList(),
     };
   }
@@ -173,6 +175,7 @@ class TopFeature {
     required this.icon,
     required this.route,
     this.iconKey,
+    this.isShowMain = true, // Default to true for backward compatibility
   });
 
   final String featureId;
@@ -183,20 +186,32 @@ class TopFeature {
   final String icon;
   final String route;
   final String? iconKey;
+  final bool isShowMain;
 
   factory TopFeature.fromJson(Map<String, dynamic> json) {
     final iconKey = json['icon_key'] as String?;
     final featureName = json['feature_name'] as String;
     
+    // Handle missing last_clicked field by providing a default value
+    final lastClickedStr = json['last_clicked'] as String?;
+    final lastClicked = lastClickedStr != null 
+        ? DateTime.parse(lastClickedStr)
+        : DateTime.now().subtract(const Duration(days: 365)); // Default to a year ago
+    
+    // Handle click_count safely - some might be null
+    final clickCountValue = json['click_count'];
+    final clickCount = clickCountValue is int ? clickCountValue : 0;
+    
     return TopFeature(
       featureId: json['feature_id'] as String,
       featureName: featureName,
       categoryId: json['category_id'] as String?,
-      clickCount: json['click_count'] as int,
-      lastClicked: DateTime.parse(json['last_clicked'] as String),
+      clickCount: clickCount,
+      lastClicked: lastClicked,
       icon: json['icon'] as String,
       route: json['route'] as String,
       iconKey: iconKey,
+      isShowMain: json['is_show_main'] as bool? ?? true, // Default to true if not specified
     );
   }
 }

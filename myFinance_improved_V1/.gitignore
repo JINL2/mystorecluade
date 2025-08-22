@@ -44,3 +44,12 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
+# App Store Connect API Keys (NEVER commit these!)
+*.p8
+AuthKey_*.p8
+.env
+ios/fastlane/report.xml
+ios/fastlane/Preview.html
+ios/fastlane/screenshots
+ios/fastlane/test_output
+

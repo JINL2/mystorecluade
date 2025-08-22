@@ -1,0 +1,12 @@
+<!-- Storebase Icon Logo - Primary Symbol -->
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Rounded square container (2025 trend) -->
+  <rect width="64" height="64" rx="14" fill="#0064FF"/>
+  
+  <!-- Large geometric S letterform - fills most of the space like Coinbase -->
+  <path d="M48 22C48 16.477 43.523 12 38 12H26C20.477 12 16 16.477 16 22C16 25.314 18.686 28 22 28H42C45.314 28 48 30.686 48 34V42C48 47.523 43.523 52 38 52H26C20.477 52 16 47.523 16 42" 
+        stroke="white" 
+        stroke-width="6" 
+        stroke-linecap="round" 
+        fill="none"/>
+</svg>

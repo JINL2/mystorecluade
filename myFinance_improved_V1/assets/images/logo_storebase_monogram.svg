@@ -1,0 +1,9 @@
+<!-- Storebase Monogram - Minimalist S -->
+<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Clean geometric S without container for versatility -->
+  <path d="M42 12C42 6.477 37.523 2 32 2H16C10.477 2 6 6.477 6 12C6 15.314 8.686 18 12 18H36C39.314 18 42 20.686 42 24V36C42 41.523 37.523 46 32 46H16C10.477 46 6 41.523 6 36" 
+        stroke="#0064FF" 
+        stroke-width="6" 
+        stroke-linecap="round" 
+        fill="none"/>
+</svg>
