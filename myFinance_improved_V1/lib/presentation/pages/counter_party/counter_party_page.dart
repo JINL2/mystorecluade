@@ -1222,26 +1222,29 @@ class _CounterPartyPageState extends ConsumerState<CounterPartyPage>
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        if (counterParty.isInternal)
-                          Container(
-                            margin: EdgeInsets.only(left: TossSpacing.space2),
-                            padding: EdgeInsets.symmetric(
-                              horizontal: TossSpacing.space2,
-                              vertical: 2,
-                            ),
-                            decoration: BoxDecoration(
-                              color: TossColors.primary.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(TossBorderRadius.sm),
-                            ),
-                            child: Text(
-                              'Internal',
-                              style: TossTextStyles.caption.copyWith(
-                                color: TossColors.primary,
-                                fontSize: 11,
-                                fontWeight: FontWeight.w600,
-                              ),
+                        Container(
+                          margin: EdgeInsets.only(left: TossSpacing.space2),
+                          padding: EdgeInsets.symmetric(
+                            horizontal: TossSpacing.space2,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: counterParty.isInternal 
+                                ? TossColors.primary.withValues(alpha: 0.1)
+                                : TossColors.warning.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(TossBorderRadius.sm),
+                          ),
+                          child: Text(
+                            counterParty.isInternal ? 'Internal' : 'External',
+                            style: TossTextStyles.caption.copyWith(
+                              color: counterParty.isInternal 
+                                  ? TossColors.primary
+                                  : TossColors.warning,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
+                        ),
                       ],
                     ),
                     SizedBox(height: TossSpacing.space1),
