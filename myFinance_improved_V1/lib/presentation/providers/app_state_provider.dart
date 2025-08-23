@@ -122,7 +122,6 @@ class AppStateNotifier extends StateNotifier<AppState> {
     
     // Clear any other cached data that might exist
     // This ensures complete data cleanup for security and privacy
-    print('AppState: All user data cleared from state and storage');
   }
 
   // Get selected company from user JSON

@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../domain/entities/currency.dart';
@@ -263,14 +264,44 @@ final filteredCurrenciesProvider = StateNotifierProvider<FilteredCurrenciesNotif
   return FilteredCurrenciesNotifier(ref);
 });
 
-// Search query provider
-final currencySearchQueryProvider = StateProvider<String>((ref) => '');
+// Search query provider with auto-dispose and explicit page lifecycle management
+final currencySearchQueryProvider = StateProvider.autoDispose<String>((ref) {
+  // Auto-dispose when no longer watched - ensures clean state on page exit
+  return '';
+});
+
+// Page-specific search controller provider that manages TossSearchField state
+final currencySearchControllerProvider = StateProvider.autoDispose<TextEditingController>((ref) {
+  final controller = TextEditingController();
+  
+  // Listen to search query changes and sync with controller
+  ref.listen(currencySearchQueryProvider, (previous, next) {
+    if (controller.text != next) {
+      controller.text = next;
+    }
+  });
+  
+  // Clean disposal
+  ref.onDispose(() {
+    controller.dispose();
+  });
+  
+  return controller;
+});
+
+// Navigation-aware search state manager - simplified since all providers auto-dispose
+final searchStateManagerProvider = Provider.autoDispose<void>((ref) {
+  // This provider ensures all search-related providers are properly watched
+  // and will auto-dispose when the page is no longer active
+  ref.watch(currencySearchQueryProvider);
+  return;
+});
 
 // Local currency list state for optimistic UI updates
 class LocalCurrencyListNotifier extends StateNotifier<List<Currency>?> {
   LocalCurrencyListNotifier(this._ref) : super(null);
   
-  final Ref _ref;
+  final Ref _ref; // ignore: unused_field
 
   // Initialize local state with remote data
   void initializeFromRemote(List<Currency> currencies) {
@@ -314,12 +345,12 @@ class LocalCurrencyListNotifier extends StateNotifier<List<Currency>?> {
   }
 }
 
-final localCurrencyListProvider = StateNotifierProvider<LocalCurrencyListNotifier, List<Currency>?>((ref) {
+final localCurrencyListProvider = StateNotifierProvider.autoDispose<LocalCurrencyListNotifier, List<Currency>?>((ref) {
   return LocalCurrencyListNotifier(ref);
 });
 
 // Effective company currencies provider that uses local state when available
-final effectiveCompanyCurrenciesProvider = Provider<AsyncValue<List<Currency>>>((ref) {
+final effectiveCompanyCurrenciesProvider = Provider.autoDispose<AsyncValue<List<Currency>>>((ref) {
   final localState = ref.watch(localCurrencyListProvider);
   final remoteState = ref.watch(companyCurrenciesStreamProvider);
   
@@ -338,8 +369,8 @@ final effectiveCompanyCurrenciesProvider = Provider<AsyncValue<List<Currency>>>(
   return remoteState;
 });
 
-// Combined provider that listens to search query changes and uses effective currencies
-final searchFilteredCurrenciesProvider = Provider<AsyncValue<List<Currency>>>((ref) {
+// Combined provider with auto-dispose that listens to search query changes and uses effective currencies
+final searchFilteredCurrenciesProvider = Provider.autoDispose<AsyncValue<List<Currency>>>((ref) {
   final companyCurrencies = ref.watch(effectiveCompanyCurrenciesProvider);
   final searchQuery = ref.watch(currencySearchQueryProvider).toLowerCase();
 
@@ -363,7 +394,7 @@ final searchFilteredCurrenciesProvider = Provider<AsyncValue<List<Currency>>>((r
 });
 
 // Available currencies to add provider that filters out already added currencies
-final availableCurrenciesToAddProvider = FutureProvider<List<CurrencyType>>((ref) async {
+final availableCurrenciesToAddProvider = FutureProvider.autoDispose<List<CurrencyType>>((ref) async {
   final allTypes = await ref.watch(availableCurrencyTypesProvider.future);
   final companyCurrencies = ref.watch(effectiveCompanyCurrenciesProvider);
   

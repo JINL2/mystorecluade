@@ -7,6 +7,7 @@ import 'package:myfinance_improved/core/themes/toss_colors.dart';
 import 'package:myfinance_improved/core/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/core/themes/toss_spacing.dart';
 import 'package:myfinance_improved/presentation/providers/app_state_provider.dart';
+import '../../widgets/common/toss_scaffold.dart';
 
 class TimeTableManagePage extends ConsumerStatefulWidget {
   const TimeTableManagePage({super.key});
@@ -93,7 +94,7 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
     final companyName = selectedCompany?['company_name'] ?? 'No Company Selected';
     final stores = selectedCompany?['stores'] ?? [];
     
-    return Scaffold(
+    return TossScaffold(
       backgroundColor: TossColors.background,
       body: SafeArea(
         child: Column(
@@ -2994,7 +2995,6 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<_ShiftDetailsBottomShe
                       ),
                       maxLines: 3,
                       minLines: 2,
-                      autofocus: true,
                     ),
                   ),
                 ],

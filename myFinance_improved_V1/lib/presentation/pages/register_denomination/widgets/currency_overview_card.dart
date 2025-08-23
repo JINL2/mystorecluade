@@ -13,7 +13,6 @@ import '../providers/denomination_providers.dart';
 import '../../../providers/app_state_provider.dart';
 import 'denomination_grid.dart';
 import 'add_denomination_bottom_sheet.dart';
-import 'add_currency_bottom_sheet.dart';
 
 class CurrencyOverviewCard extends ConsumerWidget {
   final Currency currency;
@@ -71,13 +70,13 @@ class CurrencyOverviewCard extends ConsumerWidget {
               error: (error, _) => Padding(
                 padding: const EdgeInsets.all(TossSpacing.space5),
                 child: Center(
-                  child: Column(
+                  child: const Column(
                     children: [
                       Icon(Icons.error_outline, color: TossColors.error, size: 32),
-                      const SizedBox(height: TossSpacing.space2),
+                      SizedBox(height: TossSpacing.space2),
                       Text(
                         'Failed to load denominations',
-                        style: TossTextStyles.bodySmall.copyWith(color: TossColors.error),
+                        style: TextStyle(color: TossColors.error),
                         textAlign: TextAlign.center,
                       ),
                     ],
@@ -191,7 +190,7 @@ class CurrencyOverviewCard extends ConsumerWidget {
                       vertical: TossSpacing.space1,
                     ),
                     decoration: BoxDecoration(
-                      color: TossColors.primary.withOpacity(0.1),
+                      color: TossColors.primary.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(TossBorderRadius.sm),
                     ),
                     child: Text(
@@ -338,13 +337,13 @@ class CurrencyOverviewCard extends ConsumerWidget {
             Container(
               padding: const EdgeInsets.all(TossSpacing.space3),
               decoration: BoxDecoration(
-                color: TossColors.error.withOpacity(0.1),
+                color: TossColors.error.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                border: Border.all(color: TossColors.error.withOpacity(0.2)),
+                border: Border.all(color: TossColors.error.withValues(alpha: 0.2)),
               ),
               child: Row(
                 children: [
-                  Icon(Icons.warning_amber_outlined, 
+                  const Icon(Icons.warning_amber_outlined, 
                        color: TossColors.error, size: 20),
                   const SizedBox(width: TossSpacing.space2),
                   Expanded(
@@ -364,7 +363,7 @@ class CurrencyOverviewCard extends ConsumerWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: Text(
+            child: const Text(
               'Cancel',
               style: TextStyle(
                 color: TossColors.gray600,
@@ -382,16 +381,16 @@ class CurrencyOverviewCard extends ConsumerWidget {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      SizedBox(
+                      const SizedBox(
                         width: 16,
                         height: 16,
-                        child: CircularProgressIndicator(
+                        child: const CircularProgressIndicator(
                           strokeWidth: 2,
                           valueColor: AlwaysStoppedAnimation(TossColors.error),
                         ),
                       ),
                       const SizedBox(width: 8),
-                      Text('Removing...'),
+                      const Text('Removing...'),
                     ],
                   ),
                 ),
@@ -406,7 +405,7 @@ class CurrencyOverviewCard extends ConsumerWidget {
                   style: TextButton.styleFrom(
                     foregroundColor: TossColors.error,
                   ),
-                  child: Text(
+                  child: const Text(
                     'Remove',
                     style: TextStyle(
                       color: TossColors.error,

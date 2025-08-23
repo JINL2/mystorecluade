@@ -101,22 +101,6 @@ class TossPageStyles {
   
   // ==================== HELPER METHODS ====================
   
-  /// Creates a standard page scaffold with gray background
-  static Scaffold pageScaffold({
-    required Widget body,
-    PreferredSizeWidget? appBar,
-    Widget? bottomNavigationBar,
-    Widget? floatingActionButton,
-  }) {
-    return Scaffold(
-      backgroundColor: pageBackground,
-      appBar: appBar,
-      body: body,
-      bottomNavigationBar: bottomNavigationBar,
-      floatingActionButton: floatingActionButton,
-    );
-  }
-  
   /// Creates a standard card widget
   static Widget card({
     required Widget child,

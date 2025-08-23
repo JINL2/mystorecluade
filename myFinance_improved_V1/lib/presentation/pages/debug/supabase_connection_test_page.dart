@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../data/services/user_profile_service.dart';
 import '../../providers/auth_provider.dart';
+import '../../widgets/common/toss_scaffold.dart';
 
 class SupabaseConnectionTestPage extends ConsumerStatefulWidget {
   const SupabaseConnectionTestPage({super.key});
@@ -318,7 +319,7 @@ class _SupabaseConnectionTestPageState extends ConsumerState<SupabaseConnectionT
   Widget build(BuildContext context) {
     final currentUser = _supabase.auth.currentUser;
     
-    return Scaffold(
+    return TossScaffold(
       appBar: AppBar(
         title: const Text('Supabase Connection Test'),
         backgroundColor: Colors.blue,

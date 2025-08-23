@@ -12,14 +12,12 @@ class SimpleOnboardingNotifier extends StateNotifier<bool> {
   
   /// Mark that user has just completed signup and needs onboarding
   void markNeedsOnboarding() {
-    debugPrint('[SimpleOnboardingNotifier] Marking user as needing onboarding');
     state = true;
     _onboardingCompletedAt = null;
   }
   
   /// Mark that user has completed onboarding
   void markOnboardingComplete() {
-    debugPrint('[SimpleOnboardingNotifier] Marking onboarding as complete');
     state = false;
     _onboardingCompletedAt = DateTime.now();
   }
@@ -33,7 +31,6 @@ class SimpleOnboardingNotifier extends StateNotifier<bool> {
   
   /// Reset onboarding state
   void reset() {
-    debugPrint('[SimpleOnboardingNotifier] Resetting onboarding state');
     state = false;
     _onboardingCompletedAt = null;
   }
@@ -66,10 +63,8 @@ final userHasCompaniesProvider = FutureProvider<bool>((ref) async {
         .limit(1);
     
     final hasCompanies = response != null && (response as List).isNotEmpty;
-    debugPrint('[userHasCompaniesProvider] User has companies: $hasCompanies');
     return hasCompanies;
   } catch (e) {
-    debugPrint('[userHasCompaniesProvider] Error checking companies: $e');
     return false;
   }
 });
@@ -84,7 +79,6 @@ final isNewUserProvider = Provider<bool>((ref) {
   // First check the simple onboarding state - this is the primary indicator
   final needsOnboarding = ref.watch(simpleOnboardingProvider);
   if (needsOnboarding) {
-    debugPrint('[isNewUserProvider] User needs onboarding (state flag set)');
     return true;
   }
   

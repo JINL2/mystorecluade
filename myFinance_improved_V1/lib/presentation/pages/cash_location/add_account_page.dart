@@ -7,6 +7,7 @@ import '../../../core/themes/toss_spacing.dart';
 import '../../../core/themes/toss_border_radius.dart';
 import '../../providers/app_state_provider.dart';
 import '../../../data/services/cash_location_service.dart';
+import '../../widgets/common/toss_scaffold.dart';
 
 class AddAccountPage extends ConsumerStatefulWidget {
   final String locationType; // 'cash', 'bank', 'vault'
@@ -115,7 +116,7 @@ class _AddAccountPageState extends ConsumerState<AddAccountPage> {
   
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return TossScaffold(
       backgroundColor: const Color(0xFFF7F8FA),
       body: SafeArea(
         child: Column(

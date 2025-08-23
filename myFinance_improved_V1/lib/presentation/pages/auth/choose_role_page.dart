@@ -5,6 +5,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/themes/toss_colors.dart';
 import '../../../core/themes/toss_text_styles.dart';
 import '../../providers/app_state_provider.dart';
+import '../../widgets/common/toss_scaffold.dart';
 
 /// Simple, robust Choose Role page without complex layouts
 class ChooseRolePage extends ConsumerStatefulWidget {
@@ -25,7 +26,7 @@ class _ChooseRolePageState extends ConsumerState<ChooseRolePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return TossScaffold(
       backgroundColor: TossColors.background,
       resizeToAvoidBottomInset: true, // Ensure keyboard handling
       body: SafeArea(

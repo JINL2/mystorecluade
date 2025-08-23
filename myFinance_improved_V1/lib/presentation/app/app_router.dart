@@ -35,6 +35,7 @@ import '../pages/debug/supabase_connection_test_page.dart';
 import '../pages/debug/notification_debug_page.dart';
 import '../../core/themes/toss_text_styles.dart';
 import '../../core/themes/toss_colors.dart';
+import '../widgets/common/toss_scaffold.dart';
 
 
 // Router notifier to listen to auth and app state changes
@@ -111,7 +112,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       return null;
     },
     errorBuilder: (context, state) {
-      return Scaffold(
+      return TossScaffold(
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,

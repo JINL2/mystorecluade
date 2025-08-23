@@ -23,6 +23,7 @@ import '../../widgets/common/toss_currency_chip.dart';
 import '../../widgets/common/toss_section_header.dart';
 import '../../widgets/common/toss_number_input.dart';
 import '../../widgets/common/toss_toggle_button.dart';
+import '../../widgets/common/toss_scaffold.dart';
 
 // Page for cash ending functionality with tabs
 class CashEndingPage extends ConsumerStatefulWidget {
@@ -458,7 +459,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
   Widget build(BuildContext context) {
     // Show loading indicator while fetching initial data
     if (isLoadingCurrency || isLoadingStores) {
-      return Scaffold(
+      return TossScaffold(
         backgroundColor: TossColors.gray100,
         body: const Center(
           child: CircularProgressIndicator(color: TossColors.primary),
@@ -468,7 +469,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
     
     final hasVaultBankAccess = _hasVaultBankPermission();
     
-    return Scaffold(
+    return TossScaffold(
       backgroundColor: TossColors.gray100,
       appBar: TossAppBar(
         title: 'Cash Ending',

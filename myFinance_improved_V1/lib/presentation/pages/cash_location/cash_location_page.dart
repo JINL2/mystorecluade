@@ -11,6 +11,7 @@ import '../../widgets/toss/toss_tab_bar.dart';
 import '../../../data/services/cash_location_service.dart';
 import 'add_account_page.dart';
 import 'total_journal_page.dart';
+import '../../widgets/common/toss_scaffold.dart';
 
 class CashLocationPage extends ConsumerStatefulWidget {
   const CashLocationPage({super.key});
@@ -67,7 +68,7 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
     final storeId = appState.storeChoosen;
     
     if (companyId.isEmpty || storeId.isEmpty) {
-      return Scaffold(
+      return TossScaffold(
         backgroundColor: const Color(0xFFF7F8FA),
         body: SafeArea(
           child: Column(
@@ -97,7 +98,7 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
       ),
     ));
     
-    return Scaffold(
+    return TossScaffold(
       backgroundColor: const Color(0xFFF7F8FA),
       body: SafeArea(
         child: Column(

@@ -32,7 +32,7 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return TossScaffold(
       backgroundColor: TossColors.background,
       resizeToAvoidBottomInset: true, // Ensure keyboard handling
       appBar: AppBar(

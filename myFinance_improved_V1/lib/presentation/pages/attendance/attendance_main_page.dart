@@ -9,6 +9,7 @@ import '../../providers/attendance_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/app_state_provider.dart';
 import 'qr_scanner_page.dart';
+import '../../widgets/common/toss_scaffold.dart';
 
 class AttendanceMainPage extends StatefulWidget {
   const AttendanceMainPage({super.key});
@@ -39,7 +40,7 @@ class _AttendanceMainPageState extends State<AttendanceMainPage> with SingleTick
   
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return TossScaffold(
       backgroundColor: TossColors.background,
       body: SafeArea(
         child: Column(

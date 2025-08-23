@@ -7,6 +7,7 @@ import '../../../core/themes/toss_spacing.dart';
 import '../../../core/notifications/models/notification_db_model.dart';
 import '../../../core/notifications/services/notification_service.dart';
 import '../../providers/notification_provider.dart';
+import '../../widgets/common/toss_scaffold.dart';
 
 /// Debug page for testing and monitoring the notification system
 class ComponentTestPage extends ConsumerStatefulWidget {
@@ -66,7 +67,7 @@ class _ComponentTestPageState extends ConsumerState<ComponentTestPage> {
     final notificationState = ref.watch(notificationProvider);
     final notificationNotifier = ref.read(notificationProvider.notifier);
     
-    return Scaffold(
+    return TossScaffold(
       backgroundColor: TossColors.background,
       appBar: AppBar(
         title: const Text('🔔 Notification Test'),

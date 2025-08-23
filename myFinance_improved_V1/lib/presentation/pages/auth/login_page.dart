@@ -8,6 +8,7 @@ import '../../../core/themes/toss_animations.dart';
 import '../../widgets/toss/toss_primary_button.dart';
 import '../../widgets/toss/toss_text_field.dart';
 import '../../widgets/auth/storebase_auth_header.dart';
+import '../../widgets/common/toss_scaffold.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/enhanced_auth_provider.dart';
 import '../../providers/app_state_provider.dart';
@@ -156,7 +157,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return TossScaffold(
       backgroundColor: TossColors.background,
       resizeToAvoidBottomInset: true, // Ensure keyboard handling
       body: SafeArea(

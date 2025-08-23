@@ -9,6 +9,7 @@ import '../../../core/themes/toss_shadows.dart';
 import '../../../core/themes/toss_colors.dart';
 import '../../providers/app_state_provider.dart';
 import '../../../data/services/cash_location_service.dart';
+import '../../widgets/common/toss_scaffold.dart';
 
 class AccountSettingsPage extends ConsumerStatefulWidget {
   final String accountName;
@@ -114,7 +115,7 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage> {
   
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return TossScaffold(
       backgroundColor: const Color(0xFFF7F8FA),
       body: SafeArea(
         child: Column(
@@ -780,10 +781,6 @@ class _SimpleNameEditSheet extends StatelessWidget {
     final controller = TextEditingController(text: initialName);
     final focusNode = FocusNode();
     
-    // Auto-focus the text field
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      focusNode.requestFocus();
-    });
     
     return Container(
       decoration: const BoxDecoration(
@@ -833,7 +830,6 @@ class _SimpleNameEditSheet extends StatelessWidget {
                     TextField(
                       controller: controller,
                       focusNode: focusNode,
-                      autofocus: true,
                       keyboardType: TextInputType.text,
                       textInputAction: TextInputAction.done,
                       onSubmitted: (_) => onSave(controller.text),
@@ -934,10 +930,6 @@ class _SimpleNoteEditSheet extends StatelessWidget {
     final controller = TextEditingController(text: initialNote);
     final focusNode = FocusNode();
     
-    // Auto-focus the text field
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      focusNode.requestFocus();
-    });
     
     return Container(
       decoration: const BoxDecoration(
@@ -987,7 +979,6 @@ class _SimpleNoteEditSheet extends StatelessWidget {
                     TextField(
                       controller: controller,
                       focusNode: focusNode,
-                      autofocus: true,
                       keyboardType: TextInputType.multiline,
                       textInputAction: TextInputAction.newline,
                       maxLines: 4,

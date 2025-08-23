@@ -49,90 +49,74 @@ class _ModernDrawerState extends ConsumerState<ModernDrawer> {
     
     final selectedCompany = ref.read(appStateProvider.notifier).selectedCompany;
 
-    return Column(
-      children: [
-        // Handle bar
-        Container(
-          width: 40,
-          height: 4,
-          margin: const EdgeInsets.only(top: 8, bottom: 16),
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.outline.withOpacity(0.3),
-            borderRadius: BorderRadius.circular(2),
-          ),
+    return Drawer(
+      backgroundColor: TossColors.gray50,
+      width: MediaQuery.of(context).size.width * 0.85, // 85% of screen width
+      child: SafeArea(
+        child: Column(
+          children: [
+            // Header
+            _buildHeader(context, userData),
+            
+            // Companies Section
+            Expanded(
+              child: _buildCompaniesSection(context, ref, userData, selectedCompany),
+            ),
+          ],
         ),
-        
-        // Header
-        _buildHeader(context, userData),
-        
-        // Companies Section
-        Expanded(
-          child: _buildCompaniesSection(context, ref, userData, selectedCompany),
-        ),
-      ],
+      ),
     );
   }
 
   Widget _buildHeader(BuildContext context, dynamic userData) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+      padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
+        color: TossColors.white,  // White header for contrast against gray background
         border: Border(
           bottom: BorderSide(color: Theme.of(context).colorScheme.outline.withOpacity(0.2), width: 1),
         ),
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Profile Image
-          CircleAvatar(
-            radius: 24,
-            backgroundImage: (userData['profile_image'] ?? '').isNotEmpty
-                ? NetworkImage(userData['profile_image'])
-                : null,
-            backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.2),
-            child: (userData['profile_image'] ?? '').isEmpty
-                ? Text(
-                    (userData['user_first_name'] ?? '').isNotEmpty ? userData['user_first_name'][0] : 'U',
-                    style: TossTextStyles.h3.copyWith(
-                      color: Theme.of(context).colorScheme.primary,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  )
-                : null,
+          // Profile Section
+          Row(
+            children: [
+              // Profile Image
+              CircleAvatar(
+                radius: 32,
+                backgroundImage: (userData['profile_image'] ?? '').isNotEmpty
+                    ? NetworkImage(userData['profile_image'])
+                    : null,
+                backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.2),
+                child: (userData['profile_image'] ?? '').isEmpty
+                    ? Text(
+                        (userData['user_first_name'] ?? '').isNotEmpty ? userData['user_first_name'][0] : 'U',
+                        style: TossTextStyles.h2.copyWith(
+                          color: Theme.of(context).colorScheme.primary,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      )
+                    : null,
+              ),
+            ],
           ),
-          const SizedBox(width: 16),
-          
+          const SizedBox(height: 16),
           // User Info
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '${userData['user_first_name'] ?? ''} ${userData['user_last_name'] ?? ''}',
-                  style: TossTextStyles.body.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: Theme.of(context).colorScheme.onSurface,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  '${userData['company_count'] ?? 0} companies',
-                  style: TossTextStyles.caption.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    fontSize: 12,
-                  ),
-                ),
-              ],
+          Text(
+            '${userData['user_first_name'] ?? ''} ${userData['user_last_name'] ?? ''}',
+            style: TossTextStyles.h3.copyWith(
+              fontWeight: FontWeight.w700,
+              color: Theme.of(context).colorScheme.onSurface,
             ),
           ),
-          
-          // Close Button
-          IconButton(
-            onPressed: () => Navigator.of(context).pop(),
-            icon: Icon(
-              Icons.close,
+          const SizedBox(height: 4),
+          Text(
+            '${userData['company_count'] ?? 0} companies',
+            style: TossTextStyles.caption.copyWith(
               color: Theme.of(context).colorScheme.onSurfaceVariant,
+              fontSize: 14,
             ),
           ),
         ],
@@ -223,7 +207,7 @@ class _ModernDrawerState extends ConsumerState<ModernDrawer> {
             TossSpacing.space4 + MediaQuery.of(context).padding.bottom,
           ),
           decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surface,
+            color: TossColors.white,  // White footer for consistency
             border: Border(
               top: BorderSide(
                 color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
@@ -253,7 +237,7 @@ class _ModernDrawerState extends ConsumerState<ModernDrawer> {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
+        color: TossColors.white,  // White cards for contrast against gray background
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: isSelected 
@@ -522,7 +506,7 @@ class _ModernDrawerState extends ConsumerState<ModernDrawer> {
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surface,
+              color: TossColors.white,  // White background for better contrast
               borderRadius: BorderRadius.circular(8),
               border: Border.all(
                 color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
@@ -941,7 +925,6 @@ class _ModernDrawerState extends ConsumerState<ModernDrawer> {
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
-                        autofocus: true,
                       ),
                       
                       const SizedBox(height: 24),
@@ -1076,8 +1059,7 @@ class _ModernDrawerState extends ConsumerState<ModernDrawer> {
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                               ),
-                              autofocus: true,
-                              onChanged: (value) {
+                                    onChanged: (value) {
                                 setState(() {}); // Trigger rebuild to update button state
                               },
                             ),
@@ -1270,8 +1252,7 @@ class _ModernDrawerState extends ConsumerState<ModernDrawer> {
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                               ),
-                              autofocus: true,
-                              onChanged: (value) {
+                                    onChanged: (value) {
                                 setState(() {}); // Trigger rebuild to update button state
                               },
                             ),

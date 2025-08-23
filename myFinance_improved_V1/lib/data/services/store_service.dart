@@ -56,7 +56,6 @@ class StoreService {
       // Return the store details including the auto-generated store_code
       return storeResponse;
     } catch (e) {
-      print('[StoreService] Error creating store: $e');
       return null;
     }
   }
@@ -73,7 +72,6 @@ class StoreService {
 
       return List<Map<String, dynamic>>.from(response);
     } catch (e) {
-      print('[StoreService] Error fetching stores: $e');
       return [];
     }
   }
@@ -111,7 +109,6 @@ class StoreService {
 
       return true;
     } catch (e) {
-      print('[StoreService] Error updating store: $e');
       return false;
     }
   }
@@ -129,7 +126,6 @@ class StoreService {
 
       return true;
     } catch (e) {
-      print('[StoreService] Error deleting store: $e');
       return false;
     }
   }
@@ -146,7 +142,6 @@ class StoreService {
 
       return response;
     } catch (e) {
-      print('[StoreService] Error fetching store: $e');
       return null;
     }
   }
@@ -167,7 +162,6 @@ class StoreService {
 
       return response != null;
     } catch (e) {
-      print('[StoreService] Error checking store access: $e');
       return false;
     }
   }

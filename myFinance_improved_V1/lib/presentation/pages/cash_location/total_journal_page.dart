@@ -6,6 +6,7 @@ import '../../../core/themes/toss_spacing.dart';
 import '../../../core/themes/toss_border_radius.dart';
 import '../../../core/themes/toss_shadows.dart';
 import '../../../core/themes/toss_colors.dart';
+import '../../widgets/common/toss_scaffold.dart';
 
 class TotalJournalPage extends ConsumerStatefulWidget {
   final String locationType; // 'cash', 'bank', 'vault'
@@ -139,7 +140,7 @@ class _TotalJournalPageState extends ConsumerState<TotalJournalPage> {
   
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return TossScaffold(
       backgroundColor: const Color(0xFFF7F8FA),
       body: SafeArea(
         child: Column(

@@ -9,6 +9,7 @@ import '../../../core/themes/toss_shadows.dart';
 import '../../../core/themes/toss_border_radius.dart';
 import '../../../core/constants/ui_constants.dart';
 import 'package:go_router/go_router.dart';
+import '../../widgets/common/toss_scaffold.dart';
 
 /// Enhanced MyPage with perfect Toss compliance
 /// This version includes all the refinements for 93% Toss compliance
@@ -84,7 +85,7 @@ class _MyPageEnhancedState extends ConsumerState<MyPageEnhanced>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return TossScaffold(
       backgroundColor: TossColors.gray100,
       body: RefreshIndicator(
         onRefresh: () async {
@@ -165,7 +166,7 @@ class _MyPageEnhancedState extends ConsumerState<MyPageEnhanced>
                       ? _scrollController.offset * 0.5
                       : 0.0;
                   return Transform.translate(
-                    offset: Offset(0, -offset.clamp(0, 50)),
+                    offset: Offset(0, -offset.clamp(0.0, 50.0)),
                     child: child,
                   );
                 },

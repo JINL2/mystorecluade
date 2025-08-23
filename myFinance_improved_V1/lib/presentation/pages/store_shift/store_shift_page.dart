@@ -21,6 +21,7 @@ import '../../widgets/toss/toss_selection_bottom_sheet.dart';
 import '../../widgets/common/toss_empty_view.dart';
 import '../../../core/constants/icon_mapper.dart';
 import '../../../core/constants/ui_constants.dart';
+import '../../widgets/common/toss_scaffold.dart';
 
 class StoreShiftPage extends ConsumerStatefulWidget {
   const StoreShiftPage({super.key});
@@ -67,8 +68,8 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
   Widget build(BuildContext context) {
     final userCompaniesAsync = ref.watch(userCompaniesProvider);
 
-    return Scaffold(
-      key: _scaffoldKey,
+    return TossScaffold(
+      scaffoldKey: _scaffoldKey,
       backgroundColor: TossColors.gray100,
       appBar: TossAppBar(
         title: 'Store Settings',

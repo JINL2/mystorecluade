@@ -9,6 +9,7 @@ import 'widgets/transaction_line_card.dart';
 import 'widgets/add_transaction_dialog.dart';
 import '../../providers/app_state_provider.dart';
 import '../../widgets/common/toss_app_bar.dart';
+import '../../widgets/common/toss_scaffold.dart';
 import '../../../core/themes/toss_colors.dart';
 import '../../../core/themes/toss_text_styles.dart';
 import '../../../core/themes/toss_spacing.dart';
@@ -99,9 +100,15 @@ class _JournalInputPageState extends ConsumerState<JournalInputPage>
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => AddTransactionDialog(
-        initialIsDebit: defaultIsDebit,
-        suggestedAmount: suggestedAmount,
+      useRootNavigator: true,
+      builder: (context) => Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+        ),
+        child: AddTransactionDialog(
+          initialIsDebit: defaultIsDebit,
+          suggestedAmount: suggestedAmount,
+        ),
       ),
     );
     
@@ -118,8 +125,14 @@ class _JournalInputPageState extends ConsumerState<JournalInputPage>
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => AddTransactionDialog(
-        existingLine: existingLine,
+      useRootNavigator: true,
+      builder: (context) => Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+        ),
+        child: AddTransactionDialog(
+          existingLine: existingLine,
+        ),
       ),
     );
     
@@ -245,8 +258,9 @@ class _JournalInputPageState extends ConsumerState<JournalInputPage>
     final selectedCompany = ref.watch(selectedCompanyProvider);
     final selectedStore = ref.watch(selectedStoreProvider);
     
-    return Scaffold(
+    return TossScaffold(
       backgroundColor: TossColors.gray50,
+      resizeToAvoidBottomInset: false,
       appBar: TossAppBar(
         title: 'Journal Entry',
         leading: IconButton(
@@ -258,179 +272,202 @@ class _JournalInputPageState extends ConsumerState<JournalInputPage>
         opacity: _fadeAnimation,
         child: Column(
           children: [
-            // Date and Company Info
-            Container(
-              color: Colors.white,
-              padding: EdgeInsets.all(TossSpacing.space4),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Date Display
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
-                        children: [
-                          Icon(Icons.calendar_today, size: 16, color: TossColors.gray500),
-                          const SizedBox(width: 8),
-                          Text(
-                            DateFormat('yyyy-MM-dd').format(journalEntry.entryDate),
-                            style: TossTextStyles.bodySmall.copyWith(
-                              color: TossColors.gray700,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                  // Company and Store Info
-                  if (appState.companyChoosen.isNotEmpty) ...[
-                    SizedBox(height: TossSpacing.space2),
-                    Row(
-                      children: [
-                        Icon(Icons.business, size: 16, color: TossColors.gray500),
-                        SizedBox(width: 8),
-                        Text(
-                          selectedCompany?['company_name'] ?? 'Company',
-                          style: TossTextStyles.bodySmall.copyWith(
-                            color: TossColors.gray700,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        if (appState.storeChoosen.isNotEmpty) ...[
-                          Text(' • ', style: TextStyle(color: TossColors.gray400)),
-                          Text(
-                            selectedStore?['store_name'] ?? 'Store',
-                            style: TossTextStyles.bodySmall.copyWith(
-                              color: TossColors.gray600,
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-                  ],
-                ],
-              ),
-            ),
-            
-            // Balance Summary Card
-            Container(
-              color: Colors.white,
-              margin: const EdgeInsets.only(top: 1),
-              padding: EdgeInsets.all(TossSpacing.space4),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: InkWell(
-                      onTap: () => _addTransactionLine(true),
-                      borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                      child: _buildBalanceItem(
-                        'Debits',
-                        journalEntry.totalDebits,
-                        journalEntry.debitCount,
-                        TossColors.primary,
-                        isClickable: true,
-                      ),
-                    ),
-                  ),
-                  Container(
-                        width: 1,
-                        height: 60,
-                        color: TossColors.gray200,
-                    margin: EdgeInsets.symmetric(horizontal: TossSpacing.space3),
-                  ),
-                  Expanded(
-                    child: InkWell(
-                      onTap: () => _addTransactionLine(false),
-                      borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                      child: _buildBalanceItem(
-                        'Credits',
-                        journalEntry.totalCredits,
-                        journalEntry.creditCount,
-                        TossColors.success,
-                        isClickable: true,
-                      ),
-                    ),
-                  ),
-                  Container(
-                        width: 1,
-                        height: 60,
-                        color: TossColors.gray200,
-                    margin: EdgeInsets.symmetric(horizontal: TossSpacing.space3),
-                  ),
-                  Expanded(
-                    child: _buildBalanceItem(
-                      'Difference',
-                      journalEntry.difference.abs(),
-                      null,
-                      _getDifferenceColor(journalEntry.difference),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            
-            // Description Field
-            Container(
-              color: Colors.white,
-              margin: EdgeInsets.only(top: 1),
-              padding: EdgeInsets.all(TossSpacing.space4),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Description (Optional)',
-                    style: TossTextStyles.body.copyWith(
-                      color: TossColors.gray700,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  SizedBox(height: TossSpacing.space2),
-                  TextField(
-                    controller: _descriptionController,
-                    maxLines: 2,
-                    style: TossTextStyles.body,
-                    decoration: InputDecoration(
-                      hintText: 'Enter journal description...',
-                      hintStyle: TossTextStyles.body.copyWith(
-                        color: TossColors.gray400,
-                      ),
-                      filled: true,
-                      fillColor: TossColors.gray50,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                        borderSide: BorderSide.none,
-                      ),
-                      contentPadding: EdgeInsets.all(TossSpacing.space3),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            
-            // Transaction Lines
             Expanded(
-              child: journalEntry.transactionLines.isEmpty
-                ? _buildEmptyState()
-                : ListView.builder(
-                    padding: EdgeInsets.all(TossSpacing.space4),
-                    itemCount: journalEntry.transactionLines.length,
-                    itemBuilder: (context, index) {
-                      final line = journalEntry.transactionLines[index];
-                      return TransactionLineCard(
-                        line: line,
-                        index: index,
-                        onEdit: () => _editTransactionLine(index),
-                        onDelete: () {
-                          journalEntry.removeTransactionLine(index);
-                        },
-                      );
-                    },
-                  ),
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    // Date and Company Info
+                    Container(
+                      color: Colors.white,
+                      padding: EdgeInsets.all(TossSpacing.space4),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Date Display
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Row(
+                                children: [
+                                  Icon(Icons.calendar_today, size: 16, color: TossColors.gray500),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    DateFormat('yyyy-MM-dd').format(journalEntry.entryDate),
+                                    style: TossTextStyles.bodySmall.copyWith(
+                                      color: TossColors.gray700,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                          // Company and Store Info
+                          if (appState.companyChoosen.isNotEmpty) ...[
+                            SizedBox(height: TossSpacing.space2),
+                            Row(
+                              children: [
+                                Icon(Icons.business, size: 16, color: TossColors.gray500),
+                                SizedBox(width: 8),
+                                Text(
+                                  selectedCompany?['company_name'] ?? 'Company',
+                                  style: TossTextStyles.bodySmall.copyWith(
+                                    color: TossColors.gray700,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                if (appState.storeChoosen.isNotEmpty) ...[
+                                  Text(' • ', style: TextStyle(color: TossColors.gray400)),
+                                  Text(
+                                    selectedStore?['store_name'] ?? 'Store',
+                                    style: TossTextStyles.bodySmall.copyWith(
+                                      color: TossColors.gray600,
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                    
+                    // Balance Summary Card
+                    Container(
+                      color: Colors.white,
+                      margin: const EdgeInsets.only(top: 1),
+                      padding: EdgeInsets.all(TossSpacing.space4),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: InkWell(
+                              onTap: () => _addTransactionLine(true),
+                              borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                              child: _buildBalanceItem(
+                                'Debits',
+                                journalEntry.totalDebits,
+                                journalEntry.debitCount,
+                                TossColors.primary,
+                                isClickable: true,
+                              ),
+                            ),
+                          ),
+                          Container(
+                                width: 1,
+                                height: 60,
+                                color: TossColors.gray200,
+                            margin: EdgeInsets.symmetric(horizontal: TossSpacing.space3),
+                          ),
+                          Expanded(
+                            child: InkWell(
+                              onTap: () => _addTransactionLine(false),
+                              borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                              child: _buildBalanceItem(
+                                'Credits',
+                                journalEntry.totalCredits,
+                                journalEntry.creditCount,
+                                TossColors.success,
+                                isClickable: true,
+                              ),
+                            ),
+                          ),
+                          Container(
+                                width: 1,
+                                height: 60,
+                                color: TossColors.gray200,
+                            margin: EdgeInsets.symmetric(horizontal: TossSpacing.space3),
+                          ),
+                          Expanded(
+                            child: _buildBalanceItem(
+                              'Difference',
+                              journalEntry.difference.abs(),
+                              null,
+                              _getDifferenceColor(journalEntry.difference),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    
+                    // Description Field
+                    Container(
+                      color: Colors.white,
+                      margin: EdgeInsets.only(top: 1),
+                      padding: EdgeInsets.all(TossSpacing.space4),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Description (Optional)',
+                            style: TossTextStyles.body.copyWith(
+                              color: TossColors.gray700,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          SizedBox(height: TossSpacing.space2),
+                          TextField(
+                            controller: _descriptionController,
+                            maxLines: 2,
+                            style: TossTextStyles.body,
+                            textInputAction: TextInputAction.done,
+                            onSubmitted: (_) {
+                              // Dismiss keyboard when done is pressed
+                              FocusScope.of(context).unfocus();
+                            },
+                            decoration: InputDecoration(
+                              hintText: 'Enter journal description...',
+                              hintStyle: TossTextStyles.body.copyWith(
+                                color: TossColors.gray400,
+                              ),
+                              filled: true,
+                              fillColor: TossColors.gray50,
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                                borderSide: BorderSide.none,
+                              ),
+                              contentPadding: EdgeInsets.all(TossSpacing.space3),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    
+                    // Transaction Lines
+                    Container(
+                      color: Colors.transparent,
+                      constraints: BoxConstraints(
+                        minHeight: 200,
+                        maxHeight: MediaQuery.of(context).size.height * 0.4,
+                      ),
+                      child: journalEntry.transactionLines.isEmpty
+                        ? _buildEmptyState()
+                        : ListView.builder(
+                            shrinkWrap: true,
+                            physics: NeverScrollableScrollPhysics(),
+                            padding: EdgeInsets.all(TossSpacing.space4),
+                            itemCount: journalEntry.transactionLines.length,
+                            itemBuilder: (context, index) {
+                              final line = journalEntry.transactionLines[index];
+                              return TransactionLineCard(
+                                line: line,
+                                index: index,
+                                onEdit: () => _editTransactionLine(index),
+                                onDelete: () {
+                                  journalEntry.removeTransactionLine(index);
+                                },
+                              );
+                            },
+                          ),
+                    ),
+                    
+                    // Add some padding at the bottom for keyboard
+                    SizedBox(height: MediaQuery.of(context).viewInsets.bottom),
+                  ],
+                ),
+              ),
             ),
             
-            // Bottom Actions
+            // Bottom Actions - Keep this outside the scroll view
             Container(
               color: Colors.white,
               padding: EdgeInsets.all(TossSpacing.space4),
@@ -505,25 +542,12 @@ class _JournalInputPageState extends ConsumerState<JournalInputPage>
       padding: EdgeInsets.symmetric(vertical: 8),
       child: Column(
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                label,
-                style: TossTextStyles.caption.copyWith(
-                  color: TossColors.gray600,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              if (isClickable) ...[
-                SizedBox(width: 4),
-                Icon(
-                  Icons.add_circle_outline,
-                  size: 14,
-                  color: TossColors.gray500,
-                ),
-              ],
-            ],
+          Text(
+            label,
+            style: TossTextStyles.caption.copyWith(
+              color: TossColors.gray600,
+              fontWeight: FontWeight.w500,
+            ),
           ),
           SizedBox(height: 4),
           Text(

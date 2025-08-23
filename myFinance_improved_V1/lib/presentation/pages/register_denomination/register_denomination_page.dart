@@ -23,6 +23,7 @@ class RegisterDenominationPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Auto-dispose providers will clear state automatically when page is not watched
     final companyCurrenciesAsync = ref.watch(searchFilteredCurrenciesProvider);
     final searchQuery = ref.watch(currencySearchQueryProvider);
     
@@ -41,16 +42,20 @@ class RegisterDenominationPage extends ConsumerWidget {
           child: CustomScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
             slivers: [
-            // Search bar
+            // Search bar with managed controller
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.all(TossSpacing.space4),
-                child: TossSearchField(
-                  onChanged: (query) => ref.read(currencySearchQueryProvider.notifier).state = query,
-                  hintText: 'Search currencies...',
-                  prefixIcon: Icons.search,
-                  onClear: () => ref.read(currencySearchQueryProvider.notifier).state = '',
-                ),
+                child: Consumer(builder: (context, ref, child) {
+                  final searchController = ref.watch(currencySearchControllerProvider);
+                  return TossSearchField(
+                    controller: searchController,
+                    onChanged: (query) => ref.read(currencySearchQueryProvider.notifier).state = query,
+                    hintText: 'Search currencies...',
+                    prefixIcon: Icons.search,
+                    onClear: () => ref.read(currencySearchQueryProvider.notifier).state = '',
+                  );
+                }),
               ),
             ),
             
@@ -190,6 +195,7 @@ class RegisterDenominationPage extends ConsumerWidget {
     
     try {
       // Force refresh of the main provider
+      // ignore: unused_result
       ref.refresh(searchFilteredCurrenciesProvider);
       
       // Wait a bit for the refresh to propagate

@@ -26,10 +26,8 @@ class EnhancedAuthService {
       // Record the login event for session management
       await ref.read(sessionManagerProvider.notifier).recordLogin();
       
-      print('EnhancedAuth: Sign-in successful with session tracking');
       
     } catch (e) {
-      print('EnhancedAuth: Sign-in failed: $e');
       rethrow;
     }
   }
@@ -53,10 +51,8 @@ class EnhancedAuthService {
       // Record the signup event (treated as login for session management)
       await ref.read(sessionManagerProvider.notifier).recordLogin();
       
-      print('EnhancedAuth: Sign-up successful with session tracking');
       
     } catch (e) {
-      print('EnhancedAuth: Sign-up failed: $e');
       rethrow;
     }
   }
@@ -64,29 +60,22 @@ class EnhancedAuthService {
   /// Enhanced sign-out with COMPLETE data clearing
   Future<void> signOut() async {
     try {
-      print('EnhancedAuth: Starting complete sign-out process...');
       
       // 1. Clear session state first
       await ref.read(sessionManagerProvider.notifier).clearSession();
-      print('EnhancedAuth: Session state cleared');
       
       // 2. Clear ALL app state data (user, companies, features, selections)
       await ref.read(appStateProvider.notifier).clearData();
-      print('EnhancedAuth: App state data cleared');
       
       // 3. Invalidate all cached providers to ensure no stale data remains
       ref.invalidate(userCompaniesProvider);
       ref.invalidate(categoriesWithFeaturesProvider);
-      print('EnhancedAuth: Cached providers invalidated');
       
       // 4. Sign out from Supabase
       await ref.read(authStateProvider.notifier).signOut();
-      print('EnhancedAuth: Supabase sign-out completed');
       
-      print('EnhancedAuth: Sign-out successful - ALL user data cleared');
       
     } catch (e) {
-      print('EnhancedAuth: Sign-out failed: $e');
       rethrow;
     }
   }
@@ -108,10 +97,8 @@ class EnhancedAuthService {
       ref.invalidate(userCompaniesProvider);
       ref.invalidate(categoriesWithFeaturesProvider);
       
-      print('EnhancedAuth: Data refresh initiated');
       
     } catch (e) {
-      print('EnhancedAuth: Data refresh failed: $e');
       rethrow;
     }
   }

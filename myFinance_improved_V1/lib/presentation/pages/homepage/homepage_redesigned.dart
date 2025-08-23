@@ -19,6 +19,7 @@ import 'models/homepage_models.dart';
 import 'widgets/modern_drawer.dart';
 import '../notifications/notifications_page.dart';
 import '../../../data/services/click_tracking_service.dart';
+import '../../widgets/common/toss_scaffold.dart';
 
 class HomePageRedesigned extends ConsumerStatefulWidget {
   const HomePageRedesigned({super.key});
@@ -60,9 +61,13 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
     final selectedCompany = ref.watch(selectedCompanyProvider);
     final selectedStore = ref.watch(selectedStoreProvider);
 
-    return Scaffold(
-      key: _scaffoldKey,
+    return TossScaffold(
+      scaffoldKey: _scaffoldKey,
       backgroundColor: TossColors.gray100, // Proper Toss background color
+      drawer: userCompaniesAsync.maybeWhen(
+        data: (userData) => ModernDrawer(userData: userData),
+        orElse: () => null,
+      ),
       body: Stack(
         children: [
           // Main Content
@@ -124,7 +129,7 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
       toolbarHeight: 64, // Slightly taller for better visual weight
       leading: IconButton(
         icon: Icon(Icons.menu, color: TossColors.textSecondary, size: 24),
-        onPressed: () => _showCompanyStoreBottomSheet(context, ref),
+        onPressed: () => _scaffoldKey.currentState?.openDrawer(),
         padding: EdgeInsets.all(TossSpacing.space3),
       ),
       actions: [
@@ -1463,49 +1468,7 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
     }
   }
 
-  void _showCompanyStoreBottomSheet(BuildContext context, WidgetRef ref) {
-    // No longer refresh automatically when showing drawer
-    final userCompaniesAsync = ref.read(userCompaniesProvider);
-    
-    userCompaniesAsync.when(
-      data: (userData) {
-        showModalBottomSheet(
-          context: context,
-          isScrollControlled: true,
-          backgroundColor: TossColors.transparent,
-          builder: (context) => Container(
-            height: MediaQuery.of(context).size.height * 0.85,
-            decoration: BoxDecoration(
-              color: TossColors.surface,
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(20),
-                topRight: Radius.circular(20),
-              ),
-            ),
-            child: ModernDrawer(userData: userData),
-          ),
-        );
-      },
-      loading: () {
-        // Show loading indicator if data is not available
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('Loading user data...'),
-            backgroundColor: TossColors.primary,
-          ),
-        );
-      },
-      error: (error, _) {
-        // Show error message
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error loading data: $error'),
-            backgroundColor: TossColors.error,
-          ),
-        );
-      },
-    );
-  }
+  // Removed - no longer needed since drawer is integrated in scaffold
 }
 
 class _PinnedHelloDelegate extends SliverPersistentHeaderDelegate {

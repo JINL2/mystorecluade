@@ -6,6 +6,7 @@ import '../../../core/themes/toss_spacing.dart';
 import '../../../core/themes/toss_border_radius.dart';
 import '../../../core/themes/toss_shadows.dart';
 import 'account_settings_page.dart';
+import '../../widgets/common/toss_scaffold.dart';
 
 class AccountDetailPage extends ConsumerStatefulWidget {
   final String? locationId;
@@ -135,7 +136,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
   
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return TossScaffold(
       backgroundColor: const Color(0xFFF7F8FA),
       body: SafeArea(
         child: Column(

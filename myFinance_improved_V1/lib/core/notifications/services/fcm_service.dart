@@ -226,14 +226,12 @@ class FcmService {
   Future<void> _updateTokenInBackend(String token) async {
     try {
       // Token refresh detected
-      print('🔄 FCM Token refreshed, updating in Supabase...');
       
       // Import required dependencies
       final supabase = Supabase.instance.client;
       final userId = supabase.auth.currentUser?.id;
       
       if (userId == null) {
-        print('❌ Cannot update token: User not authenticated');
         return;
       }
       
@@ -249,13 +247,10 @@ class FcmService {
       );
       
       if (result != null) {
-        print('✅ FCM token updated in Supabase');
       } else {
-        print('❌ Failed to update FCM token in Supabase');
       }
     } catch (e) {
       // Failed to update token in backend
-      print('❌ Error updating token in backend: $e');
     }
   }
   

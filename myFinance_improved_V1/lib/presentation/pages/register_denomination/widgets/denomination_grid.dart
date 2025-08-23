@@ -282,7 +282,7 @@ class DenominationItem extends StatelessWidget {
             ),
             boxShadow: [
               BoxShadow(
-                color: TossColors.black.withOpacity(0.04),
+                color: TossColors.black.withValues(alpha: 0.04),
                 blurRadius: 6,
                 offset: const Offset(0, 2),
               ),

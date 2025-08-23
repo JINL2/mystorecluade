@@ -12,6 +12,7 @@ import '../../../data/services/store_service.dart';
 import '../../providers/app_state_provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/constants/auth_constants.dart';
+import '../../widgets/common/toss_scaffold.dart';
 
 class CreateStorePage extends ConsumerStatefulWidget {
   final String companyId;
@@ -176,7 +177,7 @@ class _CreateStorePageState extends ConsumerState<CreateStorePage>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return TossScaffold(
       backgroundColor: TossColors.background,
       resizeToAvoidBottomInset: true, // Ensure keyboard handling
       body: SafeArea(

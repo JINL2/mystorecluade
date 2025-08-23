@@ -131,6 +131,11 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
   final _amountController = TextEditingController();
   final _descriptionController = TextEditingController();
   
+  // Focus nodes for keyboard navigation
+  final _amountFocusNode = FocusNode();
+  final _descriptionFocusNode = FocusNode();
+  final _interestRateFocusNode = FocusNode();
+  
   // Account mapping
   Map<String, dynamic>? _accountMapping;
   String? _mappingError;
@@ -204,6 +209,9 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
     _fixedAssetNameController.dispose();
     _salvageValueController.dispose();
     _usefulLifeController.dispose();
+    _amountFocusNode.dispose();
+    _descriptionFocusNode.dispose();
+    _interestRateFocusNode.dispose();
     super.dispose();
   }
   
@@ -473,7 +481,6 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
                         SizedBox(height: 12),
                         // Search Field
                         TextField(
-                          autofocus: true,
                           onChanged: (value) {
                             setDialogState(() {
                               searchQuery = value;
@@ -597,7 +604,9 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
     final cashLocationsAsync = ref.watch(journalCashLocationsProvider);
     
     return Container(
-      height: MediaQuery.of(context).size.height * 0.85,
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.of(context).viewInsets.bottom,
+      ),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.only(
@@ -605,7 +614,11 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
           topRight: Radius.circular(TossBorderRadius.xl),
         ),
       ),
-      child: Column(
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * 0.9,
+        ),
+        child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           // Drag Handle
@@ -917,16 +930,6 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
                             if (value == null) return;
                             
                             final counterparty = counterparties.firstWhere((c) => c['counterparty_id'] == value);
-                            print('=============================================');
-                            print('COUNTERPARTY SELECTION DEBUG');
-                            print('Selected counterparty: ${counterparty['name']}');
-                            print('Counterparty ID: ${counterparty['counterparty_id']}');
-                            print('Is internal (raw): ${counterparty['is_internal']}');
-                            print('Is internal type: ${counterparty['is_internal'].runtimeType}');
-                            print('Linked company ID (raw): ${counterparty['linked_company_id']}');
-                            print('Linked company ID type: ${counterparty['linked_company_id'].runtimeType}');
-                            print('Full counterparty data: $counterparty');
-                            print('=============================================');
                             
                             setState(() {
                               _selectedCounterpartyId = value;
@@ -1195,6 +1198,11 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
                         controller: _interestRateController,
                         hint: 'Enter interest rate',
                         keyboardType: TextInputType.numberWithOptions(decimal: true),
+                        focusNode: _interestRateFocusNode,
+                        textInputAction: TextInputAction.next,
+                        onSubmitted: (_) {
+                          _amountFocusNode.requestFocus();
+                        },
                       ),
                       
                       SizedBox(height: 16),
@@ -1250,6 +1258,11 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
                       inputFormatters: [
                         ThousandsSeparatorInputFormatter(),
                       ],
+                      focusNode: _amountFocusNode,
+                      textInputAction: TextInputAction.next,
+                      onSubmitted: (_) {
+                        _descriptionFocusNode.requestFocus();
+                      },
                     ),
                     
                     // Description
@@ -1260,6 +1273,11 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
                       controller: _descriptionController,
                       hint: 'Enter description',
                       maxLines: 2,
+                      focusNode: _descriptionFocusNode,
+                      textInputAction: TextInputAction.done,
+                      onSubmitted: (_) {
+                        FocusScope.of(context).unfocus();
+                      },
                     ),
                   ],
                 ),
@@ -1317,7 +1335,8 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
             ),
           ],
         ),
-      );
+      ),
+    );
   }
   
   Widget _buildSectionTitle(String title) {
@@ -1398,6 +1417,9 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
     TextInputType? keyboardType,
     List<TextInputFormatter>? inputFormatters,
     int maxLines = 1,
+    FocusNode? focusNode,
+    TextInputAction? textInputAction,
+    ValueChanged<String>? onSubmitted,
   }) {
     return TextField(
       controller: controller,
@@ -1405,6 +1427,9 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
       inputFormatters: inputFormatters,
       maxLines: maxLines,
       style: TossTextStyles.body,
+      focusNode: focusNode,
+      textInputAction: textInputAction,
+      onSubmitted: onSubmitted,
       decoration: InputDecoration(
         hintText: hint,
         hintStyle: TossTextStyles.body.copyWith(

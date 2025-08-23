@@ -214,7 +214,6 @@ class _RoleTagsWidgetState extends State<RoleTagsWidget> {
       child: TextField(
         controller: _tagController,
         focusNode: _focusNode,
-        autofocus: true,
         style: TossTextStyles.caption.copyWith(
           color: TossColors.gray700,
         ),

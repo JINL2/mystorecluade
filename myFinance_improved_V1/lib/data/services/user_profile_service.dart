@@ -6,12 +6,10 @@ class UserProfileService {
   
   void _log(String message) {
     developer.log(message, name: 'UserProfileService');
-    print('[UserProfileService] $message'); // Also print to console
   }
   
   void _logError(String message, dynamic error, [StackTrace? stackTrace]) {
     developer.log(message, name: 'UserProfileService', error: error, stackTrace: stackTrace);
-    print('[UserProfileService ERROR] $message: $error');
   }
 
   /// Fix user profile by populating first_name and last_name with comprehensive debugging
@@ -115,7 +113,6 @@ class UserProfileService {
       
       return profile;
     } catch (e) {
-      print('Error getting user profile: $e');
       return null;
     }
   }
@@ -230,7 +227,6 @@ class UserProfileService {
       
       return fixedCount;
     } catch (e) {
-      print('Error fixing all users: $e');
       return 0;
     }
   }

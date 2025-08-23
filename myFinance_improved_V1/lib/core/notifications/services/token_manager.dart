@@ -27,7 +27,6 @@ class TokenManager {
   
   /// Initialize token manager and start automatic management
   Future<void> initialize() async {
-    debugPrint('🔄 TokenManager: Initializing...');
     
     // Load last saved token info
     await _loadLastTokenInfo();
@@ -52,9 +51,7 @@ class TokenManager {
         _lastTokenUpdate = DateTime.fromMillisecondsSinceEpoch(lastUpdateMillis);
       }
       
-      debugPrint('📱 Last token update: $_lastTokenUpdate');
     } catch (e) {
-      debugPrint('❌ Error loading token info: $e');
     }
   }
   
@@ -67,7 +64,6 @@ class TokenManager {
       _lastSavedToken = token;
       _lastTokenUpdate = DateTime.now();
     } catch (e) {
-      debugPrint('❌ Error saving token info: $e');
     }
   }
   
@@ -78,7 +74,6 @@ class TokenManager {
       final userId = _supabase.auth.currentUser?.id;
       
       if (currentToken == null || userId == null) {
-        debugPrint('⚠️ TokenManager: No token or user not authenticated');
         return;
       }
       
@@ -88,13 +83,10 @@ class TokenManager {
           _shouldRefreshByTime();
       
       if (needsUpdate) {
-        debugPrint('🔄 TokenManager: Updating token...');
         await _updateTokenInSupabase(currentToken, userId);
       } else {
-        debugPrint('✅ TokenManager: Token is up to date');
       }
     } catch (e) {
-      debugPrint('❌ TokenManager: Error checking token: $e');
     }
   }
   
@@ -129,13 +121,10 @@ class TokenManager {
       );
       
       if (result != null) {
-        debugPrint('✅ TokenManager: Token updated in Supabase');
         await _saveTokenInfo(token);
       } else {
-        debugPrint('❌ TokenManager: Failed to update token in Supabase');
       }
     } catch (e) {
-      debugPrint('❌ TokenManager: Error updating token: $e');
     }
   }
   
@@ -143,7 +132,6 @@ class TokenManager {
   void _startPeriodicRefresh() {
     _refreshTimer?.cancel();
     _refreshTimer = Timer.periodic(_tokenRefreshInterval, (_) {
-      debugPrint('⏰ TokenManager: Periodic refresh triggered');
       _checkAndUpdateToken();
     });
   }
@@ -152,7 +140,6 @@ class TokenManager {
   void _listenToAuthChanges() {
     _supabase.auth.onAuthStateChange.listen((data) {
       final event = data.event;
-      debugPrint('🔐 TokenManager: Auth event - $event');
       
       switch (event) {
         case AuthChangeEvent.signedIn:
@@ -180,9 +167,7 @@ class TokenManager {
       await prefs.remove(_lastTokenUpdateKey);
       _lastSavedToken = null;
       _lastTokenUpdate = null;
-      debugPrint('🧹 TokenManager: Token info cleared');
     } catch (e) {
-      debugPrint('❌ Error clearing token info: $e');
     }
   }
   
@@ -191,12 +176,10 @@ class TokenManager {
     switch (state) {
       case AppLifecycleState.resumed:
         // App came to foreground - check token
-        debugPrint('📱 TokenManager: App resumed - checking token');
         _checkAndUpdateToken();
         break;
       case AppLifecycleState.paused:
         // App went to background
-        debugPrint('📱 TokenManager: App paused');
         break;
       default:
         break;
@@ -205,7 +188,6 @@ class TokenManager {
   
   /// Force token refresh (for manual refresh)
   Future<void> forceRefresh() async {
-    debugPrint('🔄 TokenManager: Force refresh requested');
     
     try {
       // Delete old token
@@ -220,7 +202,6 @@ class TokenManager {
       // Update token
       await _checkAndUpdateToken(force: true);
     } catch (e) {
-      debugPrint('❌ TokenManager: Force refresh failed: $e');
     }
   }
   

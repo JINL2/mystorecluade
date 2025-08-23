@@ -33,19 +33,25 @@ class TossScaffold extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      key: scaffoldKey,
-      appBar: appBar,
-      body: body,
-      backgroundColor: backgroundColor ?? TossColors.gray100,
-      resizeToAvoidBottomInset: resizeToAvoidBottomInset,
-      floatingActionButton: floatingActionButton,
-      floatingActionButtonLocation: floatingActionButtonLocation,
-      bottomNavigationBar: bottomNavigationBar,
-      drawer: drawer,
-      endDrawer: endDrawer,
-      onDrawerChanged: onDrawerChanged,
-      onEndDrawerChanged: onEndDrawerChanged,
+    return GestureDetector(
+      onTap: () {
+        // Dismiss keyboard when tapping outside of text fields
+        FocusManager.instance.primaryFocus?.unfocus();
+      },
+      child: Scaffold(
+        key: scaffoldKey,
+        appBar: appBar,
+        body: body,
+        backgroundColor: backgroundColor ?? TossColors.gray100,
+        resizeToAvoidBottomInset: resizeToAvoidBottomInset,
+        floatingActionButton: floatingActionButton,
+        floatingActionButtonLocation: floatingActionButtonLocation,
+        bottomNavigationBar: bottomNavigationBar,
+        drawer: drawer,
+        endDrawer: endDrawer,
+        onDrawerChanged: onDrawerChanged,
+        onEndDrawerChanged: onEndDrawerChanged,
+      ),
     );
   }
 }

@@ -12,6 +12,7 @@ import 'providers/balance_sheet_providers.dart';
 import '../../providers/app_state_provider.dart';
 import 'widgets/balance_sheet_display.dart';
 import 'widgets/income_statement_display.dart';
+import '../../widgets/common/toss_scaffold.dart';
 
 class BalanceSheetPage extends ConsumerStatefulWidget {
   const BalanceSheetPage({super.key});
@@ -347,8 +348,8 @@ class _BalanceSheetPageState extends ConsumerState<BalanceSheetPage>
     final selectedCompany = ref.watch(balanceSheetSelectedCompanyProvider);
     final selectedStore = ref.watch(balanceSheetSelectedStoreProvider);
 
-    return Scaffold(
-      key: _scaffoldKey,
+    return TossScaffold(
+      scaffoldKey: _scaffoldKey,
       backgroundColor: TossColors.background,
       body: SafeArea(
         child: userCompaniesAsync.when(

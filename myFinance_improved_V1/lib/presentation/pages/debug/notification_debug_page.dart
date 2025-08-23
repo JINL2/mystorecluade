@@ -6,6 +6,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/notifications/services/notification_service.dart';
 import '../../../core/notifications/services/fcm_service.dart';
 import '../../../core/notifications/repositories/notification_repository.dart';
+import '../../widgets/common/toss_scaffold.dart';
 
 class NotificationDebugPage extends ConsumerStatefulWidget {
   const NotificationDebugPage({Key? key}) : super(key: key);
@@ -267,7 +268,7 @@ class _NotificationDebugPageState extends ConsumerState<NotificationDebugPage> {
   
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return TossScaffold(
       appBar: AppBar(
         title: const Text('Notification Debug'),
         actions: [

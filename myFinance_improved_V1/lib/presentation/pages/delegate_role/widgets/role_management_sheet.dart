@@ -48,15 +48,18 @@ class RoleManagementSheet extends ConsumerStatefulWidget {
       backgroundColor: Colors.transparent,
       barrierColor: Colors.black54, // Standard barrier color
       enableDrag: false, // Disable system drag handle to prevent double handler
-      builder: (context) => RoleManagementSheet(
-        roleId: roleId,
-        roleName: roleName,
-        description: description,
-        tags: tags,
-        permissions: permissions,
-        memberCount: memberCount,
-        canEdit: canEdit,
-        canDelegate: canDelegate,
+      builder: (context) => Padding(
+        padding: MediaQuery.of(context).viewInsets,
+        child: RoleManagementSheet(
+          roleId: roleId,
+          roleName: roleName,
+          description: description,
+          tags: tags,
+          permissions: permissions,
+          memberCount: memberCount,
+          canEdit: canEdit,
+          canDelegate: canDelegate,
+        ),
       ),
     );
   }
@@ -126,8 +129,14 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: MediaQuery.of(context).size.height * 0.9,
+    final screenHeight = MediaQuery.of(context).size.height;
+    
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 300),
+      constraints: BoxConstraints(
+        maxHeight: screenHeight * 0.9,
+        minHeight: screenHeight * 0.3,
+      ),
       decoration: BoxDecoration(
         color: TossColors.background,
         borderRadius: BorderRadius.vertical(
@@ -256,17 +265,19 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
   }
 
   Widget _buildDetailsTab() {
-    return Column(
-      children: [
-        // Header section with title and description
-        Container(
-          padding: EdgeInsets.fromLTRB(
-            TossSpacing.space5,
-            TossSpacing.space5,
-            TossSpacing.space5,
-            TossSpacing.space3,
-          ),
-          child: Column(
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      child: Column(
+        children: [
+          // Header section with title and description
+          Container(
+            padding: EdgeInsets.fromLTRB(
+              TossSpacing.space5,
+              TossSpacing.space5,
+              TossSpacing.space5,
+              TossSpacing.space3,
+            ),
+            child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
@@ -347,6 +358,7 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
         // Scrollable content
         Expanded(
           child: SingleChildScrollView(
+            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
             padding: EdgeInsets.fromLTRB(
               TossSpacing.space5,
               0,
@@ -369,6 +381,7 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
             controller: _roleNameController,
             enabled: widget.canEdit,
             style: TossTextStyles.body,
+            textInputAction: TextInputAction.next,
             decoration: InputDecoration(
               hintText: 'Enter role name',
               filled: true,
@@ -404,6 +417,7 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
             enabled: widget.canEdit,
             maxLines: 3,
             style: TossTextStyles.body,
+            textInputAction: TextInputAction.next,
             decoration: InputDecoration(
               hintText: 'Describe what this role does...',
               filled: true,
@@ -463,6 +477,7 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
           ),
         ),
       ],
+      ),
     );
   }
 
@@ -523,13 +538,16 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       useRootNavigator: true, // Use root navigator to show modal on top
-      builder: (context) => _TagSelectionBottomSheet(
-        selectedTags: List.from(_selectedTags),
-        onTagsSelected: (tags) {
-          setState(() {
-            _selectedTags = tags;
-          });
-        },
+      builder: (context) => Padding(
+        padding: MediaQuery.of(context).viewInsets,
+        child: _TagSelectionBottomSheet(
+          selectedTags: List.from(_selectedTags),
+          onTagsSelected: (tags) {
+            setState(() {
+              _selectedTags = tags;
+            });
+          },
+        ),
       ),
     );
   }
@@ -879,7 +897,7 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
                               color: allSelected
                                   ? TossColors.primary
                                   : someSelected
-                                      ? TossColors.primary.withOpacity(0.3)
+                                      ? TossColors.primary.withValues(alpha: 0.3)
                                       : TossColors.background,
                               border: Border.all(
                                 color: allSelected || someSelected
@@ -1158,7 +1176,6 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
               ],
             ),
           ),
-          // Remove button removed - role changes handled in Add Member flow
         ],
       ),
     );
@@ -1263,19 +1280,21 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
       backgroundColor: Colors.transparent,
       barrierColor: Colors.black54, // Standard dark barrier
       useRootNavigator: true, // Use root navigator to show modal on top
-      builder: (context) => _AddMemberBottomSheet(
-        roleId: widget.roleId,
-        roleName: widget.roleName,
-        onMemberAdded: () {
-          // Reactive state management: invalidate providers for immediate updates
-          ref.invalidate(companyUsersProvider); // Refresh user list with updated roles
-          setState(() {}); // Refresh the members list in this component
-        },
+      builder: (context) => Padding(
+        padding: MediaQuery.of(context).viewInsets,
+        child: _AddMemberBottomSheet(
+          roleId: widget.roleId,
+          roleName: widget.roleName,
+          onMemberAdded: () {
+            // Reactive state management: invalidate providers for immediate updates
+            ref.invalidate(companyUsersProvider); // Refresh user list with updated roles
+            setState(() {}); // Refresh the members list in this component
+          },
+        ),
       ),
     );
   }
 
-  // Remove member methods removed - role changes handled in Add Member flow
 
   Widget _buildUnderlineTab(String text, int index) {
     return Expanded(
@@ -1538,7 +1557,7 @@ class _AddMemberBottomSheetState extends ConsumerState<_AddMemberBottomSheet> {
                           padding: EdgeInsets.symmetric(vertical: TossSpacing.space3),
                           decoration: BoxDecoration(
                             color: isSelected 
-                                ? TossColors.primary.withOpacity(0.1)
+                                ? TossColors.primary.withValues(alpha: 0.1)
                                 : Colors.transparent,
                           ),
                           child: Row(
@@ -1548,7 +1567,7 @@ class _AddMemberBottomSheetState extends ConsumerState<_AddMemberBottomSheet> {
                                 height: 44,
                                 decoration: BoxDecoration(
                                   color: isOwner 
-                                      ? TossColors.primary.withOpacity(0.1)
+                                      ? TossColors.primary.withValues(alpha: 0.1)
                                       : isDisabled
                                           ? TossColors.gray100
                                           : TossColors.gray200,
@@ -1726,10 +1745,10 @@ class _AddMemberBottomSheetState extends ConsumerState<_AddMemberBottomSheet> {
           vertical: TossSpacing.space1,
         ),
         decoration: BoxDecoration(
-          color: TossColors.warning.withOpacity(0.1),
+          color: TossColors.warning.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(TossBorderRadius.xs),
           border: Border.all(
-            color: TossColors.warning.withOpacity(0.3),
+            color: TossColors.warning.withValues(alpha: 0.3),
             width: 1,
           ),
         ),

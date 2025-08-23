@@ -364,7 +364,7 @@ final denominationEditorProvider = StateNotifierProvider<DenominationEditorNotif
 class LocalDenominationListNotifier extends StateNotifier<Map<String, List<Denomination>>> {
   LocalDenominationListNotifier(this._ref) : super({});
   
-  final Ref _ref;
+  final Ref _ref; // ignore: unused_field
 
   // Initialize local state with remote data
   void initializeFromRemote(String currencyId, List<Denomination> denominations) {

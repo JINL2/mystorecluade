@@ -1,12 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../widgets/toss/toss_primary_button.dart';
-import '../../../widgets/toss/toss_secondary_button.dart';
 import '../../../../core/themes/toss_colors.dart';
 import '../../../../core/themes/toss_text_styles.dart';
-import '../../../../core/themes/toss_spacing.dart';
-import '../../../../core/themes/toss_border_radius.dart';
 import '../../../../core/themes/toss_animations.dart';
 import '../../../../domain/entities/currency.dart';
 import '../../../../domain/entities/denomination.dart';
@@ -131,14 +127,14 @@ class _AddDenominationBottomSheetState extends ConsumerState<AddDenominationBott
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(
+                        borderSide: const BorderSide(
                           color: TossColors.gray200,
                           width: 1,
                         ),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(
+                        borderSide: const BorderSide(
                           color: TossColors.primary,
                           width: 1.5,
                         ),

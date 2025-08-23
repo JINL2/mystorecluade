@@ -6,6 +6,7 @@ import 'providers/add_fix_asset_providers.dart';
 import '../../providers/app_state_provider.dart';
 import '../../../core/themes/toss_colors.dart';
 import '../../../core/themes/toss_text_styles.dart';
+import '../../widgets/common/toss_scaffold.dart';
 
 class AddFixAssetPage extends ConsumerStatefulWidget {
   const AddFixAssetPage({super.key});
@@ -72,7 +73,7 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
       selectedStoreId = stores.first['store_id'];
     }
 
-    return Scaffold(
+    return TossScaffold(
       backgroundColor: TossColors.background,
       appBar: AppBar(
         backgroundColor: TossColors.background,

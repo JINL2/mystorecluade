@@ -89,7 +89,7 @@ class _DelegateRolePageState extends ConsumerState<DelegateRolePage> with Widget
     }
 
     return TossScaffold(
-      key: _scaffoldKey,
+      scaffoldKey: _scaffoldKey,
       backgroundColor: TossColors.gray100,
       appBar: TossAppBar(
         title: 'Team Roles',
@@ -332,7 +332,7 @@ class _DelegateRolePageState extends ConsumerState<DelegateRolePage> with Widget
         width: 44,
         height: 44,
         decoration: BoxDecoration(
-          color: _getRoleColor(role['roleName']).withOpacity(0.1),
+          color: _getRoleColor(role['roleName']).withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(10),
         ),
         child: Icon(
@@ -400,45 +400,6 @@ class _DelegateRolePageState extends ConsumerState<DelegateRolePage> with Widget
     }
   }
 
-  Widget _buildTagsRow(List<dynamic> tags) {
-    final tagList = tags.take(3).toList(); // Show max 3 tags
-    final remaining = tags.length - 3;
-    
-    return Wrap(
-      spacing: TossSpacing.space1,
-      runSpacing: TossSpacing.space1,
-      children: [
-        ...tagList.map((tag) => Container(
-          padding: EdgeInsets.symmetric(
-            horizontal: TossSpacing.space2,
-            vertical: 2,
-          ),
-          decoration: BoxDecoration(
-            color: _getTagColorFromName(tag.toString()).withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(TossBorderRadius.xs),
-            border: Border.all(
-              color: _getTagColorFromName(tag.toString()).withValues(alpha: 0.3),
-              width: 1,
-            ),
-          ),
-          child: Text(
-            tag.toString(),
-            style: TossTextStyles.caption.copyWith(
-              color: _getTagColorFromName(tag.toString()),
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        )),
-        if (remaining > 0)
-          Text(
-            '+$remaining',
-            style: TossTextStyles.caption.copyWith(
-              color: TossColors.gray600,
-            ),
-          ),
-      ],
-    );
-  }
 
   Color _getTagColorFromName(String tag) {
     // Use the same color mapping as in Create Role modal
@@ -569,7 +530,10 @@ class _DelegateRolePageState extends ConsumerState<DelegateRolePage> with Widget
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => _CreateRoleBottomSheet(),
+      builder: (context) => Padding(
+        padding: MediaQuery.of(context).viewInsets,
+        child: _CreateRoleBottomSheet(),
+      ),
     );
   }
 }
@@ -623,10 +587,13 @@ class _CreateRoleBottomSheetState extends ConsumerState<_CreateRoleBottomSheet> 
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    final screenHeight = MediaQuery.of(context).size.height;
+    
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 300),
       constraints: BoxConstraints(
-        maxHeight: MediaQuery.of(context).size.height * 0.85,
-        minHeight: MediaQuery.of(context).size.height * 0.5,
+        maxHeight: screenHeight * 0.85,
+        minHeight: screenHeight * 0.3,
       ),
       decoration: BoxDecoration(
         color: TossColors.white,
@@ -634,10 +601,9 @@ class _CreateRoleBottomSheetState extends ConsumerState<_CreateRoleBottomSheet> 
           top: Radius.circular(TossBorderRadius.xxl),
         ),
       ),
-      child: IntrinsicHeight(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
             // Handle bar
             Container(
               margin: EdgeInsets.only(top: TossSpacing.space3),
@@ -700,13 +666,13 @@ class _CreateRoleBottomSheetState extends ConsumerState<_CreateRoleBottomSheet> 
                     Container(
                       width: 30,
                       height: 2,
-                      color: _currentStep >= 1 ? TossColors.primary.withOpacity(0.3) : TossColors.borderLight,
+                      color: _currentStep >= 1 ? TossColors.primary.withValues(alpha: 0.3) : TossColors.borderLight,
                     ),
                     _buildStepIndicator(1, _currentStep == 1),
                     Container(
                       width: 30,
                       height: 2,
-                      color: _currentStep >= 2 ? TossColors.primary.withOpacity(0.3) : TossColors.borderLight,
+                      color: _currentStep >= 2 ? TossColors.primary.withValues(alpha: 0.3) : TossColors.borderLight,
                     ),
                     _buildStepIndicator(2, _currentStep == 2),
                   ],
@@ -715,14 +681,9 @@ class _CreateRoleBottomSheetState extends ConsumerState<_CreateRoleBottomSheet> 
               SizedBox(height: TossSpacing.space3),
             ],
             
-            // Form content
-            Flexible(
-              child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  maxHeight: MediaQuery.of(context).size.height * 0.5,
-                ),
-                child: _buildCurrentStep(),
-              ),
+            // Form content - Expand to fill available space
+            Expanded(
+              child: _buildCurrentStep(),
             ),
             
             // Bottom action
@@ -744,8 +705,7 @@ class _CreateRoleBottomSheetState extends ConsumerState<_CreateRoleBottomSheet> 
             ),
           ],
         ),
-      ),
-    );
+      );
   }
 
   Widget _buildStepIndicator(int step, bool isActive) {
@@ -832,42 +792,48 @@ class _CreateRoleBottomSheetState extends ConsumerState<_CreateRoleBottomSheet> 
   }
 
   Widget _buildBasicInfoStep() {
-    return SingleChildScrollView(
-      padding: EdgeInsets.all(TossSpacing.space5),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Role name input
-          Text(
-            'Role Name',
-            style: TossTextStyles.h4.copyWith(
-              fontWeight: FontWeight.w700,
-              color: TossColors.gray900,
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      child: SingleChildScrollView(
+        padding: EdgeInsets.all(TossSpacing.space5),
+        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Role name input
+            Text(
+              'Role Name',
+              style: TossTextStyles.h4.copyWith(
+                fontWeight: FontWeight.w700,
+                color: TossColors.gray900,
+              ),
             ),
-          ),
-          SizedBox(height: TossSpacing.space3),
-          TossTextField(
-            controller: _roleNameController,
-            hintText: 'Enter role name',
-          ),
-          
-          SizedBox(height: TossSpacing.space6),
-          
-          // Description input
-          Text(
-            'Description',
-            style: TossTextStyles.h4.copyWith(
-              fontWeight: FontWeight.w700,
-              color: TossColors.gray900,
+            SizedBox(height: TossSpacing.space3),
+            TossTextField(
+              controller: _roleNameController,
+              hintText: 'Enter role name',
+              textInputAction: TextInputAction.next,
             ),
-          ),
-          SizedBox(height: TossSpacing.space3),
-          TossTextField(
-            controller: _descriptionController,
-            hintText: 'Describe what this role does',
-            maxLines: 4,
-          ),
-        ],
+            
+            SizedBox(height: TossSpacing.space6),
+            
+            // Description input
+            Text(
+              'Description',
+              style: TossTextStyles.h4.copyWith(
+                fontWeight: FontWeight.w700,
+                color: TossColors.gray900,
+              ),
+            ),
+            SizedBox(height: TossSpacing.space3),
+            TossTextField(
+              controller: _descriptionController,
+              hintText: 'Describe what this role does',
+              maxLines: 4,
+              textInputAction: TextInputAction.next,
+            ),
+          ],
+        ),
       ),
     );
   }

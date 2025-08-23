@@ -12,6 +12,7 @@ import '../../../data/services/company_service.dart';
 import '../../providers/app_state_provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/constants/auth_constants.dart';
+import '../../widgets/common/toss_scaffold.dart';
 
 class JoinBusinessPage extends ConsumerStatefulWidget {
   const JoinBusinessPage({super.key});
@@ -75,10 +76,6 @@ class _JoinBusinessPageState extends ConsumerState<JoinBusinessPage>
     ));
     
     _animationController.forward();
-    
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _codeFocusNode.requestFocus();
-    });
   }
   
   @override
@@ -92,7 +89,7 @@ class _JoinBusinessPageState extends ConsumerState<JoinBusinessPage>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return TossScaffold(
       backgroundColor: TossColors.background,
       resizeToAvoidBottomInset: true, // Ensure keyboard handling
       body: SafeArea(

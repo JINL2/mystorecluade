@@ -6,6 +6,7 @@ import '../../../core/themes/toss_spacing.dart';
 import '../../../core/notifications/models/notification_db_model.dart';
 import '../../../core/notifications/services/notification_service.dart';
 import '../../providers/notification_provider.dart';
+import '../../widgets/common/toss_scaffold.dart';
 
 /// Main notifications page for the app
 class NotificationsPage extends ConsumerStatefulWidget {
@@ -56,7 +57,7 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage> {
   
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return TossScaffold(
       backgroundColor: TossColors.background,
       appBar: AppBar(
         title: Row(

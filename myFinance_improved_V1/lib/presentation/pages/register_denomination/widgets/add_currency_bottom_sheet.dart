@@ -7,7 +7,6 @@ import '../../../widgets/toss/toss_checkbox.dart';
 import '../../../../core/themes/toss_colors.dart';
 import '../../../../core/themes/toss_text_styles.dart';
 import '../../../../core/themes/toss_spacing.dart';
-import '../../../../domain/entities/currency.dart';
 import '../providers/currency_providers.dart';
 
 // Note: availableCurrenciesToAddProvider is now defined in currency_providers.dart

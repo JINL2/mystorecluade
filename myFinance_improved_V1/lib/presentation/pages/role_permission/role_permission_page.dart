@@ -167,7 +167,7 @@ class _RolePermissionPageState extends ConsumerState<RolePermissionPage> {
     
     // Check if company is selected
     if (appState.companyChoosen.isEmpty) {
-      return Scaffold(
+      return TossScaffold(
         backgroundColor: TossColors.gray100,
         body: SafeArea(
           child: Column(

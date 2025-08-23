@@ -249,7 +249,6 @@ class CompanyService {
         }
       }
     } catch (e) {
-      print('Error joining company: $e');
       throw e;
     }
   }
@@ -296,7 +295,6 @@ class CompanyService {
         return null;
       }
     } catch (e) {
-      print('Error finding business by code: $e');
       return null;
     }
   }
@@ -317,7 +315,6 @@ class CompanyService {
         return null;
       }
     } catch (e) {
-      print('Error getting user business memberships: $e');
       return null;
     }
   }
