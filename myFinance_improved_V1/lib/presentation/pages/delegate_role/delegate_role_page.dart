@@ -9,10 +9,10 @@ import '../../widgets/common/toss_app_bar.dart';
 import '../../widgets/common/toss_loading_view.dart';
 import '../../widgets/common/toss_error_view.dart';
 import '../../widgets/common/toss_empty_view.dart';
-import '../../widgets/toss/toss_search_field.dart';
 import '../../widgets/toss/toss_primary_button.dart';
 import '../../widgets/toss/toss_text_field.dart';
-import '../../widgets/toss/toss_list_tile.dart';
+import '../../widgets/SB_widget/SB_searchbar_filter.dart';
+import '../../widgets/SB_widget/SB_headline_group.dart';
 import '../../../core/themes/toss_colors.dart';
 import '../../../core/themes/toss_text_styles.dart';
 import '../../../core/themes/toss_spacing.dart';
@@ -31,6 +31,11 @@ class _DelegateRolePageState extends ConsumerState<DelegateRolePage> with Widget
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
+  String? _selectedFilter;
+  String _selectedSort = 'name_asc';
+  
+  // Available tags from all roles
+  Set<String> _availableTags = {};
 
   @override
   void initState() {
@@ -55,10 +60,6 @@ class _DelegateRolePageState extends ConsumerState<DelegateRolePage> with Widget
     // Handle app lifecycle changes if needed
   }
 
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -94,7 +95,6 @@ class _DelegateRolePageState extends ConsumerState<DelegateRolePage> with Widget
       appBar: TossAppBar(
         title: 'Team Roles',
         primaryActionText: 'Add',
-        primaryActionIcon: Icons.add,
         onPrimaryAction: () => _showCreateRoleModal(context),
       ),
       body: RefreshIndicator(
@@ -102,6 +102,13 @@ class _DelegateRolePageState extends ConsumerState<DelegateRolePage> with Widget
         color: TossColors.primary,
         child: allRolesAsync.when(
                   data: (roles) {
+                    // Collect all available tags
+                    _availableTags.clear();
+                    for (final role in roles) {
+                      final tags = role['tags'] as List<dynamic>? ?? [];
+                      _availableTags.addAll(tags.map((tag) => tag.toString()));
+                    }
+                    
                     if (roles.isEmpty) {
                       return Center(
                         child: Padding(
@@ -145,18 +152,53 @@ class _DelegateRolePageState extends ConsumerState<DelegateRolePage> with Widget
                       );
                     }
                     
-                    // Filter roles based on search query
-                    final filteredRoles = _searchQuery.isEmpty 
-                        ? roles 
-                        : roles.where((role) => 
-                            role['roleName'].toString().toLowerCase().contains(_searchQuery)
-                          ).toList();
+                    // Filter roles based on search query and tag filter
+                    var filteredRoles = roles.where((role) {
+                      // Search filter
+                      if (_searchQuery.isNotEmpty) {
+                        final roleName = role['roleName'].toString().toLowerCase();
+                        if (!roleName.contains(_searchQuery)) {
+                          return false;
+                        }
+                      }
+                      
+                      // Tag filter
+                      if (_selectedFilter != null) {
+                        final tags = role['tags'] as List<dynamic>? ?? [];
+                        final tagStrings = tags.map((tag) => tag.toString()).toList();
+                        return tagStrings.contains(_selectedFilter);
+                      }
+                      
+                      return true;
+                    }).toList();
+                    
+                    // Sort roles based on selected sort option
+                    filteredRoles.sort((a, b) {
+                      switch (_selectedSort) {
+                          case 'name_asc':
+                            return a['roleName'].toString().compareTo(b['roleName'].toString());
+                          case 'name_desc':
+                            return b['roleName'].toString().compareTo(a['roleName'].toString());
+                          case 'members_high':
+                            return (b['memberCount'] ?? 0).compareTo(a['memberCount'] ?? 0);
+                          case 'members_low':
+                            return (a['memberCount'] ?? 0).compareTo(b['memberCount'] ?? 0);
+                          case 'permissions_high':
+                            return ((b['permissions'] as List).length).compareTo((a['permissions'] as List).length);
+                          case 'permissions_low':
+                            return ((a['permissions'] as List).length).compareTo((b['permissions'] as List).length);
+                          default:
+                            return 0;
+                        }
+                    });
 
                     return SingleChildScrollView(
-                      padding: EdgeInsets.all(TossSpacing.space4),
+                      padding: EdgeInsets.symmetric(horizontal: TossSpacing.space4),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          SizedBox(height: TossSpacing.space4),
+                          
                           // Search Section
                           _buildSearchSection(),
                           
@@ -164,6 +206,8 @@ class _DelegateRolePageState extends ConsumerState<DelegateRolePage> with Widget
                           
                           // Roles Section
                           _buildRolesSection(filteredRoles),
+                          
+                          SizedBox(height: TossSpacing.space4),
                         ],
                       ),
                     );
@@ -181,51 +225,16 @@ class _DelegateRolePageState extends ConsumerState<DelegateRolePage> with Widget
       );
   }
 
-
   Widget _buildSearchSection() {
-    return Container(
-      padding: EdgeInsets.all(TossSpacing.space5),
-      decoration: BoxDecoration(
-        color: TossColors.surface,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Manage your team\'s access',
-            style: TossTextStyles.bodyLarge.copyWith(
-              fontWeight: FontWeight.w700,
-              color: TossColors.gray900,
-            ),
-          ),
-          SizedBox(height: TossSpacing.space1),
-          Text(
-            'Delegate roles to team members and manage permissions',
-            style: TossTextStyles.bodySmall.copyWith(
-              color: TossColors.gray600,
-            ),
-          ),
-          SizedBox(height: TossSpacing.space4),
-          
-          // Search Field
-          TossSearchField(
-            hintText: 'Search roles...',
-            controller: _searchController,
-            prefixIcon: Icons.search,
-            onChanged: (value) {
-              setState(() {
-                _searchQuery = value.toLowerCase();
-              });
-            },
-            onClear: () {
-              setState(() {
-                _searchQuery = '';
-              });
-            },
-          ),
-        ],
-      ),
+    return SBSearchBarFilter(
+      searchController: _searchController,
+      searchHint: 'Search roles...',
+      onSearchChanged: (value) {
+        setState(() {
+          _searchQuery = value.toLowerCase();
+        });
+      },
+      onFilterTap: _showFilterOptions,
     );
   }
 
@@ -266,199 +275,259 @@ class _DelegateRolePageState extends ConsumerState<DelegateRolePage> with Widget
       );
     }
 
-    return Container(
-      padding: EdgeInsets.all(TossSpacing.space5),
-      decoration: BoxDecoration(
-        color: TossColors.surface,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Section Header - No background, separated from list
+        SBHeadlineGroup(
+          title: 'Team Roles',
+        ),
+        
+        // Roles Container
+        Container(
+          padding: EdgeInsets.all(TossSpacing.space5),
+          decoration: BoxDecoration(
+            color: TossColors.surface,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                'Team Roles',
-                style: TossTextStyles.bodyLarge.copyWith(
-                  fontWeight: FontWeight.w700,
-                  color: TossColors.gray900,
-                ),
-              ),
-              Text(
-                '${roles.length}',
-                style: TossTextStyles.body.copyWith(
-                  color: TossColors.gray600,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
+              // Roles List
+              ...roles.asMap().entries.map((entry) {
+                final index = entry.key;
+                final role = entry.value;
+                
+                return Column(
+                  children: [
+                    _buildRoleItem(role),
+                    if (index < roles.length - 1) 
+                      Container(
+                        margin: EdgeInsets.symmetric(vertical: TossSpacing.space2),
+                        height: 0.5,
+                        color: TossColors.gray200,
+                      ),
+                  ],
+                );
+              }),
             ],
           ),
-          SizedBox(height: TossSpacing.space3),
-          
-          // Roles List
-          ...roles.asMap().entries.map((entry) {
-            final index = entry.key;
-            final role = entry.value;
-            
-            return Column(
-              children: [
-                _buildRoleItem(role),
-                if (index < roles.length - 1) 
-                  Container(
-                    margin: EdgeInsets.symmetric(vertical: TossSpacing.space2),
-                    height: 0.5,
-                    color: TossColors.gray200,
-                  ),
-              ],
-            );
-          }).toList(),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
   Widget _buildRoleItem(Map<String, dynamic> role) {
     final memberCount = role['memberCount'] ?? 0;
     final permissionCount = (role['permissions'] as List).length;
-    final roleName = role['roleName']?.toString().toLowerCase() ?? '';
-    final isOwnerRole = roleName == 'owner';
-    
-    return TossListTile(
-      title: role['roleName'],
-      subtitle: _getRoleSubtitleText(role),
-      enabled: !isOwnerRole, // Disable owner role like role_permission page
-      leading: Container(
-        width: 44,
-        height: 44,
-        decoration: BoxDecoration(
-          color: _getRoleColor(role['roleName']).withOpacity(0.1),
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: Icon(
-          _getRoleIcon(role['roleName']),
-          color: _getRoleColor(role['roleName']),
-          size: TossSpacing.iconSM + 2,
-        ),
-      ),
-      trailing: Column(
-        crossAxisAlignment: CrossAxisAlignment.end,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.person, size: 16, color: TossColors.gray600),
-              SizedBox(width: TossSpacing.space1),
-              Text(
-                '$memberCount',
-                style: TossTextStyles.bodySmall.copyWith(
-                  color: TossColors.gray600,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
-          ),
-          SizedBox(height: TossSpacing.space1),
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.shield_outlined, size: 16, color: TossColors.gray600),
-              SizedBox(width: TossSpacing.space1),
-              Text(
-                '$permissionCount',
-                style: TossTextStyles.bodySmall.copyWith(
-                  color: TossColors.gray600,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-      onTap: isOwnerRole ? null : () => _openRoleManagement(role),
-      showDivider: false,
-      contentPadding: EdgeInsets.symmetric(vertical: TossSpacing.space3),
-    );
-  }
-
-  String _getRoleSubtitleText(Map<String, dynamic> role) {
+    final roleName = role['roleName']?.toString() ?? '';
+    final isOwnerRole = roleName.toLowerCase() == 'owner';
     final tags = role['tags'] as List<dynamic>? ?? [];
     
-    if (tags.isNotEmpty) {
-      // Format tags as text with count indicator
-      final tagList = tags.take(3).toList();
-      final remaining = tags.length - 3;
-      String tagsText = tagList.join(' • ');
-      if (remaining > 0) {
-        tagsText += ' +$remaining';
-      }
-      return tagsText;
-    } else {
-      // Fallback to description or default text
-      return _getRoleDescription(role['roleName']);
-    }
-  }
-
-  Widget _buildTagsRow(List<dynamic> tags) {
-    final tagList = tags.take(3).toList(); // Show max 3 tags
-    final remaining = tags.length - 3;
-    
-    return Wrap(
-      spacing: TossSpacing.space1,
-      runSpacing: TossSpacing.space1,
-      children: [
-        ...tagList.map((tag) => Container(
-          padding: EdgeInsets.symmetric(
-            horizontal: TossSpacing.space2,
-            vertical: 2,
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: isOwnerRole ? null : () => _openRoleManagement(role),
+        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+        child: Container(
+          padding: EdgeInsets.symmetric(vertical: TossSpacing.space4),
+          child: Row(
+            children: [
+              // Icon Container
+              Container(
+                width: 56,
+                height: 56,
+                decoration: BoxDecoration(
+                  color: memberCount > 0 
+                      ? _getRoleColor(roleName).withValues(alpha: 0.1)
+                      : TossColors.gray100,
+                  borderRadius: BorderRadius.circular(28),
+                ),
+                child: Icon(
+                  _getRoleIcon(roleName),
+                  color: memberCount > 0 
+                      ? _getRoleColor(roleName)
+                      : TossColors.gray600,
+                  size: 24,
+                ),
+              ),
+              
+              SizedBox(width: TossSpacing.space4),
+              
+              // Primary Info
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Role Name
+                    Text(
+                      roleName,
+                      style: TossTextStyles.body.copyWith(
+                        fontWeight: FontWeight.w700,
+                        fontSize: 16,
+                        color: Colors.black87,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    
+                    SizedBox(height: TossSpacing.space1),
+                    
+                    // Tags or description
+                    Row(
+                      children: [
+                        Expanded(
+                          child: tags.isNotEmpty
+                              ? Wrap(
+                                  spacing: 4,
+                                  runSpacing: 4,
+                                  children: [
+                                    ...tags.take(3).map((tag) => Container(
+                                      padding: EdgeInsets.symmetric(
+                                        horizontal: 6,
+                                        vertical: 2,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: _getTagColor(tag.toString()).withValues(alpha: 0.1),
+                                        borderRadius: BorderRadius.circular(4),
+                                        border: Border.all(
+                                          color: _getTagColor(tag.toString()).withValues(alpha: 0.3),
+                                          width: 0.5,
+                                        ),
+                                      ),
+                                      child: Text(
+                                        tag.toString(),
+                                        style: TextStyle(
+                                          color: _getTagColor(tag.toString()),
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.w600,
+                                          height: 1.2,
+                                        ),
+                                      ),
+                                    )).toList(),
+                                    if (tags.length > 3)
+                                      Container(
+                                        padding: EdgeInsets.symmetric(
+                                          horizontal: 6,
+                                          vertical: 2,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: TossColors.gray100,
+                                          borderRadius: BorderRadius.circular(4),
+                                          border: Border.all(
+                                            color: TossColors.gray300,
+                                            width: 0.5,
+                                          ),
+                                        ),
+                                        child: Text(
+                                          '+${tags.length - 3}',
+                                          style: TextStyle(
+                                            color: TossColors.gray600,
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.w600,
+                                            height: 1.2,
+                                          ),
+                                        ),
+                                      ),
+                                  ],
+                                )
+                              : Text(
+                                  _getRoleDescription(roleName),
+                                  style: TossTextStyles.caption.copyWith(
+                                    color: Colors.grey[600],
+                                    fontSize: 13,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              
+              // Stats Info
+              Container(
+                constraints: BoxConstraints(minWidth: 80),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Member Count
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        Icon(
+                          Icons.person_outline,
+                          size: 16,
+                          color: memberCount > 0 ? _getRoleColor(roleName) : Colors.grey[600],
+                        ),
+                        SizedBox(width: TossSpacing.space1),
+                        Text(
+                          '$memberCount',
+                          style: TossTextStyles.body.copyWith(
+                            color: memberCount > 0 ? _getRoleColor(roleName) : Colors.grey[600],
+                            fontWeight: FontWeight.w600,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ),
+                    
+                    SizedBox(height: TossSpacing.space2),
+                    
+                    // Permission Count
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        Icon(
+                          Icons.shield_outlined,
+                          size: 16,
+                          color: Colors.grey[600],
+                        ),
+                        SizedBox(width: TossSpacing.space1),
+                        Text(
+                          '$permissionCount',
+                          style: TossTextStyles.caption.copyWith(
+                            color: Colors.grey[600],
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
-          decoration: BoxDecoration(
-            color: _getTagColorFromName(tag.toString()).withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(TossBorderRadius.xs),
-            border: Border.all(
-              color: _getTagColorFromName(tag.toString()).withValues(alpha: 0.3),
-              width: 1,
-            ),
-          ),
-          child: Text(
-            tag.toString(),
-            style: TossTextStyles.caption.copyWith(
-              color: _getTagColorFromName(tag.toString()),
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        )),
-        if (remaining > 0)
-          Text(
-            '+$remaining',
-            style: TossTextStyles.caption.copyWith(
-              color: TossColors.gray600,
-            ),
-          ),
-      ],
+        ),
+      ),
     );
   }
 
-  Color _getTagColorFromName(String tag) {
-    // Use the same color mapping as in Create Role modal
-    const tagColors = {
-      'Critical': TossColors.error,
-      'Support': TossColors.info,
-      'Management': TossColors.primary,
-      'Operations': TossColors.success,
-      'Temporary': TossColors.warning,
-      'Finance': TossColors.primary,
-      'Sales': TossColors.success,
-      'Marketing': TossColors.info,
-      'Technical': TossColors.textSecondary,
-      'Customer Service': TossColors.info,
-      'Admin': TossColors.primary,
-      'Restricted': TossColors.error,
-    };
-    
-    return tagColors[tag] ?? TossColors.gray600;
+  // Tag colors mapping (same as in role management sheet)
+  static final Map<String, Color> _tagColors = {
+    'Critical': TossColors.error,
+    'Support': TossColors.info,
+    'Management': TossColors.primary,
+    'Operations': TossColors.success,
+    'Temporary': TossColors.warning,
+    'Finance': TossColors.primary,
+    'Sales': TossColors.success,
+    'Marketing': TossColors.info,
+    'Technical': TossColors.textSecondary,
+    'Customer Service': TossColors.info,
+    'Admin': TossColors.primary,
+    'Restricted': TossColors.error,
+  };
+  
+  Color _getTagColor(String tag) {
+    return _tagColors[tag] ?? TossColors.gray600;
   }
+
+
 
   Color _getRoleColor(String roleName) {
     switch (roleName.toLowerCase()) {
@@ -472,7 +541,7 @@ class _DelegateRolePageState extends ConsumerState<DelegateRolePage> with Widget
       case 'employee':
         return TossColors.info;
       default:
-        return TossColors.gray600;
+        return TossColors.info; // Use info (blue) as default color for custom roles
     }
   }
 
@@ -543,6 +612,255 @@ class _DelegateRolePageState extends ConsumerState<DelegateRolePage> with Widget
       }
     }
   }
+
+  void _showFilterOptions() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: TossColors.transparent,
+      builder: (context) => Container(
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * 0.7,
+        ),
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).padding.bottom,
+        ),
+        decoration: BoxDecoration(
+          color: TossColors.surface,
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(TossBorderRadius.xl),
+            topRight: Radius.circular(TossBorderRadius.xl),
+          ),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Handle
+            Container(
+              width: 48,
+              height: 4,
+              margin: EdgeInsets.only(top: TossSpacing.space3),
+              decoration: BoxDecoration(
+                color: TossColors.gray300,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            
+            // Title
+            Container(
+              padding: EdgeInsets.all(TossSpacing.space4),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Filter by Tags',
+                    style: TossTextStyles.h3.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  if (_selectedFilter != null)
+                    TextButton(
+                      onPressed: () {
+                        setState(() {
+                          _selectedFilter = null;
+                        });
+                        Navigator.pop(context);
+                      },
+                      child: Text(
+                        'Clear',
+                        style: TossTextStyles.body.copyWith(
+                          color: TossColors.primary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            
+            // Tags List
+            if (_availableTags.isEmpty)
+              Padding(
+                padding: EdgeInsets.all(TossSpacing.space5),
+                child: Text(
+                  'No tags available',
+                  style: TossTextStyles.body.copyWith(
+                    color: TossColors.gray500,
+                  ),
+                ),
+              )
+            else
+              Flexible(
+                child: SingleChildScrollView(
+                  padding: EdgeInsets.symmetric(horizontal: TossSpacing.space4),
+                  child: Wrap(
+                    spacing: TossSpacing.space2,
+                    runSpacing: TossSpacing.space2,
+                    children: _availableTags.map((tag) {
+                      final isSelected = _selectedFilter == tag;
+                      return Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          onTap: () {
+                            setState(() {
+                              _selectedFilter = isSelected ? null : tag;
+                            });
+                            Navigator.pop(context);
+                          },
+                          borderRadius: BorderRadius.circular(TossBorderRadius.sm),
+                          child: Container(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: TossSpacing.space3,
+                              vertical: TossSpacing.space2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: isSelected 
+                                  ? _getTagColor(tag).withValues(alpha: 0.2)
+                                  : TossColors.gray100,
+                              borderRadius: BorderRadius.circular(TossBorderRadius.sm),
+                              border: Border.all(
+                                color: isSelected
+                                    ? _getTagColor(tag)
+                                    : TossColors.gray300,
+                                width: isSelected ? 1.5 : 1,
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  tag,
+                                  style: TossTextStyles.body.copyWith(
+                                    color: isSelected
+                                        ? _getTagColor(tag)
+                                        : TossColors.gray700,
+                                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                                  ),
+                                ),
+                                if (isSelected) ...[
+                                  SizedBox(width: TossSpacing.space2),
+                                  Icon(
+                                    Icons.check,
+                                    size: 16,
+                                    color: _getTagColor(tag),
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ),
+              ),
+            
+            SizedBox(height: TossSpacing.space4),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showSortOptions() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: TossColors.transparent,
+      builder: (context) => Container(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).padding.bottom,
+        ),
+        decoration: BoxDecoration(
+          color: TossColors.surface,
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(TossBorderRadius.xl),
+            topRight: Radius.circular(TossBorderRadius.xl),
+          ),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Handle
+            Container(
+              width: 48,
+              height: 4,
+              margin: EdgeInsets.only(top: TossSpacing.space3),
+              decoration: BoxDecoration(
+                color: TossColors.gray300,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            
+            // Title
+            Container(
+              padding: EdgeInsets.all(TossSpacing.space4),
+              child: Text(
+                'Sort By',
+                style: TossTextStyles.h3.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+            
+            // Sort Options
+            _buildSortOption('Name (A-Z)', 'name_asc', Icons.sort_by_alpha),
+            _buildSortOption('Name (Z-A)', 'name_desc', Icons.sort_by_alpha),
+            _buildSortOption('Members (High to Low)', 'members_high', Icons.people),
+            _buildSortOption('Members (Low to High)', 'members_low', Icons.people),
+            _buildSortOption('Permissions (High to Low)', 'permissions_high', Icons.shield),
+            _buildSortOption('Permissions (Low to High)', 'permissions_low', Icons.shield),
+            
+            SizedBox(height: TossSpacing.space4),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSortOption(String label, String value, IconData icon) {
+    final isSelected = _selectedSort == value;
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () {
+          setState(() {
+            _selectedSort = value;
+          });
+          Navigator.pop(context);
+        },
+        child: Container(
+          padding: EdgeInsets.symmetric(
+            horizontal: TossSpacing.space4,
+            vertical: TossSpacing.space3,
+          ),
+          child: Row(
+            children: [
+              Icon(
+                icon,
+                size: 20,
+                color: TossColors.gray600,
+              ),
+              SizedBox(width: TossSpacing.space3),
+              Text(
+                label,
+                style: TossTextStyles.body.copyWith(
+                  color: TossColors.gray900,
+                  fontWeight: FontWeight.w400,
+                ),
+              ),
+              Spacer(),
+              if (isSelected)
+                Icon(
+                  Icons.check_rounded,
+                  color: TossColors.primary,
+                  size: 20,
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
 
   void _openRoleManagement(Map<String, dynamic> role) {
     final roleName = role['roleName']?.toString().toLowerCase() ?? '';
@@ -907,8 +1225,7 @@ class _CreateRoleBottomSheetState extends ConsumerState<_CreateRoleBottomSheet> 
         .where((tag) => !_selectedTags.contains(tag))
         .toList();
     
-    // Calculate remaining slots
-    final remainingSlots = TagValidator.MAX_TAGS - _selectedTags.length;
+    // Tag limit is defined in TagValidator.MAX_TAGS
     
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

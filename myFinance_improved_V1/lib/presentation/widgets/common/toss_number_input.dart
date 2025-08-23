@@ -39,7 +39,7 @@ class TossNumberInput extends StatelessWidget {
     return Container(
       height: height,
       decoration: BoxDecoration(
-        color: enabled ? TossColors.surface : TossColors.gray100,
+        color: enabled ? Colors.transparent : TossColors.gray100,
         borderRadius: BorderRadius.circular(TossBorderRadius.md),
         border: showBorder
             ? Border.all(
@@ -81,6 +81,11 @@ class TossNumberInput extends StatelessWidget {
                   color: TossColors.gray300,
                 ),
                 border: InputBorder.none,
+                enabledBorder: InputBorder.none,
+                focusedBorder: InputBorder.none,
+                errorBorder: InputBorder.none,
+                disabledBorder: InputBorder.none,
+                focusedErrorBorder: InputBorder.none,
                 contentPadding: const EdgeInsets.symmetric(
                   horizontal: TossSpacing.space4,
                 ),

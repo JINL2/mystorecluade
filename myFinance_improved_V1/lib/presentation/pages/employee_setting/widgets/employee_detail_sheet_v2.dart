@@ -225,31 +225,97 @@ class _InfoTab extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Personal Information Section
           _buildSection(
             title: 'Personal Information',
             children: [
+              _buildInfoRow('Full Name', employee.fullName),
               _buildInfoRow('Email', employee.email),
               _buildInfoRow('Employee ID', employee.employeeId ?? 'Not assigned'),
-              _buildInfoRow(
-                'Hire Date', 
-                employee.hireDate?.toString().split(' ')[0] ?? 'Not specified',
-              ),
+              _buildInfoRow('Status', employee.isActive ? 'Active' : 'Inactive'),
             ],
           ),
           
+          // Employment Details Section
+          SizedBox(height: TossSpacing.space6),
+          _buildSection(
+            title: 'Employment Details',
+            children: [
+              _buildInfoRow('Department', employee.department ?? 'General'),
+              _buildInfoRow('Employment Type', employee.employmentType ?? 'Full-time'),
+              _buildInfoRow('Work Location', employee.workLocation ?? 'Office'),
+              _buildInfoRow('Employment Status', employee.employmentStatus ?? 'Active'),
+              if (employee.hireDate != null) ...[
+                _buildInfoRow(
+                  'Hire Date', 
+                  employee.hireDate!.toString().split(' ')[0],
+                ),
+                _buildInfoRow('Tenure', employee.tenureText),
+              ],
+            ],
+          ),
           
-          if (employee.performanceRating != null) ...[
+          // Management Section (if applicable)
+          if (employee.managerName != null || employee.costCenter != null) ...[
+            SizedBox(height: TossSpacing.space6),
+            _buildSection(
+              title: 'Management Information',
+              children: [
+                if (employee.managerName != null)
+                  _buildInfoRow('Manager', employee.managerName!),
+                if (employee.costCenter != null)
+                  _buildInfoRow('Cost Center', employee.costCenter!),
+              ],
+            ),
+          ],
+          
+          // Performance Section (if applicable)
+          if (employee.performanceRating != null || employee.lastReviewDate != null || employee.nextReviewDate != null) ...[
             SizedBox(height: TossSpacing.space6),
             _buildSection(
               title: 'Performance',
               children: [
+                if (employee.performanceRating != null)
+                  _buildInfoRow(
+                    'Current Rating', 
+                    employee.performanceRating!,
+                  ),
+                if (employee.lastReviewDate != null)
+                  _buildInfoRow(
+                    'Last Review', 
+                    employee.lastReviewDate!.toString().split(' ')[0],
+                  ),
+                if (employee.nextReviewDate != null) ...[
+                  _buildInfoRow(
+                    'Next Review', 
+                    employee.nextReviewDate!.toString().split(' ')[0],
+                  ),
+                  if (employee.isReviewDue)
+                    _buildInfoRow(
+                      'Review Status', 
+                      'Due Soon',
+                      valueColor: TossColors.warning,
+                    ),
+                  if (employee.isReviewOverdue)
+                    _buildInfoRow(
+                      'Review Status', 
+                      'Overdue',
+                      valueColor: TossColors.error,
+                    ),
+                ],
+              ],
+            ),
+          ],
+          
+          // System Information
+          if (employee.updatedAt != null) ...[
+            SizedBox(height: TossSpacing.space6),
+            _buildSection(
+              title: 'System Information',
+              children: [
                 _buildInfoRow(
-                  'Current Rating', 
-                  employee.performanceRating!,
-                ),
-                _buildInfoRow(
-                  'Last Review', 
-                  employee.lastReviewDate?.toString().split(' ')[0] ?? 'Not reviewed',
+                  'Last Updated', 
+                  employee.updatedAt!.toString().split(' ')[0],
                 ),
               ],
             ),
@@ -278,14 +344,14 @@ class _InfoTab extends StatelessWidget {
     );
   }
   
-  Widget _buildInfoRow(String label, String value) {
+  Widget _buildInfoRow(String label, String value, {Color? valueColor}) {
     return Padding(
       padding: EdgeInsets.only(bottom: TossSpacing.space3),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(
-            width: 120,
+          Expanded(
+            flex: 2,
             child: Text(
               label,
               style: TossTextStyles.body.copyWith(
@@ -293,13 +359,16 @@ class _InfoTab extends StatelessWidget {
               ),
             ),
           ),
+          SizedBox(width: TossSpacing.space3),
           Expanded(
+            flex: 3,
             child: Text(
               value,
               style: TossTextStyles.body.copyWith(
-                color: TossColors.gray900,
+                color: valueColor ?? TossColors.gray900,
                 fontWeight: FontWeight.w500,
               ),
+              textAlign: TextAlign.right,
             ),
           ),
         ],
@@ -320,87 +389,110 @@ class _SalaryTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: EdgeInsets.all(TossSpacing.space5),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Current Salary Card
-          Container(
-            padding: EdgeInsets.all(TossSpacing.space4),
-            decoration: BoxDecoration(
-              color: TossColors.gray50,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: TossColors.gray200,
-              ),
-            ),
+    return Column(
+      children: [
+        // Scrollable content
+        Expanded(
+          child: SingleChildScrollView(
+            padding: EdgeInsets.all(TossSpacing.space5),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'Current Salary',
-                  style: TossTextStyles.bodySmall.copyWith(
-                    color: TossColors.gray600,
+                // Current Salary Card
+                Container(
+                  padding: EdgeInsets.all(TossSpacing.space4),
+                  decoration: BoxDecoration(
+                    color: TossColors.gray50,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: TossColors.gray200,
+                    ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Current Salary',
+                        style: TossTextStyles.bodySmall.copyWith(
+                          color: TossColors.gray600,
+                        ),
+                      ),
+                      SizedBox(height: TossSpacing.space2),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.baseline,
+                        textBaseline: TextBaseline.alphabetic,
+                        children: [
+                          Text(
+                            employee.symbol,
+                            style: TossTextStyles.h3.copyWith(
+                              color: TossColors.gray900,
+                            ),
+                          ),
+                          Text(
+                            (employee.totalSalary ?? employee.salaryAmount).toStringAsFixed(0),
+                            style: TossTextStyles.display.copyWith(
+                              color: TossColors.gray900,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          Text(
+                            employee.salaryType == 'hourly' ? '/hr' : '/mo',
+                            style: TossTextStyles.body.copyWith(
+                              color: TossColors.gray600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
-                SizedBox(height: TossSpacing.space2),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.baseline,
-                  textBaseline: TextBaseline.alphabetic,
-                  children: [
-                    Text(
-                      employee.symbol,
-                      style: TossTextStyles.h3.copyWith(
-                        color: TossColors.gray900,
-                      ),
-                    ),
-                    Text(
-                      (employee.totalSalary ?? employee.salaryAmount).toStringAsFixed(0),
-                      style: TossTextStyles.display.copyWith(
-                        color: TossColors.gray900,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    Text(
-                      employee.salaryType == 'hourly' ? '/hr' : '/mo',
-                      style: TossTextStyles.body.copyWith(
-                        color: TossColors.gray600,
-                      ),
-                    ),
-                  ],
+                
+                SizedBox(height: TossSpacing.space5),
+                
+                // Salary Details
+                _buildDetailRow('Base Salary', '${employee.symbol}${employee.salaryAmount.toStringAsFixed(0)} / ${employee.salaryType}'),
+                if (employee.totalSalary != null && employee.totalSalary != employee.salaryAmount)
+                  _buildDetailRow('Total Earned', '${employee.symbol}${employee.totalSalary!.toStringAsFixed(0)} (This Month)'),
+                _buildDetailRow('Currency', '${employee.currencyName} (${employee.symbol})'),
+                _buildDetailRow('Payment Type', employee.salaryType.capitalize()),
+                if (employee.effectiveDate != null)
+                  _buildDetailRow(
+                    'Effective Date', 
+                    employee.effectiveDate!.toString().split(' ')[0],
+                  ),
+                _buildDetailRow(
+                  'Last Updated', 
+                  employee.updatedAt?.toString().split(' ')[0] ?? 'Never',
                 ),
+                
+                // Add extra spacing at bottom for button area
+                SizedBox(height: TossSpacing.space5),
               ],
             ),
           ),
-          
-          SizedBox(height: TossSpacing.space5),
-          
-          // Salary Details
-          _buildDetailRow('Base Salary', '${employee.symbol}${employee.salaryAmount.toStringAsFixed(0)} / ${employee.salaryType}'),
-          if (employee.totalSalary != null && employee.totalSalary != employee.salaryAmount)
-            _buildDetailRow('Total Earned', '${employee.symbol}${employee.totalSalary!.toStringAsFixed(0)} (This Month)'),
-          _buildDetailRow('Currency', '${employee.currencyName} (${employee.symbol})'),
-          _buildDetailRow('Payment Type', employee.salaryType.capitalize()),
-          if (employee.effectiveDate != null)
-            _buildDetailRow(
-              'Effective Date', 
-              employee.effectiveDate!.toString().split(' ')[0],
+        ),
+        
+        // Fixed bottom button
+        Container(
+          padding: EdgeInsets.all(TossSpacing.space5),
+          decoration: BoxDecoration(
+            color: TossColors.background,
+            border: Border(
+              top: BorderSide(
+                color: TossColors.gray200,
+                width: 1,
+              ),
             ),
-          _buildDetailRow(
-            'Last Updated', 
-            employee.updatedAt?.toString().split(' ')[0] ?? 'Never',
           ),
-          
-          SizedBox(height: TossSpacing.space6),
-          
-          // Edit Button
-          TossPrimaryButton(
-            text: 'Edit Salary',
-            onPressed: onEdit,
+          child: SafeArea(
+            child: TossPrimaryButton(
+              text: 'Edit Salary',
+              onPressed: onEdit,
+              fullWidth: true,
+            ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
   
@@ -443,58 +535,80 @@ class _RoleTab extends StatelessWidget {
   Widget build(BuildContext context) {
     final hasRole = employee.roleName != null;
     
-    return SingleChildScrollView(
-      padding: EdgeInsets.all(TossSpacing.space5),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Current Role Card
-          Container(
-            width: double.infinity,
+    return Column(
+      children: [
+        // Scrollable content
+        Expanded(
+          child: SingleChildScrollView(
             padding: EdgeInsets.all(TossSpacing.space5),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  hasRole ? TossColors.primary.withOpacity(0.08) : TossColors.gray100,
-                  hasRole ? TossColors.primary.withOpacity(0.03) : TossColors.gray50,
-                ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: hasRole ? TossColors.primary.withOpacity(0.2) : TossColors.gray200,
-              ),
-            ),
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(
-                  hasRole ? Icons.verified_user : Icons.person_outline,
-                  size: 48,
-                  color: hasRole ? TossColors.primary : TossColors.gray400,
-                ),
-                SizedBox(height: TossSpacing.space3),
-                Text(
-                  hasRole ? employee.roleName! : 'No Role Assigned',
-                  style: TossTextStyles.h3.copyWith(
-                    color: hasRole ? TossColors.gray900 : TossColors.gray600,
-                    fontWeight: FontWeight.w700,
+                // Current Role Card
+                Container(
+                  width: double.infinity,
+                  padding: EdgeInsets.all(TossSpacing.space5),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        hasRole ? TossColors.primary.withOpacity(0.08) : TossColors.gray100,
+                        hasRole ? TossColors.primary.withOpacity(0.03) : TossColors.gray50,
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: hasRole ? TossColors.primary.withOpacity(0.2) : TossColors.gray200,
+                    ),
+                  ),
+                  child: Column(
+                    children: [
+                      Icon(
+                        hasRole ? Icons.verified_user : Icons.person_outline,
+                        size: 48,
+                        color: hasRole ? TossColors.primary : TossColors.gray400,
+                      ),
+                      SizedBox(height: TossSpacing.space3),
+                      Text(
+                        hasRole ? employee.roleName! : 'No Role Assigned',
+                        style: TossTextStyles.h3.copyWith(
+                          color: hasRole ? TossColors.gray900 : TossColors.gray600,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
+                
+                // Add extra spacing at bottom for button area
+                SizedBox(height: TossSpacing.space5),
               ],
             ),
           ),
-          
-          SizedBox(height: TossSpacing.space5),
-          
-          
-          // Manage Roles Button
-          TossPrimaryButton(
-            text: hasRole ? 'Change Role' : 'Assign Role',
-            onPressed: onManage,
+        ),
+        
+        // Fixed bottom button
+        Container(
+          padding: EdgeInsets.all(TossSpacing.space5),
+          decoration: BoxDecoration(
+            color: TossColors.background,
+            border: Border(
+              top: BorderSide(
+                color: TossColors.gray200,
+                width: 1,
+              ),
+            ),
           ),
-        ],
-      ),
+          child: SafeArea(
+            child: TossPrimaryButton(
+              text: hasRole ? 'Change Role' : 'Assign Role',
+              onPressed: onManage,
+              fullWidth: true,
+            ),
+          ),
+        ),
+      ],
     );
   }
   
@@ -537,49 +651,69 @@ class _AttendanceTab extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Current Month Summary
-          Container(
-            padding: EdgeInsets.all(TossSpacing.space4),
-            decoration: BoxDecoration(
-              color: TossColors.gray50,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: TossColors.gray200,
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'This Month Summary',
+                style: TossTextStyles.bodyLarge.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: TossColors.gray900,
+                ),
               ),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'This Month Summary',
-                  style: TossTextStyles.bodyLarge.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: TossColors.gray900,
+              SizedBox(height: TossSpacing.space3),
+              Column(
+                children: [
+                  // First row - Working Days and Working Hours
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildAttendanceMetric(
+                          'Working Days', 
+                          '${employee.totalWorkingDay ?? 0}',
+                          Icons.calendar_today,
+                          TossColors.gray900,
+                        ),
+                      ),
+                      SizedBox(width: TossSpacing.space3),
+                      Expanded(
+                        child: _buildAttendanceMetric(
+                          'Working Hours', 
+                          '${employee.totalWorkingHour?.toStringAsFixed(1) ?? "0.0"}h',
+                          Icons.access_time,
+                          TossColors.success,
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-                SizedBox(height: TossSpacing.space3),
-                Row(
-                  children: [
-                    Expanded(
-                      child: _buildAttendanceMetric(
-                        'Working Days', 
-                        '${employee.totalWorkingDay ?? 0}',
-                        Icons.calendar_today,
-                        TossColors.gray900,
+                  
+                  SizedBox(height: TossSpacing.space3),
+                  
+                  // Second row - Late Time and Overtime
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildAttendanceMetric(
+                          'Late Time', 
+                          '${employee.lateTimeHours?.toStringAsFixed(1) ?? "0.0"}h',
+                          Icons.schedule,
+                          TossColors.warning,
+                        ),
                       ),
-                    ),
-                    SizedBox(width: TossSpacing.space3),
-                    Expanded(
-                      child: _buildAttendanceMetric(
-                        'Working Hours', 
-                        '${employee.totalWorkingHour?.toStringAsFixed(1) ?? "0.0"}h',
-                        Icons.access_time,
-                        TossColors.success,
+                      SizedBox(width: TossSpacing.space3),
+                      Expanded(
+                        child: _buildAttendanceMetric(
+                          'Overtime', 
+                          '${employee.overtimeHours?.toStringAsFixed(1) ?? "0.0"}h',
+                          Icons.timer,
+                          TossColors.primary,
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
+                    ],
+                  ),
+                ],
+              ),
+            ],
           ),
           
           SizedBox(height: TossSpacing.space5),
@@ -615,64 +749,75 @@ class _AttendanceTab extends StatelessWidget {
             ),
           ],
           
-          SizedBox(height: TossSpacing.space6),
-          
-          // Performance Note
-          Container(
-            padding: EdgeInsets.all(TossSpacing.space3),
-            decoration: BoxDecoration(
-              color: TossColors.gray50,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Row(
-              children: [
-                Icon(
-                  Icons.info_outline,
-                  color: TossColors.gray600,
-                  size: 20,
-                ),
-                SizedBox(width: TossSpacing.space2),
-                Expanded(
-                  child: Text(
-                    'Attendance data is updated monthly and reflects actual working hours recorded.',
-                    style: TossTextStyles.bodySmall.copyWith(
-                      color: TossColors.gray600,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
         ],
       ),
     );
   }
   
   Widget _buildAttendanceMetric(String label, String value, IconData icon, Color color) {
+    // Create background colors based on the icon color
+    final backgroundColor = color == TossColors.gray900 
+        ? Color(0xFFF5F5F5)  // Light gray for working days
+        : color == TossColors.success 
+            ? Color(0xFFE8F5E9)  // Light green for working hours
+            : color == TossColors.warning
+                ? Color(0xFFFFF3E0)  // Light orange for late time
+                : color == TossColors.primary
+                    ? Color(0xFFE8F0FF)  // Light blue for overtime
+                    : Color(0xFFE3F2FD);  // Light blue fallback
+    
     return Container(
-      padding: EdgeInsets.all(TossSpacing.space3),
+      height: 72,
       decoration: BoxDecoration(
-        color: TossColors.gray50,
-        borderRadius: BorderRadius.circular(8),
+        color: backgroundColor,
+        borderRadius: BorderRadius.circular(12),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            label,
-            style: TossTextStyles.bodySmall.copyWith(
-              color: TossColors.gray600,
+      child: Padding(
+        padding: EdgeInsets.symmetric(
+          horizontal: TossSpacing.space3,
+          vertical: TossSpacing.space2,
+        ),
+        child: Row(
+          children: [
+            // Left side - Text content
+            Expanded(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    value,
+                    style: TossTextStyles.h3.copyWith(
+                      color: TossColors.gray900,
+                      fontWeight: FontWeight.w800,
+                      fontSize: 28,
+                      height: 1.1,
+                    ),
+                  ),
+                  SizedBox(height: 2),
+                  Text(
+                    label,
+                    style: TossTextStyles.caption.copyWith(
+                      color: TossColors.gray600,
+                      fontWeight: FontWeight.w500,
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-          SizedBox(height: TossSpacing.space1),
-          Text(
-            value,
-            style: TossTextStyles.h3.copyWith(
-              color: TossColors.gray900,
-              fontWeight: FontWeight.w700,
+            
+            // Right side - Icon
+            Container(
+              padding: EdgeInsets.all(TossSpacing.space2),
+              child: Icon(
+                icon,
+                color: color.withOpacity(0.7),
+                size: 22,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

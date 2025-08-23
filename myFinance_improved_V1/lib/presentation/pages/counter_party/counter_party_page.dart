@@ -11,14 +11,12 @@ import 'constants/counter_party_colors.dart';
 import 'providers/counter_party_providers.dart';
 import 'providers/counter_party_optimized_providers.dart';
 import 'models/counter_party_models.dart';
-import 'widgets/counter_party_list_item.dart';
 import 'widgets/counter_party_form.dart';
 import '../../providers/app_state_provider.dart';
 import '../../widgets/common/toss_scaffold.dart';
-import '../../widgets/common/toss_stats_card.dart';
 import '../../widgets/common/toss_app_bar.dart';
-import '../../widgets/common/toss_floating_action_button.dart';
-import '../../widgets/toss/toss_search_field.dart';
+import '../../widgets/SB_widget/SB_searchbar_filter.dart';
+import '../../widgets/SB_widget/SB_headline_group.dart';
 
 class CounterPartyPage extends ConsumerStatefulWidget {
   const CounterPartyPage({super.key});
@@ -27,14 +25,54 @@ class CounterPartyPage extends ConsumerStatefulWidget {
   ConsumerState<CounterPartyPage> createState() => _CounterPartyPageState();
 }
 
-class _CounterPartyPageState extends ConsumerState<CounterPartyPage> {
+class _CounterPartyPageState extends ConsumerState<CounterPartyPage> 
+    with WidgetsBindingObserver, TickerProviderStateMixin {
   final ScrollController _scrollController = ScrollController();
   final TextEditingController _searchController = TextEditingController();
   Timer? _searchDebounce;
+  bool _showScrollToTop = false;
+  String _searchQuery = '';
+  
+  // Animation controllers
+  late AnimationController _filterAnimationController;
+  late AnimationController _cardAnimationController;
+  late Animation<double> _filterAnimation;
+  late Animation<double> _cardAnimation;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _scrollController.addListener(_onScroll);
+    _searchController.addListener(() {
+      setState(() {
+        _searchQuery = _searchController.text.toLowerCase();
+      });
+    });
+    
+    // Initialize animation controllers
+    _filterAnimationController = AnimationController(
+      duration: TossAnimations.normal,
+      vsync: this,
+    );
+    _cardAnimationController = AnimationController(
+      duration: TossAnimations.medium,
+      vsync: this,
+    );
+    
+    _filterAnimation = CurvedAnimation(
+      parent: _filterAnimationController,
+      curve: TossAnimations.standard,
+    );
+    _cardAnimation = CurvedAnimation(
+      parent: _cardAnimationController,
+      curve: TossAnimations.standard,
+    );
+    
+    // Start animations
+    _filterAnimationController.forward();
+    _cardAnimationController.forward();
+    
     // Initialize data fetch with cache management
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _initializeData();
@@ -52,16 +90,37 @@ class _CounterPartyPageState extends ConsumerState<CounterPartyPage> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _scrollController.dispose();
     _searchController.dispose();
     _searchDebounce?.cancel();
+    _filterAnimationController.dispose();
+    _cardAnimationController.dispose();
     super.dispose();
+  }
+  
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _refreshData();
+    }
+  }
+  
+  void _onScroll() {
+    if (_scrollController.offset > 200 && !_showScrollToTop) {
+      setState(() => _showScrollToTop = true);
+    } else if (_scrollController.offset <= 200 && _showScrollToTop) {
+      setState(() => _showScrollToTop = false);
+    }
   }
 
   // Debounced search to prevent excessive rebuilds
   void _onSearchChanged(String value) {
     _searchDebounce?.cancel();
     _searchDebounce = Timer(TossAnimations.slow, () {
+      setState(() {
+        _searchQuery = value.toLowerCase();
+      });
       ref.read(counterPartySearchProvider.notifier).state = value;
     });
   }
@@ -99,7 +158,6 @@ class _CounterPartyPageState extends ConsumerState<CounterPartyPage> {
     // Use optimized providers for better performance
     final counterPartiesAsync = ref.watch(optimizedCounterPartiesProvider);
     final statsAsync = ref.watch(optimizedCounterPartyStatsProvider);
-    final selectedCompany = ref.watch(selectedCompanyProvider);
 
     return TossScaffold(
       backgroundColor: TossColors.gray100,
@@ -116,217 +174,267 @@ class _CounterPartyPageState extends ConsumerState<CounterPartyPage> {
       body: RefreshIndicator(
         onRefresh: _refreshData,
         color: TossColors.primary,
-        child: CustomScrollView(
-          controller: _scrollController,
-          slivers: [
-            // Stats Card
-            _buildStatsCard(context, statsAsync),
+        child: Stack(
+          children: [
+            CustomScrollView(
+              controller: _scrollController,
+              slivers: [
+                // Stats Section
+                SliverToBoxAdapter(
+                  child: FadeTransition(
+                    opacity: _filterAnimation,
+                    child: _buildStatsSection(statsAsync),
+                  ),
+                ),
+                
+                // Search and Filter Section
+                SliverToBoxAdapter(
+                  child: FadeTransition(
+                    opacity: _filterAnimation,
+                    child: _buildSearchFilterSection(),
+                  ),
+                ),
+                
+                // Counter Party List
+                _buildCounterPartyList(context, counterPartiesAsync),
+              ],
+            ),
             
-            // Filter and Sort Dropdowns
-            _buildFilterAndSortSection(context),
-            
-            // Search Field
-            _buildSearchField(context),
-            
-            // Counter Party List
-            _buildCounterPartyList(context, counterPartiesAsync),
+            // Floating Action Buttons
+            if (counterPartiesAsync.hasValue && counterPartiesAsync.value!.isNotEmpty)
+              _buildFloatingActions(),
           ],
         ),
       ),
-      // Floating action button removed - now in app bar
     );
   }
 
 
-  Widget _buildStatsCard(BuildContext context, AsyncValue<CounterPartyStats> statsAsync) {
-    return SliverToBoxAdapter(
-      child: Padding(
-        padding: EdgeInsets.all(TossSpacing.space4),
-        child: statsAsync.when(
-          data: (stats) => TossStatsCard(
-            title: 'Total Counterparties',
-            totalCount: stats.total,
-            items: [
-              TossStatItem(
-                label: 'My Company',
-                count: stats.myCompanies,
-                icon: CounterPartyColors.getTypeIcon(CounterPartyType.myCompany),
-                color: CounterPartyColors.myCompany,
+  Widget _buildStatsSection(AsyncValue<CounterPartyStats> statsAsync) {
+    return Container(
+      margin: EdgeInsets.fromLTRB(
+        TossSpacing.space4,
+        TossSpacing.space4,
+        TossSpacing.space4,
+        TossSpacing.space3,
+      ),
+      child: statsAsync.when(
+        data: (stats) => Column(
+          children: [
+            // Total Counter Parties Header
+            _buildTotalHeader(
+              total: stats.total,
+              internal: stats.myCompanies + stats.teamMembers + stats.employees,
+              external: stats.suppliers + stats.customers + stats.others,
+            ),
+            
+            SizedBox(height: TossSpacing.space4),
+            
+            // 6 Card Grid Layout
+            GridView.count(
+              shrinkWrap: true,
+              physics: NeverScrollableScrollPhysics(),
+              crossAxisCount: 3,
+              childAspectRatio: 1.05,
+              mainAxisSpacing: TossSpacing.space2,
+              crossAxisSpacing: TossSpacing.space2,
+              children: [
+                _buildSimpleStatCard(
+                  label: 'My Company',
+                  count: stats.myCompanies,
+                  icon: Icons.business,
+                  isSelected: false,
+                  isInternal: true,
+                ),
+                _buildSimpleStatCard(
+                  label: 'Team Member',
+                  count: stats.teamMembers,
+                  icon: Icons.people_outline,
+                  isSelected: false,
+                  isInternal: true,
+                ),
+                _buildSimpleStatCard(
+                  label: 'Suppliers',
+                  count: stats.suppliers,
+                  icon: Icons.local_shipping_outlined,
+                  isSelected: false,
+                  isInternal: false,
+                ),
+                _buildSimpleStatCard(
+                  label: 'Employees',
+                  count: stats.employees,
+                  icon: Icons.badge_outlined,
+                  isSelected: false,
+                  isInternal: true,
+                ),
+                _buildSimpleStatCard(
+                  label: 'Customers',
+                  count: stats.customers,
+                  icon: Icons.shopping_bag_outlined,
+                  isSelected: false,
+                  isInternal: false,
+                ),
+                _buildSimpleStatCard(
+                  label: 'Others',
+                  count: stats.others,
+                  icon: Icons.category_outlined,
+                  isSelected: false,
+                  isInternal: false,
+                ),
+              ],
+            ),
+          ],
+        ),
+        loading: () => Column(
+          children: [
+            _buildTotalHeader(total: 0, internal: 0, external: 0),
+            SizedBox(height: TossSpacing.space4),
+            GridView.count(
+              shrinkWrap: true,
+              physics: NeverScrollableScrollPhysics(),
+              crossAxisCount: 3,
+              childAspectRatio: 1.05,
+              mainAxisSpacing: TossSpacing.space2,
+              crossAxisSpacing: TossSpacing.space2,
+              children: [
+                // Internal cards
+                _buildSimpleStatCard(
+                  label: 'My Company',
+                  count: 0,
+                  icon: Icons.business,
+                  isSelected: false,
+                  isInternal: true,
+                  isLoading: true,
+                ),
+                _buildSimpleStatCard(
+                  label: 'Team Member',
+                  count: 0,
+                  icon: Icons.people_outline,
+                  isSelected: false,
+                  isInternal: true,
+                  isLoading: true,
+                ),
+                _buildSimpleStatCard(
+                  label: 'Suppliers',
+                  count: 0,
+                  icon: Icons.local_shipping_outlined,
+                  isSelected: false,
+                  isInternal: false,
+                  isLoading: true,
+                ),
+                _buildSimpleStatCard(
+                  label: 'Employees',
+                  count: 0,
+                  icon: Icons.badge_outlined,
+                  isSelected: false,
+                  isInternal: true,
+                  isLoading: true,
+                ),
+                _buildSimpleStatCard(
+                  label: 'Customers',
+                  count: 0,
+                  icon: Icons.shopping_bag_outlined,
+                  isSelected: false,
+                  isInternal: false,
+                  isLoading: true,
+                ),
+                _buildSimpleStatCard(
+                  label: 'Others',
+                  count: 0,
+                  icon: Icons.category_outlined,
+                  isSelected: false,
+                  isInternal: false,
+                  isLoading: true,
+                ),
+              ],
+            ),
+          ],
+        ),
+        error: (error, _) => Center(
+          child: Column(
+            children: [
+              Icon(
+                Icons.error_outline,
+                size: 48,
+                color: TossColors.error,
               ),
-              TossStatItem(
-                label: 'Team Member',
-                count: stats.teamMembers,
-                icon: CounterPartyColors.getTypeIcon(CounterPartyType.teamMember),
-                color: CounterPartyColors.teamMember,
-              ),
-              TossStatItem(
-                label: 'Suppliers',
-                count: stats.suppliers,
-                icon: CounterPartyColors.getTypeIcon(CounterPartyType.supplier),
-                color: CounterPartyColors.supplier,
-              ),
-              TossStatItem(
-                label: 'Employees',
-                count: stats.employees,
-                icon: CounterPartyColors.getTypeIcon(CounterPartyType.employee),
-                color: CounterPartyColors.employee,
-              ),
-              TossStatItem(
-                label: 'Customers',
-                count: stats.customers,
-                icon: CounterPartyColors.getTypeIcon(CounterPartyType.customer),
-                color: CounterPartyColors.customer,
-              ),
-              TossStatItem(
-                label: 'Others',
-                count: stats.others,
-                icon: CounterPartyColors.getTypeIcon(CounterPartyType.other),
-                color: CounterPartyColors.other,
+              SizedBox(height: TossSpacing.space3),
+              Text(
+                'Unable to load statistics',
+                style: TossTextStyles.body.copyWith(
+                  color: TossColors.error,
+                ),
               ),
             ],
-            onRetry: _refreshData,
-          ),
-          loading: () => const TossStatsCard(
-            title: 'Total Counterparties',
-            totalCount: 0,
-            items: [],
-            isLoading: true,
-          ),
-          error: (error, _) => TossStatsCard(
-            title: 'Total Counterparties',
-            totalCount: 0,
-            items: [],
-            errorMessage: 'Failed to load statistics',
-            onRetry: _refreshData,
           ),
         ),
       ),
     );
   }
-
-
-  Widget _buildFilterAndSortSection(BuildContext context) {
-    final filter = ref.watch(counterPartyFilterProvider);
+  
+  Widget _buildModernStatCard({
+    required String value,
+    required String label,
+    required IconData icon,
+    required Color color,
+  }) {
+    // Create background colors based on the primary color
+    final backgroundColor = color == TossColors.primary 
+        ? Color(0xFFE8F0FF)  // Light blue
+        : color == TossColors.success 
+            ? Color(0xFFE8F5E9)  // Light green
+            : color == TossColors.warning
+                ? Color(0xFFFFF3E0)  // Light orange
+                : Color(0xFFE3F2FD);  // Light info blue
     
-    return SliverToBoxAdapter(
-      child: Container(
-        margin: EdgeInsets.symmetric(horizontal: TossSpacing.space4),
+    return Container(
+      height: 72,
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Padding(
         padding: EdgeInsets.symmetric(
           horizontal: TossSpacing.space3,
           vertical: TossSpacing.space2,
         ),
-        decoration: BoxDecoration(
-          color: TossColors.surface,
-          borderRadius: BorderRadius.circular(TossBorderRadius.md),
-          boxShadow: [
-            BoxShadow(
-              color: TossColors.black.withOpacity(0.02),
-              blurRadius: 2,
-              offset: const Offset(0, 1),
-            ),
-          ],
-        ),
         child: Row(
           children: [
-            // Filter Section - 50% space
+            // Left side - Text content
             Expanded(
-              flex: 50,
-              child: InkWell(
-                onTap: () => _showFilterOptionsSheet(),
-                borderRadius: BorderRadius.circular(TossBorderRadius.sm),
-                child: Container(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: TossSpacing.space3,
-                    vertical: TossSpacing.space2,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    value,
+                    style: TossTextStyles.h3.copyWith(
+                      color: TossColors.gray900,
+                      fontWeight: FontWeight.w800,
+                      fontSize: 28,
+                      height: 1.1,
+                    ),
                   ),
-                  child: Row(
-                    children: [
-                      Stack(
-                        clipBehavior: Clip.none,
-                        children: [
-                          Icon(
-                            Icons.filter_list_rounded,
-                            size: 22,
-                            color: _hasActiveFilters() ? TossColors.primary : TossColors.gray600,
-                          ),
-                          if (_hasActiveFilters())
-                            Positioned(
-                              right: -4,
-                              top: -4,
-                              child: Container(
-                                width: 8,
-                                height: 8,
-                                decoration: BoxDecoration(
-                                  color: TossColors.primary,
-                                  shape: BoxShape.circle,
-                                ),
-                              ),
-                            ),
-                        ],
-                      ),
-                      SizedBox(width: TossSpacing.space2),
-                      Expanded(
-                        child: Text(
-                          _getFilterLabel(),
-                          style: TossTextStyles.labelLarge.copyWith(
-                            color: TossColors.gray700,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      Icon(
-                        Icons.keyboard_arrow_down_rounded,
-                        size: 20,
-                        color: TossColors.gray500,
-                      ),
-                    ],
+                  SizedBox(height: 2),
+                  Text(
+                    label,
+                    style: TossTextStyles.caption.copyWith(
+                      color: TossColors.gray600,
+                      fontWeight: FontWeight.w500,
+                      fontSize: 12,
+                    ),
                   ),
-                ),
+                ],
               ),
             ),
             
+            // Right side - Icon
             Container(
-              width: 1,
-              height: 20,
-              color: TossColors.gray200,
-            ),
-            
-            // Sort Section - 50% space
-            Expanded(
-              flex: 50,
-              child: InkWell(
-                onTap: () => _showSortOptionsSheet(),
-                borderRadius: BorderRadius.circular(TossBorderRadius.sm),
-                child: Container(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: TossSpacing.space3,
-                    vertical: TossSpacing.space2,
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.sort_rounded,
-                        size: 22,
-                        color: TossColors.primary,
-                      ),
-                      SizedBox(width: TossSpacing.space2),
-                      Expanded(
-                        child: Text(
-                          _getSortLabel(filter),
-                          style: TossTextStyles.labelLarge.copyWith(
-                            color: TossColors.gray700,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      Icon(
-                        Icons.keyboard_arrow_down_rounded,
-                        size: 20,
-                        color: TossColors.gray500,
-                      ),
-                    ],
-                  ),
-                ),
+              padding: EdgeInsets.all(TossSpacing.space2),
+              child: Icon(
+                icon,
+                color: color.withValues(alpha: 0.7),
+                size: 22,
               ),
             ),
           ],
@@ -335,258 +443,250 @@ class _CounterPartyPageState extends ConsumerState<CounterPartyPage> {
     );
   }
 
-  Widget _buildSearchField(BuildContext context) {
-    return SliverToBoxAdapter(
-      child: Padding(
-        padding: EdgeInsets.fromLTRB(
-          TossSpacing.space4,
-          TossSpacing.space2,
-          TossSpacing.space4,
-          TossSpacing.space3,
-        ),
-        child: TossSearchField(
-          controller: _searchController,
-          hintText: 'Search counterparties...',
-          prefixIcon: Icons.search,
-          onChanged: _onSearchChanged,
-          onClear: () {
-            _searchController.clear();
-            _onSearchChanged('');
-          },
-        ),
+  Widget _buildTotalHeader({
+    required int total,
+    required int internal,
+    required int external,
+  }) {
+    return Container(
+      margin: EdgeInsets.only(bottom: TossSpacing.space2),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.baseline,
+        textBaseline: TextBaseline.alphabetic,
+        children: [
+          // Total count
+          Text(
+            total.toString(),
+            style: TossTextStyles.h1.copyWith(
+              color: TossColors.textPrimary,
+              fontWeight: FontWeight.w700,
+              fontSize: 32,
+            ),
+          ),
+          SizedBox(width: TossSpacing.space2),
+          
+          // Label
+          Text(
+            'Counter Parties',
+            style: TossTextStyles.body.copyWith(
+              color: TossColors.textSecondary,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          
+          Spacer(),
+          
+          // Subtle breakdown info
+          if (total > 0)
+            Row(
+              children: [
+                _buildCountBadge(
+                  count: internal,
+                  label: 'internal',
+                  color: TossColors.primary,
+                ),
+                SizedBox(width: TossSpacing.space2),
+                _buildCountBadge(
+                  count: external,
+                  label: 'external',
+                  color: TossColors.warning,
+                ),
+              ],
+            ),
+        ],
       ),
     );
   }
-
-  String _getFilterLabel() {
-    final filter = ref.watch(counterPartyFilterProvider);
-    final activeFilters = <String>[];
-    
-    if (filter.types != null && filter.types!.isNotEmpty) {
-      if (filter.types!.length == 1) {
-        activeFilters.add(filter.types!.first.displayName);
-      } else {
-        activeFilters.add('${filter.types!.length} types');
-      }
-    }
-    
-    if (filter.isInternal != null) {
-      activeFilters.add(filter.isInternal! ? 'Internal' : 'External');
-    }
-    
-    if (activeFilters.isEmpty) {
-      return 'Filter';
-    }
-    
-    return activeFilters.join(' • ');
-  }
-
-  String _getSortLabel(CounterPartyFilter filter) {
-    switch (filter.sortBy) {
-      case CounterPartySortOption.name:
-        return 'Name (${filter.ascending ? 'A-Z' : 'Z-A'})';
-      case CounterPartySortOption.type:
-        return 'Type (${filter.ascending ? 'A-Z' : 'Z-A'})';
-      case CounterPartySortOption.createdAt:
-        return 'Created (${filter.ascending ? 'Old-New' : 'New-Old'})';
-      case CounterPartySortOption.isInternal:
-        return 'Internal (${filter.ascending ? 'External First' : 'Internal First'})';
-    }
-  }
-
-  bool _hasActiveFilters() {
-    final filter = ref.watch(counterPartyFilterProvider);
-    return (filter.types?.isNotEmpty ?? false) || filter.isInternal != null;
-  }
-
-  void _showFilterOptionsSheet() {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: TossColors.transparent,
-      builder: (context) => _buildFilterSheet(),
-    );
-  }
-
-  void _showSortOptionsSheet() {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: TossColors.transparent,
-      builder: (context) => _buildSortSheet(),
-    );
-  }
-
-  Widget _buildFilterSheet() {
-    final filter = ref.watch(counterPartyFilterProvider);
-    
+  
+  Widget _buildCountBadge({
+    required int count,
+    required String label,
+    required Color color,
+  }) {
     return Container(
-      constraints: BoxConstraints(
-        maxHeight: MediaQuery.of(context).size.height * 0.85,
+      padding: EdgeInsets.symmetric(
+        horizontal: TossSpacing.space2,
+        vertical: 4,
       ),
       decoration: BoxDecoration(
-        color: TossColors.surface,
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(TossBorderRadius.xl),
-          topRight: Radius.circular(TossBorderRadius.xl),
-        ),
+        color: color.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(TossBorderRadius.full),
       ),
-      child: Column(
+      child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Handle
           Container(
-            width: 48,
-            height: 4,
-            margin: EdgeInsets.only(top: TossSpacing.space3),
+            width: 6,
+            height: 6,
             decoration: BoxDecoration(
-              color: TossColors.gray300,
-              borderRadius: BorderRadius.circular(2),
+              color: color,
+              shape: BoxShape.circle,
             ),
           ),
-          
-          // Title
-          Container(
-            padding: EdgeInsets.all(TossSpacing.space4),
-            child: Text(
-              'Filter Counter Parties',
-              style: TossTextStyles.h3.copyWith(
-                fontWeight: FontWeight.w700,
-              ),
+          SizedBox(width: 4),
+          Text(
+            '$count',
+            style: TossTextStyles.caption.copyWith(
+              color: color,
+              fontWeight: FontWeight.w600,
+              fontSize: 12,
             ),
           ),
-          
-          // Scrollable Filter options
-          Flexible(
-            child: SingleChildScrollView(
-              padding: EdgeInsets.only(
-                bottom: MediaQuery.of(context).padding.bottom + TossSpacing.space4,
-              ),
-              child: _buildFilterOptions(filter),
+          SizedBox(width: 4),
+          Text(
+            label,
+            style: TossTextStyles.caption.copyWith(
+              color: color.withValues(alpha: 0.8),
+              fontSize: 11,
             ),
           ),
-          
-          SizedBox(height: TossSpacing.space4),
         ],
       ),
     );
   }
 
-  Widget _buildFilterOptions(CounterPartyFilter filter) {
-    final allOptions = [
-      // Type options
-      {'type': 'all', 'label': 'All Types', 'icon': Icons.clear_all_rounded, 'category': 'type'},
-      {'type': CounterPartyType.myCompany, 'label': 'My Company', 'icon': Icons.business, 'category': 'type'},
-      {'type': CounterPartyType.teamMember, 'label': 'Team Member', 'icon': Icons.group, 'category': 'type'},
-      {'type': CounterPartyType.supplier, 'label': 'Suppliers', 'icon': Icons.local_shipping, 'category': 'type'},
-      {'type': CounterPartyType.employee, 'label': 'Employees', 'icon': Icons.badge, 'category': 'type'},
-      {'type': CounterPartyType.customer, 'label': 'Customers', 'icon': Icons.people, 'category': 'type'},
-      {'type': CounterPartyType.other, 'label': 'Others', 'icon': Icons.category, 'category': 'type'},
-      
-      // Internal/External options
-      {'value': null, 'label': 'All Locations', 'icon': Icons.all_inclusive, 'category': 'internal'},
-      {'value': true, 'label': 'Internal Only', 'icon': Icons.home_work, 'category': 'internal'},
-      {'value': false, 'label': 'External Only', 'icon': Icons.public, 'category': 'internal'},
-    ];
+  Widget _buildSimpleStatCard({
+    required String label,
+    required int count,
+    required IconData icon,
+    required bool isSelected,
+    bool isInternal = false,
+    bool isLoading = false,
+  }) {
+    // Determine colors based on internal/external category
+    final Color baseColor = isInternal ? TossColors.primary : TossColors.warning;
+    final Color backgroundColor = isSelected 
+        ? baseColor.withValues(alpha: 0.15)
+        : isInternal 
+            ? Color(0xFFF8FBFF)  // Very light blue tint for internal
+            : Color(0xFFFFFBF8); // Very light warm tint for external
     
-    return Column(
-      children: allOptions.map((option) {
-        final bool isSelected;
-        final VoidCallback onTap;
-        
-        if (option['category'] == 'type') {
-          // Handle type filters
-          final isAll = option['type'] == 'all';
-          isSelected = isAll 
-              ? (filter.types?.isEmpty ?? true)
-              : (filter.types?.contains(option['type']) ?? false);
-          
-          onTap = () {
-            final currentFilter = ref.read(counterPartyFilterProvider);
-            List<CounterPartyType>? newTypes;
-            
-            if (isAll) {
-              newTypes = null;
-            } else {
-              final type = option['type'] as CounterPartyType;
-              final currentTypes = List<CounterPartyType>.from(currentFilter.types ?? []);
-              
-              if (currentTypes.contains(type)) {
-                currentTypes.remove(type);
-              } else {
-                currentTypes.add(type);
-              }
-              
-              newTypes = currentTypes.isEmpty ? null : currentTypes;
-            }
-            
-            ref.read(counterPartyFilterProvider.notifier).state = 
-                currentFilter.copyWith(types: newTypes);
-            
-            Navigator.pop(context);
-          };
-        } else {
-          // Handle internal/external filters
-          isSelected = filter.isInternal == option['value'];
-          
-          onTap = () {
-            final currentFilter = ref.read(counterPartyFilterProvider);
-            ref.read(counterPartyFilterProvider.notifier).state = currentFilter.copyWith(
-              isInternal: option['value'] as bool?,
-            );
-            Navigator.pop(context);
-          };
-        }
-        
-        return Material(
-          color: Colors.transparent,
-          child: InkWell(
-            onTap: onTap,
-            child: Container(
-              padding: EdgeInsets.symmetric(
-                horizontal: TossSpacing.space4,
-                vertical: TossSpacing.space4,
-              ),
-              child: Row(
-                children: [
-                  Icon(
-                    option['icon'] as IconData,
-                    size: 20,
-                    color: TossColors.gray600,
-                  ),
-                  SizedBox(width: TossSpacing.space3),
-                  Text(
-                    option['label'] as String,
-                    style: TossTextStyles.body.copyWith(
-                      color: TossColors.gray900,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  Spacer(),
-                  if (isSelected)
-                    Icon(
-                      Icons.check_rounded,
-                      color: TossColors.primary,
-                      size: 20,
-                    ),
-                ],
-              ),
+    final Color iconBackgroundColor = baseColor.withValues(alpha: 0.08);
+    final Color borderColor = isSelected 
+        ? baseColor 
+        : baseColor.withValues(alpha: 0.15);
+    
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () {
+          // Handle card tap for filtering
+        },
+        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+        child: Container(
+          padding: EdgeInsets.all(TossSpacing.space3),
+          decoration: BoxDecoration(
+            color: backgroundColor,
+            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+            border: Border.all(
+              color: borderColor,
+              width: isSelected ? 1.5 : 1,
             ),
           ),
-        );
-      }).toList(),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // Icon with subtle background
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: iconBackgroundColor,
+                  borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                ),
+                child: Center(
+                  child: isLoading
+                      ? SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            color: baseColor,
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : Icon(
+                          icon,
+                          size: 24,
+                          color: baseColor,
+                        ),
+                ),
+              ),
+              SizedBox(height: TossSpacing.space2),
+              Text(
+                isLoading ? '-' : count.toString(),
+                style: TossTextStyles.h3.copyWith(
+                  color: TossColors.textPrimary,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 20,
+                ),
+              ),
+              SizedBox(height: 2),
+              Text(
+                label,
+                style: TossTextStyles.caption.copyWith(
+                  color: TossColors.textSecondary,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w500,
+                ),
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
-  Widget _buildSortSheet() {
+
+  Widget _buildSearchFilterSection() {
+    return Container(
+      margin: const EdgeInsets.fromLTRB(
+        TossSpacing.space4,
+        TossSpacing.space3,
+        TossSpacing.space4,
+        TossSpacing.space4,
+      ),
+      child: SBSearchBarFilter(
+        searchController: _searchController,
+        searchHint: 'Search counterparties...',
+        onSearchChanged: _onSearchChanged,
+        onFilterTap: _showFilterOptionsSheet,
+      ),
+    );
+  }
+
+
+  bool _hasActiveFilters() {
     final filter = ref.watch(counterPartyFilterProvider);
-    
-    final sortOptions = [
-      {'value': CounterPartySortOption.name, 'label': 'Name', 'icon': Icons.sort_by_alpha},
-      {'value': CounterPartySortOption.type, 'label': 'Type', 'icon': Icons.category},
-      {'value': CounterPartySortOption.createdAt, 'label': 'Created Date', 'icon': Icons.calendar_today},
-      {'value': CounterPartySortOption.isInternal, 'label': 'Internal/External', 'icon': Icons.home_work},
-    ];
+    return (filter.types?.isNotEmpty ?? false) || filter.isInternal != null || filter.sortBy != CounterPartySortOption.name || !filter.ascending;
+  }
+  
+  int _getActiveFilterCount() {
+    final filter = ref.watch(counterPartyFilterProvider);
+    int count = 0;
+    if (filter.types?.isNotEmpty ?? false) count++;
+    if (filter.isInternal != null) count++;
+    if (filter.sortBy != CounterPartySortOption.name || !filter.ascending) count++;
+    return count;
+  }
+
+  void _showFilterOptionsSheet() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: TossColors.transparent,
+      builder: (context) => _buildFilterSheet(),
+    );
+  }
+
+  Widget _buildFilterSheet() {
     
     return Container(
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.of(context).size.height * 0.8,
+      ),
       padding: EdgeInsets.only(
         bottom: MediaQuery.of(context).padding.bottom,
       ),
@@ -611,99 +711,314 @@ class _CounterPartyPageState extends ConsumerState<CounterPartyPage> {
             ),
           ),
           
-          // Title
+          // Header with title and clear all
           Container(
             padding: EdgeInsets.all(TossSpacing.space4),
-            child: Text(
-              'Sort by',
-              style: TossTextStyles.h3.copyWith(
-                fontWeight: FontWeight.w700,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Filter Counter Parties',
+                  style: TossTextStyles.h3.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                if (_hasActiveFilters())
+                  TextButton(
+                    onPressed: () {
+                      ref.read(counterPartyFilterProvider.notifier).state = CounterPartyFilter();
+                      Navigator.pop(context);
+                    },
+                    child: Text(
+                      'Clear All',
+                      style: TossTextStyles.body.copyWith(
+                        color: TossColors.primary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          
+          // Filter Categories (Scrollable)
+          Flexible(
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  _buildFilterCategory('Type', Icons.category_outlined),
+                  _buildFilterCategory('Location', Icons.location_on_outlined),
+                  _buildFilterCategory('Sort By', Icons.sort_outlined),
+                ],
               ),
             ),
           ),
           
-          // Sort Options
-          ...sortOptions.map((option) {
-            final isSelected = option['value'] == filter.sortBy;
-            String label = option['label'] as String;
-            
-            // Add direction indicator for the selected option
-            if (isSelected) {
-              switch (option['value'] as CounterPartySortOption) {
-                case CounterPartySortOption.name:
-                case CounterPartySortOption.type:
-                  label += ' (${filter.ascending ? 'A-Z' : 'Z-A'})';
-                  break;
-                case CounterPartySortOption.createdAt:
-                  label += ' (${filter.ascending ? 'Old-New' : 'New-Old'})';
-                  break;
-                case CounterPartySortOption.isInternal:
-                  label += ' (${filter.ascending ? 'External First' : 'Internal First'})';
-                  break;
-              }
-            }
-            
-            return Material(
-              color: TossColors.transparent,
-              child: InkWell(
-                onTap: () {
-                  final currentFilter = ref.read(counterPartyFilterProvider);
-                  final sortBy = option['value'] as CounterPartySortOption;
-                  
-                  // Toggle direction if same sort option is selected
-                  final ascending = currentFilter.sortBy == sortBy ? !currentFilter.ascending : true;
-                  
-                  ref.read(counterPartyFilterProvider.notifier).state = 
-                      currentFilter.copyWith(sortBy: sortBy, ascending: ascending);
-                  
-                  Navigator.pop(context);
-                },
-                child: Container(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: TossSpacing.space4,
-                    vertical: TossSpacing.space3,
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        option['icon'] as IconData,
-                        size: 20,
-                        color: TossColors.gray600,
-                      ),
-                      SizedBox(width: TossSpacing.space3),
-                      Text(
-                        label,
-                        style: TossTextStyles.body.copyWith(
-                          color: TossColors.gray900,
-                          fontWeight: FontWeight.w400,
-                        ),
-                      ),
-                      Spacer(),
-                      if (isSelected)
-                        Icon(
-                          Icons.check_rounded,
-                          color: TossColors.primary,
-                          size: 20,
-                        ),
-                    ],
-                  ),
+          // Active Filters Summary
+          if (_hasActiveFilters())
+            Container(
+              margin: EdgeInsets.all(TossSpacing.space4),
+              padding: EdgeInsets.all(TossSpacing.space3),
+              decoration: BoxDecoration(
+                color: TossColors.primary.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                border: Border.all(
+                  color: TossColors.primary.withValues(alpha: 0.3),
+                  width: 1,
                 ),
               ),
-            );
-          }).toList(),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.filter_list_rounded,
+                    color: TossColors.primary,
+                    size: 20,
+                  ),
+                  SizedBox(width: TossSpacing.space2),
+                  Expanded(
+                    child: Text(
+                      '${_getActiveFilterCount()} filter${_getActiveFilterCount() > 1 ? 's' : ''} active',
+                      style: TossTextStyles.body.copyWith(
+                        color: TossColors.primary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           
-          SizedBox(height: TossSpacing.space4),
+          SizedBox(height: TossSpacing.space2),
         ],
       ),
     );
   }
+
+  Widget _buildFilterCategory(String title, IconData icon) {
+    final filter = ref.watch(counterPartyFilterProvider);
+    
+    return Column(
+      children: [
+        // Category Header
+        Container(
+          padding: EdgeInsets.symmetric(
+            horizontal: TossSpacing.space4,
+            vertical: TossSpacing.space2,
+          ),
+          child: Row(
+            children: [
+              Icon(
+                icon,
+                size: 20,
+                color: TossColors.gray600,
+              ),
+              SizedBox(width: TossSpacing.space2),
+              Text(
+                title,
+                style: TossTextStyles.body.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: TossColors.gray800,
+                ),
+              ),
+            ],
+          ),
+        ),
+        
+        if (title == 'Type') ...[
+          _buildFilterOption('All Types', null, filter.types == null || filter.types!.isEmpty),
+          _buildFilterOption('My Company', CounterPartyType.myCompany, filter.types?.contains(CounterPartyType.myCompany) ?? false),
+          _buildFilterOption('Team Member', CounterPartyType.teamMember, filter.types?.contains(CounterPartyType.teamMember) ?? false),
+          _buildFilterOption('Suppliers', CounterPartyType.supplier, filter.types?.contains(CounterPartyType.supplier) ?? false),
+          _buildFilterOption('Employees', CounterPartyType.employee, filter.types?.contains(CounterPartyType.employee) ?? false),
+          _buildFilterOption('Customers', CounterPartyType.customer, filter.types?.contains(CounterPartyType.customer) ?? false),
+          _buildFilterOption('Others', CounterPartyType.other, filter.types?.contains(CounterPartyType.other) ?? false),
+        ] else if (title == 'Location') ...[
+          _buildLocationOption('All Locations', null, filter.isInternal == null),
+          _buildLocationOption('Internal Only', true, filter.isInternal == true),
+          _buildLocationOption('External Only', false, filter.isInternal == false),
+        ] else if (title == 'Sort By') ...[
+          _buildSortOption('Name', CounterPartySortOption.name, filter.sortBy == CounterPartySortOption.name, filter.ascending),
+          _buildSortOption('Type', CounterPartySortOption.type, filter.sortBy == CounterPartySortOption.type, filter.ascending),
+          _buildSortOption('Created Date', CounterPartySortOption.createdAt, filter.sortBy == CounterPartySortOption.createdAt, filter.ascending),
+        ],
+        
+        SizedBox(height: TossSpacing.space2),
+      ],
+    );
+  }
+  
+  Widget _buildFilterOption(String text, CounterPartyType? type, bool isSelected) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () {
+          final currentFilter = ref.read(counterPartyFilterProvider);
+          List<CounterPartyType>? newTypes;
+          
+          if (type == null) {
+            newTypes = null;
+          } else {
+            final currentTypes = List<CounterPartyType>.from(currentFilter.types ?? []);
+            
+            if (currentTypes.contains(type)) {
+              currentTypes.remove(type);
+            } else {
+              currentTypes.add(type);
+            }
+            
+            newTypes = currentTypes.isEmpty ? null : currentTypes;
+          }
+          
+          ref.read(counterPartyFilterProvider.notifier).state = 
+              currentFilter.copyWith(types: newTypes);
+        },
+        child: Container(
+          padding: EdgeInsets.symmetric(
+            horizontal: TossSpacing.space6,
+            vertical: TossSpacing.space3,
+          ),
+          child: Row(
+            children: [
+              SizedBox(width: TossSpacing.space6), // Indentation
+              Expanded(
+                child: Text(
+                  text,
+                  style: TossTextStyles.body.copyWith(
+                    color: isSelected ? TossColors.primary : TossColors.gray700,
+                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                  ),
+                ),
+              ),
+              if (isSelected)
+                Icon(
+                  Icons.check_rounded,
+                  color: TossColors.primary,
+                  size: 20,
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+  
+  Widget _buildLocationOption(String text, bool? isInternal, bool isSelected) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () {
+          final currentFilter = ref.read(counterPartyFilterProvider);
+          ref.read(counterPartyFilterProvider.notifier).state = currentFilter.copyWith(
+            isInternal: isInternal,
+          );
+        },
+        child: Container(
+          padding: EdgeInsets.symmetric(
+            horizontal: TossSpacing.space6,
+            vertical: TossSpacing.space3,
+          ),
+          child: Row(
+            children: [
+              SizedBox(width: TossSpacing.space6), // Indentation
+              Expanded(
+                child: Text(
+                  text,
+                  style: TossTextStyles.body.copyWith(
+                    color: isSelected ? TossColors.primary : TossColors.gray700,
+                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                  ),
+                ),
+              ),
+              if (isSelected)
+                Icon(
+                  Icons.check_rounded,
+                  color: TossColors.primary,
+                  size: 20,
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+  
+  Widget _buildSortOption(String text, CounterPartySortOption sortBy, bool isSelected, bool ascending) {
+    String displayText = text;
+    if (isSelected) {
+      switch (sortBy) {
+        case CounterPartySortOption.name:
+        case CounterPartySortOption.type:
+          displayText += ' (${ascending ? 'A-Z' : 'Z-A'})';
+          break;
+        case CounterPartySortOption.createdAt:
+          displayText += ' (${ascending ? 'Old-New' : 'New-Old'})';
+          break;
+        case CounterPartySortOption.isInternal:
+          displayText += ' (${ascending ? 'External First' : 'Internal First'})';
+          break;
+      }
+    }
+    
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () {
+          final currentFilter = ref.read(counterPartyFilterProvider);
+          final newAscending = currentFilter.sortBy == sortBy ? !currentFilter.ascending : true;
+          
+          ref.read(counterPartyFilterProvider.notifier).state = 
+              currentFilter.copyWith(sortBy: sortBy, ascending: newAscending);
+        },
+        child: Container(
+          padding: EdgeInsets.symmetric(
+            horizontal: TossSpacing.space6,
+            vertical: TossSpacing.space3,
+          ),
+          child: Row(
+            children: [
+              SizedBox(width: TossSpacing.space6), // Indentation
+              Expanded(
+                child: Text(
+                  displayText,
+                  style: TossTextStyles.body.copyWith(
+                    color: isSelected ? TossColors.primary : TossColors.gray700,
+                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                  ),
+                ),
+              ),
+              if (isSelected)
+                Icon(
+                  Icons.check_rounded,
+                  color: TossColors.primary,
+                  size: 20,
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
 
   Widget _buildCounterPartyList(
     BuildContext context,
     AsyncValue<List<CounterParty>> counterPartiesAsync,
   ) {
     return counterPartiesAsync.when(
-      data: (counterParties) {
+      data: (allCounterParties) {
+        // Apply search filter
+        final counterParties = _searchQuery.isEmpty
+            ? allCounterParties
+            : allCounterParties.where((cp) {
+                final name = cp.name.toLowerCase();
+                final type = cp.type.displayName.toLowerCase();
+                final location = cp.isInternal ? 'internal' : 'external';
+                
+                return name.contains(_searchQuery) ||
+                       type.contains(_searchQuery) ||
+                       location.contains(_searchQuery);
+              }).toList();
+        
         if (counterParties.isEmpty) {
           return SliverFillRemaining(
             child: Center(
@@ -711,20 +1026,26 @@ class _CounterPartyPageState extends ConsumerState<CounterPartyPage> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(
-                    Icons.people_outline,
-                    size: TossSpacing.iconXL + 24,
-                    color: TossColors.textTertiary,
+                    _searchQuery.isNotEmpty || _hasActiveFilters()
+                        ? Icons.search_off_rounded
+                        : Icons.people_outline,
+                    size: 64,
+                    color: TossColors.gray400,
                   ),
                   SizedBox(height: TossSpacing.space4),
                   Text(
-                    'No counterparties yet',
+                    _searchQuery.isNotEmpty || _hasActiveFilters()
+                        ? 'No results found'
+                        : 'No counterparties yet',
                     style: TossTextStyles.h3.copyWith(
                       color: TossColors.textSecondary,
                     ),
                   ),
                   SizedBox(height: TossSpacing.space2),
                   Text(
-                    'Tap the + button to add your first counterparty',
+                    _searchQuery.isNotEmpty || _hasActiveFilters()
+                        ? 'Try adjusting your search or filters'
+                        : 'Tap the + button to add your first counterparty',
                     style: TossTextStyles.body.copyWith(
                       color: TossColors.textTertiary,
                     ),
@@ -735,39 +1056,22 @@ class _CounterPartyPageState extends ConsumerState<CounterPartyPage> {
           );
         }
 
-        // No need to filter here - optimizedCounterPartiesProvider already handles it
         return SliverPadding(
-          padding: EdgeInsets.all(TossSpacing.space4),
-          sliver: SliverList(
-            delegate: SliverChildBuilderDelegate(
-              (context, index) {
-                final counterParty = counterParties[index];
-                return Padding(
-                  padding: EdgeInsets.only(bottom: TossSpacing.space3),
-                  child: CounterPartyListItem(
-                    counterParty: counterParty,
-                    onEdit: () => _showEditForm(counterParty),
-                    onAccountSettings: () {
-                      if (counterParty.isInternal) {
-                        context.push('/debtAccountSettings/${counterParty.counterpartyId}/${Uri.encodeComponent(counterParty.name)}');
-                      } else {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('Account settings are only available for internal companies'),
-                            backgroundColor: TossColors.warning,
-                            behavior: SnackBarBehavior.floating,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                            ),
-                          ),
-                        );
-                      }
-                    },
-                    onDelete: () => _deleteCounterParty(counterParty),
-                  ),
-                );
-              },
-              childCount: counterParties.length,
+          padding: EdgeInsets.only(
+            left: TossSpacing.space4,
+            right: TossSpacing.space4,
+            bottom: TossSpacing.space4,
+          ),
+          sliver: SliverToBoxAdapter(
+            child: FadeTransition(
+              opacity: _cardAnimation,
+              child: SlideTransition(
+                position: Tween<Offset>(
+                  begin: const Offset(0, 0.05),
+                  end: Offset.zero,
+                ).animate(_cardAnimation),
+                child: _buildCounterPartyListSection(counterParties),
+              ),
             ),
           ),
         );
@@ -786,7 +1090,7 @@ class _CounterPartyPageState extends ConsumerState<CounterPartyPage> {
             children: [
               Icon(
                 Icons.error_outline,
-                size: TossSpacing.inputHeightLG,
+                size: 64,
                 color: TossColors.error,
               ),
               SizedBox(height: TossSpacing.space4),
@@ -817,6 +1121,227 @@ class _CounterPartyPageState extends ConsumerState<CounterPartyPage> {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+  
+  Widget _buildCounterPartyListSection(List<CounterParty> counterParties) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Section Header - No background, separated from list
+        SBHeadlineGroup(
+          title: 'Counter Parties',
+        ),
+        
+        // Counter Party List Container
+        Container(
+          decoration: BoxDecoration(
+            color: TossColors.surface,
+            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+          ),
+          child: Column(
+            children: [
+              // Counter Party List
+              ...counterParties.asMap().entries.map((entry) {
+                final index = entry.key;
+                final counterParty = entry.value;
+                
+                return Column(
+                  children: [
+                    _buildCounterPartyCard(counterParty, index),
+                    if (index < counterParties.length - 1) 
+                      Divider(
+                        height: 1,
+                        color: TossColors.gray100,
+                        indent: TossSpacing.space4,
+                        endIndent: TossSpacing.space4,
+                      ),
+                  ],
+                );
+              }).toList(),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+  
+  Widget _buildCounterPartyCard(CounterParty counterParty, int index) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () => _showEditForm(counterParty),
+        onLongPress: () => _showCounterPartyOptions(counterParty),
+        borderRadius: index == 0 
+            ? BorderRadius.only(
+                topLeft: Radius.circular(TossBorderRadius.lg),
+                topRight: Radius.circular(TossBorderRadius.lg),
+              )
+            : BorderRadius.zero,
+        child: Container(
+          padding: EdgeInsets.all(TossSpacing.space4),
+          child: Row(
+            children: [
+              // Type Icon with color
+              Container(
+                width: 56,
+                height: 56,
+                decoration: BoxDecoration(
+                  color: CounterPartyColors.getTypeColor(counterParty.type).withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(28),
+                ),
+                child: Center(
+                  child: Icon(
+                    CounterPartyColors.getTypeIcon(counterParty.type),
+                    size: 24,
+                    color: CounterPartyColors.getTypeColor(counterParty.type),
+                  ),
+                ),
+              ),
+              
+              SizedBox(width: TossSpacing.space4),
+              
+              // Counter Party Info
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Name with internal/external indicator
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            counterParty.name,
+                            style: TossTextStyles.body.copyWith(
+                              fontWeight: FontWeight.w700,
+                              fontSize: 16,
+                              color: Colors.black87,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        if (counterParty.isInternal)
+                          Container(
+                            margin: EdgeInsets.only(left: TossSpacing.space2),
+                            padding: EdgeInsets.symmetric(
+                              horizontal: TossSpacing.space2,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: TossColors.primary.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(TossBorderRadius.sm),
+                            ),
+                            child: Text(
+                              'Internal',
+                              style: TossTextStyles.caption.copyWith(
+                                color: TossColors.primary,
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                    SizedBox(height: TossSpacing.space1),
+                    // Type info
+                    Text(
+                      counterParty.type.displayName,
+                      style: TossTextStyles.caption.copyWith(
+                        color: Colors.grey[600],
+                        fontSize: 13,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+              
+              // Actions
+              if (counterParty.isInternal)
+                IconButton(
+                  icon: Icon(
+                    Icons.settings_outlined,
+                    color: TossColors.gray600,
+                    size: 20,
+                  ),
+                  onPressed: () {
+                    context.push('/debtAccountSettings/${counterParty.counterpartyId}/${Uri.encodeComponent(counterParty.name)}');
+                  },
+                ),
+              
+              // Arrow icon
+              Icon(
+                Icons.chevron_right,
+                color: Colors.grey[400],
+                size: 22,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+  
+  void _showCounterPartyOptions(CounterParty counterParty) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: TossColors.transparent,
+      builder: (context) => Container(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).padding.bottom,
+        ),
+        decoration: BoxDecoration(
+          color: TossColors.surface,
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(TossBorderRadius.xl),
+            topRight: Radius.circular(TossBorderRadius.xl),
+          ),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Handle
+            Container(
+              width: 48,
+              height: 4,
+              margin: EdgeInsets.only(top: TossSpacing.space3),
+              decoration: BoxDecoration(
+                color: TossColors.gray300,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            
+            // Options
+            ListTile(
+              leading: Icon(Icons.edit, color: TossColors.primary),
+              title: Text('Edit'),
+              onTap: () {
+                Navigator.pop(context);
+                _showEditForm(counterParty);
+              },
+            ),
+            if (counterParty.isInternal)
+              ListTile(
+                leading: Icon(Icons.settings, color: TossColors.gray700),
+                title: Text('Account Settings'),
+                onTap: () {
+                  Navigator.pop(context);
+                  context.push('/debtAccountSettings/${counterParty.counterpartyId}/${Uri.encodeComponent(counterParty.name)}');
+                },
+              ),
+            ListTile(
+              leading: Icon(Icons.delete, color: TossColors.error),
+              title: Text('Delete', style: TextStyle(color: TossColors.error)),
+              onTap: () {
+                Navigator.pop(context);
+                _deleteCounterParty(counterParty);
+              },
+            ),
+            
+            SizedBox(height: TossSpacing.space2),
+          ],
         ),
       ),
     );
@@ -868,5 +1393,38 @@ class _CounterPartyPageState extends ConsumerState<CounterPartyPage> {
         );
       }
     }
+  }
+  
+  Widget _buildFloatingActions() {
+    return Positioned(
+      bottom: TossSpacing.space4,
+      right: TossSpacing.space4,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          // Scroll to Top FAB
+          AnimatedScale(
+            scale: _showScrollToTop ? 1.0 : 0.0,
+            duration: TossAnimations.normal,
+            curve: TossAnimations.standard,
+            child: FloatingActionButton.small(
+              heroTag: 'scroll_to_top',
+              backgroundColor: TossColors.surface,
+              foregroundColor: TossColors.primary,
+              elevation: 4,
+              onPressed: () {
+                _scrollController.animateTo(
+                  0,
+                  duration: TossAnimations.medium,
+                  curve: TossAnimations.decelerate,
+                );
+              },
+              child: Icon(Icons.arrow_upward_rounded),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

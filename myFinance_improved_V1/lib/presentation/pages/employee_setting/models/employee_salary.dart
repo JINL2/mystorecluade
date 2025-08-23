@@ -35,6 +35,10 @@ class EmployeeSalary {
   final int? totalWorkingDay;
   final double? totalWorkingHour;
   final double? totalSalary;
+  
+  // Additional attendance fields for time tracking
+  final double? lateTimeHours;  // Total late hours in the month
+  final double? overtimeHours;  // Total overtime hours in the month
 
   EmployeeSalary({
     this.salaryId,
@@ -73,6 +77,10 @@ class EmployeeSalary {
     this.totalWorkingDay,
     this.totalWorkingHour,
     this.totalSalary,
+    
+    // Additional attendance fields
+    this.lateTimeHours,
+    this.overtimeHours,
   });
 
   factory EmployeeSalary.fromJson(Map<String, dynamic> json) {
@@ -123,6 +131,10 @@ class EmployeeSalary {
       totalWorkingDay: json['total_working_day'] as int?,
       totalWorkingHour: (json['total_working_hour'] as num?)?.toDouble(),
       totalSalary: (json['total_salary'] as num?)?.toDouble(),
+      
+      // Additional attendance fields
+      lateTimeHours: (json['late_time_hours'] as num?)?.toDouble(),
+      overtimeHours: (json['overtime_hours'] as num?)?.toDouble(),
     );
   }
 
@@ -164,6 +176,10 @@ class EmployeeSalary {
       'total_working_day': totalWorkingDay,
       'total_working_hour': totalWorkingHour,
       'total_salary': totalSalary,
+      
+      // Additional attendance fields
+      'late_time_hours': lateTimeHours,
+      'overtime_hours': overtimeHours,
     };
   }
 

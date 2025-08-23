@@ -41,11 +41,11 @@ class TossCurrencyChip extends StatelessWidget {
           vertical: TossSpacing.space2,
         ),
         decoration: BoxDecoration(
-          color: isSelected ? TossColors.primary : Colors.white,
-          borderRadius: BorderRadius.circular(TossBorderRadius.md),
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(TossBorderRadius.full),
           border: Border.all(
             color: isSelected ? TossColors.primary : TossColors.gray300,
-            width: 1.5,
+            width: isSelected ? 2.0 : 1.0,
           ),
         ),
         child: Row(
@@ -54,7 +54,7 @@ class TossCurrencyChip extends StatelessWidget {
             Text(
               symbol,
               style: TossTextStyles.body.copyWith(
-                color: isSelected ? Colors.white : TossColors.gray700,
+                color: isSelected ? TossColors.primary : TossColors.gray700,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -62,9 +62,7 @@ class TossCurrencyChip extends StatelessWidget {
             Text(
               currencyCode,
               style: TossTextStyles.caption.copyWith(
-                color: isSelected
-                    ? Colors.white.withOpacity(0.9)
-                    : TossColors.gray500,
+                color: isSelected ? TossColors.primary : TossColors.gray500,
                 fontWeight: FontWeight.w500,
               ),
             ),

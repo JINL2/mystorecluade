@@ -7,6 +7,7 @@ import '../models/role.dart';
 import '../services/salary_service.dart';
 import '../services/role_service.dart';
 import '../../../providers/app_state_provider.dart';
+import '../../../providers/auth_provider.dart';
 
 // Salary Service Provider
 final salaryServiceProvider = Provider<SalaryService>((ref) {
@@ -153,22 +154,71 @@ final salaryUpdatesStreamProvider = StreamProvider<List<EmployeeSalary>>((ref) {
 // Sync State Provider
 final isSyncingProvider = StateProvider<bool>((ref) => false);
 
-// Roles Provider
+// Roles Provider - Using the same RPC as delegate role page
 final rolesProvider = FutureProvider<List<Role>>((ref) async {
   try {
-    final service = ref.read(roleServiceProvider);
     final appState = ref.watch(appStateProvider);
+    final user = ref.watch(authStateProvider);
     final companyId = appState.companyChoosen;
     
     if (companyId.isEmpty) {
-      // If no company selected, fetch all global roles
-      return await service.getAllRoles();
+      return [];
     }
     
-    // Fetch company-specific and global roles
-    return await service.getRolesByCompany(companyId);
+    final supabase = Supabase.instance.client;
+    
+    // Use the same RPC function as delegate role page
+    final response = await supabase.rpc(
+      'get_company_roles_optimized',
+      params: {
+        'p_company_id': companyId,
+        'p_current_user_id': user?.id,
+      },
+    );
+    
+    // Handle error response from RPC
+    if (response is Map && response['error'] == true) {
+      throw Exception(response['message'] ?? 'Failed to fetch roles');
+    }
+    
+    // Parse response and convert to Role objects
+    final rolesData = response as List? ?? [];
+    
+    return rolesData.map<Role>((roleData) {
+      // Extract role information from the RPC response
+      // Handle tags field - it might be List, Map, or null
+      Map<String, dynamic>? tags;
+      final tagsData = roleData['tags'];
+      if (tagsData is Map<String, dynamic>) {
+        tags = tagsData;
+      } else if (tagsData is List) {
+        // Convert List to Map if needed, or set to null
+        tags = null;
+      }
+      
+      final role = Role(
+        roleId: roleData['roleId']?.toString() ?? '',
+        roleName: roleData['roleName']?.toString() ?? '',
+        roleType: roleData['roleType']?.toString() ?? 'custom',
+        description: roleData['description']?.toString(),
+        companyId: roleData['companyId']?.toString(),
+        tags: tags,
+        isDeletable: roleData['isDeletable'] as bool?,
+        createdAt: roleData['createdAt'] != null 
+            ? DateTime.tryParse(roleData['createdAt'].toString()) ?? DateTime.now()
+            : DateTime.now(),
+        updatedAt: roleData['updatedAt'] != null
+            ? DateTime.tryParse(roleData['updatedAt'].toString()) ?? DateTime.now()
+            : DateTime.now(),
+      );
+      
+      return role;
+    }).toList();
+    
   } catch (e) {
-    rethrow;
+    print('rolesProvider error: $e');
+    // Return empty list instead of throwing to show "No roles available" message
+    return [];
   }
 });
 

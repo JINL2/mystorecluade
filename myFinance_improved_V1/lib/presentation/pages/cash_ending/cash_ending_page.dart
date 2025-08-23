@@ -14,15 +14,15 @@ import '../../../core/themes/toss_icons.dart';
 import '../../../core/constants/ui_constants.dart';
 import '../../providers/app_state_provider.dart';
 import '../../widgets/toss/toss_primary_button.dart';
-import '../../widgets/toss/toss_card.dart';
 import '../../widgets/toss/toss_tab_bar.dart';
+import '../../widgets/toss/toss_dropdown.dart';
 import '../../widgets/common/toss_app_bar.dart';
 import '../../widgets/common/toss_empty_state_card.dart';
 import '../../widgets/common/toss_white_card.dart';
-import '../../widgets/common/toss_currency_chip.dart';
-import '../../widgets/common/toss_section_header.dart';
 import '../../widgets/common/toss_number_input.dart';
 import '../../widgets/common/toss_toggle_button.dart';
+import '../../widgets/SB_widget/SB_headline_group.dart';
+import '../../widgets/specific/popup_success.dart';
 
 // Page for cash ending functionality with tabs
 class CashEndingPage extends ConsumerStatefulWidget {
@@ -62,8 +62,8 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
   String? selectedBankLocationId;
   
   // Bank tab specific variables
-  TextEditingController bankAmountController = TextEditingController();
-  String? selectedBankCurrencyType; // Selected currency_id for bank tab
+  TextEditingController bankAmountController = TextEditingController(text: '0');
+  String? selectedBankCurrencyId; // Selected currency_id for bank tab
   List<Map<String, dynamic>> recentBankTransactions = [];
   bool isLoadingBankTransactions = false;
   
@@ -95,7 +95,6 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
   
   // Selected currency for each tab
   String? selectedCashCurrencyId;
-  String? selectedBankCurrencyId;
   String? selectedVaultCurrencyId;
   
   @override
@@ -459,7 +458,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
     // Show loading indicator while fetching initial data
     if (isLoadingCurrency || isLoadingStores) {
       return Scaffold(
-        backgroundColor: TossColors.gray100,
+        backgroundColor: TossColors.white,
         body: const Center(
           child: CircularProgressIndicator(color: TossColors.primary),
         ),
@@ -469,10 +468,10 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
     final hasVaultBankAccess = _hasVaultBankPermission();
     
     return Scaffold(
-      backgroundColor: TossColors.gray100,
+      backgroundColor: TossColors.white,
       appBar: TossAppBar(
         title: 'Cash Ending',
-        backgroundColor: TossColors.gray100,
+        backgroundColor: TossColors.white,
         leading: IconButton(
           icon: FaIcon(
             FontAwesomeIcons.chevronLeft,
@@ -509,6 +508,8 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
                 },
               ),
             ),
+            // Add spacing after tab bar
+            const SizedBox(height: TossSpacing.space6),
             // Tab Content
             Expanded(
               child: TabBarView(
@@ -563,69 +564,56 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Input Section - wrapped in white card
-          TossCard(
-            padding: const EdgeInsets.all(TossSpacing.space5),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildStoreSelector(),
-                if (selectedStoreId != null) ...[
-                  const SizedBox(height: TossSpacing.space6),
-                  _buildLocationSelector('cash'),
-                ],
-                if (selectedLocationId != null) ...[
-                  const SizedBox(height: TossSpacing.space8),
-                  _buildDenominationSection(tabType: 'cash'),
-                  const SizedBox(height: TossSpacing.space8),
-                  _buildTotalSection(tabType: 'cash'),
-                  const SizedBox(height: TossSpacing.space10),
-                  _buildSubmitButton(),
-                ],
-              ],
-            ),
-          ),
+          // Store Section
+          _buildStoreSelector(),
           
-          // Show Recent Cash Ending only when location is selected
+          // Cash Location Section
+          if (selectedStoreId != null) ...[
+            const SizedBox(height: TossSpacing.space6),
+            SBHeadlineGroup(title: 'Cash Location'),
+            _buildLocationSelector('cash'),
+          ],
+          
+          // Cash Count Section
+          if (selectedLocationId != null) ...[
+            const SizedBox(height: TossSpacing.space8),
+            SBHeadlineGroup(title: 'Cash Count'),
+            _buildDenominationSection(tabType: 'cash'),
+            const SizedBox(height: TossSpacing.space8),
+            _buildTotalSection(tabType: 'cash'),
+            const SizedBox(height: TossSpacing.space10),
+            _buildSubmitButton(),
+          ],
+          
+          // Recent Cash Ending Section
           if (selectedLocationId != null && selectedLocationId!.isNotEmpty) ...[
-            const SizedBox(height: TossSpacing.space5),
-            
-            // History Section - wrapped in white card
-            TossCard(
-              padding: const EdgeInsets.all(TossSpacing.space5),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  TossSectionHeader(
-                    title: 'Most Recent Cash Ending',
+            const SizedBox(height: TossSpacing.space8),
+            SBHeadlineGroup(title: 'Most Recent Cash Ending'),
+            // Show loading, data or empty state
+            if (isLoadingRecentEndings) ...[
+              Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(TossSpacing.space4),
+                  child: CircularProgressIndicator(
+                    color: TossColors.primary,
+                    strokeWidth: 2,
                   ),
-                  const SizedBox(height: TossSpacing.space4),
-                  // Show loading, data or empty state
-                  if (isLoadingRecentEndings) ...[
-                    Center(
-                      child: Padding(
-                        padding: const EdgeInsets.all(TossSpacing.space4),
-                        child: CircularProgressIndicator(
-                          color: TossColors.primary,
-                          strokeWidth: 2,
-                        ),
-                      ),
-                    ),
-                  ] else if (recentCashEndings.isNotEmpty) ...[
-                    _buildRecentEndingDetail(recentCashEndings.first),
-                  ] else ...[
-                    TossEmptyStateCard(
-                      message: 'No recent cash ending found for this location',
-                    ),
-                  ],
-                ],
+                ),
               ),
-            ),
+            ] else if (recentCashEndings.isNotEmpty) ...[
+              _buildRecentEndingDetail(recentCashEndings.first),
+            ] else ...[
+              TossEmptyStateCard(
+                message: 'No recent cash ending found for this location',
+              ),
+            ],
           ],
         ],
       ),
     );
   }
+  
+
   
   Widget _buildRecentEndingDetail(Map<String, dynamic> ending) {
     final createdAt = ending['created_at'] != null
@@ -638,7 +626,13 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
     final denominationData = ending['denomination_data'] ?? {};
     final currencyData = ending['currency_data'] ?? {};
     
-    return TossWhiteCard(
+    return Container(
+      padding: const EdgeInsets.all(TossSpacing.space4),
+      decoration: BoxDecoration(
+        color: TossColors.white,
+        borderRadius: BorderRadius.circular(TossBorderRadius.md),
+        boxShadow: TossShadows.card,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -1224,101 +1218,48 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
       );
     }
     
-    // Get selected store name
-    String storeName = 'Select Store';
-    if (selectedStoreId == 'headquarter') {
-      storeName = 'Headquarter';
-    } else if (selectedStoreId != null) {
-      try {
-        final store = stores.firstWhere(
-          (s) => s['store_id'] == selectedStoreId,
-        );
-        storeName = store['store_name'] ?? 'Unknown Store';
-      } catch (e) {
-        // Store not found in the list
-        storeName = 'Select Store';
-      }
-    }
+    // Create dropdown items
+    final List<TossDropdownItem<String>> storeItems = [
+      TossDropdownItem(
+        value: 'headquarter',
+        label: 'Headquarter',
+        subtitle: 'Main office',
+      ),
+      ...stores.map((store) => TossDropdownItem(
+        value: store['store_id'].toString(),
+        label: store['store_name'] ?? 'Unknown Store',
+        subtitle: store['location'] ?? '',
+      )),
+    ];
     
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Store',
-          style: TossTextStyles.caption.copyWith(
-            color: TossColors.gray500,
-            letterSpacing: 0.5,
-          ),
-        ),
-        const SizedBox(height: TossSpacing.space2),
-        InkWell(
-          onTap: () => _showStoreSelector(),
-          borderRadius: BorderRadius.circular(16),
-          child: Container(
-            padding: const EdgeInsets.all(TossSpacing.space4),
-            decoration: BoxDecoration(
-              color: TossColors.background,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: TossColors.gray200,
-                width: 1,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.04),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Row(
-              children: [
-                Container(
-                  width: UIConstants.avatarSizeSmall,
-                  height: UIConstants.avatarSizeSmall,
-                  decoration: BoxDecoration(
-                    color: TossColors.gray50,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Icon(
-                    TossIcons.getStoreIcon(selectedStoreId == 'headquarter' ? 'headquarter' : 'store'),
-                    size: UIConstants.iconSizeMedium,
-                    color: TossColors.gray600,
-                  ),
-                ),
-                const SizedBox(width: TossSpacing.space3),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Store',
-                        style: TossTextStyles.caption.copyWith(
-                          color: TossColors.gray500,
-                          fontSize: 11,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        storeName,
-                        style: TossTextStyles.body.copyWith(
-                          color: TossColors.gray900,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Icon(
-                  TossIcons.forward,
-                  color: TossColors.gray400,
-                  size: UIConstants.iconSizeLarge,
-                ),
-              ],
-            ),
-          ),
-        ),
-      ],
+    return TossDropdown<String>(
+      label: '',
+      value: selectedStoreId,
+      items: storeItems,
+      hint: 'Select Store',
+      onChanged: (value) {
+        setState(() {
+          selectedStoreId = value;
+          // Reset dependent selections
+          selectedLocationId = null;
+          selectedCashCurrencyId = null;
+          selectedBankLocationId = null;
+          selectedBankCurrencyId = null;
+          selectedVaultLocationId = null;
+          selectedVaultCurrencyId = null;
+          recentCashEndings.clear();
+          recentBankTransactions.clear();
+          vaultBalanceData = null;
+        });
+        
+        // Fetch locations for the selected store if any
+        if (value != null) {
+          _fetchLocations('cash');
+          _fetchLocations('bank');
+          _fetchLocations('vault');
+          _refreshData();
+        }
+      },
     );
   }
   
@@ -1360,84 +1301,69 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
       );
     }
     
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Cash Location',
-          style: TossTextStyles.label.copyWith(
-            color: TossColors.gray700,
-            letterSpacing: 0.5,
-          ),
-        ),
-        const SizedBox(height: TossSpacing.space3),
-        Wrap(
-          spacing: TossSpacing.space3,
-          runSpacing: TossSpacing.space3,
-          children: locations.map((location) {
-            // Debug: Print location structure
-            
-            // Try different possible field names for the location ID
-            final locationId = location['cash_location_id']?.toString() ?? 
-                              location['bank_location_id']?.toString() ?? 
-                              location['vault_location_id']?.toString() ?? 
-                              location['id']?.toString() ?? 
-                              location['location_id']?.toString() ?? 
-                              '';
-            final locationName = location['location_name'] ?? 'Unknown';
-            final isSelected = selectedLocation == locationId;
-            
-            
-            return GestureDetector(
-              onTap: () {
-                setState(() {
-                  if (locationType == 'cash') {
-                    selectedLocationId = locationId;
-                  } else if (locationType == 'bank') {
-                    selectedBankLocationId = locationId;
-                    // Fetch recent transactions when bank location is selected
-                    _fetchRecentBankTransactions();
-                  } else {
-                    selectedVaultLocationId = locationId;
-                    // Fetch vault balance when vault location is selected
-                    _fetchVaultBalance();
-                  }
-                });
-                
-                // Load recent cash endings after setting the location
-                if (locationType == 'cash' && locationId.isNotEmpty) {
-                  _loadRecentCashEndings(locationId);
-                }
-                
-                HapticFeedback.selectionClick();
-              },
-              child: AnimatedContainer(
-                duration: TossAnimations.normal,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: TossSpacing.space5,
-                  vertical: TossSpacing.space3,
-                ),
-                decoration: BoxDecoration(
-                  color: isSelected ? TossColors.primary : Colors.white,
-                  borderRadius: BorderRadius.circular(TossBorderRadius.full),
-                  border: Border.all(
-                    color: isSelected ? TossColors.primary : TossColors.gray300,
-                    width: 1.5,
-                  ),
-                  boxShadow: isSelected ? TossShadows.elevation2 : [],
-                ),
-                child: Text(
-                  locationName,
-                  style: TossTextStyles.body.copyWith(
-                    color: isSelected ? Colors.white : TossColors.gray700,
-                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                  ),
-                ),
-              ),
-            );
-          }).toList(),
-        ),
-      ],
+    // Create dropdown items from locations
+    final dropdownItems = locations.map((location) {
+      final locationId = location['cash_location_id']?.toString() ?? 
+                        location['bank_location_id']?.toString() ?? 
+                        location['vault_location_id']?.toString() ?? 
+                        location['id']?.toString() ?? 
+                        location['location_id']?.toString() ?? 
+                        '';
+      final locationName = location['location_name'] ?? 'Unknown';
+      
+      return TossDropdownItem<String>(
+        value: locationId,
+        label: locationName,
+      );
+    }).toList();
+    
+    // Get current selected location name
+    String? selectedLocationName;
+    if (selectedLocation != null) {
+      final selectedLocationData = locations.firstWhere(
+        (loc) {
+          final locId = loc['cash_location_id']?.toString() ?? 
+                       loc['bank_location_id']?.toString() ?? 
+                       loc['vault_location_id']?.toString() ?? 
+                       loc['id']?.toString() ?? 
+                       loc['location_id']?.toString() ?? 
+                       '';
+          return locId == selectedLocation;
+        },
+        orElse: () => {},
+      );
+      selectedLocationName = selectedLocationData['location_name'];
+    }
+    
+    return TossDropdown<String>(
+      label: '',
+      hint: 'Select ${locationType} location',
+      value: selectedLocation,
+      items: dropdownItems,
+      onChanged: (locationId) {
+        if (locationId != null) {
+          setState(() {
+            if (locationType == 'cash') {
+              selectedLocationId = locationId;
+            } else if (locationType == 'bank') {
+              selectedBankLocationId = locationId;
+              // Fetch recent transactions when bank location is selected
+              _fetchRecentBankTransactions();
+            } else {
+              selectedVaultLocationId = locationId;
+              // Fetch vault balance when vault location is selected
+              _fetchVaultBalance();
+            }
+          });
+          
+          // Load recent cash endings after setting the location
+          if (locationType == 'cash' && locationId.isNotEmpty) {
+            _loadRecentCashEndings(locationId);
+          }
+          
+          HapticFeedback.selectionClick();
+        }
+      },
     );
   }
   
@@ -1483,42 +1409,62 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
           _buildCurrencySelector(tabType),
           const SizedBox(height: TossSpacing.space6),
         ],
-        TossSectionHeader(
-          title: 'Cash Count',
-          trailing: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const SizedBox(width: TossSpacing.space2),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: TossSpacing.space2,
-                  vertical: TossSpacing.space1,
-                ),
-                decoration: BoxDecoration(
-                  color: TossColors.primary.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(TossBorderRadius.sm),
-                ),
-                child: Text(
-                  currencyType['currency_code'] ?? 'N/A',
-                  style: TossTextStyles.caption.copyWith(
-                    color: TossColors.primary,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
+        // Currency code badge in top right of container
+        Container(
+          alignment: Alignment.centerRight,
+          margin: const EdgeInsets.only(bottom: TossSpacing.space4),
+          child: Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: TossSpacing.space2,
+              vertical: TossSpacing.space1,
+            ),
+            decoration: BoxDecoration(
+              color: TossColors.primary.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(TossBorderRadius.sm),
+            ),
+            child: Text(
+              currencyType['currency_code'] ?? 'N/A',
+              style: TossTextStyles.caption.copyWith(
+                color: TossColors.primary,
+                fontWeight: FontWeight.w600,
               ),
+            ),
+          ),
+        ),
+        Container(
+          decoration: BoxDecoration(
+            color: TossColors.white,
+            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+            boxShadow: TossShadows.card,
+          ),
+          child: Column(
+            children: [
+              ...denominations.asMap().entries.map((entry) {
+                final index = entry.key;
+                final denom = entry.value;
+                final denomValue = denom['value'].toString();
+                final controller = controllers[denomValue] ?? TextEditingController();
+                return Column(
+                  children: [
+                    _buildDenominationInput(
+                      denomination: denom,
+                      controller: controller,
+                      currencySymbol: currencyType['symbol'] ?? '',
+                      isInContainer: true,
+                    ),
+                    if (index < denominations.length - 1)
+                      Divider(
+                        height: 1,
+                        color: TossColors.gray100,
+                        indent: TossSpacing.space4,
+                        endIndent: TossSpacing.space4,
+                      ),
+                  ],
+                );
+              }).toList(),
             ],
           ),
         ),
-        const SizedBox(height: TossSpacing.space5),
-        ...denominations.map((denom) {
-          final denomValue = denom['value'].toString();
-          final controller = controllers[denomValue] ?? TextEditingController();
-          return _buildDenominationInput(
-            denomination: denom,
-            controller: controller,
-            currencySymbol: currencyType['symbol'] ?? '',
-          );
-        }).toList(),
       ],
     );
   }
@@ -1534,62 +1480,61 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
       selectedCurrencyId = selectedVaultCurrencyId;
     }
     
+    // Create dropdown items from currencies
+    final dropdownItems = companyCurrencies.map((currency) {
+      final currencyId = currency['currency_id'].toString();
+      final currencyType = currencyTypes.firstWhere(
+        (c) => c['currency_id'].toString() == currencyId,
+        orElse: () => {},
+      );
+      final symbol = currencyType['symbol'] ?? '';
+      final code = currencyType['currency_code'] ?? 'N/A';
+      
+      return TossDropdownItem<String>(
+        value: currencyId,
+        label: '$symbol $code',
+      );
+    }).toList();
+    
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Currency',
-          style: TossTextStyles.label.copyWith(
-            color: TossColors.gray700,
-            letterSpacing: 0.5,
-          ),
-        ),
+        SBHeadlineGroup(title: 'Currency'),
         const SizedBox(height: TossSpacing.space3),
-        Wrap(
-          spacing: TossSpacing.space3,
-          runSpacing: TossSpacing.space3,
-          children: companyCurrencies.map((currency) {
-            final currencyId = currency['currency_id'].toString();
-            final currencyType = currencyTypes.firstWhere(
-              (c) => c['currency_id'].toString() == currencyId,
-              orElse: () => {},
-            );
-            final isSelected = selectedCurrencyId == currencyId;
-            
-            return TossCurrencyChip(
-              currencyId: currencyId,
-              symbol: currencyType['symbol'] ?? '',
-              currencyCode: currencyType['currency_code'] ?? 'N/A',
-              isSelected: isSelected,
-              onTap: () {
-                setState(() {
-                  // Store the previously selected currency ID
-                  String? previousCurrencyId;
-                  if (tabType == 'cash') {
-                    previousCurrencyId = selectedCashCurrencyId;
-                    selectedCashCurrencyId = currencyId;
-                  } else if (tabType == 'bank') {
-                    previousCurrencyId = selectedBankCurrencyId;
-                    selectedBankCurrencyId = currencyId;
-                  } else {
-                    previousCurrencyId = selectedVaultCurrencyId;
-                    selectedVaultCurrencyId = currencyId;
+        TossDropdown<String>(
+          label: '',
+          hint: 'Select currency',
+          value: selectedCurrencyId,
+          items: dropdownItems,
+          onChanged: (currencyId) {
+            if (currencyId != null) {
+              setState(() {
+                // Store the previously selected currency ID
+                String? previousCurrencyId;
+                if (tabType == 'cash') {
+                  previousCurrencyId = selectedCashCurrencyId;
+                  selectedCashCurrencyId = currencyId;
+                } else if (tabType == 'bank') {
+                  previousCurrencyId = selectedBankCurrencyId;
+                  selectedBankCurrencyId = currencyId;
+                } else {
+                  previousCurrencyId = selectedVaultCurrencyId;
+                  selectedVaultCurrencyId = currencyId;
+                }
+                
+                // Clear denomination data if currency changed
+                if (previousCurrencyId != currencyId && previousCurrencyId != null) {
+                  // Clear controllers for the previous currency
+                  if (denominationControllers.containsKey(previousCurrencyId)) {
+                    denominationControllers[previousCurrencyId]!.forEach((key, controller) {
+                      controller.clear();
+                    });
                   }
-                  
-                  // Clear denomination data if currency changed
-                  if (previousCurrencyId != currencyId && previousCurrencyId != null) {
-                    // Clear controllers for the previous currency
-                    if (denominationControllers.containsKey(previousCurrencyId)) {
-                      denominationControllers[previousCurrencyId]!.forEach((key, controller) {
-                        controller.clear();
-                      });
-                    }
-                  }
-                });
-                HapticFeedback.selectionClick();
-              },
-            );
-          }).toList(),
+                }
+              });
+              HapticFeedback.selectionClick();
+            }
+          },
         ),
       ],
     );
@@ -1599,85 +1544,50 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
     required Map<String, dynamic> denomination,
     required TextEditingController controller,
     required String currencySymbol,
+    bool isInContainer = false,
   }) {
     final amount = denomination['value'] ?? 0;
     final formattedAmount = NumberFormat('#,###').format(amount);
     
     return Container(
-      margin: const EdgeInsets.only(bottom: TossSpacing.space4),
+      padding: EdgeInsets.symmetric(
+        horizontal: TossSpacing.space4,
+        vertical: TossSpacing.space3,
+      ),
       child: Row(
         children: [
           // Denomination label
-          SizedBox(
-            width: 100, // Fixed width for cash count button
-            child: Row(
-              children: [
-                Container(
-                  width: 8, // Small indicator dot
-                  height: 8,
-                  decoration: BoxDecoration(
-                    color: amount >= 10000 ? TossColors.primary : TossColors.gray400,
-                    shape: BoxShape.circle,
-                  ),
-                ),
-                const SizedBox(width: TossSpacing.space3),
-                Text(
-                  '$currencySymbol$formattedAmount',
-                  style: TossTextStyles.body.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: TossColors.gray700,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: TossSpacing.space4),
-          // Quantity input
           Expanded(
-            child: Container(
-              height: 48,
-              decoration: BoxDecoration(
-                color: TossColors.surface,
-                borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                border: Border.all(
-                  color: controller.text.isNotEmpty 
-                      ? TossColors.primary.withOpacity(0.3) 
-                      : TossColors.gray200,
-                ),
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: TossNumberInput(
-                      controller: controller,
-                      hintText: '0',
-                      textAlign: TextAlign.center,
-                      onChanged: (_) => setState(() {}),
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space3),
-                    child: Text(
-                      'pcs',
-                      style: TossTextStyles.caption.copyWith(
-                        color: TossColors.gray500,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(width: TossSpacing.space3),
-          // Subtotal
-          SizedBox(
-            width: 100, // Fixed width for cash count button
             child: Text(
-              _calculateSubtotal(denomination['value'].toString(), controller.text, currencySymbol),
+              '$currencySymbol$formattedAmount',
               style: TossTextStyles.body.copyWith(
                 fontWeight: FontWeight.w600,
-                color: TossColors.gray900,
-                fontFamily: 'JetBrains Mono',
+                color: TossColors.gray700,
+              ),
+            ),
+          ),
+          // Quantity input - centered
+          Expanded(
+            child: Center(
+              child: Container(
+                width: 80,
+                height: 40,
+                child: TossNumberInput(
+                  controller: controller,
+                  hintText: '0',
+                  textAlign: TextAlign.center,
+                  onChanged: (_) => setState(() {}),
+                  showBorder: false,
+                ),
+              ),
+            ),
+          ),
+          // "pcs" text at the right end
+          Expanded(
+            child: Text(
+              'pcs',
+              style: TossTextStyles.caption.copyWith(
+                color: TossColors.gray500,
               ),
               textAlign: TextAlign.right,
             ),
@@ -1690,50 +1600,31 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
   Widget _buildTotalSection({String tabType = 'cash'}) {
     final total = _calculateTotal(tabType: tabType);
     
-    return TossCard(
-      child: Container(
-        padding: const EdgeInsets.all(TossSpacing.space5),
-        child: Column(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Total Amount',
-                  style: TossTextStyles.body.copyWith(
-                    color: TossColors.gray600,
-                  ),
-                ),
-                AnimatedSwitcher(
-                  duration: TossAnimations.slow,
-                  child: Text(
-                    total,
-                    key: ValueKey(total),
-                    style: TossTextStyles.h2.copyWith(
-                      color: TossColors.primary,
-                      fontWeight: FontWeight.w700,
-                      fontFamily: 'JetBrains Mono',
-                    ),
-                  ),
-                ),
-              ],
+    return Container(
+      padding: const EdgeInsets.all(TossSpacing.space4),
+      decoration: BoxDecoration(
+        color: TossColors.primary.withOpacity(0.05),
+        borderRadius: BorderRadius.circular(TossBorderRadius.md),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            'Total Amount',
+            style: TossTextStyles.bodyLarge.copyWith(
+              color: TossColors.gray700,
+              fontWeight: FontWeight.w600,
             ),
-            const SizedBox(height: TossSpacing.space3),
-            Container(
-              height: 3,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    TossColors.primary.withOpacity(0.1),
-                    TossColors.primary.withOpacity(0.3),
-                    TossColors.primary.withOpacity(0.1),
-                  ],
-                ),
-                borderRadius: BorderRadius.circular(TossBorderRadius.full),
-              ),
+          ),
+          Text(
+            total,
+            style: TossTextStyles.h2.copyWith(
+              color: TossColors.primary,
+              fontWeight: FontWeight.w700,
+              fontFamily: 'JetBrains Mono',
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -1767,6 +1658,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
         }
       } : null,
       isLoading: false,
+      fullWidth: true,
     );
   }
   
@@ -1776,57 +1668,48 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Input Section - wrapped in white card
-          TossCard(
-            padding: const EdgeInsets.all(TossSpacing.space5),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildStoreSelector(),
-                if (selectedStoreId != null) ...[
-                  const SizedBox(height: TossSpacing.space6),
-                  _buildLocationSelector('bank'),
-                ],
-                if (selectedBankLocationId != null) ...[
-                  const SizedBox(height: TossSpacing.space8),
-                  _buildBankAmountInput(),
-                  const SizedBox(height: TossSpacing.space6),
-                  _buildBankCurrencySelector(),
-                  const SizedBox(height: TossSpacing.space6),
-                  _buildBankSaveButton(),
-                ],
-              ],
-            ),
-          ),
+          // Store Section
+          _buildStoreSelector(),
+          
+          // Bank Location Section
+          if (selectedStoreId != null) ...[
+            const SizedBox(height: TossSpacing.space6),
+            SBHeadlineGroup(title: 'Bank Location'),
+            _buildLocationSelector('bank'),
+          ],
+          
+          // Bank Balance Section
+          if (selectedBankLocationId != null) ...[
+            const SizedBox(height: TossSpacing.space8),
+            _buildBankBalanceSection(),
+            const SizedBox(height: TossSpacing.space8),
+            _buildTotalSection(tabType: 'bank'),
+            const SizedBox(height: TossSpacing.space10),
+            _buildSubmitButton(),
+          ],
           
           // Recent Bank Transactions Section
           if (selectedBankLocationId != null) ...[
-            const SizedBox(height: TossSpacing.space5),
-            TossCard(
-              padding: const EdgeInsets.all(TossSpacing.space5),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  TossSectionHeader(
-                    title: 'Recent Bank Transaction',
-                    trailing: TextButton(
-                      onPressed: () {
-                        _showAllTransactionsBottomSheet();
-                      },
-                      child: Text(
-                        'View All',
-                        style: TossTextStyles.body.copyWith(
-                          color: TossColors.primary,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
+            const SizedBox(height: TossSpacing.space8),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                SBHeadlineGroup(title: 'Recent Bank Transactions'),
+                TextButton(
+                  onPressed: () {
+                    _showAllTransactionsBottomSheet();
+                  },
+                  child: Text(
+                    'View All',
+                    style: TossTextStyles.body.copyWith(
+                      color: TossColors.primary,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
-                  const SizedBox(height: TossSpacing.space4),
-                  _buildBankTransactionHistory(),
-                ],
-              ),
+                ),
+              ],
             ),
+            _buildBankTransactionHistory(),
           ],
         ],
       ),
@@ -1834,49 +1717,55 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
   }
   
   // Build bank amount input field
-  Widget _buildBankAmountInput() {
+  Widget _buildBankBalanceSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            Icon(
-              TossIcons.bank,
-              size: UIConstants.iconSizeMedium,
-              color: TossColors.primary,
-            ),
-            const SizedBox(width: TossSpacing.space2),
-            Text(
-              'Bank Balance',
-              style: TossTextStyles.bodyLarge.copyWith(
-                color: TossColors.gray900,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: TossSpacing.space3),
+        // Currency selector using dropdown
+        if (currencyTypes.length > 1) ...[
+          _buildCurrencySelector('bank'),
+          const SizedBox(height: TossSpacing.space6),
+        ],
         Container(
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: TossColors.white,
             borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-            border: Border.all(
-              color: bankAmountController.text.isNotEmpty 
-                  ? TossColors.primary.withOpacity(0.3) 
-                  : TossColors.gray200,
-              width: 1.5,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.05),
-                blurRadius: 10,
-                offset: const Offset(0, 2),
-              ),
+            boxShadow: TossShadows.card,
+          ),
+          padding: const EdgeInsets.all(TossSpacing.space4),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SBHeadlineGroup(title: 'Current Bank Balance'),
+              const SizedBox(height: TossSpacing.space4),
+              _buildBankAmountInput(),
             ],
           ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBankAmountInput() {
+    final currencyInfo = currencyTypes.firstWhere(
+      (c) => c['currency_id'].toString() == selectedBankCurrencyId,
+      orElse: () => {'symbol': '', 'currency_code': ''},
+    );
+    final currencySymbol = currencyInfo['symbol'] ?? '';
+    
+    return Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: TossSpacing.space4,
+        vertical: TossSpacing.space3,
+      ),
+      child: Center(
+        child: Container(
+          width: double.infinity,
           child: TossNumberInput(
             controller: bankAmountController,
-            hintText: '0',
+            hintText: '',
+            textAlign: TextAlign.center,
+            showBorder: false,
             inputFormatters: [
               FilteringTextInputFormatter.digitsOnly,
               TextInputFormatter.withFunction((oldValue, newValue) {
@@ -1892,32 +1781,25 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
             onChanged: (_) => setState(() {}),
           ),
         ),
-        const SizedBox(height: TossSpacing.space2),
-        Text(
-          'Enter the current bank balance amount',
-          style: TossTextStyles.caption.copyWith(
-            color: TossColors.gray500,
-          ),
-        ),
-      ],
+      ),
     );
   }
   
-  // Build save button for bank amount
-  Widget _buildBankSaveButton() {
-    // Enable button only when both amount is entered AND currency is selected
-    final hasAmount = bankAmountController.text.isNotEmpty;
-    final hasCurrency = selectedBankCurrencyType != null;
-    final isEnabled = hasAmount && hasCurrency;
-    
-    return TossPrimaryButton(
-      text: 'Save Bank Balance',
-      onPressed: isEnabled ? () async {
-        await _saveBankBalance();
-      } : null,
-      isLoading: false,
-    );
-  }
+  // Build save button for bank amount - DEPRECATED: Now using unified _buildSubmitButton()
+  // Widget _buildBankSaveButton() {
+  //   // Enable button only when both amount is entered AND currency is selected
+  //   final hasAmount = bankAmountController.text.isNotEmpty;
+  //   final hasCurrency = selectedBankCurrencyId != null;
+  //   final isEnabled = hasAmount && hasCurrency;
+  //   
+  //   return TossPrimaryButton(
+  //     text: 'Save Bank Balance',
+  //     onPressed: isEnabled ? () async {
+  //       await _saveBankBalance();
+  //     } : null,
+  //     isLoading: false,
+  //   );
+  // }
   
   // Fetch recent bank transactions from Supabase
   Future<void> _fetchRecentBankTransactions() async {
@@ -2187,7 +2069,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
         return;
       }
       
-      if (selectedBankCurrencyType == null) {
+      if (selectedBankCurrencyId == null) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Please select a currency'),
@@ -2215,7 +2097,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
         'p_store_id': selectedStoreId == 'headquarter' ? null : selectedStoreId,
         'p_record_date': recordDate,
         'p_location_id': selectedBankLocationId,
-        'p_currency_id': selectedBankCurrencyType,
+        'p_currency_id': selectedBankCurrencyId,
         'p_total_amount': totalAmount,
         'p_created_by': userId,
         'p_created_at': createdAt,
@@ -2234,26 +2116,29 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
         
         // Get currency symbol for display
         final currency = currencyTypes.firstWhere(
-          (c) => c['currency_id'].toString() == selectedBankCurrencyType,
+          (c) => c['currency_id'].toString() == selectedBankCurrencyId,
           orElse: () => {'symbol': '', 'currency_code': ''},
         );
         final currencySymbol = currency['symbol'] ?? '';
         
         // Show success popup
-        _showBankBalanceResultDialog(
-          isSuccess: true,
+        showSuccessPopup(
+          context: context,
+          title: 'Success!',
+          message: 'Bank balance saved',
           amount: '$currencySymbol${bankAmountController.text}',
+          onDone: () {
+            Navigator.of(context).pop();
+            // Clear the form after successful save
+            setState(() {
+              bankAmountController.clear();
+              selectedBankLocationId = null;
+              selectedBankCurrencyId = null;
+            });
+            // Refresh the transaction list
+            _fetchRecentBankTransactions();
+          },
         );
-        
-        // Clear the form after successful save and refresh transactions
-        setState(() {
-          bankAmountController.clear();
-          // Don't clear selectedBankLocationId to keep showing transactions
-          selectedBankCurrencyType = null;
-        });
-        
-        // Refresh the transaction list
-        await _fetchRecentBankTransactions();
       }
       
     } catch (e) {
@@ -2270,9 +2155,11 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
           errorMessage = 'An unexpected error occurred. Please try again.';
         }
         
-        _showBankBalanceResultDialog(
-          isSuccess: false,
-          errorMessage: errorMessage,
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(errorMessage),
+            backgroundColor: TossColors.error,
+          ),
         );
       }
     }
@@ -2558,188 +2445,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
   );
   }
   
-  // Show result dialog for bank balance save
-  void _showBankBalanceResultDialog({
-    required bool isSuccess,
-    String? amount,
-    String? errorMessage,
-  }) {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return Dialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(TossBorderRadius.xxl),
-          ),
-          child: Container(
-            padding: const EdgeInsets.all(TossSpacing.space6),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(TossBorderRadius.xxl),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Icon
-                Container(
-                  width: 72, // Custom size for transaction result
-                  height: 72,
-                  decoration: BoxDecoration(
-                    color: isSuccess 
-                        ? TossColors.success.withOpacity(0.1)
-                        : TossColors.error.withOpacity(0.1),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    isSuccess ? TossIcons.checkCircle : TossIcons.error,
-                    color: isSuccess ? TossColors.success : TossColors.error,
-                    size: UIConstants.avatarSizeSmall,
-                  ),
-                ),
-                const SizedBox(height: TossSpacing.space5),
-                
-                // Title
-                Text(
-                  isSuccess ? 'Success!' : 'Failed',
-                  style: TossTextStyles.h2.copyWith(
-                    fontWeight: FontWeight.w700,
-                    color: TossColors.gray900,
-                  ),
-                ),
-                const SizedBox(height: TossSpacing.space3),
-                
-                // Message
-                Text(
-                  isSuccess 
-                      ? 'Bank balance saved'
-                      : errorMessage ?? 'Failed to save bank balance',
-                  style: TossTextStyles.body.copyWith(
-                    color: TossColors.gray600,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                
-                // Amount (for success only)
-                if (isSuccess && amount != null) ...[
-                  const SizedBox(height: TossSpacing.space3),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: TossSpacing.space4,
-                      vertical: TossSpacing.space2,
-                    ),
-                    decoration: BoxDecoration(
-                      color: TossColors.primary.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                    ),
-                    child: Text(
-                      amount,
-                      style: TossTextStyles.h3.copyWith(
-                        color: TossColors.primary,
-                        fontWeight: FontWeight.w700,
-                        fontFamily: 'JetBrains Mono',
-                      ),
-                    ),
-                  ),
-                ],
-                
-                const SizedBox(height: TossSpacing.space6),
-                
-                // Button
-                SizedBox(
-                  width: double.infinity,
-                  child: TossPrimaryButton(
-                    text: isSuccess ? 'Done' : 'Try Again',
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                      if (!isSuccess) {
-                        // Keep the form data for retry
-                        HapticFeedback.lightImpact();
-                      }
-                    },
-                    isLoading: false,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
   
-  // Build currency selector for bank tab
-  Widget _buildBankCurrencySelector() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Currency',
-          style: TossTextStyles.label.copyWith(
-            color: TossColors.gray700,
-            letterSpacing: 0.5,
-          ),
-        ),
-        const SizedBox(height: TossSpacing.space3),
-        Wrap(
-          spacing: TossSpacing.space3,
-          runSpacing: TossSpacing.space3,
-          children: currencyTypes.map((currency) {
-            final currencyId = currency['currency_id']?.toString() ?? '';
-            final currencyName = currency['currency_name'] ?? 'Unknown';
-            final currencyCode = currency['currency_code'] ?? '';
-            final isSelected = selectedBankCurrencyType == currencyId;
-            
-            return GestureDetector(
-              onTap: () {
-                setState(() {
-                  selectedBankCurrencyType = currencyId;
-                });
-                HapticFeedback.selectionClick();
-              },
-              child: AnimatedContainer(
-                duration: TossAnimations.normal,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: TossSpacing.space4,
-                  vertical: TossSpacing.space3,
-                ),
-                decoration: BoxDecoration(
-                  color: isSelected ? TossColors.primary : Colors.white,
-                  borderRadius: BorderRadius.circular(TossBorderRadius.full),
-                  border: Border.all(
-                    color: isSelected ? TossColors.primary : TossColors.gray300,
-                    width: 1.5,
-                  ),
-                  boxShadow: isSelected ? TossShadows.elevation2 : [],
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      currencyName,
-                      style: TossTextStyles.body.copyWith(
-                        color: isSelected ? Colors.white : TossColors.gray700,
-                        fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                      ),
-                    ),
-                    if (currencyCode.isNotEmpty) ...[
-                      const SizedBox(height: 2),
-                      Text(
-                        '($currencyCode)',
-                        style: TossTextStyles.caption.copyWith(
-                          color: isSelected ? Colors.white.withOpacity(0.9) : TossColors.gray500,
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-            );
-          }).toList(),
-        ),
-      ],
-    );
-  }
   
   // Build bank transaction history with real data
   Widget _buildBankTransactionHistory() {
@@ -2937,46 +2643,31 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Input Section - wrapped in white card
-          TossCard(
-            padding: const EdgeInsets.all(TossSpacing.space5),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildStoreSelector(),
-                if (selectedStoreId != null) ...[
-                  const SizedBox(height: TossSpacing.space6),
-                  _buildLocationSelector('vault'),
-                ],
-                if (selectedVaultLocationId != null) ...[
-                  const SizedBox(height: TossSpacing.space8),
-                  _buildDenominationSection(tabType: 'vault'),
-                  const SizedBox(height: TossSpacing.space8),
-                  _buildDebitCreditToggle(),
-                  const SizedBox(height: TossSpacing.space8),
-                  _buildTotalSection(tabType: 'vault'),
-                  const SizedBox(height: TossSpacing.space10),
-                  _buildSubmitButton(),
-                ],
-              ],
-            ),
-          ),
+          // Store & Location Section
+          SBHeadlineGroup(title: 'Store & Location'),
+          _buildStoreSelector(),
+          if (selectedStoreId != null) ...[
+            const SizedBox(height: TossSpacing.space4),
+            _buildLocationSelector('vault'),
+          ],
+          
+          // Vault Transaction Section
+          if (selectedVaultLocationId != null) ...[
+            const SizedBox(height: TossSpacing.space8),
+            SBHeadlineGroup(title: 'Vault Transaction'),
+            _buildDenominationSection(tabType: 'vault'),
+            const SizedBox(height: TossSpacing.space8),
+            _buildDebitCreditToggle(),
+            const SizedBox(height: TossSpacing.space8),
+            _buildTotalSection(tabType: 'vault'),
+            const SizedBox(height: TossSpacing.space10),
+            _buildSubmitButton(),
+          ],
           // Vault Balance Section
           if (selectedVaultLocationId != null) ...[
-            const SizedBox(height: TossSpacing.space5),
-            TossCard(
-              padding: const EdgeInsets.all(TossSpacing.space5),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  TossSectionHeader(
-                    title: 'Vault Balance',
-                  ),
-                  const SizedBox(height: TossSpacing.space4),
-                  _buildVaultBalance(),
-                ],
-              ),
-            ),
+            const SizedBox(height: TossSpacing.space8),
+            SBHeadlineGroup(title: 'Vault Balance'),
+            _buildVaultBalance(),
           ],
         ],
       ),
@@ -2991,12 +2682,21 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
   }
   
   String _calculateTotal({String tabType = 'cash'}) {
+    // Handle bank tab separately as it uses a single amount input
+    if (tabType == 'bank') {
+      final currencyType = currencyTypes.firstWhere(
+        (c) => c['currency_id'].toString() == selectedBankCurrencyId,
+        orElse: () => {'symbol': ''},
+      );
+      final currencySymbol = currencyType['symbol'] ?? '';
+      final amount = int.tryParse(bankAmountController.text.replaceAll(',', '')) ?? 0;
+      return '$currencySymbol${NumberFormat('#,###').format(amount)}';
+    }
+    
     // Get selected currency ID based on tab
     final String? selectedCurrencyId;
     if (tabType == 'cash') {
       selectedCurrencyId = selectedCashCurrencyId;
-    } else if (tabType == 'bank') {
-      selectedCurrencyId = selectedBankCurrencyId;
     } else {
       selectedCurrencyId = selectedVaultCurrencyId;
     }
@@ -3030,12 +2730,15 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
   }
   
   int _calculateTotalAmount({String tabType = 'cash'}) {
+    // Handle bank tab separately as it uses a single amount input
+    if (tabType == 'bank') {
+      return int.tryParse(bankAmountController.text.replaceAll(',', '')) ?? 0;
+    }
+    
     // Get selected currency ID based on tab
     final String? selectedCurrencyId;
     if (tabType == 'cash') {
       selectedCurrencyId = selectedCashCurrencyId;
-    } else if (tabType == 'bank') {
-      selectedCurrencyId = selectedBankCurrencyId;
     } else {
       selectedCurrencyId = selectedVaultCurrencyId;
     }
@@ -3212,7 +2915,24 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
         currentCurrencyId = selectedVaultCurrencyId;
       }
       
-      if (currentCurrencyId != null) {
+      // Handle Bank tab differently (single amount input)
+      if (_tabController.index == 1) {
+        // Bank tab - use single amount from bankAmountController
+        final amountText = bankAmountController.text.replaceAll(',', '');
+        final amount = int.tryParse(amountText) ?? 0;
+        
+        if (amount > 0 && currentCurrencyId != null) {
+          // For bank, we need to save to bank_amount table, not cash_ending
+          await _saveBankBalance();
+          return;
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Please enter a bank amount')),
+          );
+          return;
+        }
+      } else if (currentCurrencyId != null) {
+        // Cash and Vault tabs - use denomination controllers
         List<Map<String, dynamic>> denominationsList = [];
         
         // Get the controllers for the selected currency
@@ -3286,27 +3006,42 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
       // Show success message
       if (mounted) {
         // Calculate the total BEFORE clearing the form
-        final savedTotal = _calculateTotalAmount().toDouble();
+        final savedTotal = _calculateTotalAmount(tabType: _tabController.index == 0 ? 'cash' : 'vault').toDouble();
         
-        _showSuccessBottomSheet(savedTotal);
+        // Get currency symbol
+        final currencyInfo = currencyTypes.firstWhere(
+          (c) => c['currency_id'].toString() == currentCurrencyId,
+          orElse: () => {'symbol': 'Fr'},
+        );
+        final currencySymbol = currencyInfo['symbol'] ?? 'Fr';
         
-        // Clear the form after success
-        denominationControllers.forEach((currencyId, controllers) {
-          controllers.forEach((denominationId, controller) {
-            controller.clear();
-          });
-        });
-        
-        // Optionally reset the selected location
-        setState(() {
-          if (_tabController.index == 0) {
-            selectedLocationId = null;
-          } else if (_tabController.index == 1) {
-            selectedBankLocationId = null;
-          } else if (_tabController.index == 2) {
-            selectedVaultLocationId = null;
-          }
-        });
+        // Show success popup instead of bottom sheet
+        showSuccessPopup(
+          context: context,
+          title: 'Success!',
+          message: _tabController.index == 0 ? 'Cash ending saved' : 'Vault balance saved',
+          amount: '${currencySymbol}${NumberFormat('#,###').format(savedTotal)}',
+          onDone: () {
+            Navigator.of(context).pop();
+            // Clear the form after success
+            denominationControllers.forEach((currencyId, controllers) {
+              controllers.forEach((denominationId, controller) {
+                controller.clear();
+              });
+            });
+            
+            // Optionally reset the selected location
+            setState(() {
+              if (_tabController.index == 0) {
+                selectedLocationId = null;
+                selectedCashCurrencyId = null;
+              } else if (_tabController.index == 2) {
+                selectedVaultLocationId = null;
+                selectedVaultCurrencyId = null;
+              }
+            });
+          },
+        );
       }
       
     } catch (e) {
@@ -3325,318 +3060,25 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
       decimalDigits: 0,
     ).format(savedTotal);
     
-    showModalBottomSheet(
+    showSuccessPopup(
       context: context,
-      backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        padding: const EdgeInsets.all(TossSpacing.space6),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(TossBorderRadius.xxl),
-            topRight: Radius.circular(TossBorderRadius.xxl),
-          ),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: UIConstants.iconSizeHuge + 16, // 64px for success state
-              height: UIConstants.iconSizeHuge + 16,
-              decoration: BoxDecoration(
-                color: TossColors.success.withOpacity(0.1),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                TossIcons.check,
-                color: TossColors.success,
-                size: UIConstants.iconSizeXL,
-              ),
-            ),
-            const SizedBox(height: TossSpacing.space4),
-            Text(
-              'Cash Ending Saved',
-              style: TossTextStyles.h3.copyWith(
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            const SizedBox(height: TossSpacing.space2),
-            Text(
-              formattedTotal,
-              style: TossTextStyles.h2.copyWith(
-                color: TossColors.primary,
-                fontWeight: FontWeight.w700,
-                fontFamily: 'JetBrains Mono',
-              ),
-            ),
-            const SizedBox(height: TossSpacing.space6),
-            TossPrimaryButton(
-              text: 'Done',
-              onPressed: () {
-                Navigator.pop(context);
-                // Reset form
-                setState(() {
-                  selectedLocationId = null;
-                  denominationControllers.forEach((key, controller) {
-                    controller.clear();
-                  });
-                });
-              },
-              isLoading: false,
-            ),
-          ],
-        ),
-      ),
+      message: 'Cash Ending Saved',
+      amount: formattedTotal,
+      onDone: () {
+        Navigator.pop(context);
+        // Reset form
+        setState(() {
+          selectedLocationId = null;
+          denominationControllers.forEach((key, controller) {
+            controller.clear();
+          });
+        });
+      },
+      showAmountBox: false,
     );
   }
   
   
-  // Show store selector bottom sheet
-  void _showStoreSelector() {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      builder: (context) => Container(
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(24),
-            topRight: Radius.circular(24),
-          ),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Handle bar
-            Container(
-              margin: const EdgeInsets.only(top: TossSpacing.space3),
-              width: UIConstants.modalDragHandleWidth,
-              height: UIConstants.modalDragHandleHeight,
-              decoration: BoxDecoration(
-                color: TossColors.gray600,
-                borderRadius: BorderRadius.circular(100),
-              ),
-            ),
-            // Title
-            Padding(
-              padding: const EdgeInsets.all(TossSpacing.space5),
-              child: Row(
-                children: [
-                  Text(
-                    'Select Store',
-                    style: TossTextStyles.h3.copyWith(
-                      color: TossColors.gray900,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            // Store list
-            Container(
-              constraints: BoxConstraints(
-                maxHeight: MediaQuery.of(context).size.height * 0.5,
-              ),
-              child: ListView.builder(
-                shrinkWrap: true,
-                padding: EdgeInsets.zero,
-                itemCount: stores.length + 1, // +1 for Headquarter
-                itemBuilder: (context, index) {
-                  // First item is Headquarter
-                  if (index == 0) {
-                    final isSelected = selectedStoreId == 'headquarter';
-                    return InkWell(
-                      onTap: () async {
-                        HapticFeedback.selectionClick();
-                        Navigator.pop(context);
-                        
-                        setState(() {
-                          selectedStoreId = 'headquarter';
-                          selectedLocationId = null; // Reset location when store changes
-                        });
-                        
-                        // Fetch cash locations for headquarter
-                        await _fetchLocations('cash');
-                        await _fetchLocations('bank');
-                        await _fetchLocations('vault');
-                        
-                        // Refresh data
-                        _refreshData();
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: TossSpacing.space5,
-                          vertical: TossSpacing.space4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: isSelected ? TossColors.gray50 : Colors.transparent,
-                          border: const Border(
-                            bottom: BorderSide(
-                              color: TossColors.gray100,
-                              width: 0.5,
-                            ),
-                          ),
-                        ),
-                        child: Row(
-                          children: [
-                            Container(
-                              width: 40,
-                              height: 40,
-                              decoration: BoxDecoration(
-                                color: isSelected ? TossColors.primary.withOpacity(0.1) : TossColors.gray50,
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: Icon(
-                                TossIcons.business,
-                                size: 20,
-                                color: isSelected ? TossColors.primary : TossColors.gray500,
-                              ),
-                            ),
-                            const SizedBox(width: TossSpacing.space3),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Headquarter',
-                                    style: TossTextStyles.body.copyWith(
-                                      color: TossColors.gray900,
-                                      fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                                    ),
-                                  ),
-                                  Text(
-                                    'Company Level',
-                                    style: TossTextStyles.caption.copyWith(
-                                      color: TossColors.gray500,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            if (isSelected)
-                              Container(
-                                padding: const EdgeInsets.all(2),
-                                decoration: BoxDecoration(
-                                  color: TossColors.primary,
-                                  shape: BoxShape.circle,
-                                ),
-                                child: const Icon(
-                                  TossIcons.check,
-                                  size: 16,
-                                  color: Colors.white,
-                                ),
-                              ),
-                          ],
-                        ),
-                      ),
-                    );
-                  }
-                  
-                  // Regular stores (adjust index by -1)
-                  final store = stores[index - 1];
-                  final isSelected = store['store_id'] == selectedStoreId;
-                  
-                  return InkWell(
-                    onTap: () async {
-                      HapticFeedback.selectionClick();
-                      Navigator.pop(context);
-                      
-                      setState(() {
-                        selectedStoreId = store['store_id'];
-                        selectedLocationId = null; // Reset location when store changes
-                      });
-                      
-                      // Update app state with the new store selection
-                      await ref.read(appStateProvider.notifier).setStoreChoosen(store['store_id']);
-                      
-                      // Fetch locations for the new store
-                      await _fetchLocations('cash');
-                      await _fetchLocations('bank');
-                      await _fetchLocations('vault');
-                      
-                      // Refresh data for the new store
-                      _refreshData();
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: TossSpacing.space5,
-                        vertical: TossSpacing.space4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: isSelected ? TossColors.gray50 : Colors.transparent,
-                        border: Border(
-                          bottom: BorderSide(
-                            color: TossColors.gray100,
-                            width: index == stores.length ? 0 : 0.5, // Adjusted for +1 Headquarter
-                          ),
-                        ),
-                      ),
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 40,
-                            height: 40,
-                            decoration: BoxDecoration(
-                              color: isSelected ? TossColors.primary.withOpacity(0.1) : TossColors.gray50,
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: Icon(
-                              TossIcons.store,
-                              size: 20,
-                              color: isSelected ? TossColors.primary : TossColors.gray500,
-                            ),
-                          ),
-                          const SizedBox(width: TossSpacing.space3),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  store['store_name'] ?? 'Unknown Store',
-                                  style: TossTextStyles.body.copyWith(
-                                    color: TossColors.gray900,
-                                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                                  ),
-                                ),
-                                if (store['store_code'] != null)
-                                  Text(
-                                    'Code: ${store['store_code']}',
-                                    style: TossTextStyles.caption.copyWith(
-                                      color: TossColors.gray500,
-                                    ),
-                                  ),
-                              ],
-                            ),
-                          ),
-                          if (isSelected)
-                            Container(
-                              width: 24,
-                              height: 24,
-                              decoration: const BoxDecoration(
-                                color: TossColors.primary,
-                                shape: BoxShape.circle,
-                              ),
-                              child: Icon(
-                                TossIcons.check,
-                                size: UIConstants.iconSizeXS,
-                                color: Colors.white,
-                              ),
-                            ),
-                        ],
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
-            // Bottom padding for safe area
-            SizedBox(height: MediaQuery.of(context).padding.bottom + TossSpacing.space4),
-          ],
-        ),
-      ),
-    );
-  }
   
   // Helper method to format currency
   String formatCurrency(double amount) {

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../core/themes/toss_colors.dart';
 import '../../../../core/themes/toss_text_styles.dart';
 import '../../../../core/themes/toss_spacing.dart';
@@ -109,7 +110,7 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
       animationDuration: TossAnimations.medium, // 250ms smooth transitions
     );
     _roleNameController = TextEditingController(text: widget.roleName);
-    _descriptionController = TextEditingController(text: widget.description ?? _getDefaultRoleDescription());
+    _descriptionController = TextEditingController(text: widget.description ?? '');
     _selectedPermissions = Set.from(widget.permissions);
     _selectedTags = List.from(widget.tags); // Initialize tags from widget
     // Start with all categories collapsed
@@ -276,14 +277,7 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
                   color: TossColors.gray900,
                 ),
               ),
-              SizedBox(height: TossSpacing.space1),
-              Text(
-                'Manage role information and configuration',
-                style: TossTextStyles.body.copyWith(
-                  color: TossColors.gray600,
-                ),
-              ),
-              SizedBox(height: TossSpacing.space4),
+              SizedBox(height: TossSpacing.space5),
               // Compact stats
               Container(
                 padding: EdgeInsets.all(TossSpacing.space3),
@@ -573,17 +567,6 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
                                 color: TossColors.gray900,
                               ),
                             ),
-                            SizedBox(height: TossSpacing.space1),
-                            Text(
-                              widget.roleName.toLowerCase() == 'owner' 
-                                  ? 'Owner role always has full permissions'
-                                  : widget.canEdit 
-                                      ? 'Configure what this role can access and do'
-                                      : 'View permissions for this role',
-                              style: TossTextStyles.body.copyWith(
-                                color: TossColors.gray600,
-                              ),
-                            ),
                           ],
                         ),
                       ),
@@ -705,13 +688,6 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
                           style: TossTextStyles.h3.copyWith(
                             fontWeight: FontWeight.w700,
                             color: TossColors.gray900,
-                          ),
-                        ),
-                        SizedBox(height: TossSpacing.space1),
-                        Text(
-                          'Users assigned to this role',
-                          style: TossTextStyles.body.copyWith(
-                            color: TossColors.gray600,
                           ),
                         ),
                       ],
@@ -1118,48 +1094,70 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
     required String email,
     required String joinedDate,
   }) {
-    return Container(
-      padding: EdgeInsets.symmetric(vertical: TossSpacing.space3),
-      child: Row(
-        children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: TossColors.gray200,
-              borderRadius: BorderRadius.circular(22),
+    // Check if this user is the company owner or has owner role
+    final isOwner = widget.roleName.toLowerCase() == 'owner';
+    final canRemove = widget.canEdit && !isOwner; // Can't remove owners
+    
+    return GestureDetector(
+      onLongPress: canRemove ? () => _showRemoveMemberDialog(userId, name) : null,
+      child: Container(
+        padding: EdgeInsets.symmetric(vertical: TossSpacing.space3),
+        decoration: BoxDecoration(
+          color: Colors.transparent,
+          borderRadius: BorderRadius.circular(TossBorderRadius.sm),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: TossColors.gray200,
+                borderRadius: BorderRadius.circular(22),
+              ),
+              child: Icon(Icons.person, color: TossColors.gray600),
             ),
-            child: Icon(Icons.person, color: TossColors.gray600),
-          ),
-          SizedBox(width: TossSpacing.space3),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  name,
-                  style: TossTextStyles.bodyLarge.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: TossColors.gray900,
+            SizedBox(width: TossSpacing.space3),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Text(
+                        name,
+                        style: TossTextStyles.bodyLarge.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: TossColors.gray900,
+                        ),
+                      ),
+                      if (canRemove) ...[
+                        SizedBox(width: TossSpacing.space2),
+                        Icon(
+                          Icons.touch_app,
+                          size: 14,
+                          color: TossColors.gray400,
+                        ),
+                      ],
+                    ],
                   ),
-                ),
-                Text(
-                  email,
-                  style: TossTextStyles.bodySmall.copyWith(
-                    color: TossColors.gray600,
+                  Text(
+                    email,
+                    style: TossTextStyles.bodySmall.copyWith(
+                      color: TossColors.gray600,
+                    ),
                   ),
-                ),
-                Text(
-                  joinedDate,
-                  style: TossTextStyles.caption.copyWith(
-                    color: TossColors.gray500,
+                  Text(
+                    joinedDate,
+                    style: TossTextStyles.caption.copyWith(
+                      color: TossColors.gray500,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-          // Remove button removed - role changes handled in Add Member flow
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -1275,7 +1273,167 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
     );
   }
 
-  // Remove member methods removed - role changes handled in Add Member flow
+  Future<void> _showRemoveMemberDialog(String userId, String userName) async {
+    final result = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+        ),
+        title: Text(
+          'Remove Member',
+          style: TossTextStyles.h3.copyWith(
+            fontWeight: FontWeight.w700,
+            color: TossColors.gray900,
+          ),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Are you sure you want to remove $userName from ${widget.roleName}?',
+              style: TossTextStyles.body.copyWith(
+                color: TossColors.gray700,
+              ),
+            ),
+            SizedBox(height: TossSpacing.space3),
+            Container(
+              padding: EdgeInsets.all(TossSpacing.space3),
+              decoration: BoxDecoration(
+                color: TossColors.warning.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(TossBorderRadius.sm),
+                border: Border.all(
+                  color: TossColors.warning.withValues(alpha: 0.3),
+                  width: 1,
+                ),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.info_outline,
+                    size: 16,
+                    color: TossColors.warning,
+                  ),
+                  SizedBox(width: TossSpacing.space2),
+                  Expanded(
+                    child: Text(
+                      'This user will need to be assigned a new role.',
+                      style: TossTextStyles.caption.copyWith(
+                        color: TossColors.warning,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(
+              'Cancel',
+              style: TossTextStyles.body.copyWith(
+                color: TossColors.gray600,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: TossColors.error,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(TossBorderRadius.sm),
+              ),
+              elevation: 0,
+            ),
+            child: Text(
+              'Remove',
+              style: TossTextStyles.body.copyWith(
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+    
+    if (result == true) {
+      await _removeMemberFromRole(userId, userName);
+    }
+  }
+  
+  Future<void> _removeMemberFromRole(String userId, String userName) async {
+    setState(() => _isLoading = true);
+    
+    try {
+      final supabase = Supabase.instance.client;
+      
+      // Get the default Employee role for this company
+      final defaultRoleResponse = await supabase
+          .from('roles')
+          .select('role_id')
+          .eq('company_id', (await supabase
+              .from('roles')
+              .select('company_id')
+              .eq('role_id', widget.roleId)
+              .single())['company_id'])
+          .eq('role_name', 'Employee')
+          .limit(1);
+      
+      if (defaultRoleResponse.isEmpty) {
+        throw Exception('No Employee role found to reassign user');
+      }
+      
+      final defaultRoleId = defaultRoleResponse.first['role_id'];
+      
+      // Update user's role to Employee (or remove if no Employee role)
+      await supabase
+          .from('user_roles')
+          .update({
+            'role_id': defaultRoleId,
+            'updated_at': DateTime.now().toIso8601String(),
+          })
+          .eq('user_id', userId)
+          .eq('role_id', widget.roleId);
+      
+      if (mounted) {
+        // Refresh the members list
+        setState(() {});
+        
+        // Invalidate providers to update counts
+        ref.invalidate(allCompanyRolesProvider);
+        ref.invalidate(companyUsersProvider);
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('$userName has been moved to Employee role'),
+            backgroundColor: TossColors.success,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to remove member: $e'),
+            backgroundColor: TossColors.error,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
 
   Widget _buildUnderlineTab(String text, int index) {
     return Expanded(
