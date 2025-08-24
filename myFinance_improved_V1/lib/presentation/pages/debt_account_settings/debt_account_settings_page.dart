@@ -65,9 +65,9 @@ class _DebtAccountSettingsPageState extends ConsumerState<DebtAccountSettingsPag
       isScrollControlled: true,
       backgroundColor: TossColors.transparent,
       barrierColor: TossColors.overlay,
-      enableDrag: false, // Disable system drag handle to prevent double handler (blue circle)
+      enableDrag: true, // Allow swipe-to-dismiss
       constraints: BoxConstraints(
-        maxHeight: MediaQuery.of(context).size.height * 0.85,
+        maxHeight: MediaQuery.of(context).size.height * 0.8,
       ),
       builder: (context) => Container(
         decoration: BoxDecoration(
@@ -91,9 +91,9 @@ class _DebtAccountSettingsPageState extends ConsumerState<DebtAccountSettingsPag
       isScrollControlled: true,
       backgroundColor: TossColors.transparent,
       barrierColor: TossColors.overlay,
-      enableDrag: false, // Disable system drag handle to prevent double handler (blue circle)
+      enableDrag: true, // Allow swipe-to-dismiss
       constraints: BoxConstraints(
-        maxHeight: MediaQuery.of(context).size.height * 0.85,
+        maxHeight: MediaQuery.of(context).size.height * 0.8,
       ),
       builder: (context) => Container(
         decoration: BoxDecoration(

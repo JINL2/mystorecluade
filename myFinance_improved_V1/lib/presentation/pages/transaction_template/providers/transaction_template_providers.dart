@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../../../providers/app_state_provider.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../../data/services/supabase_service.dart';
+import '../../../../data/services/template_cache_service.dart';
 
 // Provider to watch user data from app state with authentication and caching
 final templateUserProvider = Provider<dynamic>((ref) async {
@@ -221,15 +222,230 @@ final transactionTemplatesProvider = FutureProvider<List<Map<String, dynamic>>>(
     return templates;
     
   } catch (e) {
-    // Log error in debug mode only
-    assert(() {
-      print('Transaction Templates Error: $e');
-      return true;
-    }());
-    
     // Return empty list to prevent crash
     return [];
   }
+});
+
+// Provider for templates sorted by usage frequency
+final sortedTransactionTemplatesProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
+  final supabase = Supabase.instance.client;
+  final appState = ref.watch(appStateProvider);
+  final companyId = appState.companyChoosen;
+  final userId = supabase.auth.currentUser?.id;
+  
+  if (companyId.isEmpty || userId == null) {
+    return [];
+  }
+  
+  // First, get user's top templates from the view (fetch once and reuse)
+  List<String> topTemplateIds = [];
+  List<dynamic> topTemplatesData = [];
+  try {
+    final topTemplatesResponse = await supabase
+        .from('top_templates_by_user')
+        .select('top_templates')
+        .eq('user_id', userId)
+        .eq('company_id', companyId)
+        .maybeSingle();
+    
+    if (topTemplatesResponse != null && topTemplatesResponse['top_templates'] != null) {
+      topTemplatesData = topTemplatesResponse['top_templates'] as List;
+      topTemplateIds = topTemplatesData
+          .map((t) => t['template_id'] as String?)
+          .where((id) => id != null)
+          .cast<String>()
+          .toList();
+    }
+  } catch (e) {
+    // Silent fail
+  }
+  
+  // Get all templates (including those not in top)
+  final templatesAsync = await ref.watch(transactionTemplatesProvider.future);
+  
+  // Pre-cache frequently used templates for better performance
+  if (topTemplateIds.isNotEmpty) {
+    final cacheService = TemplateCacheService();
+    cacheService.preCacheTemplates(topTemplateIds.take(10).toList());
+  }
+  
+  // Get counterparties and cash locations for enrichment
+  
+  // Fetch counterparties
+  Map<String, String> counterpartyNames = {};
+  try {
+    final counterparties = await supabase
+        .from('counterparties')
+        .select('counterparty_id, name')
+        .eq('company_id', companyId);
+    
+    for (var cp in counterparties) {
+      final id = cp['counterparty_id'] as String?;
+      final name = cp['name'] as String?;
+      if (id != null && name != null) {
+        counterpartyNames[id] = name;
+      }
+    }
+  } catch (e) {
+    // Silent fail
+  }
+  
+  // Fetch cash locations
+  Map<String, String> cashLocationNames = {};
+  try {
+    final cashLocations = await supabase
+        .from('cash_locations')
+        .select('cash_location_id, location_name')
+        .eq('company_id', companyId);
+    
+    for (var loc in cashLocations) {
+      final id = loc['cash_location_id'] as String?;
+      final name = loc['location_name'] as String?;
+      if (id != null && name != null) {
+        cashLocationNames[id] = name;
+      }
+    }
+  } catch (e) {
+    // Silent fail
+  }
+  
+  // Create a map of template_id to usage data from already fetched top templates
+  final usageMap = <String, Map<String, dynamic>>{};
+  for (final template in topTemplatesData) {
+    final templateId = template['template_id'] as String?;
+    final usageCount = template['usage_count'] as int? ?? 0;
+    final lastUsed = template['last_used'] as String?;
+    if (templateId != null) {
+      usageMap[templateId] = {
+        'usage_count': usageCount,
+        'last_used': lastUsed,
+      };
+    }
+  }
+  
+  // Create a list of templates with usage count, recency score, and enriched data
+  final templatesWithUsage = <Map<String, dynamic>>[];
+  for (final template in templatesAsync) {
+    final templateId = template['template_id'] as String?;
+    final usageData = templateId != null ? usageMap[templateId] : null;
+    final usageCount = usageData?['usage_count'] as int? ?? 0;
+    final lastUsedStr = usageData?['last_used'] as String?;
+    
+    // Calculate recency bonus based on last used date
+    int recencyBonus = 0;
+    if (lastUsedStr != null) {
+      final lastUsed = DateTime.tryParse(lastUsedStr);
+      if (lastUsed != null) {
+        final now = DateTime.now();
+        final daysSinceUsed = now.difference(lastUsed).inDays;
+        
+        // Apply recency bonus as per TRANSACTION_TEMPLATES_GUIDE.md
+        if (daysSinceUsed <= 7) {
+          recencyBonus = 15; // Last 7 days
+        } else if (daysSinceUsed <= 30) {
+          recencyBonus = 8;  // Last 30 days
+        } else if (daysSinceUsed <= 90) {
+          recencyBonus = 3;  // Last 90 days
+        } else {
+          recencyBonus = 1;  // Older than 90 days
+        }
+      }
+    }
+    
+    // Calculate total usage score (usage count + recency bonus)
+    final usageScore = usageCount + recencyBonus;
+    
+    // Add usage data to template
+    final templateWithUsage = Map<String, dynamic>.from(template);
+    templateWithUsage['usage_count'] = usageCount;
+    templateWithUsage['usage_score'] = usageScore;
+    templateWithUsage['last_used'] = lastUsedStr;
+    
+    // Enrich with counterparty name
+    final counterpartyId = template['counterparty_id'] as String?;
+    if (counterpartyId != null && counterpartyNames.containsKey(counterpartyId)) {
+      templateWithUsage['counterparty_name'] = counterpartyNames[counterpartyId];
+    }
+    
+    // Enrich with counterparty cash location name
+    final counterpartyCashLocId = template['counterparty_cash_location_id'] as String?;
+    if (counterpartyCashLocId != null && cashLocationNames.containsKey(counterpartyCashLocId)) {
+      templateWithUsage['counterparty_cash_location_name'] = cashLocationNames[counterpartyCashLocId];
+    }
+    
+    // Enrich template data entries with names
+    final data = template['data'] as List? ?? [];
+    final enrichedData = <Map<String, dynamic>>[];
+    for (var entry in data) {
+      final enrichedEntry = Map<String, dynamic>.from(entry as Map<String, dynamic>);
+      
+      // Add cash location name if it's a cash account
+      final categoryTag = entry['category_tag'] as String? ?? '';
+      if (categoryTag == 'cash') {
+        final cashLocId = entry['cash_location_id'] as String?;
+        if (cashLocId != null && cashLocationNames.containsKey(cashLocId)) {
+          enrichedEntry['cash_location_name'] = cashLocationNames[cashLocId];
+        }
+      }
+      
+      // Add counterparty name if it's payable/receivable
+      if (categoryTag == 'payable' || categoryTag == 'receivable') {
+        final cpId = entry['counterparty_id'] as String? ?? counterpartyId;
+        if (cpId != null && counterpartyNames.containsKey(cpId)) {
+          enrichedEntry['counterparty_name'] = counterpartyNames[cpId];
+        }
+        
+        // Also add counterparty cash location name if available
+        final cpCashLocId = entry['counterparty_cash_location_id'] as String?;
+        if (cpCashLocId != null && cashLocationNames.containsKey(cpCashLocId)) {
+          enrichedEntry['counterparty_cash_location_name'] = cashLocationNames[cpCashLocId];
+        }
+      }
+      
+      enrichedData.add(enrichedEntry);
+    }
+    templateWithUsage['data'] = enrichedData;
+    
+    templatesWithUsage.add(templateWithUsage);
+  }
+  
+  // Sort templates: prioritize top templates from view, then by usage score
+  templatesWithUsage.sort((a, b) {
+    final aId = a['template_id'] as String?;
+    final bId = b['template_id'] as String?;
+    
+    // First priority: templates from top_templates_by_user view
+    final aIsTop = aId != null && topTemplateIds.contains(aId);
+    final bIsTop = bId != null && topTemplateIds.contains(bId);
+    
+    if (aIsTop && !bIsTop) return -1;
+    if (!aIsTop && bIsTop) return 1;
+    
+    // If both are top templates, sort by their order in the view
+    if (aIsTop && bIsTop && aId != null && bId != null) {
+      final aIndex = topTemplateIds.indexOf(aId);
+      final bIndex = topTemplateIds.indexOf(bId);
+      if (aIndex != bIndex) {
+        return aIndex.compareTo(bIndex);
+      }
+    }
+    
+    // For non-top templates, sort by usage score
+    final aScore = a['usage_score'] as int? ?? 0;
+    final bScore = b['usage_score'] as int? ?? 0;
+    
+    if (aScore != bScore) {
+      return bScore.compareTo(aScore);
+    }
+    
+    // Finally, sort by creation date (newer first)
+    final aCreated = DateTime.tryParse(a['created_at']?.toString() ?? '') ?? DateTime.now();
+    final bCreated = DateTime.tryParse(b['created_at']?.toString() ?? '') ?? DateTime.now();
+    return bCreated.compareTo(aCreated);
+  });
+  
+  return templatesWithUsage;
 });
 
 // Provider for fetching all accounts (excluding fixedAsset)

@@ -40,7 +40,7 @@ class TransactionDetailSheet extends StatelessWidget {
           
           // Debit Section
           if (debitLines.isNotEmpty) ...[
-            _buildSectionHeader('Debit', TossColors.success, debitLines),
+            _buildSectionHeader('Debit', TossColors.primary, debitLines),
             const SizedBox(height: TossSpacing.space3),
             ...debitLines.map((line) => _buildLineDetail(line, true)),
             const SizedBox(height: TossSpacing.space4),
@@ -48,7 +48,7 @@ class TransactionDetailSheet extends StatelessWidget {
           
           // Credit Section
           if (creditLines.isNotEmpty) ...[
-            _buildSectionHeader('Credit', TossColors.loss, creditLines),
+            _buildSectionHeader('Credit', TossColors.textPrimary, creditLines),
             const SizedBox(height: TossSpacing.space3),
             ...creditLines.map((line) => _buildLineDetail(line, false)),
             const SizedBox(height: TossSpacing.space4),
@@ -142,7 +142,7 @@ class TransactionDetailSheet extends StatelessWidget {
         vertical: 2,
       ),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: TossColors.gray50,
         borderRadius: BorderRadius.circular(4),
       ),
       child: Text(
@@ -193,7 +193,7 @@ class TransactionDetailSheet extends StatelessWidget {
                 '${transaction.currencySymbol}${_formatCurrency(transaction.totalAmount)}',
                 style: TossTextStyles.h3.copyWith(
                   fontWeight: FontWeight.bold,
-                  color: TossColors.gray900,
+                  color: TossColors.textPrimary,
                 ),
               ),
             ],
@@ -260,13 +260,13 @@ class TransactionDetailSheet extends StatelessWidget {
 
   Widget _buildLineDetail(TransactionLine line, bool isDebit) {
     final amount = isDebit ? line.debit : line.credit;
-    final color = isDebit ? TossColors.success : TossColors.loss;
+    final color = isDebit ? TossColors.primary : TossColors.textPrimary;
     
     return Container(
       margin: const EdgeInsets.only(bottom: TossSpacing.space3),
       padding: const EdgeInsets.all(TossSpacing.space3),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: TossColors.white,
         borderRadius: BorderRadius.circular(TossBorderRadius.sm),
         border: Border.all(
           color: TossColors.gray100,
@@ -316,7 +316,7 @@ class TransactionDetailSheet extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(TossSpacing.space2),
               decoration: BoxDecoration(
-                color: TossColors.primary.withOpacity(0.05),
+                color: TossColors.gray50,
                 borderRadius: BorderRadius.circular(4),
               ),
               child: Row(
@@ -403,10 +403,10 @@ class TransactionDetailSheet extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(TossSpacing.space3),
       decoration: BoxDecoration(
-        color: isBalanced ? TossColors.success.withOpacity(0.05) : TossColors.error.withOpacity(0.05),
+        color: TossColors.gray50,
         borderRadius: BorderRadius.circular(TossBorderRadius.sm),
         border: Border.all(
-          color: isBalanced ? TossColors.success.withOpacity(0.2) : TossColors.error.withOpacity(0.2),
+          color: TossColors.gray200,
         ),
       ),
       child: Row(
@@ -417,13 +417,13 @@ class TransactionDetailSheet extends StatelessWidget {
               Icon(
                 isBalanced ? Icons.check_circle : Icons.error,
                 size: 16,
-                color: isBalanced ? TossColors.success : TossColors.error,
+                color: TossColors.gray600,
               ),
               const SizedBox(width: TossSpacing.space2),
               Text(
                 isBalanced ? 'Balanced' : 'Unbalanced',
                 style: TossTextStyles.caption.copyWith(
-                  color: isBalanced ? TossColors.success : TossColors.error,
+                  color: TossColors.gray700,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -456,11 +456,11 @@ class TransactionDetailSheet extends StatelessWidget {
         const SizedBox(height: TossSpacing.space2),
         _buildMetadataRow('Created by', transaction.createdByName),
         if (transaction.storeName != null && transaction.storeName!.isNotEmpty)
-          _buildMetadataRow('Store', transaction.storeName!, color: TossColors.primary),
+          _buildMetadataRow('Store', transaction.storeName!, color: TossColors.gray700),
         _buildMetadataRow('Currency', '${transaction.currencyCode} (${transaction.currencySymbol})'),
         _buildMetadataRow('Type', transaction.journalType),
         if (transaction.isDraft)
-          _buildMetadataRow('Status', 'Draft', color: TossColors.warning),
+          _buildMetadataRow('Status', 'Draft', color: TossColors.gray700),
       ],
     );
   }
@@ -551,13 +551,9 @@ class TransactionDetailSheet extends StatelessWidget {
   Color _getTypeColor(String type) {
     switch (type.toLowerCase()) {
       case 'sales':
-        return TossColors.success;
       case 'purchase':
-        return TossColors.loss;
       case 'payment':
-        return TossColors.primary;
       case 'receipt':
-        return TossColors.info;
       default:
         return TossColors.gray600;
     }

@@ -30,6 +30,7 @@ import '../pages/transactions/transaction_history_page.dart';
 import '../pages/transaction_template/transaction_template_page.dart';
 import '../pages/my_page/my_page.dart';
 import '../pages/debt_account_settings/debt_account_settings_page.dart';
+import '../pages/debt_control/smart_debt_control_page_v3.dart';
 import '../pages/component_test/component_test_page.dart';
 import '../pages/debug/supabase_connection_test_page.dart';
 import '../pages/debug/notification_debug_page.dart';
@@ -269,6 +270,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 counterpartyName: counterpartyName,
               );
             },
+          ),
+          // Smart Debt Control
+          GoRoute(
+            path: 'debtControl',
+            builder: (context, state) => const SmartDebtControlPageV3(),
           ),
           GoRoute(
             path: 'addFixAsset',

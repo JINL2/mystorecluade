@@ -2306,7 +2306,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
             }
             
             return Container(
-              height: MediaQuery.of(context).size.height * 0.85,
+              height: MediaQuery.of(context).size.height * 0.8,
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.only(
@@ -2567,7 +2567,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
   }) {
     showDialog(
       context: context,
-      barrierDismissible: false,
+      barrierDismissible: true, // Allow dismissing loading dialogs
       builder: (BuildContext context) {
         return Dialog(
           shape: RoundedRectangleBorder(

@@ -44,6 +44,9 @@ class _EditStoreWidgetState extends State<EditStoreWidget> {
     _model.allowedDistanceTextController ??= TextEditingController();
     _model.allowedDistanceFocusNode ??= FocusNode();
 
+    _model.storeAddressTextController ??= TextEditingController();
+    _model.storeAddressFocusNode ??= FocusNode();
+
     WidgetsBinding.instance.addPostFrameCallback((_) => safeSetState(() {}));
   }
 
@@ -158,8 +161,37 @@ class _EditStoreWidgetState extends State<EditStoreWidget> {
                           .stores
                           .map((e) => e.storeName)
                           .toList(),
-                      onChanged: (val) =>
-                          safeSetState(() => _model.storeDropDownValue = val),
+                      onChanged: (val) async {
+                          safeSetState(() => _model.storeDropDownValue = val);
+                          
+                          // Load existing store data when store is selected
+                          if (val != null && val != '') {
+                            final storeData = await StoresTable().queryRows(
+                              queryFn: (q) => q.eq('store_id', val),
+                            );
+                            
+                            if (storeData.isNotEmpty) {
+                              final store = storeData.first;
+                              
+                              // Populate form fields with existing data
+                              _model.textController1.text = 
+                                  store.huddleTime?.toString() ?? '';
+                              _model.textController2.text = 
+                                  store.paymentTime?.toString() ?? '';
+                              _model.allowedDistanceTextController.text = 
+                                  store.allowedDistance?.toString() ?? '';
+                              _model.storeAddressTextController.text = 
+                                  store.storeAddress ?? '';
+                              
+                              // Parse store location if exists (PostGIS GEOGRAPHY format)
+                              // Note: You may need to handle the GEOGRAPHY parsing based on your actual data format
+                              // For now, clearing the location to be re-captured
+                              _model.storeLocation = null;
+                              
+                              safeSetState(() {});
+                            }
+                          }
+                        },
                       width: 200.0,
                       height: 40.0,
                       textStyle:
@@ -607,7 +639,7 @@ class _EditStoreWidgetState extends State<EditStoreWidget> {
                       mainAxisSize: MainAxisSize.max,
                       children: [
                         Text(
-                          'Store Location: ',
+                          'Store Address: ',
                           style:
                               FlutterFlowTheme.of(context).titleMedium.override(
                                     font: GoogleFonts.notoSansJp(
@@ -627,59 +659,318 @@ class _EditStoreWidgetState extends State<EditStoreWidget> {
                                         .fontStyle,
                                   ),
                         ),
-                        Padding(
-                          padding: EdgeInsetsDirectional.fromSTEB(
-                              16.0, 0.0, 0.0, 0.0),
-                          child: FFButtonWidget(
-                            onPressed: () async {
-                              currentUserLocationValue =
-                                  await getCurrentUserLocation(
-                                      defaultLocation: LatLng(0.0, 0.0));
-                              _model.storeLocation = currentUserLocationValue;
-                              safeSetState(() {});
-                            },
-                            text: 'Button',
-                            options: FFButtonOptions(
-                              height: 40.0,
-                              padding: EdgeInsetsDirectional.fromSTEB(
-                                  16.0, 0.0, 16.0, 0.0),
-                              iconPadding: EdgeInsetsDirectional.fromSTEB(
-                                  0.0, 0.0, 0.0, 0.0),
-                              color: FlutterFlowTheme.of(context).primary,
-                              textStyle: FlutterFlowTheme.of(context)
-                                  .titleSmall
+                        Expanded(
+                          child: Container(
+                            width: 200.0,
+                            child: TextFormField(
+                              controller: _model.storeAddressTextController,
+                              focusNode: _model.storeAddressFocusNode,
+                              autofocus: false,
+                              obscureText: false,
+                              decoration: InputDecoration(
+                                isDense: true,
+                                labelStyle: FlutterFlowTheme.of(context)
+                                    .labelMedium
+                                    .override(
+                                      font: GoogleFonts.notoSansJp(
+                                        fontWeight: FlutterFlowTheme.of(context)
+                                            .labelMedium
+                                            .fontWeight,
+                                        fontStyle: FlutterFlowTheme.of(context)
+                                            .labelMedium
+                                            .fontStyle,
+                                      ),
+                                      letterSpacing: 0.0,
+                                      fontWeight: FlutterFlowTheme.of(context)
+                                          .labelMedium
+                                          .fontWeight,
+                                      fontStyle: FlutterFlowTheme.of(context)
+                                          .labelMedium
+                                          .fontStyle,
+                                    ),
+                                hintText: 'Enter store address',
+                                hintStyle: FlutterFlowTheme.of(context)
+                                    .labelMedium
+                                    .override(
+                                      font: GoogleFonts.notoSansJp(
+                                        fontWeight: FlutterFlowTheme.of(context)
+                                            .labelMedium
+                                            .fontWeight,
+                                        fontStyle: FlutterFlowTheme.of(context)
+                                            .labelMedium
+                                            .fontStyle,
+                                      ),
+                                      letterSpacing: 0.0,
+                                      fontWeight: FlutterFlowTheme.of(context)
+                                          .labelMedium
+                                          .fontWeight,
+                                      fontStyle: FlutterFlowTheme.of(context)
+                                          .labelMedium
+                                          .fontStyle,
+                                    ),
+                                enabledBorder: OutlineInputBorder(
+                                  borderSide: BorderSide(
+                                    color: Color(0xFFE0E3E7),
+                                    width: 1.0,
+                                  ),
+                                  borderRadius: BorderRadius.circular(8.0),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderSide: BorderSide(
+                                    color: Color(0xFF4B39EF),
+                                    width: 1.0,
+                                  ),
+                                  borderRadius: BorderRadius.circular(8.0),
+                                ),
+                                errorBorder: OutlineInputBorder(
+                                  borderSide: BorderSide(
+                                    color: FlutterFlowTheme.of(context).error,
+                                    width: 1.0,
+                                  ),
+                                  borderRadius: BorderRadius.circular(8.0),
+                                ),
+                                focusedErrorBorder: OutlineInputBorder(
+                                  borderSide: BorderSide(
+                                    color: FlutterFlowTheme.of(context).error,
+                                    width: 1.0,
+                                  ),
+                                  borderRadius: BorderRadius.circular(8.0),
+                                ),
+                                filled: true,
+                                fillColor: FlutterFlowTheme.of(context).info,
+                              ),
+                              style: FlutterFlowTheme.of(context)
+                                  .bodyMedium
                                   .override(
                                     font: GoogleFonts.notoSansJp(
                                       fontWeight: FlutterFlowTheme.of(context)
-                                          .titleSmall
+                                          .bodyMedium
                                           .fontWeight,
                                       fontStyle: FlutterFlowTheme.of(context)
-                                          .titleSmall
+                                          .bodyMedium
                                           .fontStyle,
                                     ),
-                                    color: Colors.white,
                                     letterSpacing: 0.0,
                                     fontWeight: FlutterFlowTheme.of(context)
-                                        .titleSmall
+                                        .bodyMedium
                                         .fontWeight,
                                     fontStyle: FlutterFlowTheme.of(context)
-                                        .titleSmall
+                                        .bodyMedium
                                         .fontStyle,
                                   ),
-                              elevation: 0.0,
-                              borderRadius: BorderRadius.circular(8.0),
+                              cursorColor:
+                                  FlutterFlowTheme.of(context).primaryText,
+                              validator: _model
+                                  .storeAddressTextControllerValidator
+                                  .asValidator(context),
                             ),
                           ),
                         ),
                       ],
                     ),
+                    Row(
+                      mainAxisSize: MainAxisSize.max,
+                      children: [
+                        Text(
+                          'GPS Location: ',
+                          style:
+                              FlutterFlowTheme.of(context).titleMedium.override(
+                                    font: GoogleFonts.notoSansJp(
+                                      fontWeight: FlutterFlowTheme.of(context)
+                                          .titleMedium
+                                          .fontWeight,
+                                      fontStyle: FlutterFlowTheme.of(context)
+                                          .titleMedium
+                                          .fontStyle,
+                                    ),
+                                    letterSpacing: 0.0,
+                                    fontWeight: FlutterFlowTheme.of(context)
+                                        .titleMedium
+                                        .fontWeight,
+                                    fontStyle: FlutterFlowTheme.of(context)
+                                        .titleMedium
+                                        .fontStyle,
+                                  ),
+                        ),
+                        Expanded(
+                          child: Container(
+                            padding: EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+                            decoration: BoxDecoration(
+                              color: FlutterFlowTheme.of(context).primaryBackground,
+                              borderRadius: BorderRadius.circular(8.0),
+                              border: Border.all(
+                                color: _model.storeLocation != null
+                                    ? FlutterFlowTheme.of(context).success
+                                    : Color(0xFFE0E3E7),
+                                width: 1.0,
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    _model.storeLocation != null
+                                        ? 'Lat: ${_model.storeLocation!.latitude.toStringAsFixed(6)}, Lng: ${_model.storeLocation!.longitude.toStringAsFixed(6)}'
+                                        : 'Location not set',
+                                    style: FlutterFlowTheme.of(context)
+                                        .bodyMedium
+                                        .override(
+                                          font: GoogleFonts.notoSansJp(
+                                            fontWeight: FlutterFlowTheme.of(context)
+                                                .bodyMedium
+                                                .fontWeight,
+                                            fontStyle: FlutterFlowTheme.of(context)
+                                                .bodyMedium
+                                                .fontStyle,
+                                          ),
+                                          color: _model.storeLocation != null
+                                              ? FlutterFlowTheme.of(context).success
+                                              : FlutterFlowTheme.of(context).secondaryText,
+                                          letterSpacing: 0.0,
+                                          fontWeight: FlutterFlowTheme.of(context)
+                                              .bodyMedium
+                                              .fontWeight,
+                                          fontStyle: FlutterFlowTheme.of(context)
+                                              .bodyMedium
+                                              .fontStyle,
+                                        ),
+                                  ),
+                                ),
+                                FFButtonWidget(
+                                  onPressed: () async {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          'Getting current location...',
+                                          style: TextStyle(
+                                            color: FlutterFlowTheme.of(context).primaryText,
+                                          ),
+                                        ),
+                                        duration: Duration(milliseconds: 2000),
+                                        backgroundColor: FlutterFlowTheme.of(context).secondary,
+                                      ),
+                                    );
+                                    currentUserLocationValue =
+                                        await getCurrentUserLocation(
+                                            defaultLocation: LatLng(0.0, 0.0));
+                                    if (currentUserLocationValue != null) {
+                                      _model.storeLocation = currentUserLocationValue;
+                                      safeSetState(() {});
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                            'Location captured successfully!',
+                                            style: TextStyle(
+                                              color: FlutterFlowTheme.of(context).primaryText,
+                                            ),
+                                          ),
+                                          duration: Duration(milliseconds: 2000),
+                                          backgroundColor: FlutterFlowTheme.of(context).success,
+                                        ),
+                                      );
+                                    } else {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                            'Failed to get location. Please check permissions.',
+                                            style: TextStyle(
+                                              color: FlutterFlowTheme.of(context).primaryText,
+                                            ),
+                                          ),
+                                          duration: Duration(milliseconds: 3000),
+                                          backgroundColor: FlutterFlowTheme.of(context).error,
+                                        ),
+                                      );
+                                    }
+                                  },
+                                  text: _model.storeLocation != null ? 'Update' : 'Get Location',
+                                  icon: Icon(
+                                    Icons.location_on,
+                                    size: 16.0,
+                                  ),
+                                  options: FFButtonOptions(
+                                    height: 32.0,
+                                    padding: EdgeInsetsDirectional.fromSTEB(
+                                        12.0, 0.0, 12.0, 0.0),
+                                    iconPadding: EdgeInsetsDirectional.fromSTEB(
+                                        0.0, 0.0, 0.0, 0.0),
+                                    color: FlutterFlowTheme.of(context).primary,
+                                    textStyle: FlutterFlowTheme.of(context)
+                                        .labelSmall
+                                        .override(
+                                          font: GoogleFonts.notoSansJp(
+                                            fontWeight: FlutterFlowTheme.of(context)
+                                                .labelSmall
+                                                .fontWeight,
+                                            fontStyle: FlutterFlowTheme.of(context)
+                                                .labelSmall
+                                                .fontStyle,
+                                          ),
+                                          color: Colors.white,
+                                          letterSpacing: 0.0,
+                                          fontWeight: FlutterFlowTheme.of(context)
+                                              .labelSmall
+                                              .fontWeight,
+                                          fontStyle: FlutterFlowTheme.of(context)
+                                              .labelSmall
+                                              .fontStyle,
+                                        ),
+                                    elevation: 0.0,
+                                    borderRadius: BorderRadius.circular(6.0),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    // Help text for location
+                    Padding(
+                      padding: EdgeInsetsDirectional.fromSTEB(0.0, 4.0, 0.0, 0.0),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.max,
+                        children: [
+                          Icon(
+                            Icons.info_outline,
+                            color: FlutterFlowTheme.of(context).secondaryText,
+                            size: 16.0,
+                          ),
+                          SizedBox(width: 4.0),
+                          Expanded(
+                            child: Text(
+                              'Location is used for employee check-in/out. Allowed distance sets the radius for valid check-ins.',
+                              style: FlutterFlowTheme.of(context)
+                                  .labelSmall
+                                  .override(
+                                    font: GoogleFonts.notoSansJp(
+                                      fontWeight: FlutterFlowTheme.of(context)
+                                          .labelSmall
+                                          .fontWeight,
+                                      fontStyle: FlutterFlowTheme.of(context)
+                                          .labelSmall
+                                          .fontStyle,
+                                    ),
+                                    color: FlutterFlowTheme.of(context).secondaryText,
+                                    letterSpacing: 0.0,
+                                    fontWeight: FlutterFlowTheme.of(context)
+                                        .labelSmall
+                                        .fontWeight,
+                                    fontStyle: FlutterFlowTheme.of(context)
+                                        .labelSmall
+                                        .fontStyle,
+                                  ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ].divide(SizedBox(height: 12.0)),
                 ),
-              if (((_model.textController1.text != '') !=
-                      null) &&
+              if ((_model.textController1.text != '') &&
                   (_model.textController2.text != '') &&
-                  (_model.allowedDistanceTextController.text != '') &&
-                  (_model.storeLocation != null))
+                  (_model.allowedDistanceTextController.text != ''))
                 Padding(
                   padding: EdgeInsetsDirectional.fromSTEB(0.0, 20.0, 0.0, 0.0),
                   child: Row(
@@ -695,29 +986,67 @@ class _EditStoreWidgetState extends State<EditStoreWidget> {
                           hoverColor: Colors.transparent,
                           highlightColor: Colors.transparent,
                           onTap: () async {
-                            currentUserLocationValue =
-                                await getCurrentUserLocation(
-                                    defaultLocation: LatLng(0.0, 0.0));
+                            // Validate required fields
+                            if (_model.storeDropDownValue == null || 
+                                _model.storeDropDownValue == '') {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    'Please select a store',
+                                    style: TextStyle(
+                                      color: FlutterFlowTheme.of(context).primaryText,
+                                    ),
+                                  ),
+                                  duration: Duration(milliseconds: 3000),
+                                  backgroundColor: FlutterFlowTheme.of(context).error,
+                                ),
+                              );
+                              return;
+                            }
+
+                            // Update store basic information
+                            Map<String, dynamic> updateData = {
+                              'huddle_time':
+                                  int.tryParse(_model.textController1.text),
+                              'payment_time':
+                                  int.tryParse(_model.textController2.text),
+                              'allowed_distance': int.tryParse(
+                                  _model.allowedDistanceTextController.text),
+                            };
+
+                            // Add store address if provided
+                            if (_model.storeAddressTextController.text.isNotEmpty) {
+                              updateData['store_address'] = _model.storeAddressTextController.text;
+                            }
+
                             await StoresTable().update(
-                              data: {
-                                'huddle_time':
-                                    int.tryParse(_model.textController1.text),
-                                'payment_time':
-                                    int.tryParse(_model.textController2.text),
-                                'allowed_distance': int.tryParse(
-                                    _model.allowedDistanceTextController.text),
-                              },
+                              data: updateData,
                               matchingRows: (rows) => rows.eqOrNull(
                                 'store_id',
                                 _model.storeDropDownValue,
                               ),
                             );
-                            await UpdateStoreLocationCall.call(
-                              pStoreId: _model.storeDropDownValue,
-                              pStoreLat:
-                                  functions.lat(currentUserLocationValue, true),
-                              pStoreLng: functions.lat(
-                                  currentUserLocationValue, false),
+
+                            // Update GPS location if available
+                            if (_model.storeLocation != null) {
+                              await UpdateStoreLocationCall.call(
+                                pStoreId: _model.storeDropDownValue,
+                                pStoreLat: _model.storeLocation!.latitude,
+                                pStoreLng: _model.storeLocation!.longitude,
+                              );
+                            }
+
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  'Store settings updated successfully!',
+                                  style: TextStyle(
+                                    color: FlutterFlowTheme.of(context).primaryText,
+                                  ),
+                                ),
+                                duration: Duration(milliseconds: 2000),
+                                backgroundColor: FlutterFlowTheme.of(context).success,
+                              ),
                             );
 
                             Navigator.pop(context);

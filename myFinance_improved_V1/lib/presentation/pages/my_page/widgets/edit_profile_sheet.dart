@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -9,7 +10,6 @@ import '../../../../core/themes/toss_text_styles.dart';
 import '../../../../core/themes/toss_shadows.dart';
 import '../../../../core/constants/ui_constants.dart';
 import '../../../widgets/common/toss_profile_avatar.dart';
-import '../../../widgets/toss/toss_bottom_sheet.dart';
 import '../../../widgets/toss/toss_primary_button.dart';
 import '../../../../domain/entities/user_profile.dart';
 import '../providers/user_profile_provider.dart';
@@ -64,33 +64,79 @@ class _EditProfileSheetState extends ConsumerState<EditProfileSheet> {
     try {
       HapticFeedback.lightImpact();
       
-      // Use TossBottomSheet instead of custom modal
-      final source = await TossBottomSheet.show<ImageSource>(
+      // Show CupertinoActionSheet for iOS-native experience
+      await showCupertinoModalPopup(
         context: context,
-        title: 'Select Photo',
-        content: _buildTossImageSourcePicker(),
+        builder: (BuildContext context) => CupertinoActionSheet(
+          title: Text('Select Photo Source'),
+          actions: [
+            CupertinoActionSheetAction(
+              onPressed: () async {
+                Navigator.pop(context);
+                final pickedFile = await _imagePicker.pickImage(
+                  source: ImageSource.camera,
+                  maxWidth: UIConstants.imageMaxWidth,
+                  maxHeight: UIConstants.imageMaxHeight,
+                  imageQuality: UIConstants.imageQuality,
+                );
+                
+                if (pickedFile != null) {
+                  setState(() {
+                    _selectedImage = File(pickedFile.path);
+                    _isChanged = true;
+                  });
+                }
+              },
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.camera_alt_rounded, size: 20),
+                  SizedBox(width: 8),
+                  Text('Camera'),
+                ],
+              ),
+            ),
+            CupertinoActionSheetAction(
+              onPressed: () async {
+                Navigator.pop(context);
+                final pickedFile = await _imagePicker.pickImage(
+                  source: ImageSource.gallery,
+                  maxWidth: UIConstants.imageMaxWidth,
+                  maxHeight: UIConstants.imageMaxHeight,
+                  imageQuality: UIConstants.imageQuality,
+                );
+                
+                if (pickedFile != null) {
+                  setState(() {
+                    _selectedImage = File(pickedFile.path);
+                    _isChanged = true;
+                  });
+                }
+              },
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.photo_library_rounded, size: 20),
+                  SizedBox(width: 8),
+                  Text('Photo Library'),
+                ],
+              ),
+            ),
+          ],
+          cancelButton: CupertinoActionSheetAction(
+            isDefaultAction: true,
+            onPressed: () {
+              Navigator.pop(context);
+            },
+            child: Text('Cancel'),
+          ),
+        ),
       );
-      
-      if (source != null) {
-        final pickedFile = await _imagePicker.pickImage(
-          source: source,
-          maxWidth: UIConstants.imageMaxWidth,
-          maxHeight: UIConstants.imageMaxHeight,
-          imageQuality: UIConstants.imageQuality,
-        );
-        
-        if (pickedFile != null) {
-          setState(() {
-            _selectedImage = File(pickedFile.path);
-            _isChanged = true;
-          });
-        }
-      }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(UIConstants.messageImagePickFailed),
+            content: Text('Failed to pick image: $e'),
             backgroundColor: TossColors.error,
           ),
         );
@@ -98,99 +144,6 @@ class _EditProfileSheetState extends ConsumerState<EditProfileSheet> {
     }
   }
 
-  Widget _buildTossImageSourcePicker() {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        _buildTossImageSourceOption(
-          'Camera',
-          'Take a new photo',
-          Icons.camera_alt_outlined,
-          () => Navigator.pop(context, ImageSource.camera),
-        ),
-        SizedBox(height: TossSpacing.space3),
-        _buildTossImageSourceOption(
-          'Photo Library',
-          'Choose from gallery',
-          Icons.photo_library_outlined,
-          () => Navigator.pop(context, ImageSource.gallery),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildTossImageSourceOption(
-    String title,
-    String subtitle,
-    IconData icon,
-    VoidCallback onTap,
-  ) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Container(
-          width: double.infinity,
-          padding: EdgeInsets.all(TossSpacing.space4),
-          decoration: BoxDecoration(
-            color: TossColors.surface,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: TossColors.gray200.withOpacity(0.5),
-              width: 0.5,
-            ),
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: TossColors.primary.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Icon(
-                  icon,
-                  color: TossColors.primary,
-                  size: 20,
-                ),
-              ),
-              SizedBox(width: TossSpacing.space3),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: TossTextStyles.body.copyWith(
-                        fontWeight: FontWeight.w600,
-                        color: TossColors.gray900,
-                        letterSpacing: -0.1,
-                      ),
-                    ),
-                    SizedBox(height: 2),
-                    Text(
-                      subtitle,
-                      style: TossTextStyles.caption.copyWith(
-                        color: TossColors.gray500,
-                        letterSpacing: -0.1,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Icon(
-                Icons.chevron_right,
-                color: TossColors.gray400,
-                size: 20,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 
   Future<void> _saveProfile() async {
     if (!_formKey.currentState!.validate() || !_isChanged) return;

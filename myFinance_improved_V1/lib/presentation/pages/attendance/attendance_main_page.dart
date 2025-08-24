@@ -1208,7 +1208,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
       // Show loading indicator
       showDialog(
         context: context,
-        barrierDismissible: false,
+        barrierDismissible: true, // Allow dismissing loading dialogs
         builder: (BuildContext context) {
           return const Center(
             child: CircularProgressIndicator(),
@@ -4208,7 +4208,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => Container(
-        height: MediaQuery.of(context).size.height * 0.9,
+        height: MediaQuery.of(context).size.height * 0.8,
         decoration: BoxDecoration(
           color: TossColors.background,
           borderRadius: const BorderRadius.only(
@@ -4991,7 +4991,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
       isScrollControlled: true,
       builder: (context) => Container(
         constraints: BoxConstraints(
-          maxHeight: MediaQuery.of(context).size.height * 0.85,
+          maxHeight: MediaQuery.of(context).size.height * 0.8,
         ),
         decoration: BoxDecoration(
           color: TossColors.background,
@@ -5299,7 +5299,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                           // Show loading indicator
                           showDialog(
                             context: context,
-                            barrierDismissible: false,
+                            barrierDismissible: true, // Allow dismissing loading dialogs
                             builder: (context) => Center(
                               child: Container(
                                 padding: const EdgeInsets.all(TossSpacing.space4),

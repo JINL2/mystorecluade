@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -8,6 +9,8 @@ import '../../../widgets/toss/toss_primary_button.dart';
 import '../../../widgets/toss/toss_secondary_button.dart';
 import '../../../widgets/toss/toss_text_field.dart';
 import '../../../widgets/toss/toss_dropdown.dart';
+import '../../../../core/themes/toss_design_system.dart';
+import '../../../../core/themes/toss_shadows.dart';
 // Removed unused import: cash_location_selector.dart
 import './store_selector.dart';
 // Removed unused import: selector_entities.dart
@@ -21,6 +24,8 @@ import '../../../providers/app_state_provider.dart';
 import '../../../providers/auth_provider.dart';
 import '../../journal_input/providers/journal_input_providers.dart';
 import '../providers/counterparty_providers.dart';
+import '../providers/transaction_template_providers.dart';
+import '../../../../data/services/supabase_service.dart';
 
 // Form complexity levels
 enum FormComplexity {
@@ -70,7 +75,6 @@ class TemplateFormAnalyzer {
     final requirements = TemplateFormRequirements();
     final data = template['data'] as List? ?? [];
     final tags = template['tags'] as Map? ?? {};
-    final categories = tags['categories'] as List? ?? [];
     
     // Check if we have pre-selected MY cash locations in tags
     final tagsCashLocations = tags['cash_locations'] as List? ?? [];
@@ -79,44 +83,61 @@ class TemplateFormAnalyzer {
         tagsCashLocations.first != 'none' &&
         tagsCashLocations.first != '';
     
-    // Analyze each line item in template data
+    // Analyze transaction type to determine what's needed
+    int debitCashCount = 0;
+    int creditCashCount = 0;
+    bool hasPayableOrReceivable = false;
+    
     for (var entry in data) {
       final categoryTag = entry['category_tag'] as String?;
+      final transactionType = entry['type'] as String?; // 'debit' or 'credit'
       
-      // Check for payable/receivable accounts (COUNTERPARTY's cash location)
-      if (categoryTag == 'payable' || categoryTag == 'receivable') {
-        requirements.hasPayableReceivable = true;
-        
-        // Check if counterparty info is missing
-        if (entry['counterparty_id'] == null && template['counterparty_id'] == null) {
-          requirements.needsCounterparty = true;
-        }
-        
-        // Check if COUNTERPARTY's cash location is missing
-        // This is stored in counterparty_cash_location_id field
-        // Check both null, empty string, and 'none' values
-        final entryCashLoc = entry['counterparty_cash_location_id'];
-        final templateCashLoc = template['counterparty_cash_location_id'];
-        
-        if ((entryCashLoc == null || entryCashLoc == '' || entryCashLoc == 'none') && 
-            (templateCashLoc == null || templateCashLoc == '' || templateCashLoc == 'none')) {
-          requirements.needsCounterpartyCashLocation = true;
-        }
-      }
-      
-      // Check for cash accounts (MY company's cash location)
+      // Count cash accounts on each side
       if (categoryTag == 'cash') {
         requirements.hasCash = true;
+        if (transactionType == 'debit') {
+          debitCashCount++;
+        } else if (transactionType == 'credit') {
+          creditCashCount++;
+        }
         
-        // Check if MY cash location is missing
-        // Only need selector if:
-        // 1. No cash_location_id in the entry AND
-        // 2. No pre-selected cash location in tags
+        // Check if MY cash location is missing for this cash account
         if ((entry['cash_location_id'] == null || 
              entry['cash_location_id'] == '' ||
              entry['cash_location_id'] == 'none') &&
             !hasPreselectedMyCashLocation) {
           requirements.needsMyCashLocation = true;
+        }
+      }
+      
+      // Check for payable/receivable accounts
+      if (categoryTag == 'payable' || categoryTag == 'receivable') {
+        requirements.hasPayableReceivable = true;
+        hasPayableOrReceivable = true;
+        
+        // Check if counterparty info is missing
+        if (entry['counterparty_id'] == null && template['counterparty_id'] == null) {
+          requirements.needsCounterparty = true;
+        }
+      }
+    }
+    
+    // Determine if we need counterparty cash location
+    // ONLY for Cash-to-Cash transfers (both sides have cash accounts)
+    // NOT for Receivable/Payable to/from Cash transactions
+    if (debitCashCount > 0 && creditCashCount > 0 && !hasPayableOrReceivable) {
+      // This is a pure cash-to-cash transfer
+      // Check if counterparty cash location is missing
+      final templateCounterpartyCashLoc = template['counterparty_cash_location_id'];
+      if (templateCounterpartyCashLoc == null || 
+          templateCounterpartyCashLoc == '' || 
+          templateCounterpartyCashLoc == 'none') {
+        // Check if this is an internal counterparty (only internal transfers need cash location)
+        final counterpartyId = template['counterparty_id'];
+        if (counterpartyId != null) {
+          // We'll need to check if it's internal when building the form
+          // For now, assume we might need it
+          requirements.needsCounterpartyCashLocation = true;
         }
       }
     }
@@ -152,10 +173,46 @@ class TemplateUsageBottomSheet extends ConsumerStatefulWidget {
     required this.template,
   });
   
+  static String _formatTagName(String tag) {
+    // Convert category tags to readable names
+    switch (tag.toLowerCase()) {
+      case 'payable':
+        return 'Payable';
+      case 'receivable':
+        return 'Receivable';
+      case 'cash':
+        return 'Cash';
+      case 'expense':
+        return 'Expense';
+      case 'revenue':
+        return 'Revenue';
+      default:
+        return tag.substring(0, 1).toUpperCase() + tag.substring(1);
+    }
+  }
+  
   static Future<void> show(BuildContext context, Map<String, dynamic> template) {
+    // Clean up template name for display
+    String templateName = template['name'] ?? 'Transaction Template';
+    if (templateName.toLowerCase().contains('none') || 
+        templateName.toLowerCase().contains('account none')) {
+      // Try to create a better name from the template type
+      final data = template['data'] as List? ?? [];
+      if (data.isNotEmpty) {
+        final debit = data.firstWhere((e) => e['type'] == 'debit', orElse: () => {});
+        final credit = data.firstWhere((e) => e['type'] == 'credit', orElse: () => {});
+        final debitTag = debit['category_tag'] ?? '';
+        final creditTag = credit['category_tag'] ?? '';
+        if (debitTag.isNotEmpty && creditTag.isNotEmpty) {
+          templateName = '${_formatTagName(debitTag)} to ${_formatTagName(creditTag)}';
+        }
+      }
+    }
+    
+    // Show bottom sheet with loading indicator first for instant response
     return TossBottomSheet.show(
       context: context,
-      title: template['name'],
+      title: templateName,
       content: TemplateUsageBottomSheet(template: template),
     );
   }
@@ -175,6 +232,7 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
   String _previousValue = '';
   
   // Selected values
+  String? _selectedCounterpartyId;
   String? _selectedCounterpartyStoreId;
   String? _selectedCounterpartyCashLocationId;
   String? _selectedMyCashLocationId;
@@ -200,6 +258,13 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
     if (amount == null || amount <= 0) return false;
     
     // Check requirements based on template
+    // Check if counterparty is needed
+    if (requirements.needsCounterparty) {
+      if (_selectedCounterpartyId == null || _selectedCounterpartyId == '') {
+        return false;
+      }
+    }
+    
     // Only validate MY cash location if it's truly needed (not pre-selected)
     if (requirements.needsMyCashLocation) {
       // MY cash location is needed only if:
@@ -250,11 +315,43 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
       _selectedCounterpartyStoreId = storedCounterpartyStoreId;
     }
     
-    // Initialize debt configurations for payable/receivable accounts
+    // Initialize counterparty information from template
     final data = widget.template['data'] as List? ?? [];
+    
+    // First check for template-level counterparty ID
+    final templateCounterpartyId = widget.template['counterparty_id'] as String?;
+    if (templateCounterpartyId != null && templateCounterpartyId != '') {
+      _selectedCounterpartyId = templateCounterpartyId;
+      if (kDebugMode) {
+        print('🔧 Initialized counterparty from template level: $templateCounterpartyId');
+      }
+    }
+    
     for (var entry in data) {
       final categoryTag = entry['category_tag'] as String?;
       final accountId = entry['account_id'] as String?;
+      
+      // Check for counterparty ID in line data (if not set at template level)
+      if (_selectedCounterpartyId == null) {
+        final entryCounterpartyId = entry['counterparty_id'] as String?;
+        if (entryCounterpartyId != null && entryCounterpartyId != '') {
+          _selectedCounterpartyId = entryCounterpartyId;
+          if (kDebugMode) {
+            print('🔧 Initialized counterparty from line data: $entryCounterpartyId');
+          }
+        }
+      }
+      
+      // Check for counterparty cash location in any line (for internal transfers)
+      final counterpartyCashLocationId = entry['counterparty_cash_location_id'] as String?;
+      if (counterpartyCashLocationId != null && 
+          counterpartyCashLocationId != '' && 
+          counterpartyCashLocationId != 'none') {
+        _selectedCounterpartyCashLocationId = counterpartyCashLocationId;
+        if (kDebugMode) {
+          print('🔧 Initialized counterparty cash location from template: $counterpartyCashLocationId');
+        }
+      }
       
       if (accountId != null && 
           (categoryTag == 'payable' || categoryTag == 'receivable')) {
@@ -313,41 +410,363 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
   
   @override
   Widget build(BuildContext context) {
-    return Form(
-      key: _formKey,
-      child: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Template Info Card
-            _buildTemplateInfoCard(),
-            
-            SizedBox(height: TossSpacing.space4),
-            
-            // Amount Input (always shown)
-            _buildAmountInput(),
-            
-            SizedBox(height: TossSpacing.space4),
-            
-            // Build debit and credit sections
-            _buildTransactionEntrySections(),
-            
-            SizedBox(height: TossSpacing.space4),
-            
-            // Description Input (always shown - at bottom)
-            _buildDescriptionInput(),
-            
-            SizedBox(height: TossSpacing.space5),
-            
-            // Action Buttons
-            _buildActionButtons(),
-          ],
+    // Check if template has all requirements filled
+    final bool isTemplateComplete = _checkTemplateCompleteness();
+    
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // Main scrollable content
+        Flexible(
+          child: Form(
+            key: _formKey,
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // Template Info Card - Compact
+                  _buildCompactTemplateHeader(),
+                  
+                  SizedBox(height: TossSpacing.space3),
+                  
+                  // Primary Input Section - What user needs to do
+                  _buildPrimaryInputSection(),
+                  
+                  SizedBox(height: TossSpacing.space3),
+                  
+                  // Collapsible Details Section
+                  _buildCollapsibleDetailsSection(isTemplateComplete),
+                  
+                  SizedBox(height: TossSpacing.space4),
+                ],
+              ),
+            ),
+          ),
         ),
+        
+        // Sticky bottom buttons - ALWAYS visible
+        Container(
+          padding: EdgeInsets.all(TossSpacing.space4),
+          decoration: BoxDecoration(
+            color: TossColors.white,
+            border: Border(
+              top: BorderSide(
+                color: TossColors.gray200,
+                width: 0.5,
+              ),
+            ),
+            boxShadow: TossShadows.bottomSheet,
+          ),
+          child: SafeArea(
+            top: false,
+            child: _buildActionButtons(),
+          ),
+        ),
+      ],
+    );
+  }
+  
+  bool _checkTemplateCompleteness() {
+    // Check if all required fields are pre-filled in template
+    final needsCashLocation = requirements.needsMyCashLocation && _selectedMyCashLocationId == null;
+    final needsCounterparty = requirements.needsCounterpartyCashLocation && _selectedCounterpartyCashLocationId == null;
+    final hasAllDebtConfig = _debtConfigurations.values.every((config) => 
+      config.category.isNotEmpty
+    );
+    
+    return !needsCashLocation && !needsCounterparty && hasAllDebtConfig;
+  }
+  
+  Widget _buildCompactTemplateHeader() {
+    String templateName = widget.template['name'] ?? 'Transaction Template';
+    final data = widget.template['data'] as List? ?? [];
+    
+    // Clean up template name if it contains 'none' or looks bad
+    if (templateName.toLowerCase().contains('none') || 
+        templateName.toLowerCase().contains('account none')) {
+      // Generate a better name from template structure
+      if (data.isNotEmpty) {
+        final debit = data.firstWhere((e) => e['type'] == 'debit', orElse: () => {});
+        final credit = data.firstWhere((e) => e['type'] == 'credit', orElse: () => {});
+        final debitTag = debit['category_tag'] ?? '';
+        final creditTag = credit['category_tag'] ?? '';
+        if (debitTag.isNotEmpty && creditTag.isNotEmpty) {
+          templateName = '${_formatCategoryTag(debitTag)} to ${_formatCategoryTag(creditTag)}';
+        }
+      }
+    }
+    
+    // Get simple type description
+    String typeDescription = '';
+    if (data.isNotEmpty) {
+      final debitAccounts = data.where((e) => e['type'] == 'debit')
+          .map((e) => _formatCategoryTag(e['category_tag'] ?? 'account'))
+          .toList();
+      final creditAccounts = data.where((e) => e['type'] == 'credit')
+          .map((e) => _formatCategoryTag(e['category_tag'] ?? 'account'))
+          .toList();
+      
+      if (debitAccounts.isNotEmpty && creditAccounts.isNotEmpty) {
+        typeDescription = '${debitAccounts.first} → ${creditAccounts.first}';
+      }
+    }
+    
+    return Container(
+      padding: EdgeInsets.all(TossSpacing.space3),
+      decoration: BoxDecoration(
+        color: TossColors.gray50,
+        borderRadius: BorderRadius.circular(TossBorderRadius.md),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.receipt, size: 20, color: TossColors.primary),
+              SizedBox(width: TossSpacing.space2),
+              Expanded(
+                child: Text(
+                  templateName,
+                  style: TossTextStyles.bodyLarge.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                ),
+              ),
+            ],
+          ),
+          if (typeDescription.isNotEmpty) ...[
+            SizedBox(height: TossSpacing.space1),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    typeDescription,
+                    style: TossTextStyles.body.copyWith(
+                      color: TossColors.gray700,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ],
       ),
     );
   }
   
+  Widget _buildPrimaryInputSection() {
+    final missingRequirements = <Widget>[];
+    
+    // Check what's missing
+    if (requirements.needsMyCashLocation && _selectedMyCashLocationId == null) {
+      missingRequirements.add(_buildMyCashLocationSelector());
+    }
+    
+    // Check if we need counterparty selection (for receivable/payable without counterparty)
+    if (requirements.needsCounterparty) {
+      missingRequirements.add(_buildCounterpartySelector());
+    }
+    
+    if (requirements.needsCounterpartyCashLocation && _selectedCounterpartyCashLocationId == null) {
+      missingRequirements.add(_buildCounterpartyCashLocationSection());
+    }
+    
+    return Container(
+      padding: EdgeInsets.all(TossSpacing.space4),
+      decoration: BoxDecoration(
+        color: TossColors.white,
+        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+        border: Border.all(
+          color: TossColors.primary.withAlpha(51),
+          width: 1.5,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Header with clear instruction
+          Row(
+            children: [
+              Icon(
+                Icons.edit,
+                size: 20,
+                color: TossColors.primary,
+              ),
+              SizedBox(width: TossSpacing.space2),
+              Text(
+                'Just enter these:',
+                style: TossTextStyles.labelLarge.copyWith(
+                  color: TossColors.primary,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+          
+          SizedBox(height: TossSpacing.space3),
+          
+          // Amount - Always first, always visible
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                'Amount *',
+                style: TossTextStyles.label.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: TossColors.gray900,
+                ),
+              ),
+              SizedBox(height: TossSpacing.space2),
+              TextFormField(
+                controller: _amountController,
+                keyboardType: TextInputType.number,
+                autofocus: true, // Auto-focus for speed
+                style: TossTextStyles.h3.copyWith( // Larger text
+                  fontWeight: FontWeight.w600,
+                ),
+                decoration: InputDecoration(
+                  hintText: '0',
+                  filled: true,
+                  fillColor: TossColors.gray50,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                    borderSide: BorderSide(color: TossColors.gray300, width: 1.5),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                    borderSide: BorderSide(color: TossColors.primary, width: 2),
+                  ),
+                  contentPadding: EdgeInsets.symmetric(
+                    horizontal: TossSpacing.space3,
+                    vertical: TossSpacing.space3,
+                  ),
+                ),
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(RegExp(r'[0-9,]')),
+                  LengthLimitingTextInputFormatter(15),
+                ],
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Amount is required';
+                  }
+                  return null;
+                },
+              ),
+            ],
+          ),
+          
+          SizedBox(height: TossSpacing.space3),
+          
+          // Description - Optional, right below amount
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                'Note (optional)',
+                style: TossTextStyles.label.copyWith(
+                  color: TossColors.gray600,
+                ),
+              ),
+              SizedBox(height: TossSpacing.space2),
+              TextFormField(
+                controller: _descriptionController,
+                decoration: InputDecoration(
+                  hintText: 'Add a note...',
+                  filled: true,
+                  fillColor: TossColors.gray50,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                    borderSide: BorderSide(color: TossColors.gray200),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                    borderSide: BorderSide(color: TossColors.primary, width: 1.5),
+                  ),
+                  contentPadding: EdgeInsets.symmetric(
+                    horizontal: TossSpacing.space3,
+                    vertical: TossSpacing.space3,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          
+          // Missing requirements if any
+          if (missingRequirements.isNotEmpty) ...[
+            SizedBox(height: TossSpacing.space3),
+            Divider(color: TossColors.gray200),
+            SizedBox(height: TossSpacing.space3),
+            ...missingRequirements.map((widget) => 
+              Padding(
+                padding: EdgeInsets.only(bottom: TossSpacing.space3),
+                child: widget,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+  
+  Widget _buildCollapsibleDetailsSection(bool isCollapsed) {
+    return Theme(
+      data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+      child: ExpansionTile(
+        title: Row(
+          children: [
+            Icon(
+              Icons.info_outline,
+              size: 18,
+              color: TossColors.gray600,
+            ),
+            SizedBox(width: TossSpacing.space2),
+            Text(
+              'Template Details',
+              style: TossTextStyles.body.copyWith(
+                color: TossColors.gray700,
+              ),
+            ),
+            Spacer(),
+            if (isCollapsed)
+              Container(
+                padding: EdgeInsets.symmetric(
+                  horizontal: TossSpacing.space2,
+                  vertical: 2,
+                ),
+                decoration: BoxDecoration(
+                  color: TossColors.success.withAlpha(25),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.sm),
+                ),
+                child: Text(
+                  'Using defaults',
+                  style: TossTextStyles.caption.copyWith(
+                    color: TossColors.success,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+          ],
+        ),
+        initiallyExpanded: !isCollapsed, // Auto-expand if missing requirements
+        children: [
+          Padding(
+            padding: EdgeInsets.all(TossSpacing.space3),
+            child: _buildTransactionEntrySections(),
+          ),
+        ],
+      ),
+    );
+  }
+  
+  // Removed unused methods - using new UI structure instead
+  /*
   Widget _buildTemplateInfoCard() {
     final categories = (widget.template['tags']?['categories'] as List?) ?? [];
     final description = widget.template['template_description'];
@@ -560,6 +979,7 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
     
     return null;
   }
+  */
   
   // New method to build debit and credit sections with their specific requirements
   Widget _buildTransactionEntrySections() {
@@ -571,26 +991,25 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         // Debit Section
-        if (debitEntries.isNotEmpty) ...[
+        if (debitEntries.isNotEmpty) 
           _buildEntrySection('DEBIT', debitEntries, true),
-          SizedBox(height: TossSpacing.space4),
-        ],
         
         // Credit Section
-        if (creditEntries.isNotEmpty) ...[
+        if (creditEntries.isNotEmpty) 
           _buildEntrySection('CREDIT', creditEntries, false),
-        ],
       ],
     );
   }
   
   Widget _buildEntrySection(String title, List<dynamic> entries, bool isDebit) {
     return Container(
+      margin: EdgeInsets.only(bottom: TossSpacing.space3),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+        borderRadius: BorderRadius.circular(TossBorderRadius.md),
+        color: TossColors.gray50,
         border: Border.all(
-          color: isDebit ? TossColors.successLight : TossColors.warningLight,
-          width: 1,
+          color: TossColors.gray200,
+          width: 0.5,
         ),
       ),
       child: Column(
@@ -598,33 +1017,46 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
         children: [
           Container(
             padding: EdgeInsets.symmetric(
-              horizontal: TossSpacing.space4,
-              vertical: TossSpacing.space3,
+              horizontal: TossSpacing.space3,
+              vertical: TossSpacing.space2,
             ),
             decoration: BoxDecoration(
               color: isDebit 
-                ? TossColors.successLight 
-                : TossColors.warningLight,
+                ? TossColors.success.withAlpha(25) 
+                : TossColors.warning.withAlpha(25),
               borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(TossBorderRadius.lg),
-                topRight: Radius.circular(TossBorderRadius.lg),
+                topLeft: Radius.circular(TossBorderRadius.md),
+                topRight: Radius.circular(TossBorderRadius.md),
               ),
             ),
-            child: Text(
-              title,
-              style: TossTextStyles.labelLarge.copyWith(
-                color: isDebit ? TossColors.success : TossColors.warning,
-                fontWeight: FontWeight.bold,
-              ),
+            child: Row(
+              children: [
+                Container(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: TossSpacing.space2,
+                    vertical: 2,
+                  ),
+                  decoration: BoxDecoration(
+                    color: isDebit ? TossColors.success : TossColors.warning,
+                    borderRadius: BorderRadius.circular(TossBorderRadius.sm),
+                  ),
+                  child: Text(
+                    title,
+                    style: TossTextStyles.caption.copyWith(
+                      color: TossColors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 11,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
           Padding(
-            padding: EdgeInsets.all(TossSpacing.space4),
+            padding: EdgeInsets.all(TossSpacing.space3),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                ...entries.map((entry) => _buildEntryRequirements(entry)).toList(),
-              ],
+              children: entries.map((entry) => _buildEnhancedEntryInfo(entry)).toList(),
             ),
           ),
         ],
@@ -632,6 +1064,211 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
     );
   }
   
+  Widget _buildEnhancedEntryInfo(Map<String, dynamic> entry) {
+    return Consumer(
+      builder: (context, ref, child) {
+        return _buildEnhancedEntryInfoContent(entry, ref);
+      },
+    );
+  }
+  
+  Widget _buildEnhancedEntryInfoContent(Map<String, dynamic> entry, WidgetRef ref) {
+    final accountName = entry['account_name'] ?? 'Unknown Account';
+    final categoryTag = entry['category_tag'] as String?;
+    
+    // Get additional information based on account type
+    List<String> additionalInfo = [];
+    
+    // For cash accounts, show cash location if set
+    if (categoryTag == 'cash') {
+      final cashLocationId = entry['cash_location_id'];
+      if (cashLocationId != null && cashLocationId != 'none' && cashLocationId != '') {
+        // Try to get actual cash location name from providers
+        String cashLocationDisplay = '📍 Cash location set';
+        try {
+          final cashLocationsAsync = ref.watch(cashLocationsProvider);
+          cashLocationsAsync.whenData((locations) {
+            final location = locations.firstWhere(
+              (loc) => loc['cash_location_id'] == cashLocationId,
+              orElse: () => {},
+            );
+            if (location.isNotEmpty) {
+              cashLocationDisplay = '📍 ${location['location_name'] ?? 'Location set'}';
+            }
+          });
+        } catch (e) {
+          // Fallback to template tags
+          final tags = widget.template['tags'] as Map? ?? {};
+          final cashLocationName = tags['cash_location_name'] as String?;
+          if (cashLocationName != null) {
+            cashLocationDisplay = '📍 $cashLocationName';
+          }
+        }
+        additionalInfo.add(cashLocationDisplay);
+      } else {
+        // Check if user selected one in the form
+        if (_selectedMyCashLocationId != null && _selectedMyCashLocationId != '') {
+          additionalInfo.add('✅ Will use selected location');
+        } else {
+          additionalInfo.add('⚠️ Select cash location');
+        }
+      }
+    }
+    
+    // For payable/receivable, show counterparty if set
+    if (categoryTag == 'payable' || categoryTag == 'receivable') {
+      // First try to get counterparty name from entry data
+      String? counterpartyName = entry['counterparty_name'] as String?;
+      final counterpartyId = entry['counterparty_id'] ?? widget.template['counterparty_id'];
+      
+      // If no name in entry, try to get from template level
+      if (counterpartyName == null || counterpartyName.isEmpty) {
+        counterpartyName = widget.template['counterparty_name'] as String?;
+      }
+      
+      if (counterpartyId != null && counterpartyId != '') {
+        // Try to get actual counterparty name from providers if not already available
+        String counterpartyDisplay = '👤 ${counterpartyName ?? counterpartyId}';
+        
+        if (counterpartyName == null || counterpartyName.isEmpty) {
+          try {
+            final counterpartiesAsync = ref.watch(counterpartiesProvider);
+            counterpartiesAsync.whenData((counterparties) {
+              final cp = counterparties.firstWhere(
+                (c) => c['counterparty_id'] == counterpartyId,
+                orElse: () => {},
+              );
+              if (cp.isNotEmpty) {
+                final name = cp['counterparty_name'] ?? cp['name'] ?? counterpartyId;
+                final isInternal = cp['is_internal'] as bool? ?? false;
+                counterpartyDisplay = '👤 $name${isInternal ? " (Internal)" : ""}';
+              }
+            });
+          } catch (e) {
+            // Fallback to template data
+            final counterpartyName = entry['counterparty_name'] ?? widget.template['counterparty_name'];
+            if (counterpartyName != null) {
+              counterpartyDisplay = '👤 $counterpartyName';
+            }
+          }
+        }
+        additionalInfo.add(counterpartyDisplay);
+        
+        // Check if counterparty cash location is set (for cash transfers)
+        final counterpartyCashLocId = entry['counterparty_cash_location_id'] ?? widget.template['counterparty_cash_location_id'];
+        String? counterpartyCashLocName = entry['counterparty_cash_location_name'] as String?;
+        
+        // If no name in entry, try template level or tags
+        if (counterpartyCashLocName == null || counterpartyCashLocName.isEmpty) {
+          counterpartyCashLocName = widget.template['counterparty_cash_location_name'] as String?;
+          if (counterpartyCashLocName == null || counterpartyCashLocName.isEmpty) {
+            final tags = widget.template['tags'] as Map? ?? {};
+            counterpartyCashLocName = tags['counterparty_cash_location_name'] as String?;
+          }
+        }
+        
+        if (counterpartyCashLocId != null && counterpartyCashLocId != 'none' && counterpartyCashLocId != '') {
+          final locationDisplay = counterpartyCashLocName ?? 'Their location';
+          additionalInfo.add('🏪 $locationDisplay');
+        }
+      } else {
+        // Check if user selected one in the form
+        if (_selectedCounterpartyId != null && _selectedCounterpartyId != '') {
+          additionalInfo.add('✅ Will use selected counterparty');
+        } else if (requirements.needsCounterparty) {
+          additionalInfo.add('⚠️ Select counterparty');
+        }
+      }
+    }
+    
+    return Container(
+      margin: EdgeInsets.only(bottom: TossSpacing.space3),
+      padding: EdgeInsets.all(TossSpacing.space2),
+      decoration: BoxDecoration(
+        color: TossColors.gray50.withAlpha(128),
+        borderRadius: BorderRadius.circular(TossBorderRadius.sm),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                _getAccountIcon(categoryTag),
+                size: 16,
+                color: TossColors.gray600,
+              ),
+              SizedBox(width: TossSpacing.space2),
+              Expanded(
+                child: Text(
+                  accountName,
+                  style: TossTextStyles.body.copyWith(
+                    color: TossColors.gray800,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+              if (categoryTag != null)
+                Container(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: TossSpacing.space2,
+                    vertical: 2,
+                  ),
+                  decoration: BoxDecoration(
+                    color: TossColors.gray100,
+                    borderRadius: BorderRadius.circular(TossBorderRadius.sm),
+                  ),
+                  child: Text(
+                    _formatCategoryTag(categoryTag),
+                    style: TossTextStyles.caption.copyWith(
+                      color: TossColors.gray600,
+                      fontSize: 11,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          if (additionalInfo.isNotEmpty) ...[
+            SizedBox(height: TossSpacing.space1),
+            Padding(
+              padding: EdgeInsets.only(left: TossSpacing.space5),
+              child: Wrap(
+                spacing: TossSpacing.space2,
+                runSpacing: TossSpacing.space1,
+                children: additionalInfo.map((info) => Text(
+                  info,
+                  style: TossTextStyles.caption.copyWith(
+                    color: info.contains('⚠️') ? TossColors.warning : TossColors.gray600,
+                    fontSize: 12,
+                  ),
+                )).toList(),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+  
+  IconData _getAccountIcon(String? categoryTag) {
+    switch (categoryTag?.toLowerCase()) {
+      case 'cash':
+        return Icons.account_balance_wallet;
+      case 'payable':
+        return Icons.arrow_upward;
+      case 'receivable':
+        return Icons.arrow_downward;
+      case 'expense':
+        return Icons.remove_circle_outline;
+      case 'revenue':
+        return Icons.add_circle_outline;
+      default:
+        return Icons.account_balance;
+    }
+  }
+  
+  // Keep the original detailed requirements builder for when needed
   Widget _buildEntryRequirements(Map<String, dynamic> entry) {
     final accountName = entry['account_name'] ?? 'Unknown Account';
     final categoryTag = entry['category_tag'] as String?;
@@ -671,9 +1308,6 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
   Widget _buildCashLocationSelector(Map<String, dynamic> entry) {
     // Check if cash location is pre-selected
     final preselectedCashLocation = entry['cash_location_id'];
-    final tags = widget.template['tags'] as Map? ?? {};
-    final tagsCashLocations = tags['cash_locations'] as List? ?? [];
-    final tagCashLocation = tagsCashLocations.isNotEmpty ? tagsCashLocations.first : null;
     
     if (preselectedCashLocation != null && preselectedCashLocation != 'none') {
       // Fixed cash location
@@ -699,7 +1333,7 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
     // User needs to select cash location
     return Consumer(
       builder: (context, ref, child) {
-        final cashLocationsAsync = ref.watch(journalCashLocationsProvider);
+        final cashLocationsAsync = ref.watch(cashLocationsProvider);
         
         return cashLocationsAsync.when(
           data: (cashLocations) => TossDropdown<String>(
@@ -816,9 +1450,12 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
           children: [
             Icon(Icons.account_balance_wallet, size: 16, color: TossColors.gray600),
             SizedBox(width: TossSpacing.space2),
-            Text(
-              'Counterparty Cash Location: Set in template',
-              style: TossTextStyles.body.copyWith(color: TossColors.gray700),
+            Expanded(
+              child: Text(
+                'Counterparty Cash Location: Set in template',
+                style: TossTextStyles.body.copyWith(color: TossColors.gray700),
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
           ],
         ),
@@ -895,9 +1532,24 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
                   color: TossColors.gray50,
                   borderRadius: BorderRadius.circular(TossBorderRadius.sm),
                 ),
-                child: Text(
-                  'External counterparty - no cash location',
-                  style: TossTextStyles.caption.copyWith(color: TossColors.gray600),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.business_outlined,
+                      size: 14,
+                      color: TossColors.gray500,
+                    ),
+                    SizedBox(width: TossSpacing.space1),
+                    Expanded(
+                      child: Text(
+                        'External - no cash location',
+                        style: TossTextStyles.caption.copyWith(
+                          color: TossColors.gray600,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
                 ),
               );
             }
@@ -922,7 +1574,135 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
     );
   }
   
-  // Removed unused _buildMyCashLocationSelector method - now using inline dropdown in _buildCashLocationSelector
+  Widget _buildMyCashLocationSelector() {
+    return Consumer(
+      builder: (context, ref, child) {
+        final cashLocationsAsync = ref.watch(cashLocationsProvider);
+        
+        return cashLocationsAsync.when(
+          data: (cashLocations) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  'My Cash Location *',
+                  style: TossTextStyles.label.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: TossColors.gray900,
+                  ),
+                ),
+                SizedBox(height: TossSpacing.space2),
+                TossDropdown<String>(
+                  value: _selectedMyCashLocationId,
+                  items: cashLocations.map((location) => 
+                    TossDropdownItem<String>(
+                      value: location['cash_location_id'] as String,
+                      label: location['location_name'] as String,
+                    )
+                  ).toList(),
+                  label: '',
+                  hint: 'Select cash location',
+                  onChanged: (String? cashLocationId) {
+                    setState(() {
+                      _selectedMyCashLocationId = cashLocationId;
+                    });
+                  },
+                ),
+              ],
+            );
+          },
+          loading: () => Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                'My Cash Location *',
+                style: TossTextStyles.label.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: TossColors.gray900,
+                ),
+              ),
+              SizedBox(height: TossSpacing.space2),
+              TossDesignSystem.buildShimmer(
+                width: double.infinity,
+                height: 48,
+              ),
+            ],
+          ),
+          error: (_, __) => Text(
+            'Error loading cash locations', 
+            style: TossTextStyles.caption.copyWith(color: TossColors.error),
+          ),
+        );
+      },
+    );
+  }
+  
+  Widget _buildCounterpartySelector() {
+    return Consumer(
+      builder: (context, ref, child) {
+        final counterpartiesAsync = ref.watch(counterpartiesProvider);
+        
+        return counterpartiesAsync.when(
+          data: (counterparties) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  'Counterparty *',
+                  style: TossTextStyles.label.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: TossColors.gray900,
+                  ),
+                ),
+                SizedBox(height: TossSpacing.space2),
+                TossDropdown<String>(
+                  value: _selectedCounterpartyId,
+                  items: counterparties.map((cp) => 
+                    TossDropdownItem<String>(
+                      value: cp['counterparty_id'] as String,
+                      label: cp['counterparty_name'] as String,
+                      subtitle: (cp['is_internal'] as bool? ?? false) ? 'Internal' : 'External',
+                    )
+                  ).toList(),
+                  label: '',
+                  hint: 'Select counterparty',
+                  onChanged: (String? counterpartyId) {
+                    setState(() {
+                      _selectedCounterpartyId = counterpartyId;
+                      // Reset dependent fields when counterparty changes
+                      _selectedCounterpartyStoreId = null;
+                      _selectedCounterpartyCashLocationId = null;
+                    });
+                  },
+                ),
+              ],
+            );
+          },
+          loading: () => Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                'Counterparty *',
+                style: TossTextStyles.label.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: TossColors.gray900,
+                ),
+              ),
+              SizedBox(height: TossSpacing.space2),
+              TossDesignSystem.buildShimmer(
+                width: double.infinity,
+                height: 48,
+              ),
+            ],
+          ),
+          error: (_, __) => Text(
+            'Error loading counterparties', 
+            style: TossTextStyles.caption.copyWith(color: TossColors.error),
+          ),
+        );
+      },
+    );
+  }
   
   Widget _buildCounterpartyStoreSelector() {
     // First check if counterparty_store_id is already stored in tags
@@ -1006,11 +1786,24 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
                       color: TossColors.gray50,
                       borderRadius: BorderRadius.circular(TossBorderRadius.md),
                     ),
-                    child: Text(
-                      'External counterparty ($counterpartyName) - No store selection needed',
-                      style: TossTextStyles.caption.copyWith(
-                        color: TossColors.gray600,
-                      ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.business_outlined,
+                          size: 14,
+                          color: TossColors.gray500,
+                        ),
+                        SizedBox(width: TossSpacing.space1),
+                        Expanded(
+                          child: Text(
+                            'External ($counterpartyName)',
+                            style: TossTextStyles.caption.copyWith(
+                              color: TossColors.gray600,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
@@ -1118,14 +1911,6 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
             return Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                SizedBox(height: TossSpacing.space3),
-                Text(
-                  'Counterparty Cash Location',
-                  style: TossTextStyles.label.copyWith(
-                    color: TossColors.gray700,
-                  ),
-                ),
-                SizedBox(height: TossSpacing.space2),
                 // Use TossDropdown for consistent styling
                 TossDropdown<String>(
                   label: '',  // Empty label since we have it above
@@ -1344,6 +2129,14 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
     // Description is optional - no validation needed
     
     // Additional validation based on requirements
+    // Validate counterparty if needed
+    if (requirements.needsCounterparty) {
+      if (_selectedCounterpartyId == null || _selectedCounterpartyId == '') {
+        _showError('Please select a counterparty');
+        return;
+      }
+    }
+    
     // Validate MY cash location only if truly needed
     if (requirements.needsMyCashLocation) {
       if (_selectedMyCashLocationId == null || _selectedMyCashLocationId == 'none' || _selectedMyCashLocationId == '') {
@@ -1415,7 +2208,11 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
       
       // Extract main counterparty (goes OUTSIDE p_lines)
       String? mainCounterpartyId = widget.template['counterparty_id'];
-      if (mainCounterpartyId == null) {
+      
+      // If user selected a counterparty (for receivable/payable without one), use that
+      if (requirements.needsCounterparty && _selectedCounterpartyId != null) {
+        mainCounterpartyId = _selectedCounterpartyId;
+      } else if (mainCounterpartyId == null) {
         // Find from template data
         final data = widget.template['data'] as List? ?? [];
         for (var line in data) {
@@ -1443,17 +2240,22 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
       };
       
       // Debug logging
-      print('=== RPC Parameters ===');
-      print('p_base_amount: ${rpcParams['p_base_amount']}');
-      print('p_company_id: ${rpcParams['p_company_id']}');
-      print('p_created_by: ${rpcParams['p_created_by']}');
-      print('p_description: ${rpcParams['p_description']}');
-      print('p_entry_date: ${rpcParams['p_entry_date']}');
-      print('p_counterparty_id: ${rpcParams['p_counterparty_id']}');
-      print('p_if_cash_location_id: ${rpcParams['p_if_cash_location_id']}');
-      print('p_store_id: ${rpcParams['p_store_id']}');
-      print('p_lines: ${rpcParams['p_lines']}');
-      print('===================');
+      if (kDebugMode) {
+        print('=== RPC Parameters ===');
+        print('p_base_amount: ${rpcParams['p_base_amount']}');
+        print('p_company_id: ${rpcParams['p_company_id']}');
+        print('p_created_by: ${rpcParams['p_created_by']}');
+        print('p_description: ${rpcParams['p_description']}');
+        print('p_entry_date: ${rpcParams['p_entry_date']}');
+        print('p_counterparty_id: ${rpcParams['p_counterparty_id']}');
+        print('p_if_cash_location_id: ${rpcParams['p_if_cash_location_id']}');
+        print('p_store_id: ${rpcParams['p_store_id']}');
+        print('p_lines: ${rpcParams['p_lines']}');
+        print('===================');
+      }
+      
+      // Track template usage BEFORE creating transaction (so it tracks even if transaction fails)
+      await _trackTemplateUsage();
       
       // Call RPC with properly structured parameters
       await supabase.rpc(
@@ -1503,8 +2305,59 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
       ),
     );
   }
+
+  /// Track template usage for analytics - stores in transaction_templates_preferences table
+  Future<void> _trackTemplateUsage() async {
+    try {
+      final appState = ref.read(appStateProvider);
+      if (appState.companyChoosen.isEmpty) {
+        print('❌ Template usage tracking failed: No company selected');
+        return;
+      }
+
+      final supabase = ref.read(supabaseServiceProvider);
+      final templateId = widget.template['template_id'] as String?; // Fixed: use template_id not id
+      final templateName = widget.template['name'] as String? ?? 'Unknown Template';
+      final templateType = widget.template['template_type'] as String? ?? 'transaction';
+
+      if (templateId == null) {
+        print('❌ Template usage tracking failed: No template ID');
+        print('  Template keys: ${widget.template.keys.toList()}');
+        print('  Looking for template_id in: ${widget.template}');
+        return;
+      }
+
+      print('📊 Tracking template usage:');
+      print('  Template ID: $templateId');
+      print('  Template Name: $templateName');
+      print('  Company ID: ${appState.companyChoosen}');
+      print('  Amount: ${_amountController.text}');
+
+      // Use correct log_template_usage RPC parameters for transaction_templates_preferences table
+      final response = await supabase.client.rpc('log_template_usage', params: {
+        'p_template_id': templateId,
+        'p_template_name': templateName,
+        'p_company_id': appState.companyChoosen,
+        'p_template_type': templateType,
+        'p_usage_type': 'used',
+        'p_metadata': {
+          'context': 'transaction_creation',
+          'selection_source': 'template_usage_sheet',
+          'amount': _amountController.text,
+        },
+      });
+      
+      print('✅ Template usage tracked successfully');
+      print('  Response: $response');
+    } catch (e) {
+      print('❌ Template usage tracking error: $e');
+      print('  Stack trace: ${StackTrace.current}');
+      // Don't interrupt user experience, but log the error
+    }
+  }
   
   // Build debt configuration widgets for payable/receivable accounts
+  /* Not used in new UI - integrated into entry sections
   Widget _buildDebtConfigurations() {
     final data = widget.template['data'] as List? ?? [];
     final List<Widget> debtWidgets = [];
@@ -1697,6 +2550,25 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
         ],
       ),
     );
+  }
+  */
+  
+  // Helper method to format category tags
+  String _formatCategoryTag(String tag) {
+    switch (tag.toLowerCase()) {
+      case 'payable':
+        return 'Payable';
+      case 'receivable':
+        return 'Receivable';
+      case 'cash':
+        return 'Cash';
+      case 'expense':
+        return 'Expense';
+      case 'revenue':
+        return 'Revenue';
+      default:
+        return tag.substring(0, 1).toUpperCase() + tag.substring(1);
+    }
   }
   
   // Date picker widget

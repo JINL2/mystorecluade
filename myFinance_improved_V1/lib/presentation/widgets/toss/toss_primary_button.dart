@@ -100,13 +100,16 @@ class _TossPrimaryButtonState extends State<TossPrimaryButton>
                           widget.leadingIcon!,
                           SizedBox(width: TossSpacing.space2),
                         ],
-                        Text(
-                          widget.text,
-                          style: TossTextStyles.labelLarge.copyWith(
-                            fontWeight: FontWeight.w600,
-                            color: _isDisabled 
-                                ? TossColors.gray400 
-                                : TossColors.textInverse,
+                        Flexible(
+                          child: Text(
+                            widget.text,
+                            style: TossTextStyles.labelLarge.copyWith(
+                              fontWeight: FontWeight.w600,
+                              color: _isDisabled 
+                                  ? TossColors.gray400 
+                                  : TossColors.textInverse,
+                            ),
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                       ],

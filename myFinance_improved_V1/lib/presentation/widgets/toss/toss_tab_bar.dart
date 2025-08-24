@@ -150,12 +150,12 @@ class _TossTabBarState extends State<TossTabBar> with SingleTickerProviderStateM
     final selectedStyle = widget.selectedLabelStyle ?? 
       TossTextStyles.body.copyWith(
         fontWeight: FontWeight.w600,
-        fontSize: 17,
+        fontSize: TossTextStyles.bodyLarge.fontSize!,
       );
       
     final unselectedStyle = widget.unselectedLabelStyle ?? 
       TossTextStyles.body.copyWith(
-        fontSize: 17,
+        fontSize: TossTextStyles.bodyLarge.fontSize!,
       );
     
     return Container(
@@ -426,12 +426,12 @@ class TossPillTabBar extends StatelessWidget {
         labelStyle: labelStyle ??
             TossTextStyles.body.copyWith(
               fontWeight: FontWeight.w600,
-              fontSize: 16,
+              fontSize: TossTextStyles.bodyLarge.fontSize!,
             ),
         unselectedLabelStyle: unselectedLabelStyle ??
             TossTextStyles.body.copyWith(
               fontWeight: FontWeight.w400,
-              fontSize: 16,
+              fontSize: TossTextStyles.bodyLarge.fontSize!,
             ),
         labelPadding: EdgeInsets.symmetric(horizontal: TossSpacing.space4),
         tabs: tabs.map((tab) => _buildTab(tab)).toList(),
@@ -540,11 +540,11 @@ class TossMinimalTabBar extends StatelessWidget {
         unselectedLabelColor: unselectedColor ?? TossColors.gray400,
         labelStyle: TossTextStyles.body.copyWith(
           fontWeight: FontWeight.w600,
-          fontSize: 15,
+          fontSize: TossTextStyles.body.fontSize!,
         ),
         unselectedLabelStyle: TossTextStyles.body.copyWith(
           fontWeight: FontWeight.w500,
-          fontSize: 15,
+          fontSize: TossTextStyles.body.fontSize!,
         ),
         labelPadding: EdgeInsets.zero,
         tabs: tabs.map((text) => Tab(

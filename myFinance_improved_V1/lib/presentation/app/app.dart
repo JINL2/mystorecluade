@@ -46,7 +46,7 @@ class _MyFinanceAppState extends ConsumerState<MyFinanceApp> with WidgetsBinding
     return MaterialApp.router(
       title: 'MyFinance',
       theme: AppTheme.lightTheme,
-      darkTheme: AppTheme.darkTheme,
+      themeMode: ThemeMode.light,
       routerConfig: router,
       debugShowCheckedModeBanner: false,
       restorationScopeId: 'myfinance_app',

@@ -1377,7 +1377,7 @@ class _ModernDrawerState extends ConsumerState<ModernDrawer> {
     // Show loading
     showDialog(
       context: context,
-      barrierDismissible: false,
+      barrierDismissible: true, // Allow dismissing loading dialogs
       builder: (context) => Center(
         child: Container(
           padding: EdgeInsets.all(TossSpacing.space4),
@@ -1511,7 +1511,7 @@ class _ModernDrawerState extends ConsumerState<ModernDrawer> {
     // Show loading
     showDialog(
       context: context,
-      barrierDismissible: false,
+      barrierDismissible: true, // Allow dismissing loading dialogs
       builder: (context) => Center(
         child: Container(
           padding: EdgeInsets.all(TossSpacing.space4),

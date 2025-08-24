@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/physics.dart';
 
 /// Toss Animation System - Smooth & Professional
 /// Based on Toss's actual animation timings

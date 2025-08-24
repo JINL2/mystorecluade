@@ -5,6 +5,7 @@ import '../../../../core/themes/toss_colors.dart';
 import '../../../../core/themes/toss_text_styles.dart';
 import '../../../../core/themes/toss_spacing.dart';
 import '../../../../core/themes/toss_border_radius.dart';
+import '../../../widgets/common/toss_white_card.dart';
 
 class TransactionLineCard extends StatelessWidget {
   final TransactionLine line;
@@ -21,241 +22,166 @@ class TransactionLineCard extends StatelessWidget {
   });
   
   String _formatCurrency(double amount) {
-    final formatter = NumberFormat('#,##0.00', 'en_US');
+    final formatter = NumberFormat('#,##0', 'en_US');
     return formatter.format(amount);
   }
   
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return TossWhiteCard(
       margin: EdgeInsets.only(bottom: TossSpacing.space3),
-      decoration: BoxDecoration(
-        color: Colors.white,
+      padding: EdgeInsets.zero,
+      showBorder: false,
+      child: ClipRRect(
         borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-        border: Border.all(
-          color: line.isDebit ? TossColors.primary.withValues(alpha: 0.2) : TossColors.success.withValues(alpha: 0.2),
-          width: 1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 8,
-            offset: Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          // Header
-          Container(
-            padding: EdgeInsets.all(TossSpacing.space3),
-            decoration: BoxDecoration(
-              color: line.isDebit 
-                ? TossColors.primary.withValues(alpha: 0.05)
-                : TossColors.success.withValues(alpha: 0.05),
-              borderRadius: BorderRadius.vertical(
-                top: Radius.circular(TossBorderRadius.lg),
-              ),
-            ),
+        child: InkWell(
+          onTap: onEdit,
+          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+          child: IntrinsicHeight(
             child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
+                // Type indicator - full height bar
                 Container(
-                  padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  width: 4,
                   decoration: BoxDecoration(
                     color: line.isDebit ? TossColors.primary : TossColors.success,
-                    borderRadius: BorderRadius.circular(TossBorderRadius.sm),
-                  ),
-                  child: Text(
-                    line.isDebit ? 'DEBIT' : 'CREDIT',
-                    style: TossTextStyles.caption.copyWith(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 0.5,
-                    ),
                   ),
                 ),
-                SizedBox(width: TossSpacing.space2),
+                // Main content with padding
                 Expanded(
-                  child: Text(
-                    line.accountName ?? 'No Account Selected',
-                    style: TossTextStyles.body.copyWith(
-                      color: TossColors.gray900,
-                      fontWeight: FontWeight.w600,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                Text(
-                  _formatCurrency(line.amount),
-                  style: TossTextStyles.bodyLarge.copyWith(
-                    color: line.isDebit ? TossColors.primary : TossColors.success,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          
-          // Content
-          Padding(
-            padding: EdgeInsets.all(TossSpacing.space3),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Description
-                if (line.description != null && line.description!.isNotEmpty) ...[
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Icon(Icons.notes, size: 16, color: TossColors.gray500),
-                      SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          line.description!,
-                          style: TossTextStyles.bodySmall.copyWith(
-                            color: TossColors.gray700,
+                  child: Padding(
+                    padding: EdgeInsets.all(TossSpacing.space3),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Main content
+                        Expanded(
+                          child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // First row: Account and Amount
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                line.accountName ?? 'No Account',
+                                style: TossTextStyles.body.copyWith(
+                                  color: TossColors.gray900,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              if (line.description != null && line.description!.isNotEmpty) ...[
+                                SizedBox(height: 2),
+                                Text(
+                                  line.description!,
+                                  style: TossTextStyles.caption.copyWith(
+                                    color: TossColors.gray600,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ],
+                            ],
                           ),
+                        ),
+                        SizedBox(width: TossSpacing.space2),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Text(
+                              _formatCurrency(line.amount),
+                              style: TossTextStyles.bodyLarge.copyWith(
+                                color: line.isDebit ? TossColors.primary : TossColors.success,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            Text(
+                              line.isDebit ? 'Debit' : 'Credit',
+                              style: TossTextStyles.caption.copyWith(
+                                color: TossColors.gray500,
+                                fontSize: 10,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                    // Tags in a single row
+                    if (_hasAnyTags()) ...[
+                      SizedBox(height: TossSpacing.space2),
+                      SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: [
+                            if (line.categoryTag != null) 
+                              _buildCompactTag(_formatCategoryTag(line.categoryTag!)),
+                            if (line.cashLocationName != null)
+                              _buildCompactTag(line.cashLocationName!),
+                            if (line.counterpartyName != null)
+                              _buildCompactTag(line.counterpartyName!),
+                            if (line.debtCategory != null)
+                              _buildCompactTag('Debt'),
+                            if (line.fixedAssetName != null)
+                              _buildCompactTag('Asset'),
+                          ],
                         ),
                       ),
                     ],
-                  ),
-                  SizedBox(height: TossSpacing.space2),
-                ],
-                
-                // Additional Details
-                Wrap(
-                  spacing: TossSpacing.space3,
-                  runSpacing: TossSpacing.space2,
-                  children: [
-                    // Category Tag
-                    if (line.categoryTag != null) 
-                      _buildTag(
-                        _getCategoryIcon(line.categoryTag!),
-                        _formatCategoryTag(line.categoryTag!),
-                        _getCategoryColor(line.categoryTag!),
-                      ),
-                    
-                    // Cash Location
-                    if (line.cashLocationName != null)
-                      _buildTag(
-                        Icons.account_balance_wallet,
-                        line.cashLocationType != null 
-                          ? '${line.cashLocationName!} (${line.cashLocationType!})'
-                          : line.cashLocationName!,
-                        TossColors.info,
-                      ),
-                    
-                    // Counterparty
-                    if (line.counterpartyName != null)
-                      _buildTag(
-                        Icons.business_center,
-                        line.counterpartyName!,
-                        TossColors.primary,
-                      ),
-                    
-                    // Counterparty Store
-                    if (line.counterpartyStoreName != null)
-                      _buildTag(
-                        Icons.store,
-                        line.counterpartyStoreName!,
-                        TossColors.info,
-                      ),
-                    
-                    // Debt Info
-                    if (line.debtCategory != null)
-                      _buildTag(
-                        Icons.receipt_long,
-                        'Debt: ${line.debtCategory}',
-                        TossColors.warning,
-                      ),
-                    
-                    // Fixed Asset
-                    if (line.fixedAssetName != null)
-                      _buildTag(
-                        Icons.business,
-                        line.fixedAssetName!,
-                        TossColors.primary,
-                      ),
                   ],
+                          ),
+                        ),
+                        // Delete button
+                        IconButton(
+                onPressed: onDelete,
+                icon: Icon(
+                  Icons.close,
+                  size: 18,
+                  color: TossColors.gray400,
                 ),
-                
-                // Actions
-                SizedBox(height: TossSpacing.space3),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    TextButton.icon(
-                      onPressed: onEdit,
-                      icon: Icon(Icons.edit_outlined, size: 18),
-                      label: Text('Edit'),
-                      style: TextButton.styleFrom(
-                        foregroundColor: TossColors.gray600,
-                      ),
+                padding: EdgeInsets.zero,
+                constraints: BoxConstraints(),
+                        ),
+                      ],
                     ),
-                    SizedBox(width: TossSpacing.space2),
-                    TextButton.icon(
-                      onPressed: onDelete,
-                      icon: Icon(Icons.delete_outline, size: 18),
-                      label: Text('Delete'),
-                      style: TextButton.styleFrom(
-                        foregroundColor: TossColors.error,
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
               ],
             ),
           ),
-        ],
-      ),
-    );
-  }
-  
-  Widget _buildTag(IconData icon, String label, Color color) {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(TossBorderRadius.full),
-        border: Border.all(
-          color: color.withValues(alpha: 0.2),
-          width: 1,
         ),
       ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 14, color: color),
-          SizedBox(width: 4),
-          Text(
-            label,
-            style: TossTextStyles.caption.copyWith(
-              color: color,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
-      ),
     );
   }
   
-  IconData _getCategoryIcon(String categoryTag) {
-    switch (categoryTag.toLowerCase()) {
-      case 'cash':
-        return Icons.payments;
-      case 'payable':
-        return Icons.arrow_upward;
-      case 'receivable':
-        return Icons.arrow_downward;
-      case 'fixedasset':
-        return Icons.business;
-      case 'expense':
-        return Icons.receipt;
-      case 'revenue':
-        return Icons.trending_up;
-      default:
-        return Icons.category;
-    }
+  bool _hasAnyTags() {
+    return line.categoryTag != null ||
+           line.cashLocationName != null ||
+           line.counterpartyName != null ||
+           line.debtCategory != null ||
+           line.fixedAssetName != null;
+  }
+  
+  Widget _buildCompactTag(String label) {
+    return Container(
+      margin: EdgeInsets.only(right: TossSpacing.space1),
+      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: TossColors.gray50,
+        borderRadius: BorderRadius.circular(TossBorderRadius.sm),
+      ),
+      child: Text(
+        label,
+        style: TossTextStyles.caption.copyWith(
+          color: TossColors.gray600,
+          fontSize: 11,
+        ),
+      ),
+    );
   }
   
   String _formatCategoryTag(String categoryTag) {
@@ -264,25 +190,6 @@ class TransactionLineCard extends StatelessWidget {
         return 'Fixed Asset';
       default:
         return categoryTag[0].toUpperCase() + categoryTag.substring(1);
-    }
-  }
-  
-  Color _getCategoryColor(String categoryTag) {
-    switch (categoryTag.toLowerCase()) {
-      case 'cash':
-        return TossColors.info;
-      case 'payable':
-        return TossColors.warning;
-      case 'receivable':
-        return TossColors.success;
-      case 'fixedasset':
-        return TossColors.primary;
-      case 'expense':
-        return TossColors.error;
-      case 'revenue':
-        return TossColors.success;
-      default:
-        return TossColors.gray600;
     }
   }
 }

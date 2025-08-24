@@ -5,7 +5,6 @@ import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 // import 'package:logger/logger.dart';
 import '../config/notification_config.dart';
-import '../config/firebase_options.dart';
 import '../repositories/notification_repository.dart';
 
 /// Service for managing Firebase Cloud Messaging
@@ -58,7 +57,7 @@ class FcmService {
       } else {
         // Notification permissions denied
       }
-    } catch (e, stackTrace) {
+    } catch (e) {
       // Failed to initialize FCM
       rethrow;
     }

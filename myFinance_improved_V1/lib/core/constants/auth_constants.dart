@@ -249,7 +249,7 @@ class AuthConstants {
   // ==================== MODAL CONSTANTS ====================
   
   /// Modal height ratio for bottom sheets
-  static const double modalHeightRatio = 0.85;
+  static const double modalHeightRatio = 0.8;
   
   /// Modal drag handle width
   static const double modalDragHandleWidth = 40.0;

@@ -49,7 +49,7 @@ class _TransactionHistoryPageState extends ConsumerState<TransactionHistoryPage>
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      backgroundColor: TossColors.transparent,
       builder: (context) => const TransactionFilterSheet(),
     );
   }
@@ -174,7 +174,7 @@ class _TransactionHistoryPageState extends ConsumerState<TransactionHistoryPage>
                               padding: const EdgeInsets.all(TossSpacing.space3),
                               decoration: BoxDecoration(
                                 color: _hasActiveFilters(filter) 
-                                    ? TossColors.primary.withOpacity(0.1)
+                                    ? TossColors.primarySurface
                                     : TossColors.gray100,
                                 borderRadius: BorderRadius.circular(8),
                                 border: Border.all(
@@ -218,9 +218,9 @@ class _TransactionHistoryPageState extends ConsumerState<TransactionHistoryPage>
                             child: Container(
                               padding: const EdgeInsets.all(TossSpacing.space3),
                               decoration: BoxDecoration(
-                                color: TossColors.error.withOpacity(0.1),
+                                color: TossColors.errorLight,
                                 borderRadius: BorderRadius.circular(8),
-                                border: Border.all(color: TossColors.error.withOpacity(0.3)),
+                                border: Border.all(color: TossColors.error.withValues(alpha: 0.3)),
                               ),
                               child: const Icon(
                                 Icons.clear,

@@ -27,38 +27,7 @@ final journalAccountsProvider = FutureProvider<List<Map<String, dynamic>>>((ref)
   }
 });
 
-// Provider for fetching cash locations
-final journalCashLocationsProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
-  try {
-    final supabase = Supabase.instance.client;
-    final appState = ref.watch(appStateProvider);
-    final companyId = appState.companyChoosen;
-    final storeId = appState.storeChoosen;
-    
-    if (companyId.isEmpty) {
-      return [];
-    }
-    
-    // Build query based on store selection
-    var query = supabase
-        .from('cash_locations')
-        .select('cash_location_id, location_name, location_type')
-        .eq('company_id', companyId);
-    
-    // Filter by store_id
-    if (storeId.isNotEmpty) {
-      query = query.eq('store_id', storeId);
-    } else {
-      query = query.isFilter('store_id', null);
-    }
-    
-    final response = await query.order('location_name');
-    
-    return List<Map<String, dynamic>>.from(response);
-  } catch (e) {
-    throw Exception('Failed to fetch cash locations: $e');
-  }
-});
+// Note: Cash locations are now handled by AutonomousCashLocationSelector widget
 
 // Provider for fetching counterparties (old - kept for backward compatibility)
 final journalCounterpartiesProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
@@ -84,73 +53,7 @@ final journalCounterpartiesProvider = FutureProvider<List<Map<String, dynamic>>>
   }
 });
 
-// Provider for fetching filtered counterparties based on account selection
-final journalFilteredCounterpartiesProvider = FutureProvider.family<List<Map<String, dynamic>>, String?>((ref, accountCategoryTag) async {
-  try {
-    final supabase = Supabase.instance.client;
-    final appState = ref.watch(appStateProvider);
-    final companyId = appState.companyChoosen;
-    
-    if (companyId.isEmpty) {
-      return [];
-    }
-    
-    // If account category is not payable/receivable, return all counterparties
-    if (accountCategoryTag == null || 
-        (accountCategoryTag.toLowerCase() != 'payable' && 
-         accountCategoryTag.toLowerCase() != 'receivable')) {
-      return ref.watch(journalCounterpartiesProvider).value ?? [];
-    }
-    
-    // Step 1: Get mapped counterparty IDs from account_mappings
-    final mappingsResponse = await supabase
-        .from('account_mappings')
-        .select('counterparty_id')
-        .eq('my_company_id', companyId);
-    
-    final mappedCounterpartyIds = List<String>.from(
-      mappingsResponse.map((row) => row['counterparty_id'] as String)
-    );
-    
-    // Step 2: Get all counterparties for the company
-    final allCounterparties = await supabase
-        .from('counterparties')
-        .select('counterparty_id, name, is_internal, linked_company_id')
-        .eq('company_id', companyId)
-        .order('name');
-    
-    // Step 3: Filter counterparties based on the rules
-    final filteredCounterparties = allCounterparties.where((counterparty) {
-      final counterpartyId = counterparty['counterparty_id'] as String;
-      final isInternal = counterparty['is_internal'];
-      
-      // Convert is_internal to boolean
-      bool isInternalBool = false;
-      if (isInternal is bool) {
-        isInternalBool = isInternal;
-      } else if (isInternal is String) {
-        isInternalBool = isInternal.toLowerCase() == 'true';
-      } else if (isInternal == 1 || isInternal == '1') {
-        isInternalBool = true;
-      }
-      
-      // Include if:
-      // 1. External counterparty (is_internal = false), OR
-      // 2. Internal counterparty that has mapping
-      if (!isInternalBool) {
-        // External counterparty - always include
-        return true;
-      } else {
-        // Internal counterparty - only include if it has mapping
-        return mappedCounterpartyIds.contains(counterpartyId);
-      }
-    }).toList();
-    
-    return List<Map<String, dynamic>>.from(filteredCounterparties);
-  } catch (e) {
-    throw Exception('Failed to fetch filtered counterparties: $e');
-  }
-});
+// Note: Counterparty filtering is now handled by AutonomousCounterpartySelector widget
 
 // Provider for fetching cash locations by company ID (for counterparty cash locations without store)
 final journalCounterpartyCashLocationsProvider = FutureProvider.family<List<Map<String, dynamic>>, String?>((ref, linkedCompanyId) async {

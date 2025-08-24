@@ -44,6 +44,8 @@ class TossIcons {
   static const IconData infoFilled = Icons.info;
   static const IconData warning = Icons.warning_amber_outlined;
   static const IconData warningFilled = Icons.warning;
+  static const IconData star = Icons.star;
+  static const IconData starOutline = Icons.star_outline;
   
   // ==================== DATE & TIME ICONS ====================
   static const IconData calendar = Icons.calendar_today;

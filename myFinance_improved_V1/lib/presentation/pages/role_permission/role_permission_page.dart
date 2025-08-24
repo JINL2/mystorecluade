@@ -579,7 +579,7 @@ class _CreateRoleBottomSheetState extends ConsumerState<_CreateRoleBottomSheet> 
   Widget build(BuildContext context) {
     return Container(
       constraints: BoxConstraints(
-        maxHeight: MediaQuery.of(context).size.height * 0.85,
+        maxHeight: MediaQuery.of(context).size.height * 0.8,
         minHeight: MediaQuery.of(context).size.height * 0.5,
       ),
       decoration: BoxDecoration(

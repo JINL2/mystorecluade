@@ -16,7 +16,7 @@ class TossDropdown<T> extends StatelessWidget {
   final bool isLoading;
 
   // Constants for better maintainability
-  static const double _maxBottomSheetHeight = 0.85;
+  static const double _maxBottomSheetHeight = 0.8;
   static const double _minBottomSheetHeight = 200.0;
   static const double _handleBarWidth = 36.0;
   static const double _handleBarHeight = 4.0;
@@ -133,7 +133,7 @@ class TossDropdown<T> extends StatelessWidget {
           child: CircularProgressIndicator(
             strokeWidth: 2,
             valueColor: AlwaysStoppedAnimation<Color>(
-              Theme.of(context).colorScheme.primary,
+              TossColors.primary,
             ),
           ),
         ),
@@ -141,7 +141,7 @@ class TossDropdown<T> extends StatelessWidget {
         Text(
           'Loading...',
           style: TossTextStyles.caption.copyWith(
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
+            color: TossColors.textSecondary,
           ),
         ),
       ],
@@ -154,7 +154,7 @@ class TossDropdown<T> extends StatelessWidget {
       backgroundColor: TossColors.transparent,
       barrierColor: Colors.black54, // Standard barrier color to prevent double barriers
       isScrollControlled: true,
-      enableDrag: false, // Disable system drag handle, use custom handle bar instead
+      enableDrag: true, // Allow swipe-to-dismiss
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.only(
           topLeft: Radius.circular(TossBorderRadius.xl),

@@ -55,7 +55,7 @@ class AppIcons {
   static const IconData business = FontAwesomeIcons.businessTime;
   static const IconData enterprise = FontAwesomeIcons.city;
   static const IconData marketplace = FontAwesomeIcons.shopify;
-  static const IconData mall = FontAwesomeIcons.shoppingBag;
+  static const IconData mall = FontAwesomeIcons.bagShopping;
 
   // ==================== 3. 재무 & 돈 (30개) ====================
   static const IconData money = FontAwesomeIcons.moneyBill;
@@ -105,7 +105,7 @@ class AppIcons {
   static const IconData trend = FontAwesomeIcons.arrowTrendUp;
   static const IconData trendDown = FontAwesomeIcons.arrowTrendDown;
   static const IconData growth = FontAwesomeIcons.seedling;
-  static const IconData performance = FontAwesomeIcons.tachometerAlt;
+  static const IconData performance = FontAwesomeIcons.gaugeHigh;
   static const IconData gauge = FontAwesomeIcons.gauge;
   static const IconData gaugeSimple = FontAwesomeIcons.gaugeSimple;
   static const IconData gaugeHigh = FontAwesomeIcons.gaugeHigh;
@@ -117,7 +117,7 @@ class AppIcons {
   static const IconData trophy = FontAwesomeIcons.trophy;
 
   // ==================== 5. 재고 & 제품 (25개) ====================
-  static const IconData inventory = FontAwesomeIcons.boxes;
+  static const IconData inventory = FontAwesomeIcons.boxesStacked;
   static const IconData inventoryAlt = FontAwesomeIcons.boxesStacked;
   static const IconData box = FontAwesomeIcons.box;
   static const IconData boxOpen = FontAwesomeIcons.boxOpen;

@@ -37,6 +37,7 @@ class AutonomousCounterpartySelector extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    
     // Choose the appropriate provider based on filters
     late AsyncValue<List<CounterpartyData>> counterpartiesAsync;
     
@@ -49,6 +50,9 @@ class AutonomousCounterpartySelector extends ConsumerWidget {
     } else {
       counterpartiesAsync = ref.watch(currentCounterpartiesProvider);
     }
+    
+    
+    
 
     // Find selected counterparty
     CounterpartyData? selectedCounterparty;
@@ -80,31 +84,49 @@ class AutonomousCounterpartySelector extends ConsumerWidget {
         emptyMessage: 'No ${_getCounterpartyTypeLabel().toLowerCase()} available',
         searchHint: 'Search ${_getCounterpartyTypeLabel().toLowerCase()}',
       ),
-      itemTitleBuilder: (counterparty) => counterparty.displayName,
+      itemTitleBuilder: (counterparty) => _buildCounterpartyTitle(counterparty),
       itemSubtitleBuilder: showTransactionCount 
-          ? (counterparty) => counterparty.subtitle
-          : null,
+          ? (counterparty) => _buildCounterpartySubtitle(counterparty)
+          : (counterparty) => _buildCounterpartySubtitle(counterparty),
       itemIdBuilder: (counterparty) => counterparty.id,
       itemFilterBuilder: (counterparty, query) {
         final queryLower = query.toLowerCase();
         return counterparty.name.toLowerCase().contains(queryLower) ||
                counterparty.type.toLowerCase().contains(queryLower) ||
-               (counterparty.email?.toLowerCase().contains(queryLower) ?? false);
+               (counterparty.email?.toLowerCase().contains(queryLower) ?? false) ||
+               (counterparty.isInternal && 'internal'.contains(queryLower));
       },
     );
   }
 
   String _getCounterpartyTypeLabel() {
     if (counterpartyType != null) {
-      switch (counterpartyType!.toLowerCase()) {
+      // Handle your actual counterparty types
+      switch (counterpartyType!) {
+        case 'Customers':
+        case 'customers':
         case 'customer':
           return 'Customer';
-        case 'vendor':
-          return 'Vendor';
+        case 'Suppliers':
+        case 'suppliers':
         case 'supplier':
           return 'Supplier';
+        case 'My Company':
+        case 'myCompany':
+          return 'My Company';
+        case 'Team Member':
+        case 'teamMember':
+          return 'Team Member';
+        case 'Employees':
+        case 'employees':
+        case 'employee':
+          return 'Employee';
+        case 'Others':
+        case 'others':
+        case 'other':
+          return 'Other';
         default:
-          return '${counterpartyType!.capitalize()} Counterparty';
+          return counterpartyType!;
       }
     }
     
@@ -116,15 +138,28 @@ class AutonomousCounterpartySelector extends ConsumerWidget {
 
   String _getCounterpartyTypeHint() {
     if (counterpartyType != null) {
-      switch (counterpartyType!.toLowerCase()) {
-        case 'customer':
+      // Handle your actual counterparty types
+      switch (counterpartyType!) {
+        case 'Customers':
+        case 'customers':
           return 'Select Customer';
-        case 'vendor':
-          return 'Select Vendor';
-        case 'supplier':
+        case 'Suppliers':
+        case 'suppliers':
           return 'Select Supplier';
+        case 'My Company':
+        case 'myCompany':
+          return 'Select Company';
+        case 'Team Member':
+        case 'teamMember':
+          return 'Select Team Member';
+        case 'Employees':
+        case 'employees':
+          return 'Select Employee';
+        case 'Others':
+        case 'others':
+          return 'Select Other';
         default:
-          return 'Select ${counterpartyType!.capitalize()}';
+          return 'Select ${counterpartyType!}';
       }
     }
     
@@ -136,12 +171,26 @@ class AutonomousCounterpartySelector extends ConsumerWidget {
 
   IconData _getCounterpartyIcon() {
     if (counterpartyType != null) {
-      switch (counterpartyType!.toLowerCase()) {
-        case 'customer':
+      // Handle your actual counterparty types
+      switch (counterpartyType!) {
+        case 'Customers':
+        case 'customers':
           return Icons.person;
-        case 'vendor':
-        case 'supplier':
+        case 'Suppliers':
+        case 'suppliers':
           return Icons.business;
+        case 'My Company':
+        case 'myCompany':
+          return Icons.domain;
+        case 'Team Member':
+        case 'teamMember':
+          return Icons.groups;
+        case 'Employees':
+        case 'employees':
+          return Icons.badge;
+        case 'Others':
+        case 'others':
+          return Icons.more_horiz;
         default:
           return Icons.people;
       }
@@ -151,6 +200,42 @@ class AutonomousCounterpartySelector extends ConsumerWidget {
     if (isInternal == false) return Icons.public;
     
     return Icons.people;
+  }
+  
+  String _buildCounterpartyTitle(CounterpartyData counterparty) {
+    // Add [Internal] prefix for internal counterparties
+    if (counterparty.isInternal) {
+      return '🏢 ${counterparty.name}';
+    }
+    return counterparty.name;
+  }
+  
+  String _buildCounterpartySubtitle(CounterpartyData counterparty) {
+    final parts = <String>[];
+    
+    // Add internal badge first if internal
+    if (counterparty.isInternal) {
+      parts.add('Internal Company');
+    }
+    
+    // Add type if not redundant with internal status
+    if (counterparty.type.isNotEmpty && 
+        counterparty.type != 'My Company' && 
+        counterparty.type != 'Team Member') {
+      parts.add(counterparty.type);
+    }
+    
+    // Add transaction count if enabled
+    if (showTransactionCount && counterparty.transactionCount > 0) {
+      parts.add('${counterparty.transactionCount} transactions');
+    }
+    
+    // If no parts, at least show the type
+    if (parts.isEmpty && counterparty.type.isNotEmpty) {
+      parts.add(counterparty.type);
+    }
+    
+    return parts.join(' • ');
   }
 }
 
@@ -246,10 +331,8 @@ class _AutonomousMultiCounterpartySelectorState extends ConsumerState<Autonomous
         emptyMessage: 'No ${_getCounterpartyTypeLabel().toLowerCase()} available',
         searchHint: 'Search ${_getCounterpartyTypeLabel().toLowerCase()}',
       ),
-      itemTitleBuilder: (counterparty) => counterparty.displayName,
-      itemSubtitleBuilder: widget.showTransactionCount 
-          ? (counterparty) => counterparty.subtitle
-          : null,
+      itemTitleBuilder: (counterparty) => _buildCounterpartyTitle(counterparty),
+      itemSubtitleBuilder: (counterparty) => _buildCounterpartySubtitle(counterparty),
       itemIdBuilder: (counterparty) => counterparty.id,
       itemFilterBuilder: (counterparty, query) {
         final queryLower = query.toLowerCase();
@@ -266,7 +349,7 @@ class _AutonomousMultiCounterpartySelectorState extends ConsumerState<Autonomous
         case 'customer':
           return 'Customers';
         case 'vendor':
-          return 'Vendors';
+          return 'Counterparties';
         case 'supplier':
           return 'Suppliers';
         default:
@@ -308,6 +391,42 @@ class _AutonomousMultiCounterpartySelectorState extends ConsumerState<Autonomous
     if (widget.isInternal == false) return Icons.public;
     
     return Icons.people;
+  }
+  
+  String _buildCounterpartyTitle(CounterpartyData counterparty) {
+    // Add building emoji for internal counterparties
+    if (counterparty.isInternal) {
+      return '🏢 ${counterparty.name}';
+    }
+    return counterparty.name;
+  }
+  
+  String _buildCounterpartySubtitle(CounterpartyData counterparty) {
+    final parts = <String>[];
+    
+    // Add internal badge first if internal
+    if (counterparty.isInternal) {
+      parts.add('Internal Company');
+    }
+    
+    // Add type if not redundant with internal status
+    if (counterparty.type.isNotEmpty && 
+        counterparty.type != 'My Company' && 
+        counterparty.type != 'Team Member') {
+      parts.add(counterparty.type);
+    }
+    
+    // Add transaction count if enabled
+    if (widget.showTransactionCount && counterparty.transactionCount > 0) {
+      parts.add('${counterparty.transactionCount} transactions');
+    }
+    
+    // If no parts, at least show the type
+    if (parts.isEmpty && counterparty.type.isNotEmpty) {
+      parts.add(counterparty.type);
+    }
+    
+    return parts.join(' • ');
   }
 }
 

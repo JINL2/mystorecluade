@@ -7,7 +7,7 @@ part of 'counterparty_provider.dart';
 // **************************************************************************
 
 String _$currentCounterpartiesHash() =>
-    r'81258dfb705a70c25433870f7fe0cf370a56caaf';
+    r'cfb9e8fe790d39679af6d1a05697a97008d5545d';
 
 /// Current counterparties based on selected company/store
 ///
@@ -29,7 +29,7 @@ final currentCounterpartiesProvider =
 typedef CurrentCounterpartiesRef
     = AutoDisposeFutureProviderRef<List<CounterpartyData>>;
 String _$currentCounterpartiesByTypeHash() =>
-    r'0c14614b22f24b0e7874bf620421701b42601079';
+    r'a2b3e288d3f6843ed43ed58f4432d40215328f6f';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -753,7 +753,7 @@ class _SearchCounterpartiesProviderElement
       (origin as SearchCounterpartiesProvider).searchQuery;
 }
 
-String _$counterpartyListHash() => r'716dc3f410e2580599841f7d7479eb245df52f3d';
+String _$counterpartyListHash() => r'f5c20d53ef978ccf74a91483664faf315b7bb248';
 
 abstract class _$CounterpartyList
     extends BuildlessAutoDisposeAsyncNotifier<List<CounterpartyData>> {

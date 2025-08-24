@@ -3046,7 +3046,7 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<_ShiftDetailsBottomShe
       // Show loading indicator
       showDialog(
         context: context,
-        barrierDismissible: false,
+        barrierDismissible: true, // Allow dismissing loading dialogs
         builder: (BuildContext context) {
           return const Center(
             child: CircularProgressIndicator(),
@@ -3130,7 +3130,7 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<_ShiftDetailsBottomShe
       // Show loading indicator
       showDialog(
         context: context,
-        barrierDismissible: false,
+        barrierDismissible: true, // Allow dismissing loading dialogs
         builder: (BuildContext context) {
           return const Center(
             child: CircularProgressIndicator(),
@@ -3217,7 +3217,7 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<_ShiftDetailsBottomShe
     
     return Container(
       constraints: BoxConstraints(
-        maxHeight: MediaQuery.of(context).size.height * 0.9,
+        maxHeight: MediaQuery.of(context).size.height * 0.8,
       ),
       decoration: BoxDecoration(
         color: TossColors.background,
@@ -4175,7 +4175,7 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<_ShiftDetailsBottomShe
                     // Show loading indicator
                     showDialog(
                       context: context,
-                      barrierDismissible: false,
+                      barrierDismissible: true, // Allow dismissing loading dialogs
                       builder: (BuildContext context) {
                         return const Center(
                           child: CircularProgressIndicator(

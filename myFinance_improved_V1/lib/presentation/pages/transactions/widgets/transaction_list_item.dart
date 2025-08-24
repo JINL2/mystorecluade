@@ -201,7 +201,7 @@ class TransactionListItem extends ConsumerWidget {
   Widget _buildTransactionLine(TransactionLine line) {
     final isDebit = line.isDebit;
     final amount = isDebit ? line.debit : line.credit;
-    final color = isDebit ? TossColors.success : TossColors.loss;
+    final color = isDebit ? TossColors.primary : TossColors.textPrimary;
     
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -211,12 +211,12 @@ class TransactionListItem extends ConsumerWidget {
           width: 32,
           height: 32,
           decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
+            color: TossColors.gray50,
             borderRadius: BorderRadius.circular(TossBorderRadius.sm),
           ),
           child: Icon(
             isDebit ? Icons.arrow_downward : Icons.arrow_upward,
-            color: color,
+            color: TossColors.gray500,
             size: 16,
           ),
         ),
@@ -253,7 +253,7 @@ class TransactionListItem extends ConsumerWidget {
                           vertical: 2,
                         ),
                         decoration: BoxDecoration(
-                          color: TossColors.primary.withOpacity(0.08),
+                          color: TossColors.gray50,
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child: Row(
@@ -394,7 +394,7 @@ class TransactionListItem extends ConsumerWidget {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      backgroundColor: TossColors.transparent,
       builder: (context) => TransactionDetailSheet(
         transaction: transaction,
       ),

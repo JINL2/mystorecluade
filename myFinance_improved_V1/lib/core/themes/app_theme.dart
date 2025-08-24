@@ -4,8 +4,6 @@ import 'toss_colors.dart';
 import 'toss_text_styles.dart';
 import 'toss_border_radius.dart';
 import 'toss_spacing.dart';
-import 'toss_shadows.dart';
-import 'toss_animations.dart';
 
 /// MyFinance Theme - Powered by Toss Design System
 /// Clean, modern, and professional financial app design
@@ -40,7 +38,6 @@ class AppTheme {
       
       surfaceContainer: TossColors.gray50,
       surfaceContainerHighest: TossColors.gray100,
-      surfaceVariant: TossColors.gray50,
       onSurfaceVariant: TossColors.textSecondary,
       
       outline: TossColors.border,
@@ -284,58 +281,4 @@ class AppTheme {
     ),
   );
 
-  // Dark theme - Not commonly used in Toss but provided for completeness
-  static ThemeData darkTheme = lightTheme.copyWith(
-    brightness: Brightness.dark,
-    
-    colorScheme: const ColorScheme.dark(
-      primary: TossColors.primary,
-      onPrimary: TossColors.white,
-      primaryContainer: TossColors.primary,
-      onPrimaryContainer: TossColors.white,
-      
-      secondary: TossColors.gray700,
-      onSecondary: TossColors.white,
-      
-      error: TossColors.error,
-      onError: TossColors.white,
-      
-      surface: TossColors.gray900,
-      onSurface: TossColors.white,
-      
-      surfaceContainer: TossColors.gray800,
-      surfaceContainerHighest: TossColors.gray700,
-      surfaceVariant: TossColors.gray800,
-      onSurfaceVariant: TossColors.gray300,
-      
-      outline: TossColors.gray600,
-      outlineVariant: TossColors.gray700,
-      
-      shadow: TossColors.shadow,
-      scrim: TossColors.overlay,
-    ),
-    
-    scaffoldBackgroundColor: TossColors.black,
-    
-    appBarTheme: AppBarTheme(
-      elevation: 0,
-      scrolledUnderElevation: 0,
-      centerTitle: false,
-      backgroundColor: TossColors.gray900,
-      foregroundColor: TossColors.white,
-      systemOverlayStyle: SystemUiOverlayStyle.light,
-      titleTextStyle: TossTextStyles.h3.copyWith(color: TossColors.white),
-    ),
-    
-    cardTheme: CardThemeData(
-      color: TossColors.gray800,
-      surfaceTintColor: TossColors.transparent,
-    ),
-    
-    inputDecorationTheme: InputDecorationTheme(
-      fillColor: TossColors.gray800,
-      hintStyle: TossTextStyles.body.copyWith(color: TossColors.gray500),
-      labelStyle: TossTextStyles.label.copyWith(color: TossColors.gray400),
-    ),
-  );
 }

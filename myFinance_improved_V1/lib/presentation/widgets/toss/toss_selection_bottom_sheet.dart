@@ -76,7 +76,7 @@ class TossSelectionItem {
 ///   },
 /// )
 /// ```
-class TossSelectionBottomSheet extends StatelessWidget {
+class TossSelectionBottomSheet extends StatefulWidget {
   /// Title displayed at the top of the bottom sheet
   final String title;
   
@@ -112,7 +112,10 @@ class TossSelectionBottomSheet extends StatelessWidget {
     this.defaultIcon,
     this.showSubtitle = true,
   });
-
+  
+  @override
+  State<TossSelectionBottomSheet> createState() => _TossSelectionBottomSheetState();
+  
   /// Static method to show the bottom sheet
   static Future<T?> show<T>({
     required BuildContext context,
@@ -141,10 +144,43 @@ class TossSelectionBottomSheet extends StatelessWidget {
       ),
     );
   }
+}
+
+class _TossSelectionBottomSheetState extends State<TossSelectionBottomSheet> {
+  late List<TossSelectionItem> filteredItems;
+  String searchQuery = '';
+  
+  @override
+  void initState() {
+    super.initState();
+    filteredItems = widget.items;
+  }
+  
+  void _filterItems(String query) {
+    setState(() {
+      searchQuery = query.toLowerCase();
+      if (searchQuery.isEmpty) {
+        filteredItems = widget.items;
+      } else {
+        filteredItems = widget.items.where((item) {
+          final titleLower = item.title.toLowerCase();
+          final subtitleLower = (item.subtitle ?? '').toLowerCase();
+          return titleLower.contains(searchQuery) || subtitleLower.contains(searchQuery);
+        }).toList();
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
+    // Calculate available height for the bottom sheet
+    final screenHeight = MediaQuery.of(context).size.height;
+    final maxSheetHeight = screenHeight * widget.maxHeightFraction;
+    
     return Container(
+      constraints: BoxConstraints(
+        maxHeight: maxSheetHeight,
+      ),
       decoration: const BoxDecoration(
         color: TossColors.white,
         borderRadius: BorderRadius.only(
@@ -170,7 +206,7 @@ class TossSelectionBottomSheet extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.all(TossSpacing.space5),
             child: Text(
-              title,
+              widget.title,
               style: TossTextStyles.h3.copyWith(
                 color: TossColors.gray900,
                 fontWeight: FontWeight.w700,
@@ -180,7 +216,7 @@ class TossSelectionBottomSheet extends StatelessWidget {
           ),
           
           // Search bar (if enabled)
-          if (showSearch) ...[
+          if (widget.showSearch) ...[
             Padding(
               padding: const EdgeInsets.symmetric(
                 horizontal: TossSpacing.space5,
@@ -207,26 +243,21 @@ class TossSelectionBottomSheet extends StatelessWidget {
                     borderSide: BorderSide(color: TossColors.primary),
                   ),
                 ),
-                onChanged: (value) {
-                  // TODO: Implement search functionality
-                },
+                onChanged: _filterItems,
               ),
             ),
           ],
           
-          // Items list
-          Container(
-            constraints: BoxConstraints(
-              maxHeight: MediaQuery.of(context).size.height * maxHeightFraction,
-            ),
+          // Items list - wrapped in Flexible to prevent overflow
+          Flexible(
             child: ListView.builder(
               shrinkWrap: true,
               padding: EdgeInsets.zero,
-              itemCount: items.length,
+              itemCount: filteredItems.length,
               itemBuilder: (context, index) {
-                final item = items[index];
-                final isSelected = selectedId == item.id;
-                final isLast = index == items.length - 1;
+                final item = filteredItems[index];
+                final isSelected = widget.selectedId == item.id;
+                final isLast = index == filteredItems.length - 1;
                 
                 return _buildSelectionItem(
                   context: context,
@@ -251,11 +282,12 @@ class TossSelectionBottomSheet extends StatelessWidget {
     required bool isSelected,
     required bool isLast,
   }) {
-    final itemIcon = defaultIcon ?? item.icon ?? IconMapper.getIcon('circle');
+    final itemIcon = widget.defaultIcon ?? item.icon ?? IconMapper.getIcon('circle');
     
     return InkWell(
       onTap: () {
-        onItemSelected?.call(item);
+        FocusScope.of(context).unfocus();
+        widget.onItemSelected?.call(item);
         Navigator.pop(context);
       },
       child: Container(
@@ -264,7 +296,7 @@ class TossSelectionBottomSheet extends StatelessWidget {
           vertical: TossSpacing.space4,
         ),
         decoration: BoxDecoration(
-          color: isSelected ? TossColors.primary.withOpacity(0.05) : TossColors.transparent,
+          color: isSelected ? TossColors.primary.withValues(alpha: 0.05) : TossColors.transparent,
           border: Border(
             bottom: BorderSide(
               color: TossColors.gray100,
@@ -280,7 +312,7 @@ class TossSelectionBottomSheet extends StatelessWidget {
               height: TossSpacing.iconXL,
               decoration: BoxDecoration(
                 color: isSelected 
-                  ? TossColors.primary.withOpacity(0.1) 
+                  ? TossColors.primary.withValues(alpha: 0.1) 
                   : TossColors.gray50,
                 borderRadius: BorderRadius.circular(TossBorderRadius.md),
               ),
@@ -308,7 +340,7 @@ class TossSelectionBottomSheet extends StatelessWidget {
                   ),
                   
                   // Subtitle (if enabled and available)
-                  if (showSubtitle && item.subtitle != null) ...[
+                  if (widget.showSubtitle && item.subtitle != null) ...[
                     const SizedBox(height: TossSpacing.space1/2),
                     Text(
                       item.subtitle!,
@@ -390,5 +422,64 @@ class TossCompanySelector {
     );
 
     return selectedCompany;
+  }
+}
+
+/// Specialized account selector bottom sheet for journal input
+class TossAccountSelector {
+  /// Show account selection bottom sheet
+  static Future<Map<String, dynamic>?> show({
+    required BuildContext context,
+    required List<dynamic> accounts,
+    String? selectedAccountId,
+    String title = 'Select Account',
+  }) async {
+    final items = accounts
+        .map((account) => TossSelectionItem.fromGeneric(
+          id: account['account_id'] ?? '',
+          title: account['account_name'] ?? 'Unnamed Account',
+          subtitle: account['category_tag'] != null ? 
+            '${_getAccountTypeFromCategory(account['category_tag'])} • ${account['category_tag']}' : null,
+          icon: IconMapper.getIcon('wallet'),
+          data: account,
+        ))
+        .toList();
+
+    Map<String, dynamic>? selectedAccount;
+
+    await TossSelectionBottomSheet.show(
+      context: context,
+      title: title,
+      items: items,
+      selectedId: selectedAccountId,
+      showSearch: true,
+      maxHeightFraction: 0.7,  // Reduced to 70% to prevent overflow
+      onItemSelected: (item) {
+        selectedAccount = item.data;
+      },
+    );
+
+    return selectedAccount;
+  }
+  
+  /// Helper function to determine account type from category tag
+  static String _getAccountTypeFromCategory(String? categoryTag) {
+    if (categoryTag == null) return 'Asset';
+    switch (categoryTag.toLowerCase()) {
+      case 'cash':
+      case 'receivable':
+      case 'fixedasset':
+        return 'Asset';
+      case 'payable':
+      case 'note':
+        return 'Liability';
+      case 'equity':
+      case 'retained':
+        return 'Equity';
+      case 'revenue':
+        return 'Income';
+      default:
+        return 'Expense';
+    }
   }
 }

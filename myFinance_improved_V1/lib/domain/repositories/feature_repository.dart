@@ -9,6 +9,7 @@ abstract class FeatureRepository {
   /// This fetches data from the top_features_by_user view in Supabase
   Future<List<TopFeature>> getTopFeaturesByUser({
     required String userId,
+    String? companyId,
   });
   
   /// Update feature click count (for tracking usage)
@@ -45,11 +46,16 @@ class SupabaseFeatureRepository implements FeatureRepository {
   }
 
   @override
-  Future<List<TopFeature>> getTopFeaturesByUser({required String userId}) async {
+  Future<List<TopFeature>> getTopFeaturesByUser({required String userId, String? companyId}) async {
     try {
       
+      final params = <String, dynamic>{'p_user_id': userId};
+      if (companyId != null && companyId.isNotEmpty) {
+        params['p_company_id'] = companyId;
+      }
+      
       final response = await Supabase.instance.client
-          .rpc('get_user_quick_access_features', params: {'p_user_id': userId});
+          .rpc('get_user_quick_access_features', params: params);
       
       
       if (response == null) {

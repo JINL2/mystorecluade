@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import '../../helpers/navigation_helper.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'providers/store_shift_providers.dart';
 import '../../providers/app_state_provider.dart';
 import '../../../core/themes/toss_colors.dart';
@@ -14,6 +15,7 @@ import '../../../core/themes/toss_animations.dart';
 import '../../widgets/common/toss_app_bar.dart';
 import '../../widgets/toss/toss_time_picker.dart';
 import '../../widgets/toss/toss_primary_button.dart';
+import '../../widgets/toss/toss_secondary_button.dart';
 import '../../widgets/toss/toss_text_field.dart';
 import '../../widgets/toss/toss_card.dart';
 import '../../widgets/toss/toss_tab_bar.dart';
@@ -22,6 +24,9 @@ import '../../widgets/common/toss_empty_view.dart';
 import '../../../core/constants/icon_mapper.dart';
 import '../../../core/constants/ui_constants.dart';
 import '../../widgets/common/toss_scaffold.dart';
+import '../../../data/services/store_service.dart';
+import '../../widgets/toss/toss_bottom_sheet.dart';
+import '../../widgets/common/toss_number_input.dart';
 
 class StoreShiftPage extends ConsumerStatefulWidget {
   const StoreShiftPage({super.key});
@@ -33,18 +38,13 @@ class StoreShiftPage extends ConsumerStatefulWidget {
 class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBindingObserver, SingleTickerProviderStateMixin {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   late TabController _tabController;
-  int _selectedTab = 0;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _tabController = TabController(length: 2, vsync: this);
-    _tabController.addListener(() {
-      setState(() {
-        _selectedTab = _tabController.index;
-      });
-    });
+    // TabController already tracks the index
   }
 
   @override
@@ -57,6 +57,34 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     // Handle app lifecycle changes if needed
+  }
+
+  // Helper method to show error messages
+  void _showErrorMessage(String message) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: TossColors.error,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(TossBorderRadius.button)),
+        ),
+      );
+    }
+  }
+
+  // Helper method to show success messages
+  void _showSuccessMessage(String message) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: TossColors.primary,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(TossBorderRadius.button)),
+        ),
+      );
+    }
   }
 
   @override
@@ -89,9 +117,7 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
               tabs: const ['Shift Settings', 'Store Settings'],
               controller: _tabController,
               onTabChanged: (index) {
-                setState(() {
-                  _selectedTab = index;
-                });
+                // TabController automatically handles index changes
               },
             ),
             // Tab Content
@@ -143,28 +169,9 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
       ref.invalidate(categoriesWithFeaturesProvider);
       
       // Show success feedback
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('Data refreshed successfully'),
-            backgroundColor: TossColors.primary,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(TossBorderRadius.button)),
-          ),
-        );
-      }
+      _showSuccessMessage('Data refreshed successfully');
     } catch (e) {
-      // Show error feedback
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to refresh: ${e.toString()}'),
-            backgroundColor: TossColors.error,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(TossBorderRadius.button)),
-          ),
-        );
-      }
+      _showErrorMessage('Failed to refresh: ${e.toString()}');
     }
   }
   
@@ -197,6 +204,7 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
   // Build Store Settings Tab
   Widget _buildStoreSettingsTab(dynamic userData) {
     final selectedStore = ref.watch(selectedStoreProvider);
+    final storeDetailsAsync = ref.watch(storeDetailsProvider);
     
     if (selectedStore == null) {
       return Center(
@@ -215,22 +223,70 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
     return RefreshIndicator(
       onRefresh: () => _handleRefresh(ref),
       color: TossColors.primary,
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.all(TossSpacing.paddingMD),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Store Information Card
-            _buildStoreInfoCard(selectedStore),
-            const SizedBox(height: TossSpacing.space5),
-            
-            // Store Configuration Options
-            _buildStoreConfigSection(selectedStore),
-            const SizedBox(height: TossSpacing.space5),
-            
-            // Store Operating Hours
-            _buildStoreOperatingHours(selectedStore),
-          ],
+      child: storeDetailsAsync.when(
+        data: (storeData) {
+          if (storeData == null) {
+            return Center(
+              child: TossEmptyView(
+                icon: Icon(
+                  IconMapper.getIcon('building'),
+                  size: UIConstants.emptyStateIconSize,
+                  color: TossColors.gray400,
+                ),
+                title: 'Store Not Found',
+                description: 'Unable to load store details.',
+              ),
+            );
+          }
+          
+          return SingleChildScrollView(
+            padding: const EdgeInsets.all(TossSpacing.paddingMD),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Store Information Card
+                _buildStoreInfoCard(storeData),
+                const SizedBox(height: TossSpacing.space5),
+                
+                // Store Configuration Options
+                _buildStoreConfigSection(storeData),
+                const SizedBox(height: TossSpacing.space5),
+                
+                // Store Operating Hours
+                _buildStoreOperatingHours(storeData),
+              ],
+            ),
+          );
+        },
+        loading: () => Center(
+          child: CircularProgressIndicator(color: TossColors.primary),
+        ),
+        error: (error, stack) => Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                FontAwesomeIcons.circleExclamation,
+                size: TossSpacing.iconXL,
+                color: TossColors.error,
+              ),
+              const SizedBox(height: TossSpacing.space3),
+              Text(
+                'Failed to load store details',
+                style: TossTextStyles.body.copyWith(
+                  color: TossColors.error,
+                ),
+              ),
+              const SizedBox(height: TossSpacing.space2),
+              Text(
+                error.toString(),
+                style: TossTextStyles.caption.copyWith(
+                  color: TossColors.gray600,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -281,6 +337,16 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
                   ],
                 ),
               ),
+              IconButton(
+                onPressed: () {
+                  _showEditStoreInfoSheet(store);
+                },
+                icon: Icon(
+                  IconMapper.getIcon('editRegular'),
+                  color: TossColors.primary,
+                  size: TossSpacing.iconSM,
+                ),
+              ),
             ],
           ),
           const SizedBox(height: TossSpacing.space4),
@@ -288,9 +354,16 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
           // Store Details
           _buildDetailRow('Store Code', store['store_code'] ?? 'N/A'),
           const SizedBox(height: TossSpacing.space2),
-          _buildDetailRow('Store ID', store['store_id']?.substring(0, 8) ?? 'N/A'),
-          const SizedBox(height: TossSpacing.space2),
-          _buildDetailRow('Status', 'Active', color: TossColors.success),
+          if (store['store_address'] != null && store['store_address'].toString().isNotEmpty) ...[
+            _buildDetailRow('Address', store['store_address']),
+            const SizedBox(height: TossSpacing.space2),
+          ],
+          if (store['store_phone'] != null && store['store_phone'].toString().isNotEmpty) ...[
+            _buildDetailRow('Phone', store['store_phone']),
+            const SizedBox(height: TossSpacing.space2),
+          ],
+          _buildDetailRow('Status', store['is_deleted'] == true ? 'Inactive' : 'Active', 
+              color: store['is_deleted'] == true ? TossColors.error : TossColors.success),
         ],
       ),
     );
@@ -303,49 +376,65 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Store Configuration',
-            style: TossTextStyles.bodyLarge.copyWith(
-              color: TossColors.gray900,
-              fontWeight: FontWeight.w700,
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Operational Settings',
+                style: TossTextStyles.bodyLarge.copyWith(
+                  color: TossColors.gray900,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              IconButton(
+                onPressed: () {
+                  _showEditOperationalSettingsSheet(store);
+                },
+                icon: Icon(
+                  IconMapper.getIcon('editRegular'),
+                  color: TossColors.primary,
+                  size: TossSpacing.iconSM,
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: TossSpacing.space4),
           
-          // Configuration Options
+          // Operational Settings
           _buildConfigOption(
-            icon: FontAwesomeIcons.cashRegister,
-            title: 'POS Settings',
-            subtitle: 'Configure point of sale settings',
-            onTap: () {
-              // Navigate to POS settings
-            },
+            icon: FontAwesomeIcons.peopleGroup,
+            title: 'Huddle Time',
+            subtitle: '${store['huddle_time'] ?? 15} minutes for team meetings',
+            onTap: null,
           ),
           const SizedBox(height: TossSpacing.space3),
           _buildConfigOption(
-            icon: FontAwesomeIcons.users,
-            title: 'Staff Management',
-            subtitle: 'Manage store employees',
-            onTap: () {
-              // Navigate to staff management
-            },
+            icon: FontAwesomeIcons.clock,
+            title: 'Payment Time',
+            subtitle: '${store['payment_time'] ?? 30} minutes for payment processing',
+            onTap: null,
           ),
           const SizedBox(height: TossSpacing.space3),
           _buildConfigOption(
-            icon: FontAwesomeIcons.warehouse,
-            title: 'Inventory Settings',
-            subtitle: 'Configure inventory management',
-            onTap: () {
-              // Navigate to inventory settings
-            },
+            icon: FontAwesomeIcons.locationDot,
+            title: 'Check-in Distance',
+            subtitle: '${store['allowed_distance'] ?? 100} meters maximum distance',
+            onTap: null,
+          ),
+          const SizedBox(height: TossSpacing.space3),
+          _buildConfigOption(
+            icon: FontAwesomeIcons.mapLocationDot,
+            title: 'Store Location',
+            subtitle: _getLocationSubtitle(store),
+            onTap: () => _showLocationSettingSheet(store),
           ),
           const SizedBox(height: TossSpacing.space3),
           _buildConfigOption(
             icon: FontAwesomeIcons.chartLine,
-            title: 'Sales Reports',
-            subtitle: 'View store performance',
+            title: 'Store Performance',
+            subtitle: 'View detailed analytics',
             onTap: () {
-              // Navigate to sales reports
+              // Navigate to store analytics
             },
           ),
         ],
@@ -424,17 +513,21 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
     required IconData icon,
     required String title,
     required String subtitle,
-    required VoidCallback onTap,
+    VoidCallback? onTap,
   }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-      child: Container(
-        padding: const EdgeInsets.all(TossSpacing.space3),
-        decoration: BoxDecoration(
-          color: TossColors.gray50,
-          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-        ),
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+        splashColor: TossColors.primary.withOpacity(0.1),
+        highlightColor: TossColors.primary.withOpacity(0.05),
+        child: Ink(
+          padding: const EdgeInsets.all(TossSpacing.space3),
+          decoration: BoxDecoration(
+            color: onTap != null ? TossColors.gray50 : TossColors.gray50.withOpacity(0.5),
+            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+          ),
         child: Row(
           children: [
             Container(
@@ -471,12 +564,14 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
                 ],
               ),
             ),
-            Icon(
-              FontAwesomeIcons.chevronRight,
-              color: TossColors.gray400,
-              size: TossSpacing.iconSM,
-            ),
+            if (onTap != null)
+              Icon(
+                FontAwesomeIcons.chevronRight,
+                color: TossColors.gray400,
+                size: TossSpacing.iconSM,
+              ),
           ],
+        ),
         ),
       ),
     );
@@ -997,7 +1092,7 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
       backgroundColor: TossColors.transparent,
       builder: (context) => StatefulBuilder(
         builder: (context, setState) => Container(
-          height: MediaQuery.of(context).size.height * 0.85,
+          height: MediaQuery.of(context).size.height * 0.8,
           decoration: const BoxDecoration(
             color: TossColors.white,
             borderRadius: BorderRadius.only(
@@ -1042,6 +1137,7 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
                       TossTextField(
                         label: 'Shift Name',
                         hintText: 'e.g., Morning Shift, Night Shift',
+                        textInputAction: TextInputAction.next,
                         onChanged: (value) {
                           setState(() {
                             shiftName = value;
@@ -1382,7 +1478,7 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
       backgroundColor: TossColors.transparent,
       builder: (context) => StatefulBuilder(
         builder: (context, setState) => Container(
-          height: MediaQuery.of(context).size.height * 0.85,
+          height: MediaQuery.of(context).size.height * 0.8,
           decoration: const BoxDecoration(
             color: TossColors.white,
             borderRadius: BorderRadius.only(
@@ -1423,11 +1519,12 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Shift Name Input Section - Using TossTextField like Create Shift
+                      // Shift Name Input Section - Using TossTextField for consistency
                       TossTextField(
                         label: 'Shift Name',
                         hintText: 'e.g., Morning Shift, Night Shift',
                         controller: shiftNameController,
+                        textInputAction: TextInputAction.next,
                         onChanged: (value) {
                           setState(() {
                             shiftName = value;
@@ -2080,17 +2177,7 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
       }
     } catch (e) {
       
-      // Show error message
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to create shift: ${e.toString()}'),
-            backgroundColor: TossColors.error,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(TossBorderRadius.button)),
-          ),
-        );
-      }
+      _showErrorMessage('Failed to create shift: ${e.toString()}');
     }
   }
   
@@ -2283,6 +2370,923 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
           ),
         );
       }
+    }
+  }
+  
+  // Show Edit Store Information Bottom Sheet
+  void _showEditStoreInfoSheet(Map<String, dynamic> store) {
+    // Controllers for the form
+    final storeNameController = TextEditingController(text: store['store_name'] ?? '');
+    final storeAddressController = TextEditingController(text: store['store_address'] ?? '');
+    final storePhoneController = TextEditingController(text: store['store_phone'] ?? '');
+    
+    TossBottomSheet.show(
+      context: context,
+      title: 'Edit Store Information',
+      content: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Store Name
+          TossTextField(
+            label: 'Store Name',
+            controller: storeNameController,
+            hintText: 'Enter store name',
+            textInputAction: TextInputAction.next,
+          ),
+          
+          const SizedBox(height: TossSpacing.space5),
+          
+          // Store Address
+          TossTextField(
+            label: 'Store Address',
+            controller: storeAddressController,
+            hintText: 'Enter store address',
+            maxLines: 2,
+            textInputAction: TextInputAction.next,
+          ),
+          
+          const SizedBox(height: TossSpacing.space5),
+          
+          // Store Phone
+          TossTextField(
+            label: 'Store Phone',
+            controller: storePhoneController,
+            hintText: 'Enter store phone number',
+            keyboardType: TextInputType.phone,
+            textInputAction: TextInputAction.done,
+          ),
+          
+          const SizedBox(height: TossSpacing.space4),
+          
+          // Save Button
+          TossPrimaryButton(
+            text: 'Save Changes',
+            fullWidth: true,
+            onPressed: () async {
+              await _updateStoreInfo(
+                store['store_id'],
+                storeNameController.text.trim(),
+                storeAddressController.text.trim(),
+                storePhoneController.text.trim(),
+              );
+              if (mounted) {
+                Navigator.pop(context);
+              }
+            },
+          ),
+        ],
+      ),
+    );
+  }
+  
+  // Show Edit Operational Settings Bottom Sheet
+  void _showEditOperationalSettingsSheet(Map<String, dynamic> store) {
+    // Controllers for the form
+    final huddleTimeController = TextEditingController(
+      text: (store['huddle_time'] ?? 15).toString()
+    );
+    final paymentTimeController = TextEditingController(
+      text: (store['payment_time'] ?? 30).toString()
+    );
+    final allowedDistanceController = TextEditingController(
+      text: (store['allowed_distance'] ?? 100).toString()
+    );
+    
+    TossBottomSheet.show(
+      context: context,
+      title: 'Edit Operational Settings',
+      content: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Huddle Time with description
+          _buildNumberInputWithDescription(
+            label: 'Huddle Time',
+            controller: huddleTimeController,
+            suffix: 'minutes',
+            description: 'Time allocated for team meetings',
+          ),
+          
+          const SizedBox(height: TossSpacing.space5),
+          
+          // Payment Time with description
+          _buildNumberInputWithDescription(
+            label: 'Payment Time',
+            controller: paymentTimeController,
+            suffix: 'minutes',
+            description: 'Time allocated for payment processing',
+          ),
+          
+          const SizedBox(height: TossSpacing.space5),
+          
+          // Check-in Distance with description
+          _buildNumberInputWithDescription(
+            label: 'Check-in Distance',
+            controller: allowedDistanceController,
+            suffix: 'meters',
+            description: 'Maximum distance from store for check-in',
+          ),
+          
+          const SizedBox(height: TossSpacing.space4),
+          
+          // Save Button
+          TossPrimaryButton(
+            text: 'Save Changes',
+            fullWidth: true,
+            onPressed: () async {
+              await _updateOperationalSettings(
+                store['store_id'],
+                int.tryParse(huddleTimeController.text),
+                int.tryParse(paymentTimeController.text),
+                int.tryParse(allowedDistanceController.text),
+              );
+              if (mounted) {
+                Navigator.pop(context);
+              }
+            },
+          ),
+        ],
+      ),
+    );
+  }
+  
+  // Helper method to build number input with description
+  Widget _buildNumberInputWithDescription({
+    required String label,
+    required TextEditingController controller,
+    required String suffix,
+    required String description,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: TossTextStyles.labelLarge.copyWith(
+            color: TossColors.gray900,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        const SizedBox(height: TossSpacing.space2),
+        TossNumberInput(
+          controller: controller,
+          hintText: '0',
+          suffix: suffix,
+          height: 48,
+          textAlign: TextAlign.left,
+        ),
+        const SizedBox(height: TossSpacing.space2),
+        Text(
+          description,
+          style: TossTextStyles.caption.copyWith(
+            color: TossColors.gray500,
+          ),
+        ),
+      ],
+    );
+  }
+  
+  // Update store information in database
+  Future<void> _updateStoreInfo(
+    String storeId,
+    String storeName,
+    String storeAddress,
+    String storePhone,
+  ) async {
+    try {
+      ref.read(storeUpdateLoadingProvider.notifier).state = true;
+      
+      final storeService = ref.read(storeServiceProvider);
+      final success = await storeService.updateStore(
+        storeId: storeId,
+        storeName: storeName.isEmpty ? null : storeName,
+        storeAddress: storeAddress.isEmpty ? null : storeAddress,
+        storePhone: storePhone.isEmpty ? null : storePhone,
+      );
+      
+      if (success) {
+        // Refresh store details
+        ref.invalidate(storeDetailsProvider);
+        
+        // Show success message
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Store information updated successfully'),
+              backgroundColor: TossColors.success,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(TossBorderRadius.button),
+              ),
+            ),
+          );
+        }
+      } else {
+        throw Exception('Failed to update store information');
+      }
+    } catch (e) {
+      // Show error message
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to update store: ${e.toString()}'),
+            backgroundColor: TossColors.error,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(TossBorderRadius.button),
+            ),
+          ),
+        );
+      }
+    } finally {
+      ref.read(storeUpdateLoadingProvider.notifier).state = false;
+    }
+  }
+  
+  // Update operational settings in database
+  Future<void> _updateOperationalSettings(
+    String storeId,
+    int? huddleTime,
+    int? paymentTime,
+    int? allowedDistance,
+  ) async {
+    try {
+      ref.read(storeUpdateLoadingProvider.notifier).state = true;
+      
+      final storeService = ref.read(storeServiceProvider);
+      final success = await storeService.updateStore(
+        storeId: storeId,
+        huddleTime: huddleTime,
+        paymentTime: paymentTime,
+        allowedDistance: allowedDistance,
+      );
+      
+      if (success) {
+        // Refresh store details
+        ref.invalidate(storeDetailsProvider);
+        
+        // Show success message
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Operational settings updated successfully'),
+              backgroundColor: TossColors.success,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(TossBorderRadius.button),
+              ),
+            ),
+          );
+        }
+      } else {
+        throw Exception('Failed to update operational settings');
+      }
+    } catch (e) {
+      // Show error message
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to update settings: ${e.toString()}'),
+            backgroundColor: TossColors.error,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(TossBorderRadius.button),
+            ),
+          ),
+        );
+      }
+    } finally {
+      ref.read(storeUpdateLoadingProvider.notifier).state = false;
+    }
+  }
+  
+  // Get location subtitle for the store
+  String _getLocationSubtitle(Map<String, dynamic> store) {
+    if (store['store_location'] != null) {
+      // Parse location data if it exists
+      // Format: POINT(longitude latitude) or similar PostGIS format
+      return 'Location set - Tap to update';
+    }
+    return 'Tap to set store location';
+  }
+  
+  // Show location setting bottom sheet
+  void _showLocationSettingSheet(Map<String, dynamic> store) async {
+    
+    // Show options for setting store location
+    TossBottomSheet.show(
+      context: context,
+      title: 'Set Store Location',
+      content: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Info message
+          Container(
+            padding: const EdgeInsets.all(TossSpacing.space3),
+            decoration: BoxDecoration(
+              color: TossColors.infoLight,
+              borderRadius: BorderRadius.circular(TossBorderRadius.md),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(
+                  FontAwesomeIcons.circleInfo,
+                  color: TossColors.info,
+                  size: TossSpacing.iconSM,
+                ),
+                const SizedBox(width: TossSpacing.space2),
+                Expanded(
+                  child: Text(
+                    'Choose how to set the store location for employee check-in validation.',
+                    style: TossTextStyles.caption.copyWith(
+                      color: TossColors.gray700,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          
+          const SizedBox(height: TossSpacing.space4),
+          
+          // Option 1: Use Current Location
+          _buildLocationOption(
+            icon: FontAwesomeIcons.locationCrosshairs,
+            title: 'Use Current Location',
+            subtitle: 'Use your current GPS location',
+            onTap: () {
+              Navigator.pop(context);
+              _captureCurrentLocation(store);
+            },
+          ),
+          
+          const SizedBox(height: TossSpacing.space3),
+          
+          // Option 2: Enter Manually
+          _buildLocationOption(
+            icon: FontAwesomeIcons.mapLocationDot,
+            title: 'Enter Coordinates',
+            subtitle: 'Manually enter latitude and longitude',
+            onTap: () {
+              Navigator.pop(context);
+              _showManualLocationEntry(store);
+            },
+          ),
+          
+          const SizedBox(height: TossSpacing.space3),
+          
+          // Option 3: Use Mock Location (for testing)
+          _buildLocationOption(
+            icon: FontAwesomeIcons.vialCircleCheck,
+            title: 'Use Test Location',
+            subtitle: 'Use Apple Park coordinates for testing',
+            onTap: () {
+              Navigator.pop(context);
+              _showLocationConfirmation(store, 37.334606, -122.009102, 5.0);
+            },
+          ),
+        ],
+      ),
+    );
+  }
+  
+  // Build location option widget
+  Widget _buildLocationOption({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+  }) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+        splashColor: TossColors.primary.withOpacity(0.1),
+        highlightColor: TossColors.primary.withOpacity(0.05),
+        child: Ink(
+          padding: const EdgeInsets.all(TossSpacing.space4),
+          decoration: BoxDecoration(
+            color: TossColors.gray50,
+            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+            border: Border.all(color: TossColors.gray200),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: TossSpacing.iconXL,
+                height: TossSpacing.iconXL,
+                decoration: BoxDecoration(
+                  color: TossColors.primary.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                ),
+                child: Icon(
+                  icon,
+                  color: TossColors.primary,
+                  size: TossSpacing.iconMD,
+                ),
+              ),
+              const SizedBox(width: TossSpacing.space3),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: TossTextStyles.body.copyWith(
+                        color: TossColors.gray900,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    Text(
+                      subtitle,
+                      style: TossTextStyles.caption.copyWith(
+                        color: TossColors.gray600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(
+                FontAwesomeIcons.chevronRight,
+                color: TossColors.gray400,
+                size: TossSpacing.iconSM,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+  
+  // Show manual location entry dialog
+  void _showManualLocationEntry(Map<String, dynamic> store) {
+    final latController = TextEditingController();
+    final lngController = TextEditingController();
+    
+    TossBottomSheet.show(
+      context: context,
+      title: 'Enter Coordinates',
+      content: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Latitude input
+          TossTextField(
+            label: 'Latitude',
+            controller: latController,
+            hintText: 'e.g., 37.334606',
+            keyboardType: TextInputType.numberWithOptions(decimal: true),
+          ),
+          
+          const SizedBox(height: TossSpacing.space4),
+          
+          // Longitude input
+          TossTextField(
+            label: 'Longitude',
+            controller: lngController,
+            hintText: 'e.g., -122.009102',
+            keyboardType: TextInputType.numberWithOptions(decimal: true),
+          ),
+          
+          const SizedBox(height: TossSpacing.space4),
+          
+          // Info message
+          Container(
+            padding: const EdgeInsets.all(TossSpacing.space3),
+            decoration: BoxDecoration(
+              color: TossColors.infoLight,
+              borderRadius: BorderRadius.circular(TossBorderRadius.md),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(
+                  FontAwesomeIcons.circleInfo,
+                  color: TossColors.info,
+                  size: TossSpacing.iconSM,
+                ),
+                const SizedBox(width: TossSpacing.space2),
+                Expanded(
+                  child: Text(
+                    'Enter the exact GPS coordinates of your store location.',
+                    style: TossTextStyles.caption.copyWith(
+                      color: TossColors.gray700,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          
+          const SizedBox(height: TossSpacing.space5),
+          
+          // Action buttons
+          Row(
+            children: [
+              Expanded(
+                child: TossSecondaryButton(
+                  text: 'Cancel',
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                ),
+              ),
+              const SizedBox(width: TossSpacing.space3),
+              Expanded(
+                child: TossPrimaryButton(
+                  text: 'Set Location',
+                  onPressed: () {
+                    final lat = double.tryParse(latController.text);
+                    final lng = double.tryParse(lngController.text);
+                    
+                    if (lat == null || lng == null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Please enter valid coordinates'),
+                          backgroundColor: TossColors.error,
+                        ),
+                      );
+                      return;
+                    }
+                    
+                    if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Coordinates are out of valid range'),
+                          backgroundColor: TossColors.error,
+                        ),
+                      );
+                      return;
+                    }
+                    
+                    Navigator.pop(context);
+                    _showLocationConfirmation(store, lat, lng, 0.0);
+                  },
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+  
+  // Separate method for location capture (with permission)
+  Future<void> _captureCurrentLocation(Map<String, dynamic> store) async {
+    
+    try {
+      // Check location permission
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          _showLocationError('Location permission denied', store);
+          return;
+        }
+      }
+      
+      if (permission == LocationPermission.deniedForever) {
+        _showLocationError('Location permission permanently denied', store);
+        return;
+      }
+      
+      // Check if location services are enabled
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        _showLocationError('Location services are disabled', store);
+        return;
+      }
+      
+      // Show loading while getting location
+      if (mounted) {
+        showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return Center(
+            child: Container(
+              padding: const EdgeInsets.all(TossSpacing.space5),
+              decoration: BoxDecoration(
+                color: TossColors.white,
+                borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CircularProgressIndicator(color: TossColors.primary),
+                  const SizedBox(height: TossSpacing.space3),
+                  Text(
+                    'Getting current location...',
+                    style: TossTextStyles.body.copyWith(
+                      color: TossColors.gray700,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      );
+      }
+      
+      // Get current position with timeout
+      final Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+        timeLimit: Duration(seconds: 15),
+      );
+      
+      // Close loading dialog
+      if (mounted) {
+        Navigator.of(context).pop();
+      }
+      
+      // Show confirmation bottom sheet
+      if (mounted) {
+        _showLocationConfirmation(store, position.latitude, position.longitude, position.accuracy);
+      }
+    } catch (e) {
+      _showLocationError('Failed to get location: ${e.toString()}', store);
+    }
+  }
+  
+  // Show location error with alternatives
+  void _showLocationError(String message, Map<String, dynamic> store) {
+    // Close loading dialog if still open
+    if (mounted) {
+      try {
+        Navigator.of(context, rootNavigator: true).pop();
+      } catch (e) {
+        // Dialog might not be open
+      }
+    }
+    
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: TossColors.error,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(TossBorderRadius.button),
+          ),
+          action: SnackBarAction(
+            label: 'Use Test Location',
+            textColor: TossColors.white,
+            onPressed: () {
+              // Use a mock location for testing (Apple Park, Cupertino)
+              _showLocationConfirmation(store, 37.334606, -122.009102, 5.0);
+            },
+          ),
+        ),
+      );
+    }
+  }
+  
+  // Open maps with coordinates
+  Future<void> _openMaps(double latitude, double longitude) async {
+    // iOS: Apple Maps, Android: Google Maps
+    final String appleUrl = 'https://maps.apple.com/?q=$latitude,$longitude';
+    final String googleUrl = 'https://www.google.com/maps/search/?api=1&query=$latitude,$longitude';
+    
+    try {
+      if (Theme.of(context).platform == TargetPlatform.iOS) {
+        final Uri uri = Uri.parse(appleUrl);
+        if (await canLaunchUrl(uri)) {
+          await launchUrl(uri);
+        } else {
+          // Fallback to Google Maps on web
+          final Uri fallbackUri = Uri.parse(googleUrl);
+          await launchUrl(fallbackUri);
+        }
+      } else {
+        final Uri uri = Uri.parse(googleUrl);
+        if (await canLaunchUrl(uri)) {
+          await launchUrl(uri);
+        } else {
+          // Fallback to Apple Maps
+          final Uri fallbackUri = Uri.parse(appleUrl);
+          await launchUrl(fallbackUri);
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Could not open maps app'),
+            backgroundColor: TossColors.error,
+          ),
+        );
+      }
+    }
+  }
+  
+  // Show location confirmation with coordinates
+  void _showLocationConfirmation(Map<String, dynamic> store, double latitude, double longitude, double accuracy) {
+    
+    if (mounted) {
+      TossBottomSheet.show(
+        context: context,
+        title: 'Set Store Location',
+        content: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            
+            // Location Preview Card
+            Container(
+              padding: const EdgeInsets.all(TossSpacing.space4),
+              decoration: BoxDecoration(
+                color: TossColors.gray50,
+                borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+                border: Border.all(
+                  color: TossColors.gray200,
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(
+                        FontAwesomeIcons.mapLocationDot,
+                        color: TossColors.primary,
+                        size: TossSpacing.iconMD,
+                      ),
+                      const SizedBox(width: TossSpacing.space3),
+                      Text(
+                        'Location Details',
+                        style: TossTextStyles.bodyLarge.copyWith(
+                          color: TossColors.gray900,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: TossSpacing.space3),
+                  _buildLocationDetailRow('Latitude', latitude.toStringAsFixed(6)),
+                  const SizedBox(height: TossSpacing.space2),
+                  _buildLocationDetailRow('Longitude', longitude.toStringAsFixed(6)),
+                  const SizedBox(height: TossSpacing.space2),
+                  _buildLocationDetailRow('Accuracy', accuracy > 0 ? '${accuracy.toStringAsFixed(0)} meters' : 'Manual entry'),
+                ],
+              ),
+            ),
+            
+            const SizedBox(height: TossSpacing.space4),
+            
+            // View on Maps Button
+            Center(
+              child: TossSecondaryButton(
+                text: 'View on Maps',
+                leadingIcon: Icon(
+                  FontAwesomeIcons.mapLocationDot,
+                  size: TossSpacing.iconSM,
+                ),
+                onPressed: () => _openMaps(latitude, longitude),
+              ),
+            ),
+            
+            const SizedBox(height: TossSpacing.space4),
+            
+            // Info message
+            Container(
+              padding: const EdgeInsets.all(TossSpacing.space3),
+              decoration: BoxDecoration(
+                color: TossColors.infoLight,
+                borderRadius: BorderRadius.circular(TossBorderRadius.md),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(
+                    FontAwesomeIcons.circleInfo,
+                    color: TossColors.info,
+                    size: TossSpacing.iconSM,
+                  ),
+                  const SizedBox(width: TossSpacing.space2),
+                  Expanded(
+                    child: Text(
+                      'This location will be used for employee check-in/out validation. Employees must be within the allowed distance to check in.',
+                      style: TossTextStyles.caption.copyWith(
+                        color: TossColors.gray700,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            
+            const SizedBox(height: TossSpacing.space5),
+            
+            // Action Buttons
+            Row(
+              children: [
+                Expanded(
+                  child: TossSecondaryButton(
+                    text: 'Cancel',
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
+                  ),
+                ),
+                const SizedBox(width: TossSpacing.space3),
+                Expanded(
+                  child: TossPrimaryButton(
+                    text: 'Set Location',
+                    onPressed: () async {
+                      Navigator.pop(context);
+                      await _updateStoreLocation(
+                        store['store_id'],
+                        latitude,
+                        longitude,
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      );
+    }
+  }
+  
+  // Build location detail row
+  Widget _buildLocationDetailRow(String label, String value) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          label,
+          style: TossTextStyles.caption.copyWith(
+            color: TossColors.gray600,
+          ),
+        ),
+        Text(
+          value,
+          style: TossTextStyles.body.copyWith(
+            color: TossColors.gray900,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ],
+    );
+  }
+  
+  // Update store location in database
+  Future<void> _updateStoreLocation(
+    String storeId,
+    double latitude,
+    double longitude,
+  ) async {
+    try {
+      ref.read(storeUpdateLoadingProvider.notifier).state = true;
+      
+      final supabase = Supabase.instance.client;
+      
+      // Call the RPC function to update store location
+      await supabase.rpc('update_store_location', params: {
+        'p_store_id': storeId,
+        'p_store_lat': latitude,
+        'p_store_lng': longitude,
+      });
+      
+      // Refresh store details
+      ref.invalidate(storeDetailsProvider);
+      
+      // Show success message
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Store location updated successfully'),
+            backgroundColor: TossColors.success,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(TossBorderRadius.button),
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      // Show error message
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to update location: ${e.toString()}'),
+            backgroundColor: TossColors.error,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(TossBorderRadius.button),
+            ),
+          ),
+        );
+      }
+    } finally {
+      ref.read(storeUpdateLoadingProvider.notifier).state = false;
     }
   }
 }

@@ -411,9 +411,13 @@ final topFeaturesByUserProvider = FutureProvider<List<TopFeature>>((ref) async {
     } else {
     }
     
-    // STEP 3: Fetch user's top features from database
+    // STEP 3: Fetch user's top features from database with company_id
     final repository = ref.watch(featureRepositoryProvider);
-    final allTopFeatures = await repository.getTopFeaturesByUser(userId: user.id);
+    final companyId = appStateNotifier.state.companyChoosen;
+    final allTopFeatures = await repository.getTopFeaturesByUser(
+      userId: user.id,
+      companyId: companyId,
+    );
     if (kDebugMode) {
       if (allTopFeatures.isNotEmpty) {
       }
@@ -464,7 +468,12 @@ final topFeaturesByUserFallbackProvider = FutureProvider<List<TopFeature>>((ref)
   if (user == null) return [];
   
   final repository = ref.watch(featureRepositoryProvider);
-  return repository.getTopFeaturesByUser(userId: user.id);
+  // Get company_id from app state for fallback provider
+  final appState = ref.read(appStateProvider);
+  return repository.getTopFeaturesByUser(
+    userId: user.id,
+    companyId: appState.companyChoosen,
+  );
 });
 
 /// Provider for company count to detect changes
@@ -484,7 +493,7 @@ final companyRepositoryProvider = Provider<CompanyRepository>((ref) {
 });
 
 final featureRepositoryProvider = Provider<FeatureRepository>((ref) {
-  return data_repo.SupabaseFeatureRepository(Supabase.instance.client);
+  return data_repo.SupabaseFeatureRepository(Supabase.instance.client, ref);
 });
 
 /// Exception classes

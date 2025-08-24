@@ -6,8 +6,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../data/models/selector_entities.dart';
+import '../../../../data/services/supabase_service.dart';
+import '../../../providers/app_state_provider.dart';
 import '../../../providers/entities/account_provider.dart';
 import 'toss_base_selector.dart';
+import 'enhanced_account_selector.dart';
 
 /// Autonomous account selector that can be used anywhere in the app
 /// Uses dedicated RPC function and entity providers
@@ -20,6 +23,8 @@ class AutonomousAccountSelector extends ConsumerWidget {
   final bool showSearch;
   final bool showTransactionCount;
   final String? accountType; // Filter by specific account type (asset, liability, etc.)
+  final String? contextType; // Track usage context ('transaction', 'template', 'journal_entry')
+  final bool showQuickAccess; // Show frequently used accounts at top
 
   const AutonomousAccountSelector({
     super.key,
@@ -31,10 +36,30 @@ class AutonomousAccountSelector extends ConsumerWidget {
     this.showSearch = true,
     this.showTransactionCount = true,
     this.accountType,
+    this.contextType,
+    this.showQuickAccess = true, // Enable by default for better UX
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Use enhanced selector with quick access if enabled
+    if (showQuickAccess) {
+      return EnhancedAccountSelector(
+        selectedAccountId: selectedAccountId,
+        onChanged: onChanged,
+        label: label,
+        hint: hint,
+        errorText: errorText,
+        showSearch: showSearch,
+        showTransactionCount: showTransactionCount,
+        accountType: accountType,
+        contextType: contextType,
+        showQuickAccess: true,
+        maxQuickItems: 5,
+      );
+    }
+    
+    // Otherwise use the regular selector
     // Choose the appropriate provider based on account type filter
     final accountsAsync = accountType != null
         ? ref.watch(currentAccountsByTypeProvider(accountType!))
@@ -58,7 +83,22 @@ class AutonomousAccountSelector extends ConsumerWidget {
         orElse: () => [],
       ),
       selectedItem: selectedAccount,
-      onChanged: onChanged,
+      onChanged: (accountId) {
+        // Track account selection before calling original callback
+        if (accountId != null && contextType != null) {
+          // Find the selected account data for tracking
+          accountsAsync.whenData((accounts) {
+            try {
+              final account = accounts.firstWhere((a) => a.id == accountId);
+              _trackAccountUsage(ref, account, contextType!);
+            } catch (e) {
+              // Account not found, track with minimal data
+              _trackAccountUsageMinimal(ref, accountId, contextType!);
+            }
+          });
+        }
+        onChanged?.call(accountId);
+      },
       isLoading: accountsAsync.isLoading,
       config: SelectorConfig(
         label: label ?? _getAccountTypeLabel(),
@@ -125,6 +165,53 @@ class AutonomousAccountSelector extends ConsumerWidget {
         return 'Select Expense';
       default:
         return 'Select ${accountType!.capitalize()}';
+    }
+  }
+
+  /// Track account usage for analytics - stores in accounts_preferences table
+  void _trackAccountUsage(WidgetRef ref, AccountData account, String contextType) async {
+    try {
+      final appState = ref.read(appStateProvider);
+      if (appState.companyChoosen.isEmpty) return;
+
+      // Use correct log_account_usage RPC parameters for accounts_preferences table
+      await ref.read(supabaseServiceProvider).client.rpc('log_account_usage', params: {
+        'p_account_id': account.id,
+        'p_account_name': account.name,
+        'p_company_id': appState.companyChoosen,
+        'p_account_type': account.type,
+        'p_usage_type': 'selected',
+        'p_metadata': {
+          'context': contextType,
+          'category_tag': account.categoryTag,
+          'selection_source': 'autonomous_selector',
+        },
+      });
+    } catch (e) {
+      // Silent fail - don't interrupt user experience
+    }
+  }
+
+  /// Track account usage with minimal data when account details not available
+  void _trackAccountUsageMinimal(WidgetRef ref, String accountId, String contextType) async {
+    try {
+      final appState = ref.read(appStateProvider);
+      if (appState.companyChoosen.isEmpty) return;
+
+      // Track with minimal data
+      await ref.read(supabaseServiceProvider).client.rpc('log_account_usage', params: {
+        'p_account_id': accountId,
+        'p_account_name': 'Unknown Account',
+        'p_company_id': appState.companyChoosen,
+        'p_usage_type': 'selected',
+        'p_metadata': {
+          'context': contextType,
+          'selection_source': 'autonomous_selector',
+          'note': 'minimal_tracking',
+        },
+      });
+    } catch (e) {
+      // Silent fail
     }
   }
 }

@@ -53,7 +53,7 @@ class _TransactionFilterSheetState extends ConsumerState<TransactionFilterSheet>
   Widget build(BuildContext context) {
     final filterOptionsAsync = ref.watch(transactionFilterOptionsProvider);
     final screenHeight = MediaQuery.of(context).size.height;
-    final maxHeight = screenHeight * 0.85; // Use 85% of screen height max
+    final maxHeight = screenHeight * 0.8; // Use 80% of screen height max
     
     return TossBottomSheet(
       content: ConstrainedBox(
@@ -294,8 +294,8 @@ class _TransactionFilterSheetState extends ConsumerState<TransactionFilterSheet>
                     padding: const EdgeInsets.symmetric(vertical: TossSpacing.space3),
                     decoration: BoxDecoration(
                       color: _selectedScope == TransactionScope.store
-                          ? Colors.white
-                          : Colors.transparent,
+                          ? TossColors.white
+                          : TossColors.transparent,
                       borderRadius: const BorderRadius.horizontal(
                         left: Radius.circular(TossBorderRadius.lg - 1),
                       ),
@@ -343,8 +343,8 @@ class _TransactionFilterSheetState extends ConsumerState<TransactionFilterSheet>
                     padding: const EdgeInsets.symmetric(vertical: TossSpacing.space3),
                     decoration: BoxDecoration(
                       color: _selectedScope == TransactionScope.company
-                          ? Colors.white
-                          : Colors.transparent,
+                          ? TossColors.white
+                          : TossColors.transparent,
                       borderRadius: const BorderRadius.horizontal(
                         right: Radius.circular(TossBorderRadius.lg - 1),
                       ),
@@ -521,8 +521,8 @@ class _TransactionFilterSheetState extends ConsumerState<TransactionFilterSheet>
               data: Theme.of(context).copyWith(
                 colorScheme: const ColorScheme.light(
                   primary: TossColors.primary,
-                  onPrimary: Colors.white,
-                  surface: Colors.white,
+                  onPrimary: TossColors.white,
+                  surface: TossColors.white,
                   onSurface: TossColors.gray900,
                 ),
               ),
@@ -539,7 +539,7 @@ class _TransactionFilterSheetState extends ConsumerState<TransactionFilterSheet>
       child: Container(
         padding: const EdgeInsets.all(TossSpacing.space3),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: TossColors.white,
           borderRadius: BorderRadius.circular(TossBorderRadius.lg),
           border: Border.all(
             color: value != null ? TossColors.primary : TossColors.gray200,

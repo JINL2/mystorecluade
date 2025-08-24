@@ -57,7 +57,6 @@ class _AutonomousCashLocationSelectorState extends ConsumerState<AutonomousCashL
   String _searchQuery = '';
   late TabController _tabController;
   int _selectedTabIndex = 1; // Default to Store tab
-  bool _isLoadingCompanyData = false;
 
   @override
   void initState() {
@@ -158,7 +157,7 @@ class _AutonomousCashLocationSelectorState extends ConsumerState<AutonomousCashL
           showSearch: widget.showSearch,
           showTransactionCount: widget.showTransactionCount,
           icon: Icons.location_on,
-          emptyMessage: 'No cash locations available',
+          emptyMessage: 'There is no Cash Location.\nGo to Cash and create Cash Location',
           searchHint: 'Search cash locations',
         ),
         itemTitleBuilder: (location) => location.displayName,
@@ -264,7 +263,7 @@ class _AutonomousCashLocationSelectorState extends ConsumerState<AutonomousCashL
                               if (selectedLocation != null && widget.showTransactionCount) ...[ 
                                 const SizedBox(height: 2),
                                 Text(
-                                  selectedLocation!.subtitle,
+                                  selectedLocation.subtitle,
                                   style: TossTextStyles.caption.copyWith(
                                     color: TossColors.gray500,
                                   ),
@@ -305,96 +304,164 @@ class _AutonomousCashLocationSelectorState extends ConsumerState<AutonomousCashL
   }
 
   void _showScopedSelectionBottomSheet(BuildContext context) {
+    // Get current store ID from app state
+    final appStateNotifier = ref.read(appStateProvider.notifier);
+    final currentStoreId = appStateNotifier.selectedStore?['store_id'] as String?;
+    
+    // Always fetch ALL company locations (no store filtering at RPC level)
+    final allLocationsAsync = ref.watch(companyCashLocationsProvider);
+    
+    // Update data organization when locations change
+    allLocationsAsync.whenData((allLocations) {
+      // Company tab: Show ALL locations
+      _companyItems = allLocations;
+      
+      // Store tab: Filter to show only current store's locations
+      if (currentStoreId != null) {
+        _storeItems = allLocations.where((location) => 
+          location.storeId == currentStoreId
+        ).toList();
+      } else {
+        _storeItems = [];
+      }
+      
+      _updateFilteredItems();
+    });
+    
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => TossBottomSheet(
         content: StatefulBuilder(
-          builder: (context, setModalState) => Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          builder: (context, setModalState) {
+            final screenHeight = MediaQuery.of(context).size.height;
+            
+            return Container(
+              constraints: BoxConstraints(
+                maxHeight: screenHeight * 0.7, // Limit to 70% of screen height
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Flexible(
-                    child: Text(
-                      'Select ${widget.label ?? 'Cash Location'}',
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 18,
+                  // Header
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Flexible(
+                        child: Text(
+                          'Select ${widget.label ?? 'Cash Location'}',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
-                      overflow: TextOverflow.ellipsis,
+                      IconButton(
+                        icon: const Icon(Icons.close, color: TossColors.gray500),
+                        onPressed: () => Navigator.pop(context),
+                      ),
+                    ],
+                  ),
+                  
+                  const SizedBox(height: 16),
+                  
+                  // Tab Bar
+                  Container(
+                    decoration: BoxDecoration(
+                      color: TossColors.gray50,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: TossColors.gray200),
+                    ),
+                    child: Row(
+                      children: [
+                        _buildTabButton(setModalState, 0, 'Company', Icons.business),
+                        Container(width: 1, height: 24, color: TossColors.gray200),
+                        _buildTabButton(setModalState, 1, 'Store', Icons.store),
+                      ],
                     ),
                   ),
-                  IconButton(
-                    icon: const Icon(Icons.close, color: TossColors.gray500),
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                ],
-              ),
-              
-              const SizedBox(height: 16),
-              
-              // Tab Bar
-              Container(
-                decoration: BoxDecoration(
-                  color: TossColors.gray50,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: TossColors.gray200),
-                ),
-                child: Row(
-                  children: [
-                    _buildTabButton(setModalState, 0, 'Company', Icons.business),
-                    Container(width: 1, height: 24, color: TossColors.gray200),
-                    _buildTabButton(setModalState, 1, 'Store', Icons.store),
+                  
+                  const SizedBox(height: 16),
+                  
+                  // Search field
+                  if (widget.showSearch) ...[ 
+                    TossSearchField(
+                      hintText: 'Search ${_selectedTabIndex == 0 ? 'company' : 'store'} locations',
+                      onChanged: (value) {
+                        setModalState(() {
+                          _filterItems(value);
+                        });
+                      },
+                    ),
+                    const SizedBox(height: 16),
                   ],
-                ),
-              ),
-              
-              const SizedBox(height: 16),
-              
-              // Search field
-              if (widget.showSearch) ...[ 
-                TossSearchField(
-                  hintText: 'Search ${_selectedTabIndex == 0 ? 'company' : 'store'} locations',
-                  onChanged: (value) {
-                    setModalState(() {
-                      _filterItems(value);
-                    });
-                  },
-                ),
-                const SizedBox(height: 16),
-              ],
-              
-              // Clear selection option
-              if (widget.selectedLocationId != null)
-                _buildClearOption(context),
-              
-              // Items list
-              ConstrainedBox(
-                constraints: BoxConstraints(
-                  maxHeight: MediaQuery.of(context).size.height * 0.5,
-                ),
-                child: (_selectedTabIndex == 0 ? _companyItems : _storeItems).isEmpty
-                  ? const Center(
-                    child: Padding(
-                      padding: EdgeInsets.all(24),
-                      child: CircularProgressIndicator(color: TossColors.primary),
-                    ),
-                  )
-                  : _filteredItems.isEmpty
+                  
+                  // Clear selection option
+                  if (widget.selectedLocationId != null)
+                    _buildClearOption(context),
+                  
+                  // Items list - use Flexible to prevent overflow
+                  Flexible(
+                child: allLocationsAsync.when(
+                  data: (locations) {
+                    final currentItems = _selectedTabIndex == 0 ? _companyItems : _storeItems;
+                    if (currentItems.isEmpty) {
+                      return Padding(
+                        padding: const EdgeInsets.all(24),
+                        child: Center(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                'There is no Cash Location.',
+                                style: TextStyle(color: TossColors.gray500),
+                                textAlign: TextAlign.center,
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                'Go to Cash and create Cash Location',
+                                style: TextStyle(
+                                  color: TossColors.primary,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    }
+                    return _filteredItems.isEmpty
                     ? Padding(
                         padding: const EdgeInsets.all(24),
                         child: Center(
-                          child: Text(
-                            _searchQuery.isEmpty
-                              ? 'No ${_selectedTabIndex == 0 ? 'company' : 'store'} locations available'
-                              : 'No results found',
-                            style: TextStyle(color: TossColors.gray500),
-                            textAlign: TextAlign.center,
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                _searchQuery.isEmpty
+                                  ? 'There is no Cash Location.'
+                                  : 'No results found',
+                                style: TextStyle(color: TossColors.gray500),
+                                textAlign: TextAlign.center,
+                              ),
+                              if (_searchQuery.isEmpty) ...[ 
+                                const SizedBox(height: 8),
+                                Text(
+                                  'Go to Cash and create Cash Location',
+                                  style: TextStyle(
+                                    color: TossColors.primary,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ],
+                            ],
                           ),
                         ),
                       )
@@ -419,7 +486,7 @@ class _AutonomousCashLocationSelectorState extends ConsumerState<AutonomousCashL
                                 horizontal: 16,
                                 vertical: 12,
                               ),
-                              color: isSelected ? TossColors.primary.withOpacity(0.05) : null,
+                              color: isSelected ? TossColors.primary.withValues(alpha: 0.05) : null,
                               child: Row(
                                 children: [
                                   // Icon
@@ -472,10 +539,43 @@ class _AutonomousCashLocationSelectorState extends ConsumerState<AutonomousCashL
                             ),
                           );
                         },
+                      );
+                  },
+                  loading: () => const Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(24),
+                      child: CircularProgressIndicator(color: TossColors.primary),
+                    ),
+                  ),
+                  error: (error, stack) => Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            'Failed to load cash locations',
+                            style: TextStyle(color: TossColors.error),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Please try again',
+                            style: TextStyle(
+                              color: TossColors.gray500,
+                              fontSize: 14,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
                       ),
+                    ),
+                  ),
+                )),
+                ],
               ),
-            ],
-          ),
+            );
+          },
         ),
       ),
     );

@@ -79,7 +79,7 @@ class TransactionData with _$TransactionData {
       );
       
       return transaction;
-    } catch (e, stack) {
+    } catch (e) {
       rethrow;
     }
   }
@@ -151,7 +151,7 @@ class TransactionLine with _$TransactionLine {
       );
       
       return line;
-    } catch (e, stack) {
+    } catch (e) {
       rethrow;
     }
   }

@@ -62,7 +62,7 @@ class _SalaryEditModalState extends ConsumerState<SalaryEditModal> {
     final currencies = ref.watch(currencyTypesProvider);
     
     return Container(
-      height: MediaQuery.of(context).size.height * 0.85,
+      height: MediaQuery.of(context).size.height * 0.8,
       decoration: BoxDecoration(
         color: TossColors.background,
         borderRadius: BorderRadius.vertical(
@@ -437,7 +437,7 @@ class _SalaryEditModalState extends ConsumerState<SalaryEditModal> {
       // Show loading
       showDialog(
         context: context,
-        barrierDismissible: false,
+        barrierDismissible: true, // Allow dismissing loading dialogs
         builder: (context) => Center(
           child: CircularProgressIndicator(color: TossColors.primary),
         ),

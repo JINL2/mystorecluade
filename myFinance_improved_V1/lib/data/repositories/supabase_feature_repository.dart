@@ -1,10 +1,12 @@
-import 'package:flutter/foundation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../domain/repositories/feature_repository.dart';
 import '../../presentation/pages/homepage/models/homepage_models.dart';
+import '../../presentation/providers/app_state_provider.dart';
 
 class SupabaseFeatureRepository implements FeatureRepository {
   final SupabaseClient _client;
+  final Ref? _ref; // Optional ref for accessing app state
   
   // Cache for categories with TTL (6 hours)
   static List<CategoryWithFeatures>? _cachedCategories;
@@ -12,11 +14,12 @@ class SupabaseFeatureRepository implements FeatureRepository {
   static const Duration _categoriesCacheTTL = Duration(hours: 6);
   
   // Cache for user top features with TTL (2 hours)
+  // Cache now includes company_id in the key
   static final Map<String, List<TopFeature>> _userFeaturesCache = {};
   static final Map<String, DateTime> _userFeaturesCacheTime = {};
   static const Duration _userFeaturesCacheTTL = Duration(hours: 2);
 
-  SupabaseFeatureRepository(this._client);
+  SupabaseFeatureRepository(this._client, [this._ref]);
 
   @override
   Future<List<CategoryWithFeatures>> getCategoriesWithFeatures() async {
@@ -57,19 +60,41 @@ class SupabaseFeatureRepository implements FeatureRepository {
   @override
   Future<List<TopFeature>> getTopFeaturesByUser({
     required String userId,
+    String? companyId,
   }) async {
     try {
-      // Check user-specific cache first
-      if (_userFeaturesCache.containsKey(userId) && _userFeaturesCacheTime.containsKey(userId)) {
-        final cacheAge = DateTime.now().difference(_userFeaturesCacheTime[userId]!);
-        if (cacheAge < _userFeaturesCacheTTL) {
-          return _userFeaturesCache[userId]!;
+      // Get company_id from app state if not provided and ref is available
+      String? effectiveCompanyId = companyId;
+      if ((effectiveCompanyId == null || effectiveCompanyId.isEmpty) && _ref != null) {
+        try {
+          // Import app_state_provider if ref is available
+          final appState = _ref!.read(appStateProvider);
+          effectiveCompanyId = appState.companyChoosen;
+        } catch (e) {
+          // If we can't get company_id, proceed without it for backward compatibility
         }
       }
       
+      // Create cache key including company_id
+      final cacheKey = '${userId}_${effectiveCompanyId ?? 'default'}';
       
-      // Use the RPC function instead of the view since the view doesn't exist or has wrong columns
-      final response = await _client.rpc('get_user_quick_access_features', params: {'p_user_id': userId});
+      // TEMP: Skip cache for testing - remove this in production
+      // Check user-specific cache first
+      // if (_userFeaturesCache.containsKey(cacheKey) && _userFeaturesCacheTime.containsKey(cacheKey)) {
+      //   final cacheAge = DateTime.now().difference(_userFeaturesCacheTime[cacheKey]!);
+      //   if (cacheAge < _userFeaturesCacheTTL) {
+      //     return _userFeaturesCache[cacheKey]!;
+      //   }
+      // }
+      
+      
+      // Use the updated RPC function with company_id parameter
+      final params = <String, dynamic>{'p_user_id': userId};
+      if (effectiveCompanyId != null && effectiveCompanyId.isNotEmpty) {
+        params['p_company_id'] = effectiveCompanyId;
+      }
+      
+      final response = await _client.rpc('get_user_quick_access_features', params: params);
       
       
       if (response == null) {
@@ -103,25 +128,33 @@ class SupabaseFeatureRepository implements FeatureRepository {
           }
         }
         
-        // 🎯 SMART LOGIC: Only return features if user has sufficient real usage
-        const minFeaturesForQuickAccess = 6;
+        // 🎯 IMPROVED LOGIC: The RPC function now handles defaults, so we return what it gives us
+        // This allows the database function to decide the best features to show
         
-        if (realUserFeatures.length >= minFeaturesForQuickAccess) {
-          // User has enough real usage - show top clicked features
-          realUserFeatures.sort((a, b) => b.clickCount.compareTo(a.clickCount));
-          final topFeatures = realUserFeatures.take(6).toList();
+        if (features.isNotEmpty) {
+          // Sort all features by click count (real clicks first, then defaults)
+          features.sort((a, b) {
+            // Prioritize real user features (non-default with clicks > 0)
+            final aIsReal = a.clickCount > 0;
+            final bIsReal = b.clickCount > 0;
+            
+            if (aIsReal && !bIsReal) return -1; // a comes first
+            if (!aIsReal && bIsReal) return 1;  // b comes first
+            
+            // Both are real or both are default, sort by click count
+            return b.clickCount.compareTo(a.clickCount);
+          });
           
+          final topFeatures = features.take(6).toList();
           
-          // Cache and return real user features only
-          _userFeaturesCache[userId] = topFeatures;
-          _userFeaturesCacheTime[userId] = DateTime.now();
+          // Cache and return features
+          _userFeaturesCache[cacheKey] = topFeatures;
+          _userFeaturesCacheTime[cacheKey] = DateTime.now();
           return topFeatures;
         } else {
-          // Insufficient real usage - return empty to hide Quick Access
-          
-          // Cache empty result to avoid repeated API calls
-          _userFeaturesCache[userId] = [];
-          _userFeaturesCacheTime[userId] = DateTime.now();
+          // No features returned from RPC - cache empty result
+          _userFeaturesCache[cacheKey] = [];
+          _userFeaturesCacheTime[cacheKey] = DateTime.now();
           return [];
         }
       }
@@ -161,9 +194,15 @@ class SupabaseFeatureRepository implements FeatureRepository {
     _userFeaturesCacheTime.clear();
   }
   
-  /// Clear cache for specific user
+  /// Clear cache for specific user (clears all company contexts)
   static void clearUserCache(String userId) {
-    _userFeaturesCache.remove(userId);
-    _userFeaturesCacheTime.remove(userId);
+    // Clear all cache entries that start with this userId
+    final keysToRemove = _userFeaturesCache.keys
+        .where((key) => key.startsWith(userId))
+        .toList();
+    for (final key in keysToRemove) {
+      _userFeaturesCache.remove(key);
+      _userFeaturesCacheTime.remove(key);
+    }
   }
 }
