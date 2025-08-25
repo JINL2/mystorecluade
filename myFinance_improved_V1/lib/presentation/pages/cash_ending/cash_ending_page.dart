@@ -1815,37 +1815,8 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
             ),
           ),
           
-          // Recent Bank Transactions Section
-          if (selectedBankLocationId != null) ...[
-            const SizedBox(height: TossSpacing.space5),
-            TossCard(
-              padding: const EdgeInsets.all(TossSpacing.space5),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  TossSectionHeader(
-                    title: 'Recent Bank Transaction',
-                    trailing: TextButton(
-                      onPressed: () {
-                        _showAllTransactionsBottomSheet();
-                      },
-                      child: Text(
-                        'View All',
-                        style: TossTextStyles.body.copyWith(
-                          color: TossColors.primary,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: TossSpacing.space4),
-                  _buildBankTransactionHistory(),
-                ],
-              ),
-            ),
-          ],
-          
           // Show Journal/Real tabs when bank location is selected
+          const SizedBox(height: TossSpacing.space5),
           _buildRealJournalSection(
             showSection: selectedBankLocationId != null && selectedBankLocationId!.isNotEmpty,
           ),
@@ -2982,23 +2953,6 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
               ],
             ),
           ),
-          // Vault Balance Section
-          if (selectedVaultLocationId != null) ...[
-            const SizedBox(height: TossSpacing.space5),
-            TossCard(
-              padding: const EdgeInsets.all(TossSpacing.space5),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  TossSectionHeader(
-                    title: 'Vault Balance',
-                  ),
-                  const SizedBox(height: TossSpacing.space4),
-                  _buildVaultBalance(),
-                ],
-              ),
-            ),
-          ],
           // Real/Journal Section for vault locations
           const SizedBox(height: TossSpacing.space5),
           _buildRealJournalSection(
@@ -4571,20 +4525,19 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
               
               // Header
               Padding(
-                padding: const EdgeInsets.fromLTRB(24, 20, 20, 16),
+                padding: const EdgeInsets.fromLTRB(24, 20, 16, 16),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Expanded(
-                      child: Text(
-                        'Cash Count Details',
-                        style: TossTextStyles.h2.copyWith(
-                          fontWeight: FontWeight.w700,
-                        ),
+                    Text(
+                      'Cash Count Details',
+                      style: TossTextStyles.h2.copyWith(
+                        fontWeight: FontWeight.w700,
+                        fontSize: 20,
                       ),
                     ),
                     IconButton(
-                      icon: const Icon(Icons.close, size: 24),
+                      icon: const Icon(Icons.close, size: 24, color: Colors.grey),
                       onPressed: () => Navigator.pop(context),
                       padding: EdgeInsets.zero,
                       constraints: const BoxConstraints(),
@@ -4596,46 +4549,51 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
               // Content
               Expanded(
                 child: SingleChildScrollView(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Balance overview
+                      // Total Balance Section
                       Container(
-                        padding: const EdgeInsets.all(16),
+                        padding: const EdgeInsets.all(20),
                         decoration: BoxDecoration(
-                          color: TossColors.primary.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(12),
+                          color: const Color(0xFFE8F0FF),
+                          borderRadius: BorderRadius.circular(16),
                         ),
                         child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
+                            Text(
+                              'Total Balance',
+                              style: TossTextStyles.body.copyWith(
+                                color: Colors.grey[700],
+                                fontSize: 13,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      'Total Balance',
-                                      style: TossTextStyles.caption.copyWith(
-                                        color: Colors.grey[600],
-                                        fontSize: 12,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      _formatBalance(flow.balanceAfter, currencySymbol),
-                                      style: TossTextStyles.h1.copyWith(
-                                        fontWeight: FontWeight.w700,
-                                        color: TossColors.primary,
-                                      ),
-                                    ),
-                                  ],
+                                Text(
+                                  _formatBalance(flow.balanceAfter, currencySymbol),
+                                  style: TossTextStyles.h1.copyWith(
+                                    fontWeight: FontWeight.w700,
+                                    color: TossColors.primary,
+                                    fontSize: 32,
+                                  ),
                                 ),
-                                Icon(
-                                  Icons.account_balance_wallet_outlined,
-                                  color: TossColors.primary,
-                                  size: 32,
+                                Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Icon(
+                                    Icons.account_balance_wallet_outlined,
+                                    color: TossColors.primary,
+                                    size: 24,
+                                  ),
                                 ),
                               ],
                             ),
@@ -4650,36 +4608,40 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
                                         'Previous Balance',
                                         style: TossTextStyles.caption.copyWith(
                                           color: Colors.grey[600],
-                                          fontSize: 11,
+                                          fontSize: 12,
                                         ),
                                       ),
+                                      const SizedBox(height: 4),
                                       Text(
                                         _formatBalance(flow.balanceBefore, currencySymbol),
                                         style: TossTextStyles.body.copyWith(
-                                          fontWeight: FontWeight.w500,
-                                          fontSize: 14,
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 15,
+                                          color: Colors.black87,
                                         ),
                                       ),
                                     ],
                                   ),
                                 ),
+                                const SizedBox(width: 40),
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.end,
+                                    crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         'Change',
                                         style: TossTextStyles.caption.copyWith(
                                           color: Colors.grey[600],
-                                          fontSize: 11,
+                                          fontSize: 12,
                                         ),
                                       ),
+                                      const SizedBox(height: 4),
                                       Text(
                                         _formatTransactionAmount(flow.flowAmount, currencySymbol),
                                         style: TossTextStyles.body.copyWith(
-                                          fontWeight: FontWeight.w500,
-                                          fontSize: 14,
-                                          color: flow.flowAmount >= 0 ? Colors.green : Colors.red,
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 15,
+                                          color: flow.flowAmount >= 0 ? Colors.green[600] : Colors.red[600],
                                         ),
                                       ),
                                     ],
@@ -4691,184 +4653,214 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
                         ),
                       ),
                       
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 24),
                       
-                      // Denomination breakdown
+                      // Denomination Breakdown Section
                       if (flow.currentDenominations.isNotEmpty) ...[
                         Text(
                           'Denomination Breakdown',
                           style: TossTextStyles.body.copyWith(
                             fontWeight: FontWeight.w700,
-                            fontSize: 16,
+                            fontSize: 17,
+                            color: Colors.black87,
                           ),
                         ),
-                        const SizedBox(height: 12),
+                        const SizedBox(height: 16),
                         
-                        ...flow.currentDenominations.map((denomination) => 
-                          Container(
-                            margin: const EdgeInsets.only(bottom: 8),
-                            padding: const EdgeInsets.all(12),
+                        // Denomination cards
+                        ...flow.currentDenominations.map((denomination) {
+                          final subtotal = denomination.denominationValue * denomination.currentQuantity;
+                          return Container(
+                            margin: const EdgeInsets.only(bottom: 16),
                             decoration: BoxDecoration(
-                              color: Colors.grey[50],
-                              borderRadius: BorderRadius.circular(8),
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(12),
                               border: Border.all(color: Colors.grey[200]!),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.04),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
                             ),
                             child: Column(
                               children: [
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    // Denomination value
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                      decoration: BoxDecoration(
-                                        color: Colors.blue.withOpacity(0.1),
-                                        borderRadius: BorderRadius.circular(4),
-                                      ),
-                                      child: Text(
-                                        _formatCurrency(denomination.denominationValue, currencySymbol),
-                                        style: TossTextStyles.body.copyWith(
-                                          fontWeight: FontWeight.w600,
-                                          color: Colors.blue[700],
-                                          fontSize: 14,
-                                        ),
-                                      ),
-                                    ),
-                                    
-                                    // Type badge
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                      decoration: BoxDecoration(
-                                        color: Colors.grey[200],
-                                        borderRadius: BorderRadius.circular(4),
-                                      ),
-                                      child: Text(
-                                        denomination.denominationType.toUpperCase(),
-                                        style: TossTextStyles.caption.copyWith(
-                                          fontSize: 10,
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                
-                                const SizedBox(height: 12),
-                                
-                                Row(
-                                  children: [
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            'Previous Qty',
-                                            style: TossTextStyles.caption.copyWith(
-                                              color: Colors.grey[600],
-                                              fontSize: 11,
-                                            ),
-                                          ),
-                                          Text(
-                                            '${denomination.previousQuantity}',
-                                            style: TossTextStyles.body.copyWith(
-                                              fontWeight: FontWeight.w500,
-                                              fontSize: 14,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.center,
-                                        children: [
-                                          Text(
-                                            'Change',
-                                            style: TossTextStyles.caption.copyWith(
-                                              color: Colors.grey[600],
-                                              fontSize: 11,
-                                            ),
-                                          ),
-                                          Text(
-                                            '${denomination.quantityChange > 0 ? "+" : ""}${denomination.quantityChange}',
-                                            style: TossTextStyles.body.copyWith(
-                                              fontWeight: FontWeight.w600,
-                                              fontSize: 14,
-                                              color: denomination.quantityChange > 0 
-                                                  ? Colors.green 
-                                                  : denomination.quantityChange < 0 
-                                                      ? Colors.red 
-                                                      : Colors.black,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.end,
-                                        children: [
-                                          Text(
-                                            'Current Qty',
-                                            style: TossTextStyles.caption.copyWith(
-                                              color: Colors.grey[600],
-                                              fontSize: 11,
-                                            ),
-                                          ),
-                                          Text(
-                                            '${denomination.currentQuantity}',
-                                            style: TossTextStyles.body.copyWith(
-                                              fontWeight: FontWeight.w600,
-                                              fontSize: 14,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                
-                                const SizedBox(height: 8),
-                                
-                                // Subtotal
+                                // Denomination header
                                 Container(
-                                  padding: const EdgeInsets.all(8),
+                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                                   decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(4),
+                                    color: Colors.grey[50],
+                                    borderRadius: const BorderRadius.only(
+                                      topLeft: Radius.circular(12),
+                                      topRight: Radius.circular(12),
+                                    ),
                                   ),
                                   child: Row(
                                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                     children: [
                                       Text(
-                                        'Subtotal',
-                                        style: TossTextStyles.caption.copyWith(
-                                          color: Colors.grey[600],
-                                          fontSize: 12,
+                                        _formatCurrency(denomination.denominationValue, currencySymbol),
+                                        style: TossTextStyles.body.copyWith(
+                                          fontWeight: FontWeight.w700,
+                                          color: TossColors.primary,
+                                          fontSize: 16,
                                         ),
                                       ),
-                                      Text(
-                                        _formatBalance(denomination.subtotal, currencySymbol),
-                                        style: TossTextStyles.body.copyWith(
-                                          fontWeight: FontWeight.w600,
-                                          fontSize: 14,
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                        decoration: BoxDecoration(
+                                          color: TossColors.primary.withOpacity(0.1),
+                                          borderRadius: BorderRadius.circular(6),
                                         ),
+                                        child: Text(
+                                          denomination.denominationType.toUpperCase(),
+                                          style: TossTextStyles.caption.copyWith(
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.w600,
+                                            color: TossColors.primary,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                
+                                // Quantity details
+                                Padding(
+                                  padding: const EdgeInsets.all(16),
+                                  child: Column(
+                                    children: [
+                                      Row(
+                                        children: [
+                                          Expanded(
+                                            child: Column(
+                                              crossAxisAlignment: CrossAxisAlignment.center,
+                                              children: [
+                                                Text(
+                                                  'Previous Qty',
+                                                  style: TossTextStyles.caption.copyWith(
+                                                    color: Colors.grey[600],
+                                                    fontSize: 12,
+                                                  ),
+                                                ),
+                                                const SizedBox(height: 4),
+                                                Text(
+                                                  '${denomination.previousQuantity}',
+                                                  style: TossTextStyles.body.copyWith(
+                                                    fontWeight: FontWeight.w600,
+                                                    fontSize: 15,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          Expanded(
+                                            child: Column(
+                                              crossAxisAlignment: CrossAxisAlignment.center,
+                                              children: [
+                                                Text(
+                                                  'Change',
+                                                  style: TossTextStyles.caption.copyWith(
+                                                    color: Colors.grey[600],
+                                                    fontSize: 12,
+                                                  ),
+                                                ),
+                                                const SizedBox(height: 4),
+                                                Text(
+                                                  '${denomination.quantityChange > 0 ? "+" : ""}${denomination.quantityChange}',
+                                                  style: TossTextStyles.body.copyWith(
+                                                    fontWeight: FontWeight.w600,
+                                                    fontSize: 15,
+                                                    color: denomination.quantityChange > 0 
+                                                        ? Colors.green[600] 
+                                                        : denomination.quantityChange < 0 
+                                                            ? Colors.red[600] 
+                                                            : Colors.black87,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          Expanded(
+                                            child: Column(
+                                              crossAxisAlignment: CrossAxisAlignment.center,
+                                              children: [
+                                                Text(
+                                                  'Current Qty',
+                                                  style: TossTextStyles.caption.copyWith(
+                                                    color: Colors.grey[600],
+                                                    fontSize: 12,
+                                                  ),
+                                                ),
+                                                const SizedBox(height: 4),
+                                                Text(
+                                                  '${denomination.currentQuantity}',
+                                                  style: TossTextStyles.body.copyWith(
+                                                    fontWeight: FontWeight.w600,
+                                                    fontSize: 15,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      
+                                      const SizedBox(height: 16),
+                                      Divider(color: Colors.grey[200], thickness: 1),
+                                      const SizedBox(height: 12),
+                                      
+                                      // Subtotal
+                                      Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Text(
+                                            'Subtotal',
+                                            style: TossTextStyles.body.copyWith(
+                                              color: Colors.grey[700],
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                          Text(
+                                            _formatBalance(subtotal, currencySymbol),
+                                            style: TossTextStyles.body.copyWith(
+                                              fontWeight: FontWeight.w700,
+                                              fontSize: 16,
+                                              color: Colors.black87,
+                                            ),
+                                          ),
+                                        ],
                                       ),
                                     ],
                                   ),
                                 ),
                               ],
                             ),
-                          )
-                        ),
-                        
-                        const SizedBox(height: 16),
+                          );
+                        }),
                       ],
                       
-                      // Transaction info
-                      _buildDetailRow('Counted By', flow.createdBy.fullName),
-                      _buildDetailRow('Date', DateFormat('MMM d, yyyy').format(DateTime.parse(flow.createdAt))),
-                      _buildDetailRow('Time', flow.getFormattedTime()),
+                      const SizedBox(height: 24),
+                      
+                      // Footer information
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.grey[50],
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Column(
+                          children: [
+                            _buildInfoRow('Counted By', flow.createdBy.fullName),
+                            const SizedBox(height: 12),
+                            _buildInfoRow('Date', DateFormat('MMM d, yyyy').format(DateTime.parse(flow.createdAt))),
+                            const SizedBox(height: 12),
+                            _buildInfoRow('Time', flow.getFormattedTime()),
+                          ],
+                        ),
+                      ),
                       
                       const SizedBox(height: 20),
                     ],
@@ -4903,7 +4895,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
             ),
           ),
           constraints: BoxConstraints(
-            maxHeight: MediaQuery.of(context).size.height * 0.8,
+            maxHeight: MediaQuery.of(context).size.height * 0.9,
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -4921,20 +4913,19 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
               
               // Header
               Padding(
-                padding: const EdgeInsets.fromLTRB(24, 20, 20, 16),
+                padding: const EdgeInsets.fromLTRB(24, 20, 16, 16),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Expanded(
-                      child: Text(
-                        'Journal Entry Details',
-                        style: TossTextStyles.h2.copyWith(
-                          fontWeight: FontWeight.w700,
-                        ),
+                    Text(
+                      'Journal Entry Details',
+                      style: TossTextStyles.h2.copyWith(
+                        fontWeight: FontWeight.w700,
+                        fontSize: 20,
                       ),
                     ),
                     IconButton(
-                      icon: const Icon(Icons.close, size: 24),
+                      icon: const Icon(Icons.close, size: 24, color: Colors.grey),
                       onPressed: () => Navigator.pop(context),
                       padding: EdgeInsets.zero,
                       constraints: const BoxConstraints(),
@@ -4946,11 +4937,121 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
               // Content
               Expanded(
                 child: SingleChildScrollView(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Description
+                      // Description Section
+                      Text(
+                        'Description',
+                        style: TossTextStyles.body.copyWith(
+                          color: Colors.grey[700],
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        flow.journalDescription,
+                        style: TossTextStyles.body.copyWith(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 18,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      
+                      const SizedBox(height: 24),
+                      
+                      // Transaction Amount Section
+                      Container(
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFFF0F5),
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Column(
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  'Transaction\nAmount',
+                                  style: TossTextStyles.body.copyWith(
+                                    color: Colors.grey[700],
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w500,
+                                    height: 1.3,
+                                  ),
+                                ),
+                                Text(
+                                  _formatTransactionAmount(flow.flowAmount, currencySymbol),
+                                  style: TossTextStyles.h2.copyWith(
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 24,
+                                    color: flow.flowAmount >= 0 ? TossColors.primary : Colors.red[600],
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 20),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Balance Before',
+                                        style: TossTextStyles.caption.copyWith(
+                                          color: Colors.grey[600],
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        _formatBalance(flow.balanceBefore, currencySymbol),
+                                        style: TossTextStyles.body.copyWith(
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 15,
+                                          color: Colors.black87,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(width: 40),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Balance After',
+                                        style: TossTextStyles.caption.copyWith(
+                                          color: Colors.grey[600],
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        _formatBalance(flow.balanceAfter, currencySymbol),
+                                        style: TossTextStyles.body.copyWith(
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 15,
+                                          color: Colors.black87,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                      
+                      const SizedBox(height: 24),
+                      
+                      // Transaction details
                       Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
@@ -4958,61 +5059,19 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              'Description',
-                              style: TossTextStyles.caption.copyWith(
-                                color: Colors.grey[600],
-                                fontSize: 12,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              flow.journalDescription,
-                              style: TossTextStyles.body.copyWith(
-                                fontWeight: FontWeight.w600,
-                                fontSize: 16,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      
-                      const SizedBox(height: 16),
-                      
-                      // Amount details
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: flow.flowAmount > 0 
-                              ? TossColors.primary.withOpacity(0.1)
-                              : Colors.red.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Column(
-                          children: [
-                            _buildDetailRow('Transaction Amount', 
-                              _formatTransactionAmount(flow.flowAmount, currencySymbol),
-                              isHighlighted: true),
+                            _buildInfoRow('Account', flow.accountName),
                             const SizedBox(height: 12),
-                            _buildDetailRow('Balance Before', 
-                              _formatBalance(flow.balanceBefore, currencySymbol)),
-                            const SizedBox(height: 8),
-                            _buildDetailRow('Balance After', 
-                              _formatBalance(flow.balanceAfter, currencySymbol)),
+                            _buildInfoRow('Type', flow.journalType),
+                            const SizedBox(height: 12),
+                            _buildInfoRow('Created By', flow.createdBy.fullName),
+                            const SizedBox(height: 12),
+                            _buildInfoRow('Date', DateFormat('MMM d, yyyy').format(DateTime.parse(flow.createdAt))),
+                            const SizedBox(height: 12),
+                            _buildInfoRow('Time', flow.getFormattedTime()),
                           ],
                         ),
                       ),
-                      
-                      const SizedBox(height: 16),
-                      
-                      // Transaction details
-                      _buildDetailRow('Account', flow.accountName),
-                      _buildDetailRow('Type', flow.journalType),
-                      _buildDetailRow('Created By', flow.createdBy.fullName),
-                      _buildDetailRow('Date', DateFormat('MMM d, yyyy').format(DateTime.parse(flow.createdAt))),
-                      _buildDetailRow('Time', flow.getFormattedTime()),
                       
                       const SizedBox(height: 20),
                     ],
@@ -5057,6 +5116,30 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
           ),
         ],
       ),
+    );
+  }
+  
+  Widget _buildInfoRow(String label, String value) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          label,
+          style: TossTextStyles.body.copyWith(
+            color: Colors.grey[600],
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        Text(
+          value,
+          style: TossTextStyles.body.copyWith(
+            fontWeight: FontWeight.w600,
+            fontSize: 14,
+            color: Colors.black87,
+          ),
+        ),
+      ],
     );
   }
   
