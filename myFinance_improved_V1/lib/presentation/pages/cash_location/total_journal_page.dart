@@ -7,6 +7,8 @@ import '../../../core/themes/toss_border_radius.dart';
 import '../../../core/themes/toss_shadows.dart';
 import '../../../core/themes/toss_colors.dart';
 import '../../widgets/common/toss_scaffold.dart';
+import '../../../data/services/cash_journal_service.dart';
+import '../../providers/app_state_provider.dart';
 
 class TotalJournalPage extends ConsumerStatefulWidget {
   final String locationType; // 'cash', 'bank', 'vault'
@@ -23,112 +25,106 @@ class TotalJournalPage extends ConsumerStatefulWidget {
 }
 
 class _TotalJournalPageState extends ConsumerState<TotalJournalPage> {
-  late List<Map<String, dynamic>> transactions;
   String _selectedFilter = 'All';
+  
+  // Pagination and scroll control
+  final ScrollController _scrollController = ScrollController();
+  int _currentOffset = 0;
+  final int _limit = 20;
+  bool _isLoadingMore = false;
+  bool _hasMoreData = true;
+  List<JournalEntry> _allJournalEntries = [];
   
   @override
   void initState() {
     super.initState();
-    _loadTransactions();
+    _scrollController.addListener(_onScroll);
   }
   
   @override
   void dispose() {
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
     super.dispose();
   }
   
-  void _loadTransactions() {
-    // Mock comprehensive transaction data from all accounts
-    transactions = [
-      {
-        'date': '9/8',
-        'title': 'Office Expense',
-        'time': '01:01',
-        'amount': 122,
-        'balance': 156023,
-        'isIncome': true,
-        'account': 'John Smith',
-        'accountName': 'Main Cashier',
-        'category': 'Office',
-        'description': 'Monthly office supplies purchase',
-        'reference': 'INV-001',
-      },
-      {
-        'date': '4/8',
-        'title': 'Customer Payment',
-        'time': '16:21',
-        'amount': 10000,
-        'balance': 155901,
-        'isIncome': true,
-        'account': 'Sarah Kim',
-        'accountName': 'Main Cashier',
-        'category': 'Sales',
-        'description': 'Product sales payment',
-        'reference': 'PAY-102',
-      },
-      {
-        'date': '2/8',
-        'title': 'Card Payment',
-        'time': '08:00',
-        'amount': -51914,
-        'balance': 145901,
-        'isIncome': false,
-        'account': 'Mike Johnson',
-        'accountName': 'Petty Cash',
-        'category': 'Payment',
-        'description': 'Credit card processing fee',
-        'reference': 'FEE-089',
-      },
-      {
-        'date': '29/7',
-        'title': 'Food Supplies',
-        'time': '20:58',
-        'amount': -14000,
-        'balance': 197815,
-        'isIncome': false,
-        'account': 'Lisa Park',
-        'accountName': 'Main Cashier',
-        'category': 'Supplies',
-        'description': 'Weekly food supplies for office',
-        'reference': 'SUP-045',
-      },
-      {
-        'date': '29/7',
-        'title': 'Hotel Services',
-        'time': '20:13',
-        'amount': -44032,
-        'balance': 211815,
-        'isIncome': false,
-        'account': 'David Lee',
-        'accountName': 'Petty Cash',
-        'category': 'Services',
-        'description': 'Business trip accommodation',
-        'reference': 'TRV-023',
-      },
-      {
-        'date': '29/7',
-        'title': 'Duty Free Shop',
-        'time': '20:09',
-        'amount': -159616,
-        'balance': 255847,
-        'isIncome': false,
-        'account': 'Emma Wilson',
-        'accountName': 'Main Cashier',
-        'category': 'Purchase',
-        'description': 'Corporate gifts purchase',
-        'reference': 'GFT-012',
-      },
-    ];
+  void _onScroll() {
+    if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 200) {
+      if (!_isLoadingMore && _hasMoreData) {
+        _loadMoreData();
+      }
+    }
+  }
+  
+  Future<void> _loadMoreData() async {
+    if (_isLoadingMore || !_hasMoreData) return;
+    
+    setState(() {
+      _isLoadingMore = true;
+    });
+    
+    final appState = ref.read(appStateProvider);
+    final companyId = appState.companyChoosen;
+    final storeId = appState.storeChoosen;
+    
+    try {
+      final service = ref.read(cashJournalServiceProvider);
+      final newEntries = await service.getCashJournal(
+        companyId: companyId,
+        storeId: storeId,
+        locationType: widget.locationType,
+        offset: _currentOffset + _limit,
+        limit: _limit,
+      );
+      
+      setState(() {
+        if (newEntries.isEmpty || newEntries.length < _limit) {
+          _hasMoreData = false;
+        }
+        _allJournalEntries.addAll(newEntries);
+        _currentOffset += _limit;
+        _isLoadingMore = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isLoadingMore = false;
+      });
+    }
+  }
+  
+  List<TransactionDisplay> _convertToTransactions(List<JournalEntry> entries) {
+    final List<TransactionDisplay> transactions = [];
+    
+    for (final entry in entries) {
+      final transaction = entry.getTransactionDisplay(widget.locationType);
+      if (transaction != null) {
+        transactions.add(transaction);
+      }
+    }
+    
+    return transactions;
+  }
+  
+  String _formatDate(String dateStr) {
+    try {
+      final date = DateTime.parse(dateStr);
+      return '${date.day}/${date.month}';
+    } catch (e) {
+      // If it's already in d/M format, return as is
+      return dateStr;
+    }
   }
   
   String _formatCurrency(int amount) {
     final formatter = NumberFormat('#,###', 'en_US');
-    return '₩${formatter.format(amount.abs())}';
+    // Note: Currency symbol would come from database but not available in this page yet
+    return formatter.format(amount.abs());
   }
   
   String _formatTransactionAmount(int amount, bool isIncome) {
     final formatter = NumberFormat('#,###', 'en_US');
-    final prefix = isIncome ? '+₩' : '-₩';
+    // Note: Currency symbol would come from database but not available in this page yet
+    final prefix = isIncome ? '+' : '-';
     return '$prefix${formatter.format(amount.abs())}';
   }
   
@@ -140,6 +136,29 @@ class _TotalJournalPageState extends ConsumerState<TotalJournalPage> {
   
   @override
   Widget build(BuildContext context) {
+    final appState = ref.watch(appStateProvider);
+    final companyId = appState.companyChoosen;
+    final storeId = appState.storeChoosen;
+    
+    if (companyId.isEmpty || storeId.isEmpty) {
+      return TossScaffold(
+        backgroundColor: const Color(0xFFF7F8FA),
+        body: const Center(
+          child: Text('Please select a company and store first'),
+        ),
+      );
+    }
+    
+    final journalDataAsync = ref.watch(cashJournalProvider(
+      CashJournalParams(
+        companyId: companyId,
+        storeId: storeId,
+        locationType: widget.locationType,
+        offset: 0,
+        limit: _limit,
+      ),
+    ));
+    
     return TossScaffold(
       backgroundColor: const Color(0xFFF7F8FA),
       body: SafeArea(
@@ -157,7 +176,57 @@ class _TotalJournalPageState extends ConsumerState<TotalJournalPage> {
                   TossSpacing.space4,
                   TossSpacing.space4,
                 ),
-                child: _buildTransactionList(),
+                child: journalDataAsync.when(
+                  data: (initialEntries) {
+                    // Initialize the list only on first load
+                    if (_allJournalEntries.isEmpty && initialEntries.isNotEmpty) {
+                      _allJournalEntries = List.from(initialEntries);
+                      _currentOffset = 0;
+                      _hasMoreData = initialEntries.length >= _limit;
+                    }
+                    
+                    final transactions = _convertToTransactions(_allJournalEntries);
+                    return _buildTransactionList(transactions);
+                  },
+                  loading: () => const Center(
+                    child: CircularProgressIndicator(),
+                  ),
+                  error: (error, stack) => Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          'Failed to load transactions',
+                          style: TossTextStyles.body.copyWith(
+                            color: TossColors.gray600,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        ElevatedButton(
+                          onPressed: () {
+                            // Reset state and refresh the data
+                            setState(() {
+                              _allJournalEntries.clear();
+                              _currentOffset = 0;
+                              _hasMoreData = true;
+                              _isLoadingMore = false;
+                            });
+                            ref.invalidate(cashJournalProvider(
+                              CashJournalParams(
+                                companyId: companyId,
+                                storeId: storeId,
+                                locationType: widget.locationType,
+                                offset: 0,
+                                limit: _limit,
+                              ),
+                            ));
+                          },
+                          child: const Text('Retry'),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
               ),
             ),
           ],
@@ -193,8 +262,8 @@ class _TotalJournalPageState extends ConsumerState<TotalJournalPage> {
   }
   
   
-  Widget _buildTransactionList() {
-    final filteredTransactions = _getFilteredTransactions();
+  Widget _buildTransactionList(List<TransactionDisplay> allTransactions) {
+    final filteredTransactions = _getFilteredTransactions(allTransactions);
     
     return Container(
       decoration: BoxDecoration(
@@ -209,18 +278,83 @@ class _TotalJournalPageState extends ConsumerState<TotalJournalPage> {
           
           // Scrollable transaction items
           Expanded(
-            child: ListView.builder(
-              itemCount: filteredTransactions.length,
-              itemBuilder: (context, index) {
-                final transaction = filteredTransactions[index];
-                final showDate = index == 0 || 
-                    transaction['date'] != filteredTransactions[index - 1]['date'];
-                
-                return _buildTransactionItem(transaction, showDate);
-              },
-            ),
+            child: filteredTransactions.isEmpty
+                ? Center(
+                    child: Text(
+                      'No transactions found',
+                      style: TossTextStyles.body.copyWith(
+                        color: TossColors.gray600,
+                      ),
+                    ),
+                  )
+                : RefreshIndicator(
+                    onRefresh: _onRefresh,
+                    child: ListView.builder(
+                      controller: _scrollController,
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      itemCount: filteredTransactions.length + (_isLoadingMore || _hasMoreData ? 1 : 0),
+                      itemBuilder: (context, index) {
+                        if (index == filteredTransactions.length) {
+                          if (_isLoadingMore) {
+                            // Show loading indicator at the bottom
+                            return _buildLoadingIndicator();
+                          } else if (_hasMoreData) {
+                            // Show message to load more
+                            return _buildLoadMoreMessage();
+                          }
+                          return const SizedBox.shrink();
+                        }
+                        
+                        final transaction = filteredTransactions[index];
+                        final showDate = index == 0 || 
+                            transaction.date != filteredTransactions[index - 1].date;
+                        
+                        return _buildTransactionItem(transaction, showDate);
+                      },
+                    ),
+                  ),
           ),
         ],
+      ),
+    );
+  }
+  
+  Future<void> _onRefresh() async {
+    // Reset state and refresh data
+    setState(() {
+      _allJournalEntries.clear();
+      _currentOffset = 0;
+      _hasMoreData = true;
+      _isLoadingMore = false;
+    });
+    
+    final appState = ref.read(appStateProvider);
+    final companyId = appState.companyChoosen;
+    final storeId = appState.storeChoosen;
+    
+    // Invalidate to force refresh
+    ref.invalidate(cashJournalProvider(
+      CashJournalParams(
+        companyId: companyId,
+        storeId: storeId,
+        locationType: widget.locationType,
+        offset: 0,
+        limit: _limit,
+      ),
+    ));
+  }
+  
+  Widget _buildLoadMoreMessage() {
+    return Container(
+      padding: EdgeInsets.symmetric(vertical: TossSpacing.space3),
+      child: Center(
+        child: Text(
+          'Scroll to load more',
+          style: TossTextStyles.caption.copyWith(
+            color: TossColors.gray500,
+            fontSize: 12,
+          ),
+        ),
       ),
     );
   }
@@ -256,16 +390,32 @@ class _TotalJournalPageState extends ConsumerState<TotalJournalPage> {
     );
   }
   
-  Widget _buildTransactionItem(Map<String, dynamic> transaction, bool showDate) {
-    final bool isIncome = transaction['isIncome'] ?? false;
+  Widget _buildLoadingIndicator() {
+    return Container(
+      padding: EdgeInsets.symmetric(vertical: TossSpacing.space4),
+      child: Center(
+        child: CircularProgressIndicator(
+          strokeWidth: 2,
+          valueColor: AlwaysStoppedAnimation<Color>(
+            Theme.of(context).colorScheme.primary,
+          ),
+        ),
+      ),
+    );
+  }
+  
+  Widget _buildTransactionItem(TransactionDisplay transaction, bool showDate) {
     final bool isRealType = widget.journalType == 'real';
     
-    return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: TossSpacing.space4,
-        vertical: TossSpacing.space3,
-      ),
-      child: Row(
+    return GestureDetector(
+      onTap: () => _showTransactionDetailBottomSheet(transaction),
+      behavior: HitTestBehavior.opaque,
+      child: Container(
+        padding: EdgeInsets.symmetric(
+          horizontal: TossSpacing.space4,
+          vertical: TossSpacing.space3,
+        ),
+        child: Row(
         children: [
           // Date section
           Container(
@@ -273,7 +423,7 @@ class _TotalJournalPageState extends ConsumerState<TotalJournalPage> {
             padding: EdgeInsets.only(left: TossSpacing.space1),
             child: showDate
                 ? Text(
-                    transaction['date'],
+                    _formatDate(transaction.date),
                     style: TossTextStyles.caption.copyWith(
                       color: TossColors.gray600,
                       fontWeight: FontWeight.w600,
@@ -291,7 +441,7 @@ class _TotalJournalPageState extends ConsumerState<TotalJournalPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  transaction['title'],
+                  transaction.title,
                   style: TossTextStyles.body.copyWith(
                     fontWeight: FontWeight.w600,
                     fontSize: 16,
@@ -304,10 +454,10 @@ class _TotalJournalPageState extends ConsumerState<TotalJournalPage> {
                     Flexible(
                       child: Row(
                         children: [
-                          // Account name
+                          // Location name
                           Flexible(
                             child: Text(
-                              transaction['accountName'],
+                              transaction.locationName,
                               style: TossTextStyles.caption.copyWith(
                                 color: Theme.of(context).colorScheme.primary,
                                 fontSize: 12,
@@ -316,25 +466,26 @@ class _TotalJournalPageState extends ConsumerState<TotalJournalPage> {
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                          Text(
-                            ' • ',
-                            style: TossTextStyles.caption.copyWith(
-                              color: TossColors.gray400,
-                              fontSize: 12,
-                            ),
-                          ),
-                          // Person
-                          Flexible(
-                            child: Text(
-                              transaction['account'] ?? 'Unknown',
+                          if (transaction.personName.isNotEmpty) ...[
+                            Text(
+                              ' • ',
                               style: TossTextStyles.caption.copyWith(
-                                color: TossColors.gray500,
+                                color: TossColors.gray400,
                                 fontSize: 12,
                               ),
-                              overflow: TextOverflow.ellipsis,
                             ),
-                          ),
-                          if (transaction['time'] != null) ...[
+                            Flexible(
+                              child: Text(
+                                transaction.personName,
+                                style: TossTextStyles.caption.copyWith(
+                                  color: TossColors.gray500,
+                                  fontSize: 12,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                          if (transaction.time.isNotEmpty) ...[
                             Text(
                               ' • ',
                               style: TossTextStyles.caption.copyWith(
@@ -343,7 +494,7 @@ class _TotalJournalPageState extends ConsumerState<TotalJournalPage> {
                               ),
                             ),
                             Text(
-                              transaction['time'],
+                              transaction.time,
                               style: TossTextStyles.caption.copyWith(
                                 color: TossColors.gray500,
                                 fontSize: 12,
@@ -364,7 +515,7 @@ class _TotalJournalPageState extends ConsumerState<TotalJournalPage> {
           // Amount - different display for Real vs Journal
           if (isRealType)
             Text(
-              _formatCurrency(transaction['balance']),
+              _formatCurrency(transaction.amount.toInt()),
               style: TossTextStyles.body.copyWith(
                 color: TossColors.gray800,
                 fontWeight: FontWeight.w600,
@@ -372,76 +523,138 @@ class _TotalJournalPageState extends ConsumerState<TotalJournalPage> {
               ),
             )
           else
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Text(
-                  _formatTransactionAmount(transaction['amount'], isIncome),
-                  style: TossTextStyles.body.copyWith(
-                    color: isIncome 
-                        ? Theme.of(context).colorScheme.primary 
-                        : TossColors.gray800,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 16,
-                  ),
-                ),
-                SizedBox(height: 4),
-                Text(
-                  _formatCurrency(transaction['balance']),
-                  style: TossTextStyles.caption.copyWith(
-                    color: TossColors.gray500,
-                    fontSize: 11,
-                  ),
-                ),
-              ],
+            Text(
+              _formatTransactionAmount(transaction.amount.toInt(), transaction.isIncome),
+              style: TossTextStyles.body.copyWith(
+                color: transaction.isIncome 
+                    ? Theme.of(context).colorScheme.primary 
+                    : TossColors.gray800,
+                fontWeight: FontWeight.w600,
+                fontSize: 16,
+              ),
             ),
         ],
+        ),
       ),
     );
   }
   
-  List<Map<String, dynamic>> _getFilteredTransactions() {
-    var filtered = List<Map<String, dynamic>>.from(transactions);
+  List<TransactionDisplay> _getFilteredTransactions(List<TransactionDisplay> allTransactions) {
+    var filtered = List<TransactionDisplay>.from(allTransactions);
     
     // Apply filter based on journal type
     if (widget.journalType == 'journal') {
       // Journal tab filters
       if (_selectedFilter == 'Money In') {
-        filtered = filtered.where((t) => t['isIncome'] == true).toList();
+        filtered = filtered.where((t) => t.isIncome == true).toList();
       } else if (_selectedFilter == 'Money Out') {
-        filtered = filtered.where((t) => t['isIncome'] == false).toList();
+        filtered = filtered.where((t) => t.isIncome == false).toList();
       } else if (_selectedFilter == 'Today') {
-        // Mock: show first 2 transactions for "Today"
-        filtered = filtered.take(2).toList();
+        // Filter by today's date
+        final today = DateTime.now();
+        filtered = filtered.where((t) {
+          try {
+            final transactionDate = DateTime.parse(t.date);
+            return transactionDate.year == today.year &&
+                   transactionDate.month == today.month &&
+                   transactionDate.day == today.day;
+          } catch (e) {
+            return false;
+          }
+        }).toList();
       } else if (_selectedFilter == 'Yesterday') {
-        // Mock: show next 2 transactions for "Yesterday"
-        filtered = filtered.skip(2).take(2).toList();
+        // Filter by yesterday's date
+        final yesterday = DateTime.now().subtract(const Duration(days: 1));
+        filtered = filtered.where((t) {
+          try {
+            final transactionDate = DateTime.parse(t.date);
+            return transactionDate.year == yesterday.year &&
+                   transactionDate.month == yesterday.month &&
+                   transactionDate.day == yesterday.day;
+          } catch (e) {
+            return false;
+          }
+        }).toList();
       } else if (_selectedFilter == 'Last Week') {
-        // Mock: show last 2 transactions for "Last Week"
-        filtered = filtered.skip(4).toList();
+        // Filter by last week
+        final lastWeek = DateTime.now().subtract(const Duration(days: 7));
+        filtered = filtered.where((t) {
+          try {
+            final transactionDate = DateTime.parse(t.date);
+            return transactionDate.isAfter(lastWeek);
+          } catch (e) {
+            return false;
+          }
+        }).toList();
       }
     } else {
       // Real tab filters - show only expenses
-      filtered = filtered.where((t) => t['isIncome'] == false).toList();
+      filtered = filtered.where((t) => t.isIncome == false).toList();
       
+      // Apply date filters for real tab too
       if (_selectedFilter == 'Today') {
-        // Mock: show first 2 transactions for "Today"
-        filtered = filtered.take(2).toList();
+        final today = DateTime.now();
+        filtered = filtered.where((t) {
+          try {
+            final transactionDate = DateTime.parse(t.date);
+            return transactionDate.year == today.year &&
+                   transactionDate.month == today.month &&
+                   transactionDate.day == today.day;
+          } catch (e) {
+            return false;
+          }
+        }).toList();
       } else if (_selectedFilter == 'Yesterday') {
-        // Mock: show next 2 transactions for "Yesterday"
-        filtered = filtered.skip(2).take(2).toList();
+        final yesterday = DateTime.now().subtract(const Duration(days: 1));
+        filtered = filtered.where((t) {
+          try {
+            final transactionDate = DateTime.parse(t.date);
+            return transactionDate.year == yesterday.year &&
+                   transactionDate.month == yesterday.month &&
+                   transactionDate.day == yesterday.day;
+          } catch (e) {
+            return false;
+          }
+        }).toList();
       } else if (_selectedFilter == 'Last Week') {
-        // Mock: show last 2 transactions for "Last Week"
-        filtered = filtered.skip(4).toList();
+        final lastWeek = DateTime.now().subtract(const Duration(days: 7));
+        filtered = filtered.where((t) {
+          try {
+            final transactionDate = DateTime.parse(t.date);
+            return transactionDate.isAfter(lastWeek);
+          } catch (e) {
+            return false;
+          }
+        }).toList();
       } else if (_selectedFilter == 'Last Month') {
-        // Mock: show all transactions for "Last Month"
-        // filtered = filtered; // No change
+        final lastMonth = DateTime.now().subtract(const Duration(days: 30));
+        filtered = filtered.where((t) {
+          try {
+            final transactionDate = DateTime.parse(t.date);
+            return transactionDate.isAfter(lastMonth);
+          } catch (e) {
+            return false;
+          }
+        }).toList();
       }
     }
     
     return filtered;
   }
   
+  void _showTransactionDetailBottomSheet(TransactionDisplay transaction) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (BuildContext context) {
+        return _TransactionDetailBottomSheet(
+          transaction: transaction,
+        );
+      },
+    );
+  }
+
   void _showFilterBottomSheet() {
     showModalBottomSheet(
       context: context,
@@ -512,6 +725,10 @@ class _TotalJournalPageState extends ConsumerState<TotalJournalPage> {
       onTap: () {
         setState(() {
           _selectedFilter = title;
+          // Reset scroll position when filter changes
+          if (_scrollController.hasClients) {
+            _scrollController.jumpTo(0);
+          }
         });
         Navigator.pop(context);
       },
@@ -554,5 +771,319 @@ class _TotalJournalPageState extends ConsumerState<TotalJournalPage> {
 extension StringExtension on String {
   String capitalize() {
     return '${this[0].toUpperCase()}${substring(1)}';
+  }
+}
+
+class _TransactionDetailBottomSheet extends StatelessWidget {
+  final TransactionDisplay transaction;
+
+  const _TransactionDetailBottomSheet({
+    required this.transaction,
+  });
+
+  String _formatCurrency(double amount, [String? currencySymbol]) {
+    final formatter = NumberFormat('#,###', 'en_US');
+    final symbol = currencySymbol ?? '';
+    return '$symbol${formatter.format(amount.round())}';
+  }
+
+  String _formatDate(String dateStr) {
+    try {
+      final date = DateTime.parse(dateStr);
+      return DateFormat('MMM d, yyyy').format(date);
+    } catch (e) {
+      return dateStr;
+    }
+  }
+
+  String _formatTime(DateTime dateTime) {
+    return DateFormat('h:mm a').format(dateTime);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final journalEntry = transaction.journalEntry;
+    
+    return Container(
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(20),
+          topRight: Radius.circular(20),
+        ),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Handle bar
+          Container(
+            margin: const EdgeInsets.only(top: 12),
+            width: 40,
+            height: 4,
+            decoration: BoxDecoration(
+              color: TossColors.gray300,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          
+          // Header
+          Padding(
+            padding: EdgeInsets.fromLTRB(24, 20, 20, 16),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Text(
+                    transaction.title,
+                    style: TossTextStyles.h2.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.close, size: 24),
+                  onPressed: () => Navigator.pop(context),
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                ),
+              ],
+            ),
+          ),
+          
+          // Transaction Info
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Amount and type
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: transaction.isIncome 
+                        ? Theme.of(context).colorScheme.primary.withOpacity(0.1)
+                        : Colors.red.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            transaction.isIncome ? 'Money In' : 'Money Out',
+                            style: TossTextStyles.caption.copyWith(
+                              color: TossColors.gray600,
+                              fontSize: 12,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            _formatCurrency(transaction.amount),
+                            style: TossTextStyles.h1.copyWith(
+                              fontWeight: FontWeight.w700,
+                              color: transaction.isIncome 
+                                  ? Theme.of(context).colorScheme.primary
+                                  : Colors.red,
+                            ),
+                          ),
+                        ],
+                      ),
+                      Icon(
+                        transaction.isIncome ? Icons.trending_up : Icons.trending_down,
+                        color: transaction.isIncome 
+                            ? Theme.of(context).colorScheme.primary
+                            : Colors.red,
+                        size: 32,
+                      ),
+                    ],
+                  ),
+                ),
+                
+                const SizedBox(height: 24),
+                
+                // Transaction Details
+                _buildDetailRow(
+                  'Date', 
+                  _formatDate(transaction.date),
+                ),
+                _buildDetailRow(
+                  'Time', 
+                  _formatTime(journalEntry.transactionDate),
+                ),
+                _buildDetailRow(
+                  'Location', 
+                  transaction.locationName,
+                ),
+                if (transaction.description.isNotEmpty)
+                  _buildDetailRow(
+                    'Description', 
+                    transaction.description,
+                  ),
+                
+                const SizedBox(height: 24),
+                
+                // Journal Lines Section
+                if (journalEntry.lines.length > 1)
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Transaction Details',
+                        style: TossTextStyles.body.copyWith(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 16,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      
+                      ..._buildFilteredJournalLines(journalEntry, transaction),
+                    ],
+                  ),
+              ],
+            ),
+          ),
+          
+          // Bottom safe area
+          SizedBox(height: MediaQuery.of(context).padding.bottom + 20),
+        ],
+      ),
+    );
+  }
+  
+  Widget _buildDetailRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 80,
+            child: Text(
+              label,
+              style: TossTextStyles.body.copyWith(
+                color: TossColors.gray600,
+                fontSize: 14,
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: TossTextStyles.body.copyWith(
+                fontWeight: FontWeight.w500,
+                fontSize: 14,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+  
+  List<Widget> _buildFilteredJournalLines(JournalEntry journalEntry, TransactionDisplay transaction) {
+    final filteredLines = <JournalLine>[];
+    final seenCashLocations = <String>{};
+    
+    for (final line in journalEntry.lines) {
+      // For cash locations, check if we've already added this location
+      if (line.cashLocationId != null) {
+        final locationKey = '${line.cashLocationId}_${line.locationName}';
+        // Skip if we've seen this cash location and it's the same as the main transaction location
+        if (seenCashLocations.contains(locationKey) && 
+            line.locationName == transaction.locationName) {
+          continue;
+        }
+        seenCashLocations.add(locationKey);
+        filteredLines.add(line);
+      } else {
+        // Always include non-cash accounts
+        filteredLines.add(line);
+      }
+    }
+    
+    return filteredLines.map((line) => _buildJournalLine(line)).toList();
+  }
+  
+  Widget _buildJournalLine(JournalLine line) {
+    final amount = line.debit > 0 ? line.debit : line.credit;
+    final isDebit = line.debit > 0;
+    
+    // Determine the display name - use location name for cash locations, otherwise account name
+    String displayName;
+    if (line.cashLocationId != null && line.locationName != null) {
+      // This is a cash location transaction, show the location name
+      displayName = line.locationName!;
+      if (line.locationType != null) {
+        // Add type indicator if available (e.g., "throng (Cash)")
+        final typeLabel = line.locationType!.capitalize();
+        displayName = '$displayName ($typeLabel)';
+      }
+    } else {
+      // Regular account, format the account name
+      displayName = _formatAccountName(line.accountName);
+    }
+    
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.grey[50],
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.grey[200]!),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Text(
+                  displayName,
+                  style: TossTextStyles.body.copyWith(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                  ),
+                ),
+              ),
+              Text(
+                '${isDebit ? '+' : '-'}${_formatCurrency(amount)}',
+                style: TossTextStyles.body.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: isDebit ? Colors.green : Colors.red,
+                  fontSize: 14,
+                ),
+              ),
+            ],
+          ),
+          if (line.description.isNotEmpty) ...[
+            const SizedBox(height: 4),
+            Text(
+              line.description,
+              style: TossTextStyles.caption.copyWith(
+                color: TossColors.gray600,
+                fontSize: 12,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+  
+  String _formatAccountName(String accountName) {
+    // Convert account names like "office supplies expenses" to "Office Supplies"
+    final words = accountName.toLowerCase()
+        .replaceAll('expenses', '')
+        .replaceAll('expense', '')
+        .replaceAll('_', ' ')
+        .trim()
+        .split(' ');
+    
+    return words.map((word) => 
+      word.isNotEmpty ? word[0].toUpperCase() + word.substring(1) : ''
+    ).join(' ');
   }
 }

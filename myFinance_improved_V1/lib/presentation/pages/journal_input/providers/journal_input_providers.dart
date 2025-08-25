@@ -43,7 +43,8 @@ final journalCashLocationsProvider = FutureProvider<List<Map<String, dynamic>>>(
     var query = supabase
         .from('cash_locations')
         .select('cash_location_id, location_name, location_type')
-        .eq('company_id', companyId);
+        .eq('company_id', companyId)
+        .eq('is_deleted', false);  // Filter out deleted cash locations
     
     // Filter by store_id
     if (storeId.isNotEmpty) {
@@ -167,6 +168,7 @@ final journalCounterpartyCashLocationsProvider = FutureProvider.family<List<Map<
         .from('cash_locations')
         .select('cash_location_id, location_name, location_type, store_id')
         .eq('company_id', linkedCompanyId)
+        .eq('is_deleted', false)  // Filter out deleted cash locations
         .order('location_name');
     
     return List<Map<String, dynamic>>.from(response);
@@ -189,6 +191,7 @@ final journalCounterpartyStoreCashLocationsProvider = FutureProvider.family<List
         .from('cash_locations')
         .select('cash_location_id, location_name, location_type')
         .eq('store_id', storeId)
+        .eq('is_deleted', false)  // Filter out deleted cash locations
         .order('location_name');
     
     return List<Map<String, dynamic>>.from(response);

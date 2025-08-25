@@ -5,8 +5,13 @@ import '../../../core/themes/toss_text_styles.dart';
 import '../../../core/themes/toss_spacing.dart';
 import '../../../core/themes/toss_border_radius.dart';
 import '../../../core/themes/toss_shadows.dart';
+import '../../../core/themes/toss_colors.dart';
 import 'account_settings_page.dart';
 import '../../widgets/common/toss_scaffold.dart';
+import '../../../data/services/stock_flow_service.dart';
+import '../../../data/services/cash_journal_service.dart';
+import '../../../data/services/cash_location_service.dart';
+import '../../providers/app_state_provider.dart';
 
 class AccountDetailPage extends ConsumerStatefulWidget {
   final String? locationId;
@@ -38,11 +43,26 @@ class AccountDetailPage extends ConsumerStatefulWidget {
 
 class _AccountDetailPageState extends ConsumerState<AccountDetailPage> 
     with SingleTickerProviderStateMixin {
-  // Mock transaction data
-  late List<Map<String, dynamic>> transactions;
   late TabController _tabController;
   int _selectedTab = 0;
   String _selectedFilter = 'All';
+  
+  // Pagination state
+  final ScrollController _scrollController = ScrollController();
+  int _currentOffset = 0;
+  final int _limit = 20;
+  bool _isLoadingMore = false;
+  bool _hasMoreData = true;
+  
+  // Cached data
+  List<JournalFlow> _allJournalFlows = [];
+  List<ActualFlow> _allActualFlows = [];
+  LocationSummary? _locationSummary;
+  
+  // Updated balance values
+  int? _updatedTotalJournal;
+  int? _updatedTotalReal;
+  int? _updatedCashDifference;
   
   @override
   void initState() {
@@ -53,89 +73,230 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
         _selectedTab = _tabController.index;
       });
     });
-    _loadTransactions();
+    _scrollController.addListener(_onScroll);
   }
   
   @override
   void dispose() {
     _tabController.dispose();
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
     super.dispose();
   }
   
-  void _loadTransactions() {
-    // Mock transactions data - in real app, this would come from API
-    transactions = [
-      {
-        'date': '9/8',
-        'title': 'Office Expense',
-        'time': '01:01',
-        'amount': 122,
-        'balance': 156023,
-        'isIncome': true,
-        'account': 'John Smith',
-      },
-      {
-        'date': '4/8',
-        'title': 'Customer Payment',
-        'time': '16:21',
-        'amount': 10000,
-        'balance': 155901,
-        'isIncome': true,
-        'account': 'Sarah Kim',
-      },
-      {
-        'date': '2/8',
-        'title': 'Card Payment',
-        'time': '08:00',
-        'amount': -51914,
-        'balance': 145901,
-        'isIncome': false,
-        'account': 'Mike Johnson',
-      },
-      {
-        'date': '29/7',
-        'title': 'Food Supplies',
-        'time': '20:58',
-        'amount': -14000,
-        'balance': 197815,
-        'isIncome': false,
-        'account': 'Lisa Park',
-      },
-      {
-        'date': '29/7',
-        'title': 'Hotel Services',
-        'time': '20:13',
-        'amount': -44032,
-        'balance': 211815,
-        'isIncome': false,
-        'account': 'David Lee',
-      },
-      {
-        'date': '29/7',
-        'title': 'Duty Free Shop',
-        'time': '20:09',
-        'amount': -159616,
-        'balance': 255847,
-        'isIncome': false,
-        'account': 'Emma Wilson',
-      },
-    ];
+  void _onScroll() {
+    if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 200) {
+      if (!_isLoadingMore && _hasMoreData) {
+        _loadMoreData();
+      }
+    }
   }
   
-  String _formatCurrency(int amount, [String? currencySymbol]) {
-    final formatter = NumberFormat('#,###', 'en_US');
-    final symbol = currencySymbol ?? '₩';
-    return '$symbol${formatter.format(amount.abs())}';
+  Future<void> _loadMoreData() async {
+    if (_isLoadingMore || !_hasMoreData) return;
+    
+    setState(() {
+      _isLoadingMore = true;
+    });
+    
+    final appState = ref.read(appStateProvider);
+    final companyId = appState.companyChoosen;
+    final storeId = appState.storeChoosen;
+    
+    if (widget.locationId == null) return;
+    
+    try {
+      final service = ref.read(stockFlowServiceProvider);
+      final response = await service.getLocationStockFlow(
+        StockFlowParams(
+          companyId: companyId,
+          storeId: storeId,
+          cashLocationId: widget.locationId!,
+          offset: _currentOffset + _limit,
+          limit: _limit,
+        ),
+      );
+      
+      if (response.success && response.data != null) {
+        setState(() {
+          _allJournalFlows.addAll(response.data!.journalFlows);
+          _allActualFlows.addAll(response.data!.actualFlows);
+          _currentOffset += _limit;
+          
+          // Check if we have more data
+          if (response.pagination != null) {
+            _hasMoreData = response.pagination!.hasMore;
+          } else {
+            _hasMoreData = false;
+          }
+          _isLoadingMore = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _isLoadingMore = false;
+      });
+    }
   }
   
-  String _formatTransactionAmount(int amount, bool isIncome) {
+  Future<void> _onRefresh() async {
+    // Reset state and refresh data
+    setState(() {
+      _allJournalFlows.clear();
+      _allActualFlows.clear();
+      _currentOffset = 0;
+      _hasMoreData = true;
+      _isLoadingMore = false;
+    });
+    
+    final appState = ref.read(appStateProvider);
+    final companyId = appState.companyChoosen;
+    final storeId = appState.storeChoosen;
+    
+    if (widget.locationId == null) return;
+    
+    // Invalidate to force refresh
+    ref.invalidate(stockFlowProvider(
+      StockFlowParams(
+        companyId: companyId,
+        storeId: storeId,
+        cashLocationId: widget.locationId!,
+        offset: 0,
+        limit: _limit,
+      ),
+    ));
+    
+    // Also invalidate and refresh cash locations to update balance
+    ref.invalidate(allCashLocationsProvider(
+      CashLocationQueryParams(
+        companyId: companyId,
+        storeId: storeId,
+      ),
+    ));
+    
+    // Fetch updated balance data
+    await _fetchUpdatedBalance();
+  }
+  
+  Future<void> _fetchUpdatedBalance() async {
+    final appState = ref.read(appStateProvider);
+    final companyId = appState.companyChoosen;
+    final storeId = appState.storeChoosen;
+    
+    if (widget.locationId == null) return;
+    
+    try {
+      // Fetch all cash locations
+      final allLocations = await ref.read(allCashLocationsProvider(
+        CashLocationQueryParams(
+          companyId: companyId,
+          storeId: storeId,
+        ),
+      ).future);
+      
+      // Find the current location
+      final currentLocation = allLocations.firstWhere(
+        (location) => location.locationId == widget.locationId,
+        orElse: () => CashLocation(
+          locationId: widget.locationId!,
+          locationName: widget.accountName,
+          locationType: widget.locationType,
+          totalJournalCashAmount: widget.totalJournal?.toDouble() ?? widget.balance.toDouble(),
+          totalRealCashAmount: widget.totalReal?.toDouble() ?? widget.balance.toDouble(),
+          cashDifference: widget.cashDifference?.toDouble() ?? 0,
+          companyId: companyId,
+          storeId: storeId,
+          currencySymbol: widget.currencySymbol ?? '',
+        ),
+      );
+      
+      // Update the balance values
+      setState(() {
+        _updatedTotalJournal = currentLocation.totalJournalCashAmount.round();
+        _updatedTotalReal = currentLocation.totalRealCashAmount.round();
+        _updatedCashDifference = currentLocation.cashDifference.round();
+      });
+    } catch (e) {
+      // If fetching fails, keep using the original values
+    }
+  }
+  
+  String _formatCurrency(double amount, [String? currencySymbol]) {
     final formatter = NumberFormat('#,###', 'en_US');
-    final prefix = isIncome ? '+₩' : '-₩';
-    return '$prefix${formatter.format(amount.abs())}';
+    final symbol = currencySymbol ?? '';
+    return '$symbol${formatter.format(amount.abs().round())}';
+  }
+  
+  String _formatCurrencyWithSign(double amount, [String? currencySymbol]) {
+    final formatter = NumberFormat('#,###', 'en_US');
+    final symbol = currencySymbol ?? '';
+    final isNegative = amount < 0;
+    final formattedAmount = formatter.format(amount.abs().round());
+    return '${isNegative ? "-" : ""}$symbol$formattedAmount';
+  }
+  
+  String _formatTransactionAmount(double amount, [String? currencySymbol]) {
+    final formatter = NumberFormat('#,###', 'en_US');
+    final symbol = currencySymbol ?? '';
+    final isIncome = amount > 0;
+    final prefix = isIncome ? '+$symbol' : '-$symbol';
+    return '$prefix${formatter.format(amount.abs().round())}';
+  }
+  
+  String _formatBalance(double amount, [String? currencySymbol]) {
+    final formatter = NumberFormat('#,###', 'en_US');
+    final symbol = currencySymbol ?? '';
+    return '$symbol${formatter.format(amount.round())}';
   }
   
   @override
   Widget build(BuildContext context) {
+    final appState = ref.watch(appStateProvider);
+    final companyId = appState.companyChoosen;
+    final storeId = appState.storeChoosen;
+    
+    // Debug logging (uncomment for debugging)
+    // print('AccountDetailPage build:');
+    // print('  locationId: ${widget.locationId}');
+    // print('  accountName: ${widget.accountName}');
+    // print('  companyId: $companyId');
+    // print('  storeId: $storeId');
+    
+    if (companyId.isEmpty || storeId.isEmpty || widget.locationId == null || widget.locationId!.isEmpty) {
+      return TossScaffold(
+        backgroundColor: const Color(0xFFF7F8FA),
+        body: SafeArea(
+          child: Column(
+            children: [
+              _buildHeader(context),
+              Expanded(
+                child: Center(
+                  child: Text(
+                    widget.locationId == null || widget.locationId!.isEmpty 
+                        ? 'Location ID is missing'
+                        : 'Please select a company and store',
+                    style: TossTextStyles.body.copyWith(
+                      color: Colors.grey[500],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+    
+    final stockFlowAsync = ref.watch(stockFlowProvider(
+      StockFlowParams(
+        companyId: companyId,
+        storeId: storeId,
+        cashLocationId: widget.locationId!,
+        offset: 0,
+        limit: _limit,
+      ),
+    ));
+    
     return TossScaffold(
       backgroundColor: const Color(0xFFF7F8FA),
       body: SafeArea(
@@ -146,18 +307,60 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
             
             // Content
             Expanded(
-              child: SingleChildScrollView(
-                child: Column(
-                  children: [
-                    // Balance Card with padding
-                    Padding(
-                      padding: EdgeInsets.all(TossSpacing.space4),
-                      child: _buildBalanceCard(),
+              child: stockFlowAsync.when(
+                data: (response) {
+                  // Initialize data on first load
+                  if (_allJournalFlows.isEmpty && _allActualFlows.isEmpty) {
+                    if (response.success && response.data != null) {
+                      _allJournalFlows = List.from(response.data!.journalFlows);
+                      _allActualFlows = List.from(response.data!.actualFlows);
+                      _locationSummary = response.data!.locationSummary;
+                      _currentOffset = 0;
+                      _hasMoreData = response.pagination?.hasMore ?? false;
+                    }
+                  }
+                  
+                  return SingleChildScrollView(
+                    controller: _scrollController,
+                    child: Column(
+                      children: [
+                        // Balance Card with padding
+                        Padding(
+                          padding: EdgeInsets.all(TossSpacing.space4),
+                          child: _buildBalanceCard(),
+                        ),
+                        
+                        // Transaction List (has its own padding)
+                        _buildTransactionList(),
+                        
+                        // Loading indicator for pagination
+                        if (_isLoadingMore)
+                          Padding(
+                            padding: EdgeInsets.all(TossSpacing.space4),
+                            child: CircularProgressIndicator(),
+                          ),
+                      ],
                     ),
-                    
-                    // Transaction List (has its own padding)
-                    _buildTransactionList(),
-                  ],
+                  );
+                },
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (error, stack) => Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        'Error loading data',
+                        style: TossTextStyles.body.copyWith(
+                          color: Colors.grey[500],
+                        ),
+                      ),
+                      SizedBox(height: TossSpacing.space2),
+                      ElevatedButton(
+                        onPressed: () => _onRefresh(),
+                        child: Text('Retry'),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -188,9 +391,9 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
             ),
           ),
           GestureDetector(
-            onTap: () {
+            onTap: () async {
               // Navigate to account settings page
-              Navigator.push(
+              await Navigator.push(
                 context,
                 MaterialPageRoute(
                   builder: (context) => AccountSettingsPage(
@@ -200,6 +403,9 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
                   ),
                 ),
               );
+              
+              // Refresh data when returning from settings
+              _onRefresh();
             },
             child: Container(
               padding: EdgeInsets.all(8),
@@ -215,11 +421,11 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
   }
   
   Widget _buildBalanceCard() {
-    // Use passed parameters or fallback to legacy values
-    final totalJournal = widget.totalJournal ?? widget.balance;
-    final totalReal = widget.totalReal ?? widget.balance;
-    final error = widget.cashDifference ?? (totalReal - totalJournal);
-    final currencySymbol = widget.currencySymbol ?? '₩';
+    // Use updated values if available, otherwise use widget values
+    final totalJournal = _updatedTotalJournal ?? widget.totalJournal ?? widget.balance;
+    final totalReal = _updatedTotalReal ?? widget.totalReal ?? widget.balance;
+    final error = _updatedCashDifference ?? widget.cashDifference ?? (totalReal - totalJournal);
+    final currencySymbol = widget.currencySymbol ?? '';
     
     return Container(
       padding: EdgeInsets.all(TossSpacing.space5),
@@ -270,7 +476,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
           // Total Journal
           _buildBalanceRow(
             'Total Journal',
-            _formatCurrency(totalJournal, currencySymbol),
+            _formatCurrency(totalJournal.toDouble(), currencySymbol),
             isJournal: true,
           ),
           
@@ -279,7 +485,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
           // Total Real
           _buildBalanceRow(
             'Total Real',
-            _formatCurrency(totalReal, currencySymbol),
+            _formatCurrency(totalReal.toDouble(), currencySymbol),
             isJournal: false,
           ),
           
@@ -301,7 +507,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
                 ),
               ),
               Text(
-                _formatCurrency(error, currencySymbol),
+                _formatCurrencyWithSign(error.toDouble(), currencySymbol),
                 style: TossTextStyles.h3.copyWith(
                   color: const Color(0xFFE53935),
                   fontWeight: FontWeight.w700,
@@ -332,6 +538,511 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
           ),
         ),
       ],
+    );
+  }
+  
+  Future<void> _handleErrorMapping(double errorAmount) async {
+    // Show loading indicator
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return WillPopScope(
+          onWillPop: () async => false,
+          child: Center(
+            child: Container(
+              padding: EdgeInsets.all(TossSpacing.space5),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CircularProgressIndicator(),
+                  SizedBox(height: TossSpacing.space4),
+                  Text(
+                    'Processing...',
+                    style: TossTextStyles.body.copyWith(
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+    
+    try {
+      // Get necessary data
+      final appState = ref.read(appStateProvider);
+      final companyId = appState.companyChoosen;
+      final storeId = appState.storeChoosen;
+      
+      // Extract user ID from user object
+      String userId = '';
+      try {
+        if (appState.user is Map && appState.user['user_id'] != null) {
+          userId = appState.user['user_id'];
+        } else if (appState.user is Map && appState.user['id'] != null) {
+          userId = appState.user['id'];
+        }
+      } catch (e) {
+        // Handle error if user object structure is unexpected
+      }
+      
+      if (widget.locationId == null || widget.locationId!.isEmpty) {
+        Navigator.pop(context); // Close loading
+        _showErrorDialog('Location ID is missing');
+        return;
+      }
+      
+      // Call the service
+      final service = ref.read(cashJournalServiceProvider);
+      final result = await service.createErrorJournal(
+        differenceAmount: errorAmount,
+        companyId: companyId,
+        userId: userId,
+        locationName: widget.accountName,
+        cashLocationId: widget.locationId!,
+        storeId: storeId,
+      );
+      
+      Navigator.pop(context); // Close loading dialog
+      
+      if (result['success'] == true) {
+        // Show success message
+        _showSuccessDialog(isError: true);
+        
+        // Refresh data
+        await _onRefresh();
+      } else {
+        // Show error message
+        final errorMsg = result['error'] ?? 'Failed to create journal entry';
+        _showErrorDialog(errorMsg);
+      }
+    } catch (e) {
+      Navigator.pop(context); // Close loading dialog
+      _showErrorDialog('An error occurred: ${e.toString()}');
+    }
+  }
+  
+  Future<void> _handleForeignCurrencyTranslation(double errorAmount) async {
+    // Show loading indicator
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return WillPopScope(
+          onWillPop: () async => false,
+          child: Center(
+            child: Container(
+              padding: EdgeInsets.all(TossSpacing.space5),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CircularProgressIndicator(),
+                  SizedBox(height: TossSpacing.space4),
+                  Text(
+                    'Processing...',
+                    style: TossTextStyles.body.copyWith(
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+    
+    try {
+      // Get necessary data
+      final appState = ref.read(appStateProvider);
+      final companyId = appState.companyChoosen;
+      final storeId = appState.storeChoosen;
+      
+      // Extract user ID from user object
+      String userId = '';
+      try {
+        if (appState.user is Map && appState.user['user_id'] != null) {
+          userId = appState.user['user_id'];
+        } else if (appState.user is Map && appState.user['id'] != null) {
+          userId = appState.user['id'];
+        }
+      } catch (e) {
+        // Handle error if user object structure is unexpected
+      }
+      
+      if (widget.locationId == null || widget.locationId!.isEmpty) {
+        Navigator.pop(context); // Close loading
+        _showErrorDialog('Location ID is missing');
+        return;
+      }
+      
+      // Call the service
+      final service = ref.read(cashJournalServiceProvider);
+      final result = await service.createForeignCurrencyTranslation(
+        differenceAmount: errorAmount,
+        companyId: companyId,
+        userId: userId,
+        locationName: widget.accountName,
+        cashLocationId: widget.locationId!,
+        storeId: storeId,
+      );
+      
+      Navigator.pop(context); // Close loading dialog
+      
+      if (result['success'] == true) {
+        // Show success message
+        _showSuccessDialog(isError: false);
+        
+        // Refresh data
+        await _onRefresh();
+      } else {
+        // Show error message
+        final errorMsg = result['error'] ?? 'Failed to create journal entry';
+        _showErrorDialog(errorMsg);
+      }
+    } catch (e) {
+      Navigator.pop(context); // Close loading dialog
+      _showErrorDialog('An error occurred: ${e.toString()}');
+    }
+  }
+  
+  void _showSuccessDialog({bool isError = false}) {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+          ),
+          child: Container(
+            padding: EdgeInsets.all(TossSpacing.space5),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Success icon
+                Container(
+                  width: 64,
+                  height: 64,
+                  decoration: BoxDecoration(
+                    color: Colors.green[50],
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.check_circle,
+                    size: 40,
+                    color: Colors.green[600],
+                  ),
+                ),
+                
+                SizedBox(height: TossSpacing.space4),
+                
+                Text(
+                  'Success',
+                  style: TossTextStyles.h3.copyWith(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 18,
+                  ),
+                ),
+                
+                SizedBox(height: TossSpacing.space3),
+                
+                Text(
+                  isError 
+                      ? 'Error adjustment\nhas been recorded successfully.'
+                      : 'Foreign currency translation\nhas been recorded successfully.',
+                  style: TossTextStyles.body.copyWith(
+                    fontSize: 14,
+                    color: Colors.grey[600],
+                    height: 1.5,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                
+                SizedBox(height: TossSpacing.space5),
+                
+                // OK button
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Theme.of(context).colorScheme.primary,
+                      foregroundColor: Colors.white,
+                      padding: EdgeInsets.symmetric(vertical: TossSpacing.space3),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                      ),
+                      elevation: 0,
+                    ),
+                    child: Text(
+                      'OK',
+                      style: TossTextStyles.body.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w500,
+                        fontSize: 15,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+  
+  void _showErrorDialog(String message) {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+          ),
+          child: Container(
+            padding: EdgeInsets.all(TossSpacing.space5),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Error icon
+                Container(
+                  width: 64,
+                  height: 64,
+                  decoration: BoxDecoration(
+                    color: Colors.red[50],
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.error_outline,
+                    size: 40,
+                    color: Colors.red[600],
+                  ),
+                ),
+                
+                SizedBox(height: TossSpacing.space4),
+                
+                Text(
+                  'Error',
+                  style: TossTextStyles.h3.copyWith(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 18,
+                  ),
+                ),
+                
+                SizedBox(height: TossSpacing.space3),
+                
+                Text(
+                  message,
+                  style: TossTextStyles.body.copyWith(
+                    fontSize: 14,
+                    color: Colors.grey[600],
+                    height: 1.5,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                
+                SizedBox(height: TossSpacing.space5),
+                
+                // OK button
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Theme.of(context).colorScheme.primary,
+                      foregroundColor: Colors.white,
+                      padding: EdgeInsets.symmetric(vertical: TossSpacing.space3),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                      ),
+                      elevation: 0,
+                    ),
+                    child: Text(
+                      'OK',
+                      style: TossTextStyles.body.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w500,
+                        fontSize: 15,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+  
+  void _showMappingConfirmationDialog(String mappingType) {
+    // Calculate the error amount
+    final totalJournal = widget.totalJournal ?? widget.balance;
+    final totalReal = widget.totalReal ?? widget.balance;
+    final errorAmount = totalReal - totalJournal;
+    final currencySymbol = widget.currencySymbol ?? '';
+    
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+          ),
+          child: Container(
+            padding: EdgeInsets.all(TossSpacing.space5),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Title - matching main page font style
+                Text(
+                  'Auto Mapping',
+                  style: TossTextStyles.h3.copyWith(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 18,
+                  ),
+                ),
+                
+                SizedBox(height: TossSpacing.space5),
+                
+                // Main question - matching main page body style
+                Text(
+                  'Do you want to make\n$mappingType?',
+                  style: TossTextStyles.body.copyWith(
+                    fontSize: 15,
+                    height: 1.5,
+                    color: Colors.black87,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                
+                SizedBox(height: TossSpacing.space4),
+                
+                // Difference Amount label - plain text
+                Text(
+                  'Difference Amount',
+                  style: TossTextStyles.body.copyWith(
+                    color: Colors.grey[600],
+                    fontSize: 14,
+                  ),
+                ),
+                
+                SizedBox(height: TossSpacing.space2),
+                
+                // Difference amount value - plain text without box
+                Text(
+                  _formatCurrencyWithSign(errorAmount.toDouble(), currencySymbol),
+                  style: TossTextStyles.h3.copyWith(
+                    color: const Color(0xFFE53935),
+                    fontWeight: FontWeight.w700,
+                    fontSize: 20,
+                  ),
+                ),
+                
+                SizedBox(height: TossSpacing.space5),
+                
+                // Buttons
+                Row(
+                  children: [
+                    // Cancel button
+                    Expanded(
+                      child: TextButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                        style: TextButton.styleFrom(
+                          padding: EdgeInsets.symmetric(vertical: TossSpacing.space3),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                            side: BorderSide(
+                              color: Colors.grey[300]!,
+                              width: 1,
+                            ),
+                          ),
+                        ),
+                        child: Text(
+                          'Cancel',
+                          style: TossTextStyles.body.copyWith(
+                            color: Colors.grey[700],
+                            fontWeight: FontWeight.w500,
+                            fontSize: 15,
+                          ),
+                        ),
+                      ),
+                    ),
+                    
+                    SizedBox(width: TossSpacing.space3),
+                    
+                    // OK button
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () async {
+                          Navigator.pop(context); // Close dialog first
+                          
+                          // Handle different mapping types
+                          if (mappingType == 'Exchange Rate Differences') {
+                            await _handleForeignCurrencyTranslation(errorAmount.toDouble());
+                          } else if (mappingType == 'Error') {
+                            await _handleErrorMapping(errorAmount.toDouble());
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Theme.of(context).colorScheme.primary,
+                          foregroundColor: Colors.white,
+                          padding: EdgeInsets.symmetric(vertical: TossSpacing.space3),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                          ),
+                          elevation: 0,
+                        ),
+                        child: Text(
+                          'OK',
+                          style: TossTextStyles.body.copyWith(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w500,
+                            fontSize: 15,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
   
@@ -508,9 +1219,10 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
   Widget _buildMappingOption(String title, IconData icon) {
     return InkWell(
       onTap: () {
-        // Handle mapping selection
+        // Close the bottom sheet first
         Navigator.pop(context);
-        // Perform mapping action without notification
+        // Show the confirmation dialog
+        _showMappingConfirmationDialog(title);
       },
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
@@ -543,30 +1255,6 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
   }
   
   Widget _buildTransactionList() {
-    // Filter transactions based on selected tab and filter
-    var filteredTransactions = _selectedTab == 0 
-        ? transactions // Journal - show all
-        : transactions.where((t) => t['isIncome'] == false).toList(); // Real - show expenses only
-    
-    // Apply additional filter
-    if (_selectedFilter == 'Money In') {
-      filteredTransactions = filteredTransactions.where((t) => t['isIncome'] == true).toList();
-    } else if (_selectedFilter == 'Money Out') {
-      filteredTransactions = filteredTransactions.where((t) => t['isIncome'] == false).toList();
-    } else if (_selectedFilter == 'Today') {
-      // Mock: show first 2 transactions for "Today"
-      filteredTransactions = filteredTransactions.take(2).toList();
-    } else if (_selectedFilter == 'Yesterday') {
-      // Mock: show next 2 transactions for "Yesterday"
-      filteredTransactions = filteredTransactions.skip(2).take(2).toList();
-    } else if (_selectedFilter == 'Last Week') {
-      // Mock: show last 2 transactions for "Last Week"
-      filteredTransactions = filteredTransactions.skip(4).toList();
-    } else if (_selectedFilter == 'Last Month') {
-      // Mock: show all transactions for "Last Month"
-      filteredTransactions = filteredTransactions;
-    }
-    
     return Column(
       children: [
         // Transaction container with tab bar
@@ -654,8 +1342,55 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
                 ),
               ),
               
-              // Transaction items
-              ..._buildTransactionItems(filteredTransactions),
+              // Transaction items based on selected tab
+              if (_selectedTab == 0)
+                ..._buildJournalItems()
+              else
+                ..._buildRealItems(),
+              
+              // Load more indicator
+              if (_hasMoreData && !_isLoadingMore)
+                GestureDetector(
+                  onTap: _loadMoreData,
+                  child: Container(
+                    padding: EdgeInsets.symmetric(vertical: TossSpacing.space4),
+                    child: Center(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            'Load More',
+                            style: TossTextStyles.body.copyWith(
+                              color: Theme.of(context).colorScheme.primary,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 14,
+                            ),
+                          ),
+                          SizedBox(width: TossSpacing.space2),
+                          Icon(
+                            Icons.arrow_downward,
+                            size: 16,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              
+              // Loading indicator when fetching more
+              if (_isLoadingMore)
+                Container(
+                  padding: EdgeInsets.symmetric(vertical: TossSpacing.space4),
+                  child: Center(
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        Theme.of(context).colorScheme.primary,
+                      ),
+                    ),
+                  ),
+                ),
             ],
           ),
         ),
@@ -666,37 +1401,175 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
     );
   }
   
-  List<Widget> _buildTransactionItems(List<dynamic> transactions) {
+  List<Widget> _buildJournalItems() {
     List<Widget> items = [];
     String? lastDate;
     
-    for (int i = 0; i < transactions.length; i++) {
-      final transaction = transactions[i];
-      final currentDate = transaction['date']?.toString() ?? '';
-      final bool showDate = currentDate.isNotEmpty && currentDate != lastDate;
+    // Apply filters
+    var filteredFlows = List<JournalFlow>.from(_allJournalFlows);
+    
+    if (_selectedFilter == 'Money In') {
+      filteredFlows = filteredFlows.where((f) => f.flowAmount > 0).toList();
+    } else if (_selectedFilter == 'Money Out') {
+      filteredFlows = filteredFlows.where((f) => f.flowAmount < 0).toList();
+    } else if (_selectedFilter == 'Today') {
+      final today = DateTime.now();
+      filteredFlows = filteredFlows.where((f) {
+        try {
+          final date = DateTime.parse(f.createdAt);
+          return date.year == today.year && date.month == today.month && date.day == today.day;
+        } catch (e) {
+          return false;
+        }
+      }).toList();
+    } else if (_selectedFilter == 'Yesterday') {
+      final yesterday = DateTime.now().subtract(Duration(days: 1));
+      filteredFlows = filteredFlows.where((f) {
+        try {
+          final date = DateTime.parse(f.createdAt);
+          return date.year == yesterday.year && date.month == yesterday.month && date.day == yesterday.day;
+        } catch (e) {
+          return false;
+        }
+      }).toList();
+    } else if (_selectedFilter == 'Last Week') {
+      final lastWeek = DateTime.now().subtract(Duration(days: 7));
+      filteredFlows = filteredFlows.where((f) {
+        try {
+          final date = DateTime.parse(f.createdAt);
+          return date.isAfter(lastWeek);
+        } catch (e) {
+          return false;
+        }
+      }).toList();
+    }
+    
+    for (int i = 0; i < filteredFlows.length; i++) {
+      final flow = filteredFlows[i];
+      final currentDate = flow.getFormattedDate();
+      final bool showDate = currentDate != lastDate;
       
       if (showDate) {
         lastDate = currentDate;
       }
       
-      items.add(_buildTransactionItem(transaction, showDate));
+      items.add(_buildJournalItem(flow, showDate));
+    }
+    
+    if (items.isEmpty) {
+      items.add(
+        Container(
+          padding: EdgeInsets.all(TossSpacing.space5),
+          child: Center(
+            child: Text(
+              'No journal entries found',
+              style: TossTextStyles.body.copyWith(
+                color: Colors.grey[500],
+              ),
+            ),
+          ),
+        ),
+      );
     }
     
     return items;
   }
   
-  Widget _buildTransactionItem(Map<String, dynamic> transaction, bool showDate) {
-    final bool isIncome = transaction['isIncome'] ?? false;
-    final bool isRealTab = _selectedTab == 1;
+  List<Widget> _buildRealItems() {
+    List<Widget> items = [];
+    String? lastDate;
     
-    return Container(
-      padding: EdgeInsets.only(
-        left: TossSpacing.space4,
-        right: TossSpacing.space4,
-        top: TossSpacing.space3,
-        bottom: TossSpacing.space3,
-      ),
-      child: Row(
+    // Apply filters
+    var filteredFlows = List<ActualFlow>.from(_allActualFlows);
+    
+    if (_selectedFilter == 'Today') {
+      final today = DateTime.now();
+      filteredFlows = filteredFlows.where((f) {
+        try {
+          final date = DateTime.parse(f.createdAt);
+          return date.year == today.year && date.month == today.month && date.day == today.day;
+        } catch (e) {
+          return false;
+        }
+      }).toList();
+    } else if (_selectedFilter == 'Yesterday') {
+      final yesterday = DateTime.now().subtract(Duration(days: 1));
+      filteredFlows = filteredFlows.where((f) {
+        try {
+          final date = DateTime.parse(f.createdAt);
+          return date.year == yesterday.year && date.month == yesterday.month && date.day == yesterday.day;
+        } catch (e) {
+          return false;
+        }
+      }).toList();
+    } else if (_selectedFilter == 'Last Week') {
+      final lastWeek = DateTime.now().subtract(Duration(days: 7));
+      filteredFlows = filteredFlows.where((f) {
+        try {
+          final date = DateTime.parse(f.createdAt);
+          return date.isAfter(lastWeek);
+        } catch (e) {
+          return false;
+        }
+      }).toList();
+    } else if (_selectedFilter == 'Last Month') {
+      final lastMonth = DateTime.now().subtract(Duration(days: 30));
+      filteredFlows = filteredFlows.where((f) {
+        try {
+          final date = DateTime.parse(f.createdAt);
+          return date.isAfter(lastMonth);
+        } catch (e) {
+          return false;
+        }
+      }).toList();
+    }
+    
+    for (int i = 0; i < filteredFlows.length; i++) {
+      final flow = filteredFlows[i];
+      final currentDate = flow.getFormattedDate();
+      final bool showDate = currentDate != lastDate;
+      
+      if (showDate) {
+        lastDate = currentDate;
+      }
+      
+      items.add(_buildRealItem(flow, showDate));
+    }
+    
+    if (items.isEmpty) {
+      items.add(
+        Container(
+          padding: EdgeInsets.all(TossSpacing.space5),
+          child: Center(
+            child: Text(
+              'No real entries found',
+              style: TossTextStyles.body.copyWith(
+                color: Colors.grey[500],
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+    
+    return items;
+  }
+  
+  Widget _buildJournalItem(JournalFlow flow, bool showDate) {
+    final isIncome = flow.flowAmount > 0;
+    final currencySymbol = _locationSummary?.currencyCode == 'VND' ? '₫' : widget.currencySymbol ?? '';
+    
+    return GestureDetector(
+      onTap: () => _showJournalDetailBottomSheet(flow),
+      behavior: HitTestBehavior.opaque,
+      child: Container(
+        padding: EdgeInsets.only(
+          left: TossSpacing.space4,
+          right: TossSpacing.space4,
+          top: TossSpacing.space3,
+          bottom: TossSpacing.space3,
+        ),
+        child: Row(
         children: [
           // Date section (centered vertically, aligned left)
           Container(
@@ -704,7 +1577,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
             padding: EdgeInsets.only(left: TossSpacing.space1),
             child: showDate
                 ? Text(
-                    transaction['date'],
+                    flow.getFormattedDate(),
                     style: TossTextStyles.caption.copyWith(
                       color: Colors.grey[600],
                       fontWeight: FontWeight.w600,
@@ -723,26 +1596,31 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  transaction['title'],
+                  flow.journalDescription,
                   style: TossTextStyles.body.copyWith(
                     fontWeight: FontWeight.w600,
                     fontSize: 16,
                     color: Colors.black87,
                     height: 1.2,
                   ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
                 SizedBox(height: 8),
                 Row(
                   children: [
-                    Text(
-                      transaction['account'] ?? 'Unknown',
-                      style: TossTextStyles.caption.copyWith(
-                        color: Colors.grey[500],
-                        fontSize: 13,
-                        height: 1.2,
+                    Flexible(
+                      child: Text(
+                        flow.createdBy.fullName,
+                        style: TossTextStyles.caption.copyWith(
+                          color: Colors.grey[500],
+                          fontSize: 13,
+                          height: 1.2,
+                        ),
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                    if (transaction['time'] != null && transaction['time'].toString().isNotEmpty) ...[
+                    if (flow.getFormattedTime().isNotEmpty) ...[
                       Text(
                         ' • ',
                         style: TossTextStyles.caption.copyWith(
@@ -752,7 +1630,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
                         ),
                       ),
                       Text(
-                        transaction['time'],
+                        flow.getFormattedTime(),
                         style: TossTextStyles.caption.copyWith(
                           color: Colors.grey[500],
                           fontSize: 13,
@@ -768,43 +1646,678 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
           
           SizedBox(width: TossSpacing.space2),
           
-          // Amount and balance (different for Real tab)
-          if (isRealTab) 
-            Text(
-              _formatCurrency(transaction['balance']),
-              style: TossTextStyles.body.copyWith(
-                color: Colors.black87,
-                fontWeight: FontWeight.w600,
-                fontSize: 16,
-                height: 1.2,
+          // Amount and balance for Journal tab
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                _formatTransactionAmount(flow.flowAmount, currencySymbol),
+                style: TossTextStyles.body.copyWith(
+                  color: isIncome 
+                      ? Theme.of(context).colorScheme.primary 
+                      : Colors.black87,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 16,
+                  height: 1.2,
+                ),
               ),
-            )
-          else
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
+              SizedBox(height: 8),
+              Text(
+                _formatBalance(flow.balanceAfter, currencySymbol),
+                style: TossTextStyles.caption.copyWith(
+                  color: Colors.grey[500],
+                  fontSize: 13,
+                  height: 1.2,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+      ),
+    );
+  }
+  
+  Widget _buildRealItem(ActualFlow flow, bool showDate) {
+    final currencySymbol = flow.currency.symbol;
+    
+    return GestureDetector(
+      onTap: () => _showRealDetailBottomSheet(flow),
+      behavior: HitTestBehavior.opaque,
+      child: Container(
+        padding: EdgeInsets.only(
+          left: TossSpacing.space4,
+          right: TossSpacing.space4,
+          top: TossSpacing.space3,
+          bottom: TossSpacing.space3,
+        ),
+        child: Row(
+        children: [
+          // Date section (centered vertically, aligned left)
+          Container(
+            width: 42,
+            padding: EdgeInsets.only(left: TossSpacing.space1),
+            child: showDate
+                ? Text(
+                    flow.getFormattedDate(),
+                    style: TossTextStyles.caption.copyWith(
+                      color: Colors.grey[600],
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14,
+                      height: 1.2,
+                    ),
+                  )
+                : SizedBox.shrink(),
+          ),
+          
+          SizedBox(width: TossSpacing.space3),
+          
+          // Transaction details
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  _formatTransactionAmount(transaction['amount'], isIncome),
+                  'Cash Count',
                   style: TossTextStyles.body.copyWith(
-                    color: isIncome 
-                        ? Theme.of(context).colorScheme.primary 
-                        : Colors.black87,
                     fontWeight: FontWeight.w600,
                     fontSize: 16,
+                    color: Colors.black87,
                     height: 1.2,
                   ),
                 ),
                 SizedBox(height: 8),
-                Text(
-                  _formatCurrency(transaction['balance']),
-                  style: TossTextStyles.caption.copyWith(
-                    color: Colors.grey[500],
-                    fontSize: 13,
-                    height: 1.2,
-                  ),
+                Row(
+                  children: [
+                    Flexible(
+                      child: Text(
+                        flow.createdBy.fullName,
+                        style: TossTextStyles.caption.copyWith(
+                          color: Colors.grey[500],
+                          fontSize: 13,
+                          height: 1.2,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    if (flow.getFormattedTime().isNotEmpty) ...[
+                      Text(
+                        ' • ',
+                        style: TossTextStyles.caption.copyWith(
+                          color: Colors.grey[500],
+                          fontSize: 13,
+                          height: 1.2,
+                        ),
+                      ),
+                      Text(
+                        flow.getFormattedTime(),
+                        style: TossTextStyles.caption.copyWith(
+                          color: Colors.grey[500],
+                          fontSize: 13,
+                          height: 1.2,
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
               ],
             ),
+          ),
+          
+          SizedBox(width: TossSpacing.space2),
+          
+          // Amount and Balance for Real tab
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              // Flow amount (what was counted)
+              Text(
+                _formatBalance(flow.flowAmount, currencySymbol),
+                style: TossTextStyles.body.copyWith(
+                  color: flow.flowAmount >= 0 
+                      ? Theme.of(context).colorScheme.primary 
+                      : Colors.black87,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 16,
+                  height: 1.2,
+                ),
+              ),
+              SizedBox(height: 4),
+              // Running balance
+              Text(
+                _formatBalance(flow.balanceAfter, currencySymbol),
+                style: TossTextStyles.caption.copyWith(
+                  color: Colors.grey[600],
+                  fontSize: 13,
+                  height: 1.2,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+      ),
+    );
+  }
+  
+  void _showJournalDetailBottomSheet(JournalFlow flow) {
+    final currencySymbol = _locationSummary?.currencyCode == 'VND' ? '₫' : widget.currencySymbol ?? '';
+    
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (BuildContext context) {
+        return Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(20),
+              topRight: Radius.circular(20),
+            ),
+          ),
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(context).size.height * 0.8,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Handle bar
+              Container(
+                margin: const EdgeInsets.only(top: 12),
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              
+              // Header
+              Padding(
+                padding: const EdgeInsets.fromLTRB(24, 20, 20, 16),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        'Journal Entry Details',
+                        style: TossTextStyles.h2.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close, size: 24),
+                      onPressed: () => Navigator.pop(context),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                    ),
+                  ],
+                ),
+              ),
+              
+              // Content
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Description
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.grey[50],
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Description',
+                              style: TossTextStyles.caption.copyWith(
+                                color: Colors.grey[600],
+                                fontSize: 12,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              flow.journalDescription,
+                              style: TossTextStyles.body.copyWith(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 16,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      
+                      const SizedBox(height: 16),
+                      
+                      // Amount details
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: flow.flowAmount > 0 
+                              ? Theme.of(context).colorScheme.primary.withOpacity(0.1)
+                              : Colors.red.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Column(
+                          children: [
+                            _buildDetailRow('Transaction Amount', 
+                              _formatTransactionAmount(flow.flowAmount, currencySymbol),
+                              isHighlighted: true),
+                            const SizedBox(height: 12),
+                            _buildDetailRow('Balance Before', 
+                              _formatBalance(flow.balanceBefore, currencySymbol)),
+                            const SizedBox(height: 8),
+                            _buildDetailRow('Balance After', 
+                              _formatBalance(flow.balanceAfter, currencySymbol)),
+                          ],
+                        ),
+                      ),
+                      
+                      const SizedBox(height: 16),
+                      
+                      // Transaction details
+                      _buildDetailRow('Account', flow.accountName),
+                      _buildDetailRow('Type', flow.journalType),
+                      _buildDetailRow('Created By', flow.createdBy.fullName),
+                      _buildDetailRow('Date', DateFormat('MMM d, yyyy').format(DateTime.parse(flow.createdAt))),
+                      _buildDetailRow('Time', flow.getFormattedTime()),
+                      
+                      const SizedBox(height: 20),
+                    ],
+                  ),
+                ),
+              ),
+              
+              // Bottom safe area
+              SizedBox(height: MediaQuery.of(context).padding.bottom),
+            ],
+          ),
+        );
+      },
+    );
+  }
+  
+  void _showRealDetailBottomSheet(ActualFlow flow) {
+    final currencySymbol = flow.currency.symbol;
+    
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (BuildContext context) {
+        return Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(20),
+              topRight: Radius.circular(20),
+            ),
+          ),
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(context).size.height * 0.9,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Handle bar
+              Container(
+                margin: const EdgeInsets.only(top: 12),
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              
+              // Header
+              Padding(
+                padding: const EdgeInsets.fromLTRB(24, 20, 20, 16),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        'Cash Count Details',
+                        style: TossTextStyles.h2.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close, size: 24),
+                      onPressed: () => Navigator.pop(context),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                    ),
+                  ],
+                ),
+              ),
+              
+              // Content
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Balance overview
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Column(
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Total Balance',
+                                      style: TossTextStyles.caption.copyWith(
+                                        color: Colors.grey[600],
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      _formatBalance(flow.balanceAfter, currencySymbol),
+                                      style: TossTextStyles.h1.copyWith(
+                                        fontWeight: FontWeight.w700,
+                                        color: Theme.of(context).colorScheme.primary,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                Icon(
+                                  Icons.account_balance_wallet_outlined,
+                                  color: Theme.of(context).colorScheme.primary,
+                                  size: 32,
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 16),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Previous Balance',
+                                        style: TossTextStyles.caption.copyWith(
+                                          color: Colors.grey[600],
+                                          fontSize: 11,
+                                        ),
+                                      ),
+                                      Text(
+                                        _formatBalance(flow.balanceBefore, currencySymbol),
+                                        style: TossTextStyles.body.copyWith(
+                                          fontWeight: FontWeight.w500,
+                                          fontSize: 14,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.end,
+                                    children: [
+                                      Text(
+                                        'Change',
+                                        style: TossTextStyles.caption.copyWith(
+                                          color: Colors.grey[600],
+                                          fontSize: 11,
+                                        ),
+                                      ),
+                                      Text(
+                                        _formatTransactionAmount(flow.flowAmount, currencySymbol),
+                                        style: TossTextStyles.body.copyWith(
+                                          fontWeight: FontWeight.w500,
+                                          fontSize: 14,
+                                          color: flow.flowAmount >= 0 ? Colors.green : Colors.red,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                      
+                      const SizedBox(height: 20),
+                      
+                      // Denomination breakdown
+                      if (flow.currentDenominations.isNotEmpty) ...[
+                        Text(
+                          'Denomination Breakdown',
+                          style: TossTextStyles.body.copyWith(
+                            fontWeight: FontWeight.w700,
+                            fontSize: 16,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        
+                        ...flow.currentDenominations.map((denomination) => 
+                          Container(
+                            margin: const EdgeInsets.only(bottom: 8),
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Colors.grey[50],
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: Colors.grey[200]!),
+                            ),
+                            child: Column(
+                              children: [
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    // Denomination value
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                      decoration: BoxDecoration(
+                                        color: Colors.blue.withOpacity(0.1),
+                                        borderRadius: BorderRadius.circular(4),
+                                      ),
+                                      child: Text(
+                                        _formatCurrency(denomination.denominationValue, currencySymbol),
+                                        style: TossTextStyles.body.copyWith(
+                                          fontWeight: FontWeight.w600,
+                                          color: Colors.blue[700],
+                                          fontSize: 14,
+                                        ),
+                                      ),
+                                    ),
+                                    
+                                    // Type badge
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                      decoration: BoxDecoration(
+                                        color: Colors.grey[200],
+                                        borderRadius: BorderRadius.circular(4),
+                                      ),
+                                      child: Text(
+                                        denomination.denominationType.toUpperCase(),
+                                        style: TossTextStyles.caption.copyWith(
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                
+                                const SizedBox(height: 12),
+                                
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            'Previous Qty',
+                                            style: TossTextStyles.caption.copyWith(
+                                              color: Colors.grey[600],
+                                              fontSize: 11,
+                                            ),
+                                          ),
+                                          Text(
+                                            '${denomination.previousQuantity}',
+                                            style: TossTextStyles.body.copyWith(
+                                              fontWeight: FontWeight.w500,
+                                              fontSize: 14,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.center,
+                                        children: [
+                                          Text(
+                                            'Change',
+                                            style: TossTextStyles.caption.copyWith(
+                                              color: Colors.grey[600],
+                                              fontSize: 11,
+                                            ),
+                                          ),
+                                          Text(
+                                            '${denomination.quantityChange > 0 ? "+" : ""}${denomination.quantityChange}',
+                                            style: TossTextStyles.body.copyWith(
+                                              fontWeight: FontWeight.w600,
+                                              fontSize: 14,
+                                              color: denomination.quantityChange > 0 
+                                                  ? Colors.green 
+                                                  : denomination.quantityChange < 0 
+                                                      ? Colors.red 
+                                                      : Colors.black,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.end,
+                                        children: [
+                                          Text(
+                                            'Current Qty',
+                                            style: TossTextStyles.caption.copyWith(
+                                              color: Colors.grey[600],
+                                              fontSize: 11,
+                                            ),
+                                          ),
+                                          Text(
+                                            '${denomination.currentQuantity}',
+                                            style: TossTextStyles.body.copyWith(
+                                              fontWeight: FontWeight.w600,
+                                              fontSize: 14,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                
+                                const SizedBox(height: 8),
+                                
+                                // Subtotal
+                                Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(
+                                        'Subtotal',
+                                        style: TossTextStyles.caption.copyWith(
+                                          color: Colors.grey[600],
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                      Text(
+                                        _formatBalance(denomination.subtotal, currencySymbol),
+                                        style: TossTextStyles.body.copyWith(
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 14,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )
+                        ),
+                        
+                        const SizedBox(height: 16),
+                      ],
+                      
+                      // Transaction info
+                      _buildDetailRow('Counted By', flow.createdBy.fullName),
+                      _buildDetailRow('Date', DateFormat('MMM d, yyyy').format(DateTime.parse(flow.createdAt))),
+                      _buildDetailRow('Time', flow.getFormattedTime()),
+                      
+                      const SizedBox(height: 20),
+                    ],
+                  ),
+                ),
+              ),
+              
+              // Bottom safe area
+              SizedBox(height: MediaQuery.of(context).padding.bottom),
+            ],
+          ),
+        );
+      },
+    );
+  }
+  
+  Widget _buildDetailRow(String label, String value, {bool isHighlighted = false}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 120,
+            child: Text(
+              label,
+              style: TossTextStyles.body.copyWith(
+                color: Colors.grey[600],
+                fontSize: 14,
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: TossTextStyles.body.copyWith(
+                fontWeight: isHighlighted ? FontWeight.w700 : FontWeight.w500,
+                fontSize: isHighlighted ? 16 : 14,
+                color: isHighlighted ? Theme.of(context).colorScheme.primary : null,
+              ),
+            ),
+          ),
         ],
       ),
     );

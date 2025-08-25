@@ -11,6 +11,9 @@ import '../../widgets/toss/toss_tab_bar.dart';
 import '../../../data/services/cash_location_service.dart';
 import 'add_account_page.dart';
 import 'total_journal_page.dart';
+import 'total_real_page.dart';
+import 'bank_real_page.dart';
+import 'vault_real_page.dart';
 import '../../widgets/common/toss_scaffold.dart';
 
 class CashLocationPage extends ConsumerStatefulWidget {
@@ -21,30 +24,60 @@ class CashLocationPage extends ConsumerStatefulWidget {
 }
 
 class _CashLocationPageState extends ConsumerState<CashLocationPage>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   late TabController _tabController;
   int _selectedTab = 0;
   
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _tabController = TabController(length: 3, vsync: this);
     _tabController.addListener(() {
-      setState(() {
-        _selectedTab = _tabController.index;
-      });
+      if (_selectedTab != _tabController.index) {
+        setState(() {
+          _selectedTab = _tabController.index;
+        });
+        // Refresh data when switching tabs
+        _refreshData();
+      }
     });
   }
   
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _tabController.dispose();
     super.dispose();
   }
   
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      // Refresh data when app comes to foreground
+      _refreshData();
+    }
+  }
+  
+  void _refreshData() {
+    final appState = ref.read(appStateProvider);
+    final companyId = appState.companyChoosen;
+    final storeId = appState.storeChoosen;
+    
+    if (companyId.isNotEmpty && storeId.isNotEmpty) {
+      // Invalidate the provider to force a refresh
+      ref.invalidate(allCashLocationsProvider(
+        CashLocationQueryParams(
+          companyId: companyId, 
+          storeId: storeId,
+        ),
+      ));
+    }
+  }
+  
   String _formatCurrency(double amount, [String? currencySymbol]) {
     final formatter = NumberFormat('#,###', 'en_US');
-    final symbol = currencySymbol ?? '₩';
+    final symbol = currencySymbol ?? '';
     return '$symbol${formatter.format(amount.round())}';
   }
   
@@ -136,24 +169,74 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
                 },
                 loading: () => const Center(child: CircularProgressIndicator()),
                 error: (error, stack) => Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        'Error loading locations',
-                        style: TossTextStyles.body.copyWith(
-                          color: Colors.grey[500],
-                        ),
-                      ),
-                      SizedBox(height: TossSpacing.space2),
-                      Text(
-                        error.toString(),
-                        style: TossTextStyles.caption.copyWith(
+                  child: Padding(
+                    padding: EdgeInsets.all(TossSpacing.space5),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        // Error icon
+                        Icon(
+                          Icons.wifi_off_rounded,
+                          size: 64,
                           color: Colors.grey[400],
                         ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
+                        SizedBox(height: TossSpacing.space4),
+                        Text(
+                          'Connection Error',
+                          style: TossTextStyles.h2.copyWith(
+                            color: Colors.grey[700],
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        SizedBox(height: TossSpacing.space3),
+                        Text(
+                          'Unable to load cash locations.\nPlease check your internet connection.',
+                          style: TossTextStyles.body.copyWith(
+                            color: Colors.grey[500],
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        SizedBox(height: TossSpacing.space5),
+                        // Retry button
+                        ElevatedButton.icon(
+                          onPressed: () => _refreshData(),
+                          icon: Icon(Icons.refresh),
+                          label: Text('Retry'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Theme.of(context).colorScheme.primary,
+                            foregroundColor: Colors.white,
+                            padding: EdgeInsets.symmetric(
+                              horizontal: TossSpacing.space5,
+                              vertical: TossSpacing.space3,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                            ),
+                          ),
+                        ),
+                        // Show technical error details in debug mode
+                        if (error.toString().contains('SocketException'))
+                          Padding(
+                            padding: EdgeInsets.only(top: TossSpacing.space4),
+                            child: Container(
+                              padding: EdgeInsets.all(TossSpacing.space3),
+                              decoration: BoxDecoration(
+                                color: Colors.red[50],
+                                borderRadius: BorderRadius.circular(TossBorderRadius.sm),
+                                border: Border.all(color: Colors.red[200]!),
+                              ),
+                              child: Text(
+                                'Network connection failed',
+                                style: TossTextStyles.caption.copyWith(
+                                  color: Colors.red[700],
+                                  fontSize: 12,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -213,7 +296,7 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
     final totalError = totalReal - totalJournal;
     
     // Get currency symbol from first location (all should have same symbol)
-    final currencySymbol = cashLocations.isNotEmpty ? cashLocations.first.currencySymbol : '₩';
+    final currencySymbol = cashLocations.isNotEmpty ? cashLocations.first.currencySymbol : '';
     
     return Container(
       padding: EdgeInsets.all(TossSpacing.space5),
@@ -243,11 +326,12 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
           
           SizedBox(height: TossSpacing.space3),
           
-          // Total Real
+          // Total Real (clickable for all tabs)
           _buildBalanceRow(
             'Total Real',
             _formatCurrency(totalReal, currencySymbol),
             isIncome: false,
+            isClickable: true, // Now clickable for all tabs: cash, bank, vault
           ),
           
           // Divider
@@ -281,22 +365,8 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
     );
   }
   
-  Widget _buildBalanceRow(String label, String amount, {required bool isIncome}) {
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: () {
-        // Navigate to Total Journal page
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => TotalJournalPage(
-              locationType: _currentLocationType,
-              journalType: label.toLowerCase().contains('journal') ? 'journal' : 'real',
-            ),
-          ),
-        );
-      },
-      child: Row(
+  Widget _buildBalanceRow(String label, String amount, {required bool isIncome, bool isClickable = true}) {
+    final Widget rowContent = Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Row(
@@ -319,15 +389,73 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
                 ),
               ),
               SizedBox(width: TossSpacing.space1),
-              Icon(
-                Icons.chevron_right,
-                size: 20,
-                color: Colors.grey[400],
-              ),
+              if (isClickable)
+                Icon(
+                  Icons.chevron_right,
+                  size: 20,
+                  color: Colors.grey[400],
+                ),
             ],
           ),
         ],
-      ),
+    );
+    
+    if (!isClickable) {
+      // Return non-clickable row (not used anymore, but kept for flexibility)
+      return rowContent;
+    }
+    
+    // Return clickable row with navigation
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () async {
+        // Refresh data before navigating
+        _refreshData();
+        
+        // Navigate to appropriate page based on label
+        if (label.toLowerCase().contains('journal')) {
+          // Total Journal works for all tabs (cash, bank, vault)
+          await Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => TotalJournalPage(
+                locationType: _currentLocationType,
+                journalType: 'journal',
+              ),
+            ),
+          );
+        } else if (label.toLowerCase().contains('real')) {
+          // Total Real works for all tabs
+          if (_currentLocationType == 'cash') {
+            await Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => TotalRealPage(
+                  locationType: _currentLocationType,
+                ),
+              ),
+            );
+          } else if (_currentLocationType == 'bank') {
+            await Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const BankRealPage(),
+              ),
+            );
+          } else if (_currentLocationType == 'vault') {
+            await Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const VaultRealPage(),
+              ),
+            );
+          }
+        }
+        
+        // Refresh data when returning from detail pages
+        _refreshData();
+      },
+      child: rowContent,
     );
   }
   
@@ -361,9 +489,9 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
           // Add New Account button
           GestureDetector(
             behavior: HitTestBehavior.opaque,
-            onTap: () {
+            onTap: () async {
               // Navigate to Add Account page
-              Navigator.push(
+              await Navigator.push(
                 context,
                 MaterialPageRoute(
                   builder: (context) => AddAccountPage(
@@ -371,6 +499,9 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
                   ),
                 ),
               );
+              
+              // Refresh data when returning from add account page
+              _refreshData();
             },
             child: Container(
               padding: EdgeInsets.symmetric(
@@ -421,8 +552,17 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
     
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
-      onTap: () {
-        context.push(
+      onTap: () async {
+        // Refresh data before navigating
+        _refreshData();
+        
+        // Debug logging (uncomment for debugging)
+        // print('Navigating to account detail:');
+        // print('  locationId: ${location.locationId}');
+        // print('  locationName: ${location.locationName}');
+        // print('  locationType: $_currentLocationType');
+        
+        await context.push(
           '/cashLocation/account/${Uri.encodeComponent(location.locationName)}',
           extra: {
             'locationId': location.locationId,
@@ -437,6 +577,9 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
             'errors': location.cashDifference.abs().round(),
           },
         );
+        
+        // Refresh data when returning from detail page
+        _refreshData();
       },
       child: Container(
         padding: EdgeInsets.symmetric(
@@ -502,7 +645,7 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
                       ),
                       SizedBox(height: TossSpacing.space1),
                       Text(
-                        '${location.cashDifference.abs().round()}',
+                        _formatCurrency(location.cashDifference.abs(), ''),
                         style: TossTextStyles.caption.copyWith(
                           color: const Color(0xFFE53935),
                           fontSize: 12,
