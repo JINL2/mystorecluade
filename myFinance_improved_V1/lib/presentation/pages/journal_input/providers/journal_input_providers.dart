@@ -27,7 +27,6 @@ final journalAccountsProvider = FutureProvider<List<Map<String, dynamic>>>((ref)
   }
 });
 
-// Note: Cash locations are now handled by AutonomousCashLocationSelector widget
 
 // Provider for fetching counterparties (old - kept for backward compatibility)
 final journalCounterpartiesProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
@@ -70,6 +69,7 @@ final journalCounterpartyCashLocationsProvider = FutureProvider.family<List<Map<
         .from('cash_locations')
         .select('cash_location_id, location_name, location_type, store_id')
         .eq('company_id', linkedCompanyId)
+        .eq('is_deleted', false)  // Filter out deleted cash locations
         .order('location_name');
     
     return List<Map<String, dynamic>>.from(response);
@@ -92,6 +92,7 @@ final journalCounterpartyStoreCashLocationsProvider = FutureProvider.family<List
         .from('cash_locations')
         .select('cash_location_id, location_name, location_type')
         .eq('store_id', storeId)
+        .eq('is_deleted', false)  // Filter out deleted cash locations
         .order('location_name');
     
     return List<Map<String, dynamic>>.from(response);

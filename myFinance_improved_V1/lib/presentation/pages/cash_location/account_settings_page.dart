@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:go_router/go_router.dart';
 import 'dart:convert';
 import '../../../core/themes/toss_text_styles.dart';
 import '../../../core/themes/toss_spacing.dart';
@@ -31,6 +32,7 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage> {
   bool _isMainAccount = false;
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _noteController = TextEditingController();
+  final TextEditingController _descriptionController = TextEditingController();
   final TextEditingController _bankNameController = TextEditingController();
   final TextEditingController _accountNumberController = TextEditingController();
   final _supabase = Supabase.instance.client;
@@ -66,6 +68,16 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage> {
           if (widget.locationType == 'bank') {
             _bankNameController.text = response['bank_name'] ?? '';
             _accountNumberController.text = response['bank_account'] ?? '';
+          } else {
+            // For cash/vault, load description from location_info
+            try {
+              final locationInfo = response['location_info'] != null 
+                  ? jsonDecode(response['location_info']) 
+                  : {};
+              _descriptionController.text = locationInfo['description'] ?? '';
+            } catch (e) {
+              _descriptionController.text = '';
+            }
           }
         });
       }
@@ -97,6 +109,16 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage> {
           if (widget.locationType == 'bank') {
             _bankNameController.text = response['bank_name'] ?? '';
             _accountNumberController.text = response['bank_account'] ?? '';
+          } else {
+            // For cash/vault, load description from location_info
+            try {
+              final locationInfo = response['location_info'] != null 
+                  ? jsonDecode(response['location_info']) 
+                  : {};
+              _descriptionController.text = locationInfo['description'] ?? '';
+            } catch (e) {
+              _descriptionController.text = '';
+            }
           }
         });
       }
@@ -108,6 +130,7 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage> {
   void dispose() {
     _nameController.dispose();
     _noteController.dispose();
+    _descriptionController.dispose();
     _bankNameController.dispose();
     _accountNumberController.dispose();
     super.dispose();
@@ -266,15 +289,25 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage> {
             ),
           ],
           
-          // Note field
-          _buildInputField(
-            'Note',
-            _noteController,
-            hintText: 'Add note',
-            onTap: () {
-              _showNoteEditBottomSheet();
-            },
-          ),
+          // Description field for cash/vault, Note field for bank
+          if (widget.locationType != 'bank')
+            _buildInputField(
+              'Description',
+              _descriptionController,
+              hintText: 'Add description',
+              onTap: () {
+                _showDescriptionEditBottomSheet();
+              },
+            )
+          else
+            _buildInputField(
+              'Note',
+              _noteController,
+              hintText: 'Add note',
+              onTap: () {
+                _showNoteEditBottomSheet();
+              },
+            ),
           
           // Main Account switch
           Container(
@@ -453,6 +486,38 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage> {
     );
   }
   
+  void _showDescriptionEditBottomSheet() {
+    final initialText = _descriptionController.text;
+    
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: TossColors.transparent,
+      isDismissible: true,
+      enableDrag: true,
+      builder: (BuildContext modalContext) {
+        return _SimpleNoteEditSheet(
+          initialNote: initialText,
+          onSave: (String newDescription) async {
+            // Close the modal first
+            Navigator.of(modalContext).pop();
+            // Update database
+            await _updateCashLocationDescription(newDescription);
+            // Then update the parent state
+            if (mounted) {
+              setState(() {
+                _descriptionController.text = newDescription;
+              });
+            }
+          },
+          onCancel: () {
+            Navigator.of(modalContext).pop();
+          },
+        );
+      },
+    );
+  }
+  
   void _showBankNameEditBottomSheet() {
     final initialText = _bankNameController.text;
     
@@ -540,12 +605,16 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage> {
             ),
             TextButton(
               onPressed: () async {
-                Navigator.of(context).pop();
+                Navigator.of(context).pop(); // Close the dialog
                 await _deleteCashLocation();
                 if (mounted) {
                   // Invalidate cache to refresh the list
                   ref.invalidate(allCashLocationsProvider);
-                  Navigator.of(context).pop(); // Go back to previous screen
+                  // Pop twice to go back through Navigator stack
+                  // First pop: Account Settings -> Account Detail
+                  Navigator.of(context).pop();
+                  // Second pop: Account Detail -> Cash Control
+                  Navigator.of(context).pop();
                 }
               },
               child: Text(
@@ -659,6 +728,80 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage> {
     }
   }
   
+  Future<void> _updateCashLocationDescription(String newDescription) async {
+    try {
+      // First, get the current location_info
+      Map<String, dynamic> currentData;
+      if (widget.locationId.isNotEmpty) {
+        final response = await _supabase
+            .from('cash_locations')
+            .select('location_info')
+            .eq('cash_location_id', widget.locationId)
+            .single();
+        currentData = response;
+      } else {
+        // Fallback: Get using name and other identifying fields
+        final appState = ref.read(appStateProvider);
+        final response = await _supabase
+            .from('cash_locations')
+            .select('location_info')
+            .eq('location_name', _currentAccountName)
+            .eq('location_type', widget.locationType)
+            .eq('company_id', appState.companyChoosen)
+            .eq('store_id', appState.storeChoosen)
+            .single();
+        currentData = response;
+      }
+      
+      // Parse and update location_info
+      Map<String, dynamic> locationInfo = {};
+      if (currentData['location_info'] != null) {
+        try {
+          locationInfo = jsonDecode(currentData['location_info']);
+        } catch (e) {
+          locationInfo = {};
+        }
+      }
+      locationInfo['description'] = newDescription;
+      
+      // Update the database
+      if (widget.locationId.isNotEmpty) {
+        await _supabase
+            .from('cash_locations')
+            .update({'location_info': jsonEncode(locationInfo)})
+            .eq('cash_location_id', widget.locationId);
+      } else {
+        // Fallback: Update using name and other identifying fields
+        final appState = ref.read(appStateProvider);
+        await _supabase
+            .from('cash_locations')
+            .update({'location_info': jsonEncode(locationInfo)})
+            .eq('location_name', _currentAccountName)
+            .eq('location_type', widget.locationType)
+            .eq('company_id', appState.companyChoosen)
+            .eq('store_id', appState.storeChoosen);
+      }
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Description updated successfully'),
+            backgroundColor: TossColors.success,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to update description: ${e.toString()}'),
+            backgroundColor: TossColors.error,
+          ),
+        );
+      }
+    }
+  }
+  
   Future<void> _updateMainAccountStatus(bool isMain) async {
     try {
       // If setting as main, first unset any existing main account
@@ -723,18 +866,18 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage> {
   
   Future<void> _deleteCashLocation() async {
     try {
-      // Soft delete by setting deleted_at timestamp
+      // Soft delete by setting is_deleted = true
       if (widget.locationId.isNotEmpty) {
         await _supabase
             .from('cash_locations')
-            .update({'deleted_at': DateTime.now().toIso8601String()})
+            .update({'is_deleted': true})
             .eq('cash_location_id', widget.locationId);
       } else {
         // Fallback: Delete using name and other identifying fields
         final appState = ref.read(appStateProvider);
         await _supabase
             .from('cash_locations')
-            .update({'deleted_at': DateTime.now().toIso8601String()})
+            .update({'is_deleted': true})
             .eq('location_name', _currentAccountName)
             .eq('location_type', widget.locationType)
             .eq('company_id', appState.companyChoosen)

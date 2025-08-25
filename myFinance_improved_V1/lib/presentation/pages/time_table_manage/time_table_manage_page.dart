@@ -22,6 +22,9 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
   DateTime focusedMonth = DateTime.now();
   String? selectedStoreId;
   
+  // ScrollController for Schedule tab
+  final ScrollController _scheduleScrollController = ScrollController();
+  
   // Store shift metadata and monthly status
   dynamic shiftMetadata; // Store shift metadata from RPC
   List<dynamic> monthlyShiftData = []; // Store the array response from get_monthly_shift_status_manager
@@ -51,12 +54,12 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: 2, vsync: this, initialIndex: 0);
     _tabController.addListener(() {
       if (_tabController.indexIsChanging) {
         HapticFeedback.selectionClick();
         // Fetch overview data when switching to Manage tab
-        if (_tabController.index == 1 && selectedStoreId != null) {
+        if (_tabController.index == 0 && selectedStoreId != null) {
           fetchManagerOverview();
           fetchManagerCards();
         }
@@ -80,6 +83,7 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
   @override
   void dispose() {
     _tabController.dispose();
+    _scheduleScrollController.dispose();
     super.dispose();
   }
   
@@ -178,8 +182,8 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
                             fontWeight: FontWeight.w400,
                           ),
                           tabs: const [
-                            Tab(text: 'Schedule'),
                             Tab(text: 'Manage'),
+                            Tab(text: 'Schedule'),
                           ],
                         ),
                       ],
@@ -193,8 +197,8 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
               child: TabBarView(
                 controller: _tabController,
                 children: [
-                  _buildScheduleTab(),
                   _buildManageTab(),
+                  _buildScheduleTab(),
                 ],
               ),
             ),
@@ -290,15 +294,15 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
   }
   
   // Fetch manager overview data from Supabase RPC
-  Future<void> fetchManagerOverview({DateTime? forDate}) async {
+  Future<void> fetchManagerOverview({DateTime? forDate, bool forceRefresh = false}) async {
     if (selectedStoreId == null || selectedStoreId!.isEmpty) return;
     
     // Use provided date or manageSelectedDate for Manage tab
     final targetDate = forDate ?? manageSelectedDate;
     final monthKey = '${targetDate.year}-${targetDate.month.toString().padLeft(2, '0')}';
     
-    // Check if we already have data for this month
-    if (managerOverviewDataByMonth.containsKey(monthKey)) {
+    // Check if we already have data for this month (unless force refresh is requested)
+    if (!forceRefresh && managerOverviewDataByMonth.containsKey(monthKey)) {
       return;
     }
     
@@ -352,15 +356,15 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
   }
   
   // Fetch manager shift cards from Supabase RPC
-  Future<void> fetchManagerCards({DateTime? forDate}) async {
+  Future<void> fetchManagerCards({DateTime? forDate, bool forceRefresh = false}) async {
     if (selectedStoreId == null || selectedStoreId!.isEmpty) return;
     
     // Use provided date or manageSelectedDate for Manage tab
     final targetDate = forDate ?? manageSelectedDate;
     final monthKey = '${targetDate.year}-${targetDate.month.toString().padLeft(2, '0')}';
     
-    // Check if we already have data for this month
-    if (managerCardsDataByMonth.containsKey(monthKey)) {
+    // Check if we already have data for this month (unless force refresh is requested)
+    if (!forceRefresh && managerCardsDataByMonth.containsKey(monthKey)) {
       return;
     }
     
@@ -1223,6 +1227,20 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
                                 selectedShiftRequest = shiftRequestId;
                                 selectedShiftIsApproved = isApproved;
                                 selectedShiftRequestId = shiftRequestIdFromData;
+                                
+                                // Auto-scroll to show the Approve button
+                                // Delay to allow setState to complete and UI to update
+                                Future.delayed(const Duration(milliseconds: 100), () {
+                                  if (_scheduleScrollController.hasClients) {
+                                    // Calculate the position to scroll to
+                                    // We want to scroll to the bottom to show the button
+                                    _scheduleScrollController.animateTo(
+                                      _scheduleScrollController.position.maxScrollExtent,
+                                      duration: const Duration(milliseconds: 500),
+                                      curve: Curves.easeInOut,
+                                    );
+                                  }
+                                });
                               }
                             });
                           } : null,
@@ -2467,6 +2485,7 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
         // Main content with scroll
         Expanded(
           child: ListView(
+                controller: _scheduleScrollController,
                 physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
                 padding: EdgeInsets.zero,
                 children: [
@@ -2561,10 +2580,17 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
                             selectedShiftRequestId = null;
                             loadedMonths.remove(monthKey);
                             loadedMonths.remove(nextMonthKey);
+                            // Clear Manager tab cached data to force refresh
+                            managerOverviewDataByMonth.remove(monthKey);
+                            managerCardsDataByMonth.remove(monthKey);
                           });
                           
                           // Force refresh the shift data to show updated status
                           await fetchMonthlyShiftStatus(forDate: selectedDate, forceRefresh: true);
+                          
+                          // Also refresh Manager tab data to reflect the changes immediately
+                          await fetchManagerOverview(forDate: selectedDate, forceRefresh: true);
+                          await fetchManagerCards(forDate: selectedDate, forceRefresh: true);
                           
                         } catch (e) {
                           ScaffoldMessenger.of(context).showSnackBar(
@@ -2624,10 +2650,20 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
     
     // If result is true, data was changed, so refresh
     if (result == true) {
-      // Refresh the manage tab data
+      // Refresh both tabs data
       if (selectedStoreId != null) {
-        fetchManagerOverview();
-        fetchManagerCards();
+        // Clear cache to force refresh
+        final monthKey = '${manageSelectedDate.year}-${manageSelectedDate.month.toString().padLeft(2, '0')}';
+        setState(() {
+          managerOverviewDataByMonth.remove(monthKey);
+          managerCardsDataByMonth.remove(monthKey);
+          loadedMonths.remove(monthKey);
+        });
+        
+        // Fetch fresh data
+        await fetchMonthlyShiftStatus(forDate: manageSelectedDate, forceRefresh: true);
+        await fetchManagerOverview(forDate: manageSelectedDate, forceRefresh: true);
+        await fetchManagerCards(forDate: manageSelectedDate, forceRefresh: true);
       }
     }
   }
@@ -2768,6 +2804,11 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<_ShiftDetailsBottomShe
   String? tagContent;
   late bool isProblemSolved;
   
+  // Original values to track changes
+  String? originalStartTime;
+  String? originalEndTime;
+  late bool originalProblemSolved;
+  
   final List<String> tagTypes = [
     'Schedule Change',
     'Exceptional Case', 
@@ -2784,6 +2825,10 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<_ShiftDetailsBottomShe
     // Initialize with confirmed times
     editedStartTime = widget.card['confirm_start_time'];
     editedEndTime = widget.card['confirm_end_time'];
+    // Store original values
+    originalStartTime = editedStartTime;
+    originalEndTime = editedEndTime;
+    
     // Tag values start as null
     selectedTagType = null;
     tagContent = null;
@@ -2802,6 +2847,22 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<_ShiftDetailsBottomShe
       // If problem and not solved, default to unsolved (unclicked)
       isProblemSolved = false;
     }
+    originalProblemSolved = isProblemSolved;
+  }
+  
+  // Check if any changes have been made
+  bool hasChanges() {
+    // Check if times have changed
+    final timeChanged = editedStartTime != originalStartTime || 
+                       editedEndTime != originalEndTime;
+    
+    // Check if problem status changed
+    final problemChanged = isProblemSolved != originalProblemSolved;
+    
+    // Check if tag is being added
+    final tagAdded = (selectedTagType != null && tagContent != null && tagContent!.isNotEmpty);
+    
+    return timeChanged || problemChanged || tagAdded;
   }
   
   @override
@@ -2937,111 +2998,62 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<_ShiftDetailsBottomShe
   }
   
   Future<void> _showNotApproveDialog(BuildContext context, Map<String, dynamic> card) async {
-    String removalReason = '';
-    
     final result = await showDialog<bool>(
       context: context,
       builder: (BuildContext context) {
-        return StatefulBuilder(
-          builder: (context, setState) {
-            return AlertDialog(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
-              ),
-              title: Text(
-                'Not Approve Shift',
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: Text(
+            'Confirm',
+            style: TossTextStyles.body.copyWith(
+              color: TossColors.gray900,
+              fontWeight: FontWeight.w700,
+              fontSize: 20,
+            ),
+          ),
+          content: Text(
+            'Are you sure you want to not approve this shift?',
+            style: TossTextStyles.body.copyWith(
+              color: TossColors.gray700,
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: Text(
+                'Cancel',
                 style: TossTextStyles.body.copyWith(
-                  color: TossColors.gray900,
+                  color: TossColors.gray500,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              style: TextButton.styleFrom(
+                foregroundColor: TossColors.warning,
+              ),
+              child: Text(
+                'Yes',
+                style: TossTextStyles.body.copyWith(
+                  color: TossColors.warning,
                   fontWeight: FontWeight.w700,
-                  fontSize: 20,
                 ),
               ),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Please provide a reason for not approving this shift:',
-                    style: TossTextStyles.body.copyWith(
-                      color: TossColors.gray700,
-                    ),
-                  ),
-                  const SizedBox(height: TossSpacing.space3),
-                  Container(
-                    decoration: BoxDecoration(
-                      color: TossColors.gray50,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: TossColors.gray200,
-                        width: 1,
-                      ),
-                    ),
-                    child: TextField(
-                      onChanged: (value) {
-                        setState(() {
-                          removalReason = value;
-                        });
-                      },
-                      decoration: InputDecoration(
-                        hintText: 'Enter reason...',
-                        hintStyle: TossTextStyles.body.copyWith(
-                          color: TossColors.gray400,
-                        ),
-                        border: InputBorder.none,
-                        contentPadding: const EdgeInsets.all(TossSpacing.space3),
-                      ),
-                      style: TossTextStyles.body.copyWith(
-                        color: TossColors.gray900,
-                      ),
-                      maxLines: 3,
-                      minLines: 2,
-                    ),
-                  ),
-                ],
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(false),
-                  child: Text(
-                    'Cancel',
-                    style: TossTextStyles.body.copyWith(
-                      color: TossColors.gray500,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-                TextButton(
-                  onPressed: removalReason.trim().isEmpty 
-                    ? null 
-                    : () => Navigator.of(context).pop(true),
-                  style: TextButton.styleFrom(
-                    foregroundColor: removalReason.trim().isEmpty 
-                      ? TossColors.gray400 
-                      : TossColors.warning,
-                  ),
-                  child: Text(
-                    'Confirm',
-                    style: TossTextStyles.body.copyWith(
-                      color: removalReason.trim().isEmpty 
-                        ? TossColors.gray400 
-                        : TossColors.warning,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ),
-              ],
-            );
-          },
+            ),
+          ],
         );
       },
     );
     
-    if (result == true && mounted && removalReason.trim().isNotEmpty) {
-      await _notApproveShift(card['request_id'], removalReason);
+    if (result == true && mounted) {
+      await _toggleApprovalStatus(card['shift_request_id']);
     }
   }
   
-  Future<void> _notApproveShift(String requestId, String reason) async {
+  Future<void> _toggleApprovalStatus(String shiftRequestId) async {
     try {
       // Show loading indicator
       showDialog(
@@ -3049,7 +3061,9 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<_ShiftDetailsBottomShe
         barrierDismissible: true, // Allow dismissing loading dialogs
         builder: (BuildContext context) {
           return const Center(
-            child: CircularProgressIndicator(),
+            child: CircularProgressIndicator(
+              color: TossColors.primary,
+            ),
           );
         },
       );
@@ -3058,13 +3072,16 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<_ShiftDetailsBottomShe
       final appState = ref.read(appStateProvider);
       final userId = appState.user['user_id'] ?? '';
       
-      // Call RPC to not approve shift
-      final response = await Supabase.instance.client.rpc(
-        'manager_shift_notapprove',
+      if (userId.isEmpty || shiftRequestId.isEmpty) {
+        throw Exception('Missing user ID or shift request ID');
+      }
+      
+      // Call RPC function to toggle shift approval (same as Schedule tab)
+      await Supabase.instance.client.rpc(
+        'toggle_shift_approval',
         params: {
-          'p_shift_request_id': requestId,
-          'p_removed_by': userId,
-          'p_removal_reason': reason,
+          'p_user_id': userId,
+          'p_shift_request_ids': [shiftRequestId],  // Pass as array
         },
       );
       
@@ -3078,7 +3095,7 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<_ShiftDetailsBottomShe
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              'Success: Changed to Not Approved',
+              'Shift request changed to pending successfully',
               style: TossTextStyles.body.copyWith(
                 color: Colors.white,
               ),
@@ -3093,8 +3110,8 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<_ShiftDetailsBottomShe
           ),
         );
         
-        // Close the bottom sheet to refresh data
-        Navigator.of(context).pop();
+        // Close the bottom sheet and return true to trigger refresh in parent
+        Navigator.of(context).pop(true);
       }
     } catch (e) {
       // Close loading dialog if still open
@@ -3107,7 +3124,7 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<_ShiftDetailsBottomShe
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              'Failed to update approval status: ${e.toString()}',
+              'Error: ${e.toString()}',
               style: TossTextStyles.body.copyWith(
                 color: Colors.white,
               ),
@@ -3835,6 +3852,87 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<_ShiftDetailsBottomShe
                 ),
                 const SizedBox(height: TossSpacing.space4),
                 
+                // Problem Status Section
+                Container(
+                    padding: const EdgeInsets.all(TossSpacing.space4),
+                    decoration: BoxDecoration(
+                      color: TossColors.gray50,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Header with toggle switch
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.warning_amber_rounded,
+                                  size: 20,
+                                  color: isProblemSolved ? TossColors.success : TossColors.warning,
+                                ),
+                                const SizedBox(width: TossSpacing.space2),
+                                Text(
+                                  'Problem Status',
+                                  style: TossTextStyles.body.copyWith(
+                                    color: TossColors.gray900,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            // Modern toggle switch
+                            Transform.scale(
+                              scale: 0.9,
+                              child: Switch(
+                                value: isProblemSolved,
+                                onChanged: (value) {
+                                  setState(() {
+                                    isProblemSolved = value;
+                                  });
+                                },
+                                activeColor: TossColors.success,
+                                activeTrackColor: TossColors.success.withOpacity(0.5),
+                                inactiveThumbColor: TossColors.gray400,
+                                inactiveTrackColor: TossColors.gray200,
+                                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: TossSpacing.space2),
+                        // Status description
+                        AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          child: Row(
+                            children: [
+                              Icon(
+                                isProblemSolved ? Icons.check_circle_outline : Icons.info_outline,
+                                size: 16,
+                                color: isProblemSolved ? TossColors.success : TossColors.gray600,
+                              ),
+                              const SizedBox(width: TossSpacing.space1),
+                              Expanded(
+                                child: Text(
+                                  isProblemSolved 
+                                    ? 'The shift problem has been resolved'
+                                    : 'Toggle on when the problem is resolved',
+                                  style: TossTextStyles.caption.copyWith(
+                                    color: isProblemSolved ? TossColors.success : TossColors.gray600,
+                                    fontSize: 13,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                ),
+                const SizedBox(height: TossSpacing.space4),
+                
                 // Add Tag Section
                 Container(
                   padding: const EdgeInsets.all(TossSpacing.space4),
@@ -4049,33 +4147,14 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<_ShiftDetailsBottomShe
           child: SafeArea(
             child: Column(
               children: [
-                // First Row: Not Approve and Problem Solve
-                Row(
-                  children: [
-                    Expanded(
-                      child: _buildBottomButton(
-                        'Not Approve',
-                        TossColors.warning,
-                        Icons.remove_circle_outline,
-                        () => _showNotApproveDialog(context, card),
-                        outlined: true,
-                      ),
-                    ),
-                    const SizedBox(width: TossSpacing.space3),
-                    Expanded(
-                      child: _buildBottomButton(
-                        'Problem Solve',
-                        TossColors.success,
-                        isProblemSolved ? Icons.check_circle : Icons.check_circle_outline,
-                        () {
-                          setState(() {
-                            isProblemSolved = !isProblemSolved;
-                          });
-                        },
-                        outlined: !isProblemSolved,
-                      ),
-                    ),
-                  ],
+                // First Row: Not Approve button (full width)
+                _buildBottomButton(
+                  'Not Approve',
+                  TossColors.warning,
+                  Icons.remove_circle_outline,
+                  card['is_approved'] == false ? null : () => _showNotApproveDialog(context, card),
+                  outlined: true,
+                  disabled: card['is_approved'] == false,
                 ),
                 const SizedBox(height: TossSpacing.space3),
                 // Second Row: Save button (full width)
@@ -4083,7 +4162,7 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<_ShiftDetailsBottomShe
                   'Save',
                   TossColors.primary,
                   Icons.save_outlined,
-                  () async {
+                  hasChanges() ? () async {
                     // Validate tag inputs
                     if ((selectedTagType != null && tagContent == null) || 
                         (selectedTagType == null && tagContent != null)) {
@@ -4271,9 +4350,10 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<_ShiftDetailsBottomShe
                         ),
                       );
                     }
-                  },
+                  } : null,
                   outlined: false,
                   fullWidth: true,
+                  disabled: !hasChanges(),
                 ),
               ],
             ),
@@ -4287,14 +4367,17 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<_ShiftDetailsBottomShe
     String label,
     Color color,
     IconData icon,
-    VoidCallback onTap, {
+    VoidCallback? onTap, {
     bool outlined = false,
     bool fullWidth = false,
+    bool disabled = false,
   }) {
+    final effectiveColor = disabled ? TossColors.gray300 : color;
+    
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: onTap,
+        onTap: disabled ? null : onTap,
         borderRadius: BorderRadius.circular(14),
         child: Container(
           padding: const EdgeInsets.symmetric(
@@ -4302,10 +4385,10 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<_ShiftDetailsBottomShe
             vertical: TossSpacing.space3,
           ),
           decoration: BoxDecoration(
-            color: outlined ? Colors.transparent : color,
+            color: outlined ? Colors.transparent : (disabled ? TossColors.gray100 : effectiveColor),
             borderRadius: BorderRadius.circular(14),
             border: Border.all(
-              color: outlined ? color.withOpacity(0.3) : color,
+              color: outlined ? (disabled ? TossColors.gray200 : effectiveColor.withOpacity(0.3)) : (disabled ? TossColors.gray200 : effectiveColor),
               width: outlined ? 1.5 : 0,
             ),
           ),
@@ -4315,13 +4398,17 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<_ShiftDetailsBottomShe
               Icon(
                 icon,
                 size: 20,
-                color: outlined ? color : Colors.white,
+                color: disabled 
+                    ? TossColors.gray400 
+                    : (outlined ? effectiveColor : Colors.white),
               ),
               const SizedBox(width: TossSpacing.space2),
               Text(
                 label,
                 style: TossTextStyles.body.copyWith(
-                  color: outlined ? color : Colors.white,
+                  color: disabled 
+                      ? TossColors.gray400 
+                      : (outlined ? effectiveColor : Colors.white),
                   fontWeight: FontWeight.w700,
                 ),
               ),

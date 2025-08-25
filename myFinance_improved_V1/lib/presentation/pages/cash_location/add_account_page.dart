@@ -8,6 +8,7 @@ import '../../../core/themes/toss_border_radius.dart';
 import '../../providers/app_state_provider.dart';
 import '../../../data/services/cash_location_service.dart';
 import '../../widgets/common/toss_scaffold.dart';
+import '../../../data/services/currency_service.dart';
 
 class AddAccountPage extends ConsumerStatefulWidget {
   final String locationType; // 'cash', 'bank', 'vault'
@@ -25,12 +26,11 @@ class _AddAccountPageState extends ConsumerState<AddAccountPage> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _bankNameController = TextEditingController();
   final TextEditingController _accountNumberController = TextEditingController();
-  final TextEditingController _addressController = TextEditingController();
-  final TextEditingController _detailedAddressController = TextEditingController();
-  final TextEditingController _nicknameController = TextEditingController();
-  final TextEditingController _recipientController = TextEditingController();
-  final TextEditingController _phoneController = TextEditingController();
-  final TextEditingController _instructionsController = TextEditingController();
+  final TextEditingController _descriptionController = TextEditingController();
+  
+  // Currency selection
+  String? _selectedCurrencyId;
+  CurrencyType? _selectedCurrency;
   
   // Track validation state
   bool _hasAttemptedSubmit = false;
@@ -39,12 +39,23 @@ class _AddAccountPageState extends ConsumerState<AddAccountPage> {
   @override
   void initState() {
     super.initState();
-    // Add listeners to track field changes
-    _nameController.addListener(() => _updateFieldStatus('name'));
-    _bankNameController.addListener(() => _updateFieldStatus('bankName'));
-    _accountNumberController.addListener(() => _updateFieldStatus('accountNumber'));
-    _addressController.addListener(() => _updateFieldStatus('address'));
-    _recipientController.addListener(() => _updateFieldStatus('recipient'));
+    // Add listeners to track field changes and update button state
+    _nameController.addListener(() {
+      _updateFieldStatus('name');
+      setState(() {}); // Refresh UI to update button state
+    });
+    
+    if (widget.locationType == 'bank') {
+      _bankNameController.addListener(() {
+        _updateFieldStatus('bankName');
+        setState(() {}); // Refresh UI to update button state
+      });
+      _accountNumberController.addListener(() {
+        _updateFieldStatus('accountNumber');
+        setState(() {}); // Refresh UI to update button state
+      });
+      _updateFieldStatus('currency');
+    }
   }
   
   void _updateFieldStatus(String fieldName) {
@@ -62,8 +73,7 @@ class _AddAccountPageState extends ConsumerState<AddAccountPage> {
       case 'name': return _nameController;
       case 'bankName': return _bankNameController;
       case 'accountNumber': return _accountNumberController;
-      case 'address': return _addressController;
-      case 'recipient': return _recipientController;
+      case 'currency': return TextEditingController(); // Dummy for currency
       default: return _nameController;
     }
   }
@@ -71,10 +81,9 @@ class _AddAccountPageState extends ConsumerState<AddAccountPage> {
   List<String> _getRequiredFields() {
     List<String> required = ['name'];
     if (widget.locationType == 'bank') {
-      required.addAll(['bankName', 'accountNumber']);
-    } else {
-      required.addAll(['address', 'recipient']);
+      required.addAll(['bankName', 'accountNumber', 'currency']);
     }
+    // For cash and vault, only name is required, description is optional
     return required;
   }
   
@@ -83,6 +92,11 @@ class _AddAccountPageState extends ConsumerState<AddAccountPage> {
   }
   
   bool _shouldShowError(String fieldName) {
+    if (fieldName == 'currency') {
+      return _hasAttemptedSubmit && 
+             _isFieldRequired(fieldName) && 
+             _selectedCurrencyId == null;
+    }
     return _hasAttemptedSubmit && 
            _isFieldRequired(fieldName) && 
            !_filledFields.contains(fieldName);
@@ -93,12 +107,7 @@ class _AddAccountPageState extends ConsumerState<AddAccountPage> {
     _nameController.dispose();
     _bankNameController.dispose();
     _accountNumberController.dispose();
-    _addressController.dispose();
-    _detailedAddressController.dispose();
-    _nicknameController.dispose();
-    _recipientController.dispose();
-    _phoneController.dispose();
-    _instructionsController.dispose();
+    _descriptionController.dispose();
     super.dispose();
   }
   
@@ -160,58 +169,22 @@ class _AddAccountPageState extends ConsumerState<AddAccountPage> {
                         fieldName: 'accountNumber',
                         keyboardType: TextInputType.number,
                       ),
+                      
+                      SizedBox(height: TossSpacing.space6),
+                      _buildSectionTitle('Currency', fieldName: 'currency'),
+                      SizedBox(height: TossSpacing.space2),
+                      _buildCurrencyDropdown(),
                     ],
                     
-                    // Address fields (for cash/vault locations)
+                    // Description field (for cash/vault locations)
                     if (widget.locationType != 'bank') ...[
                       SizedBox(height: TossSpacing.space6),
-                      _buildSectionTitle('Address', fieldName: 'address'),
+                      _buildSectionTitle('Description'),
                       SizedBox(height: TossSpacing.space2),
                       _buildTextField(
-                        controller: _addressController,
-                        hintText: 'Search building, lot, or road',
-                        fieldName: 'address',
-                      ),
-                      
-                      SizedBox(height: TossSpacing.space4),
-                      _buildTextField(
-                        controller: _detailedAddressController,
-                        hintText: 'Enter the detailed address',
-                        maxLines: 2,
-                      ),
-                      
-                      SizedBox(height: TossSpacing.space6),
-                      _buildSectionTitle('Address nickname'),
-                      SizedBox(height: TossSpacing.space2),
-                      _buildTextField(
-                        controller: _nicknameController,
-                        hintText: 'Enter address nickname (e.g., friend\'s house)',
-                      ),
-                      
-                      SizedBox(height: TossSpacing.space6),
-                      _buildSectionTitle('Recipient', fieldName: 'recipient'),
-                      SizedBox(height: TossSpacing.space2),
-                      _buildTextField(
-                        controller: _recipientController,
-                        hintText: 'Enter recipient\'s name',
-                        fieldName: 'recipient',
-                      ),
-                      
-                      SizedBox(height: TossSpacing.space6),
-                      _buildSectionTitle('Phone number'),
-                      SizedBox(height: TossSpacing.space2),
-                      _buildTextField(
-                        controller: _phoneController,
-                        hintText: 'Enter your phone number',
-                        keyboardType: TextInputType.phone,
-                      ),
-                      
-                      SizedBox(height: TossSpacing.space6),
-                      _buildSectionTitle('Delivery instructions'),
-                      SizedBox(height: TossSpacing.space2),
-                      _buildDropdownField(
-                        controller: _instructionsController,
-                        hintText: 'Enter delivery instructions',
+                        controller: _descriptionController,
+                        hintText: 'Enter description (optional)',
+                        maxLines: 3,
                       ),
                     ],
                     
@@ -370,7 +343,145 @@ class _AddAccountPageState extends ConsumerState<AddAccountPage> {
     );
   }
   
+  Widget _buildCurrencyDropdown() {
+    final currencyTypesAsync = ref.watch(currencyTypesProvider);
+    bool showError = _shouldShowError('currency');
+    
+    return currencyTypesAsync.when(
+      data: (currencies) {
+        return Container(
+          decoration: BoxDecoration(
+            color: showError ? const Color(0xFFFEF2F2) : Colors.white,
+            borderRadius: BorderRadius.circular(TossBorderRadius.md),
+            border: Border.all(
+              color: showError ? const Color(0xFFEF4444) : Colors.grey[300]!,
+              width: 1.0,
+            ),
+          ),
+          child: DropdownButtonFormField<String>(
+            value: _selectedCurrencyId,
+            onChanged: (String? newValue) {
+              setState(() {
+                _selectedCurrencyId = newValue;
+                if (newValue != null) {
+                  _selectedCurrency = currencies.firstWhere(
+                    (currency) => currency.currencyId == newValue,
+                  );
+                  _filledFields.add('currency');
+                } else {
+                  _selectedCurrency = null;
+                  _filledFields.remove('currency');
+                }
+              });
+            },
+            decoration: InputDecoration(
+              hintText: 'Select currency',
+              hintStyle: TossTextStyles.body.copyWith(
+                fontSize: 16,
+                color: showError ? const Color(0xFFEF4444).withOpacity(0.7) : Colors.grey[400],
+              ),
+              border: InputBorder.none,
+              contentPadding: EdgeInsets.symmetric(
+                horizontal: TossSpacing.space4,
+                vertical: TossSpacing.space3,
+              ),
+            ),
+            icon: Icon(
+              Icons.keyboard_arrow_down,
+              color: Colors.grey[400],
+              size: 24,
+            ),
+            isExpanded: true,
+            style: TossTextStyles.body.copyWith(
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+              color: Colors.black87,
+            ),
+            items: currencies.map<DropdownMenuItem<String>>((CurrencyType currency) {
+              return DropdownMenuItem<String>(
+                value: currency.currencyId,
+                child: Row(
+                  children: [
+                    // Currency symbol
+                    Container(
+                      width: 32,
+                      child: Text(
+                        currency.symbol,
+                        style: TossTextStyles.body.copyWith(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: TossSpacing.space2),
+                    // Currency name
+                    Expanded(
+                      child: Text(
+                        currency.currencyName,
+                        style: TossTextStyles.body.copyWith(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    // Currency code
+                    Text(
+                      currency.currencyCode,
+                      style: TossTextStyles.caption.copyWith(
+                        fontSize: 14,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }).toList(),
+          ),
+        );
+      },
+      loading: () => Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(TossBorderRadius.md),
+          border: Border.all(color: Colors.grey[300]!),
+        ),
+        padding: EdgeInsets.all(TossSpacing.space4),
+        child: const Center(
+          child: CircularProgressIndicator(strokeWidth: 2),
+        ),
+      ),
+      error: (error, stack) => Container(
+        decoration: BoxDecoration(
+          color: const Color(0xFFFEF2F2),
+          borderRadius: BorderRadius.circular(TossBorderRadius.md),
+          border: Border.all(color: const Color(0xFFEF4444)),
+        ),
+        padding: EdgeInsets.all(TossSpacing.space4),
+        child: Text(
+          'Failed to load currencies',
+          style: TossTextStyles.body.copyWith(
+            color: const Color(0xFFEF4444),
+            fontSize: 16,
+          ),
+        ),
+      ),
+    );
+  }
+  
   Widget _buildBottomButton() {
+    // Check if account name is filled
+    final bool isAccountNameFilled = _nameController.text.trim().isNotEmpty;
+    
+    // For bank accounts, also check other required fields
+    final bool isBankFieldsFilled = widget.locationType != 'bank' || 
+        (_bankNameController.text.trim().isNotEmpty && 
+         _accountNumberController.text.trim().isNotEmpty && 
+         _selectedCurrencyId != null);
+    
+    final bool isButtonEnabled = isAccountNameFilled && isBankFieldsFilled;
+    
     return Container(
       padding: EdgeInsets.all(TossSpacing.space4),
       child: SafeArea(
@@ -378,12 +489,15 @@ class _AddAccountPageState extends ConsumerState<AddAccountPage> {
           width: double.infinity,
           height: 56,
           child: ElevatedButton(
-            onPressed: () {
+            onPressed: isButtonEnabled ? () {
               // Handle confirm action
               _handleConfirm();
-            },
+            } : null,
             style: ElevatedButton.styleFrom(
-              backgroundColor: Theme.of(context).colorScheme.primary,
+              backgroundColor: isButtonEnabled 
+                  ? Theme.of(context).colorScheme.primary 
+                  : Colors.grey[300],
+              disabledBackgroundColor: Colors.grey[300],
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(TossBorderRadius.md),
               ),
@@ -392,7 +506,7 @@ class _AddAccountPageState extends ConsumerState<AddAccountPage> {
             child: Text(
               'Confirm',
               style: TossTextStyles.body.copyWith(
-                color: Colors.white,
+                color: isButtonEnabled ? Colors.white : Colors.grey[500],
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
               ),
@@ -413,9 +527,13 @@ class _AddAccountPageState extends ConsumerState<AddAccountPage> {
     
     // Check if all required fields are filled
     List<String> requiredFields = _getRequiredFields();
-    List<String> emptyFields = requiredFields.where((field) => 
-      !_filledFields.contains(field)
-    ).toList();
+    List<String> emptyFields = requiredFields.where((field) {
+      if (field == 'currency') {
+        // Special handling for currency dropdown
+        return _selectedCurrencyId == null;
+      }
+      return !_filledFields.contains(field);
+    }).toList();
     
     if (emptyFields.isNotEmpty) {
       // Just show the red styling, no snackbar
@@ -456,14 +574,9 @@ class _AddAccountPageState extends ConsumerState<AddAccountPage> {
           'account_number': _accountNumberController.text.trim(),
         };
       } else {
-        // For cash/vault locations, store address and contact info
+        // For cash/vault locations, store only description
         locationInfo = {
-          'address': _addressController.text.trim(),
-          'detailed_address': _detailedAddressController.text.trim(),
-          'nickname': _nicknameController.text.trim(),
-          'recipient': _recipientController.text.trim(),
-          'phone': _phoneController.text.trim(),
-          'instructions': _instructionsController.text.trim(),
+          'description': _descriptionController.text.trim(),
         };
       }
       
@@ -474,13 +587,16 @@ class _AddAccountPageState extends ConsumerState<AddAccountPage> {
         'location_name': _nameController.text.trim(),
         'location_type': widget.locationType,
         'location_info': jsonEncode(locationInfo),
-        // currency_code is left as null - will use database default
       };
       
       // Add bank-specific fields if it's a bank account
       if (widget.locationType == 'bank') {
         data['bank_name'] = _bankNameController.text.trim();
         data['bank_account'] = _accountNumberController.text.trim();
+        // Add currency_id for bank accounts
+        if (_selectedCurrencyId != null) {
+          data['currency_id'] = _selectedCurrencyId!;
+        }
       }
       
       // Insert into Supabase
