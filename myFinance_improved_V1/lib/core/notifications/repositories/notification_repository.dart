@@ -54,7 +54,7 @@ class NotificationRepository {
       // Notification stored in database
       return NotificationDbModel.fromJson(response);
       
-    } catch (e, stackTrace) {
+    } catch (e) {
       // Failed to store notification: $e
       return null;
     }
@@ -176,7 +176,7 @@ class NotificationRepository {
       // FCM token stored
       return UserFcmTokenModel.fromJson(response);
       
-    } catch (e, stackTrace) {
+    } catch (e) {
       // Failed to store FCM token: $e
       return null;
     }
@@ -273,7 +273,7 @@ class NotificationRepository {
       // Default notification settings created
       return UserNotificationSettingsModel.fromJson(response);
       
-    } catch (e, stackTrace) {
+    } catch (e) {
       // Failed to create default settings: $e
       return null;
     }
@@ -315,7 +315,7 @@ class NotificationRepository {
       // Notification settings updated
       return UserNotificationSettingsModel.fromJson(response);
       
-    } catch (e, stackTrace) {
+    } catch (e) {
       // Failed to update user settings: $e
       return null;
     }

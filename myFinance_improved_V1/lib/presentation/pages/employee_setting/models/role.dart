@@ -5,7 +5,7 @@ class Role {
   final String? companyId;
   final String? parentRoleId;
   final String? description;
-  final Map<String, dynamic>? tags;
+  final List<String>? tags;
   final bool? isDeletable;
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -31,7 +31,7 @@ class Role {
       companyId: json['company_id'] as String?,
       parentRoleId: json['parent_role_id'] as String?,
       description: json['description'] as String?,
-      tags: json['tags'] as Map<String, dynamic>?,
+      tags: json['tags'] != null ? List<String>.from(json['tags']) : null,
       isDeletable: json['is_deletable'] as bool?,
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
@@ -60,7 +60,7 @@ class Role {
     String? companyId,
     String? parentRoleId,
     String? description,
-    Map<String, dynamic>? tags,
+    List<String>? tags,
     bool? isDeletable,
     DateTime? createdAt,
     DateTime? updatedAt,

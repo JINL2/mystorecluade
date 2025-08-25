@@ -1,5 +1,3 @@
-import 'package:flutter/material.dart';
-
 /// Tag validation utility for role tags functionality
 /// Provides validation rules and error handling for role tags
 class TagValidator {

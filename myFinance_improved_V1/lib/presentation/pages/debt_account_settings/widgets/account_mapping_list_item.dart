@@ -52,7 +52,7 @@ class _AccountMappingListItemState extends State<AccountMappingListItem>
       context: context,
       backgroundColor: TossColors.transparent,
       barrierColor: TossColors.overlay, // Standard modal overlay color
-      enableDrag: false, // Disable system drag handle, use custom handle bar instead
+      enableDrag: true, // Allow swipe-to-dismiss
       builder: (context) => Container(
         decoration: BoxDecoration(
           color: TossColors.surface,

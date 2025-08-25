@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/themes/toss_colors.dart';
 import '../../../../core/themes/toss_text_styles.dart';
 import '../../../../core/themes/toss_spacing.dart';
-import '../../../widgets/toss/toss_checkbox.dart';
 import '../../../widgets/toss/toss_search_field.dart';
 import '../../../widgets/toss/toss_primary_button.dart';
 import '../../../widgets/toss/toss_secondary_button.dart';
@@ -45,7 +44,7 @@ class _RoleManagementModalState extends ConsumerState<RoleManagementModal> {
     final rolesAsync = ref.watch(rolesProvider);
 
     return Container(
-      height: MediaQuery.of(context).size.height * 0.85,
+      height: MediaQuery.of(context).size.height * 0.8,
       decoration: BoxDecoration(
         color: TossColors.background,
         borderRadius: BorderRadius.vertical(
@@ -54,6 +53,16 @@ class _RoleManagementModalState extends ConsumerState<RoleManagementModal> {
       ),
       child: Column(
         children: [
+          // Drag handle for visual cue
+          Container(
+            margin: EdgeInsets.only(top: TossSpacing.space3),
+            width: 40,
+            height: 4,
+            decoration: BoxDecoration(
+              color: TossColors.gray300,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
           // Header
           _buildHeader(),
           
@@ -75,6 +84,9 @@ class _RoleManagementModalState extends ConsumerState<RoleManagementModal> {
             child: rolesAsync.when(
               data: (roles) {
                 final filteredRoles = roles.where((role) {
+                  // Exclude current role from available options
+                  if (role.roleName == widget.currentRole) return false;
+                  
                   if (_searchQuery.isEmpty) return true;
                   return role.roleName.toLowerCase().contains(_searchQuery.toLowerCase());
                 }).toList();
@@ -91,7 +103,9 @@ class _RoleManagementModalState extends ConsumerState<RoleManagementModal> {
                         ),
                         SizedBox(height: TossSpacing.space3),
                         Text(
-                          _searchQuery.isEmpty ? 'No roles available' : 'No matching roles found',
+                          _searchQuery.isEmpty 
+                              ? 'No other roles available to assign' 
+                              : 'No matching roles found',
                           style: TossTextStyles.body.copyWith(
                             color: TossColors.gray600,
                           ),
@@ -108,12 +122,10 @@ class _RoleManagementModalState extends ConsumerState<RoleManagementModal> {
                     final role = filteredRoles[index];
                     final isSelected = _selectedRoleName == role.roleName;
                     
-                    final isCurrent = role.roleName == widget.currentRole;
-                    
                     return _RoleItem(
                       role: role,
                       isSelected: isSelected,
-                      isCurrent: isCurrent,
+                      isCurrent: false,  // No longer needed since current role is excluded
                       onTap: () {
                         setState(() {
                           if (isSelected) {

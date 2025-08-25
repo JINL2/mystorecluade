@@ -51,7 +51,7 @@ class LocalNotificationService {
       _isInitialized = true;
       // Local notifications initialized
       
-    } catch (e, stackTrace) {
+    } catch (e) {
       // Failed to initialize local notifications: $e
       rethrow;
     }

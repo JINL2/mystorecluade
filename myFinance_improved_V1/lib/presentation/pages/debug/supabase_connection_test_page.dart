@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../../core/themes/toss_colors.dart';
+import '../../../core/themes/toss_text_styles.dart';
+import '../../../core/themes/toss_spacing.dart';
+import '../../../core/themes/toss_animations.dart';
 import '../../../data/services/user_profile_service.dart';
 import '../../providers/auth_provider.dart';
 import '../../widgets/common/toss_scaffold.dart';
@@ -141,7 +145,7 @@ class _SupabaseConnectionTestPageState extends ConsumerState<SupabaseConnectionT
       if (success) {
         _addLog('✅ Profile operation completed successfully');
         _addLog('🔄 Refreshing database query...');
-        await Future.delayed(const Duration(milliseconds: 500));
+        await Future.delayed(TossAnimations.slow);
         await _testDirectDatabaseQuery();
       } else {
         _addLog('⚠️ Profile operation returned false (may already exist)');
@@ -322,11 +326,11 @@ class _SupabaseConnectionTestPageState extends ConsumerState<SupabaseConnectionT
     return TossScaffold(
       appBar: AppBar(
         title: const Text('Supabase Connection Test'),
-        backgroundColor: Colors.blue,
-        foregroundColor: Colors.white,
+        backgroundColor: TossColors.primary,
+        foregroundColor: TossColors.white,
       ),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(TossSpacing.space4),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -334,20 +338,20 @@ class _SupabaseConnectionTestPageState extends ConsumerState<SupabaseConnectionT
             Card(
               color: currentUser != null ? Colors.green[50] : Colors.red[50],
               child: Padding(
-                padding: const EdgeInsets.all(16.0),
+                padding: const EdgeInsets.all(TossSpacing.space4),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       currentUser != null ? '✅ Authenticated' : '❌ Not Authenticated',
                       style: TextStyle(
-                        fontSize: 18,
+                        fontSize: TossTextStyles.h4.fontSize!,
                         fontWeight: FontWeight.bold,
                         color: currentUser != null ? Colors.green[800] : Colors.red[800],
                       ),
                     ),
                     if (currentUser != null) ...[
-                      const SizedBox(height: 8),
+                      const SizedBox(height: TossSpacing.space2),
                       Text('Email: ${currentUser.email}'),
                       Text('User ID: ${currentUser.id}'),
                       if (currentUser.userMetadata?.isNotEmpty == true)
@@ -358,7 +362,7 @@ class _SupabaseConnectionTestPageState extends ConsumerState<SupabaseConnectionT
               ),
             ),
             
-            const SizedBox(height: 16),
+            const SizedBox(height: TossSpacing.space4),
             
             // Test Buttons
             Wrap(
@@ -403,7 +407,7 @@ class _SupabaseConnectionTestPageState extends ConsumerState<SupabaseConnectionT
               ],
             ),
             
-            const SizedBox(height: 16),
+            const SizedBox(height: TossSpacing.space4),
             
             // Debug Logs
             Expanded(
@@ -413,7 +417,7 @@ class _SupabaseConnectionTestPageState extends ConsumerState<SupabaseConnectionT
                   children: [
                     Container(
                       width: double.infinity,
-                      padding: const EdgeInsets.all(16.0),
+                      padding: const EdgeInsets.all(TossSpacing.space4),
                       decoration: BoxDecoration(
                         color: Colors.grey[800],
                         borderRadius: const BorderRadius.only(
@@ -424,12 +428,12 @@ class _SupabaseConnectionTestPageState extends ConsumerState<SupabaseConnectionT
                       child: Row(
                         children: [
                           const Icon(Icons.terminal, color: Colors.white),
-                          const SizedBox(width: 8),
-                          const Text(
+                          const SizedBox(width: TossSpacing.space2),
+                          Text(
                             'Debug Logs',
                             style: TextStyle(
                               color: Colors.white,
-                              fontSize: 16,
+                              fontSize: TossTextStyles.bodyLarge.fontSize!,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -449,13 +453,13 @@ class _SupabaseConnectionTestPageState extends ConsumerState<SupabaseConnectionT
                     Expanded(
                       child: Container(
                         width: double.infinity,
-                        padding: const EdgeInsets.all(16.0),
+                        padding: const EdgeInsets.all(TossSpacing.space4),
                         child: SingleChildScrollView(
                           child: SelectableText(
                             _debugLogs.join('\n'),
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontFamily: 'monospace',
-                              fontSize: 12,
+                              fontSize: TossTextStyles.caption.fontSize!,
                             ),
                           ),
                         ),

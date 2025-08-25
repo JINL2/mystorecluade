@@ -16,7 +16,7 @@ import '../../providers/auth_provider.dart';
 import '../../providers/enhanced_auth_provider.dart';
 import '../../providers/notification_provider.dart';
 import 'models/homepage_models.dart';
-import 'widgets/modern_drawer.dart';
+import 'widgets/modern_bottom_drawer.dart';
 import '../notifications/notifications_page.dart';
 import '../../../data/services/click_tracking_service.dart';
 import '../../widgets/common/toss_scaffold.dart';
@@ -36,6 +36,108 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    
+    // Ensure company and store are always selected on homepage load
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      _ensureCompanyAndStoreSelected();
+    });
+  }
+
+  /// Ensures first company and first store are always selected on homepage entry
+  Future<void> _ensureCompanyAndStoreSelected() async {
+    try {
+      if (!mounted) return;
+      
+      final appStateNotifier = ref.read(appStateProvider.notifier);
+      final currentState = ref.read(appStateProvider);
+      
+      // Get user data from app state (already loaded by userCompaniesProvider)
+      final userData = currentState.user;
+      
+      // If no user data yet, wait for it to load
+      if (userData.isEmpty) {
+        return;
+      }
+      
+      final companies = userData['companies'] as List<dynamic>? ?? [];
+      
+      if (companies.isEmpty) {
+        return; // No companies available
+      }
+      
+      bool stateChanged = false;
+      
+      // CASE 1: No company selected - auto-select first company and its first store
+      if (currentState.companyChoosen.isEmpty) {
+        final firstCompany = companies.first;
+        final companyId = firstCompany['company_id'] as String;
+        
+        await appStateNotifier.setCompanyChoosen(companyId);
+        stateChanged = true;
+        
+        // Auto-select first store from first company
+        final stores = firstCompany['stores'] as List<dynamic>? ?? [];
+        if (stores.isNotEmpty) {
+          final firstStore = stores.first;
+          final storeId = firstStore['store_id'] as String;
+          await appStateNotifier.setStoreChoosen(storeId);
+        }
+      } 
+      // CASE 2: Company selected but validate and ensure store is selected
+      else {
+        final selectedCompanyExists = companies.any((company) => 
+          company['company_id'] == currentState.companyChoosen);
+          
+        if (!selectedCompanyExists) {
+          // Selected company no longer exists - fallback to first company
+          final firstCompany = companies.first;
+          final companyId = firstCompany['company_id'] as String;
+          
+          await appStateNotifier.setCompanyChoosen(companyId);
+          await appStateNotifier.setStoreChoosen(''); // Reset store selection
+          stateChanged = true;
+          
+          // Auto-select first store from new company
+          final stores = firstCompany['stores'] as List<dynamic>? ?? [];
+          if (stores.isNotEmpty) {
+            final firstStore = stores.first;
+            final storeId = firstStore['store_id'] as String;
+            await appStateNotifier.setStoreChoosen(storeId);
+          }
+        } else {
+          // Company exists - ensure store is selected
+          final selectedCompany = companies.firstWhere((company) => 
+            company['company_id'] == currentState.companyChoosen);
+          final stores = selectedCompany['stores'] as List<dynamic>? ?? [];
+          
+          // Check if current store selection is valid
+          bool hasValidStore = false;
+          if (currentState.storeChoosen.isNotEmpty) {
+            hasValidStore = stores.any((store) => 
+              store['store_id'] == currentState.storeChoosen);
+          }
+          
+          // If no store selected or invalid store, auto-select first store
+          if (currentState.storeChoosen.isEmpty || !hasValidStore) {
+            if (stores.isNotEmpty) {
+              final firstStore = stores.first;
+              final storeId = firstStore['store_id'] as String;
+              await appStateNotifier.setStoreChoosen(storeId);
+              stateChanged = true;
+            }
+          }
+        }
+      }
+      
+      if (stateChanged && mounted) {
+        // Force UI rebuild to reflect new selections
+        setState(() {});
+      }
+      
+    } catch (e) {
+      // Silent error handling - don't crash the homepage
+      print('Error ensuring company/store selection: $e');
+    }
   }
 
   @override
@@ -64,10 +166,6 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
     return TossScaffold(
       scaffoldKey: _scaffoldKey,
       backgroundColor: TossColors.gray100, // Proper Toss background color
-      drawer: userCompaniesAsync.maybeWhen(
-        data: (userData) => ModernDrawer(userData: userData),
-        orElse: () => null,
-      ),
       body: Stack(
         children: [
           // Main Content
@@ -129,7 +227,18 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
       toolbarHeight: 64, // Slightly taller for better visual weight
       leading: IconButton(
         icon: Icon(Icons.menu, color: TossColors.textSecondary, size: 24),
-        onPressed: () => _scaffoldKey.currentState?.openDrawer(),
+        onPressed: () {
+          final userData = ref.read(userCompaniesProvider).maybeWhen(
+            data: (data) => data,
+            orElse: () => null,
+          );
+          if (userData != null) {
+            ModernBottomDrawer.show(
+              context: context,
+              userData: userData,
+            );
+          }
+        },
         padding: EdgeInsets.all(TossSpacing.space3),
       ),
       actions: [
@@ -937,7 +1046,7 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
           context.push('/${feature.route}');
           
           // Track the click if needed
-          final clickService = ClickTrackingService();
+          final clickService = ref.read(clickTrackingServiceProvider);
           clickService.trackFeatureClick(
             featureId: feature.featureId,
             featureName: feature.featureName,

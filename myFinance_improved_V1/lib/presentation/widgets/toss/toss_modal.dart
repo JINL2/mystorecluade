@@ -60,7 +60,7 @@ class TossModal extends StatefulWidget {
       barrierColor: Colors.black54, // Standard barrier color to prevent double barriers
       isScrollControlled: isScrollControlled,
       isDismissible: isDismissible,
-      enableDrag: false, // Disable system drag handle, use custom handle bar instead
+      enableDrag: enableDrag, // Allow swipe-to-dismiss by default
       builder: (context) => TossModal(
         title: title,
         subtitle: subtitle,
@@ -121,7 +121,7 @@ class _TossModalState extends State<TossModal> with SingleTickerProviderStateMix
 
   @override
   Widget build(BuildContext context) {
-    final modalHeight = widget.height ?? MediaQuery.of(context).size.height * 0.9;
+    final modalHeight = widget.height ?? MediaQuery.of(context).size.height * 0.8;
     
     return AnimatedBuilder(
       animation: _animationController,
@@ -205,7 +205,10 @@ class _TossModalState extends State<TossModal> with SingleTickerProviderStateMix
           if (widget.showCloseButton)
             IconButton(
               icon: Icon(Icons.close, color: TossColors.gray600),
-              onPressed: widget.onClose,
+              onPressed: () {
+                FocusScope.of(context).unfocus();
+                widget.onClose?.call();
+              },
             ),
         ],
       ),
@@ -285,7 +288,10 @@ class TossFormModal extends StatefulWidget {
           children: [
             Expanded(
               child: TextButton(
-                onPressed: onCancel ?? (() => Navigator.of(context).pop()),
+                onPressed: onCancel ?? (() {
+                  FocusScope.of(context).unfocus();
+                  Navigator.of(context).pop();
+                }),
                 child: Text(
                   cancelButtonText,
                   style: TossTextStyles.body.copyWith(
@@ -327,7 +333,10 @@ class _TossFormModalState extends State<TossFormModal> {
           children: [
             Expanded(
               child: TextButton(
-                onPressed: widget.onCancel ?? (() => Navigator.of(context).pop()),
+                onPressed: widget.onCancel ?? (() {
+                  FocusScope.of(context).unfocus();
+                  Navigator.of(context).pop();
+                }),
                 child: Text(
                   widget.cancelButtonText,
                   style: TossTextStyles.body.copyWith(
@@ -422,6 +431,7 @@ class TossConfirmationModal extends StatelessWidget {
             Expanded(
               child: TextButton(
                 onPressed: () {
+                  FocusScope.of(context).unfocus();
                   onCancel?.call();
                   Navigator.of(context).pop(false);
                 },
@@ -439,6 +449,7 @@ class TossConfirmationModal extends StatelessWidget {
               child: TossPrimaryButton(
                 text: confirmText,
                 onPressed: () {
+                  FocusScope.of(context).unfocus();
                   onConfirm?.call();
                   Navigator.of(context).pop(true);
                 },

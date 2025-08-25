@@ -24,6 +24,7 @@ class CounterpartyList extends _$CounterpartyList {
   ]) async {
     final supabase = ref.read(supabaseServiceProvider);
     
+    
     try {
       final response = await supabase.client.rpc(
         'get_counterparties',
@@ -34,11 +35,17 @@ class CounterpartyList extends _$CounterpartyList {
         },
       );
 
-      if (response == null) return [];
+
+      if (response == null) {
+        return [];
+      }
 
       final List<dynamic> data = response as List<dynamic>;
-      return data.map((json) => CounterpartyData.fromJson(json as Map<String, dynamic>)).toList();
-    } catch (e) {
+      
+      final result = data.map((json) => CounterpartyData.fromJson(json as Map<String, dynamic>)).toList();
+      
+      return result;
+    } catch (e, stack) {
       // Return empty list on error to prevent UI crashes
       return [];
     }
@@ -74,15 +81,17 @@ class CounterpartyList extends _$CounterpartyList {
 /// Current counterparties based on selected company/store
 @riverpod
 Future<List<CounterpartyData>> currentCounterparties(CurrentCounterpartiesRef ref) async {
-  final appStateNotifier = ref.read(appStateProvider.notifier);
-  final selectedCompany = appStateNotifier.selectedCompany;
-  final selectedStore = appStateNotifier.selectedStore;
-  final companyId = selectedCompany?['company_id'] as String?;
-  final storeId = selectedStore?['store_id'] as String?;
+  final appState = ref.read(appStateProvider);
+  final companyId = appState.companyChoosen;
+  final storeId = appState.storeChoosen;
   
-  if (companyId == null) return [];
   
-  return ref.watch(counterpartyListProvider(companyId, storeId).future);
+  if (companyId.isEmpty) {
+    return [];
+  }
+  
+  final result = await ref.watch(counterpartyListProvider(companyId, storeId.isEmpty ? null : storeId).future);
+  return result;
 }
 
 /// Current counterparties filtered by type
@@ -91,15 +100,13 @@ Future<List<CounterpartyData>> currentCounterpartiesByType(
   CurrentCounterpartiesByTypeRef ref,
   String counterpartyType,
 ) async {
-  final appStateNotifier = ref.read(appStateProvider.notifier);
-  final selectedCompany = appStateNotifier.selectedCompany;
-  final selectedStore = appStateNotifier.selectedStore;
-  final companyId = selectedCompany?['company_id'] as String?;
-  final storeId = selectedStore?['store_id'] as String?;
+  final appState = ref.read(appStateProvider);
+  final companyId = appState.companyChoosen;
+  final storeId = appState.storeChoosen;
   
-  if (companyId == null) return [];
+  if (companyId.isEmpty) return [];
   
-  return ref.watch(counterpartyListProvider(companyId, storeId, counterpartyType).future);
+  return ref.watch(counterpartyListProvider(companyId, storeId.isEmpty ? null : storeId, counterpartyType).future);
 }
 
 /// Customer counterparties only

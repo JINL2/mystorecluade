@@ -7,7 +7,6 @@
 
 import 'package:flutter/material.dart';
 import 'toss_colors.dart';
-import 'toss_text_styles.dart';
 import 'toss_spacing.dart';
 import 'toss_border_radius.dart';
 import 'toss_shadows.dart';
@@ -268,35 +267,32 @@ class TossDesignSystem {
     );
   }
 
-  // ==================== DEBUG HELPERS ====================
+  // ==================== DESIGN TOKEN ACCESS ====================
   
-  /// Print all design tokens (for debugging)
-  static void printDesignTokens() {
-    debugPrint('''
-    ╔════════════════════════════════════════╗
-    ║     TOSS DESIGN SYSTEM TOKENS          ║
-    ╠════════════════════════════════════════╣
-    ║ Colors:                                ║
-    ║   Primary: ${brandColor.value.toRadixString(16)}
-    ║   Success: ${brandSuccess.value.toRadixString(16)}
-    ║   Error: ${brandError.value.toRadixString(16)}
-    ║                                        ║
-    ║ Spacing:                               ║
-    ║   Base unit: 4px                       ║
-    ║   Default: ${TossSpacing.space4}px
-    ║                                        ║
-    ║ Animation:                             ║
-    ║   Normal: ${animationDurations['normal']!.inMilliseconds}ms
-    ║   Medium: ${animationDurations['medium']!.inMilliseconds}ms
-    ║                                        ║
-    ║ Typography:                            ║
-    ║   Font: Inter                          ║
-    ║   Body: 14px                           ║
-    ║                                        ║
-    ║ Border Radius:                         ║
-    ║   Default: ${TossBorderRadius.md}px
-    ║   Card: ${TossBorderRadius.card}px
-    ╚════════════════════════════════════════╝
-    ''');
+  /// Get design system information (for development tools)
+  static Map<String, dynamic> getDesignTokens() {
+    return {
+      'colors': {
+        'primary': '#0064FF',
+        'success': '#00C896', 
+        'error': '#FF5847',
+      },
+      'spacing': {
+        'baseUnit': 4,
+        'default': TossSpacing.space4,
+      },
+      'animation': {
+        'normal': animationDurations['normal']!.inMilliseconds,
+        'medium': animationDurations['medium']!.inMilliseconds,
+      },
+      'typography': {
+        'font': 'Inter',
+        'body': 14,
+      },
+      'borderRadius': {
+        'default': TossBorderRadius.md,
+        'card': TossBorderRadius.card,
+      },
+    };
   }
 }

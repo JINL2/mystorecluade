@@ -10,9 +10,19 @@ import '../../../core/themes/toss_border_radius.dart';
 import '../../../core/constants/ui_constants.dart';
 import 'package:go_router/go_router.dart';
 import '../../widgets/common/toss_scaffold.dart';
+import '../../widgets/common/toss_profile_avatar.dart';
+import '../../widgets/common/toss_white_card.dart';
+import '../../widgets/common/toss_section_header.dart';
+import '../../widgets/common/toss_empty_state_card.dart';
+import '../../widgets/toss/toss_card.dart';
+import '../../widgets/toss/toss_list_tile.dart';
+import 'providers/user_profile_provider.dart';
+import 'providers/dashboard_stats_provider.dart';
+import 'widgets/edit_profile_sheet.dart';
+import '../../../domain/entities/user_profile.dart';
 
-/// Enhanced MyPage with perfect Toss compliance
-/// This version includes all the refinements for 93% Toss compliance
+/// Enhanced MyPage with real data integration and modern UI/UX
+/// Features: Real user profiles, live stats, profile photo editing
 class MyPage extends ConsumerStatefulWidget {
   const MyPage({super.key});
 
@@ -23,12 +33,8 @@ class MyPage extends ConsumerStatefulWidget {
 class _MyPageState extends ConsumerState<MyPage> 
     with TickerProviderStateMixin {
   late AnimationController _entryController;
-  late AnimationController _numberController;
   late ScrollController _scrollController;
   late List<Animation<double>> _animations;
-  
-  // State for interactions
-  final Map<String, bool> _cardPressStates = {};
   
   @override
   void initState() {
@@ -36,17 +42,17 @@ class _MyPageState extends ConsumerState<MyPage>
     _scrollController = ScrollController();
     _setupAnimations();
     _entryController.forward();
-    _numberController.forward();
+    
+    // Load user profile and stats on init
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(userProfileProvider.notifier).refreshProfile();
+      ref.read(dashboardStatsProvider.notifier).refreshStats();
+    });
   }
 
   void _setupAnimations() {
     _entryController = AnimationController(
       duration: Duration(milliseconds: UIConstants.extendedAnimationMs),
-      vsync: this,
-    );
-    
-    _numberController = AnimationController(
-      duration: Duration(milliseconds: UIConstants.numberCounterAnimationMs),
       vsync: this,
     );
 
@@ -85,14 +91,18 @@ class _MyPageState extends ConsumerState<MyPage>
 
   @override
   Widget build(BuildContext context) {
+    final userProfile = ref.watch(userProfileProvider);
+    final dashboardStats = ref.watch(dashboardStatsProvider);
+    
     return TossScaffold(
       backgroundColor: TossColors.gray100,
       body: RefreshIndicator(
         onRefresh: () async {
           HapticFeedback.lightImpact();
-          await Future.delayed(const Duration(seconds: 1));
-          _numberController.reset();
-          _numberController.forward();
+          await Future.wait([
+            ref.read(userProfileProvider.notifier).refreshProfile(),
+            ref.read(dashboardStatsProvider.notifier).refreshStats(),
+          ]);
         },
         color: TossColors.primary,
         displacement: 80,
@@ -102,9 +112,9 @@ class _MyPageState extends ConsumerState<MyPage>
             parent: AlwaysScrollableScrollPhysics(),
           ),
           slivers: [
-            // Enhanced App Bar with blur effect
+            // Modern App Bar with better visual hierarchy
             SliverAppBar(
-              expandedHeight: 140,
+              expandedHeight: 120,
               floating: false,
               pinned: true,
               backgroundColor: TossColors.gray100.withOpacity(0.95),
@@ -116,48 +126,57 @@ class _MyPageState extends ConsumerState<MyPage>
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
                       colors: [
-                        TossColors.primary.withOpacity(0.05),
+                        TossColors.primary.withOpacity(0.08),
                         TossColors.gray100,
                       ],
                     ),
                   ),
                 ),
               ),
-              title: AnimatedOpacity(
-                opacity: 1.0,
-                duration: TossAnimations.normal,
-                child: Text(
-                  'My Page',
-                  style: TossTextStyles.h3.copyWith(
-                    color: TossColors.gray900,
-                    fontWeight: FontWeight.w600,
-                    letterSpacing: -0.3,
-                  ),
+              title: Text(
+                'My Profile',
+                style: TossTextStyles.h2.copyWith(
+                  color: TossColors.gray900,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: -0.4,
                 ),
               ),
               leading: IconButton(
-                icon: const Icon(Icons.arrow_back_ios_new_rounded),
+                icon: Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: TossColors.gray200.withOpacity(0.8),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(Icons.arrow_back_ios_new_rounded, size: 16),
+                ),
                 onPressed: () {
                   HapticFeedback.lightImpact();
                   context.pop();
                 },
                 color: TossColors.gray700,
-                iconSize: 20,
               ),
               actions: [
                 IconButton(
-                  icon: const Icon(Icons.settings_outlined),
+                  icon: Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: TossColors.gray200.withOpacity(0.8),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(Icons.settings_outlined, size: 18),
+                  ),
                   onPressed: () {
                     HapticFeedback.lightImpact();
                     // Navigate to settings
                   },
                   color: TossColors.gray700,
-                  iconSize: 22,
                 ),
+                SizedBox(width: TossSpacing.space3),
               ],
             ),
             
-            // Enhanced Profile Header with gradient border
+            // Enhanced Profile Header with real data
             SliverToBoxAdapter(
               child: AnimatedBuilder(
                 animation: _scrollController,
@@ -166,7 +185,7 @@ class _MyPageState extends ConsumerState<MyPage>
                       ? _scrollController.offset * 0.5
                       : 0.0;
                   return Transform.translate(
-                    offset: Offset(0, -offset.clamp(0.0, 50.0)),
+                    offset: Offset(0, -offset.clamp(0.0, 30.0)),
                     child: child,
                   );
                 },
@@ -174,23 +193,23 @@ class _MyPageState extends ConsumerState<MyPage>
                   opacity: _animations[0],
                   child: SlideTransition(
                     position: _animations[0].drive(
-                      Tween(begin: const Offset(0, 0.3), end: Offset.zero),
+                      Tween(begin: const Offset(0, 0.2), end: Offset.zero),
                     ),
-                    child: _buildEnhancedProfileHeader(),
+                    child: _buildModernProfileHeader(userProfile),
                   ),
                 ),
               ),
             ),
             
-            // Enhanced Quick Stats with animations
+            // Enhanced Quick Stats with real data
             SliverToBoxAdapter(
               child: FadeTransition(
                 opacity: _animations[1],
                 child: SlideTransition(
                   position: _animations[1].drive(
-                    Tween(begin: const Offset(0, 0.2), end: Offset.zero),
+                    Tween(begin: const Offset(0, 0.15), end: Offset.zero),
                   ),
-                  child: _buildEnhancedQuickStats(),
+                  child: _buildModernQuickStats(dashboardStats),
                 ),
               ),
             ),
@@ -208,11 +227,11 @@ class _MyPageState extends ConsumerState<MyPage>
               ),
             ),
             
-            // Enhanced Activity Timeline
+            // Enhanced Activity Timeline with real data
             SliverToBoxAdapter(
               child: FadeTransition(
                 opacity: _animations[3],
-                child: _buildEnhancedActivityTimeline(),
+                child: _buildModernActivityTimeline(dashboardStats),
               ),
             ),
             
@@ -226,80 +245,144 @@ class _MyPageState extends ConsumerState<MyPage>
     );
   }
 
-  Widget _buildEnhancedProfileHeader() {
-    return Container(
+  Widget _buildModernProfileHeader(UserProfileState userProfileState) {
+    final profile = userProfileState.profile;
+    final isLoading = userProfileState.isLoading;
+    
+    if (isLoading) {
+      return Container(
+        height: 140,
+        margin: EdgeInsets.symmetric(
+          horizontal: TossSpacing.space5,
+          vertical: TossSpacing.space4,
+        ),
+        decoration: BoxDecoration(
+          color: TossColors.surface,
+          borderRadius: BorderRadius.circular(24),
+        ),
+        child: Center(
+          child: CircularProgressIndicator(color: TossColors.primary),
+        ),
+      );
+    }
+    
+    if (profile == null) {
+      return Container(
+        margin: EdgeInsets.symmetric(
+          horizontal: TossSpacing.space5,
+          vertical: TossSpacing.space4,
+        ),
+        padding: EdgeInsets.all(TossSpacing.space6),
+        decoration: BoxDecoration(
+          color: TossColors.surface,
+          borderRadius: BorderRadius.circular(24),
+        ),
+        child: Text(
+          'Unable to load profile',
+          style: TossTextStyles.body.copyWith(
+            color: TossColors.gray500,
+          ),
+        ),
+      );
+    }
+    
+    return TossWhiteCard(
       padding: EdgeInsets.all(TossSpacing.space6),
       margin: EdgeInsets.symmetric(
         horizontal: TossSpacing.space5,
         vertical: TossSpacing.space4,
       ),
-      decoration: BoxDecoration(
-        color: TossColors.surface,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.03),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
+      borderRadius: 24,
       child: Row(
         children: [
-          // Enhanced Avatar with gradient border
-          _buildEnhancedAvatar(),
+          // Modern Avatar with profile image support
+          _buildModernAvatar(profile),
           SizedBox(width: TossSpacing.space5),
           
-          // User Info with better typography
+          // User Info with real data
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'John Doe',
-                  style: TossTextStyles.h3.copyWith(
-                    fontWeight: FontWeight.w600,
+                  profile.fullName,
+                  style: TossTextStyles.h2.copyWith(
+                    fontWeight: FontWeight.w700,
                     color: TossColors.gray900,
-                    letterSpacing: -0.3,
+                    letterSpacing: -0.4,
+                    fontSize: 22,
                   ),
                 ),
                 SizedBox(height: TossSpacing.space1),
-                Text(
-                  'Store Manager',
-                  style: TossTextStyles.body.copyWith(
-                    color: TossColors.primary,
-                    fontWeight: FontWeight.w500,
-                    letterSpacing: -0.1,
+                if (profile.displayRole != 'User')
+                  Container(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: TossSpacing.space2,
+                      vertical: TossSpacing.space1,
+                    ),
+                    decoration: BoxDecoration(
+                      color: TossColors.primary.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text(
+                      profile.displayRole,
+                      style: TossTextStyles.caption.copyWith(
+                        color: TossColors.primary,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: -0.1,
+                        fontSize: 11,
+                      ),
+                    ),
                   ),
-                ),
-                SizedBox(height: 2),
+                if (profile.displayRole != 'User') 
+                  SizedBox(height: TossSpacing.space1),
                 Text(
-                  'MyFinance Company',
+                  profile.displayCompany,
                   style: TossTextStyles.caption.copyWith(
                     color: TossColors.gray500,
                     letterSpacing: -0.1,
+                    fontSize: 13,
                   ),
                 ),
+                if (profile.displayStore != 'No Store Assigned')
+                  Text(
+                    profile.displayStore,
+                    style: TossTextStyles.caption.copyWith(
+                      color: TossColors.gray400,
+                      letterSpacing: -0.1,
+                      fontSize: 12,
+                    ),
+                  ),
               ],
             ),
           ),
           
-          // Enhanced Edit Button
-          Container(
-            width: 36,
-            height: 36,
-            decoration: BoxDecoration(
-              color: TossColors.gray100,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: IconButton(
-              icon: const Icon(Icons.edit_outlined),
-              onPressed: () {
+          // Enhanced Edit Button with modern design
+          Material(
+            color: Colors.transparent,
+            child: InkWell(
+              borderRadius: BorderRadius.circular(12),
+              onTap: () {
                 HapticFeedback.lightImpact();
-                // Navigate to edit
+                _showEditProfileSheet(profile);
               },
-              color: TossColors.gray600,
-              iconSize: 18,
+              child: Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: TossColors.primary.withOpacity(0.08),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: TossColors.primary.withOpacity(0.2),
+                    width: 1,
+                  ),
+                ),
+                child: Icon(
+                  Icons.edit_rounded,
+                  color: TossColors.primary,
+                  size: 20,
+                ),
+              ),
             ),
           ),
         ],
@@ -307,81 +390,189 @@ class _MyPageState extends ConsumerState<MyPage>
     );
   }
 
-  Widget _buildEnhancedAvatar() {
+  Widget _buildModernAvatar(UserProfile profile) {
     return GestureDetector(
-      onTap: () => HapticFeedback.lightImpact(),
+      onTap: () {
+        HapticFeedback.lightImpact();
+        _showEditProfileSheet(profile);
+      },
       child: Container(
-        width: 84,
-        height: 84,
-        padding: const EdgeInsets.all(2),
+        width: 90,
+        height: 90,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           gradient: LinearGradient(
             colors: [
               TossColors.primary,
-              TossColors.primary.withOpacity(0.6),
+              TossColors.primary.withOpacity(0.7),
             ],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
+          boxShadow: [
+            BoxShadow(
+              color: TossColors.primary.withOpacity(0.2),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
         ),
-        child: Container(
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: TossColors.surface,
-            border: Border.all(color: TossColors.surface, width: 3),
-          ),
+        child: Padding(
+          padding: const EdgeInsets.all(3),
           child: Container(
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: TossColors.primary.withOpacity(0.08),
+              color: TossColors.surface,
             ),
-            child: Icon(
-              Icons.person,
-              size: 40,
-              color: TossColors.primary.withOpacity(0.8),
+            child: ClipOval(
+              child: profile.hasProfileImage
+                  ? Image.network(
+                      profile.profileImage!,
+                      width: 84,
+                      height: 84,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return _buildAvatarFallback(profile);
+                      },
+                      loadingBuilder: (context, child, loadingProgress) {
+                        if (loadingProgress == null) return child;
+                        return Container(
+                          width: 84,
+                          height: 84,
+                          decoration: BoxDecoration(
+                            color: TossColors.gray100,
+                            shape: BoxShape.circle,
+                          ),
+                          child: Center(
+                            child: CircularProgressIndicator(
+                              color: TossColors.primary,
+                              strokeWidth: 2,
+                            ),
+                          ),
+                        );
+                      },
+                    )
+                  : _buildAvatarFallback(profile),
             ),
           ),
         ),
       ),
     );
   }
-
-  Widget _buildEnhancedQuickStats() {
+  
+  Widget _buildAvatarFallback(UserProfile profile) {
     return Container(
-      height: 110,
+      width: 84,
+      height: 84,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: LinearGradient(
+          colors: [
+            TossColors.primary.withOpacity(0.1),
+            TossColors.primary.withOpacity(0.05),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+      ),
+      child: Center(
+        child: Text(
+          profile.initials,
+          style: TossTextStyles.h1.copyWith(
+            color: TossColors.primary,
+            fontWeight: FontWeight.w700,
+            fontSize: 28,
+            letterSpacing: -0.5,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildModernQuickStats(DashboardStats stats) {
+    if (stats.isLoading) {
+      return Container(
+        height: 120,
+        margin: EdgeInsets.symmetric(vertical: TossSpacing.space4),
+        child: ListView.builder(
+          scrollDirection: Axis.horizontal,
+          padding: EdgeInsets.symmetric(horizontal: TossSpacing.space5),
+          itemCount: 4,
+          itemBuilder: (context, index) => Container(
+            width: 160,
+            margin: EdgeInsets.only(right: TossSpacing.space3),
+            decoration: BoxDecoration(
+              color: TossColors.surface,
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Center(
+              child: CircularProgressIndicator(color: TossColors.primary),
+            ),
+          ),
+        ),
+      );
+    }
+
+    if (stats.error != null) {
+      return Container(
+        height: 100,
+        margin: EdgeInsets.symmetric(vertical: TossSpacing.space4),
+        padding: EdgeInsets.symmetric(horizontal: TossSpacing.space5),
+        child: Container(
+          decoration: BoxDecoration(
+            color: TossColors.error.withOpacity(0.05),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: TossColors.error.withOpacity(0.1),
+              width: 1,
+            ),
+          ),
+          child: Center(
+            child: Text(
+              'Unable to load stats',
+              style: TossTextStyles.body.copyWith(
+                color: TossColors.error,
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    return Container(
+      height: 130,
       margin: EdgeInsets.symmetric(vertical: TossSpacing.space4),
       child: ListView(
         scrollDirection: Axis.horizontal,
         padding: EdgeInsets.symmetric(horizontal: TossSpacing.space5),
         children: [
-          _buildEnhancedStatCard(
-            'Balance',
-            12450,
-            '+2.5%',
-            Icons.account_balance_wallet_outlined,
+          _buildModernStatCard(
+            'Total Balance',
+            stats.totalBalance,
+            stats.balanceChangeText,
+            Icons.account_balance_wallet_rounded,
             TossColors.primary,
             isAmount: true,
           ),
-          _buildEnhancedStatCard(
-            'Transactions',
-            24,
+          _buildModernStatCard(
             'Today',
-            Icons.receipt_long_outlined,
+            stats.todayTransactions.toDouble(),
+            'Transactions',
+            Icons.receipt_long_rounded,
             TossColors.success,
           ),
-          _buildEnhancedStatCard(
-            'Points',
-            450,
-            'Level 3',
-            Icons.star_outline_rounded,
+          _buildModernStatCard(
+            'Reward Points',
+            stats.totalPoints.toDouble(),
+            'Earned',
+            Icons.star_rounded,
             TossColors.warning,
           ),
-          _buildEnhancedStatCard(
+          _buildModernStatCard(
             'Notifications',
-            3,
-            'New',
-            Icons.notifications_none_rounded,
+            stats.newNotifications.toDouble(),
+            'Unread',
+            Icons.notifications_active_rounded,
             TossColors.error,
           ),
         ],
@@ -389,24 +580,29 @@ class _MyPageState extends ConsumerState<MyPage>
     );
   }
 
-  Widget _buildEnhancedStatCard(String title, int value, String subtitle, 
+  Widget _buildModernStatCard(String title, double value, String subtitle, 
       IconData icon, Color color, {bool isAmount = false}) {
     return Container(
-      width: 150,
-      margin: EdgeInsets.only(right: TossSpacing.space3),
+      width: 165,
+      margin: EdgeInsets.only(right: TossSpacing.space4),
       padding: EdgeInsets.all(TossSpacing.space5),
       decoration: BoxDecoration(
         color: TossColors.surface,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: TossColors.gray200.withOpacity(0.5),
-          width: 0.5,
+          color: color.withOpacity(0.1),
+          width: 1.5,
         ),
         boxShadow: [
           BoxShadow(
+            color: color.withOpacity(0.08),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
+          ),
+          BoxShadow(
             color: Colors.black.withOpacity(0.02),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+            blurRadius: 4,
+            offset: const Offset(0, 1),
           ),
         ],
       ),
@@ -414,52 +610,72 @@ class _MyPageState extends ConsumerState<MyPage>
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
+          // Header row with icon and subtitle
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Container(
-                width: 32,
-                height: 32,
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: color.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(icon, size: 20, color: color),
+              ),
+              Container(
+                padding: EdgeInsets.symmetric(
+                  horizontal: TossSpacing.space2,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
                   color: color.withOpacity(0.08),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Icon(icon, size: 18, color: color.withOpacity(0.8)),
-              ),
-              Text(
-                subtitle,
-                style: TossTextStyles.caption.copyWith(
-                  color: color.withOpacity(0.8),
-                  fontWeight: FontWeight.w500,
-                  letterSpacing: -0.1,
+                child: Text(
+                  subtitle,
+                  style: TossTextStyles.caption.copyWith(
+                    color: color,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: -0.1,
+                    fontSize: 10,
+                  ),
                 ),
               ),
             ],
           ),
+          
+          // Value and title
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Animated number counter
-              TweenAnimationBuilder<int>(
-                tween: IntTween(begin: 0, end: value),
+              TweenAnimationBuilder<double>(
+                tween: Tween(begin: 0, end: value),
                 duration: Duration(milliseconds: UIConstants.numberCounterAnimationMs),
                 curve: Curves.easeOutCubic,
-                builder: (context, value, child) {
+                builder: (context, animatedValue, child) {
                   return Text(
-                    isAmount ? '\$${value.toString()}' : value.toString(),
-                    style: TossTextStyles.h3.copyWith(
-                      fontWeight: FontWeight.w600,
+                    isAmount 
+                        ? '\$${animatedValue.toStringAsFixed(0)}' 
+                        : animatedValue.toStringAsFixed(0),
+                    style: TossTextStyles.h2.copyWith(
+                      fontWeight: FontWeight.w700,
                       color: TossColors.gray900,
-                      letterSpacing: -0.2,
+                      letterSpacing: -0.3,
+                      fontSize: 24,
                     ),
                   );
                 },
               ),
+              SizedBox(height: 2),
               Text(
                 title,
                 style: TossTextStyles.caption.copyWith(
                   color: TossColors.gray500,
                   letterSpacing: -0.1,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
             ],
@@ -475,13 +691,10 @@ class _MyPageState extends ConsumerState<MyPage>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Quick Actions',
-            style: TossTextStyles.h3.copyWith(
-              fontWeight: FontWeight.w600,
-              color: TossColors.gray900,
-              letterSpacing: -0.3,
-            ),
+          TossSectionHeader(
+            title: 'Quick Actions',
+            backgroundColor: Colors.transparent,
+            padding: EdgeInsets.zero,
           ),
           SizedBox(height: TossSpacing.space4),
           GridView.count(
@@ -490,7 +703,7 @@ class _MyPageState extends ConsumerState<MyPage>
             crossAxisCount: 2,
             mainAxisSpacing: TossSpacing.space4,
             crossAxisSpacing: TossSpacing.space4,
-            childAspectRatio: 1.4,
+            childAspectRatio: 1.6,
             children: [
               _buildEnhancedActionCard(
                 'Personal Info',
@@ -543,225 +756,279 @@ class _MyPageState extends ConsumerState<MyPage>
 
   Widget _buildEnhancedActionCard(String title, String subtitle, 
       IconData icon, Color color, String id) {
-    final isPressed = _cardPressStates[id] ?? false;
-    
-    return GestureDetector(
-      onTapDown: (_) {
-        setState(() => _cardPressStates[id] = true);
+    return TossCard(
+      onTap: () {
         HapticFeedback.lightImpact();
+        // Navigate based on id
+        _handleActionCardTap(id);
       },
-      onTapUp: (_) {
-        setState(() => _cardPressStates[id] = false);
-        // Navigate
-      },
-      onTapCancel: () => setState(() => _cardPressStates[id] = false),
-      child: AnimatedContainer(
-        duration: TossAnimations.quick,
-        transform: Matrix4.identity()..scale(isPressed ? 0.97 : 1.0),
-        padding: EdgeInsets.all(TossSpacing.space5),
-        decoration: BoxDecoration(
-          color: TossColors.surface,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: isPressed 
-                ? TossColors.primary.withOpacity(0.2) 
-                : Colors.transparent,
-            width: 1.5,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(isPressed ? 0.02 : 0.03),
-              blurRadius: isPressed ? 4 : 8,
-              offset: Offset(0, isPressed ? 1 : 2),
-            ),
-          ],
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              width: 48,
-              height: 48,
+      padding: EdgeInsets.all(TossSpacing.space5),
+      borderRadius: 16,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Flexible(
+            child: Container(
+              width: 40,
+              height: 40,
               decoration: BoxDecoration(
                 color: color.withOpacity(0.08),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(10),
               ),
               child: Icon(
                 icon,
                 color: color.withOpacity(0.8),
-                size: 24,
+                size: 22,
               ),
             ),
-            SizedBox(height: TossSpacing.space3),
-            Text(
+          ),
+          SizedBox(height: TossSpacing.space2),
+          Flexible(
+            child: Text(
               title,
-              style: TossTextStyles.bodyLarge.copyWith(
+              style: TossTextStyles.body.copyWith(
                 fontWeight: FontWeight.w600,
                 color: TossColors.gray900,
                 letterSpacing: -0.2,
               ),
               textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
-            SizedBox(height: 2),
-            Text(
+          ),
+          SizedBox(height: 1),
+          Flexible(
+            child: Text(
               subtitle,
               style: TossTextStyles.caption.copyWith(
                 color: TossColors.gray500,
                 letterSpacing: -0.1,
+                fontSize: 11,
               ),
               textAlign: TextAlign.center,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
+  
+  void _handleActionCardTap(String id) {
+    // Handle navigation based on action id
+    switch (id) {
+      case 'personal':
+        // Navigate to personal info
+        break;
+      case 'security':
+        // Navigate to security settings
+        break;
+      case 'preferences':
+        // Navigate to preferences
+        break;
+      case 'payment':
+        // Navigate to payment settings
+        break;
+      case 'activity':
+        // Navigate to activity history
+        break;
+      case 'support':
+        // Navigate to support
+        break;
+    }
+  }
 
-  Widget _buildEnhancedActivityTimeline() {
+  Widget _buildModernActivityTimeline(DashboardStats stats) {
     return Container(
       padding: EdgeInsets.all(TossSpacing.space5),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Recent Activity',
-                style: TossTextStyles.h3.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: TossColors.gray900,
-                  letterSpacing: -0.3,
-                ),
-              ),
-              TextButton(
-                onPressed: () => HapticFeedback.lightImpact(),
-                child: Text(
-                  'View All',
-                  style: TossTextStyles.body.copyWith(
-                    color: TossColors.primary,
-                    fontWeight: FontWeight.w500,
-                    letterSpacing: -0.1,
+          TossSectionHeader(
+            title: 'Recent Activity',
+            backgroundColor: Colors.transparent,
+            padding: EdgeInsets.zero,
+            fontWeight: FontWeight.w700,
+            trailing: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                borderRadius: BorderRadius.circular(8),
+                onTap: () => HapticFeedback.lightImpact(),
+                child: Container(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: TossSpacing.space3,
+                    vertical: TossSpacing.space1,
+                  ),
+                  child: Text(
+                    'View All',
+                    style: TossTextStyles.body.copyWith(
+                      color: TossColors.primary,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: -0.1,
+                    ),
                   ),
                 ),
               ),
-            ],
+            ),
           ),
-          SizedBox(height: TossSpacing.space3),
-          ...List.generate(5, (index) => _buildEnhancedActivityItem(index)),
+          SizedBox(height: TossSpacing.space4),
+          
+          if (stats.isLoading)
+            ...List.generate(3, (index) => _buildActivitySkeleton())
+          else if (stats.recentActivities.isEmpty)
+            _buildEmptyActivityState()
+          else
+            ...stats.recentActivities.take(5).map((activity) => 
+              _buildModernActivityItem(activity)).toList(),
         ],
       ),
     );
   }
 
-  Widget _buildEnhancedActivityItem(int index) {
-    final activities = [
-      {'type': 'transaction', 'title': 'Payment sent', 'subtitle': '\$250 to John', 'time': '2 hours ago'},
-      {'type': 'login', 'title': 'New login', 'subtitle': 'iPhone 14 Pro', 'time': '5 hours ago'},
-      {'type': 'profile', 'title': 'Profile updated', 'subtitle': 'Email changed', 'time': '1 day ago'},
-      {'type': 'achievement', 'title': 'Level up!', 'subtitle': 'Reached Level 3', 'time': '2 days ago'},
-      {'type': 'transaction', 'title': 'Payment received', 'subtitle': '\$500 from Jane', 'time': '3 days ago'},
-    ];
+  Widget _buildModernActivityItem(RecentActivity activity) {
+    final (icon, color) = _getActivityIconAndColor(activity.type);
 
-    final activity = activities[index];
-    IconData icon;
-    Color color;
-    
-    switch (activity['type']) {
-      case 'transaction':
-        icon = Icons.attach_money_rounded;
-        color = TossColors.success;
-        break;
-      case 'login':
-        icon = Icons.devices_rounded;
-        color = TossColors.primary;
-        break;
-      case 'profile':
-        icon = Icons.person_outline_rounded;
-        color = TossColors.warning;
-        break;
-      case 'achievement':
-        icon = Icons.emoji_events_outlined;
-        color = TossColors.error;
-        break;
-      default:
-        icon = Icons.info_outline_rounded;
-        color = TossColors.gray600;
-    }
-
-    return Container(
-      margin: EdgeInsets.only(bottom: TossSpacing.space3),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: () => HapticFeedback.lightImpact(),
-          borderRadius: BorderRadius.circular(16),
-          child: Container(
-            padding: EdgeInsets.all(TossSpacing.space4),
+    return Padding(
+      padding: EdgeInsets.only(bottom: TossSpacing.space3),
+      child: TossCard(
+        onTap: () => HapticFeedback.lightImpact(),
+        borderRadius: 20,
+        padding: EdgeInsets.zero,
+        child: TossListTile(
+          title: activity.title,
+          subtitle: activity.subtitle,
+          leading: Container(
+            width: 48,
+            height: 48,
             decoration: BoxDecoration(
-              color: TossColors.surface,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: TossColors.gray200.withOpacity(0.5),
-                width: 0.5,
+              color: color.withOpacity(0.12),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Icon(icon, color: color, size: 22),
+          ),
+          trailing: Container(
+            padding: EdgeInsets.symmetric(
+              horizontal: TossSpacing.space2,
+              vertical: 4,
+            ),
+            decoration: BoxDecoration(
+              color: TossColors.gray100,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Text(
+              activity.timeAgo,
+              style: TossTextStyles.caption.copyWith(
+                color: TossColors.gray500,
+                letterSpacing: -0.1,
+                fontSize: 11,
+                fontWeight: FontWeight.w500,
               ),
             ),
-            child: Row(
-              children: [
-                Container(
-                  width: 44,
-                  height: 44,
-                  decoration: BoxDecoration(
-                    color: color.withOpacity(0.08),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Icon(icon, color: color.withOpacity(0.8), size: 20),
-                ),
-                SizedBox(width: TossSpacing.space4),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        activity['title']!,
-                        style: TossTextStyles.body.copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: TossColors.gray900,
-                          letterSpacing: -0.1,
-                        ),
-                      ),
-                      SizedBox(height: 2),
-                      Text(
-                        activity['subtitle']!,
-                        style: TossTextStyles.caption.copyWith(
-                          color: TossColors.gray500,
-                          letterSpacing: -0.1,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Text(
-                  activity['time']!,
-                  style: TossTextStyles.caption.copyWith(
-                    color: TossColors.gray400,
-                    letterSpacing: -0.1,
-                  ),
-                ),
-              ],
-            ),
           ),
+          onTap: () => HapticFeedback.lightImpact(),
+          showDivider: false,
+          contentPadding: EdgeInsets.all(TossSpacing.space4),
         ),
       ),
     );
   }
 
+  Widget _buildActivitySkeleton() {
+    return Container(
+      margin: EdgeInsets.only(bottom: TossSpacing.space3),
+      padding: EdgeInsets.all(TossSpacing.space4),
+      decoration: BoxDecoration(
+        color: TossColors.surface,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: TossColors.gray200,
+              borderRadius: BorderRadius.circular(14),
+            ),
+          ),
+          SizedBox(width: TossSpacing.space4),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  height: 16,
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: TossColors.gray200,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                SizedBox(height: 4),
+                Container(
+                  height: 14,
+                  width: 120,
+                  decoration: BoxDecoration(
+                    color: TossColors.gray200,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Container(
+            height: 12,
+            width: 60,
+            decoration: BoxDecoration(
+              color: TossColors.gray200,
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyActivityState() {
+    return TossEmptyStateCard(
+      message: 'No recent activity\nYour activity will appear here',
+      icon: Icons.timeline_outlined,
+      backgroundColor: TossColors.surface,
+      padding: EdgeInsets.all(TossSpacing.space6),
+    );
+  }
+
+  (IconData, Color) _getActivityIconAndColor(String type) {
+    switch (type) {
+      case 'transaction':
+        return (Icons.receipt_long_rounded, TossColors.success);
+      case 'manual':
+        return (Icons.edit_note_rounded, TossColors.primary);
+      case 'login':
+        return (Icons.login_rounded, TossColors.warning);
+      case 'profile':
+        return (Icons.person_rounded, TossColors.primary);
+      case 'achievement':
+        return (Icons.emoji_events_rounded, TossColors.warning);
+      default:
+        return (Icons.info_rounded, TossColors.gray600);
+    }
+  }
+
+  void _showEditProfileSheet(UserProfile profile) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => EditProfileSheet(profile: profile),
+    );
+  }
+  
   @override
   void dispose() {
     _entryController.dispose();
-    _numberController.dispose();
     _scrollController.dispose();
     super.dispose();
   }

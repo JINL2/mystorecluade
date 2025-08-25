@@ -25,13 +25,16 @@ class TossBottomSheet extends StatelessWidget {
     String? title,
     required Widget content,
     List<TossActionItem>? actions,
+    bool isDismissible = true,
+    bool enableDrag = true,
   }) {
     return showModalBottomSheet<T>(
       context: context,
       backgroundColor: TossColors.transparent,
-      barrierColor: Colors.black54, // Standard barrier color to prevent double barriers
+      barrierColor: Colors.black54,
       isScrollControlled: true,
-      enableDrag: false, // Disable system drag handle, use custom handle bar instead
+      isDismissible: isDismissible,
+      enableDrag: enableDrag,
       builder: (context) => TossBottomSheet(
         title: title,
         content: content,
@@ -45,7 +48,7 @@ class TossBottomSheet extends StatelessWidget {
     // Use DraggableScrollableSheet for better handling of large content
     return Container(
       constraints: BoxConstraints(
-        maxHeight: MediaQuery.of(context).size.height * 0.9, // 90% of screen height
+        maxHeight: MediaQuery.of(context).size.height * 0.8, // 80% of screen height
       ),
       decoration: BoxDecoration(
         color: TossColors.surface,
@@ -64,7 +67,7 @@ class TossBottomSheet extends StatelessWidget {
               width: TossSpacing.space9,
               height: 4,
               decoration: BoxDecoration(
-                color: TossColors.gray300, // Restore grey handle bar
+                color: TossColors.gray300,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -96,6 +99,7 @@ class TossBottomSheet extends StatelessWidget {
   Widget _buildActionItem(BuildContext context, TossActionItem action) {
     return InkWell(
       onTap: () {
+        FocusScope.of(context).unfocus();
         Navigator.pop(context);
         action.onTap();
       },

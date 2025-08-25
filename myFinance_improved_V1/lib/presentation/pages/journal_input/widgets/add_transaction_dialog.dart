@@ -8,6 +8,15 @@ import '../../../providers/app_state_provider.dart';
 import '../../../../core/themes/toss_colors.dart';
 import '../../../../core/themes/toss_text_styles.dart';
 import '../../../../core/themes/toss_border_radius.dart';
+import '../../../widgets/toss/toss_enhanced_text_field.dart';
+import '../../../widgets/specific/selectors/autonomous_account_selector.dart';
+import '../../../widgets/toss/toss_primary_button.dart';
+import '../../../widgets/toss/toss_secondary_button.dart';
+import '../../../widgets/toss/toss_dropdown.dart';
+import '../../../widgets/specific/selectors/autonomous_counterparty_selector.dart';
+import '../../../widgets/specific/selectors/autonomous_cash_location_selector.dart';
+import '../../../providers/entities/counterparty_provider.dart';
+
 
 // Custom formatter for thousand separators
 class ThousandsSeparatorInputFormatter extends TextInputFormatter {
@@ -109,8 +118,6 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
   String? _selectedCounterpartyStoreId;
   String? _selectedCounterpartyStoreName;
   String? _selectedCashLocationId;
-  String? _selectedCashLocationName;
-  String? _selectedCashLocationType;
   String? _linkedCompanyId;
   bool _isInternal = false;
   
@@ -158,7 +165,6 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
       _selectedCounterpartyStoreId = line.counterpartyStoreId;
       _selectedCounterpartyStoreName = line.counterpartyStoreName;
       _selectedCashLocationId = line.cashLocationId;
-      _selectedCashLocationName = line.cashLocationName;
       // Format amount with thousand separators
       final formatter = NumberFormat('#,##0.##', 'en_US');
       _amountController.text = formatter.format(line.amount);
@@ -278,7 +284,7 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
   void _showMappingRequiredDialog() {
     showDialog(
       context: context,
-      barrierDismissible: false,
+      barrierDismissible: true, // Allow tap-outside-to-dismiss for error dialogs
       builder: (BuildContext dialogContext) {
         return Dialog(
           shape: RoundedRectangleBorder(
@@ -368,6 +374,7 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
     );
   }
   
+  
   void _saveTransaction() {
     // Remove commas before parsing
     final amountText = _amountController.text.replaceAll(',', '');
@@ -408,8 +415,8 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
       counterpartyStoreId: _selectedCounterpartyStoreId,
       counterpartyStoreName: _selectedCounterpartyStoreName,
       cashLocationId: _selectedCashLocationId,
-      cashLocationName: _selectedCashLocationName,
-      cashLocationType: _selectedCashLocationType,
+      cashLocationName: null, // Managed by AutonomousCashLocationSelector
+      cashLocationType: null, // Managed by AutonomousCashLocationSelector
       linkedCompanyId: _linkedCompanyId,
       debtCategory: _debtCategory,
       interestRate: double.tryParse(_interestRateController.text),
@@ -426,183 +433,9 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
     Navigator.of(context).pop(transactionLine);
   }
   
-  void _showAccountSearchDialog(List<dynamic> accounts) {
-    String searchQuery = '';
-    showDialog(
-      context: context,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setDialogState) {
-          final filteredAccounts = accounts.where((account) {
-            final name = (account['account_name'] as String).toLowerCase();
-            final tag = (account['category_tag'] as String?)?.toLowerCase() ?? '';
-            final query = searchQuery.toLowerCase();
-            return name.contains(query) || tag.contains(query);
-          }).toList();
-
-          return Dialog(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(TossBorderRadius.xl),
-            ),
-            child: Container(
-              constraints: BoxConstraints(
-                maxHeight: MediaQuery.of(context).size.height * 0.7,
-                maxWidth: 400,
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Header with Search
-                  Container(
-                    padding: EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      border: Border(
-                        bottom: BorderSide(color: TossColors.gray200, width: 1),
-                      ),
-                    ),
-                    child: Column(
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              'Select Account',
-                              style: TossTextStyles.h3.copyWith(
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            IconButton(
-                              onPressed: () => Navigator.of(context).pop(),
-                              icon: Icon(Icons.close, size: 24),
-                              padding: EdgeInsets.zero,
-                              constraints: BoxConstraints(),
-                            ),
-                          ],
-                        ),
-                        SizedBox(height: 12),
-                        // Search Field
-                        TextField(
-                          onChanged: (value) {
-                            setDialogState(() {
-                              searchQuery = value;
-                            });
-                          },
-                          style: TossTextStyles.body,
-                          decoration: InputDecoration(
-                            hintText: 'Search accounts...',
-                            hintStyle: TossTextStyles.body.copyWith(
-                              color: TossColors.gray400,
-                            ),
-                            prefixIcon: Icon(
-                              Icons.search,
-                              color: TossColors.gray500,
-                              size: 20,
-                            ),
-                            filled: true,
-                            fillColor: TossColors.gray50,
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                              borderSide: BorderSide.none,
-                            ),
-                            contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  // Account List
-                  Expanded(
-                    child: filteredAccounts.isEmpty
-                      ? Center(
-                          child: Text(
-                            'No accounts found',
-                            style: TossTextStyles.body.copyWith(
-                              color: TossColors.gray500,
-                            ),
-                          ),
-                        )
-                      : ListView.builder(
-                          padding: EdgeInsets.symmetric(vertical: 8),
-                          itemCount: filteredAccounts.length,
-                          itemBuilder: (context, index) {
-                            final account = filteredAccounts[index];
-                            return InkWell(
-                              onTap: () {
-                                setState(() {
-                                  _selectedAccountId = account['account_id'];
-                                  _selectedAccountName = account['account_name'];
-                                  _selectedCategoryTag = account['category_tag'];
-                                  // Reset related fields
-                                  _selectedCashLocationId = null;
-                                  _selectedCashLocationName = null;
-                                  _selectedCounterpartyId = null;
-                                  _selectedCounterpartyName = null;
-                                  _selectedCounterpartyStoreId = null;
-                                  _selectedCounterpartyStoreName = null;
-                                  _linkedCompanyId = null;
-                                  _isInternal = false;
-                                  _accountMapping = null;
-                                  _mappingError = null;
-                                });
-                                Navigator.of(context).pop();
-                              },
-                              child: Container(
-                                padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                                decoration: BoxDecoration(
-                                  border: Border(
-                                    bottom: BorderSide(
-                                      color: TossColors.gray100,
-                                      width: 0.5,
-                                    ),
-                                  ),
-                                ),
-                                child: Row(
-                                  children: [
-                                    Expanded(
-                                      child: Text(
-                                        account['account_name'] as String,
-                                        style: TossTextStyles.body,
-                                      ),
-                                    ),
-                                    if (account['category_tag'] != null) ...[
-                                      SizedBox(width: 8),
-                                      Container(
-                                        padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                        decoration: BoxDecoration(
-                                          color: TossColors.gray100,
-                                          borderRadius: BorderRadius.circular(4),
-                                        ),
-                                        child: Text(
-                                          account['category_tag'] as String,
-                                          style: TossTextStyles.caption.copyWith(
-                                            color: TossColors.gray600,
-                                            fontSize: 11,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ],
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-                  ),
-                ],
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
-    final accountsAsync = ref.watch(journalAccountsProvider);
-    // Use filtered counterparties provider based on selected account category
-    final counterpartiesAsync = ref.watch(journalFilteredCounterpartiesProvider(_selectedCategoryTag));
-    final cashLocationsAsync = ref.watch(journalCashLocationsProvider);
-    
     return Container(
       padding: EdgeInsets.only(
         bottom: MediaQuery.of(context).viewInsets.bottom,
@@ -616,7 +449,7 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
       ),
       child: ConstrainedBox(
         constraints: BoxConstraints(
-          maxHeight: MediaQuery.of(context).size.height * 0.9,
+          maxHeight: MediaQuery.of(context).size.height * 0.8,
         ),
         child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -722,394 +555,460 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
                     
                     SizedBox(height: 20),
                     
-                    // Account Selection
-                    _buildSectionTitle('Account'),
-                    SizedBox(height: 8),
-                    accountsAsync.when(
-                      data: (accounts) => InkWell(
-                        onTap: () => _showAccountSearchDialog(accounts),
-                        child: Container(
-                          padding: EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-                          decoration: BoxDecoration(
-                            color: TossColors.gray50,
-                            borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                            border: Border.all(
-                              color: _selectedAccountId != null 
-                                ? TossColors.primary.withValues(alpha: 0.3)
-                                : TossColors.gray300,
-                              width: 1,
-                            ),
-                          ),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: _selectedAccountName != null
-                                  ? Row(
-                                      children: [
-                                        Expanded(
-                                          child: Text(
-                                            _selectedAccountName!,
-                                            style: TossTextStyles.body,
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
-                                        ),
-                                        if (_selectedCategoryTag != null) ...[
-                                          SizedBox(width: 8),
-                                          Container(
-                                            padding: EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-                                            decoration: BoxDecoration(
-                                              color: TossColors.gray100,
-                                              borderRadius: BorderRadius.circular(4),
-                                            ),
-                                            child: Text(
-                                              _selectedCategoryTag!,
-                                              style: TossTextStyles.caption.copyWith(
-                                                color: TossColors.gray600,
-                                                fontSize: 10,
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ],
-                                    )
-                                  : Text(
-                                      'Select account',
-                                      style: TossTextStyles.body.copyWith(
-                                        color: TossColors.gray400,
-                                      ),
-                                    ),
-                              ),
-                              Icon(
-                                Icons.search,
-                                size: 20,
-                                color: TossColors.gray600,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      loading: () => CircularProgressIndicator(),
-                      error: (_, __) => Text('Error loading accounts'),
+                    // Account Selection - Using AutonomousAccountSelector
+                    Consumer(
+                      builder: (context, ref, child) {
+                        final accountsAsync = ref.watch(journalAccountsProvider);
+                        
+                        return AutonomousAccountSelector(
+                          selectedAccountId: _selectedAccountId,
+                          contextType: 'journal_entry', // Enable usage tracking
+                          onChanged: (selectedId) {
+                            if (selectedId != null) {
+                              // Find the selected account from the list to get details
+                              accountsAsync.whenData((accounts) {
+                                final account = accounts.firstWhere(
+                                  (a) => a['account_id'] == selectedId,
+                                  orElse: () => {},
+                                );
+                                if (account.isNotEmpty) {
+                                  setState(() {
+                                    _selectedAccountId = selectedId;
+                                    _selectedAccountName = account['account_name'];
+                                    _selectedCategoryTag = account['category_tag'];
+                                    // Reset all dependent fields when account changes
+                                    _selectedCashLocationId = null;
+                                    _selectedCounterpartyId = null;
+                                    _selectedCounterpartyName = null;
+                                    _selectedCounterpartyStoreId = null;
+                                    _selectedCounterpartyStoreName = null;
+                                    _linkedCompanyId = null;
+                                    _isInternal = false;
+                                    _accountMapping = null;
+                                    _mappingError = null;
+                                  });
+                                }
+                              });
+                            }
+                          },
+                          label: 'Account',
+                          hint: 'Select account',
+                          showSearch: true,
+                          showTransactionCount: false,
+                        );
+                      }
                     ),
                     
-                    // Conditional fields based on account type
+                    // Cash Location Selection - Using AutonomousCashLocationSelector
                     if (_selectedCategoryTag == 'cash') ...[
                       SizedBox(height: 20),
-                      _buildSectionTitle('Cash Location'),
-                      SizedBox(height: 8),
-                      cashLocationsAsync.when(
-                        data: (locations) => _buildDropdown(
-                          value: _selectedCashLocationId,
-                          hint: 'Select cash location',
-                          items: locations.map((location) => DropdownMenuItem(
-                            value: location['cash_location_id'] as String,
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  child: Text(
-                                    location['location_name'] as String,
-                                    style: TossTextStyles.body,
-                                  ),
-                                ),
-                                if (location['location_type'] != null) ...[
-                                  SizedBox(width: 8),
-                                  Container(
-                                    padding: EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-                                    decoration: BoxDecoration(
-                                      color: _getLocationTypeColor(location['location_type']).withValues(alpha: 0.1),
-                                      borderRadius: BorderRadius.circular(4),
-                                      border: Border.all(
-                                        color: _getLocationTypeColor(location['location_type']).withValues(alpha: 0.3),
-                                        width: 1,
-                                      ),
-                                    ),
-                                    child: Text(
-                                      location['location_type'] as String,
-                                      style: TossTextStyles.caption.copyWith(
-                                        color: _getLocationTypeColor(location['location_type']),
-                                        fontSize: 10,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ],
-                            ),
-                          )).toList(),
-                          onChanged: (value) {
-                            final location = locations.firstWhere((l) => l['cash_location_id'] == value);
-                            setState(() {
-                              _selectedCashLocationId = value;
-                              _selectedCashLocationName = location['location_name'];
-                              _selectedCashLocationType = location['location_type'];
-                            });
-                          },
-                        ),
-                        loading: () => CircularProgressIndicator(),
-                        error: (_, __) => Text('Error loading cash locations'),
+                      AutonomousCashLocationSelector(
+                        selectedLocationId: _selectedCashLocationId,
+                        onChanged: (locationId) {
+                          setState(() {
+                            _selectedCashLocationId = locationId;
+                            // Find the selected location to get name and type
+                            // This will be handled by the widget's internal state
+                          });
+                        },
+                        label: 'Cash Location',
+                        hint: 'Select cash location',
+                        showSearch: true,
+                        showTransactionCount: false,
                       ),
-                      // Display selected location type
-                      if (_selectedCashLocationType != null) ...[
-                        SizedBox(height: 8),
-                        Container(
-                          padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                          decoration: BoxDecoration(
-                            color: _getLocationTypeColor(_selectedCashLocationType!).withValues(alpha: 0.05),
-                            borderRadius: BorderRadius.circular(TossBorderRadius.sm),
-                            border: Border.all(
-                              color: _getLocationTypeColor(_selectedCashLocationType!).withValues(alpha: 0.2),
-                              width: 1,
-                            ),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                _getLocationTypeIcon(_selectedCashLocationType!),
-                                size: 16,
-                                color: _getLocationTypeColor(_selectedCashLocationType!),
-                              ),
-                              SizedBox(width: 6),
-                              Text(
-                                'Location Type: ${_selectedCashLocationType}',
-                                style: TossTextStyles.caption.copyWith(
-                                  color: _getLocationTypeColor(_selectedCashLocationType!),
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
                     ],
                     
                     // Payable/Receivable specific fields
                     if (_selectedCategoryTag != null && (_selectedCategoryTag!.toLowerCase() == 'payable' || _selectedCategoryTag!.toLowerCase() == 'receivable')) ...[
                       SizedBox(height: 20),
-                      _buildSectionTitle('Counterparty'),
-                      SizedBox(height: 8),
-                      counterpartiesAsync.when(
-                        data: (counterparties) => _buildDropdown(
-                          value: _selectedCounterpartyId,
-                          hint: 'Select counterparty',
-                          items: counterparties.map((counterparty) => DropdownMenuItem(
-                            value: counterparty['counterparty_id'] as String,
-                            child: Container(
-                              padding: EdgeInsets.symmetric(vertical: 2),
-                              child: Row(
-                                children: [
-                                  Expanded(
-                                    child: Text(
-                                      counterparty['name'] as String,
-                                      style: TossTextStyles.body,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                  if (counterparty['is_internal'] == true) ...[
-                                    SizedBox(width: 8),
-                                    Container(
-                                      padding: EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-                                      decoration: BoxDecoration(
-                                        color: TossColors.info.withValues(alpha: 0.1),
-                                        borderRadius: BorderRadius.circular(4),
-                                      ),
-                                      child: Text(
-                                        'Internal',
-                                        style: TossTextStyles.caption.copyWith(
-                                          color: TossColors.info,
-                                          fontSize: 10,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ],
-                              ),
-                            ),
-                          )).toList(),
-                          onChanged: (value) async {
-                            if (value == null) return;
-                            
-                            final counterparty = counterparties.firstWhere((c) => c['counterparty_id'] == value);
-                            
-                            setState(() {
-                              _selectedCounterpartyId = value;
-                              _selectedCounterpartyName = counterparty['name']?.toString();
-                              
-                              // Set linked_company_id - it should be present for all counterparties
-                              final linkedCompanyValue = counterparty['linked_company_id'];
-                              if (linkedCompanyValue != null && linkedCompanyValue.toString().isNotEmpty) {
-                                _linkedCompanyId = linkedCompanyValue.toString();
-                              } else {
-                                _linkedCompanyId = null;
-                              }
-                              
-                              // Handle is_internal flag
-                              final isInternalValue = counterparty['is_internal'];
-                              if (isInternalValue is bool) {
-                                _isInternal = isInternalValue;
-                              } else if (isInternalValue is String) {
-                                _isInternal = isInternalValue.toLowerCase() == 'true';
-                              } else if (isInternalValue == 1 || isInternalValue == '1') {
-                                _isInternal = true;
-                              } else {
-                                _isInternal = false;
-                              }
-                              
-                              // Reset store selection
-                              _selectedCounterpartyStoreId = null;
-                              _selectedCounterpartyStoreName = null;
-                            });
-                            
-                            print('=============================================');
-                            print('STATE AFTER UPDATE');
-                            print('_selectedCounterpartyId: $_selectedCounterpartyId');
-                            print('_isInternal: $_isInternal');
-                            print('_linkedCompanyId: $_linkedCompanyId');
-                            print('Should show store dropdown: ${_selectedCounterpartyId != null && _linkedCompanyId != null && _linkedCompanyId!.isNotEmpty}');
-                            print('=============================================');
-                            
-                            // Check account mapping if internal
-                            if (_isInternal && _linkedCompanyId != null) {
-                              await _checkAccountMapping();
-                            }
-                          },
+                      Text(
+                        _selectedCategoryTag == 'payable' 
+                            ? 'Counterparty (Supplier/Vendor)' 
+                            : _selectedCategoryTag == 'receivable'
+                                ? 'Counterparty (Customer)'
+                                : 'Counterparty',
+                        style: TossTextStyles.body.copyWith(
+                          color: TossColors.gray700,
+                          fontWeight: FontWeight.w600,
                         ),
-                        loading: () => CircularProgressIndicator(),
-                        error: (_, __) => Text('Error loading counterparties'),
+                      ),
+                      SizedBox(height: 8),
+                      Consumer(
+                        builder: (context, ref, child) {
+                          return AutonomousCounterpartySelector(
+                            selectedCounterpartyId: _selectedCounterpartyId,
+                            onChanged: (counterpartyId) async {
+                              if (counterpartyId != null) {
+                                // Get counterparty details from the provider
+                                try {
+                                  final counterpartyAsync = await ref.read(
+                                    counterpartyByIdProvider(counterpartyId).future
+                                  );
+                                  
+                                  if (counterpartyAsync != null) {
+                                    setState(() {
+                                      _selectedCounterpartyId = counterpartyId;
+                                      _selectedCounterpartyName = counterpartyAsync.name;
+                                      _isInternal = counterpartyAsync.isInternal;
+                                      // Check if there's a linked company ID in additionalData
+                                      _linkedCompanyId = counterpartyAsync.additionalData?['linked_company_id'];
+                                    });
+                                    
+                                    // Check account mapping after setting counterparty
+                                    _checkAccountMapping();
+                                  }
+                                } catch (e) {
+                                  // Fallback to old method if new provider fails
+                                  setState(() {
+                                    _selectedCounterpartyId = counterpartyId;
+                                    _selectedCounterpartyName = null;
+                                    _isInternal = false;
+                                  });
+                                  await _loadCounterpartyDetails();
+                                  _checkAccountMapping();
+                                }
+                              } else {
+                                setState(() {
+                                  _selectedCounterpartyId = null;
+                                  _selectedCounterpartyName = null;
+                                  _isInternal = false;
+                                  _linkedCompanyId = null;
+                                });
+                              }
+                            },
+                            label: _selectedCategoryTag == 'payable' 
+                                ? 'Select Supplier/Vendor' 
+                                : _selectedCategoryTag == 'receivable'
+                                    ? 'Select Customer'
+                                    : 'Select Counterparty',
+                            hint: 'Search all counterparties',
+                            showSearch: true,
+                            showTransactionCount: false,
+                          );
+                        },
                       ),
                       
-                      // Counterparty Store - ALWAYS show when payable/receivable
+                      // Enhanced Counterparty Store Selection
                       if (_linkedCompanyId != null) ...[
                         SizedBox(height: 20),
-                        _buildSectionTitle('Counterparty Store'),
-                        SizedBox(height: 8),
                         Consumer(
                           builder: (context, ref, child) {
                             final storesAsync = ref.watch(journalCounterpartyStoresProvider(_linkedCompanyId));
                             return storesAsync.when(
                               data: (stores) {
                                 if (stores.isEmpty) {
-                                  return Container(
-                                    padding: EdgeInsets.all(12),
-                                    decoration: BoxDecoration(
-                                      color: TossColors.gray50,
-                                      borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                                      border: Border.all(
-                                        color: TossColors.gray200,
-                                        width: 1,
+                                  return Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Counterparty Store',
+                                        style: TossTextStyles.body.copyWith(
+                                          color: TossColors.gray700,
+                                          fontWeight: FontWeight.w600,
+                                        ),
                                       ),
-                                    ),
-                                    child: Row(
-                                      children: [
-                                        Icon(Icons.info_outline, size: 16, color: TossColors.gray500),
-                                        SizedBox(width: 8),
-                                        Text(
-                                          'This counterparty has no stores',
-                                          style: TossTextStyles.bodySmall.copyWith(
-                                            color: TossColors.gray500,
+                                      SizedBox(height: 8),
+                                      Container(
+                                        padding: EdgeInsets.all(16),
+                                        decoration: BoxDecoration(
+                                          color: TossColors.gray50,
+                                          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+                                          border: Border.all(
+                                            color: TossColors.gray200,
+                                            width: 1,
                                           ),
                                         ),
-                                      ],
-                                    ),
+                                        child: Row(
+                                          children: [
+                                            Icon(Icons.info_outline, size: 20, color: TossColors.gray500),
+                                            SizedBox(width: 12),
+                                            Expanded(
+                                              child: Text(
+                                                'This counterparty has no stores configured',
+                                                style: TossTextStyles.body.copyWith(
+                                                  color: TossColors.gray600,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
                                   );
                                 }
-                                return _buildDropdown(
-                                  value: _selectedCounterpartyStoreId,
-                                  hint: 'Select counterparty store',
-                                  items: stores.map((store) => DropdownMenuItem(
-                                    value: store['store_id'] as String,
-                                    child: Text(
-                                      store['store_name'] as String,
-                                      style: TossTextStyles.body,
+                                
+                                return Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Counterparty Store',
+                                      style: TossTextStyles.body.copyWith(
+                                        color: TossColors.gray700,
+                                        fontWeight: FontWeight.w600,
+                                      ),
                                     ),
-                                  )).toList(),
-                                  onChanged: (value) {
-                                    final store = stores.firstWhere((s) => s['store_id'] == value);
-                                    setState(() {
-                                      _selectedCounterpartyStoreId = value;
-                                      _selectedCounterpartyStoreName = store['store_name'];
-                                      // Reset cash location when store changes
-                                      _selectedCashLocationId = null;
-                                      _selectedCashLocationName = null;
-                                    });
-                                  },
+                                    SizedBox(height: 8),
+                                    GestureDetector(
+                                      onTap: () {
+                                        // Note: Counterparty store selector to be implemented
+                                      },
+                                      child: Container(
+                                        padding: EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                                        decoration: BoxDecoration(
+                                          color: Colors.white,
+                                          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+                                          border: Border.all(
+                                            color: _selectedCounterpartyStoreId != null 
+                                              ? TossColors.primary
+                                              : TossColors.gray200,
+                                            width: 1,
+                                          ),
+                                        ),
+                                        child: Row(
+                                          children: [
+                                            Icon(
+                                              Icons.store,
+                                              size: 20,
+                                              color: _selectedCounterpartyStoreId != null
+                                                ? TossColors.primary
+                                                : TossColors.gray400,
+                                            ),
+                                            SizedBox(width: 12),
+                                            Expanded(
+                                              child: _selectedCounterpartyStoreName != null
+                                                ? Text(
+                                                    _selectedCounterpartyStoreName!,
+                                                    style: TossTextStyles.body.copyWith(
+                                                      fontWeight: FontWeight.w600,
+                                                    ),
+                                                    overflow: TextOverflow.ellipsis,
+                                                  )
+                                                : Text(
+                                                    'Select counterparty store (optional)',
+                                                    style: TossTextStyles.body.copyWith(
+                                                      color: TossColors.gray400,
+                                                    ),
+                                                  ),
+                                            ),
+                                            Icon(
+                                              Icons.arrow_drop_down,
+                                              color: _selectedCounterpartyStoreId != null
+                                                ? TossColors.primary
+                                                : TossColors.gray400,
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 );
                               },
-                              loading: () => Center(child: CircularProgressIndicator()),
-                              error: (_, __) => Text('Error loading stores'),
+                              loading: () => Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Counterparty Store',
+                                    style: TossTextStyles.body.copyWith(
+                                      color: TossColors.gray700,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  SizedBox(height: 8),
+                                  Container(
+                                    padding: EdgeInsets.symmetric(vertical: 20),
+                                    child: Center(
+                                      child: CircularProgressIndicator(color: TossColors.primary),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              error: (_, __) => Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Counterparty Store',
+                                    style: TossTextStyles.body.copyWith(
+                                      color: TossColors.error,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  SizedBox(height: 8),
+                                  Text(
+                                    'Error loading stores',
+                                    style: TossTextStyles.body.copyWith(
+                                      color: TossColors.error,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             );
                           },
                         ),
                       ],
                       
-                      // Counterparty Cash Location - based on selected store or company
+                      // Enhanced Counterparty Cash Location Selection
                       if (_linkedCompanyId != null) ...[
                         SizedBox(height: 20),
-                        _buildSectionTitle('Counterparty Cash Location'),
-                        SizedBox(height: 8),
                         Consumer(
                           builder: (context, ref, child) {
-                            print('=============================================');
-                            print('CASH LOCATION SELECTION DEBUG');
-                            print('Store ID: $_selectedCounterpartyStoreId');
-                            print('Linked Company ID: $_linkedCompanyId');
-                            print('Using provider: ${_selectedCounterpartyStoreId != null ? "Store-based" : "Company-based"}');
-                            print('=============================================');
-                            
-                            // If store is selected, use store-based provider, otherwise use company-based
+                            // Smart provider selection based on store presence
                             final cashLocsAsync = _selectedCounterpartyStoreId != null
                                 ? ref.watch(journalCounterpartyStoreCashLocationsProvider(_selectedCounterpartyStoreId))
                                 : ref.watch(journalCounterpartyCashLocationsProvider(_linkedCompanyId));
+                            
                             return cashLocsAsync.when(
-                              data: (locations) => _buildDropdown(
-                                value: _selectedCashLocationId,
-                                hint: 'Select cash location',
-                                items: locations.map((location) => DropdownMenuItem(
-                                  value: location['cash_location_id'] as String,
-                                  child: Row(
-                                    children: [
-                                      Expanded(
-                                        child: Text(
-                                          location['location_name'] as String,
-                                          style: TossTextStyles.body,
+                              data: (locations) {
+                                // Find selected location for enhanced display
+                                dynamic selectedLocation;
+                                if (_selectedCashLocationId != null) {
+                                  try {
+                                    selectedLocation = locations.firstWhere(
+                                      (location) => location['cash_location_id'] == _selectedCashLocationId
+                                    );
+                                  } catch (e) {
+                                    selectedLocation = null;
+                                  }
+                                }
+                                
+                                return Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Text(
+                                          'Counterparty Cash Location',
+                                          style: TossTextStyles.body.copyWith(
+                                            color: TossColors.gray700,
+                                            fontWeight: FontWeight.w600,
+                                          ),
                                         ),
-                                      ),
-                                      if (location['location_type'] != null) ...[
                                         SizedBox(width: 8),
                                         Container(
-                                          padding: EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                                          padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                           decoration: BoxDecoration(
-                                            color: _getLocationTypeColor(location['location_type']).withValues(alpha: 0.1),
+                                            color: TossColors.info.withValues(alpha: 0.1),
                                             borderRadius: BorderRadius.circular(4),
-                                            border: Border.all(
-                                              color: _getLocationTypeColor(location['location_type']).withValues(alpha: 0.3),
-                                              width: 1,
-                                            ),
                                           ),
                                           child: Text(
-                                            location['location_type'] as String,
+                                            _selectedCounterpartyStoreId != null ? 'Store-based' : 'Company-based',
                                             style: TossTextStyles.caption.copyWith(
-                                              color: _getLocationTypeColor(location['location_type']),
+                                              color: TossColors.info,
                                               fontSize: 10,
                                               fontWeight: FontWeight.w500,
                                             ),
                                           ),
                                         ),
                                       ],
-                                    ],
+                                    ),
+                                    SizedBox(height: 8),
+                                    GestureDetector(
+                                      onTap: () {
+                                        // Note: Cash location selector to be implemented for counterparty locations
+                                      },
+                                      child: Container(
+                                        padding: EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                                        decoration: BoxDecoration(
+                                          color: Colors.white,
+                                          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+                                          border: Border.all(
+                                            color: _selectedCashLocationId != null 
+                                              ? TossColors.primary
+                                              : TossColors.gray200,
+                                            width: 1,
+                                          ),
+                                        ),
+                                        child: Row(
+                                          children: [
+                                            Icon(
+                                              Icons.location_on,
+                                              size: 20,
+                                              color: _selectedCashLocationId != null
+                                                ? TossColors.primary
+                                                : TossColors.gray400,
+                                            ),
+                                            SizedBox(width: 12),
+                                            Expanded(
+                                              child: selectedLocation != null
+                                                ? Column(
+                                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                                    mainAxisSize: MainAxisSize.min,
+                                                    children: [
+                                                      Text(
+                                                        selectedLocation['location_name'] as String,
+                                                        style: TossTextStyles.body.copyWith(
+                                                          fontWeight: FontWeight.w600,
+                                                        ),
+                                                        overflow: TextOverflow.ellipsis,
+                                                      ),
+                                                      if (selectedLocation['location_type'] != null) ...[
+                                                        SizedBox(height: 2),
+                                                        Text(
+                                                          selectedLocation['location_type'] as String,
+                                                          style: TossTextStyles.caption.copyWith(
+                                                            color: TossColors.gray500,
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ],
+                                                  )
+                                                : Text(
+                                                    'Select cash location',
+                                                    style: TossTextStyles.body.copyWith(
+                                                      color: TossColors.gray400,
+                                                    ),
+                                                  ),
+                                            ),
+                                            Icon(
+                                              Icons.arrow_drop_down,
+                                              color: _selectedCashLocationId != null
+                                                ? TossColors.primary
+                                                : TossColors.gray400,
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                );
+                              },
+                              loading: () => Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Counterparty Cash Location',
+                                    style: TossTextStyles.body.copyWith(
+                                      color: TossColors.gray700,
+                                      fontWeight: FontWeight.w600,
+                                    ),
                                   ),
-                                )).toList(),
-                                onChanged: (value) {
-                                  final location = locations.firstWhere((l) => l['cash_location_id'] == value);
-                                  setState(() {
-                                    _selectedCashLocationId = value;
-                                    _selectedCashLocationName = location['location_name'];
-                                    _selectedCashLocationType = location['location_type'];
-                                  });
-                                },
+                                  SizedBox(height: 8),
+                                  Container(
+                                    padding: EdgeInsets.symmetric(vertical: 20),
+                                    child: Center(
+                                      child: CircularProgressIndicator(color: TossColors.primary),
+                                    ),
+                                  ),
+                                ],
                               ),
-                              loading: () => CircularProgressIndicator(),
-                              error: (_, __) => Text('Error loading cash locations'),
+                              error: (_, __) => Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Counterparty Cash Location',
+                                    style: TossTextStyles.body.copyWith(
+                                      color: TossColors.error,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  SizedBox(height: 8),
+                                  Text(
+                                    'Error loading cash locations',
+                                    style: TossTextStyles.body.copyWith(
+                                      color: TossColors.error,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             );
                           },
                         ),
@@ -1175,14 +1074,13 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
                       
                       // Debt Information
                       SizedBox(height: 20),
-                      _buildSectionTitle('Debt Category'),
-                      SizedBox(height: 8),
-                      _buildDropdown(
+                      TossDropdown<String>(
+                        label: 'Debt Category',
                         value: _debtCategory,
                         hint: 'Select debt category',
-                        items: _debtCategories.map((category) => DropdownMenuItem(
+                        items: _debtCategories.map((category) => TossDropdownItem<String>(
                           value: category,
-                          child: Text(category[0].toUpperCase() + category.substring(1)),
+                          label: category[0].toUpperCase() + category.substring(1),
                         )).toList(),
                         onChanged: (value) {
                           setState(() {
@@ -1299,33 +1197,18 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
                   child: Row(
                     children: [
                       Expanded(
-                        child: OutlinedButton(
+                        child: TossSecondaryButton(
+                          text: 'Cancel',
                           onPressed: () => Navigator.of(context).pop(),
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: TossColors.gray600,
-                            side: BorderSide(color: TossColors.gray300, width: 1),
-                            padding: EdgeInsets.symmetric(vertical: 14),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                            ),
-                          ),
-                          child: Text('Cancel'),
+                          fullWidth: true,
                         ),
                       ),
                       SizedBox(width: 12),
                       Expanded(
-                        child: ElevatedButton(
+                        child: TossPrimaryButton(
+                          text: widget.existingLine != null ? 'Update' : 'Add',
                           onPressed: _saveTransaction,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: TossColors.primary,
-                            foregroundColor: Colors.white,
-                            padding: EdgeInsets.symmetric(vertical: 14),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                            ),
-                            elevation: 0,
-                          ),
-                          child: Text(widget.existingLine != null ? 'Update' : 'Add'),
+                          fullWidth: true,
                         ),
                       ),
                     ],
@@ -1377,39 +1260,6 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
     );
   }
   
-  Widget _buildDropdown({
-    required String? value,
-    required String hint,
-    required List<DropdownMenuItem<String>> items,
-    required ValueChanged<String?> onChanged,
-  }) {
-    return Container(
-      decoration: BoxDecoration(
-        color: TossColors.gray50,
-        borderRadius: BorderRadius.circular(TossBorderRadius.md),
-        border: Border.all(
-          color: TossColors.primary.withValues(alpha: 0.2),
-          width: 1,
-        ),
-      ),
-      child: DropdownButtonFormField<String>(
-        value: value,
-        decoration: InputDecoration(
-          hintText: hint,
-          hintStyle: TossTextStyles.body.copyWith(
-            color: TossColors.gray400,
-          ),
-          border: InputBorder.none,
-          contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        ),
-        dropdownColor: Colors.white,
-        icon: Icon(Icons.arrow_drop_down, color: TossColors.gray600),
-        isExpanded: true,
-        items: items,
-        onChanged: onChanged,
-      ),
-    );
-  }
   
   Widget _buildTextField({
     required TextEditingController controller,
@@ -1421,45 +1271,21 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
     TextInputAction? textInputAction,
     ValueChanged<String>? onSubmitted,
   }) {
-    return TextField(
+    return TossEnhancedTextField(
       controller: controller,
+      hintText: hint,
       keyboardType: keyboardType,
       inputFormatters: inputFormatters,
       maxLines: maxLines,
-      style: TossTextStyles.body,
       focusNode: focusNode,
       textInputAction: textInputAction,
-      onSubmitted: onSubmitted,
-      decoration: InputDecoration(
-        hintText: hint,
-        hintStyle: TossTextStyles.body.copyWith(
-          color: TossColors.gray400,
-        ),
-        filled: true,
-        fillColor: TossColors.gray50,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(TossBorderRadius.md),
-          borderSide: BorderSide(
-            color: TossColors.gray200,
-            width: 1,
-          ),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(TossBorderRadius.md),
-          borderSide: BorderSide(
-            color: TossColors.gray200,
-            width: 1,
-          ),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(TossBorderRadius.md),
-          borderSide: BorderSide(
-            color: TossColors.primary,
-            width: 1.5,
-          ),
-        ),
-        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      ),
+      onFieldSubmitted: onSubmitted,
+      showKeyboardToolbar: true,
+      keyboardDoneText: textInputAction == TextInputAction.next ? 'Next' : 'Done',
+      onKeyboardDone: textInputAction == TextInputAction.done 
+          ? () => FocusScope.of(context).unfocus()
+          : null,
+      enableTapDismiss: false,
     );
   }
   
@@ -1503,39 +1329,5 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
         ),
       ),
     );
-  }
-  
-  Color _getLocationTypeColor(String locationType) {
-    switch (locationType.toLowerCase()) {
-      case 'cash register':
-        return TossColors.primary;
-      case 'safe':
-        return TossColors.success;
-      case 'bank':
-        return TossColors.info;
-      case 'petty cash':
-        return TossColors.warning;
-      case 'vault':
-        return TossColors.primary;
-      default:
-        return TossColors.gray600;
-    }
-  }
-  
-  IconData _getLocationTypeIcon(String locationType) {
-    switch (locationType.toLowerCase()) {
-      case 'cash register':
-        return Icons.point_of_sale;
-      case 'safe':
-        return Icons.lock;
-      case 'bank':
-        return Icons.account_balance;
-      case 'petty cash':
-        return Icons.account_balance_wallet;
-      case 'vault':
-        return Icons.security;
-      default:
-        return Icons.payments;
-    }
   }
 }

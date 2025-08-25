@@ -8,6 +8,8 @@ import '../../../../core/themes/toss_border_radius.dart';
 import '../../../../core/themes/toss_animations.dart';
 import '../providers/delegate_role_providers.dart';
 import '../../../../core/utils/tag_validator.dart';
+import '../../../widgets/toss/toss_enhanced_text_field.dart';
+import '../../../widgets/toss/toss_enhanced_modal.dart';
 
 class RoleManagementSheet extends ConsumerStatefulWidget {
   final String roleId;
@@ -42,24 +44,23 @@ class RoleManagementSheet extends ConsumerStatefulWidget {
     required bool canEdit,
     required bool canDelegate,
   }) {
-    return showModalBottomSheet(
+    return TossEnhancedModal.show(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      barrierColor: Colors.black54, // Standard barrier color
-      enableDrag: false, // Disable system drag handle to prevent double handler
-      builder: (context) => Padding(
-        padding: MediaQuery.of(context).viewInsets,
-        child: RoleManagementSheet(
-          roleId: roleId,
-          roleName: roleName,
-          description: description,
-          tags: tags,
-          permissions: permissions,
-          memberCount: memberCount,
-          canEdit: canEdit,
-          canDelegate: canDelegate,
-        ),
+      title: roleName,
+      subtitle: canEdit ? 'Edit role details and permissions' : 'View role details',
+      height: MediaQuery.of(context).size.height * 0.8,
+      enableKeyboardToolbar: true,
+      enableTapDismiss: true,
+      keyboardDoneText: 'Done',
+      child: RoleManagementSheet(
+        roleId: roleId,
+        roleName: roleName,
+        description: description,
+        tags: tags,
+        permissions: permissions,
+        memberCount: memberCount,
+        canEdit: canEdit,
+        canDelegate: canDelegate,
       ),
     );
   }
@@ -73,7 +74,10 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
   late TabController _tabController;
   late TextEditingController _roleNameController;
   late TextEditingController _descriptionController;
+  final FocusNode _roleNameFocus = FocusNode();
+  final FocusNode _descriptionFocus = FocusNode();
   bool _isLoading = false;
+  bool _isEditingText = false;
   Set<String> _selectedPermissions = {};
   Set<String> _expandedCategories = {};
   
@@ -117,14 +121,31 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
     _selectedTags = List.from(widget.tags); // Initialize tags from widget
     // Start with all categories collapsed
     _expandedCategories = {};
+    
+    // Add focus listeners to track text editing state
+    _roleNameFocus.addListener(_onTextEditingStateChanged);
+    _descriptionFocus.addListener(_onTextEditingStateChanged);
   }
 
   @override
   void dispose() {
+    _roleNameFocus.removeListener(_onTextEditingStateChanged);
+    _descriptionFocus.removeListener(_onTextEditingStateChanged);
     _tabController.dispose();
     _roleNameController.dispose();
     _descriptionController.dispose();
+    _roleNameFocus.dispose();
+    _descriptionFocus.dispose();
     super.dispose();
+  }
+
+  void _onTextEditingStateChanged() {
+    final isEditing = _roleNameFocus.hasFocus || _descriptionFocus.hasFocus;
+    if (_isEditingText != isEditing) {
+      setState(() {
+        _isEditingText = isEditing;
+      });
+    }
   }
 
   @override
@@ -134,7 +155,7 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
     return AnimatedContainer(
       duration: const Duration(milliseconds: 300),
       constraints: BoxConstraints(
-        maxHeight: screenHeight * 0.9,
+        maxHeight: screenHeight * 0.8,
         minHeight: screenHeight * 0.3,
       ),
       decoration: BoxDecoration(
@@ -145,49 +166,8 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
       ),
       child: Column(
         children: [
-          // Handle bar
-          Container(
-            margin: EdgeInsets.only(top: TossSpacing.space3),
-            width: 40,
-            height: 4,
-            decoration: BoxDecoration(
-              color: TossColors.gray300, // Restore grey handle bar
-              borderRadius: BorderRadius.circular(2),
-            ),
-          ),
-
-          // Header
-          Padding(
-            padding: EdgeInsets.all(TossSpacing.space5),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        widget.roleName,
-                        style: TossTextStyles.h2.copyWith(
-                          fontWeight: FontWeight.w700,
-                          color: TossColors.gray900,
-                        ),
-                      ),
-                      Text(
-                        'Role Management',
-                        style: TossTextStyles.bodySmall.copyWith(
-                          color: TossColors.gray600,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                IconButton(
-                  icon: Icon(Icons.close, color: TossColors.gray600),
-                  onPressed: () => Navigator.pop(context),
-                ),
-              ],
-            ),
-          ),
+          // Top spacing only (no duplicate header - TossEnhancedModal handles header)
+          SizedBox(height: TossSpacing.space4),
 
           // Underline-style tabs
           Container(
@@ -216,7 +196,8 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
           ),
 
           // TOSS-style bottom action with proper safe area
-          if (widget.canEdit) ...[
+          // Hide save button when user is actively editing text
+          if (widget.canEdit && !_isEditingText) ...[
             Container(
               padding: EdgeInsets.all(TossSpacing.space5),
               decoration: BoxDecoration(
@@ -377,28 +358,16 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
             ),
           ),
           SizedBox(height: TossSpacing.space2),
-          TextField(
+          TossEnhancedTextField(
             controller: _roleNameController,
+            focusNode: _roleNameFocus,
             enabled: widget.canEdit,
-            style: TossTextStyles.body,
+            hintText: 'Enter role name',
             textInputAction: TextInputAction.next,
-            decoration: InputDecoration(
-              hintText: 'Enter role name',
-              filled: true,
-              fillColor: widget.canEdit ? TossColors.surface : TossColors.gray50,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(TossBorderRadius.sm),
-                borderSide: BorderSide(color: TossColors.gray200),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(TossBorderRadius.sm),
-                borderSide: BorderSide(color: TossColors.gray200),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(TossBorderRadius.sm),
-                borderSide: BorderSide(color: TossColors.primary),
-              ),
-            ),
+            showKeyboardToolbar: true,
+            keyboardDoneText: 'Next',
+            onKeyboardDone: () => _descriptionFocus.requestFocus(),
+            enableTapDismiss: false,
           ),
 
           SizedBox(height: TossSpacing.space5),
@@ -412,29 +381,17 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
             ),
           ),
           SizedBox(height: TossSpacing.space2),
-          TextField(
+          TossEnhancedTextField(
             controller: _descriptionController,
+            focusNode: _descriptionFocus,
             enabled: widget.canEdit,
+            hintText: 'Describe what this role does...',
             maxLines: 3,
-            style: TossTextStyles.body,
-            textInputAction: TextInputAction.next,
-            decoration: InputDecoration(
-              hintText: 'Describe what this role does...',
-              filled: true,
-              fillColor: widget.canEdit ? TossColors.surface : TossColors.gray50,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(TossBorderRadius.sm),
-                borderSide: BorderSide(color: TossColors.gray200),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(TossBorderRadius.sm),
-                borderSide: BorderSide(color: TossColors.gray200),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(TossBorderRadius.sm),
-                borderSide: BorderSide(color: TossColors.primary),
-              ),
-            ),
+            textInputAction: TextInputAction.done,
+            showKeyboardToolbar: true,
+            keyboardDoneText: 'Done',
+            onKeyboardDone: () => FocusScope.of(context).unfocus(),
+            enableTapDismiss: false,
           ),
 
           SizedBox(height: TossSpacing.space5),
@@ -538,15 +495,26 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       useRootNavigator: true, // Use root navigator to show modal on top
+      enableDrag: true,
       builder: (context) => Padding(
-        padding: MediaQuery.of(context).viewInsets,
-        child: _TagSelectionBottomSheet(
-          selectedTags: List.from(_selectedTags),
-          onTagsSelected: (tags) {
-            setState(() {
-              _selectedTags = tags;
-            });
-          },
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+        ),
+        child: Container(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(context).size.height - 
+                       MediaQuery.of(context).viewInsets.bottom - 
+                       MediaQuery.of(context).padding.top - 100,
+            minHeight: 300,
+          ),
+          child: _TagSelectionBottomSheet(
+            selectedTags: List.from(_selectedTags),
+            onTagsSelected: (tags) {
+              setState(() {
+                _selectedTags = tags;
+              });
+            },
+          ),
         ),
       ),
     );
@@ -1280,16 +1248,27 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
       backgroundColor: Colors.transparent,
       barrierColor: Colors.black54, // Standard dark barrier
       useRootNavigator: true, // Use root navigator to show modal on top
+      enableDrag: true,
       builder: (context) => Padding(
-        padding: MediaQuery.of(context).viewInsets,
-        child: _AddMemberBottomSheet(
-          roleId: widget.roleId,
-          roleName: widget.roleName,
-          onMemberAdded: () {
-            // Reactive state management: invalidate providers for immediate updates
-            ref.invalidate(companyUsersProvider); // Refresh user list with updated roles
-            setState(() {}); // Refresh the members list in this component
-          },
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+        ),
+        child: Container(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(context).size.height - 
+                       MediaQuery.of(context).viewInsets.bottom - 
+                       MediaQuery.of(context).padding.top - 100,
+            minHeight: 300,
+          ),
+          child: _AddMemberBottomSheet(
+            roleId: widget.roleId,
+            roleName: widget.roleName,
+            onMemberAdded: () {
+              // Reactive state management: invalidate providers for immediate updates
+              ref.invalidate(companyUsersProvider); // Refresh user list with updated roles
+              setState(() {}); // Refresh the members list in this component
+            },
+          ),
         ),
       ),
     );
@@ -1441,9 +1420,6 @@ class _AddMemberBottomSheetState extends ConsumerState<_AddMemberBottomSheet> {
     });
     
     return Container(
-      constraints: BoxConstraints(
-        maxHeight: MediaQuery.of(context).size.height * 0.7,
-      ),
       decoration: BoxDecoration(
         color: TossColors.background,
         borderRadius: BorderRadius.vertical(
@@ -1491,7 +1467,10 @@ class _AddMemberBottomSheetState extends ConsumerState<_AddMemberBottomSheet> {
                 ),
                 IconButton(
                   icon: Icon(Icons.close, color: TossColors.gray600),
-                  onPressed: () => Navigator.pop(context),
+                  onPressed: () {
+                    FocusScope.of(context).unfocus();
+                    Navigator.pop(context);
+                  },
                 ),
               ],
             ),
@@ -1966,7 +1945,6 @@ class _TagSelectionBottomSheetState extends State<_TagSelectionBottomSheet> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: MediaQuery.of(context).size.height * 0.75,
       decoration: BoxDecoration(
         color: TossColors.background,
         borderRadius: BorderRadius.vertical(
@@ -2014,7 +1992,10 @@ class _TagSelectionBottomSheetState extends State<_TagSelectionBottomSheet> {
                 ),
                 IconButton(
                   icon: Icon(Icons.close, color: TossColors.gray600),
-                  onPressed: () => Navigator.pop(context),
+                  onPressed: () {
+                    FocusScope.of(context).unfocus();
+                    Navigator.pop(context);
+                  },
                 ),
               ],
             ),
@@ -2023,6 +2004,7 @@ class _TagSelectionBottomSheetState extends State<_TagSelectionBottomSheet> {
           // Content
           Expanded(
             child: SingleChildScrollView(
+              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
               padding: EdgeInsets.all(TossSpacing.space5),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

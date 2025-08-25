@@ -1,0 +1,367 @@
+import 'package:flutter/services.dart';import 'package:flutter/material.dart';
+import '../../../../core/themes/toss_colors.dart';
+import '../../../../core/themes/toss_text_styles.dart';
+import '../../../../core/themes/toss_animations.dart';
+
+/// Quick Actions Hub for common debt management operations
+/// 
+/// Provides fast access to frequently used actions with
+/// intelligent suggestions based on current debt portfolio.
+class QuickActionsHub extends StatefulWidget {
+  final Function(String) onActionSelected;
+
+  const QuickActionsHub({
+    super.key,
+    required this.onActionSelected,
+  });
+
+  @override
+  State<QuickActionsHub> createState() => _QuickActionsHubState();
+}
+
+class _QuickActionsHubState extends State<QuickActionsHub>
+    with TickerProviderStateMixin {
+  
+  late AnimationController _slideController;
+  late Animation<Offset> _slideAnimation;
+  
+  final List<QuickActionItem> _actions = [
+    QuickActionItem(
+      id: 'create_invoice',
+      label: 'Create Invoice',
+      icon: Icons.receipt_outlined,
+      color: TossColors.primary,
+      description: 'Generate new invoice',
+    ),
+    QuickActionItem(
+      id: 'record_payment',
+      label: 'Record Payment',
+      icon: Icons.payment,
+      color: TossColors.success,
+      description: 'Log received payment',
+    ),
+    QuickActionItem(
+      id: 'bulk_reminder',
+      label: 'Send Reminders',
+      icon: Icons.notification_important,
+      color: TossColors.warning,
+      description: 'Bulk reminder emails',
+    ),
+    QuickActionItem(
+      id: 'analytics',
+      label: 'Analytics',
+      icon: Icons.analytics,
+      color: TossColors.info,
+      description: 'View detailed reports',
+    ),
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    
+    _slideController = AnimationController(
+      duration: TossAnimations.medium,
+      vsync: this,
+    );
+    
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(0, 0.3),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(
+      parent: _slideController,
+      curve: Curves.easeOutCubic,
+    ));
+
+    _slideController.forward();
+  }
+
+  @override
+  void dispose() {
+    _slideController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SlideTransition(
+      position: _slideAnimation,
+      child: Container(
+        margin: EdgeInsets.symmetric(vertical: 16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 12),
+              child: Text(
+                'Quick Actions',
+                style: TossTextStyles.h4.copyWith(
+                  color: TossColors.textPrimary,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+            
+            SizedBox(height: 16),
+            
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              padding: EdgeInsets.symmetric(horizontal: 16),
+              child: Row(
+                children: _actions
+                    .asMap()
+                    .entries
+                    .map((entry) => _buildActionCard(
+                          entry.value,
+                          entry.key,
+                        ))
+                    .toList(),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildActionCard(QuickActionItem action, int index) {
+    return Container(
+      width: 120,
+      margin: EdgeInsets.only(
+        right: 16,
+        left: index == 0 ? 0 : 0,
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () => _handleActionTap(action),
+          borderRadius: BorderRadius.circular(16),
+          child: AnimatedContainer(
+            duration: TossAnimations.fast,
+            padding: EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: action.color.withOpacity(0.2),
+                width: 1,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.08),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Action Icon
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: action.color.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    action.icon,
+                    color: action.color,
+                    size: 24,
+                  ),
+                ),
+                
+                SizedBox(height: 12),
+                
+                // Action Label
+                Text(
+                  action.label,
+                  textAlign: TextAlign.center,
+                  style: TossTextStyles.caption.copyWith(
+                    color: TossColors.textPrimary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                
+                SizedBox(height: 8),
+                
+                // Action Description
+                Text(
+                  action.description,
+                  textAlign: TextAlign.center,
+                  style: TossTextStyles.caption.copyWith(
+                    color: TossColors.textTertiary,
+                    fontSize: 10,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _handleActionTap(QuickActionItem action) {
+    // Add haptic feedback
+    HapticFeedback.lightImpact();
+    
+    // Show brief visual feedback
+    _showActionFeedback(action);
+    
+    // Trigger callback
+    widget.onActionSelected(action.id);
+  }
+
+  void _showActionFeedback(QuickActionItem action) {
+    final overlay = Overlay.of(context);
+    late OverlayEntry overlayEntry;
+    
+    overlayEntry = OverlayEntry(
+      builder: (context) => _ActionFeedback(
+        action: action,
+        onComplete: () => overlayEntry.remove(),
+      ),
+    );
+    
+    overlay.insert(overlayEntry);
+  }
+}
+
+class _ActionFeedback extends StatefulWidget {
+  final QuickActionItem action;
+  final VoidCallback onComplete;
+
+  const _ActionFeedback({
+    required this.action,
+    required this.onComplete,
+  });
+
+  @override
+  State<_ActionFeedback> createState() => _ActionFeedbackState();
+}
+
+class _ActionFeedbackState extends State<_ActionFeedback>
+    with SingleTickerProviderStateMixin {
+  
+  late AnimationController _controller;
+  late Animation<double> _scaleAnimation;
+  late Animation<double> _opacityAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 800),
+      vsync: this,
+    );
+    
+    _scaleAnimation = Tween<double>(
+      begin: 1.0,
+      end: 1.2,
+    ).animate(CurvedAnimation(
+      parent: _controller,
+      curve: const Interval(0.0, 0.3, curve: Curves.easeOut),
+    ));
+    
+    _opacityAnimation = Tween<double>(
+      begin: 1.0,
+      end: 0.0,
+    ).animate(CurvedAnimation(
+      parent: _controller,
+      curve: const Interval(0.3, 1.0, curve: Curves.easeIn),
+    ));
+
+    _controller.forward().then((_) => widget.onComplete());
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, child) {
+        return Positioned(
+          top: MediaQuery.of(context).size.height * 0.4,
+          left: 0,
+          right: 0,
+          child: Center(
+            child: Transform.scale(
+              scale: _scaleAnimation.value,
+              child: Opacity(
+                opacity: _opacityAnimation.value,
+                child: Container(
+                  padding: EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.2),
+                        blurRadius: 20,
+                        offset: const Offset(0, 8),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 64,
+                        height: 64,
+                        decoration: BoxDecoration(
+                          color: widget.action.color.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Icon(
+                          widget.action.icon,
+                          color: widget.action.color,
+                          size: 32,
+                        ),
+                      ),
+                      
+                      SizedBox(height: 12),
+                      
+                      Text(
+                        'Opening ${widget.action.label}',
+                        style: TossTextStyles.bodySmall.copyWith(
+                          color: TossColors.textPrimary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class QuickActionItem {
+  final String id;
+  final String label;
+  final IconData icon;
+  final Color color;
+  final String description;
+
+  const QuickActionItem({
+    required this.id,
+    required this.label,
+    required this.icon,
+    required this.color,
+    required this.description,
+  });
+}

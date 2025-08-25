@@ -64,7 +64,7 @@ class IconMapper {
       'warehouse': FontAwesomeIcons.warehouse,
       
       // 사용자 & 직원 - Regular versions for cleaner look
-      'userCircle': FontAwesomeIcons.userCircle,
+      'userCircle': FontAwesomeIcons.circleUser,
       'userGear': FontAwesomeIcons.userGear,
       'userGearRegular': FontAwesomeIcons.userGear, // Use solid since regular doesn't exist
       'userClock': FontAwesomeIcons.userClock,

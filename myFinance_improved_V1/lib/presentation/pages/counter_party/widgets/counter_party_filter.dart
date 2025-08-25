@@ -62,7 +62,7 @@ class _CounterPartyFilterState extends ConsumerState<CounterPartyFilter> {
   Widget build(BuildContext context) {
     return Container(
       constraints: BoxConstraints(
-        maxHeight: MediaQuery.of(context).size.height * 0.9,
+        maxHeight: MediaQuery.of(context).size.height * 0.8,
       ),
       decoration: BoxDecoration(
         color: TossColors.surface,

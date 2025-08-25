@@ -12,7 +12,6 @@ import '../../widgets/common/toss_empty_view.dart';
 import '../../widgets/common/toss_error_view.dart';
 import '../../widgets/common/toss_loading_view.dart';
 import '../../widgets/toss/toss_search_field.dart';
-import '../../widgets/toss/toss_dropdown.dart';
 import '../../widgets/toss/toss_secondary_button.dart';
 import 'models/employee_salary.dart';
 import 'providers/employee_setting_providers.dart';
@@ -33,9 +32,7 @@ class _EmployeeSettingPageV2State extends ConsumerState<EmployeeSettingPageV2>
   final _scrollController = ScrollController();
   bool _showScrollToTop = false;
   
-  // Filter states
-  String? _selectedRole;
-  String? _selectedDepartment;
+  // Remove local filter states - using providers instead
   
   // Animation controllers
   late AnimationController _filterAnimationController;
@@ -116,16 +113,23 @@ class _EmployeeSettingPageV2State extends ConsumerState<EmployeeSettingPageV2>
   List<EmployeeSalary> _applyFilters(List<EmployeeSalary> employees) {
     var filtered = employees;
     
-    // Apply role filter
-    if (_selectedRole != null && _selectedRole!.isNotEmpty) {
-      filtered = filtered.where((e) => e.roleName == _selectedRole).toList();
+    // Apply role filter from provider
+    final selectedRole = ref.read(selectedRoleFilterProvider);
+    if (selectedRole != null && selectedRole.isNotEmpty) {
+      filtered = filtered.where((e) => e.roleName == selectedRole).toList();
     }
     
-    // Apply department filter
-    if (_selectedDepartment != null && _selectedDepartment!.isNotEmpty) {
-      filtered = filtered.where((e) => e.department == _selectedDepartment).toList();
+    // Apply department filter from provider
+    final selectedDepartment = ref.read(selectedDepartmentFilterProvider);
+    if (selectedDepartment != null && selectedDepartment.isNotEmpty) {
+      filtered = filtered.where((e) => e.department == selectedDepartment).toList();
     }
     
+    // Apply salary type filter from provider
+    final selectedSalaryType = ref.read(selectedSalaryTypeFilterProvider);
+    if (selectedSalaryType != null && selectedSalaryType.isNotEmpty) {
+      filtered = filtered.where((e) => e.salaryType == selectedSalaryType).toList();
+    }
     
     return filtered;
   }
@@ -225,6 +229,8 @@ class _EmployeeSettingPageV2State extends ConsumerState<EmployeeSettingPageV2>
       context: context,
       isScrollControlled: true,
       backgroundColor: TossColors.transparent,
+      isDismissible: true, // Allow tap-outside-to-dismiss
+      enableDrag: true, // Allow swipe-to-dismiss
       builder: (context) => EmployeeDetailSheetV2(
         employee: employee,
         onUpdate: (updatedEmployee) {
@@ -242,6 +248,8 @@ class _EmployeeSettingPageV2State extends ConsumerState<EmployeeSettingPageV2>
       context: context,
       isScrollControlled: true,
       backgroundColor: TossColors.transparent,
+      isDismissible: true, // Allow tap-outside-to-dismiss
+      enableDrag: true, // Allow swipe-to-dismiss
       builder: (context) => SalaryEditModal(
         employee: employee,
         onSave: (amount, type, currencyId, currencyName, symbol) {
@@ -297,6 +305,8 @@ class _EmployeeSettingPageV2State extends ConsumerState<EmployeeSettingPageV2>
       context: context,
       isScrollControlled: true,
       backgroundColor: TossColors.transparent,
+      isDismissible: true, // Allow tap-outside-to-dismiss
+      enableDrag: true, // Allow swipe-to-dismiss
       builder: (context) => RoleManagementModal(
         userId: employee.userId,
         currentRole: employee.roleName,
@@ -338,51 +348,17 @@ class _EmployeeSettingPageV2State extends ConsumerState<EmployeeSettingPageV2>
   Widget _buildSearchFilterSection(List<EmployeeSalary> allEmployees, List<EmployeeSalary> filteredEmployees) {
     final sortOption = ref.watch(employeeSortOptionProvider);
     
-    // Extract unique values for filters
-    final roles = allEmployees.map((e) => e.roleName).whereType<String>().toSet().toList();
     
     return Column(
       children: [
-        // Stats Section - Always show
+        // Filter and Sort Controls
         Container(
           margin: EdgeInsets.fromLTRB(
             TossSpacing.space4,
-            TossSpacing.space4,
-            TossSpacing.space4,
             TossSpacing.space3,
+            TossSpacing.space4,
+            TossSpacing.space2,
           ),
-          padding: EdgeInsets.symmetric(
-            horizontal: TossSpacing.space4,
-            vertical: TossSpacing.space3,
-          ),
-          decoration: BoxDecoration(
-            color: TossColors.surface,
-            borderRadius: BorderRadius.circular(TossBorderRadius.md),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.02),
-                blurRadius: 2,
-                offset: const Offset(0, 1),
-              ),
-            ],
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              _buildQuickStat('Total', allEmployees.length.toString(), Icons.groups_rounded),
-              Container(
-                height: 20,
-                width: 1,
-                color: TossColors.gray200,
-              ),
-              _buildQuickStat('Roles', roles.length.toString(), Icons.badge_outlined),
-            ],
-          ),
-        ),
-        
-        // Filter and Sort Controls - Always show
-        Container(
-          margin: EdgeInsets.symmetric(horizontal: TossSpacing.space4),
           padding: EdgeInsets.symmetric(
             horizontal: TossSpacing.space3,
             vertical: TossSpacing.space2,
@@ -392,7 +368,7 @@ class _EmployeeSettingPageV2State extends ConsumerState<EmployeeSettingPageV2>
             borderRadius: BorderRadius.circular(TossBorderRadius.md),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.02),
+                color: Colors.black.withValues(alpha: 0.02),
                 blurRadius: 2,
                 offset: const Offset(0, 1),
               ),
@@ -429,11 +405,21 @@ class _EmployeeSettingPageV2State extends ConsumerState<EmployeeSettingPageV2>
                                 right: -4,
                                 top: -4,
                                 child: Container(
-                                  width: 8,
-                                  height: 8,
+                                  width: 16,
+                                  height: 16,
                                   decoration: BoxDecoration(
                                     color: TossColors.primary,
                                     shape: BoxShape.circle,
+                                  ),
+                                  child: Center(
+                                    child: Text(
+                                      '${_getActiveFilterCount()}',
+                                      style: TextStyle(
+                                        color: TossColors.white,
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
                                   ),
                                 ),
                               ),
@@ -442,7 +428,7 @@ class _EmployeeSettingPageV2State extends ConsumerState<EmployeeSettingPageV2>
                         SizedBox(width: TossSpacing.space2),
                         Expanded(
                           child: Text(
-                            _selectedRole ?? 'Filter',
+                            _hasActiveFilters() ? '${_getActiveFilterCount()} filters active' : 'Filters',
                             style: TossTextStyles.labelLarge.copyWith(
                               color: TossColors.gray700,
                             ),
@@ -497,6 +483,16 @@ class _EmployeeSettingPageV2State extends ConsumerState<EmployeeSettingPageV2>
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
+                        // Show sort direction indicator
+                        if (sortOption != null)
+                          Icon(
+                            ref.watch(employeeSortDirectionProvider) 
+                              ? Icons.arrow_upward_rounded 
+                              : Icons.arrow_downward_rounded,
+                            size: 16,
+                            color: TossColors.primary,
+                          ),
+                        SizedBox(width: TossSpacing.space1),
                         Icon(
                           Icons.keyboard_arrow_down_rounded,
                           size: 20,
@@ -511,24 +507,13 @@ class _EmployeeSettingPageV2State extends ConsumerState<EmployeeSettingPageV2>
           ),
         ),
         
-        // Search Field - At the bottom
+        // Search Field
         Container(
           margin: EdgeInsets.fromLTRB(
             TossSpacing.space4,
-            TossSpacing.space3,
+            TossSpacing.space2,
             TossSpacing.space4,
             TossSpacing.space3,
-          ),
-          decoration: BoxDecoration(
-            color: TossColors.surface,
-            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.04),
-                blurRadius: 4,
-                offset: const Offset(0, 2),
-              ),
-            ],
           ),
           child: TossSearchField(
             controller: _searchController,
@@ -583,7 +568,7 @@ class _EmployeeSettingPageV2State extends ConsumerState<EmployeeSettingPageV2>
                     vertical: TossSpacing.space1,
                   ),
                   decoration: BoxDecoration(
-                    color: TossColors.primary.withOpacity(0.1),
+                    color: TossColors.primary.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(TossBorderRadius.sm),
                   ),
                   child: Text(
@@ -758,232 +743,69 @@ class _EmployeeSettingPageV2State extends ConsumerState<EmployeeSettingPageV2>
   }
 
   // Helper Methods
-  Widget _buildQuickStat(String label, String value, IconData icon) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(
-          icon,
-          size: 18,
-          color: TossColors.gray500,
-        ),
-        SizedBox(width: TossSpacing.space2),
-        Text(
-          value,
-          style: TossTextStyles.bodyLarge.copyWith(
-            fontWeight: FontWeight.w700,
-            color: TossColors.gray900,
-          ),
-        ),
-        SizedBox(width: 4),
-        Text(
-          label,
-          style: TossTextStyles.bodySmall.copyWith(
-            color: TossColors.gray500,
-          ),
-        ),
-      ],
-    );
-  }
 
   String _getSortLabel(String? sortOption) {
+    final isAscending = ref.watch(employeeSortDirectionProvider);
+    
     switch (sortOption) {
       case 'name':
-        return 'Name (A-Z)';
+        return isAscending ? 'Name (A-Z)' : 'Name (Z-A)';
       case 'salary':
-        return 'Salary (High to Low)';
+        // Salary default is high-to-low (descending), so reverse the labels
+        return isAscending ? 'Salary (Low to High)' : 'Salary (High to Low)';
       case 'role':
-        return 'Role';
+        return isAscending ? 'Role (A-Z)' : 'Role (Z-A)';
       case 'recent':
-        return 'Recently Added';
+        return isAscending ? 'Oldest First' : 'Recently Added';
       default:
         return 'Sort by';
     }
   }
   
-  String _getFilterSortLabel() {
-    final parts = <String>[];
-    
-    if (_selectedRole != null) {
-      parts.add('Role: $_selectedRole');
-    }
-    
-    final sortLabel = _getSortLabel(ref.read(employeeSortOptionProvider));
-    if (sortLabel != 'Sort by') {
-      parts.add(sortLabel);
-    }
-    
-    if (parts.isEmpty) {
-      return 'Filter & Sort';
-    }
-    
-    return parts.join(' • ');
-  }
   
-  void _showFilterOptionsSheet() {
-    final employeesAsync = ref.read(filteredEmployeesProvider);
-    employeesAsync.whenData((employees) {
-      final roles = employees.map((e) => e.roleName).whereType<String>().toSet().toList();
-      
-      showModalBottomSheet(
-        context: context,
-        backgroundColor: TossColors.transparent,
-        builder: (context) => _buildFilterSheet(roles),
-      );
-    });
-  }
   
-  Widget _buildFilterSheet(List<String> roles) {
-    return Container(
-      padding: EdgeInsets.only(
-        bottom: MediaQuery.of(context).padding.bottom,
-      ),
-      decoration: BoxDecoration(
-        color: TossColors.surface,
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(TossBorderRadius.xl),
-          topRight: Radius.circular(TossBorderRadius.xl),
-        ),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Handle
-          Container(
-            width: 48,
-            height: 4,
-            margin: EdgeInsets.only(top: TossSpacing.space3),
-            decoration: BoxDecoration(
-              color: TossColors.gray300,
-              borderRadius: BorderRadius.circular(2),
-            ),
-          ),
-          
-          // Title
-          Container(
-            padding: EdgeInsets.all(TossSpacing.space4),
-            child: Text(
-              'Filter by Role',
-              style: TossTextStyles.h3.copyWith(
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ),
-          
-          // All Roles Option
-          Material(
-            color: Colors.transparent,
-            child: InkWell(
-              onTap: () {
-                HapticFeedback.selectionClick();
-                setState(() {
-                  _selectedRole = null;
-                });
-                Navigator.pop(context);
-              },
-              child: Container(
-                padding: EdgeInsets.symmetric(
-                  horizontal: TossSpacing.space4,
-                  vertical: TossSpacing.space3,
-                ),
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.clear_all_rounded,
-                      size: 20,
-                      color: TossColors.gray600,
-                    ),
-                    SizedBox(width: TossSpacing.space3),
-                    Text(
-                      'All Roles',
-                      style: TossTextStyles.body.copyWith(
-                        color: TossColors.gray900,
-                        fontWeight: FontWeight.w400,
-                      ),
-                    ),
-                    Spacer(),
-                    if (_selectedRole == null)
-                      Icon(
-                        Icons.check_rounded,
-                        color: TossColors.primary,
-                        size: 20,
-                      ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-          
-          // Role Options
-          ...roles.map((role) {
-            final isSelected = role == _selectedRole;
-            return Material(
-              color: Colors.transparent,
-              child: InkWell(
-                onTap: () {
-                  HapticFeedback.selectionClick();
-                  setState(() {
-                    _selectedRole = role;
-                  });
-                  Navigator.pop(context);
-                },
-                child: Container(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: TossSpacing.space4,
-                    vertical: TossSpacing.space3,
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.badge_outlined,
-                        size: 20,
-                        color: TossColors.gray600,
-                      ),
-                      SizedBox(width: TossSpacing.space3),
-                      Text(
-                        role,
-                        style: TossTextStyles.body.copyWith(
-                          color: TossColors.gray900,
-                          fontWeight: FontWeight.w400,
-                        ),
-                      ),
-                      Spacer(),
-                      if (isSelected)
-                        Icon(
-                          Icons.check_rounded,
-                          color: TossColors.primary,
-                          size: 20,
-                        ),
-                    ],
-                  ),
-                ),
-              ),
-            );
-          }).toList(),
-          
-          SizedBox(height: TossSpacing.space4),
-        ],
-      ),
-    );
-  }
   
   void _showSortOptionsSheet() {
     showModalBottomSheet(
       context: context,
       backgroundColor: TossColors.transparent,
+      isDismissible: true, // Allow tap-outside-to-dismiss
+      enableDrag: true, // Allow swipe-to-dismiss
       builder: (context) => _buildSortSheet(),
     );
   }
   
   Widget _buildSortSheet() {
-    final sortOptions = [
-      {'value': 'name', 'label': 'Name (A-Z)', 'icon': Icons.sort_by_alpha},
-      {'value': 'salary', 'label': 'Salary (High to Low)', 'icon': Icons.attach_money},
-      {'value': 'role', 'label': 'Role', 'icon': Icons.badge_outlined},
-      {'value': 'recent', 'label': 'Recently Added', 'icon': Icons.access_time},
-    ];
-    
     final currentSort = ref.read(employeeSortOptionProvider);
+    final isAscending = ref.read(employeeSortDirectionProvider);
+    
+    // Dynamic labels based on current direction
+    final sortOptions = [
+      {
+        'value': 'name', 
+        'label': isAscending ? 'Name (A-Z)' : 'Name (Z-A)', 
+        'icon': Icons.sort_by_alpha,
+        'directionIcon': isAscending ? Icons.arrow_upward : Icons.arrow_downward,
+      },
+      {
+        'value': 'salary', 
+        'label': isAscending ? 'Salary (Low to High)' : 'Salary (High to Low)', 
+        'icon': Icons.attach_money,
+        'directionIcon': isAscending ? Icons.arrow_upward : Icons.arrow_downward,
+      },
+      {
+        'value': 'role', 
+        'label': isAscending ? 'Role (A-Z)' : 'Role (Z-A)', 
+        'icon': Icons.badge_outlined,
+        'directionIcon': isAscending ? Icons.arrow_upward : Icons.arrow_downward,
+      },
+      {
+        'value': 'recent', 
+        'label': isAscending ? 'Oldest First' : 'Recently Added', 
+        'icon': Icons.access_time,
+        'directionIcon': isAscending ? Icons.arrow_upward : Icons.arrow_downward,
+      },
+    ];
     
     return Container(
       padding: EdgeInsets.only(
@@ -1029,7 +851,21 @@ class _EmployeeSettingPageV2State extends ConsumerState<EmployeeSettingPageV2>
               child: InkWell(
                 onTap: () {
                   HapticFeedback.selectionClick();
-                  ref.read(employeeSortOptionProvider.notifier).state = option['value'] as String;
+                  
+                  // If clicking the same sort option, toggle direction
+                  if (option['value'] == currentSort) {
+                    ref.read(employeeSortDirectionProvider.notifier).state = !isAscending;
+                  } else {
+                    // Set new sort option with default direction
+                    ref.read(employeeSortOptionProvider.notifier).state = option['value'] as String;
+                    // Reset to default direction for each sort type
+                    if (option['value'] == 'name' || option['value'] == 'role') {
+                      ref.read(employeeSortDirectionProvider.notifier).state = true; // A-Z by default
+                    } else {
+                      ref.read(employeeSortDirectionProvider.notifier).state = false; // High-to-Low/Recent first by default
+                    }
+                  }
+                  
                   Navigator.pop(context);
                 },
                 child: Container(
@@ -1042,23 +878,32 @@ class _EmployeeSettingPageV2State extends ConsumerState<EmployeeSettingPageV2>
                       Icon(
                         option['icon'] as IconData,
                         size: 20,
-                        color: TossColors.gray600,
+                        color: isSelected ? TossColors.primary : TossColors.gray600,
                       ),
                       SizedBox(width: TossSpacing.space3),
-                      Text(
-                        option['label'] as String,
-                        style: TossTextStyles.body.copyWith(
-                          color: TossColors.gray900,
-                          fontWeight: FontWeight.w400,
+                      Expanded(
+                        child: Text(
+                          option['label'] as String,
+                          style: TossTextStyles.body.copyWith(
+                            color: isSelected ? TossColors.primary : TossColors.gray900,
+                            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                          ),
                         ),
                       ),
-                      Spacer(),
-                      if (isSelected)
+                      // Show direction indicator for selected item
+                      if (isSelected) ...[                    
+                        Icon(
+                          option['directionIcon'] as IconData,
+                          size: 16,
+                          color: TossColors.primary,
+                        ),
+                        SizedBox(width: TossSpacing.space2),
                         Icon(
                           Icons.check_rounded,
                           color: TossColors.primary,
                           size: 20,
                         ),
+                      ],
                     ],
                   ),
                 ),
@@ -1109,23 +954,32 @@ class _EmployeeSettingPageV2State extends ConsumerState<EmployeeSettingPageV2>
 
   void _clearAllFilters() {
     HapticFeedback.lightImpact();
-    setState(() {
-      _selectedRole = null;
-      _selectedDepartment = null;
-      _searchController.clear();
-      ref.read(employeeSearchQueryProvider.notifier).state = '';
-    });
+    ref.read(selectedRoleFilterProvider.notifier).state = null;
+    ref.read(selectedDepartmentFilterProvider.notifier).state = null;
+    ref.read(selectedSalaryTypeFilterProvider.notifier).state = null;
+    _searchController.clear();
+    ref.read(employeeSearchQueryProvider.notifier).state = '';
   }
 
   bool _hasActiveFilters() {
-    return _selectedRole != null || 
-           _selectedDepartment != null;
+    final selectedRole = ref.watch(selectedRoleFilterProvider);
+    final selectedDepartment = ref.watch(selectedDepartmentFilterProvider);
+    final selectedSalaryType = ref.watch(selectedSalaryTypeFilterProvider);
+    
+    return selectedRole != null || 
+           selectedDepartment != null ||
+           selectedSalaryType != null;
   }
 
   int _getActiveFilterCount() {
     int count = 0;
-    if (_selectedRole != null) count++;
-    if (_selectedDepartment != null) count++;
+    final selectedRole = ref.watch(selectedRoleFilterProvider);
+    final selectedDepartment = ref.watch(selectedDepartmentFilterProvider);
+    final selectedSalaryType = ref.watch(selectedSalaryTypeFilterProvider);
+    
+    if (selectedRole != null) count++;
+    if (selectedDepartment != null) count++;
+    if (selectedSalaryType != null) count++;
     return count;
   }
 
@@ -1136,5 +990,264 @@ class _EmployeeSettingPageV2State extends ConsumerState<EmployeeSettingPageV2>
       return '${(amount / 1000).toStringAsFixed(1)}K';
     }
     return amount.toStringAsFixed(0);
+  }
+  
+  
+  
+  
+  void _showFilterOptionsSheet() {
+    final employeesAsync = ref.read(filteredEmployeesProvider);
+    employeesAsync.whenData((employees) {
+      showModalBottomSheet(
+        context: context,
+        backgroundColor: TossColors.transparent,
+        isScrollControlled: true,
+        isDismissible: true, // Allow tap-outside-to-dismiss
+        enableDrag: true, // Allow swipe-to-dismiss
+        builder: (context) => _buildFilterSheet(employees),
+      );
+    });
+  }
+  
+  Widget _buildFilterSheet(List<EmployeeSalary> allEmployees) {
+    final roles = allEmployees.map((e) => e.roleName).whereType<String>().toSet().toList();
+    final departments = allEmployees.map((e) => e.department).whereType<String>().toSet().toList();
+    
+    // Get current filter values from providers
+    final selectedRole = ref.watch(selectedRoleFilterProvider);
+    final selectedDepartment = ref.watch(selectedDepartmentFilterProvider);
+    final selectedSalaryType = ref.watch(selectedSalaryTypeFilterProvider);
+    
+    return Container(
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.of(context).size.height * 0.8,
+      ),
+      decoration: BoxDecoration(
+        color: TossColors.surface,
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(TossBorderRadius.xl),
+          topRight: Radius.circular(TossBorderRadius.xl),
+        ),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Handle
+          Container(
+            width: 48,
+            height: 4,
+            margin: EdgeInsets.only(top: TossSpacing.space3),
+            decoration: BoxDecoration(
+              color: TossColors.gray300,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          
+          // Title
+          Container(
+            padding: EdgeInsets.all(TossSpacing.space4),
+            child: Row(
+              children: [
+                Text(
+                  'Filter Team Members',
+                  style: TossTextStyles.h3.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                Spacer(),
+                if (_hasActiveFilters())
+                  TossSecondaryButton(
+                    text: 'Clear All',
+                    onPressed: () {
+                      _clearAllFilters();
+                      Navigator.pop(context);
+                    },
+                  ),
+              ],
+            ),
+          ),
+          
+          // Filter Options
+          Flexible(
+            child: SingleChildScrollView(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).padding.bottom + TossSpacing.space4,
+              ),
+              child: Column(
+                children: [
+                  _buildFilterSection('Salary Type', 
+                    ['hourly', 'monthly'], 
+                    selectedSalaryType, 
+                    Icons.attach_money_rounded, 
+                    allEmployees,
+                    (value) {
+                      ref.read(selectedSalaryTypeFilterProvider.notifier).state = value;
+                      Navigator.pop(context);
+                    },
+                    customLabels: {'hourly': 'Hourly', 'monthly': 'Monthly'},
+                  ),
+                  
+                  _buildFilterSection('Role', roles, selectedRole, Icons.badge_outlined, allEmployees, (value) {
+                    ref.read(selectedRoleFilterProvider.notifier).state = value;
+                    Navigator.pop(context);
+                  }),
+                  
+                  if (departments.isNotEmpty)
+                    _buildFilterSection('Department', departments, selectedDepartment, Icons.business_rounded, allEmployees, (value) {
+                      ref.read(selectedDepartmentFilterProvider.notifier).state = value;
+                      Navigator.pop(context);
+                    }),
+                ],
+              ),
+            ),
+          ),
+          
+          SizedBox(height: TossSpacing.space4),
+        ],
+      ),
+    );
+  }
+  
+  Widget _buildFilterSection(
+    String title, 
+    List<String> options, 
+    String? selectedValue, 
+    IconData icon,
+    List<EmployeeSalary> allEmployees,
+    ValueChanged<String?> onChanged,
+    {Map<String, String>? customLabels}
+  ) {
+    return Container(
+      margin: EdgeInsets.only(bottom: TossSpacing.space6),
+      padding: EdgeInsets.symmetric(horizontal: TossSpacing.space4),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Section Title
+          Padding(
+            padding: EdgeInsets.only(bottom: TossSpacing.space3),
+            child: Row(
+              children: [
+                Icon(icon, size: 20, color: TossColors.gray600),
+                SizedBox(width: TossSpacing.space2),
+                Text(
+                  title,
+                  style: TossTextStyles.labelLarge.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: TossColors.gray900,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          
+          // All Option
+          _buildFilterOption(
+            'All ${title}s',
+            null,
+            selectedValue,
+            Icons.clear_all_rounded,
+            onChanged,
+          ),
+          
+          // Individual Options
+          ...options.map((option) {
+            final displayLabel = customLabels?[option] ?? option;
+            final count = allEmployees.where((e) {
+              switch (title) {
+                case 'Role':
+                  return e.roleName == option;
+                case 'Department':
+                  return e.department == option;
+                case 'Salary Type':
+                  return e.salaryType == option;
+                default:
+                  return false;
+              }
+            }).length;
+            
+            return _buildFilterOption(
+              displayLabel,
+              option,
+              selectedValue,
+              _getFilterIcon(title, option),
+              onChanged,
+              count: count,
+            );
+          }).toList(),
+        ],
+      ),
+    );
+  }
+  
+  Widget _buildFilterOption(
+    String label,
+    String? value,
+    String? selectedValue,
+    IconData icon,
+    ValueChanged<String?> onChanged,
+    {int? count}
+  ) {
+    final isSelected = value == selectedValue;
+    
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () => onChanged(value),
+        child: Container(
+          padding: EdgeInsets.symmetric(
+            horizontal: TossSpacing.space4,
+            vertical: TossSpacing.space3,
+          ),
+          child: Row(
+            children: [
+              Icon(
+                icon,
+                size: 20,
+                color: TossColors.gray600,
+              ),
+              SizedBox(width: TossSpacing.space3),
+              Expanded(
+                child: Text(
+                  label,
+                  style: TossTextStyles.body.copyWith(
+                    color: TossColors.gray900,
+                    fontWeight: FontWeight.w400,
+                  ),
+                ),
+              ),
+              if (count != null)
+                Text(
+                  '($count)',
+                  style: TossTextStyles.caption.copyWith(
+                    color: TossColors.gray500,
+                  ),
+                ),
+              if (isSelected)
+                Icon(
+                  Icons.check_rounded,
+                  color: TossColors.primary,
+                  size: 20,
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+  
+  IconData _getFilterIcon(String filterType, String option) {
+    switch (filterType) {
+      case 'Role':
+        return Icons.badge_outlined;
+      case 'Department':
+        return Icons.business_rounded;
+      case 'Salary Type':
+        if (option == 'hourly') return Icons.schedule_rounded;
+        if (option == 'monthly') return Icons.calendar_month_rounded;
+        return Icons.attach_money_rounded;
+      default:
+        return Icons.filter_list_rounded;
+    }
   }
 }

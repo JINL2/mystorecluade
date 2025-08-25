@@ -7,6 +7,7 @@ import '../../providers/app_state_provider.dart';
 import '../../../core/themes/toss_colors.dart';
 import '../../../core/themes/toss_text_styles.dart';
 import '../../widgets/common/toss_scaffold.dart';
+import '../../widgets/common/safe_popup_menu.dart';
 
 class AddFixAssetPage extends ConsumerStatefulWidget {
   const AddFixAssetPage({super.key});
@@ -358,7 +359,7 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
                     ],
                   ),
                 ),
-                PopupMenuButton<String>(
+                SafePopupMenuButton<String>(
                   icon: Icon(
                     Icons.more_vert,
                     size: 20,
@@ -368,21 +369,14 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   onSelected: (value) async {
-                    // Add safety check for widget lifecycle
-                    if (!mounted) return;
-                    
                     if (value == 'edit') {
-                      if (mounted) {
-                        _showEditAssetBottomSheet(asset);
-                      }
+                      _showEditAssetBottomSheet(asset);
                     } else if (value == 'delete') {
-                      if (mounted) {
-                        // TODO: Implement delete functionality
-                      }
+                      // TODO: Implement delete functionality
                     }
                   },
                   itemBuilder: (context) => [
-                    const PopupMenuItem(
+                    const SafePopupMenuItem(
                       value: 'edit',
                       child: Row(
                         children: [
@@ -392,7 +386,7 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
                         ],
                       ),
                     ),
-                    const PopupMenuItem(
+                    const SafePopupMenuItem(
                       value: 'delete',
                       child: Row(
                         children: [

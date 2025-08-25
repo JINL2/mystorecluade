@@ -9,16 +9,16 @@ import 'package:myfinance_improved/presentation/widgets/toss/toss_dropdown.dart'
 import 'package:myfinance_improved/presentation/widgets/toss/toss_primary_button.dart';
 import 'package:myfinance_improved/presentation/widgets/toss/toss_secondary_button.dart';
 import 'package:myfinance_improved/presentation/widgets/specific/selectors/autonomous_account_selector.dart';
+import 'package:myfinance_improved/presentation/widgets/specific/selectors/autonomous_counterparty_selector.dart';
+import 'package:myfinance_improved/presentation/widgets/specific/selectors/autonomous_cash_location_selector.dart';
 import 'package:myfinance_improved/presentation/providers/entities/account_provider.dart';
 import 'package:myfinance_improved/presentation/providers/entities/cash_location_provider.dart';
 import 'package:myfinance_improved/presentation/providers/app_state_provider.dart';
 import 'package:myfinance_improved/data/services/transaction_template_service.dart';
 import 'package:myfinance_improved/data/services/supabase_service.dart';
 import '../providers/transaction_template_providers.dart';
-import 'counterparty_selector.dart';
+import '../providers/counterparty_providers.dart';
 import 'store_selector.dart';
-import 'cash_location_selector.dart';
-import 'my_cash_location_selector.dart';
 
 class AddTemplateBottomSheet extends ConsumerStatefulWidget {
   const AddTemplateBottomSheet({super.key});
@@ -255,7 +255,7 @@ class _AddTemplateBottomSheetState extends ConsumerState<AddTemplateBottomSheet>
       if (mounted) {
         await showDialog(
           context: context,
-          barrierDismissible: false,
+          barrierDismissible: true, // Allow dismissing success dialogs
           builder: (BuildContext dialogContext) {
             return AlertDialog(
               shape: RoundedRectangleBorder(
@@ -416,6 +416,19 @@ class _AddTemplateBottomSheetState extends ConsumerState<AddTemplateBottomSheet>
       if (_selectedDebitStoreId == null) {
         return false;
       }
+      
+      // IMPORTANT BUSINESS RULE:
+      // If DEBIT is debt/receivable AND CREDIT is cash (money coming IN from internal company)
+      // OR DEBIT is cash AND CREDIT is debt/receivable (money going OUT to internal company)
+      // Then we MUST specify the counterparty cash location
+      if ((debitRequiresCounterparty && creditIsCashAccount) || 
+          (debitIsCashAccount && creditRequiresCounterparty)) {
+        // For internal transfers involving cash and debt/receivable,
+        // we must know where the cash goes in the counterparty company
+        if (_selectedDebitCashLocationId == null) {
+          return false;
+        }
+      }
     }
     
     // Check if credit internal counterparty requires store (cash location is optional)
@@ -423,6 +436,19 @@ class _AddTemplateBottomSheetState extends ConsumerState<AddTemplateBottomSheet>
         _selectedCreditCounterpartyData!['is_internal'] == true) {
       if (_selectedCreditStoreId == null) {
         return false;
+      }
+      
+      // IMPORTANT BUSINESS RULE:
+      // If CREDIT is debt/receivable AND DEBIT is cash (money going OUT to internal company)
+      // OR CREDIT is cash AND DEBIT is debt/receivable (money coming IN from internal company)
+      // Then we MUST specify the counterparty cash location
+      if ((creditRequiresCounterparty && debitIsCashAccount) || 
+          (creditIsCashAccount && debitRequiresCounterparty)) {
+        // For internal transfers involving cash and debt/receivable,
+        // we must know where the cash goes in the counterparty company
+        if (_selectedCreditCashLocationId == null) {
+          return false;
+        }
       }
     }
     
@@ -433,7 +459,7 @@ class _AddTemplateBottomSheetState extends ConsumerState<AddTemplateBottomSheet>
   Widget build(BuildContext context) {
     final bottomPadding = MediaQuery.of(context).viewInsets.bottom;
     final screenHeight = MediaQuery.of(context).size.height;
-    final maxHeight = screenHeight * 0.9; // Use 90% of screen height max
+    final maxHeight = screenHeight * 0.8; // Use 80% of screen height max
     
     return AnimatedPadding(
       padding: EdgeInsets.only(bottom: bottomPadding),
@@ -469,7 +495,6 @@ class _AddTemplateBottomSheetState extends ConsumerState<AddTemplateBottomSheet>
               child: Column(
                 children: [
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       if (_currentStep > 1)
                         IconButton(
@@ -478,10 +503,14 @@ class _AddTemplateBottomSheetState extends ConsumerState<AddTemplateBottomSheet>
                         )
                       else
                         SizedBox(width: 48),
-                      Text(
-                        'New Transaction Template',
-                        style: TossTextStyles.h3.copyWith(
-                          fontWeight: FontWeight.w600,
+                      Expanded(
+                        child: Text(
+                          'New Transaction Template',
+                          style: TossTextStyles.h3.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
+                          textAlign: TextAlign.center,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                       IconButton(
@@ -693,6 +722,7 @@ class _AddTemplateBottomSheetState extends ConsumerState<AddTemplateBottomSheet>
                         SizedBox(height: TossSpacing.space3),
                         AutonomousAccountSelector(
                           selectedAccountId: _selectedDebitAccountId,
+                          contextType: 'template', // Enable usage tracking
                           onChanged: (accountId) {
                             setState(() {
                               _selectedDebitAccountId = accountId;
@@ -710,13 +740,13 @@ class _AddTemplateBottomSheetState extends ConsumerState<AddTemplateBottomSheet>
                         // Show counterparty selector if account requires it
                         if (debitRequiresCounterparty && _selectedDebitAccountId != null) ...[
                           SizedBox(height: TossSpacing.space3),
-                          CounterpartySelector(
-                            accountId: _selectedDebitAccountId,
+                          AutonomousCounterpartySelector(
                             selectedCounterpartyId: _selectedDebitCounterpartyId,
-                            onChanged: (counterpartyId, counterpartyData) {
+                            onChanged: (counterpartyId) {
                               setState(() {
                                 _selectedDebitCounterpartyId = counterpartyId;
-                                _selectedDebitCounterpartyData = counterpartyData;
+                                // Get counterparty data if needed
+                                _selectedDebitCounterpartyData = null; // Will be loaded from provider
                                 // Reset store and cash location when counterparty changes
                                 _selectedDebitStoreId = null;
                                 _selectedDebitStoreName = null;
@@ -725,58 +755,125 @@ class _AddTemplateBottomSheetState extends ConsumerState<AddTemplateBottomSheet>
                             },
                             label: 'Counterparty',
                             hint: 'Select counterparty',
+                            showSearch: true,
+                            showTransactionCount: false,
                           ),
                           
                           // Show store selector if internal counterparty is selected
-                          if (_selectedDebitCounterpartyData != null && 
-                              _selectedDebitCounterpartyData!['is_internal'] == true) ...[
-                            SizedBox(height: TossSpacing.space3),
-                            StoreSelector(
-                              linkedCompanyId: _selectedDebitCounterpartyData!['linked_company_id'] as String?,
-                              selectedStoreId: _selectedDebitStoreId,
-                              onChanged: (storeId, storeName) {
-                                setState(() {
-                                  _selectedDebitStoreId = storeId;
-                                  _selectedDebitStoreName = storeName;
-                                  // Reset cash location when store changes
-                                  _selectedDebitCashLocationId = null;
-                                });
-                              },
-                              label: 'Counterparty Store',
-                              hint: 'Select store',
-                            ),
-                            
-                            // Show cash location selector if store is selected
-                            if (_selectedDebitStoreId != null) ...[
-                              SizedBox(height: TossSpacing.space3),
-                              CashLocationSelector(
-                                companyId: _selectedDebitCounterpartyData!['linked_company_id'] as String?,
-                                storeId: _selectedDebitStoreId,
-                                selectedCashLocationId: _selectedDebitCashLocationId,
-                                onChanged: (cashLocationId) {
+                          Consumer(
+                            builder: (context, ref, child) {
+                              // Watch counterparty data
+                              final counterpartyAsync = ref.watch(counterpartyByIdProvider(_selectedDebitCounterpartyId));
+                              final counterpartyData = counterpartyAsync.when(
+                                data: (data) => data,
+                                loading: () => null,
+                                error: (_, __) => null,
+                              );
+                              
+                              // Update local state
+                              WidgetsBinding.instance.addPostFrameCallback((_) {
+                                if (mounted && counterpartyData != _selectedDebitCounterpartyData) {
                                   setState(() {
-                                    _selectedDebitCashLocationId = cashLocationId;
+                                    _selectedDebitCounterpartyData = counterpartyData;
                                   });
-                                },
-                                label: 'Counterparty Cash Location',
-                                hint: 'Select cash location',
-                              ),
-                            ],
-                          ],
+                                }
+                              });
+                              
+                              if (counterpartyData != null && counterpartyData['is_internal'] == true) {
+                                return Column(
+                                  children: [
+                                    SizedBox(height: TossSpacing.space3),
+                                    StoreSelector(
+                                      linkedCompanyId: counterpartyData['linked_company_id'] as String?,
+                                      selectedStoreId: _selectedDebitStoreId,
+                                      onChanged: (storeId, storeName) {
+                                        setState(() {
+                                          _selectedDebitStoreId = storeId;
+                                          _selectedDebitStoreName = storeName;
+                                          // Reset cash location when store changes
+                                          _selectedDebitCashLocationId = null;
+                                        });
+                                      },
+                                      label: 'Counterparty Store',
+                                      hint: 'Select store',
+                                    ),
+                                    
+                                    // Show cash location selector if store is selected
+                                    if (_selectedDebitStoreId != null) ...[
+                                      SizedBox(height: TossSpacing.space3),
+                                      // Show helper text if this is a cash/debt transfer
+                                      if ((debitRequiresCounterparty && creditIsCashAccount) || 
+                                          (debitIsCashAccount && creditRequiresCounterparty)) ...[
+                                        Container(
+                                          padding: EdgeInsets.all(TossSpacing.space2),
+                                          margin: EdgeInsets.only(bottom: TossSpacing.space2),
+                                          decoration: BoxDecoration(
+                                            color: TossColors.warningLight.withValues(alpha: 0.1),
+                                            borderRadius: BorderRadius.circular(TossBorderRadius.sm),
+                                            border: Border.all(
+                                              color: TossColors.warning.withValues(alpha: 0.3),
+                                              width: 1,
+                                            ),
+                                          ),
+                                          child: Row(
+                                            children: [
+                                              Icon(
+                                                Icons.info_outline,
+                                                size: 16,
+                                                color: TossColors.warning,
+                                              ),
+                                              SizedBox(width: TossSpacing.space1),
+                                              Expanded(
+                                                child: Text(
+                                                  'Required: Where will the cash be received in the internal company?',
+                                                  style: TossTextStyles.caption.copyWith(
+                                                    color: TossColors.warning,
+                                                    fontWeight: FontWeight.w500,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                      AutonomousCashLocationSelector(
+                                        selectedLocationId: _selectedDebitCashLocationId,
+                                        onChanged: (locationId) {
+                                          setState(() {
+                                            _selectedDebitCashLocationId = locationId;
+                                          });
+                                        },
+                                        label: 'Counterparty Cash Location',
+                                        hint: 'Select cash location',
+                                        showSearch: true,
+                                        showTransactionCount: false,
+                                        showScopeTabs: false, // We're selecting for external counterparty
+                                      ),
+                                    ],
+                                  ],
+                                );
+                              } else {
+                                return SizedBox.shrink();
+                              }
+                            },
+                          ),
                         ],
                         
                         // Show my company's cash location selector if account is cash
                         if (debitIsCashAccount && _selectedDebitAccountId != null) ...[
                           SizedBox(height: TossSpacing.space3),
-                          MyCashLocationSelector(
+                          AutonomousCashLocationSelector(
                             selectedLocationId: _selectedDebitMyCashLocationId,
-                            onChanged: (cashLocationId) {
+                            onChanged: (locationId) {
                               setState(() {
-                                _selectedDebitMyCashLocationId = cashLocationId;
+                                _selectedDebitMyCashLocationId = locationId;
                               });
                             },
                             label: 'Cash Location',
                             hint: 'Select cash location',
+                            showSearch: true,
+                            showTransactionCount: false,
+                            showScopeTabs: true, // Show Company/Store tabs for my cash locations
                           ),
                         ],
                       ],
@@ -830,6 +927,7 @@ class _AddTemplateBottomSheetState extends ConsumerState<AddTemplateBottomSheet>
                         SizedBox(height: TossSpacing.space3),
                         AutonomousAccountSelector(
                           selectedAccountId: _selectedCreditAccountId,
+                          contextType: 'template', // Enable usage tracking
                           onChanged: (accountId) {
                             setState(() {
                               _selectedCreditAccountId = accountId;
@@ -847,13 +945,13 @@ class _AddTemplateBottomSheetState extends ConsumerState<AddTemplateBottomSheet>
                         // Show counterparty selector if account requires it
                         if (creditRequiresCounterparty && _selectedCreditAccountId != null) ...[
                           SizedBox(height: TossSpacing.space3),
-                          CounterpartySelector(
-                            accountId: _selectedCreditAccountId,
+                          AutonomousCounterpartySelector(
                             selectedCounterpartyId: _selectedCreditCounterpartyId,
-                            onChanged: (counterpartyId, counterpartyData) {
+                            onChanged: (counterpartyId) {
                               setState(() {
                                 _selectedCreditCounterpartyId = counterpartyId;
-                                _selectedCreditCounterpartyData = counterpartyData;
+                                // Get counterparty data if needed
+                                _selectedCreditCounterpartyData = null; // Will be loaded from provider
                                 // Reset store and cash location when counterparty changes
                                 _selectedCreditStoreId = null;
                                 _selectedCreditStoreName = null;
@@ -862,58 +960,125 @@ class _AddTemplateBottomSheetState extends ConsumerState<AddTemplateBottomSheet>
                             },
                             label: 'Counterparty',
                             hint: 'Select counterparty',
+                            showSearch: true,
+                            showTransactionCount: false,
                           ),
                           
                           // Show store selector if internal counterparty is selected
-                          if (_selectedCreditCounterpartyData != null && 
-                              _selectedCreditCounterpartyData!['is_internal'] == true) ...[
-                            SizedBox(height: TossSpacing.space3),
-                            StoreSelector(
-                              linkedCompanyId: _selectedCreditCounterpartyData!['linked_company_id'] as String?,
-                              selectedStoreId: _selectedCreditStoreId,
-                              onChanged: (storeId, storeName) {
-                                setState(() {
-                                  _selectedCreditStoreId = storeId;
-                                  _selectedCreditStoreName = storeName;
-                                  // Reset cash location when store changes
-                                  _selectedCreditCashLocationId = null;
-                                });
-                              },
-                              label: 'Counterparty Store',
-                              hint: 'Select store',
-                            ),
-                            
-                            // Show cash location selector if store is selected
-                            if (_selectedCreditStoreId != null) ...[
-                              SizedBox(height: TossSpacing.space3),
-                              CashLocationSelector(
-                                companyId: _selectedCreditCounterpartyData!['linked_company_id'] as String?,
-                                storeId: _selectedCreditStoreId,
-                                selectedCashLocationId: _selectedCreditCashLocationId,
-                                onChanged: (cashLocationId) {
+                          Consumer(
+                            builder: (context, ref, child) {
+                              // Watch counterparty data
+                              final counterpartyAsync = ref.watch(counterpartyByIdProvider(_selectedCreditCounterpartyId));
+                              final counterpartyData = counterpartyAsync.when(
+                                data: (data) => data,
+                                loading: () => null,
+                                error: (_, __) => null,
+                              );
+                              
+                              // Update local state
+                              WidgetsBinding.instance.addPostFrameCallback((_) {
+                                if (mounted && counterpartyData != _selectedCreditCounterpartyData) {
                                   setState(() {
-                                    _selectedCreditCashLocationId = cashLocationId;
+                                    _selectedCreditCounterpartyData = counterpartyData;
                                   });
-                                },
-                                label: 'Counterparty Cash Location',
-                                hint: 'Select cash location',
-                              ),
-                            ],
-                          ],
+                                }
+                              });
+                              
+                              if (counterpartyData != null && counterpartyData['is_internal'] == true) {
+                                return Column(
+                                  children: [
+                                    SizedBox(height: TossSpacing.space3),
+                                    StoreSelector(
+                                      linkedCompanyId: counterpartyData['linked_company_id'] as String?,
+                                      selectedStoreId: _selectedCreditStoreId,
+                                      onChanged: (storeId, storeName) {
+                                        setState(() {
+                                          _selectedCreditStoreId = storeId;
+                                          _selectedCreditStoreName = storeName;
+                                          // Reset cash location when store changes
+                                          _selectedCreditCashLocationId = null;
+                                        });
+                                      },
+                                      label: 'Counterparty Store',
+                                      hint: 'Select store',
+                                    ),
+                                    
+                                    // Show cash location selector if store is selected
+                                    if (_selectedCreditStoreId != null) ...[
+                                      SizedBox(height: TossSpacing.space3),
+                                      // Show helper text if this is a cash/debt transfer
+                                      if ((creditRequiresCounterparty && debitIsCashAccount) || 
+                                          (creditIsCashAccount && debitRequiresCounterparty)) ...[
+                                        Container(
+                                          padding: EdgeInsets.all(TossSpacing.space2),
+                                          margin: EdgeInsets.only(bottom: TossSpacing.space2),
+                                          decoration: BoxDecoration(
+                                            color: TossColors.warningLight.withValues(alpha: 0.1),
+                                            borderRadius: BorderRadius.circular(TossBorderRadius.sm),
+                                            border: Border.all(
+                                              color: TossColors.warning.withValues(alpha: 0.3),
+                                              width: 1,
+                                            ),
+                                          ),
+                                          child: Row(
+                                            children: [
+                                              Icon(
+                                                Icons.info_outline,
+                                                size: 16,
+                                                color: TossColors.warning,
+                                              ),
+                                              SizedBox(width: TossSpacing.space1),
+                                              Expanded(
+                                                child: Text(
+                                                  'Required: Where will the cash be received in the internal company?',
+                                                  style: TossTextStyles.caption.copyWith(
+                                                    color: TossColors.warning,
+                                                    fontWeight: FontWeight.w500,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                      AutonomousCashLocationSelector(
+                                        selectedLocationId: _selectedCreditCashLocationId,
+                                        onChanged: (locationId) {
+                                          setState(() {
+                                            _selectedCreditCashLocationId = locationId;
+                                          });
+                                        },
+                                        label: 'Counterparty Cash Location',
+                                        hint: 'Select cash location',
+                                        showSearch: true,
+                                        showTransactionCount: false,
+                                        showScopeTabs: false, // We're selecting for external counterparty
+                                      ),
+                                    ],
+                                  ],
+                                );
+                              } else {
+                                return SizedBox.shrink();
+                              }
+                            },
+                          ),
                         ],
                         
                         // Show my company's cash location selector if account is cash
                         if (creditIsCashAccount && _selectedCreditAccountId != null) ...[
                           SizedBox(height: TossSpacing.space3),
-                          MyCashLocationSelector(
+                          AutonomousCashLocationSelector(
                             selectedLocationId: _selectedCreditMyCashLocationId,
-                            onChanged: (cashLocationId) {
+                            onChanged: (locationId) {
                               setState(() {
-                                _selectedCreditMyCashLocationId = cashLocationId;
+                                _selectedCreditMyCashLocationId = locationId;
                               });
                             },
                             label: 'Cash Location',
                             hint: 'Select cash location',
+                            showSearch: true,
+                            showTransactionCount: false,
+                            showScopeTabs: true, // Show Company/Store tabs for my cash locations
                           ),
                         ],
                       ],

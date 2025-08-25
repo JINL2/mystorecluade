@@ -88,7 +88,7 @@ class UIConstants {
   static const double popupMenuOffset = 40.0;
   
   /// Modal bottom sheet height ratio
-  static const double modalHeightRatio = 0.85;
+  static const double modalHeightRatio = 0.8;
   
   /// Feature list modal height ratio
   static const double featureListModalHeightRatio = 0.7;

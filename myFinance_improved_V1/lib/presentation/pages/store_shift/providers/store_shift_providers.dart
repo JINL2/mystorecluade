@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:myfinance_improved/presentation/providers/auth_provider.dart';
 import 'package:myfinance_improved/presentation/providers/app_state_provider.dart';
+import 'package:myfinance_improved/data/services/store_service.dart';
 
 // Re-export the providers from app_state_provider for convenience
 export 'package:myfinance_improved/presentation/providers/app_state_provider.dart' 
@@ -187,6 +188,39 @@ final storeShiftsProvider = FutureProvider.autoDispose<List<Map<String, dynamic>
     throw Exception('Failed to load shifts: $e');
   }
 });
+
+/// Provider to fetch detailed store information
+final storeDetailsProvider = FutureProvider.autoDispose<Map<String, dynamic>?>((ref) async {
+  final appState = ref.watch(appStateProvider);
+  final selectedStore = ref.watch(selectedStoreProvider);
+  
+  // If no store is selected, return null
+  if (selectedStore == null || appState.storeChoosen.isEmpty) {
+    return null;
+  }
+  
+  final storeService = ref.read(storeServiceProvider);
+  final storeData = await storeService.getStoreById(appState.storeChoosen);
+  
+  return storeData;
+});
+
+/// Provider to manage store operating hours
+final storeOperatingHoursProvider = StateProvider.autoDispose<Map<String, Map<String, String>>>((ref) {
+  // Default operating hours structure
+  return {
+    'Monday': {'open': '09:00', 'close': '22:00'},
+    'Tuesday': {'open': '09:00', 'close': '22:00'},
+    'Wednesday': {'open': '09:00', 'close': '22:00'},
+    'Thursday': {'open': '09:00', 'close': '22:00'},
+    'Friday': {'open': '09:00', 'close': '23:00'},
+    'Saturday': {'open': '10:00', 'close': '23:00'},
+    'Sunday': {'open': '10:00', 'close': '21:00'},
+  };
+});
+
+/// Provider to manage store update loading state
+final storeUpdateLoadingProvider = StateProvider.autoDispose<bool>((ref) => false);
 
 /// Exception class
 class UnauthorizedException implements Exception {

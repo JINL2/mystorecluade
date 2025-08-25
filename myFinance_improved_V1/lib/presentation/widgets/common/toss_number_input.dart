@@ -5,8 +5,8 @@ import '../../../core/themes/toss_text_styles.dart';
 import '../../../core/themes/toss_spacing.dart';
 import '../../../core/themes/toss_border_radius.dart';
 
-/// Number input field with consistent styling
-class TossNumberInput extends StatelessWidget {
+/// Minimalist number input field with clean background-only styling
+class TossNumberInput extends StatefulWidget {
   final TextEditingController controller;
   final String? hintText;
   final List<TextInputFormatter>? inputFormatters;
@@ -27,7 +27,7 @@ class TossNumberInput extends StatelessWidget {
     this.onChanged,
     this.textAlign = TextAlign.center,
     this.height = 48,
-    this.showBorder = true,
+    this.showBorder = false,
     this.enabled = true,
     this.focusNode,
     this.prefix,
@@ -35,66 +35,97 @@ class TossNumberInput extends StatelessWidget {
   });
 
   @override
+  State<TossNumberInput> createState() => _TossNumberInputState();
+}
+
+class _TossNumberInputState extends State<TossNumberInput> {
+  late FocusNode _focusNode;
+  bool _isFocused = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _focusNode = widget.focusNode ?? FocusNode();
+    _focusNode.addListener(_onFocusChange);
+  }
+
+  @override
+  void dispose() {
+    if (widget.focusNode == null) {
+      _focusNode.dispose();
+    } else {
+      _focusNode.removeListener(_onFocusChange);
+    }
+    super.dispose();
+  }
+
+  void _onFocusChange() {
+    setState(() {
+      _isFocused = _focusNode.hasFocus;
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Container(
-      height: height,
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
+      height: widget.height,
       decoration: BoxDecoration(
-        color: enabled ? TossColors.surface : TossColors.gray100,
-        borderRadius: BorderRadius.circular(TossBorderRadius.md),
-        border: showBorder
-            ? Border.all(
-                color: controller.text.isNotEmpty
-                    ? TossColors.primary.withOpacity(0.3)
-                    : TossColors.gray200,
-              )
-            : null,
+        color: !widget.enabled 
+            ? TossColors.gray100
+            : _isFocused 
+                ? TossColors.primary.withOpacity(0.05)
+                : TossColors.gray50,
+        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
       ),
       child: Row(
         children: [
-          if (prefix != null)
+          if (widget.prefix != null)
             Padding(
               padding: const EdgeInsets.only(left: TossSpacing.space3),
               child: Text(
-                prefix!,
+                widget.prefix!,
                 style: TossTextStyles.body.copyWith(
-                  color: TossColors.gray600,
+                  color: _isFocused ? TossColors.primary : TossColors.gray600,
                   fontWeight: FontWeight.w500,
                 ),
               ),
             ),
           Expanded(
             child: TextField(
-              controller: controller,
-              focusNode: focusNode,
-              enabled: enabled,
+              controller: widget.controller,
+              focusNode: _focusNode,
+              enabled: widget.enabled,
               keyboardType: const TextInputType.numberWithOptions(decimal: true),
-              inputFormatters: inputFormatters ??
+              inputFormatters: widget.inputFormatters ??
                   [FilteringTextInputFormatter.digitsOnly],
-              textAlign: textAlign,
+              textAlign: widget.textAlign,
               style: TossTextStyles.bodyLarge.copyWith(
                 fontWeight: FontWeight.w600,
-                fontFamily: 'JetBrains Mono',
+                color: _isFocused ? TossColors.primary : TossColors.gray900,
               ),
               decoration: InputDecoration(
-                hintText: hintText ?? '0',
+                hintText: widget.hintText ?? '0',
                 hintStyle: TossTextStyles.body.copyWith(
-                  color: TossColors.gray300,
+                  color: TossColors.gray400,
                 ),
                 border: InputBorder.none,
+                enabledBorder: InputBorder.none,
+                focusedBorder: InputBorder.none,
                 contentPadding: const EdgeInsets.symmetric(
                   horizontal: TossSpacing.space4,
                 ),
               ),
-              onChanged: onChanged,
+              onChanged: widget.onChanged,
             ),
           ),
-          if (suffix != null)
+          if (widget.suffix != null)
             Padding(
               padding: const EdgeInsets.only(right: TossSpacing.space3),
               child: Text(
-                suffix!,
+                widget.suffix!,
                 style: TossTextStyles.body.copyWith(
-                  color: TossColors.gray600,
+                  color: _isFocused ? TossColors.primary : TossColors.gray600,
                   fontWeight: FontWeight.w500,
                 ),
               ),

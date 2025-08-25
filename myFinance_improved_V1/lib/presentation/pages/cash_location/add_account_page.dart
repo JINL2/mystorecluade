@@ -555,7 +555,7 @@ class _AddAccountPageState extends ConsumerState<AddAccountPage> {
     // Show loading dialog
     showDialog(
       context: context,
-      barrierDismissible: false,
+      barrierDismissible: true, // Allow dismissing loading dialogs
       builder: (BuildContext context) {
         return const Center(
           child: CircularProgressIndicator(),

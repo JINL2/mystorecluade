@@ -1,0 +1,18 @@
+<!-- MyFinance Horizontal Logo White - For Dark Backgrounds -->
+<svg width="220" height="44" viewBox="0 0 220 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Icon -->
+  <rect width="44" height="44" rx="10" fill="white"/>
+  <path d="M22 8C22 8 28 8 28 14C28 17 26 19 23 19.5V19.5C26 20 28 22 28 25C28 31 22 31 22 31M22 8V31M18 11H24M18 28H24" 
+        stroke="#0064FF" 
+        stroke-width="3" 
+        stroke-linecap="round" 
+        stroke-linejoin="round"
+        fill="none"/>
+  
+  <!-- MyFinance Wordmark -->
+  <text x="56" y="31" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Display', system-ui, sans-serif" 
+        font-size="26" 
+        font-weight="700" 
+        letter-spacing="-0.01em" 
+        fill="white">MyFinance</text>
+</svg>

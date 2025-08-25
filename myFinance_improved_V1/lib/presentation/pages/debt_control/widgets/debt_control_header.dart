@@ -1,0 +1,426 @@
+import 'package:flutter/services.dart';import 'package:flutter/material.dart';
+import '../../../../core/themes/toss_colors.dart';
+import '../../../../core/themes/toss_text_styles.dart';
+import '../../../../core/themes/toss_animations.dart';
+
+/// Smart debt control header with contextual information and viewpoint selector
+/// 
+/// Displays current company/store context and provides viewpoint switching
+/// functionality with smooth transitions.
+class DebtControlHeader extends StatefulWidget {
+  final String companyName;
+  final String storeName;
+  final String selectedViewpoint;
+  final Function(String) onViewpointChange;
+
+  const DebtControlHeader({
+    super.key,
+    required this.companyName,
+    required this.storeName,
+    required this.selectedViewpoint,
+    required this.onViewpointChange,
+  });
+
+  @override
+  State<DebtControlHeader> createState() => _DebtControlHeaderState();
+}
+
+class _DebtControlHeaderState extends State<DebtControlHeader>
+    with SingleTickerProviderStateMixin {
+  
+  late AnimationController _animationController;
+  late Animation<double> _fadeAnimation;
+  late Animation<Offset> _slideAnimation;
+
+  final List<ViewpointOption> _viewpoints = [
+    ViewpointOption(
+      value: 'company',
+      label: 'Company Total',
+      icon: Icons.business,
+      description: 'Company-wide debt overview',
+    ),
+    ViewpointOption(
+      value: 'headquarters',
+      label: 'Headquarters',
+      icon: Icons.corporate_fare,
+      description: 'Headquarters perspective',
+    ),
+    ViewpointOption(
+      value: 'store',
+      label: 'Store Level',
+      icon: Icons.store,
+      description: 'Store-specific analysis',
+    ),
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    
+    _animationController = AnimationController(
+      duration: TossAnimations.medium,
+      vsync: this,
+    );
+    
+    _fadeAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _animationController,
+      curve: Curves.easeInOut,
+    ));
+    
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(0, -0.5),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(
+      parent: _animationController,
+      curve: Curves.easeOutCubic,
+    ));
+
+    _animationController.forward();
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SlideTransition(
+      position: _slideAnimation,
+      child: FadeTransition(
+        opacity: _fadeAnimation,
+        child: Container(
+          padding: EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // App Bar
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Smart Debt Control',
+                    style: TossTextStyles.h2.copyWith(
+                      color: TossColors.textPrimary,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Row(
+                    children: [
+                      IconButton(
+                        onPressed: () => _showNotifications(),
+                        icon: Stack(
+                          children: [
+                            Icon(
+                              Icons.notifications_outlined,
+                              color: TossColors.textSecondary,
+                            ),
+                            Positioned(
+                              right: 0,
+                              top: 0,
+                              child: Container(
+                                width: 8,
+                                height: 8,
+                                decoration: BoxDecoration(
+                                  color: TossColors.error,
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      IconButton(
+                        onPressed: () => _showSearchDialog(),
+                        icon: Icon(
+                          Icons.search,
+                          color: TossColors.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+
+              SizedBox(height: 16),
+
+              // Context Bar
+              Container(
+                width: double.infinity,
+                padding: EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: TossColors.primary.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: TossColors.primary.withOpacity(0.2),
+                    width: 1,
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.location_on,
+                      color: TossColors.primary,
+                      size: 16,
+                    ),
+                    SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        '${widget.companyName} > ${widget.storeName}',
+                        style: TossTextStyles.caption.copyWith(
+                          color: TossColors.primary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              SizedBox(height: 16),
+
+              // Viewpoint Selector
+              _buildViewpointSelector(),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildViewpointSelector() {
+    return Container(
+      padding: EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: TossColors.gray50,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Row(
+        children: _viewpoints
+            .map((viewpoint) => _buildViewpointTab(viewpoint))
+            .toList(),
+      ),
+    );
+  }
+
+  Widget _buildViewpointTab(ViewpointOption viewpoint) {
+    final isSelected = widget.selectedViewpoint == viewpoint.value;
+    
+    return Expanded(
+      child: GestureDetector(
+        onTap: () => _handleViewpointChange(viewpoint),
+        child: AnimatedContainer(
+          duration: TossAnimations.fast,
+          margin: EdgeInsets.symmetric(horizontal: 2),
+          padding: EdgeInsets.symmetric(
+            horizontal: 12,
+            vertical: 12,
+          ),
+          decoration: BoxDecoration(
+            color: isSelected ? Colors.white : Colors.transparent,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: isSelected
+                ? [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
+                    ),
+                  ]
+                : null,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                viewpoint.icon,
+                color: isSelected 
+                    ? TossColors.primary 
+                    : TossColors.textTertiary,
+                size: 20,
+              ),
+              SizedBox(height: 8),
+              Text(
+                viewpoint.label,
+                style: TossTextStyles.caption.copyWith(
+                  color: isSelected 
+                      ? TossColors.primary 
+                      : TossColors.textSecondary,
+                  fontWeight: isSelected 
+                      ? FontWeight.w600 
+                      : FontWeight.w500,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _handleViewpointChange(ViewpointOption viewpoint) {
+    if (widget.selectedViewpoint != viewpoint.value) {
+      // Show brief feedback
+      HapticFeedback.lightImpact();
+      
+      // Show tooltip with description
+      _showViewpointTooltip(viewpoint);
+      
+      // Trigger change callback
+      widget.onViewpointChange(viewpoint.value);
+    }
+  }
+
+  void _showViewpointTooltip(ViewpointOption viewpoint) {
+    final overlay = Overlay.of(context);
+    late OverlayEntry overlayEntry;
+    
+    overlayEntry = OverlayEntry(
+      builder: (context) => Positioned(
+        top: 160,
+        left: 16,
+        right: 16,
+        child: Material(
+          color: Colors.transparent,
+          child: Container(
+            padding: EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: TossColors.textPrimary,
+              borderRadius: BorderRadius.circular(8),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.2),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Text(
+              '${viewpoint.label}: ${viewpoint.description}',
+              style: TossTextStyles.caption.copyWith(
+                color: Colors.white,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ),
+      ),
+    );
+    
+    overlay.insert(overlayEntry);
+    
+    // Remove after 2 seconds
+    Future.delayed(const Duration(seconds: 2), () {
+      overlayEntry.remove();
+    });
+  }
+
+  void _showNotifications() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (context) => Container(
+        height: MediaQuery.of(context).size.height * 0.7,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: Column(
+          children: [
+            Container(
+              padding: EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                border: Border(
+                  bottom: BorderSide(
+                    color: TossColors.borderLight,
+                    width: 1,
+                  ),
+                ),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Notifications',
+                    style: TossTextStyles.h3.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: Text('Close'),
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: Center(
+                child: Text(
+                  'No new notifications',
+                  style: TossTextStyles.bodySmall.copyWith(
+                    color: TossColors.textTertiary,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showSearchDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Search Debts'),
+        content: TextField(
+          decoration: InputDecoration(
+            hintText: 'Enter counterparty name or amount...',
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
+          onSubmitted: (query) {
+            Navigator.pop(context);
+            // TODO: Implement search functionality
+          },
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              // TODO: Implement search functionality
+            },
+            child: Text('Search'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class ViewpointOption {
+  final String value;
+  final String label;
+  final IconData icon;
+  final String description;
+
+  const ViewpointOption({
+    required this.value,
+    required this.label,
+    required this.icon,
+    required this.description,
+  });
+}

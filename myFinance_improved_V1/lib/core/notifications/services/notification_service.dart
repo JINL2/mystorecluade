@@ -75,7 +75,7 @@ class NotificationService {
       
       // Initialization complete
       
-    } catch (e, stackTrace) {
+    } catch (e) {
       // Failed to initialize notification service
       rethrow;
     }
@@ -246,24 +246,69 @@ class NotificationService {
       _notificationSubscription = _supabase
           .from('notifications')
           .stream(primaryKey: ['id'])
-          .listen((List<Map<String, dynamic>> data) {
-            // New database notification: ${data.length} items
-            
-            // Filter for user's unread notifications
-            final userNotifications = data.where((item) => 
-              item['user_id'] == userId && item['is_read'] == false
-            ).toList();
-            
-            for (final item in userNotifications) {
-              _handleDatabaseNotification(item);
-            }
-          });
+          .listen(
+            (List<Map<String, dynamic>> data) {
+              // New database notification: ${data.length} items
+              
+              // Filter for user's unread notifications
+              final userNotifications = data.where((item) => 
+                item['user_id'] == userId && item['is_read'] == false
+              ).toList();
+              
+              for (final item in userNotifications) {
+                _handleDatabaseNotification(item);
+              }
+            },
+            onError: (error) {
+              // Handle realtime subscription error
+              print('Realtime subscription error: $error');
+              // Attempt to reconnect after delay
+              _scheduleReconnection();
+            },
+            cancelOnError: false,
+          );
       
       // Subscribed to database notifications
       
     } catch (e) {
       // Failed to subscribe to database notifications
+      _scheduleReconnection();
     }
+  }
+
+  /// Schedule reconnection with exponential backoff
+  int _reconnectionAttempts = 0;
+  Timer? _reconnectionTimer;
+
+  void _scheduleReconnection() {
+    // Cancel existing timer
+    _reconnectionTimer?.cancel();
+    
+    // Calculate delay with exponential backoff (max 30 seconds)
+    final delay = Duration(seconds: (2 * _reconnectionAttempts).clamp(1, 30));
+    _reconnectionAttempts++;
+    
+    _reconnectionTimer = Timer(delay, () async {
+      try {
+        // Cancel existing subscription
+        await _notificationSubscription?.cancel();
+        
+        // Attempt to reconnect
+        await _subscribeToSupabaseNotifications();
+        
+        // Reset attempts on successful connection
+        _reconnectionAttempts = 0;
+        
+      } catch (e) {
+        // Reconnection failed, will retry
+        if (_reconnectionAttempts < 5) {
+          _scheduleReconnection();
+        } else {
+          // Max attempts reached, stop trying
+          _reconnectionAttempts = 0;
+        }
+      }
+    });
   }
   
   /// Handle notification from database
@@ -516,6 +561,7 @@ class NotificationService {
   
   /// Clean up resources
   Future<void> dispose() async {
+    _reconnectionTimer?.cancel();
     await _notificationSubscription?.cancel();
     await _fcmService.deleteToken();
     await _localNotificationService.cancelAllNotifications();

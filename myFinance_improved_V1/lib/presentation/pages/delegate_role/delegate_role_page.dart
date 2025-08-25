@@ -530,9 +530,20 @@ class _DelegateRolePageState extends ConsumerState<DelegateRolePage> with Widget
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
+      enableDrag: true,
       builder: (context) => Padding(
-        padding: MediaQuery.of(context).viewInsets,
-        child: _CreateRoleBottomSheet(),
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+        ),
+        child: Container(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(context).size.height - 
+                       MediaQuery.of(context).viewInsets.bottom - 
+                       MediaQuery.of(context).padding.top - 100,
+            minHeight: 300,
+          ),
+          child: _CreateRoleBottomSheet(),
+        ),
       ),
     );
   }
@@ -540,6 +551,8 @@ class _DelegateRolePageState extends ConsumerState<DelegateRolePage> with Widget
 
 // Create Role Bottom Sheet (copied from role_permission_page.dart)
 class _CreateRoleBottomSheet extends ConsumerStatefulWidget {
+  const _CreateRoleBottomSheet();
+
   @override
   ConsumerState<_CreateRoleBottomSheet> createState() => _CreateRoleBottomSheetState();
 }
@@ -547,7 +560,10 @@ class _CreateRoleBottomSheet extends ConsumerStatefulWidget {
 class _CreateRoleBottomSheetState extends ConsumerState<_CreateRoleBottomSheet> {
   final TextEditingController _roleNameController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
+  final FocusNode _roleNameFocus = FocusNode();
+  final FocusNode _descriptionFocus = FocusNode();
   bool _isCreating = false;
+  bool _isEditingText = false;
   int _currentStep = 0; // 0: Basic Info, 1: Permissions, 2: Tags
   final Set<String> _selectedPermissions = {};
   final Set<String> _expandedCategories = {};
@@ -579,22 +595,36 @@ class _CreateRoleBottomSheetState extends ConsumerState<_CreateRoleBottomSheet> 
   };
 
   @override
+  void initState() {
+    super.initState();
+    // Add focus listeners to track text editing state
+    _roleNameFocus.addListener(_onTextEditingStateChanged);
+    _descriptionFocus.addListener(_onTextEditingStateChanged);
+  }
+
+  @override
   void dispose() {
+    _roleNameFocus.removeListener(_onTextEditingStateChanged);
+    _descriptionFocus.removeListener(_onTextEditingStateChanged);
     _roleNameController.dispose();
     _descriptionController.dispose();
+    _roleNameFocus.dispose();
+    _descriptionFocus.dispose();
     super.dispose();
+  }
+
+  void _onTextEditingStateChanged() {
+    final isEditing = _roleNameFocus.hasFocus || _descriptionFocus.hasFocus;
+    if (_isEditingText != isEditing) {
+      setState(() {
+        _isEditingText = isEditing;
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final screenHeight = MediaQuery.of(context).size.height;
-    
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 300),
-      constraints: BoxConstraints(
-        maxHeight: screenHeight * 0.85,
-        minHeight: screenHeight * 0.3,
-      ),
+    return Container(
       decoration: BoxDecoration(
         color: TossColors.white,
         borderRadius: BorderRadius.vertical(
@@ -649,7 +679,10 @@ class _CreateRoleBottomSheetState extends ConsumerState<_CreateRoleBottomSheet> 
                   ),
                   IconButton(
                     icon: Icon(Icons.close, color: TossColors.textSecondary),
-                    onPressed: () => Navigator.pop(context),
+                    onPressed: () {
+                      FocusScope.of(context).unfocus();
+                      Navigator.pop(context);
+                    },
                   ),
                 ],
               ),
@@ -683,26 +716,30 @@ class _CreateRoleBottomSheetState extends ConsumerState<_CreateRoleBottomSheet> 
             
             // Form content - Expand to fill available space
             Expanded(
-              child: _buildCurrentStep(),
+              child: SingleChildScrollView(
+                keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                child: _buildCurrentStep(),
+              ),
             ),
             
-            // Bottom action
-            Container(
-              padding: EdgeInsets.all(TossSpacing.space5),
-              decoration: BoxDecoration(
-                color: TossColors.white,
-                border: Border(top: BorderSide(color: TossColors.borderLight)),
-              ),
-              child: SafeArea(
-                top: false,
-                child: TossPrimaryButton(
-                  onPressed: _isCreating ? null : _handleStepAction,
-                  isLoading: _isCreating,
-                  text: _getActionButtonText(),
-                  fullWidth: true,
+            // Bottom action - Hide during text editing on Basic Info step to avoid confusion
+            if (!(_currentStep == 0 && _isEditingText))
+              Container(
+                padding: EdgeInsets.all(TossSpacing.space5),
+                decoration: BoxDecoration(
+                  color: TossColors.white,
+                  border: Border(top: BorderSide(color: TossColors.borderLight)),
+                ),
+                child: SafeArea(
+                  top: false,
+                  child: TossPrimaryButton(
+                    onPressed: _isCreating ? null : _handleStepAction,
+                    isLoading: _isCreating,
+                    text: _getActionButtonText(),
+                    fullWidth: true,
+                  ),
                 ),
               ),
-            ),
           ],
         ),
       );
@@ -794,9 +831,8 @@ class _CreateRoleBottomSheetState extends ConsumerState<_CreateRoleBottomSheet> 
   Widget _buildBasicInfoStep() {
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
-      child: SingleChildScrollView(
+      child: Padding(
         padding: EdgeInsets.all(TossSpacing.space5),
-        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -811,8 +847,10 @@ class _CreateRoleBottomSheetState extends ConsumerState<_CreateRoleBottomSheet> 
             SizedBox(height: TossSpacing.space3),
             TossTextField(
               controller: _roleNameController,
+              focusNode: _roleNameFocus,
               hintText: 'Enter role name',
               textInputAction: TextInputAction.next,
+              onFieldSubmitted: (_) => _descriptionFocus.requestFocus(),
             ),
             
             SizedBox(height: TossSpacing.space6),
@@ -828,9 +866,11 @@ class _CreateRoleBottomSheetState extends ConsumerState<_CreateRoleBottomSheet> 
             SizedBox(height: TossSpacing.space3),
             TossTextField(
               controller: _descriptionController,
+              focusNode: _descriptionFocus,
               hintText: 'Describe what this role does',
               maxLines: 4,
-              textInputAction: TextInputAction.next,
+              textInputAction: TextInputAction.done,
+              onFieldSubmitted: (_) => FocusScope.of(context).unfocus(),
             ),
           ],
         ),
@@ -839,7 +879,7 @@ class _CreateRoleBottomSheetState extends ConsumerState<_CreateRoleBottomSheet> 
   }
 
   Widget _buildTagsStep() {
-    return SingleChildScrollView(
+    return Padding(
       padding: EdgeInsets.all(TossSpacing.space5),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1102,7 +1142,7 @@ class _CreateRoleBottomSheetState extends ConsumerState<_CreateRoleBottomSheet> 
     
     return allFeaturesAsync.when(
       data: (categories) {
-        return SingleChildScrollView(
+        return Padding(
           padding: EdgeInsets.all(TossSpacing.space5),
           child: Column(
             children: [

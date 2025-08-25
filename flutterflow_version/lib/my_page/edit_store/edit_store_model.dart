@@ -14,6 +14,8 @@ class EditStoreModel extends FlutterFlowModel<EditStoreWidget> {
 
   LatLng? storeLocation;
 
+  String? storeAddress;
+
   ///  State fields for stateful widgets in this component.
 
   // State field(s) for CompanyDropdown widget.
@@ -35,6 +37,10 @@ class EditStoreModel extends FlutterFlowModel<EditStoreWidget> {
   TextEditingController? allowedDistanceTextController;
   String? Function(BuildContext, String?)?
       allowedDistanceTextControllerValidator;
+  // State field(s) for storeAddress widget.
+  FocusNode? storeAddressFocusNode;
+  TextEditingController? storeAddressTextController;
+  String? Function(BuildContext, String?)? storeAddressTextControllerValidator;
 
   @override
   void initState(BuildContext context) {}
@@ -49,5 +55,8 @@ class EditStoreModel extends FlutterFlowModel<EditStoreWidget> {
 
     allowedDistanceFocusNode?.dispose();
     allowedDistanceTextController?.dispose();
+
+    storeAddressFocusNode?.dispose();
+    storeAddressTextController?.dispose();
   }
 }

@@ -38,6 +38,7 @@ class RoleService {
   /// Fetch roles for a specific company
   Future<List<Role>> getRolesByCompany(String companyId) async {
     try {
+      
       final response = await _supabase
           .from('roles')
           .select('*')
@@ -49,17 +50,17 @@ class RoleService {
         return [];
       }
 
-      return (response as List)
-          .map((json) {
-            try {
-              return Role.fromJson(json as Map<String, dynamic>);
-            } catch (e) {
-              return null;
-            }
-          })
-          .where((element) => element != null)
-          .cast<Role>()
-          .toList();
+      final roles = <Role>[];
+      for (final json in response as List) {
+        try {
+          final role = Role.fromJson(json as Map<String, dynamic>);
+          roles.add(role);
+        } catch (e) {
+        }
+      }
+
+      
+      return roles;
     } catch (e) {
       throw Exception('Failed to load company roles: $e');
     }
@@ -166,6 +167,60 @@ class RoleService {
       return Role.fromJson(response as Map<String, dynamic>);
     } catch (e) {
       return null;
+    }
+  }
+
+  /// Create default roles for a company (Owner and Employee)
+  Future<void> _createDefaultRoles(String companyId) async {
+    try {
+      // First check if roles already exist for this company
+      final existingRoles = await _supabase
+          .from('roles')
+          .select('role_name')
+          .eq('company_id', companyId);
+
+      final existingRoleNames = (existingRoles as List)
+          .map((role) => role['role_name'] as String)
+          .toSet();
+
+      final rolesToCreate = <Map<String, dynamic>>[];
+
+      // Only create Owner role if it doesn't exist
+      if (!existingRoleNames.contains('Owner')) {
+        rolesToCreate.add({
+          'role_name': 'Owner',
+          'role_type': 'system',
+          'company_id': companyId,
+          'description': 'Full system access with company management capabilities. Can oversee all operations, manage finances, and make strategic decisions.',
+          'is_deletable': false,
+          'created_at': DateTime.now().toIso8601String(),
+          'updated_at': DateTime.now().toIso8601String(),
+        });
+      }
+
+      // Only create Employee role if it doesn't exist
+      if (!existingRoleNames.contains('Employee')) {
+        rolesToCreate.add({
+          'role_name': 'Employee',
+          'role_type': 'system',
+          'company_id': companyId,
+          'description': 'Standard access for daily operations. Can perform assigned tasks, view schedules, and access basic system functions.',
+          'is_deletable': false,
+          'created_at': DateTime.now().toIso8601String(),
+          'updated_at': DateTime.now().toIso8601String(),
+        });
+      }
+
+      // Only insert if there are roles to create
+      if (rolesToCreate.isNotEmpty) {
+        await _supabase
+            .from('roles')
+            .insert(rolesToCreate);
+      }
+
+    } catch (e) {
+      // Log error but don't throw - roles might already exist or have constraint issues
+      print('Warning: Could not create default roles for company $companyId: $e');
     }
   }
 }

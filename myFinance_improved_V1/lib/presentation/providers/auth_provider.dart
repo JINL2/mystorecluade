@@ -89,8 +89,7 @@ class AuthStateNotifier extends StateNotifier<User?> {
           email: email,
         );
       } catch (profileError) {
-        // If profile creation fails, log error but continue
-        print('Warning: Failed to ensure user profile: $profileError');
+        // If profile creation fails, continue without logging
       }
       
       
@@ -143,7 +142,7 @@ class AuthStateNotifier extends StateNotifier<User?> {
       // Fix the user profile
       await _userProfileService.fixUserProfile(user.id, firstName, lastName);
     } catch (e) {
-      print('Error fixing user profile on login: $e');
+      // Profile fix failed, continue silently
     }
   }
 

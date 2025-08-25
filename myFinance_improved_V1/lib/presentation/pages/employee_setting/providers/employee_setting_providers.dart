@@ -60,13 +60,22 @@ final employeeSearchQueryProvider = StateProvider<String>((ref) => '');
 // Department Filter Provider
 final selectedDepartmentProvider = StateProvider<String>((ref) => 'All');
 
-// Sort Option Provider
-final employeeSortOptionProvider = StateProvider<String>((ref) => 'name');
+// Sort Option Provider - tracks both field and direction
+final employeeSortOptionProvider = StateProvider<String?>((ref) => 'name');
+
+// Sort Direction Provider - true for ascending, false for descending
+final employeeSortDirectionProvider = StateProvider<bool>((ref) => true);
+
+// Filter Providers for centralized state management
+final selectedRoleFilterProvider = StateProvider<String?>((ref) => null);
+final selectedDepartmentFilterProvider = StateProvider<String?>((ref) => null);
+final selectedSalaryTypeFilterProvider = StateProvider<String?>((ref) => null);
 
 // Filtered and Sorted Employees Provider
 final filteredEmployeesProvider = Provider<AsyncValue<List<EmployeeSalary>>>((ref) {
   final searchQuery = ref.watch(employeeSearchQueryProvider);
   final sortOption = ref.watch(employeeSortOptionProvider);
+  final sortAscending = ref.watch(employeeSortDirectionProvider);
   final mutableEmployees = ref.watch(mutableEmployeeListProvider);
   final employeesAsync = ref.watch(employeeSalaryListProvider);
   
@@ -85,19 +94,34 @@ final filteredEmployeesProvider = Provider<AsyncValue<List<EmployeeSalary>>>((re
       }).toList();
     }
     
-    // Sort employees based on selected option
+    // Sort employees based on selected option and direction
     switch (sortOption) {
       case 'name':
-        filtered.sort((a, b) => a.fullName.compareTo(b.fullName));
+        filtered.sort((a, b) {
+          final comparison = a.fullName.compareTo(b.fullName);
+          return sortAscending ? comparison : -comparison;
+        });
         break;
       case 'salary':
-        filtered.sort((a, b) => b.salaryAmount.compareTo(a.salaryAmount));
+        filtered.sort((a, b) {
+          final comparison = a.salaryAmount.compareTo(b.salaryAmount);
+          // For salary, default to high-to-low (descending)
+          return sortAscending ? -comparison : comparison;
+        });
         break;
       case 'role':
         filtered.sort((a, b) {
           final aRole = a.roleName ?? 'Employee';
           final bRole = b.roleName ?? 'Employee';
-          return aRole.compareTo(bRole);
+          final comparison = aRole.compareTo(bRole);
+          return sortAscending ? comparison : -comparison;
+        });
+        break;
+      case 'recent':
+        filtered.sort((a, b) {
+          final comparison = (a.updatedAt ?? DateTime.now()).compareTo(b.updatedAt ?? DateTime.now());
+          // For recent, default to newest first (descending)
+          return sortAscending ? comparison : -comparison;
         });
         break;
     }
