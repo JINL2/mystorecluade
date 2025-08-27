@@ -599,21 +599,8 @@ class NavBar {
         
         console.log('Container found:', container);
         
-        // Remove duplicates from companies array - IMPORTANT FIX!
-        const uniqueCompanies = [];
-        const seenIds = new Set();
-        
-        for (const company of companies) {
-            if (!seenIds.has(company.company_id)) {
-                seenIds.add(company.company_id);
-                uniqueCompanies.push(company);
-            }
-        }
-        
-        console.log('Unique companies after deduplication:', uniqueCompanies.length);
-        
         // Convert companies to select options format
-        const options = uniqueCompanies.map(company => ({
+        const options = companies.map(company => ({
             value: company.company_id,
             label: company.company_name,
             description: company.stores ? `${company.stores.length} store${company.stores.length !== 1 ? 's' : ''}` : '0 stores',

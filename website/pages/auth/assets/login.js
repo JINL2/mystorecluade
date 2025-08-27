@@ -39,6 +39,41 @@ function initializeIcons() {
     }
 }
 
+// Get correct dashboard path - COMPLETELY REWRITTEN FOR ABSOLUTE URLS
+function getDashboardPath() {
+    // Get current location info
+    const origin = window.location.origin;  // http://localhost
+    const pathname = window.location.pathname;  // /mcparrange-main/myFinance_claude/website/pages/auth/login.html
+    
+    console.log('getDashboardPath - Origin:', origin);
+    console.log('getDashboardPath - Pathname:', pathname);
+    
+    // Build the FULL URL - no ambiguity possible
+    let dashboardUrl = '';
+    
+    // Check if we're in the mcparrange-main project structure
+    if (pathname.includes('/mcparrange-main/')) {
+        // Build the complete URL
+        dashboardUrl = origin + '/mcparrange-main/myFinance_claude/website/pages/dashboard/index.html';
+        console.log('getDashboardPath - Built full URL:', dashboardUrl);
+        return dashboardUrl;
+    }
+    
+    // Fallback for other structures
+    if (pathname.includes('/myFinance_claude/website/')) {
+        // Extract base path and build full URL
+        const basePath = pathname.substring(0, pathname.indexOf('/pages/auth/'));
+        dashboardUrl = origin + basePath + '/pages/dashboard/index.html';
+        console.log('getDashboardPath - Alternative full URL:', dashboardUrl);
+        return dashboardUrl;
+    }
+    
+    // Ultimate fallback - hardcoded full path
+    dashboardUrl = origin + '/mcparrange-main/myFinance_claude/website/pages/dashboard/index.html';
+    console.log('getDashboardPath - Using hardcoded full URL:', dashboardUrl);
+    return dashboardUrl;
+}
+
 // Check authentication state
 async function checkAuthState() {
     try {
@@ -46,9 +81,18 @@ async function checkAuthState() {
         
         if (session) {
             // User is already logged in, redirect to dashboard
+            console.log('checkAuthState - User already logged in, redirecting...');
             TossAlertUtils.showSuccess('Already logged in. Redirecting...');
+            const dashboardUrl = getDashboardPath();
+            console.log('checkAuthState - Dashboard URL:', dashboardUrl);
+            
+            // Set flag to prevent AuthManager interference
+            sessionStorage.setItem('loginPageRedirecting', 'true');
+            
             setTimeout(() => {
-                window.location.href = '../dashboard/index.html';
+                // Clear flag and use replace for clean navigation
+                sessionStorage.removeItem('loginPageRedirecting');
+                window.location.replace(dashboardUrl);
             }, 1500);
         }
     } catch (error) {
@@ -90,18 +134,87 @@ async function handleFormSubmit(event) {
     }
 }
 
+// Track if redirect is in progress to prevent double redirects
+let isRedirecting = false;
+
 // Handle sign in
 async function handleSignIn(email, password) {
+    // Prevent multiple simultaneous login attempts
+    if (isRedirecting) {
+        console.log('BLOCKED: Redirect already in progress');
+        return;
+    }
+    
+    // Check remember me checkbox
+    const rememberMeCheckbox = document.getElementById('rememberMe');
+    const rememberMe = rememberMeCheckbox ? rememberMeCheckbox.checked : false;
+    
+    // Set remember me preference before sign in
+    localStorage.setItem('rememberMe', rememberMe ? 'true' : 'false');
+    
+    // Set a flag to prevent AuthManager from redirecting
+    sessionStorage.setItem('loginPageRedirecting', 'true');
+    
+    console.log('=== BEFORE SUPABASE SIGN IN ===');
+    console.log('Current URL:', window.location.href);
+    console.log('About to call SupabaseAuth.signIn');
+    console.log('================================');
+    
     const result = await SupabaseAuth.signIn(email, password);
     
+    console.log('=== AFTER SUPABASE SIGN IN ===');
+    console.log('Sign in result:', result);
+    console.log('Current URL now:', window.location.href);
+    console.log('================================');
+    
     if (result.success) {
+        // Mark that we're redirecting
+        isRedirecting = true;
+        
+        // Store auth data using appropriate storage
+        if (typeof storageManager !== 'undefined') {
+            storageManager.setAuthToken(result.session.access_token, rememberMe);
+            storageManager.setSession(result.session, rememberMe);
+            storageManager.setUserData(result.user);
+        }
+        
         TossAlertUtils.showSuccess('Login successful! Redirecting...');
+        
+        // Get dashboard path IMMEDIATELY
+        const dashboardPath = getDashboardPath();
+        console.log('=== LOGIN REDIRECT DEBUG ===');
+        console.log('Current URL:', window.location.href);
+        console.log('Current pathname:', window.location.pathname);
+        console.log('Calculated dashboard path:', dashboardPath);
+        console.log('Redirecting in 1.5 seconds...');
+        console.log('===========================');
         
         // Redirect to dashboard after short delay
         setTimeout(() => {
-            window.location.href = '../dashboard/index.html';
+            console.log('=== FINAL REDIRECT ===');
+            console.log('Dashboard path:', dashboardPath);
+            console.log('Current location:', window.location.href);
+            
+            // Clear the flag right before redirect
+            sessionStorage.removeItem('loginPageRedirecting');
+            
+            // Since we're now using FULL URLs, just redirect directly
+            if (dashboardPath.startsWith('http')) {
+                console.log('Using full URL redirect');
+                // Use window.location.replace to ensure clean navigation
+                window.location.replace(dashboardPath);
+            } else {
+                // This shouldn't happen with our new getDashboardPath, but just in case
+                console.warn('WARNING: Not a full URL, building one');
+                const fullUrl = window.location.origin + '/mcparrange-main/myFinance_claude/website/pages/dashboard/index.html';
+                console.log('Forced full URL:', fullUrl);
+                window.location.replace(fullUrl);
+            }
+            console.log('======================');
         }, 1500);
     } else {
+        // Clear the flag on error
+        sessionStorage.removeItem('loginPageRedirecting');
         showError(getAuthErrorMessage(result.error));
     }
 }

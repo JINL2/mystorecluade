@@ -2637,6 +2637,15 @@
 
         // Main Cash Ending Modal Functions
         async function openCashEndingModal() {
+            // Ensure appState is properly initialized before opening modal
+            if (!await ensureAppStateReady()) {
+                console.error('Cannot open modal: appState not ready');
+                if (typeof TossAlertUtils !== 'undefined') {
+                    TossAlertUtils.showError('Please wait for the page to fully load and try again.');
+                }
+                return;
+            }
+            
             const modal = document.getElementById('mainCashEndingModal');
             if (modal) {
                 modal.classList.add('active');
@@ -2697,7 +2706,7 @@
             }
         }
 
-        // Load stores into modal dropdown
+        // Load stores into modal dropdown with retry logic
         async function loadModalStores() {
             const storeSelect = document.getElementById('modalStoreSelect');
             const storeDropdownMenu = document.getElementById('storeDropdownMenu');
@@ -2709,21 +2718,62 @@
                 storeDropdownMenu.innerHTML = '';
             }
             
-            // Get stores from appState - try multiple approaches
-            let stores = [];
-            if (typeof appState !== 'undefined' && typeof appState.getCompanyStores === 'function') {
-                stores = appState.getCompanyStores();
-            } else if (typeof appState !== 'undefined' && appState.getUserData) {
-                // Try getting from user data
-                const userData = appState.getUserData();
-                if (userData && userData.companies) {
-                    const selectedCompanyId = appState.getSelectedCompanyId();
-                    const selectedCompany = userData.companies.find(c => c.company_id === selectedCompanyId);
-                    if (selectedCompany && selectedCompany.stores) {
-                        stores = selectedCompany.stores;
-                    }
-                }
+            // Ensure appState is ready first
+            if (!await ensureAppStateReady()) {
+                console.error('Cannot load stores: appState not ready');
+                return;
             }
+            
+            // Get stores from appState with fallback methods
+            let stores = [];
+            const maxRetries = 3;
+            let retryCount = 0;
+            
+            while (retryCount < maxRetries && (!stores || stores.length === 0)) {
+                try {
+                    // Method 1: Try getCompanyStores
+                    if (typeof appState !== 'undefined' && typeof appState.getCompanyStores === 'function') {
+                        stores = appState.getCompanyStores();
+                    }
+                    
+                    // Method 2: If no stores, try getting from user data directly
+                    if ((!stores || stores.length === 0) && typeof appState !== 'undefined' && appState.getUserData) {
+                        const userData = appState.getUserData();
+                        if (userData && userData.companies) {
+                            const selectedCompanyId = appState.getSelectedCompanyId();
+                            const selectedCompany = userData.companies.find(c => c.company_id === selectedCompanyId);
+                            if (selectedCompany && selectedCompany.stores) {
+                                stores = selectedCompany.stores;
+                            }
+                        }
+                    }
+                    
+                    // Method 3: If still no stores, try loading from localStorage directly
+                    if (!stores || stores.length === 0) {
+                        const userData = localStorage.getItem('user');
+                        const companyId = localStorage.getItem('companyChoosen');
+                        if (userData && companyId) {
+                            const parsed = JSON.parse(userData);
+                            const company = parsed.companies?.find(c => c.company_id === companyId);
+                            if (company && company.stores) {
+                                stores = company.stores;
+                            }
+                        }
+                    }
+                    
+                    // If still no stores and not last retry, wait a bit
+                    if ((!stores || stores.length === 0) && retryCount < maxRetries - 1) {
+                        console.log(`No stores found, retrying... (attempt ${retryCount + 1})`);
+                        await new Promise(resolve => setTimeout(resolve, 500));
+                    }
+                } catch (error) {
+                    console.error('Error loading stores:', error);
+                }
+                
+                retryCount++;
+            }
+            
+            console.log(`Loaded ${stores?.length || 0} stores after ${retryCount} attempts`);
             
             if (stores && stores.length > 0) {
                 // Add "All Stores" option to custom dropdown
@@ -6131,6 +6181,74 @@
 
         // Initialize page
         let cashEndingPage;
+        
+        // Helper function to ensure appState is ready with data
+        async function ensureAppStateReady() {
+            try {
+                console.log('=== Ensuring appState is ready ===');
+                
+                // Check if appState exists
+                if (typeof appState === 'undefined') {
+                    console.error('appState is not defined');
+                    return false;
+                }
+                
+                // Check if appState has the required methods
+                if (!appState.getUserData || !appState.getCompanyStores || !appState.getSelectedCompanyId) {
+                    console.error('appState is missing required methods');
+                    return false;
+                }
+                
+                // Check if user data exists
+                let userData = appState.getUserData();
+                if (!userData) {
+                    console.log('No user data in appState, trying to load from localStorage...');
+                    
+                    // Try to load from localStorage directly
+                    const storedData = localStorage.getItem('user');
+                    if (storedData) {
+                        try {
+                            userData = JSON.parse(storedData);
+                            console.log('Loaded user data from localStorage');
+                        } catch (e) {
+                            console.error('Failed to parse stored user data:', e);
+                        }
+                    }
+                    
+                    // If still no data, try to fetch it
+                    if (!userData) {
+                        console.log('No user data found, attempting to fetch...');
+                        await ensureUserData();
+                        userData = appState.getUserData();
+                    }
+                }
+                
+                // Check if we have companies and stores
+                if (!userData || !userData.companies || userData.companies.length === 0) {
+                    console.error('No companies found in user data');
+                    return false;
+                }
+                
+                // Check if a company is selected
+                const selectedCompanyId = appState.getSelectedCompanyId();
+                if (!selectedCompanyId) {
+                    console.log('No company selected, selecting first company...');
+                    if (userData.companies.length > 0) {
+                        appState.setSelectedCompanyId(userData.companies[0].company_id);
+                    }
+                }
+                
+                // Verify stores are available
+                const stores = appState.getCompanyStores();
+                console.log(`appState ready with ${stores?.length || 0} stores`);
+                
+                return true;
+                
+            } catch (error) {
+                console.error('Error ensuring appState ready:', error);
+                return false;
+            }
+        }
         
         // Helper function to ensure user data exists
         async function ensureUserData() {

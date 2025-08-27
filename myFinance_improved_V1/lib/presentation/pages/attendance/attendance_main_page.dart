@@ -1486,15 +1486,17 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
       }
     }
     
-    return Column(
+    return Stack(
       children: [
-        // Store Selector - Toss Style
-        if (stores.isNotEmpty)
-          Container(
-            margin: const EdgeInsets.symmetric(
-              horizontal: TossSpacing.space5,
-              vertical: TossSpacing.space3,
-            ),
+        Column(
+          children: [
+            // Store Selector - Toss Style
+            if (stores.isNotEmpty)
+              Container(
+                margin: const EdgeInsets.symmetric(
+                  horizontal: TossSpacing.space5,
+                  vertical: TossSpacing.space3,
+                ),
             child: InkWell(
               onTap: () {
                 HapticFeedback.selectionClick();
@@ -1630,68 +1632,96 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
           ),
         ),
         
-        // Main content with scroll
-        Expanded(
-          child: ListView(
-            controller: _scrollController,
-            physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
-            padding: EdgeInsets.zero,
-            children: [
-              // Calendar - Toss Style
-              Container(
-                margin: const EdgeInsets.symmetric(horizontal: TossSpacing.space5),
-                child: _buildCalendar(),
+            // Main content with scroll
+            Expanded(
+              child: ListView(
+                controller: _scrollController,
+                physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+                padding: const EdgeInsets.only(bottom: 100), // Padding for floating button
+                children: [
+                  // Calendar - Toss Style
+                  Container(
+                    margin: const EdgeInsets.symmetric(horizontal: TossSpacing.space5),
+                    child: _buildCalendar(),
+                  ),
+                  
+                  const SizedBox(height: TossSpacing.space4),
+                  
+                  // Selected Date Shift Details
+                  if (selectedDate != null)
+                    _buildSelectedDateShiftDetails(),
+                  
+                  // Add bottom padding for comfortable scrolling
+                  const SizedBox(height: 24),
+                ],
               ),
-              
-              const SizedBox(height: TossSpacing.space4),
-              
-              // Selected Date Shift Details
-              if (selectedDate != null)
-                _buildSelectedDateShiftDetails(),
-              
-              // Register/Edit/Cancel Shift Button - Toss Style (Only show when shift is selected)
-              if (selectedShift != null) ...[
-                const SizedBox(height: TossSpacing.space4),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space5),
-                  child: InkWell(
-                    onTap: () {
-                      HapticFeedback.mediumImpact();
-                      // Check what action to take based on selection
-                      if (selectionMode == 'registered' && selectedShift != null) {
-                        _handleCancelShifts();
-                      } else if (selectionMode == 'unregistered' && selectedShift != null) {
-                        _handleRegisterShift();
-                      }
-                    },
+            ),
+          ],
+        ),
+        
+        // Floating Register/Cancel Button - Always visible at bottom
+        Positioned(
+          left: 0,
+          right: 0,
+          bottom: 0,
+          child: Container(
+            padding: EdgeInsets.only(
+              left: TossSpacing.space5,
+              right: TossSpacing.space5,
+              bottom: MediaQuery.of(context).padding.bottom + TossSpacing.space4,
+              top: TossSpacing.space4,
+            ),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, -2),
+                ),
+              ],
+            ),
+            child: SafeArea(
+              top: false,
+              child: InkWell(
+                onTap: selectedShift != null ? () {
+                  HapticFeedback.mediumImpact();
+                  // Check what action to take based on selection
+                  if (selectionMode == 'registered' && selectedShift != null) {
+                    _handleCancelShifts();
+                  } else if (selectionMode == 'unregistered' && selectedShift != null) {
+                    _handleRegisterShift();
+                  }
+                } : null,
+                borderRadius: BorderRadius.circular(16),
+                child: Container(
+                  height: 56,
+                  decoration: BoxDecoration(
+                    color: selectedShift != null
+                      ? (selectionMode == 'registered'
+                        ? TossColors.gray900
+                        : TossColors.primary)
+                      : TossColors.gray300,
                     borderRadius: BorderRadius.circular(16),
-                    child: Container(
-                      height: 56,
-                      decoration: BoxDecoration(
-                        color: selectionMode == 'registered'
-                          ? TossColors.gray900
-                          : TossColors.primary,
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Center(
-                        child: Text(
-                          selectionMode == 'registered'
-                            ? 'Cancel Shift'
-                            : 'Register Shift',
-                          style: TossTextStyles.bodyLarge.copyWith(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
+                  ),
+                  child: Center(
+                    child: Text(
+                      selectedShift != null
+                        ? (selectionMode == 'registered'
+                          ? 'Cancel Shift'
+                          : 'Register Shift')
+                        : 'Select a Shift',
+                      style: TossTextStyles.bodyLarge.copyWith(
+                        color: selectedShift != null
+                          ? Colors.white
+                          : TossColors.gray500,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                   ),
                 ),
-              ],
-              
-              // Add bottom padding for comfortable scrolling
-              const SizedBox(height: 24),
-            ],
+              ),
+            ),
           ),
         ),
       ],
@@ -2596,6 +2626,8 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
   bool isLoading = true;
   String? errorMessage;
   bool isWorking = false;
+  bool hasShiftToday = false;
+  String shiftStatus = 'off_duty'; // 'off_duty', 'scheduled', 'working', 'finished'
   String? currentDisplayedMonth; // Track which month overview is currently displayed
   
   @override
@@ -2809,11 +2841,61 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
         currentDisplayedMonth = monthKey;
         isLoading = false;
         
-        // Check if user is currently working (only relevant for current month)
+        // Check shift status (only relevant for current month)
         if (monthKey == '${DateTime.now().year}-${DateTime.now().month.toString().padLeft(2, '0')}') {
-          isWorking = currentShift != null && 
-                     currentShift['confirm_start_time'] != null && 
-                     currentShift['confirm_end_time'] == null;
+          // Check if user has shift today
+          final today = DateTime.now();
+          final todayStr = '${today.year}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}';
+          final todayShifts = allShiftCardsData.where((card) => card['request_date'] == todayStr).toList();
+          
+          hasShiftToday = todayShifts.isNotEmpty;
+          
+          // Check all shifts for today to determine status
+          if (todayShifts.isNotEmpty) {
+            // Filter to only APPROVED shifts for status determination
+            final approvedShifts = todayShifts.where((shift) => 
+              shift['is_approved'] == true || 
+              shift['approval_status'] == 'approved'
+            ).toList();
+            
+            if (approvedShifts.isNotEmpty) {
+              // Only consider approved shifts for status
+              
+              // Check if currently working on any approved shift
+              bool isCurrentlyWorking = approvedShifts.any((shift) => 
+                shift['confirm_start_time'] != null && 
+                shift['confirm_end_time'] == null
+              );
+              
+              // Check if all approved shifts are finished
+              bool allApprovedShiftsFinished = approvedShifts.every((shift) => 
+                shift['confirm_start_time'] != null && 
+                shift['confirm_end_time'] != null
+              );
+              
+              // Check if any approved shift has started
+              bool anyApprovedShiftStarted = approvedShifts.any((shift) => 
+                shift['confirm_start_time'] != null
+              );
+              
+              if (isCurrentlyWorking) {
+                // At least one approved shift is being worked on
+                shiftStatus = 'working';
+              } else if (allApprovedShiftsFinished && anyApprovedShiftStarted) {
+                // All approved shifts are completed
+                shiftStatus = 'finished';
+              } else {
+                // Have approved shifts but none started yet
+                shiftStatus = 'scheduled';
+              }
+            } else {
+              // Have shifts but none are approved yet
+              shiftStatus = 'scheduled';
+            }
+          } else {
+            // No shifts at all today
+            shiftStatus = 'off_duty';
+          }
         }
       });
       
@@ -3093,13 +3175,13 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                           width: 8,
                           height: 8,
                           decoration: BoxDecoration(
-                            color: isWorking ? TossColors.success : TossColors.gray400,
+                            color: _getStatusColor(shiftStatus),
                             shape: BoxShape.circle,
                           ),
                         ),
                         const SizedBox(width: TossSpacing.space2),
                         Text(
-                          isWorking ? 'Working' : 'Off Duty',
+                          _getStatusText(shiftStatus),
                           style: TossTextStyles.bodySmall.copyWith(
                             color: TossColors.gray700,
                             fontWeight: FontWeight.w600,
@@ -3373,49 +3455,50 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                       ],
                     ),
                     const SizedBox(height: TossSpacing.space3),
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.end,
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Expanded(
-                          child: Text(
-                            '${currencySymbol}${estimatedSalary}',
-                            style: TossTextStyles.display.copyWith(
-                              color: TossColors.primary,
-                              fontWeight: FontWeight.w800,
-                              fontSize: 32,
-                            ),
+                        Text(
+                          '${currencySymbol}${estimatedSalary}',
+                          style: TossTextStyles.display.copyWith(
+                            color: TossColors.primary,
+                            fontWeight: FontWeight.w800,
+                            fontSize: 32,
                           ),
                         ),
-                        if (overtimeTotal > 0)
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: TossSpacing.space2,
-                              vertical: TossSpacing.space1,
-                            ),
-                            decoration: BoxDecoration(
-                              color: TossColors.success.withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Text(
-                              '+${currencySymbol}${(overtimeTotal * salaryAmount / 60).toStringAsFixed(0)}',
-                              style: TossTextStyles.caption.copyWith(
-                                color: TossColors.success,
-                                fontWeight: FontWeight.w700,
+                        if (overtimeTotal > 0) ...[  
+                          const SizedBox(height: TossSpacing.space1),
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: TossSpacing.space2,
+                                  vertical: TossSpacing.space1,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: TossColors.success.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Text(
+                                  '+${currencySymbol}${(overtimeTotal * salaryAmount / 60).toStringAsFixed(0)}',
+                                  style: TossTextStyles.caption.copyWith(
+                                    color: TossColors.success,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
                               ),
-                            ),
+                              const SizedBox(width: TossSpacing.space2),
+                              Text(
+                                'overtime bonus',
+                                style: TossTextStyles.caption.copyWith(
+                                  color: TossColors.gray500,
+                                ),
+                              ),
+                            ],
                           ),
+                        ],
                       ],
                     ),
-                    if (overtimeTotal > 0)
-                      Padding(
-                        padding: const EdgeInsets.only(top: TossSpacing.space1),
-                        child: Text(
-                          'overtime bonus',
-                          style: TossTextStyles.caption.copyWith(
-                            color: TossColors.gray500,
-                          ),
-                        ),
-                      ),
                   ],
                 ),
               ),
@@ -4034,6 +4117,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
           'checkOut': checkOutTime,
           'hours': hoursWorked,
           'store': card['store_name'] ?? 'Store',
+          'shiftInfo': '${card['shift_name'] ?? 'Shift'} • ${card['shift_time'] ?? '--:-- ~ --:--'}',
           'status': actualEnd != null ? 'completed' : 'in_progress',
           'lateMinutes': card['late_minutes'] ?? 0,
           'overtimeMinutes': card['overtime_minutes'] ?? 0,
@@ -4197,9 +4281,9 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                                       ],
                                     ),
                                     const SizedBox(height: TossSpacing.space1),
-                                    // Store name
+                                    // Shift Name and Time
                                     Text(
-                                      activity['store'] as String,
+                                      activity['shiftInfo'] as String,
                                       style: TossTextStyles.caption.copyWith(
                                         color: TossColors.gray500,
                                       ),
@@ -4454,7 +4538,8 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                   
                   final isApproved = card['is_approved'] ?? false;
                   final isReported = card['is_reported'] ?? false;
-                  final storeName = card['store_name'] ?? 'Store';
+                  final shiftName = card['shift_name'] ?? 'Shift';
+                  final shiftTime = card['shift_time'] ?? '--:-- ~ --:--';
                   
                   // Check if this is first item or if month changed
                   bool showMonthHeader = false;
@@ -4519,7 +4604,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                                 'checkIn': checkInTime,
                                 'checkOut': checkOutTime,
                                 'hours': hoursWorked,
-                                'store': storeName,
+                                'store': card['store_name'] ?? 'Store',
                                 'status': actualEnd != null ? 'completed' : 'in_progress',
                                 'isApproved': isApproved,
                                 'rawCard': card,
@@ -4600,9 +4685,9 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                                           ],
                                         ),
                                         const SizedBox(height: 2),
-                                        // Store
+                                        // Shift Name and Time
                                         Text(
-                                          storeName,
+                                          '$shiftName • $shiftTime',
                                           style: TossTextStyles.caption.copyWith(
                                             color: TossColors.gray500,
                                             fontSize: 11,
@@ -4753,7 +4838,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
             Padding(
               padding: const EdgeInsets.all(TossSpacing.space5),
               child: Text(
-                isWorking ? 'Check Out' : 'Check In',
+                shiftStatus == 'working' ? 'Check Out' : 'Check In',
                 style: TossTextStyles.h2.copyWith(
                   color: TossColors.gray900,
                   fontWeight: FontWeight.w700,
@@ -5061,6 +5146,34 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
       'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'
     ];
     return days[weekday - 1];
+  }
+  
+  Color _getStatusColor(String status) {
+    switch (status) {
+      case 'working':
+        return TossColors.success; // Green for currently working
+      case 'finished':
+        return TossColors.primary; // Blue for finished shift
+      case 'scheduled':
+        return TossColors.warning; // Orange for has shift today
+      case 'off_duty':
+      default:
+        return TossColors.gray400; // Gray for off duty
+    }
+  }
+  
+  String _getStatusText(String status) {
+    switch (status) {
+      case 'working':
+        return 'Working';
+      case 'finished':
+        return 'Finished';
+      case 'scheduled':
+        return 'Shift Today';
+      case 'off_duty':
+      default:
+        return 'Off Duty';
+    }
   }
 
   void _showActivityDetails(Map<String, dynamic> activity) {

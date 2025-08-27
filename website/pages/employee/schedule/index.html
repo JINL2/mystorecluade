@@ -812,7 +812,7 @@
         .schedule-grid {
             display: grid;
             grid-template-columns: 180px repeat(7, 1fr);
-            min-height: 650px;
+            min-height: auto; /* Changed from 650px to auto for dynamic height */
         }
         
         /* Schedule Header */
@@ -913,12 +913,13 @@
             background: var(--toss-surface-secondary);
             border-right: 1px solid var(--toss-border-light);
             border-bottom: 1px solid var(--toss-border-lighter);
-            padding: var(--space-4);
+            padding: var(--space-3); /* Reduced padding from space-4 to space-3 */
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             text-align: center;
+            min-height: 80px; /* Match time-slot-cell height for alignment */
         }
         
         .shift-name-title {
@@ -938,7 +939,7 @@
             border-right: 1px solid var(--toss-border-lighter);
             border-bottom: 1px solid var(--toss-border-lighter);
             padding: var(--space-3);
-            min-height: 100px;
+            min-height: 80px; /* Reduced from 100px to 80px for more compact layout */
             position: relative;
             background: var(--toss-white);
             transition: all 0.2s ease;
@@ -966,7 +967,7 @@
             margin: var(--space-1);
             cursor: pointer;
             position: relative;
-            min-height: 90px;
+            min-height: 70px; /* Reduced from 90px to 70px for better visual balance */
             transition: all 0.2s ease;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
             display: flex;
@@ -1710,12 +1711,12 @@
             }
             
             .time-slot-cell {
-                min-height: 80px;
+                min-height: 60px; /* Reduced from 80px for mobile screens */
                 padding: var(--space-2);
             }
             
             .shift-block {
-                min-height: 50px;
+                min-height: 45px; /* Reduced from 50px for mobile screens */
                 padding: var(--space-2);
                 font-size: 12px;
             }

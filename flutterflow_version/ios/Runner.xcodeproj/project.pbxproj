@@ -71,7 +71,6 @@
 				27FCCAD176FC22EDEDB07616 /* Pods-Runner.release.xcconfig */,
 				463432BF971470A63AA8D07F /* Pods-Runner.profile.xcconfig */,
 			);
-			name = Pods;
 			path = Pods;
 			sourceTree = "<group>";
 		};
@@ -266,9 +265,13 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-resources-${CONFIGURATION}-input-files.xcfilelist",
 			);
+			inputPaths = (
+			);
 			name = "[CP] Copy Pods Resources";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-resources-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -373,8 +376,12 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES = YES;
 				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
+				DEVELOPMENT_TEAM = Z4T6XAYRMB;
 				ENABLE_BITCODE = NO;
+				FLUTTER_APPLICATION_PATH = "/Applications/XAMPP/xamppfiles/htdocs/mcparrange-main/myFinance_claude/myFinance_improved_V1";
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)/Flutter",
@@ -388,8 +395,11 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)/Flutter",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.mycompany.luxappv1;
+				PODS_PODFILE_DIR_PATH = "/Applications/XAMPP/xamppfiles/htdocs/mcparrange-main/myFinance_claude/myFinance_improved_V1/ios/";
+				PODS_ROOT = "/Applications/XAMPP/xamppfiles/htdocs/mcparrange-main/myFinance_claude/myFinance_improved_V1/ios/Pods";
+				PRODUCT_BUNDLE_IDENTIFIER = com.jsw.myfinancev1;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_OBJC_BRIDGING_HEADER = "Runner/Runner-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 				VERSIONING_SYSTEM = "apple-generic";
@@ -509,8 +519,12 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES = YES;
 				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
+				DEVELOPMENT_TEAM = Z4T6XAYRMB;
 				ENABLE_BITCODE = NO;
+				FLUTTER_APPLICATION_PATH = "/Applications/XAMPP/xamppfiles/htdocs/mcparrange-main/myFinance_claude/myFinance_improved_V1";
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)/Flutter",
@@ -524,8 +538,11 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)/Flutter",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.mycompany.luxappv1;
+				PODS_PODFILE_DIR_PATH = "/Applications/XAMPP/xamppfiles/htdocs/mcparrange-main/myFinance_claude/myFinance_improved_V1/ios/";
+				PODS_ROOT = "/Applications/XAMPP/xamppfiles/htdocs/mcparrange-main/myFinance_claude/myFinance_improved_V1/ios/Pods";
+				PRODUCT_BUNDLE_IDENTIFIER = com.jsw.myfinancev1;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_OBJC_BRIDGING_HEADER = "Runner/Runner-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -540,8 +557,12 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES = YES;
 				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
+				DEVELOPMENT_TEAM = Z4T6XAYRMB;
 				ENABLE_BITCODE = NO;
+				FLUTTER_APPLICATION_PATH = "/Applications/XAMPP/xamppfiles/htdocs/mcparrange-main/myFinance_claude/myFinance_improved_V1";
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)/Flutter",
@@ -555,8 +576,11 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)/Flutter",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.mycompany.luxappv1;
+				PODS_PODFILE_DIR_PATH = "/Applications/XAMPP/xamppfiles/htdocs/mcparrange-main/myFinance_claude/myFinance_improved_V1/ios/";
+				PODS_ROOT = "/Applications/XAMPP/xamppfiles/htdocs/mcparrange-main/myFinance_claude/myFinance_improved_V1/ios/Pods";
+				PRODUCT_BUNDLE_IDENTIFIER = com.jsw.myfinancev1;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_OBJC_BRIDGING_HEADER = "Runner/Runner-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 				VERSIONING_SYSTEM = "apple-generic";

@@ -21,8 +21,28 @@ class PageInitializer {
             // Check authentication first
             const { data: { session }, error } = await supabase.auth.getSession();
             if (!session) {
-                const depth = window.location.pathname.split('/').filter(p => p).length - 2;
-                const loginPath = '../'.repeat(depth) + 'pages/auth/login.html';
+                // Use proper path calculation for login redirect
+                const currentPath = window.location.pathname;
+                let loginPath;
+                
+                // Check if we're in the mcparrange-main project
+                if (currentPath.includes('/mcparrange-main/')) {
+                    // Extract the base path up to mcparrange-main
+                    const baseMatch = currentPath.match(/(.*\/mcparrange-main\/)/);
+                    if (baseMatch) {
+                        // Build the correct absolute path to login
+                        loginPath = baseMatch[1] + 'myFinance_claude/website/pages/auth/login.html';
+                    } else {
+                        // Fallback
+                        loginPath = '/mcparrange-main/myFinance_claude/website/pages/auth/login.html';
+                    }
+                } else {
+                    // Calculate relative path for other structures
+                    const depth = window.location.pathname.split('/').filter(p => p).length - 2;
+                    loginPath = '../'.repeat(depth) + 'pages/auth/login.html';
+                }
+                
+                console.log('PageInitializer redirecting to login:', loginPath);
                 window.location.href = loginPath;
                 return;
             }
