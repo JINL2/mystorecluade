@@ -211,6 +211,7 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
               TossPrimaryButton(
                 text: 'Back to Sign In',
                 onPressed: () {
+                  // Navigate with smooth transition
                   context.go('/auth/login');
                 },
               ),

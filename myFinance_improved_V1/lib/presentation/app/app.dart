@@ -18,7 +18,7 @@ class _MyFinanceAppState extends ConsumerState<MyFinanceApp> with WidgetsBinding
     // Add lifecycle observer
     WidgetsBinding.instance.addObserver(this);
     
-    // Initialize notifications when app starts
+    // Initialize notifications
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(notificationProvider.notifier).initialize();
     });

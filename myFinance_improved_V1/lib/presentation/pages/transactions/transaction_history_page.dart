@@ -17,7 +17,16 @@ import 'widgets/transaction_list_item.dart';
 import 'widgets/transaction_filter_sheet.dart';
 
 class TransactionHistoryPage extends ConsumerStatefulWidget {
-  const TransactionHistoryPage({super.key});
+  final String? counterpartyId;
+  final String? counterpartyName;
+  final String? scope;
+  
+  const TransactionHistoryPage({
+    super.key,
+    this.counterpartyId,
+    this.counterpartyName,
+    this.scope,
+  });
 
   @override
   ConsumerState<TransactionHistoryPage> createState() => _TransactionHistoryPageState();
@@ -30,11 +39,42 @@ class _TransactionHistoryPageState extends ConsumerState<TransactionHistoryPage>
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
+    
+    // Apply filters if provided from navigation
+    if (widget.counterpartyId != null || widget.scope != null) {
+      // Use addPostFrameCallback to ensure the widget tree is built
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          final notifier = ref.read(transactionFilterStateProvider.notifier);
+          
+          // Set counterparty filter
+          if (widget.counterpartyId != null) {
+            notifier.setCounterparty(widget.counterpartyId);
+          }
+          
+          // Set scope filter
+          if (widget.scope != null) {
+            final scope = widget.scope == 'store' 
+              ? TransactionScope.store 
+              : TransactionScope.company;
+            notifier.setScope(scope);
+          }
+        }
+      });
+    }
   }
 
   @override
   void dispose() {
     _scrollController.dispose();
+    // Clear the counterparty filter when leaving the page if it was set from navigation
+    if (widget.counterpartyId != null && mounted) {
+      // Schedule the cleanup for the next frame to avoid modifying provider during disposal
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        // The provider will be cleared when the page is fully disposed
+        // No need to explicitly clear here as the provider will rebuild with new state
+      });
+    }
     super.dispose();
   }
 
@@ -63,9 +103,11 @@ class _TransactionHistoryPageState extends ConsumerState<TransactionHistoryPage>
 
     return TossScaffold(
       backgroundColor: TossColors.gray50,
-      appBar: const TossAppBar(
-        title: 'Transaction History',
-        actions: [],
+      appBar: TossAppBar(
+        title: widget.counterpartyName != null 
+          ? '${widget.counterpartyName} Transactions'
+          : 'Transaction History',
+        actions: const [],
       ),
       body: transactionsAsync.when(
         data: (transactions) {

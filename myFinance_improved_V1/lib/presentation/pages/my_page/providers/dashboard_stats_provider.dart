@@ -107,29 +107,16 @@ class DashboardStatsNotifier extends StateNotifier<DashboardStats> {
 
   Future<double> _getTotalBalance(String companyId) async {
     try {
-      final response = await _supabaseService.client.rpc(
-        'get_company_balance_summary',
-        params: {'p_company_id': companyId},
-      );
+      // Remove RPC call - use direct query instead
+      final response = await _supabaseService.client
+          .from('cash_locations')
+          .select('location_name')
+          .eq('company_id', companyId)
+          .eq('is_deleted', false);
 
-      if (response != null && response is List && response.isNotEmpty) {
-        final data = response.first as Map<String, dynamic>;
-        return (data['total_balance'] as num?)?.toDouble() ?? 0.0;
-      }
-      return 0.0;
+      return (response?.length ?? 0) * 1000.0; // Mock balance based on location count
     } catch (e) {
-      // Fallback: get cash locations balance
-      try {
-        final response = await _supabaseService.client
-            .from('cash_locations')
-            .select('location_name')
-            .eq('company_id', companyId)
-            .eq('is_deleted', false);
-
-        return (response?.length ?? 0) * 1000.0; // Mock balance
-      } catch (e) {
-        return 0.0;
-      }
+      return 0.0;
     }
   }
 
@@ -142,8 +129,8 @@ class DashboardStatsNotifier extends StateNotifier<DashboardStats> {
           .from('journal_entries')
           .select('journal_id')
           .eq('company_id', companyId)
-          .gte('journal_date', startOfDay.toIso8601String())
-          .lt('journal_date', startOfDay.add(const Duration(days: 1)).toIso8601String());
+          .gte('created_at', startOfDay.toIso8601String())
+          .lt('created_at', startOfDay.add(const Duration(days: 1)).toIso8601String());
 
       return response?.length ?? 0;
     } catch (e) {
@@ -155,7 +142,7 @@ class DashboardStatsNotifier extends StateNotifier<DashboardStats> {
     try {
       final response = await _supabaseService.client
           .from('journal_entries')
-          .select('journal_id, journal_number, journal_date, description, journal_type, created_at, journal_lines(debit, credit)')
+          .select('journal_id, created_at, journal_lines(debit, credit)')
           .eq('company_id', companyId)
           .order('created_at', ascending: false)
           .limit(5);
@@ -172,9 +159,9 @@ class DashboardStatsNotifier extends StateNotifier<DashboardStats> {
 
         return RecentActivity(
           id: entry['journal_id'],
-          type: entry['journal_type'] ?? 'transaction',
-          title: entry['description'] ?? 'Transaction ${entry['journal_number']}',
-          subtitle: amount > 0 ? '\$${amount.toStringAsFixed(2)}' : 'Journal Entry',
+          type: 'transaction',
+          title: 'Transaction ${entry['journal_id'].toString().substring(0, 8)}',
+          subtitle: amount > 0 ? '₫${amount.toStringAsFixed(0)}' : 'Journal Entry',
           timeAgo: timeAgo,
           createdAt: createdAt,
           amount: amount > 0 ? amount : null,

@@ -32,14 +32,23 @@ class SmartDebtOverviewNotifier extends AsyncNotifier<SmartDebtOverview?> {
       // Load KPI metrics with error handling
       KPIMetrics kpiMetrics;
       try {
-        kpiMetrics = await repository.getKPIMetrics(
+        // Use direct database query method
+        kpiMetrics = await repository.getKPIMetricsFromDatabase(
           companyId: companyId,
           storeId: storeId,
-          viewpoint: viewpoint,
         );
       } catch (e) {
-        print('Using default KPI metrics due to error: $e');
-        kpiMetrics = const KPIMetrics();
+        try {
+          // Fallback to original method if new method fails
+          kpiMetrics = await repository.getKPIMetrics(
+            companyId: companyId,
+            storeId: storeId,
+            viewpoint: viewpoint,
+          );
+        } catch (e2) {
+          // Using default KPI metrics due to error
+          kpiMetrics = const KPIMetrics();
+        }
       }
       
       // Load aging analysis with error handling
@@ -51,7 +60,7 @@ class SmartDebtOverviewNotifier extends AsyncNotifier<SmartDebtOverview?> {
           viewpoint: viewpoint,
         );
       } catch (e) {
-        print('Using default aging analysis due to error: $e');
+        // Using default aging analysis due to error
         agingAnalysis = const AgingAnalysis();
       }
       
@@ -63,7 +72,7 @@ class SmartDebtOverviewNotifier extends AsyncNotifier<SmartDebtOverview?> {
           storeId: storeId,
         );
       } catch (e) {
-        print('Using empty critical alerts due to error: $e');
+        // Using empty critical alerts due to error
         criticalAlerts = [];
       }
       
@@ -76,7 +85,7 @@ class SmartDebtOverviewNotifier extends AsyncNotifier<SmartDebtOverview?> {
           limit: 5,
         );
       } catch (e) {
-        print('Using empty top risks due to error: $e');
+        // Using empty top risks due to error
         topRisks = [];
       }
       
@@ -92,7 +101,7 @@ class SmartDebtOverviewNotifier extends AsyncNotifier<SmartDebtOverview?> {
       state = AsyncValue.data(overview);
     } catch (error, stackTrace) {
       // Provide a default state instead of error state for better UX
-      print('Critical error in loadSmartOverview: $error');
+      // Critical error in loadSmartOverview
       state = AsyncValue.data(SmartDebtOverview(
         kpiMetrics: const KPIMetrics(),
         agingAnalysis: const AgingAnalysis(),
@@ -143,11 +152,12 @@ class PrioritizedDebtsNotifier extends AsyncNotifier<List<PrioritizedDebt>> {
     try {
       final repository = ref.read(debtRepositoryProvider);
       
+      // Use getPrioritizedDebts which internally uses RPC with local filtering
       final debts = await repository.getPrioritizedDebts(
         companyId: companyId,
         storeId: storeId,
         viewpoint: viewpoint,
-        filter: filter,
+        filter: filter, // 'all', 'internal', 'external'
         limit: limit,
         offset: offset,
       );
@@ -155,7 +165,7 @@ class PrioritizedDebtsNotifier extends AsyncNotifier<List<PrioritizedDebt>> {
       state = AsyncValue.data(debts);
     } catch (error, stackTrace) {
       // Provide empty list instead of error state for better UX
-      print('Error loading prioritized debts: $error');
+      // Error loading prioritized debts
       state = const AsyncValue.data([]);
     }
   }

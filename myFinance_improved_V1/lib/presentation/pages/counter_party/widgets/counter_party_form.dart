@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:myfinance_improved/core/themes/toss_colors.dart';
 import 'package:myfinance_improved/core/themes/toss_text_styles.dart';
-import 'package:myfinance_improved/core/themes/toss_spacing.dart';
-import 'package:myfinance_improved/core/themes/toss_border_radius.dart';
 import '../models/counter_party_models.dart';
 import '../providers/counter_party_providers.dart';
 import '../../../providers/app_state_provider.dart';
@@ -137,7 +135,7 @@ class _CounterPartyFormState extends ConsumerState<CounterPartyForm> with Ticker
       response.when(
         success: (data, message) {
           if (mounted) {
-            Navigator.of(context).pop();
+            Navigator.of(context).pop(true); // Return true to indicate success
             _showSuccess(message ?? 'Saved successfully');
           }
         },
@@ -267,7 +265,7 @@ class _CounterPartyFormState extends ConsumerState<CounterPartyForm> with Ticker
       
       if (result) {
         if (mounted) {
-          Navigator.of(context).pop(); // Close form
+          Navigator.of(context).pop(true); // Return true to indicate successful deletion
           _showSuccess('Counter party deleted successfully');
         }
       } else {

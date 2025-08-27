@@ -60,7 +60,6 @@ class _CreateStorePageState extends ConsumerState<CreateStorePage>
   
   bool _isLoading = false;
   bool _showSuccess = false;
-  String? _storeId;
   String? _storeCode;
   
   // Validation states
@@ -992,7 +991,6 @@ class _CreateStorePageState extends ConsumerState<CreateStorePage>
       );
       
       if (result != null) {
-        _storeId = result['store_id'];
         _storeCode = result['store_code'];
         
         setState(() {
@@ -1077,7 +1075,6 @@ class _CreateStorePageState extends ConsumerState<CreateStorePage>
           if (stores.isNotEmpty) {
             final firstStore = stores.first;
             final storeId = firstStore['store_id'] as String;
-            final storeName = firstStore['store_name'] as String;
             
             await ref.read(appStateProvider.notifier).setStoreChoosen(storeId);
           }

@@ -17,7 +17,6 @@ import '../../providers/app_state_provider.dart';
 import '../../widgets/common/toss_scaffold.dart';
 import '../../widgets/common/toss_stats_card.dart';
 import '../../widgets/common/toss_app_bar.dart';
-import '../../widgets/common/toss_floating_action_button.dart';
 import '../../widgets/toss/toss_search_field.dart';
 
 class CounterPartyPage extends ConsumerStatefulWidget {
@@ -99,7 +98,7 @@ class _CounterPartyPageState extends ConsumerState<CounterPartyPage> {
     // Use optimized providers for better performance
     final counterPartiesAsync = ref.watch(optimizedCounterPartiesProvider);
     final statsAsync = ref.watch(optimizedCounterPartyStatsProvider);
-    final selectedCompany = ref.watch(selectedCompanyProvider);
+    ref.watch(selectedCompanyProvider); // Keep watching for reactivity
 
     return TossScaffold(
       backgroundColor: TossColors.gray100,

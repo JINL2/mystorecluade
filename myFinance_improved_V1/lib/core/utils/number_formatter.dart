@@ -27,4 +27,20 @@ class NumberFormatter {
   static String formatCurrencyInt(num value, String symbol) {
     return formatCurrency(value.round(), symbol);
   }
+  
+  /// Formats number in compact form (K, M, B)
+  /// Example: formatCompact(1500) → "1.5K"
+  /// Example: formatCompact(1500000) → "1.5M"
+  /// Example: formatCompact(1500000000) → "1.5B"
+  static String formatCompact(num value) {
+    if (value.abs() >= 1000000000) {
+      return '${(value / 1000000000).toStringAsFixed(1)}B';
+    } else if (value.abs() >= 1000000) {
+      return '${(value / 1000000).toStringAsFixed(1)}M';
+    } else if (value.abs() >= 1000) {
+      return '${(value / 1000).toStringAsFixed(1)}K';
+    } else {
+      return value.toStringAsFixed(0);
+    }
+  }
 }

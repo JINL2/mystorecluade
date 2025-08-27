@@ -30,7 +30,8 @@ import '../pages/transactions/transaction_history_page.dart';
 import '../pages/transaction_template/transaction_template_page.dart';
 import '../pages/my_page/my_page.dart';
 import '../pages/debt_account_settings/debt_account_settings_page.dart';
-import '../pages/debt_control/smart_debt_control_page_v3.dart';
+import '../pages/debt_control/smart_debt_control_page.dart';
+import '../pages/debt_control/debt_relationship_page.dart';
 import '../pages/component_test/component_test_page.dart';
 import '../pages/debug/supabase_connection_test_page.dart';
 import '../pages/debug/notification_debug_page.dart';
@@ -274,7 +275,20 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           // Smart Debt Control
           GoRoute(
             path: 'debtControl',
-            builder: (context, state) => const SmartDebtControlPageV3(),
+            builder: (context, state) => const SmartDebtControlPage(),
+          ),
+          // Debt Relationship Detail Page
+          GoRoute(
+            path: 'debtRelationship/:counterpartyId',
+            builder: (context, state) {
+              final counterpartyId = state.pathParameters['counterpartyId'] ?? '';
+              final extra = state.extra as Map<String, dynamic>?;
+              final counterpartyName = extra?['counterpartyName'] ?? 'Unknown';
+              return DebtRelationshipPage(
+                counterpartyId: counterpartyId,
+                counterpartyName: counterpartyName,
+              );
+            },
           ),
           GoRoute(
             path: 'addFixAsset',
@@ -288,7 +302,19 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           // Transaction History Page
           GoRoute(
             path: 'transactionHistory',
-            builder: (context, state) => const TransactionHistoryPage(),
+            builder: (context, state) {
+              // Extract query parameters
+              final counterpartyId = state.uri.queryParameters['counterparty'];
+              final scope = state.uri.queryParameters['scope'];
+              final extra = state.extra as Map<String, dynamic>?;
+              final counterpartyName = extra?['counterpartyName'];
+              
+              return TransactionHistoryPage(
+                counterpartyId: counterpartyId,
+                counterpartyName: counterpartyName,
+                scope: scope,
+              );
+            },
           ),
           // Transaction Template Page
           GoRoute(

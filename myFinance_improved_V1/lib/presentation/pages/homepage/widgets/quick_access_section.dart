@@ -210,20 +210,19 @@ class QuickAccessFeatureCard extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // Feature icon from database
+          // Feature icon from database - Using Toss blue theme
           Container(
             width: 56,
             height: 56,
             decoration: BoxDecoration(
-              color: TossColors.primary.withOpacity(0.1),
+              color: TossColors.primary.withAlpha(26),  // Light blue background (10% opacity)
               borderRadius: BorderRadius.circular(14),
             ),
             child: Center(
-              child: DynamicIcon(
-                iconKey: feature.iconKey,
-                size: 22,
-                color: TossColors.primary,
-                useDefaultColor: false,
+              child: Icon(
+                IconMapper.getIcon(feature.iconKey),
+                size: 26,
+                color: TossColors.primary,  // Toss Blue #0064FF
               ),
             ),
           ),
@@ -234,6 +233,8 @@ class QuickAccessFeatureCard extends StatelessWidget {
             feature.featureName,
             style: TossTextStyles.caption.copyWith(
               fontWeight: FontWeight.w500,
+              color: TossColors.gray900,  // Use proper text color from theme
+              fontSize: 13,  // Slightly larger for better readability
             ),
             textAlign: TextAlign.center,
             maxLines: 2,

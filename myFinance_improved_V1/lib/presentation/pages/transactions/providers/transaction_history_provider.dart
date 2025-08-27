@@ -11,7 +11,9 @@ class TransactionHistory extends _$TransactionHistory {
   
   @override
   Future<List<TransactionData>> build() async {
-    return _fetchTransactions();
+    // Watch the filter state to rebuild when it changes
+    final filter = ref.watch(transactionFilterStateProvider);
+    return _fetchTransactions(filter: filter);
   }
 
   Future<List<TransactionData>> _fetchTransactions({
@@ -83,6 +85,9 @@ class TransactionHistory extends _$TransactionHistory {
         }
       }
       
+      // Sort transactions by entry date in descending order (most recent first)
+      transactions.sort((a, b) => b.entryDate.compareTo(a.entryDate));
+      
       return transactions;
     } catch (e) {
       throw Exception('Failed to fetch transactions: $e');
@@ -91,7 +96,9 @@ class TransactionHistory extends _$TransactionHistory {
 
   Future<void> refresh() async {
     state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() => _fetchTransactions());
+    // Use the current filter when refreshing
+    final filter = ref.read(transactionFilterStateProvider);
+    state = await AsyncValue.guard(() => _fetchTransactions(filter: filter));
   }
 
   Future<void> applyFilter(TransactionFilter filter) async {
@@ -104,7 +111,10 @@ class TransactionHistory extends _$TransactionHistory {
     if (currentData.isEmpty) return;
 
     try {
+      // Use the current filter when loading more
+      final filter = ref.read(transactionFilterStateProvider);
       final moreData = await _fetchTransactions(
+        filter: filter,
         offset: currentData.length,
       );
       

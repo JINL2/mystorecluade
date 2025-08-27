@@ -92,6 +92,8 @@ class PrioritizedDebt with _$PrioritizedDebt {
     @Default([]) List<DebtTransaction> recentTransactions,
     @Default(false) bool hasPaymentPlan,
     @Default(false) bool isDisputed,
+    @Default(0) int transactionCount, // Total transaction count with counterparty
+    String? linkedCompanyName, // For internal counterparties
     Map<String, dynamic>? metadata,
   }) = _PrioritizedDebt;
 

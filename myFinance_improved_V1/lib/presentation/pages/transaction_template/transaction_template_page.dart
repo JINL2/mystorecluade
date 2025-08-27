@@ -172,9 +172,6 @@ class _TransactionTemplatePageState extends ConsumerState<TransactionTemplatePag
                 TossTabBar(
                   tabs: hasAdminPermission ? const ['General', 'Admin'] : const ['General'],
                   controller: _tabController!,
-                  selectedColor: TossColors.primary,
-                  unselectedColor: TossColors.gray400,
-                  indicatorHeight: 2.5,
                   padding: EdgeInsets.symmetric(horizontal: TossSpacing.space4),
                 ),
               // Filter Status Indicator

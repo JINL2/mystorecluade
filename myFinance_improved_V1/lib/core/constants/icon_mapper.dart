@@ -221,8 +221,9 @@ class DynamicIcon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final iconData = IconMapper.getIcon(iconKey, featureName: featureName);
+    // Ensure color is properly applied
     final iconColor = color ?? 
-                      (useDefaultColor ? IconMapper.getIconColor(iconKey) : null);
+                      (useDefaultColor ? IconMapper.getIconColor(iconKey) : Theme.of(context).iconTheme.color);
 
     return Center(
       child: FaIcon(

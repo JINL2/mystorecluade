@@ -1205,6 +1205,10 @@ mixin _$PrioritizedDebt {
       throw _privateConstructorUsedError;
   bool get hasPaymentPlan => throw _privateConstructorUsedError;
   bool get isDisputed => throw _privateConstructorUsedError;
+  int get transactionCount =>
+      throw _privateConstructorUsedError; // Total transaction count with counterparty
+  String? get linkedCompanyName =>
+      throw _privateConstructorUsedError; // For internal counterparties
   Map<String, dynamic>? get metadata => throw _privateConstructorUsedError;
 
   /// Serializes this PrioritizedDebt to a JSON map.
@@ -1241,6 +1245,8 @@ abstract class $PrioritizedDebtCopyWith<$Res> {
       List<DebtTransaction> recentTransactions,
       bool hasPaymentPlan,
       bool isDisputed,
+      int transactionCount,
+      String? linkedCompanyName,
       Map<String, dynamic>? metadata});
 }
 
@@ -1276,6 +1282,8 @@ class _$PrioritizedDebtCopyWithImpl<$Res, $Val extends PrioritizedDebt>
     Object? recentTransactions = null,
     Object? hasPaymentPlan = null,
     Object? isDisputed = null,
+    Object? transactionCount = null,
+    Object? linkedCompanyName = freezed,
     Object? metadata = freezed,
   }) {
     return _then(_value.copyWith(
@@ -1347,6 +1355,14 @@ class _$PrioritizedDebtCopyWithImpl<$Res, $Val extends PrioritizedDebt>
           ? _value.isDisputed
           : isDisputed // ignore: cast_nullable_to_non_nullable
               as bool,
+      transactionCount: null == transactionCount
+          ? _value.transactionCount
+          : transactionCount // ignore: cast_nullable_to_non_nullable
+              as int,
+      linkedCompanyName: freezed == linkedCompanyName
+          ? _value.linkedCompanyName
+          : linkedCompanyName // ignore: cast_nullable_to_non_nullable
+              as String?,
       metadata: freezed == metadata
           ? _value.metadata
           : metadata // ignore: cast_nullable_to_non_nullable
@@ -1381,6 +1397,8 @@ abstract class _$$PrioritizedDebtImplCopyWith<$Res>
       List<DebtTransaction> recentTransactions,
       bool hasPaymentPlan,
       bool isDisputed,
+      int transactionCount,
+      String? linkedCompanyName,
       Map<String, dynamic>? metadata});
 }
 
@@ -1414,6 +1432,8 @@ class __$$PrioritizedDebtImplCopyWithImpl<$Res>
     Object? recentTransactions = null,
     Object? hasPaymentPlan = null,
     Object? isDisputed = null,
+    Object? transactionCount = null,
+    Object? linkedCompanyName = freezed,
     Object? metadata = freezed,
   }) {
     return _then(_$PrioritizedDebtImpl(
@@ -1485,6 +1505,14 @@ class __$$PrioritizedDebtImplCopyWithImpl<$Res>
           ? _value.isDisputed
           : isDisputed // ignore: cast_nullable_to_non_nullable
               as bool,
+      transactionCount: null == transactionCount
+          ? _value.transactionCount
+          : transactionCount // ignore: cast_nullable_to_non_nullable
+              as int,
+      linkedCompanyName: freezed == linkedCompanyName
+          ? _value.linkedCompanyName
+          : linkedCompanyName // ignore: cast_nullable_to_non_nullable
+              as String?,
       metadata: freezed == metadata
           ? _value._metadata
           : metadata // ignore: cast_nullable_to_non_nullable
@@ -1514,6 +1542,8 @@ class _$PrioritizedDebtImpl implements _PrioritizedDebt {
       final List<DebtTransaction> recentTransactions = const [],
       this.hasPaymentPlan = false,
       this.isDisputed = false,
+      this.transactionCount = 0,
+      this.linkedCompanyName,
       final Map<String, dynamic>? metadata})
       : _suggestedActions = suggestedActions,
         _recentTransactions = recentTransactions,
@@ -1580,7 +1610,15 @@ class _$PrioritizedDebtImpl implements _PrioritizedDebt {
   @override
   @JsonKey()
   final bool isDisputed;
+  @override
+  @JsonKey()
+  final int transactionCount;
+// Total transaction count with counterparty
+  @override
+  final String? linkedCompanyName;
+// For internal counterparties
   final Map<String, dynamic>? _metadata;
+// For internal counterparties
   @override
   Map<String, dynamic>? get metadata {
     final value = _metadata;
@@ -1592,7 +1630,7 @@ class _$PrioritizedDebtImpl implements _PrioritizedDebt {
 
   @override
   String toString() {
-    return 'PrioritizedDebt(id: $id, counterpartyId: $counterpartyId, counterpartyName: $counterpartyName, counterpartyType: $counterpartyType, amount: $amount, currency: $currency, dueDate: $dueDate, daysOverdue: $daysOverdue, riskCategory: $riskCategory, priorityScore: $priorityScore, lastContactDate: $lastContactDate, lastContactType: $lastContactType, paymentStatus: $paymentStatus, suggestedActions: $suggestedActions, recentTransactions: $recentTransactions, hasPaymentPlan: $hasPaymentPlan, isDisputed: $isDisputed, metadata: $metadata)';
+    return 'PrioritizedDebt(id: $id, counterpartyId: $counterpartyId, counterpartyName: $counterpartyName, counterpartyType: $counterpartyType, amount: $amount, currency: $currency, dueDate: $dueDate, daysOverdue: $daysOverdue, riskCategory: $riskCategory, priorityScore: $priorityScore, lastContactDate: $lastContactDate, lastContactType: $lastContactType, paymentStatus: $paymentStatus, suggestedActions: $suggestedActions, recentTransactions: $recentTransactions, hasPaymentPlan: $hasPaymentPlan, isDisputed: $isDisputed, transactionCount: $transactionCount, linkedCompanyName: $linkedCompanyName, metadata: $metadata)';
   }
 
   @override
@@ -1631,31 +1669,38 @@ class _$PrioritizedDebtImpl implements _PrioritizedDebt {
                 other.hasPaymentPlan == hasPaymentPlan) &&
             (identical(other.isDisputed, isDisputed) ||
                 other.isDisputed == isDisputed) &&
+            (identical(other.transactionCount, transactionCount) ||
+                other.transactionCount == transactionCount) &&
+            (identical(other.linkedCompanyName, linkedCompanyName) ||
+                other.linkedCompanyName == linkedCompanyName) &&
             const DeepCollectionEquality().equals(other._metadata, _metadata));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(
-      runtimeType,
-      id,
-      counterpartyId,
-      counterpartyName,
-      counterpartyType,
-      amount,
-      currency,
-      dueDate,
-      daysOverdue,
-      riskCategory,
-      priorityScore,
-      lastContactDate,
-      lastContactType,
-      paymentStatus,
-      const DeepCollectionEquality().hash(_suggestedActions),
-      const DeepCollectionEquality().hash(_recentTransactions),
-      hasPaymentPlan,
-      isDisputed,
-      const DeepCollectionEquality().hash(_metadata));
+  int get hashCode => Object.hashAll([
+        runtimeType,
+        id,
+        counterpartyId,
+        counterpartyName,
+        counterpartyType,
+        amount,
+        currency,
+        dueDate,
+        daysOverdue,
+        riskCategory,
+        priorityScore,
+        lastContactDate,
+        lastContactType,
+        paymentStatus,
+        const DeepCollectionEquality().hash(_suggestedActions),
+        const DeepCollectionEquality().hash(_recentTransactions),
+        hasPaymentPlan,
+        isDisputed,
+        transactionCount,
+        linkedCompanyName,
+        const DeepCollectionEquality().hash(_metadata)
+      ]);
 
   /// Create a copy of PrioritizedDebt
   /// with the given fields replaced by the non-null parameter values.
@@ -1693,6 +1738,8 @@ abstract class _PrioritizedDebt implements PrioritizedDebt {
       final List<DebtTransaction> recentTransactions,
       final bool hasPaymentPlan,
       final bool isDisputed,
+      final int transactionCount,
+      final String? linkedCompanyName,
       final Map<String, dynamic>? metadata}) = _$PrioritizedDebtImpl;
 
   factory _PrioritizedDebt.fromJson(Map<String, dynamic> json) =
@@ -1732,6 +1779,10 @@ abstract class _PrioritizedDebt implements PrioritizedDebt {
   bool get hasPaymentPlan;
   @override
   bool get isDisputed;
+  @override
+  int get transactionCount; // Total transaction count with counterparty
+  @override
+  String? get linkedCompanyName; // For internal counterparties
   @override
   Map<String, dynamic>? get metadata;
 

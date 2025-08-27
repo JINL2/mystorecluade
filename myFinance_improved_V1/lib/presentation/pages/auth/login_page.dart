@@ -9,11 +9,9 @@ import '../../widgets/toss/toss_primary_button.dart';
 import '../../widgets/toss/toss_text_field.dart';
 import '../../widgets/auth/storebase_auth_header.dart';
 import '../../widgets/common/toss_scaffold.dart';
-import '../../providers/auth_provider.dart';
 import '../../providers/enhanced_auth_provider.dart';
 import '../../providers/app_state_provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'auth_signup_page.dart';
 import '../../../core/constants/auth_constants.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
@@ -568,12 +566,8 @@ class _LoginPageState extends ConsumerState<LoginPage>
             _passwordRevealController.stop();
             _buttonPulseController.stop();
             
-            // Use direct navigation to auth signup page
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (_) => const AuthSignupPage(),
-              ),
-);
+            // Use router navigation for consistency
+            context.push('/auth/signup');
           },
           style: TextButton.styleFrom(
             padding: EdgeInsets.zero,

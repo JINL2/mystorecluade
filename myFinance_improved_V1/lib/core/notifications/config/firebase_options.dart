@@ -62,19 +62,19 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyDIzu9bfy0w0V3ufK7jDDYNzDcEEkTn5S0',
-    appId: '1:204633647743:ios:29fc37c93c33d969a12d4a',
+    appId: '1:204633647743:ios:deb0f3c99fa71951a12d4a',
     messagingSenderId: '204633647743',
     projectId: 'notification-f1653',
     storageBucket: 'notification-f1653.firebasestorage.app',
-    iosBundleId: 'com.mycompany.luxappv1',
+    iosBundleId: 'com.storebase.app',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
     apiKey: 'AIzaSyDIzu9bfy0w0V3ufK7jDDYNzDcEEkTn5S0',
-    appId: '1:204633647743:ios:29fc37c93c33d969a12d4a',
+    appId: '1:204633647743:ios:deb0f3c99fa71951a12d4a',
     messagingSenderId: '204633647743',
     projectId: 'notification-f1653',
     storageBucket: 'notification-f1653.firebasestorage.app',
-    iosBundleId: 'com.mycompany.luxappv1',
+    iosBundleId: 'com.storebase.app',
   );
 }

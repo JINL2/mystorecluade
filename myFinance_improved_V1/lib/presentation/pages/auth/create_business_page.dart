@@ -10,7 +10,6 @@ import '../../widgets/toss/toss_text_field.dart';
 import '../../widgets/auth/storebase_auth_header.dart';
 import '../../../data/services/company_service.dart';
 import '../../providers/app_state_provider.dart';
-import '../../providers/simple_onboarding_provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/constants/auth_constants.dart';
 import '../../widgets/common/toss_scaffold.dart';
@@ -336,6 +335,10 @@ class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
                 text: 'Go to Dashboard',
                 onPressed: () async {
                   try {
+                    // Stop animations for smoother transition
+                    _animationController.stop();
+                    _successController.stop();
+                    
                     // Call API to get updated user companies, stores, and categories
                     final supabase = Supabase.instance.client;
                     final userId = supabase.auth.currentUser?.id;
@@ -359,8 +362,6 @@ class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
                       // Store both in app state
                       await ref.read(appStateProvider.notifier).setUser(userResponse);
                       await ref.read(appStateProvider.notifier).setCategoryFeatures(categoriesResponse);
-                      
-                      final companyCount = userResponse['company_count'] ?? 0;
                       
                       // Note: Do NOT auto-select company here
                       // User will go to create store page, then auto-select when they go to dashboard
@@ -683,6 +684,10 @@ class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
           ),
           TextButton(
             onPressed: () {
+              // Stop animations for smoother transition
+              _animationController.stop();
+              _successController.stop();
+              
               context.pushReplacement('/onboarding/join-business');
             },
             style: TextButton.styleFrom(
@@ -751,6 +756,10 @@ class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
         
         // Navigate to Create Store page
         if (mounted) {
+          // Stop animations for smoother transition
+          _animationController.stop();
+          _successController.stop();
+          
           context.go('/onboarding/create-store', extra: {
             'companyId': companyId,
             'companyName': companyName,

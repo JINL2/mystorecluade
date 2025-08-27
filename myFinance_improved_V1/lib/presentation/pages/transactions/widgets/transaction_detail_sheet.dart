@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/themes/toss_colors.dart';
+import '../../../../core/utils/text_utils.dart';
+import '../../../../core/utils/number_formatter.dart';
 import '../../../../core/themes/toss_spacing.dart';
 import '../../../../core/themes/toss_text_styles.dart';
 import '../../../../core/themes/toss_border_radius.dart';
@@ -24,52 +26,55 @@ class TransactionDetailSheet extends StatelessWidget {
     final creditLines = transaction.lines.where((l) => !l.isDebit).toList();
 
     return TossBottomSheet(
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header
-          _buildHeader(context),
-          
-          const SizedBox(height: TossSpacing.space4),
-          
-          // Transaction Info Card
-          _buildTransactionInfoCard(),
-          
-          const SizedBox(height: TossSpacing.space4),
-          
-          // Debit Section
-          if (debitLines.isNotEmpty) ...[
-            _buildSectionHeader('Debit', TossColors.primary, debitLines),
-            const SizedBox(height: TossSpacing.space3),
-            ...debitLines.map((line) => _buildLineDetail(line, true)),
+      content: SingleChildScrollView(
+        physics: const BouncingScrollPhysics(),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header
+            _buildHeader(context),
+            
             const SizedBox(height: TossSpacing.space4),
-          ],
-          
-          // Credit Section
-          if (creditLines.isNotEmpty) ...[
-            _buildSectionHeader('Credit', TossColors.textPrimary, creditLines),
-            const SizedBox(height: TossSpacing.space3),
-            ...creditLines.map((line) => _buildLineDetail(line, false)),
+            
+            // Transaction Info Card
+            _buildTransactionInfoCard(),
+            
             const SizedBox(height: TossSpacing.space4),
-          ],
-          
-          // Balance Check
-          _buildBalanceCheck(),
-          
-          const SizedBox(height: TossSpacing.space4),
-          
-          // Metadata
-          _buildMetadata(),
-          
-          // Attachments
-          if (transaction.attachments.isNotEmpty) ...[
+            
+            // Debit Section
+            if (debitLines.isNotEmpty) ...[
+              _buildSectionHeader('Debit', TossColors.primary, debitLines),
+              const SizedBox(height: TossSpacing.space3),
+              ...debitLines.map((line) => _buildLineDetail(line, true)),
+              const SizedBox(height: TossSpacing.space4),
+            ],
+            
+            // Credit Section
+            if (creditLines.isNotEmpty) ...[
+              _buildSectionHeader('Credit', TossColors.textPrimary, creditLines),
+              const SizedBox(height: TossSpacing.space3),
+              ...creditLines.map((line) => _buildLineDetail(line, false)),
+              const SizedBox(height: TossSpacing.space4),
+            ],
+            
+            // Balance Check
+            _buildBalanceCheck(),
+            
             const SizedBox(height: TossSpacing.space4),
-            _buildAttachments(),
+            
+            // Metadata
+            _buildMetadata(),
+            
+            // Attachments
+            if (transaction.attachments.isNotEmpty) ...[
+              const SizedBox(height: TossSpacing.space4),
+              _buildAttachments(),
+            ],
+            
+            const SizedBox(height: TossSpacing.space6),
           ],
-          
-          const SizedBox(height: TossSpacing.space6),
-        ],
+        ),
       ),
     );
   }
@@ -383,7 +388,7 @@ class TransactionDetailSheet extends StatelessWidget {
           if (line.description != null && line.description!.isNotEmpty) ...[
             const SizedBox(height: TossSpacing.space2),
             Text(
-              line.description!,
+              line.description!.withoutTrailingDate,
               style: TossTextStyles.caption.copyWith(
                 color: TossColors.gray500,
                 fontSize: 11,
@@ -599,8 +604,7 @@ class TransactionDetailSheet extends StatelessWidget {
   }
 
   String _formatCurrency(double amount) {
-    final formatter = NumberFormat('#,##0.00');
-    return formatter.format(amount.abs());
+    return NumberFormatter.formatCurrencyDecimal(amount.abs(), '', decimalPlaces: 2);
   }
 
   String _formatFileSize(int bytes) {
@@ -608,4 +612,5 @@ class TransactionDetailSheet extends StatelessWidget {
     if (bytes < 1024 * 1024) return '${(bytes / 1024).toStringAsFixed(1)} KB';
     return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
   }
+
 }

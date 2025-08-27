@@ -190,12 +190,6 @@ class _JoinBusinessPageState extends ConsumerState<JoinBusinessPage>
                   );
                 });
                 
-                // Debug logging
-                print('Code length: ${value.length}');
-                print('Min length: ${AuthConstants.businessCodeMinLength}');
-                print('Max length: ${AuthConstants.businessCodeMaxLength}');
-                print('Button should be enabled: ${value.length >= AuthConstants.businessCodeMinLength && value.length <= AuthConstants.businessCodeMaxLength}');
-                
                 // Auto-join when maximum length is reached
                 if (value.length == AuthConstants.businessCodeMaxLength) {
                   _handleJoinBusiness();
@@ -299,6 +293,10 @@ class _JoinBusinessPageState extends ConsumerState<JoinBusinessPage>
             text: 'Go to Dashboard',
             onPressed: () async {
               try {
+                // Stop animations for smoother transition
+                _animationController.stop();
+                _successController.stop();
+                
                 // Call API to get updated user companies and stores
                 final supabase = Supabase.instance.client;
                 final userId = supabase.auth.currentUser?.id;
@@ -314,8 +312,6 @@ class _JoinBusinessPageState extends ConsumerState<JoinBusinessPage>
                   
                   // Store in app state
                   await ref.read(appStateProvider.notifier).setUser(response);
-                  
-                  final companyCount = response['company_count'] ?? 0;
                   
                   // Navigate to homepage
                   if (mounted) {
@@ -374,6 +370,10 @@ class _JoinBusinessPageState extends ConsumerState<JoinBusinessPage>
         
         TextButton(
           onPressed: () {
+            // Stop animations for smoother transition
+            _animationController.stop();
+            _successController.stop();
+            
             context.pushReplacement('/onboarding/create-business');
           },
           style: TextButton.styleFrom(

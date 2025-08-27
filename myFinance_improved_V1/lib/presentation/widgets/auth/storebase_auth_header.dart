@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/themes/toss_colors.dart';
 import '../../../core/themes/toss_spacing.dart';
@@ -70,52 +69,47 @@ class StorebaseAuthHeader extends StatelessWidget {
           const SizedBox(width: TossSpacing.space2),
         ],
         
-        // Storebase logo - horizontal version for auth
-        SvgPicture.asset(
-          'assets/images/logo_storebase_horizontal.svg',
+        // Storebase logo - using fallback design directly
+        Container(
           height: 28,
-          // Fallback in case SVG fails
-          placeholderBuilder: (context) => Container(
-            height: 28,
-            padding: EdgeInsets.symmetric(horizontal: TossSpacing.space3),
-            decoration: BoxDecoration(
-              color: TossColors.primary,
-              borderRadius: BorderRadius.circular(6),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Simple fallback "S" icon
-                Container(
-                  width: 20,
-                  height: 20,
-                  decoration: BoxDecoration(
-                    color: TossColors.white,
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Center(
-                    child: Text(
-                      'S',
-                      style: TextStyle(
-                        color: TossColors.primary,
-                        fontWeight: FontWeight.w800,
-                        fontSize: 12,
-                      ),
+          padding: EdgeInsets.symmetric(horizontal: TossSpacing.space3),
+          decoration: BoxDecoration(
+            color: TossColors.primary,
+            borderRadius: BorderRadius.circular(6),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Simple "S" icon
+              Container(
+                width: 20,
+                height: 20,
+                decoration: BoxDecoration(
+                  color: TossColors.white,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Center(
+                  child: Text(
+                    'S',
+                    style: TextStyle(
+                      color: TossColors.primary,
+                      fontWeight: FontWeight.w800,
+                      fontSize: 12,
                     ),
                   ),
                 ),
-                const SizedBox(width: 6),
-                Text(
-                  'Storebase',
-                  style: TextStyle(
-                    color: TossColors.white,
-                    fontWeight: FontWeight.w700,
-                    fontSize: 16,
-                    letterSpacing: -0.3,
-                  ),
+              ),
+              const SizedBox(width: 6),
+              Text(
+                'Storebase',
+                style: TextStyle(
+                  color: TossColors.white,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 16,
+                  letterSpacing: -0.3,
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
         
@@ -129,50 +123,45 @@ class StorebaseAuthHeader extends StatelessWidget {
 
   Widget _buildCenteredLogo() {
     return Center(
-      child: SvgPicture.asset(
-        'assets/images/logo_storebase_horizontal.svg',
+      child: Container(
         height: 32,
-        // Fallback for centered version
-        placeholderBuilder: (context) => Container(
-          height: 32,
-          padding: EdgeInsets.symmetric(horizontal: TossSpacing.space4),
-          decoration: BoxDecoration(
-            color: TossColors.primary,
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 24,
-                height: 24,
-                decoration: BoxDecoration(
-                  color: TossColors.white,
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Center(
-                  child: Text(
-                    'S',
-                    style: TextStyle(
-                      color: TossColors.primary,
-                      fontWeight: FontWeight.w800,
-                      fontSize: 14,
-                    ),
+        padding: EdgeInsets.symmetric(horizontal: TossSpacing.space4),
+        decoration: BoxDecoration(
+          color: TossColors.primary,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 24,
+              height: 24,
+              decoration: BoxDecoration(
+                color: TossColors.white,
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Center(
+                child: Text(
+                  'S',
+                  style: TextStyle(
+                    color: TossColors.primary,
+                    fontWeight: FontWeight.w800,
+                    fontSize: 14,
                   ),
                 ),
               ),
-              const SizedBox(width: 8),
-              Text(
-                'Storebase',
-                style: TextStyle(
-                  color: TossColors.white,
-                  fontWeight: FontWeight.w700,
-                  fontSize: 18,
-                  letterSpacing: -0.4,
-                ),
+            ),
+            const SizedBox(width: 8),
+            Text(
+              'Storebase',
+              style: TextStyle(
+                color: TossColors.white,
+                fontWeight: FontWeight.w700,
+                fontSize: 18,
+                letterSpacing: -0.4,
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -314,26 +303,20 @@ class StorebaseWelcomeHeader extends StatelessWidget {
       child: Column(
         children: [
           // Large icon for brand recognition
-          SvgPicture.asset(
-            'assets/images/logo_storebase_icon.svg',
+          Container(
             width: 80,
             height: 80,
-            // Fallback for large icon
-            placeholderBuilder: (context) => Container(
-              width: 80,
-              height: 80,
-              decoration: BoxDecoration(
-                color: TossColors.primary,
-                borderRadius: BorderRadius.circular(18),
-              ),
-              child: Center(
-                child: Text(
-                  'S',
-                  style: TextStyle(
-                    color: TossColors.white,
-                    fontWeight: FontWeight.w800,
-                    fontSize: 32,
-                  ),
+            decoration: BoxDecoration(
+              color: TossColors.primary,
+              borderRadius: BorderRadius.circular(18),
+            ),
+            child: Center(
+              child: Text(
+                'S',
+                style: TextStyle(
+                  color: TossColors.white,
+                  fontWeight: FontWeight.w800,
+                  fontSize: 32,
                 ),
               ),
             ),

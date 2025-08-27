@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../providers/simple_onboarding_provider.dart';
 import '../../../core/themes/toss_colors.dart';
 import '../../../core/themes/toss_text_styles.dart';
 import '../../../core/themes/toss_spacing.dart';
@@ -685,10 +684,8 @@ class _AuthSignupPageState extends ConsumerState<AuthSignupPage>
         ),
         TextButton(
           onPressed: () async {
-            try {
-              _animationController.stop();
-            } catch (e) {
-                    }
+            // Stop animation for smooth transition
+            _animationController.stop();
             
             await Future.delayed(Duration.zero);
             
@@ -807,6 +804,9 @@ class _AuthSignupPageState extends ConsumerState<AuthSignupPage>
           
           // Navigate directly to choose role page
           if (mounted) {
+            // Stop animation for smooth transition
+            _animationController.stop();
+            
             context.go('/onboarding/choose-role');
           }
         }

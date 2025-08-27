@@ -1,31 +1,25 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/themes/toss_colors.dart';
 import '../../../core/themes/toss_text_styles.dart';
 import '../../../core/themes/toss_animations.dart';
+import '../../../core/themes/toss_border_radius.dart';
+import '../../../core/themes/toss_spacing.dart';
+import '../../../core/utils/number_formatter.dart';
 import '../../widgets/common/toss_scaffold.dart';
+import '../../widgets/common/toss_empty_view.dart';
+import '../../widgets/toss/toss_refresh_indicator.dart';
+import '../../widgets/toss/toss_tab_bar.dart';
 import '../../providers/app_state_provider.dart';
 import 'providers/debt_control_providers.dart';
-import 'models/debt_control_models.dart';
-import 'widgets/critical_alerts_banner.dart';
-import 'widgets/smart_kpi_dashboard.dart';
-import 'widgets/quick_actions_hub.dart';
-import 'widgets/smart_debt_list.dart';
-import 'widgets/analytics_preview.dart';
-import 'widgets/debt_control_header.dart';
+import 'providers/perspective_providers.dart';
+import 'widgets/simple_company_card.dart';
+import 'widgets/perspective_summary_card.dart';
 
-/// Smart Debt Control Page - Enhanced debt management with AI-driven insights
-/// 
-/// Key Features:
-/// - Risk-prioritized debt queue with intelligent scoring
-/// - Critical alerts system for proactive management
-/// - Smart KPI dashboard with trend analysis
-/// - Contextual action suggestions based on debt status
-/// - Advanced filtering and search capabilities
-/// - Mobile-optimized gesture interactions
+/// Enhanced Smart Debt Control Page with Counterparty Focus
+/// Shows debt amounts with each counterparty as the primary information
 class SmartDebtControlPage extends ConsumerStatefulWidget {
   static const String routeName = 'smart-debt-control';
   static const String routePath = '/debt-control';
@@ -37,36 +31,40 @@ class SmartDebtControlPage extends ConsumerStatefulWidget {
 }
 
 class _SmartDebtControlPageState extends ConsumerState<SmartDebtControlPage> 
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   
   late AnimationController _animationController;
-  late Animation<double> _fadeAnimation;
-  
+  late TabController _tabController;
   String _selectedViewpoint = 'company';
-  String _selectedFilter = 'all';
-  String? _expandedDebtId;
+  String _selectedFilter = 'all'; // all, internal, external
 
   @override
   void initState() {
     super.initState();
-    
-    // Initialize animations
     _animationController = AnimationController(
       duration: TossAnimations.medium,
       vsync: this,
     );
+    _tabController = TabController(
+      length: 2, // Company and Store only
+      vsync: this,
+      initialIndex: 0,
+    );
     
-    _fadeAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeInOut,
-    ));
-
-    // Load initial data
-    SchedulerBinding.instance.addPostFrameCallback((_) {
-      _loadDebtData();
+    // Listen to tab changes
+    _tabController.addListener(() {
+      if (!_tabController.indexIsChanging) {
+        setState(() {
+          _selectedViewpoint = _tabController.index == 0 ? 'company' : 'store';
+        });
+        _loadData();
+        _loadPerspectiveSummary(); // This was missing!
+      }
+    });
+    
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadData();
+      _loadPerspectiveSummary();
       _animationController.forward();
     });
   }
@@ -74,311 +72,391 @@ class _SmartDebtControlPageState extends ConsumerState<SmartDebtControlPage>
   @override
   void dispose() {
     _animationController.dispose();
+    _tabController.dispose();
     super.dispose();
   }
 
-  Future<void> _loadDebtData() async {
+  Future<void> _loadData({bool forceRefresh = false}) async {
     final appState = ref.read(appStateProvider);
     if (appState.companyChoosen.isEmpty) return;
 
-    // Load smart debt overview with intelligence features
+    // Clear cache if force refresh
+    if (forceRefresh) {
+      final repository = ref.read(debtRepositoryProvider);
+      await repository.refreshData();
+    }
+
     await ref.read(smartDebtOverviewProvider.notifier).loadSmartOverview(
       companyId: appState.companyChoosen,
-      storeId: appState.storeChoosen.isNotEmpty ? appState.storeChoosen : null,
+      storeId: _selectedViewpoint == 'store' && appState.storeChoosen.isNotEmpty 
+        ? appState.storeChoosen 
+        : null,
       viewpoint: _selectedViewpoint,
     );
 
-    // Load prioritized debts
     await ref.read(prioritizedDebtsProvider.notifier).loadPrioritizedDebts(
       companyId: appState.companyChoosen,
-      storeId: appState.storeChoosen.isNotEmpty ? appState.storeChoosen : null,
+      storeId: _selectedViewpoint == 'store' && appState.storeChoosen.isNotEmpty 
+        ? appState.storeChoosen 
+        : null,
       viewpoint: _selectedViewpoint,
       filter: _selectedFilter,
     );
   }
-
-  void _handleViewpointChange(String viewpoint) {
-    setState(() {
-      _selectedViewpoint = viewpoint;
-    });
-    _loadDebtData();
-  }
-
-  void _handleFilterChange(String filter) {
-    setState(() {
-      _selectedFilter = filter;
-    });
-    _loadDebtData();
-  }
-
-  void _handleDebtTap(String debtId) {
-    setState(() {
-      _expandedDebtId = _expandedDebtId == debtId ? null : debtId;
-    });
-  }
-
-  void _handleQuickAction(String actionType) {
-    switch (actionType) {
-      case 'create_invoice':
-        context.push('/journal-input?type=invoice');
-        break;
-      case 'record_payment':
-        context.push('/journal-input?type=payment');
-        break;
-      case 'bulk_reminder':
-        _showBulkReminderDialog();
-        break;
-      case 'analytics':
-        _navigateToAnalytics();
-        break;
-    }
-  }
-
-  void _handleDebtAction(String debtId, String action) {
-    // Handle debt-specific actions
-    switch (action) {
-      case 'call':
-        _recordCommunication(debtId, 'call');
-        break;
-      case 'email':
-        _sendEmail(debtId);
-        break;
-      case 'payment_plan':
-        _createPaymentPlan(debtId);
-        break;
-      case 'dispute':
-        _markDispute(debtId);
-        break;
-      case 'legal':
-        _initiateLegalAction(debtId);
-        break;
-    }
-  }
-
-  void _handleCriticalAlert(CriticalAlert alert) {
-    switch (alert.type) {
-      case 'overdue_critical':
-        _showCriticalOverdueList();
-        break;
-      case 'payment_received':
-        _showRecentPayments();
-        break;
-      case 'dispute_pending':
-        _showPendingDisputes();
-        break;
-    }
-  }
-
-  // Action handlers
-  void _recordCommunication(String debtId, String type) {
-    // TODO: Implement communication recording
-  }
-
-  void _sendEmail(String debtId) {
-    // TODO: Implement email sending
-  }
-
-  void _createPaymentPlan(String debtId) {
-    // TODO: Implement payment plan creation
-  }
-
-  void _markDispute(String debtId) {
-    // TODO: Implement dispute marking
-  }
-
-  void _initiateLegalAction(String debtId) {
-    // TODO: Implement legal action workflow
-  }
-
-  void _showBulkReminderDialog() {
-    // TODO: Implement bulk reminder dialog
-  }
-
-  void _navigateToAnalytics() {
-    context.push('/debt-analytics');
-  }
-
-  void _showCriticalOverdueList() {
-    // TODO: Show filtered list of critical overdue items
-  }
-
-  void _showRecentPayments() {
-    // TODO: Show recent payments
-  }
-
-  void _showPendingDisputes() {
-    // TODO: Show pending disputes
+  
+  Future<void> _loadPerspectiveSummary() async {
+    final appState = ref.read(appStateProvider);
+    if (appState.companyChoosen.isEmpty) return;
+    
+    final selectedCompany = ref.read(selectedCompanyProvider);
+    final selectedStore = ref.read(selectedStoreProvider);
+    
+    await ref.read(perspectiveDebtSummaryProvider.notifier).loadPerspectiveSummary(
+      perspectiveType: _selectedViewpoint,
+      entityId: _selectedViewpoint == 'store' && appState.storeChoosen.isNotEmpty
+        ? appState.storeChoosen
+        : appState.companyChoosen,
+      entityName: _selectedViewpoint == 'store' 
+        ? (selectedStore?['store_name'] ?? 'Store')
+        : (selectedCompany?['company_name'] ?? 'Company'),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final smartOverview = ref.watch(smartDebtOverviewProvider);
     final prioritizedDebts = ref.watch(prioritizedDebtsProvider);
+    final perspectiveSummary = ref.watch(perspectiveDebtSummaryProvider);
+    final selectedCompany = ref.watch(selectedCompanyProvider);
+    final selectedStore = ref.watch(selectedStoreProvider);
 
     return TossScaffold(
-      backgroundColor: TossColors.gray100,
-      body: RefreshIndicator(
-        onRefresh: _loadDebtData,
-        color: TossColors.primary,
-        child: FadeTransition(
-          opacity: _fadeAnimation,
-          child: CustomScrollView(
-            slivers: [
-              // Smart Header with company/store context
-              SliverToBoxAdapter(
-                child: DebtControlHeader(
-                  companyName: ref.read(selectedCompanyProvider)?['company_name'] ?? '',
-                  storeName: ref.read(selectedStoreProvider)?['store_name'] ?? '',
-                  selectedViewpoint: _selectedViewpoint,
-                  onViewpointChange: _handleViewpointChange,
-                ),
-              ),
+      backgroundColor: const Color(0xFFF7F8FA),
+      body: SafeArea(
+        child: Column(
+          children: [
+            // Custom Header (matches cash location page)
+            _buildHeader(context),
+            
+            // Tab Bar
+            _buildTabBar(),
+            
+            // Content
+            Expanded(
+              child: TossRefreshIndicator(
+                onRefresh: () => _loadData(forceRefresh: true),
+                child: CustomScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  slivers: [
 
-              // Critical Alerts Banner
-              if (smartOverview.hasValue && smartOverview.value!.criticalAlerts.isNotEmpty)
+              // Enhanced Summary Card using PerspectiveSummaryCard
+              if (perspectiveSummary.hasValue && perspectiveSummary.value != null)
                 SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: CriticalAlertsBanner(
-                      alerts: smartOverview.value!.criticalAlerts,
-                      onAlertTap: _handleCriticalAlert,
+                  child: PerspectiveSummaryCard(
+                    summary: perspectiveSummary.value!,
+                    onTap: () {
+                      _loadPerspectiveSummary();
+                    },
+                  ),
+                )
+              else if (smartOverview.hasValue && smartOverview.value != null)
+                // Fallback to basic summary if perspective summary not loaded
+                SliverToBoxAdapter(
+                  child: Container(
+                    margin: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [TossColors.primary, TossColors.primary.withValues(alpha: 0.8)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(TossBorderRadius.cardLarge),
+                      boxShadow: [
+                        BoxShadow(
+                          color: TossColors.primary.withValues(alpha: 0.3),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(
+                                _selectedViewpoint == 'company' 
+                                  ? Icons.business 
+                                  : Icons.store,
+                                color: TossColors.textInverse.withValues(alpha: 0.9),
+                                size: 16,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                '${_getViewpointName()}\'s viewpoint',
+                                style: TossTextStyles.body.copyWith(
+                                  color: TossColors.textInverse.withValues(alpha: 0.9),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          Text(
+                            NumberFormatter.formatCurrency(
+                              smartOverview.value?.kpiMetrics.netPosition ?? 0.0,
+                              '₫',
+                            ),
+                            style: TossTextStyles.display.copyWith(
+                              color: TossColors.textInverse,
+                            ),
+                          ),
+                          Text(
+                            '${smartOverview.value?.kpiMetrics.transactionCount ?? 0} transactions',
+                            style: TossTextStyles.body.copyWith(
+                              color: TossColors.textInverse.withValues(alpha: 0.8),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Container(
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color: TossColors.white.withValues(alpha: 0.15),
+                                    borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Receivables',
+                                        style: TossTextStyles.caption.copyWith(
+                                          color: TossColors.textInverse.withValues(alpha: 0.8),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        NumberFormatter.formatCurrency(
+                                          smartOverview.value?.kpiMetrics.totalReceivable ?? 0.0,
+                                          '₫',
+                                        ),
+                                        style: TossTextStyles.body.copyWith(
+                                          color: TossColors.textInverse,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Container(
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color: TossColors.white.withValues(alpha: 0.15),
+                                    borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Payables',
+                                        style: TossTextStyles.caption.copyWith(
+                                          color: TossColors.textInverse.withValues(alpha: 0.8),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        NumberFormatter.formatCurrency(
+                                          smartOverview.value?.kpiMetrics.totalPayable ?? 0.0,
+                                          '₫',
+                                        ),
+                                        style: TossTextStyles.body.copyWith(
+                                          color: TossColors.textInverse,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
 
-              // Smart KPI Dashboard
-              if (smartOverview.hasValue)
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: SmartKPIDashboard(
-                      metrics: smartOverview.value!.kpiMetrics,
-                    ),
-                  ),
-                ),
-
-              // Quick Actions Hub
+              // Filter Section
               SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: QuickActionsHub(
-                    onActionSelected: _handleQuickAction,
-                  ),
-                ),
-              ),
-
-              // Filter Header
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                child: Container(
+                  padding: const EdgeInsets.fromLTRB(16, 24, 16, 16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Debt Management',
-                        style: TossTextStyles.h3.copyWith(
-                          color: TossColors.textPrimary,
+                        'Companies',
+                        style: TossTextStyles.h4.copyWith(
                           fontWeight: FontWeight.w700,
+                          color: TossColors.textPrimary,
                         ),
                       ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 8,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: const Color(0xFFE5E5EA)),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            _buildFilterChip('all', 'All', _selectedFilter == 'all'),
-                            const SizedBox(width: 8),
-                            _buildFilterChip('group', 'Group', _selectedFilter == 'group'),
-                            const SizedBox(width: 8),
-                            _buildFilterChip('external', 'External', _selectedFilter == 'external'),
-                          ],
-                        ),
+                      const SizedBox(height: 16),
+                      Row(
+                        children: [
+                          _buildFilterChip('All', 'all'),
+                          const SizedBox(width: 12),
+                          _buildFilterChip('My Group', 'internal'),
+                          const SizedBox(width: 12),
+                          _buildFilterChip('External', 'external'),
+                        ],
                       ),
                     ],
                   ),
                 ),
               ),
 
-              // Smart Debt List
-              if (prioritizedDebts.hasValue)
-                SliverPadding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  sliver: SmartDebtList(
-                    debts: prioritizedDebts.value!,
-                    expandedDebtId: _expandedDebtId,
-                    onDebtTap: _handleDebtTap,
-                    onActionTap: _handleDebtAction,
+              // Counterparty List - The Main Content
+              if (prioritizedDebts.hasValue && prioritizedDebts.value!.isNotEmpty)
+                SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) {
+                      final debt = prioritizedDebts.value![index];
+                      final appState = ref.read(appStateProvider);
+                      
+                      // Use SimpleCompanyCard for all counterparties
+                      return SimpleCompanyCard(
+                        counterpartyId: debt.counterpartyId,
+                        counterpartyName: debt.counterpartyName,
+                        netBalance: debt.amount,
+                        counterpartyType: debt.counterpartyType,
+                        lastTransactionDate: debt.lastContactDate,
+                        isCurrentCompany: debt.counterpartyId == appState.companyChoosen,
+                      );
+                    },
+                    childCount: prioritizedDebts.value!.length,
                   ),
-                ),
-
-              // Analytics Preview
-              if (smartOverview.hasValue)
+                )
+              else
                 SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: AnalyticsPreview(
-                      agingData: smartOverview.value!.agingAnalysis,
-                      onViewFullAnalytics: _navigateToAnalytics,
+                  child: Container(
+                    margin: const EdgeInsets.fromLTRB(16, 40, 16, 40),
+                    child: TossEmptyView(
+                      icon: Icon(
+                        Icons.handshake_outlined,
+                        size: 56,
+                        color: TossColors.gray300,
+                      ),
+                      title: 'No outstanding balances',
+                      description: 'All accounts are settled up',
                     ),
                   ),
                 ),
 
-              // Bottom spacing for floating action button
-              SliverToBoxAdapter(
-                child: SizedBox(height: 80),
+                    // Bottom padding
+                    const SliverToBoxAdapter(
+                      child: SizedBox(height: 24),
+                    ),
+                  ],
+                ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
-      ),
-      
-      // Floating Action Button for new transactions
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => context.push('/journal-input?type=debt'),
-        backgroundColor: TossColors.primary,
-        foregroundColor: Colors.white,
-        elevation: 4,
-        label: Text(
-          'New Transaction',
-          style: TossTextStyles.body.copyWith(
-            color: Colors.white,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        icon: Icon(Icons.add),
       ),
     );
   }
 
-  Widget _buildFilterChip(String value, String label, bool isSelected) {
+  // Custom Header (matches cash location page)
+  Widget _buildHeader(BuildContext context) {
+    return Container(
+      height: 56,
+      padding: EdgeInsets.symmetric(horizontal: TossSpacing.space2),
+      child: Row(
+        children: [
+          IconButton(
+            icon: const Icon(Icons.arrow_back_ios, size: 20),
+            onPressed: () => context.pop(),
+          ),
+          Expanded(
+            child: Text(
+              'Debt Control',
+              style: TossTextStyles.h3.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ),
+          // Spacer to balance the layout
+          SizedBox(width: 48),
+        ],
+      ),
+    );
+  }
+  
+  // Tab Bar (matches cash location page)
+  Widget _buildTabBar() {
+    return TossTabBar(
+      tabs: [
+        'Company',
+        'Store',
+      ],
+      controller: _tabController,
+      indicatorHeight: 2.5,
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+    );
+  }
+
+  Widget _buildFilterChip(String label, String value) {
+    final isSelected = _selectedFilter == value;
     return GestureDetector(
-      onTap: () => _handleFilterChange(value),
+      onTap: () {
+        setState(() {
+          _selectedFilter = value;
+        });
+        _loadData();
+      },
       child: AnimatedContainer(
-        duration: TossAnimations.fast,
-        padding: const EdgeInsets.symmetric(
-          horizontal: 12,
-          vertical: 8,
-        ),
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
         decoration: BoxDecoration(
-          color: isSelected ? TossColors.primary : Colors.transparent,
-          borderRadius: BorderRadius.circular(16),
+          color: isSelected ? TossColors.background : TossColors.gray100,
+          borderRadius: BorderRadius.circular(25),
+          boxShadow: isSelected ? [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.08),
+              blurRadius: 4,
+              offset: const Offset(0, 2),
+            ),
+          ] : null,
         ),
         child: Text(
           label,
-          style: TossTextStyles.caption.copyWith(
-            color: isSelected ? Colors.white : TossColors.textSecondary,
-            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+          style: TossTextStyles.body.copyWith(
+            color: isSelected ? TossColors.gray900 : TossColors.gray500,
+            fontWeight: FontWeight.w600,
           ),
         ),
       ),
     );
   }
+
+
+  String _getViewpointName() {
+    final selectedCompany = ref.read(selectedCompanyProvider);
+    final selectedStore = ref.read(selectedStoreProvider);
+    
+    if (_selectedViewpoint == 'company') {
+      return selectedCompany?['company_name'] ?? 'Company';
+    } else {
+      return selectedStore?['store_name'] ?? 'Store';
+    }
+  }
+
+
 }

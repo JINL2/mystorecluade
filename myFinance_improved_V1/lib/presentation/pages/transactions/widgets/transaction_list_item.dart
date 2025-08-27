@@ -2,12 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/themes/toss_colors.dart';
+import '../../../../core/utils/text_utils.dart';
+import '../../../../core/utils/number_formatter.dart';
 import '../../../../core/themes/toss_spacing.dart';
 import '../../../../core/themes/toss_text_styles.dart';
 import '../../../../core/themes/toss_border_radius.dart';
 import '../../../../data/models/transaction_history_model.dart';
 import '../../../widgets/toss/toss_card.dart';
-import '../providers/transaction_history_provider.dart';
 import 'transaction_detail_sheet.dart';
 
 class TransactionListItem extends ConsumerWidget {
@@ -20,9 +21,6 @@ class TransactionListItem extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final currentFilter = ref.watch(transactionFilterStateProvider);
-    final isCompanyScope = currentFilter.scope == TransactionScope.company;
-    
     return TossCard(
       onTap: () => _showTransactionDetail(context),
       padding: const EdgeInsets.all(TossSpacing.space4),
@@ -316,7 +314,7 @@ class TransactionListItem extends ConsumerWidget {
                 Padding(
                   padding: const EdgeInsets.only(top: 2),
                   child: Text(
-                    line.description!,
+                    line.description!.withoutTrailingDate,
                     style: TossTextStyles.caption.copyWith(
                       color: TossColors.gray400,
                     ),
@@ -386,8 +384,7 @@ class TransactionListItem extends ConsumerWidget {
   }
 
   String _formatCurrency(double amount) {
-    final formatter = NumberFormat('#,##0.00');
-    return formatter.format(amount.abs());
+    return NumberFormatter.formatCurrencyDecimal(amount.abs(), '', decimalPlaces: 2);
   }
 
   void _showTransactionDetail(BuildContext context) {

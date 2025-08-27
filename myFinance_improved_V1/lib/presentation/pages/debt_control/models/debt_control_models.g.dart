@@ -129,6 +129,8 @@ _$PrioritizedDebtImpl _$$PrioritizedDebtImplFromJson(
           const [],
       hasPaymentPlan: json['hasPaymentPlan'] as bool? ?? false,
       isDisputed: json['isDisputed'] as bool? ?? false,
+      transactionCount: (json['transactionCount'] as num?)?.toInt() ?? 0,
+      linkedCompanyName: json['linkedCompanyName'] as String?,
       metadata: json['metadata'] as Map<String, dynamic>?,
     );
 
@@ -152,6 +154,8 @@ Map<String, dynamic> _$$PrioritizedDebtImplToJson(
       'recentTransactions': instance.recentTransactions,
       'hasPaymentPlan': instance.hasPaymentPlan,
       'isDisputed': instance.isDisputed,
+      'transactionCount': instance.transactionCount,
+      'linkedCompanyName': instance.linkedCompanyName,
       'metadata': instance.metadata,
     };
 

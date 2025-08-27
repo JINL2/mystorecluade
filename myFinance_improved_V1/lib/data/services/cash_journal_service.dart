@@ -123,7 +123,7 @@ class CashJournalService {
     final lines = [
       {
         'account_id': cashAccountId,
-        'description': 'Foreign Currency Translation $dateStr',
+        'description': 'Foreign Currency Translation',
         'debit': isPositiveDifference ? absAmount : 0,
         'credit': isPositiveDifference ? 0 : absAmount,
         'cash': {
@@ -132,7 +132,7 @@ class CashJournalService {
       },
       {
         'account_id': foreignCurrencyAccountId,
-        'description': 'Foreign Currency Translation $dateStr',
+        'description': 'Foreign Currency Translation',
         'debit': isPositiveDifference ? 0 : absAmount,
         'credit': isPositiveDifference ? absAmount : 0,
       },
@@ -177,7 +177,7 @@ class CashJournalService {
     final lines = [
       {
         'account_id': cashAccountId,
-        'description': 'Make error $dateStr',
+        'description': 'Make error',
         'debit': isPositiveDifference ? absAmount : 0,
         'credit': isPositiveDifference ? 0 : absAmount,
         'cash': {
@@ -186,7 +186,7 @@ class CashJournalService {
       },
       {
         'account_id': errorAccountId,
-        'description': 'Make error $dateStr',
+        'description': 'Make error',
         'debit': isPositiveDifference ? 0 : absAmount,
         'credit': isPositiveDifference ? absAmount : 0,
       },
