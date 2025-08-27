@@ -13,6 +13,7 @@ import '../providers/denomination_providers.dart';
 import '../../../providers/app_state_provider.dart';
 import 'denomination_grid.dart';
 import 'add_denomination_bottom_sheet.dart';
+import 'edit_exchange_rate_bottom_sheet.dart';
 
 class CurrencyOverviewCard extends ConsumerWidget {
   final Currency currency;
@@ -227,66 +228,107 @@ class CurrencyOverviewCard extends ConsumerWidget {
   }
 
   Widget _buildActionButtons(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space5),
-      child: Row(
-        children: [
-          // Add denomination button
-          Expanded(
-            flex: 1,
-            child: OutlinedButton.icon(
-              onPressed: () => _showAddDenominationSheet(context),
-              icon: const Icon(
-                Icons.add,
-                size: 18,
-                color: TossColors.primary,
+    return Consumer(
+      builder: (context, ref, _) {
+        return FutureBuilder<bool>(
+          future: _isBaseCurrency(ref),
+          builder: (context, snapshot) {
+            final isBaseCurrency = snapshot.data ?? true; // Default to true to hide Rate button if unsure
+            
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space5),
+              child: Row(
+                children: [
+                  // Add denomination button
+                  Expanded(
+                    flex: 1,
+                    child: OutlinedButton.icon(
+                      onPressed: () => _showAddDenominationSheet(context),
+                      icon: const Icon(
+                        Icons.add,
+                        size: 18,
+                        color: TossColors.primary,
+                      ),
+                      label: Text(
+                        'Add',
+                        style: TossTextStyles.labelLarge.copyWith(
+                          color: TossColors.primary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        minimumSize: const Size(0, 44),
+                        side: const BorderSide(color: TossColors.primary),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: TossSpacing.space3),
+                  
+                  // Rate button (only for non-base currencies)
+                  if (!isBaseCurrency) ...[
+                    Expanded(
+                      flex: 1,
+                      child: OutlinedButton.icon(
+                        onPressed: () => _showEditExchangeRateSheet(context),
+                        icon: const Icon(
+                          Icons.swap_horiz,
+                          size: 18,
+                          color: TossColors.warning,
+                        ),
+                        label: Text(
+                          'Rate',
+                          style: TossTextStyles.labelLarge.copyWith(
+                            color: TossColors.warning,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        style: OutlinedButton.styleFrom(
+                          minimumSize: const Size(0, 44),
+                          side: const BorderSide(color: TossColors.warning),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: TossSpacing.space3),
+                  ],
+                  
+                  // Delete currency button
+                  Expanded(
+                    flex: 1,
+                    child: OutlinedButton.icon(
+                      onPressed: () => _showDeleteCurrencyDialog(context),
+                      icon: const Icon(
+                        Icons.delete_outline,
+                        size: 18,
+                        color: TossColors.error,
+                      ),
+                      label: Text(
+                        'Remove',
+                        style: TossTextStyles.labelLarge.copyWith(
+                          color: TossColors.error,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        minimumSize: const Size(0, 44),
+                        side: const BorderSide(color: TossColors.error),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
-              label: Text(
-                'Add',
-                style: TossTextStyles.labelLarge.copyWith(
-                  color: TossColors.primary,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              style: OutlinedButton.styleFrom(
-                minimumSize: const Size(0, 44),
-                side: const BorderSide(color: TossColors.primary),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: TossSpacing.space3),
-          
-          // Delete currency button
-          Expanded(
-            flex: 1,
-            child: OutlinedButton.icon(
-              onPressed: () => _showDeleteCurrencyDialog(context),
-              icon: const Icon(
-                Icons.delete_outline,
-                size: 18,
-                color: TossColors.error,
-              ),
-              label: Text(
-                'Remove',
-                style: TossTextStyles.labelLarge.copyWith(
-                  color: TossColors.error,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              style: OutlinedButton.styleFrom(
-                minimumSize: const Size(0, 44),
-                side: const BorderSide(color: TossColors.error),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
+            );
+          },
+        );
+      },
     );
   }
 
@@ -312,112 +354,228 @@ class CurrencyOverviewCard extends ConsumerWidget {
     );
   }
 
-  void _showDeleteCurrencyDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(
-          'Remove Currency',
-          style: TossTextStyles.h3.copyWith(
-            fontWeight: FontWeight.w600,
-            color: TossColors.gray900,
-          ),
+  void _showDeleteCurrencyDialog(BuildContext context) async {
+    // First check if currency has denominations
+    final ref = ProviderScope.containerOf(context);
+    final appState = ref.read(appStateProvider);
+    final companyId = appState.companyChoosen;
+    
+    if (companyId.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('No company selected'),
+          backgroundColor: TossColors.error,
         ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Are you sure you want to remove ${currency.code} - ${currency.name} from your company?',
-              style: TossTextStyles.body.copyWith(
-                color: TossColors.gray700,
-              ),
-            ),
-            const SizedBox(height: TossSpacing.space3),
-            Container(
-              padding: const EdgeInsets.all(TossSpacing.space3),
-              decoration: BoxDecoration(
-                color: TossColors.error.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                border: Border.all(color: TossColors.error.withValues(alpha: 0.2)),
-              ),
-              child: Row(
-                children: [
-                  const Icon(Icons.warning_amber_outlined, 
-                       color: TossColors.error, size: 20),
-                  const SizedBox(width: TossSpacing.space2),
-                  Expanded(
-                    child: Text(
-                      'This will also remove all denominations for this currency.',
-                      style: TossTextStyles.bodySmall.copyWith(
-                        color: TossColors.error,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
+      );
+      return;
+    }
+
+    // Check if currency has denominations using the repository
+    try {
+      final repository = ref.read(currencyRepositoryProvider);
+      final hasDenominations = await repository.hasDenominations(companyId, currency.id);
+      
+      if (hasDenominations) {
+        // Show error dialog if denominations exist
+        HapticFeedback.heavyImpact();
+        
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Row(
+              children: [
+                const Icon(Icons.error_outline, color: TossColors.error, size: 24),
+                const SizedBox(width: TossSpacing.space2),
+                Text(
+                  'Cannot Remove Currency',
+                  style: TossTextStyles.h3.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: TossColors.gray900,
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text(
-              'Cancel',
-              style: TextStyle(
-                color: TossColors.gray600,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-          Consumer(
-            builder: (context, ref, _) {
-              final currencyOperations = ref.watch(currencyOperationsProvider);
-              
-              return currencyOperations.maybeWhen(
-                loading: () => TextButton(
-                  onPressed: null,
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Cannot remove ${currency.code} - ${currency.name} because it has denominations.',
+                  style: TossTextStyles.body.copyWith(
+                    color: TossColors.gray700,
+                  ),
+                ),
+                const SizedBox(height: TossSpacing.space3),
+                Container(
+                  padding: const EdgeInsets.all(TossSpacing.space3),
+                  decoration: BoxDecoration(
+                    color: TossColors.primary.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                    border: Border.all(color: TossColors.primary.withValues(alpha: 0.2)),
+                  ),
                   child: Row(
-                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      const SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: const CircularProgressIndicator(
-                          strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation(TossColors.error),
+                      const Icon(Icons.info_outline, 
+                           color: TossColors.primary, size: 20),
+                      const SizedBox(width: TossSpacing.space2),
+                      Expanded(
+                        child: Text(
+                          'Please delete all denominations first by expanding the currency card and removing each denomination.',
+                          style: TossTextStyles.bodySmall.copyWith(
+                            color: TossColors.primary,
+                          ),
                         ),
                       ),
-                      const SizedBox(width: 8),
-                      const Text('Removing...'),
                     ],
                   ),
                 ),
-                orElse: () => TextButton(
-                  onPressed: () {
-                    // Check if not already loading before allowing delete
-                    final operationState = ref.read(currencyOperationsProvider);
-                    if (!operationState.isLoading) {
-                      _deleteCurrency(context, ref);
-                    }
-                  },
-                  style: TextButton.styleFrom(
-                    foregroundColor: TossColors.error,
-                  ),
-                  child: const Text(
-                    'Remove',
-                    style: TextStyle(
-                      color: TossColors.error,
-                      fontWeight: FontWeight.w600,
-                    ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: Text(
+                  'Understood',
+                  style: TextStyle(
+                    color: TossColors.primary,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
-              );
-            },
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+        return;
+      }
+      
+      // Show confirmation dialog only if no denominations exist
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text(
+            'Remove Currency',
+            style: TossTextStyles.h3.copyWith(
+              fontWeight: FontWeight.w600,
+              color: TossColors.gray900,
+            ),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Are you sure you want to remove ${currency.code} - ${currency.name} from your company?',
+                style: TossTextStyles.body.copyWith(
+                  color: TossColors.gray700,
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text(
+                'Cancel',
+                style: TextStyle(
+                  color: TossColors.gray600,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            Consumer(
+              builder: (context, ref, _) {
+                final currencyOperations = ref.watch(currencyOperationsProvider);
+                
+                return currencyOperations.maybeWhen(
+                  loading: () => TextButton(
+                    onPressed: null,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: const CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation(TossColors.error),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        const Text('Removing...'),
+                      ],
+                    ),
+                  ),
+                  orElse: () => TextButton(
+                    onPressed: () {
+                      // Check if not already loading before allowing delete
+                      final operationState = ref.read(currencyOperationsProvider);
+                      if (!operationState.isLoading) {
+                        _deleteCurrency(context, ref);
+                      }
+                    },
+                    style: TextButton.styleFrom(
+                      foregroundColor: TossColors.error,
+                    ),
+                    child: const Text(
+                      'Remove',
+                      style: TextStyle(
+                        color: TossColors.error,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
+      );
+      
+    } catch (e) {
+      // Show error if check fails
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to check currency status: $e'),
+          backgroundColor: TossColors.error,
+        ),
+      );
+    }
+  }
+
+  /// Check if the current currency is the company's base currency
+  Future<bool> _isBaseCurrency(WidgetRef ref) async {
+    try {
+      final appState = ref.read(appStateProvider);
+      final companyId = appState.companyChoosen;
+      
+      if (companyId.isEmpty) return true; // Default to true if no company selected
+      
+      final supabase = ref.read(supabaseClientProvider);
+      
+      // Query companies table to get base_currency_id
+      final companyResult = await supabase
+          .from('companies')
+          .select('base_currency_id')
+          .eq('company_id', companyId)
+          .single();
+      
+      final baseCurrencyId = companyResult['base_currency_id'] as String?;
+      
+      // Return true if current currency is the base currency
+      return baseCurrencyId == currency.id;
+    } catch (e) {
+      debugPrint('Error checking base currency: $e');
+      return true; // Default to true (hide Rate button) if there's an error
+    }
+  }
+
+  /// Show bottom sheet for editing exchange rate
+  void _showEditExchangeRateSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (context) => EditExchangeRateBottomSheet(currency: currency),
     );
   }
 
@@ -438,12 +596,17 @@ class CurrencyOverviewCard extends ConsumerWidget {
         throw Exception('No company selected');
       }
       
-      // Show immediate success message (optimistic)
+      // Remove the currency from company
+      await ref.read(currencyOperationsProvider.notifier)
+          .removeCompanyCurrency(currency.id);
+      
+      // Show success message only after successful removal
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('${currency.code} currency removed successfully!'),
             backgroundColor: TossColors.success,
+            duration: const Duration(seconds: 2),
           ),
         );
       }
@@ -451,21 +614,28 @@ class CurrencyOverviewCard extends ConsumerWidget {
       // Success haptic feedback
       HapticFeedback.selectionClick();
       
-      // Remove the currency from company (this already has optimistic updates)
-      await ref.read(currencyOperationsProvider.notifier)
-          .removeCompanyCurrency(currency.id);
-      
       // Refresh available currencies to add provider
       if (ref.exists(availableCurrenciesToAddProvider)) {
         ref.invalidate(availableCurrenciesToAddProvider);
       }
       
     } catch (e) {
+      // Error haptic feedback
+      HapticFeedback.heavyImpact();
+      
+      // Extract error message
+      String errorMessage = e.toString();
+      if (errorMessage.startsWith('Exception: ')) {
+        errorMessage = errorMessage.substring(11);
+      }
+      
       if (context.mounted) {
+        // Show snackbar for errors
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to remove currency: $e. Change reverted.'),
+            content: Text(errorMessage),
             backgroundColor: TossColors.error,
+            duration: const Duration(seconds: 3),
           ),
         );
       }

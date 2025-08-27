@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyFinance - PAGE_TITLE</title>
+    
+    <!-- Theme CSS -->
+    <link rel="stylesheet" href="RELATIVE_PATH/core/themes/toss-variables.css">
+    <link rel="stylesheet" href="RELATIVE_PATH/core/themes/toss-component-variables.css">
+    <link rel="stylesheet" href="RELATIVE_PATH/core/themes/toss-base.css">
+    <link rel="stylesheet" href="RELATIVE_PATH/core/themes/toss-typography.css">
+    
+    <!-- Component CSS -->
+    <link rel="stylesheet" href="RELATIVE_PATH/components/base/toss-button.css">
+    <link rel="stylesheet" href="RELATIVE_PATH/components/form/toss-input.css">
+    <link rel="stylesheet" href="RELATIVE_PATH/components/form/toss-select.css">
+    <link rel="stylesheet" href="RELATIVE_PATH/components/feedback/toss-alert.css">
+    <link rel="stylesheet" href="RELATIVE_PATH/components/navigation/navbar.css">
+    
+    <!-- Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- Page Specific Styles -->
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: var(--font-family);
+            background: var(--toss-gray-50);
+            min-height: 100vh;
+        }
+        
+        .page-container {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .page-content {
+            flex: 1;
+            padding: var(--space-6);
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+        }
+        
+        .page-header {
+            margin-bottom: var(--space-8);
+        }
+        
+        .page-title {
+            font-size: var(--font-h1);
+            font-weight: 700;
+            color: var(--text-primary);
+            margin: 0 0 var(--space-2) 0;
+        }
+        
+        .page-subtitle {
+            font-size: var(--font-large);
+            color: var(--text-secondary);
+            margin: 0;
+        }
+        
+        .content-card {
+            background: var(--toss-white);
+            border-radius: var(--radius-lg);
+            padding: var(--space-6);
+            box-shadow: var(--shadow-sm);
+            margin-bottom: var(--space-6);
+        }
+        
+        .coming-soon {
+            text-align: center;
+            padding: var(--space-16) var(--space-6);
+        }
+        
+        .coming-soon-icon {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto var(--space-6);
+            background: var(--toss-primary-surface);
+            border-radius: var(--radius-full);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--toss-primary);
+        }
+        
+        .coming-soon-title {
+            font-size: var(--font-h2);
+            font-weight: 700;
+            color: var(--text-primary);
+            margin: 0 0 var(--space-3) 0;
+        }
+        
+        .coming-soon-text {
+            font-size: var(--font-large);
+            color: var(--text-secondary);
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="page-container">
+        <!-- Navigation Bar -->
+        <div id="navbar-container"></div>
+        
+        <!-- Page Content -->
+        <main class="page-content">
+            <div class="page-header">
+                <h1 class="page-title">PAGE_TITLE</h1>
+                <p class="page-subtitle">PAGE_SUBTITLE</p>
+            </div>
+            
+            <div class="content-card">
+                <div class="coming-soon">
+                    <div class="coming-soon-icon">
+                        <svg width="64" height="64" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
+                        </svg>
+                    </div>
+                    <h2 class="coming-soon-title">Coming Soon</h2>
+                    <p class="coming-soon-text">This feature is currently under development.</p>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <!-- Component JavaScript -->
+    <script src="RELATIVE_PATH/components/base/toss-button.js"></script>
+    <script src="RELATIVE_PATH/components/form/toss-input.js"></script>
+    <script src="RELATIVE_PATH/components/form/toss-select.js"></script>
+    <script src="RELATIVE_PATH/components/navigation/navbar.js"></script>
+    <script src="RELATIVE_PATH/components/feedback/toss-alert.js"></script>
+    
+    <!-- Core Scripts -->
+    <script src="RELATIVE_PATH/core/constants/app-icons.js"></script>
+    <script src="RELATIVE_PATH/core/config/supabase.js"></script>
+    <script src="RELATIVE_PATH/core/utils/app-state.js"></script>
+    
+    <script>
+        // Check authentication and load navbar
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Check if user data exists in localStorage
+            const userData = appState.getUserData();
+            
+            if (!userData) {
+                // Redirect to login if no user data
+                window.location.href = 'RELATIVE_PATH/pages/auth/login.html';
+                return;
+            }
+            
+            // Get session from Supabase
+            const { data: { session }, error } = await supabase.auth.getSession();
+            
+            if (!session) {
+                // Clear state and redirect to login if no session
+                appState.clearState();
+                window.location.href = 'RELATIVE_PATH/pages/auth/login.html';
+                return;
+            }
+            
+            // Initialize navbar with user data
+            const navbar = new NavBar({
+                containerId: 'navbar-container',
+                activeItem: 'ACTIVE_ITEM',
+                user: {
+                    name: appState.getUserName(),
+                    email: session.user.email
+                }
+            });
+            navbar.init();
+            
+            // Use existing company data from localStorage
+            const companies = appState.getUserCompanies();
+            const selectedCompanyId = appState.getSelectedCompanyId();
+            
+            if (companies && companies.length > 0) {
+                // Initialize company selector with cached data
+                navbar.initCompanySelector(companies, selectedCompanyId);
+            }
+            
+            // Listen for company changes
+            window.addEventListener('companyChanged', (event) => {
+                console.log('Company changed:', event.detail);
+                // Page-specific logic for company change can be added here
+                if (typeof onCompanyChange === 'function') {
+                    onCompanyChange(event.detail);
+                }
+            });
+            
+            // Initialize page-specific content
+            if (typeof initializePage === 'function') {
+                initializePage();
+            }
+        });
+        
+        // Page-specific initialization function (override in each page)
+        function initializePage() {
+            console.log('Page initialized: PAGE_TITLE');
+        }
+        
+        // Page-specific company change handler (override in each page)
+        function onCompanyChange(detail) {
+            console.log('Company changed in page:', detail);
+        }
+    </script>
+</body>
+</html>

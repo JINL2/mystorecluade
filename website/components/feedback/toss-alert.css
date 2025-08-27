@@ -1,0 +1,456 @@
+/**
+ * Toss Alert Component Styles
+ * Based on Toss design system - Feedback and notification components
+ */
+
+/* Base Alert Styling */
+.toss-alert {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-3);
+    padding: var(--space-4);
+    border-radius: var(--radius-md);
+    border: 1px solid transparent;
+    font-size: var(--font-body);
+    line-height: 1.5;
+    position: relative;
+    animation: alertSlideIn 0.3s ease-out;
+}
+
+/* Alert Content */
+.toss-alert-content {
+    flex: 1;
+    min-width: 0; /* Prevent text overflow issues */
+}
+
+.toss-alert-content strong {
+    font-weight: 600;
+    display: block;
+    margin-bottom: var(--space-05);
+}
+
+/* Alert Icon */
+.toss-alert-icon {
+    flex-shrink: 0;
+    margin-top: var(--space-05); /* Align with first line of text */
+}
+
+/* Alert Types */
+.toss-alert-info {
+    background-color: rgba(0, 100, 255, 0.04);
+    border-color: rgba(0, 100, 255, 0.12);
+    color: var(--text-primary);
+}
+
+.toss-alert-info .toss-alert-icon {
+    color: var(--toss-primary);
+}
+
+.toss-alert-success {
+    background-color: rgba(0, 200, 150, 0.04);
+    border-color: rgba(0, 200, 150, 0.12);
+    color: var(--text-primary);
+}
+
+.toss-alert-success .toss-alert-icon {
+    color: var(--toss-success);
+}
+
+.toss-alert-warning {
+    background-color: rgba(255, 165, 0, 0.04);
+    border-color: rgba(255, 165, 0, 0.12);
+    color: var(--text-primary);
+}
+
+.toss-alert-warning .toss-alert-icon {
+    color: var(--toss-warning);
+}
+
+.toss-alert-error {
+    background-color: rgba(255, 88, 71, 0.04);
+    border-color: rgba(255, 88, 71, 0.12);
+    color: var(--text-primary);
+}
+
+.toss-alert-error .toss-alert-icon {
+    color: var(--toss-error);
+}
+
+/* Dismissible Alerts */
+.toss-alert-dismissible {
+    padding-right: var(--space-12); /* Space for close button */
+}
+
+.toss-alert-close {
+    position: absolute;
+    top: var(--space-4);
+    right: var(--space-4);
+    background: none;
+    border: none;
+    color: var(--text-tertiary);
+    cursor: pointer;
+    padding: var(--space-1);
+    border-radius: var(--radius-sm);
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.toss-alert-close:hover {
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
+}
+
+.toss-alert-close:focus {
+    outline: 2px solid var(--toss-primary);
+    outline-offset: 2px;
+}
+
+/* Compact Alert Variant */
+.toss-alert-compact {
+    padding: var(--space-3);
+    gap: var(--space-2);
+    font-size: var(--font-small);
+}
+
+.toss-alert-compact .toss-alert-content strong {
+    margin-bottom: 0;
+    display: inline;
+    margin-right: var(--space-1);
+}
+
+.toss-alert-compact .toss-alert-icon {
+    margin-top: 0;
+}
+
+/* Alerts with Actions */
+.toss-alert-with-actions {
+    flex-direction: column;
+    gap: var(--space-3);
+}
+
+.toss-alert-with-actions .toss-alert-content {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-3);
+}
+
+.toss-alert-actions {
+    display: flex;
+    gap: var(--space-2);
+    margin-left: var(--space-8); /* Align with content */
+}
+
+/* Banner Alert */
+.toss-alert-banner {
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+    margin: 0 calc(-1 * var(--space-4));
+    padding-left: var(--space-6);
+    padding-right: var(--space-6);
+}
+
+/* Toast Notifications */
+.toss-toast-container {
+    position: fixed;
+    top: var(--space-6);
+    right: var(--space-6);
+    z-index: 1000;
+    max-width: 400px;
+    pointer-events: none;
+}
+
+.toss-toast {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-3);
+    padding: var(--space-4);
+    margin-bottom: var(--space-3);
+    background: white;
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-lg);
+    border: 1px solid var(--border-secondary);
+    font-size: var(--font-body);
+    line-height: 1.5;
+    pointer-events: auto;
+    animation: toastSlideIn 0.3s ease-out;
+    position: relative;
+    max-width: 100%;
+    word-wrap: break-word;
+}
+
+.toss-toast-success {
+    border-left: 4px solid var(--toss-success);
+}
+
+.toss-toast-error {
+    border-left: 4px solid var(--toss-error);
+}
+
+.toss-toast-warning {
+    border-left: 4px solid var(--toss-warning);
+}
+
+.toss-toast-info {
+    border-left: 4px solid var(--toss-primary);
+}
+
+.toss-toast-icon {
+    flex-shrink: 0;
+    margin-top: var(--space-05);
+}
+
+.toss-toast-success .toss-toast-icon {
+    color: var(--toss-success);
+}
+
+.toss-toast-error .toss-toast-icon {
+    color: var(--toss-error);
+}
+
+.toss-toast-warning .toss-toast-icon {
+    color: var(--toss-warning);
+}
+
+.toss-toast-info .toss-toast-icon {
+    color: var(--toss-primary);
+}
+
+.toss-toast-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.toss-toast-close {
+    position: absolute;
+    top: var(--space-3);
+    right: var(--space-3);
+    background: none;
+    border: none;
+    color: var(--text-tertiary);
+    cursor: pointer;
+    padding: var(--space-1);
+    border-radius: var(--radius-sm);
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.toss-toast-close:hover {
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
+}
+
+/* Progress Bar for Toast */
+.toss-toast-progress {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 3px;
+    background-color: var(--toss-primary);
+    border-radius: 0 0 var(--radius-md) var(--radius-md);
+    animation: toastProgress linear;
+}
+
+.toss-toast-success .toss-toast-progress {
+    background-color: var(--toss-success);
+}
+
+.toss-toast-error .toss-toast-progress {
+    background-color: var(--toss-error);
+}
+
+.toss-toast-warning .toss-toast-progress {
+    background-color: var(--toss-warning);
+}
+
+/* Loading Alert */
+.toss-alert-loading {
+    position: relative;
+}
+
+.toss-alert-loading::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        var(--toss-primary),
+        transparent
+    );
+    animation: alertLoading 2s infinite;
+}
+
+/* Animations */
+@keyframes alertSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes toastSlideIn {
+    from {
+        opacity: 0;
+        transform: translateX(100%);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes toastSlideOut {
+    from {
+        opacity: 1;
+        transform: translateX(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateX(100%);
+    }
+}
+
+@keyframes toastProgress {
+    from {
+        width: 100%;
+    }
+    to {
+        width: 0%;
+    }
+}
+
+@keyframes alertLoading {
+    0% {
+        transform: translateX(-100%);
+    }
+    100% {
+        transform: translateX(100%);
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 767px) {
+    .toss-toast-container {
+        top: var(--space-4);
+        right: var(--space-4);
+        left: var(--space-4);
+        max-width: none;
+    }
+    
+    .toss-toast {
+        margin-bottom: var(--space-2);
+    }
+    
+    .toss-alert-banner {
+        margin: 0 calc(-1 * var(--space-3));
+        padding-left: var(--space-4);
+        padding-right: var(--space-4);
+    }
+    
+    .toss-alert-actions {
+        flex-direction: column;
+        margin-left: 0;
+    }
+    
+    .toss-alert-actions .toss-btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    .toss-alert {
+        border-width: 2px;
+    }
+    
+    .toss-toast {
+        border-width: 2px;
+        border-left-width: 4px;
+    }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+    .toss-alert,
+    .toss-toast {
+        animation: none;
+    }
+    
+    .toss-alert-loading::before {
+        animation: none;
+    }
+    
+    .toss-toast-progress {
+        animation: none;
+    }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+    .toss-toast {
+        background: var(--bg-primary-dark, #1a1a1a);
+        border-color: var(--border-secondary-dark, #333);
+        color: var(--text-primary-dark, #fff);
+    }
+    
+    .toss-alert-info {
+        background-color: rgba(0, 100, 255, 0.1);
+        border-color: rgba(0, 100, 255, 0.2);
+    }
+    
+    .toss-alert-success {
+        background-color: rgba(0, 200, 150, 0.1);
+        border-color: rgba(0, 200, 150, 0.2);
+    }
+    
+    .toss-alert-warning {
+        background-color: rgba(255, 165, 0, 0.1);
+        border-color: rgba(255, 165, 0, 0.2);
+    }
+    
+    .toss-alert-error {
+        background-color: rgba(255, 88, 71, 0.1);
+        border-color: rgba(255, 88, 71, 0.2);
+    }
+}
+
+/* Print styles */
+@media print {
+    .toss-toast-container,
+    .toss-alert-close,
+    .toss-toast-close {
+        display: none;
+    }
+}
+
+/* Focus styles for accessibility */
+.toss-alert:focus-within {
+    outline: 2px solid var(--toss-primary);
+    outline-offset: 2px;
+}
+
+/* Screen reader only content */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}

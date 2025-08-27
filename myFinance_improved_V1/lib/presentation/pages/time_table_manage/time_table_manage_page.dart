@@ -2341,150 +2341,152 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
     final selectedCompany = ref.watch(selectedCompanyProvider);
     final stores = selectedCompany?['stores'] ?? [];
     
-    return Column(
+    return Stack(
       children: [
-        // Store Selector - Toss Style
-        if (stores.isNotEmpty)
-              Container(
-                margin: const EdgeInsets.all(TossSpacing.space5),
-                child: InkWell(
-                  onTap: () => _showStoreSelector(stores),
-                  borderRadius: BorderRadius.circular(16),
-                  child: Container(
-                    padding: const EdgeInsets.all(TossSpacing.space4),
-                    decoration: BoxDecoration(
-                      color: TossColors.background,
+        Column(
+          children: [
+            // Store Selector - Toss Style
+            if (stores.isNotEmpty)
+                  Container(
+                    margin: const EdgeInsets.all(TossSpacing.space5),
+                    child: InkWell(
+                      onTap: () => _showStoreSelector(stores),
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: TossColors.gray200,
-                        width: 1,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.04),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 40,
-                          height: 40,
-                          decoration: BoxDecoration(
-                            color: TossColors.gray50,
-                            borderRadius: BorderRadius.circular(10),
+                      child: Container(
+                        padding: const EdgeInsets.all(TossSpacing.space4),
+                        decoration: BoxDecoration(
+                          color: TossColors.background,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: TossColors.gray200,
+                            width: 1,
                           ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.04),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 40,
+                              height: 40,
+                              decoration: BoxDecoration(
+                                color: TossColors.gray50,
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: const Icon(
+                                Icons.store_outlined,
+                                size: 20,
+                                color: TossColors.gray600,
+                              ),
+                            ),
+                            const SizedBox(width: TossSpacing.space3),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Store',
+                                    style: TossTextStyles.caption.copyWith(
+                                      color: TossColors.gray500,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    stores.firstWhere(
+                                      (store) => store['store_id'] == selectedStoreId,
+                                      orElse: () => {'store_name': 'Select Store'},
+                                    )['store_name'] ?? 'Select Store',
+                                    style: TossTextStyles.body.copyWith(
+                                      color: TossColors.gray900,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const Icon(
+                              Icons.chevron_right,
+                              size: 20,
+                              color: TossColors.gray400,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+            
+            // Calendar Header - Toss Style
+            Container(
+                  margin: const EdgeInsets.symmetric(horizontal: TossSpacing.space5),
+                  padding: const EdgeInsets.symmetric(vertical: TossSpacing.space3),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      InkWell(
+                        onTap: () async {
+                          setState(() {
+                            focusedMonth = DateTime(
+                              focusedMonth.year,
+                              focusedMonth.month - 1,
+                            );
+                          });
+                          HapticFeedback.selectionClick();
+                          // Check if we need to load data for this month
+                          await fetchMonthlyShiftStatus(forDate: focusedMonth);
+                        },
+                        borderRadius: BorderRadius.circular(20),
+                        child: Container(
+                          padding: const EdgeInsets.all(TossSpacing.space2),
                           child: const Icon(
-                            Icons.store_outlined,
-                            size: 20,
+                            Icons.chevron_left,
+                            size: 24,
                             color: TossColors.gray600,
                           ),
                         ),
-                        const SizedBox(width: TossSpacing.space3),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Store',
-                                style: TossTextStyles.caption.copyWith(
-                                  color: TossColors.gray500,
-                                ),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                stores.firstWhere(
-                                  (store) => store['store_id'] == selectedStoreId,
-                                  orElse: () => {'store_name': 'Select Store'},
-                                )['store_name'] ?? 'Select Store',
-                                style: TossTextStyles.body.copyWith(
-                                  color: TossColors.gray900,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ],
+                      ),
+                      const SizedBox(width: TossSpacing.space4),
+                      Text(
+                        '${_getMonthName(focusedMonth.month)} ${focusedMonth.year}',
+                        style: TossTextStyles.h2.copyWith(
+                          color: TossColors.gray900,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(width: TossSpacing.space4),
+                      InkWell(
+                        onTap: () async {
+                          setState(() {
+                            focusedMonth = DateTime(
+                              focusedMonth.year,
+                              focusedMonth.month + 1,
+                            );
+                          });
+                          HapticFeedback.selectionClick();
+                          // Check if we need to load data for this month
+                          await fetchMonthlyShiftStatus(forDate: focusedMonth);
+                        },
+                        borderRadius: BorderRadius.circular(20),
+                        child: Container(
+                          padding: const EdgeInsets.all(TossSpacing.space2),
+                          child: const Icon(
+                            Icons.chevron_right,
+                            size: 24,
+                            color: TossColors.gray600,
                           ),
                         ),
-                        const Icon(
-                          Icons.chevron_right,
-                          size: 20,
-                          color: TossColors.gray400,
-                        ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ),
-              ),
-        
-        // Calendar Header - Toss Style
-        Container(
-              margin: const EdgeInsets.symmetric(horizontal: TossSpacing.space5),
-              padding: const EdgeInsets.symmetric(vertical: TossSpacing.space3),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  InkWell(
-                    onTap: () async {
-                      setState(() {
-                        focusedMonth = DateTime(
-                          focusedMonth.year,
-                          focusedMonth.month - 1,
-                        );
-                      });
-                      HapticFeedback.selectionClick();
-                      // Check if we need to load data for this month
-                      await fetchMonthlyShiftStatus(forDate: focusedMonth);
-                    },
-                    borderRadius: BorderRadius.circular(20),
-                    child: Container(
-                      padding: const EdgeInsets.all(TossSpacing.space2),
-                      child: const Icon(
-                        Icons.chevron_left,
-                        size: 24,
-                        color: TossColors.gray600,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: TossSpacing.space4),
-                  Text(
-                    '${_getMonthName(focusedMonth.month)} ${focusedMonth.year}',
-                    style: TossTextStyles.h2.copyWith(
-                      color: TossColors.gray900,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  const SizedBox(width: TossSpacing.space4),
-                  InkWell(
-                    onTap: () async {
-                      setState(() {
-                        focusedMonth = DateTime(
-                          focusedMonth.year,
-                          focusedMonth.month + 1,
-                        );
-                      });
-                      HapticFeedback.selectionClick();
-                      // Check if we need to load data for this month
-                      await fetchMonthlyShiftStatus(forDate: focusedMonth);
-                    },
-                    borderRadius: BorderRadius.circular(20),
-                    child: Container(
-                      padding: const EdgeInsets.all(TossSpacing.space2),
-                      child: const Icon(
-                        Icons.chevron_right,
-                        size: 24,
-                        color: TossColors.gray600,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-        
-        // Main content with scroll
-        Expanded(
-          child: ListView(
+            
+            // Main content with scroll
+            Expanded(
+              child: ListView(
                 controller: _scheduleScrollController,
                 physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
                 padding: EdgeInsets.zero,
@@ -2630,10 +2632,49 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
                   ),
                   
                   // Add bottom padding for comfortable scrolling
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 100), // Increased padding to avoid FAB overlap
                 ],
               ),
             ),
+          ],
+        ),
+        // Floating Action Button (FAB)
+        Positioned(
+          bottom: 20,
+          right: 20,
+          child: InkWell(
+            onTap: () {
+              HapticFeedback.mediumImpact();
+              _showAddShiftBottomSheet();
+            },
+            borderRadius: BorderRadius.circular(28),
+            child: Container(
+              width: 56,
+              height: 56,
+              decoration: BoxDecoration(
+                color: TossColors.primary,
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: TossColors.primary.withOpacity(0.3),
+                    blurRadius: 12,
+                    offset: const Offset(0, 6),
+                  ),
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.08),
+                    blurRadius: 8,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
+              ),
+              child: const Icon(
+                Icons.add,
+                color: Colors.white,
+                size: 28,
+              ),
+            ),
+          ),
+        ),
       ],
     );
   }
@@ -2665,6 +2706,22 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
         await fetchManagerOverview(forDate: manageSelectedDate, forceRefresh: true);
         await fetchManagerCards(forDate: manageSelectedDate, forceRefresh: true);
       }
+    }
+  }
+  
+  // Show add shift bottom sheet
+  void _showAddShiftBottomSheet() async {
+    final result = await showModalBottomSheet<bool>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (context) => _AddShiftBottomSheet(),
+    );
+    
+    // If result is true, a shift was added, so refresh
+    if (result == true) {
+      // Refresh the shift data
+      await fetchMonthlyShiftStatus(forDate: focusedMonth, forceRefresh: true);
     }
   }
   
@@ -4596,5 +4653,614 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<_ShiftDetailsBottomShe
   }
   
   // Build stat card widget
+}
+
+// Add Shift Bottom Sheet
+class _AddShiftBottomSheet extends ConsumerStatefulWidget {
+  const _AddShiftBottomSheet({Key? key}) : super(key: key);
+
+  @override
+  ConsumerState<_AddShiftBottomSheet> createState() => _AddShiftBottomSheetState();
+}
+
+class _AddShiftBottomSheetState extends ConsumerState<_AddShiftBottomSheet> {
+  bool _isLoading = true;
+  bool _isSaving = false;
+  String? _error;
+  
+  // Data from RPC
+  List<Map<String, dynamic>> _employees = [];
+  List<Map<String, dynamic>> _shifts = [];
+  
+  // Selected values
+  String? _selectedEmployeeId;
+  String? _selectedShiftId;
+  DateTime? _selectedDate;
+  
+  @override
+  void initState() {
+    super.initState();
+    _fetchScheduleData();
+  }
+  
+  Future<void> _fetchScheduleData() async {
+    try {
+      setState(() {
+        _isLoading = true;
+        _error = null;
+      });
+      
+      // Get store_id from app state
+      final appState = ref.read(appStateProvider);
+      final storeId = appState.storeChoosen.isNotEmpty ? appState.storeChoosen : null;
+      
+      if (storeId == null || storeId.isEmpty) {
+        setState(() {
+          _error = 'Please select a store first';
+          _isLoading = false;
+        });
+        return;
+      }
+      
+      // Call RPC to get employees and shifts
+      final response = await Supabase.instance.client.rpc(
+        'manager_shift_get_schedule',
+        params: {
+          'p_store_id': storeId,
+        },
+      );
+      
+      if (response != null) {
+        setState(() {
+          _employees = List<Map<String, dynamic>>.from(response['store_employees'] ?? []);
+          _shifts = List<Map<String, dynamic>>.from(response['store_shifts'] ?? []);
+          _isLoading = false;
+        });
+      } else {
+        setState(() {
+          _error = 'Failed to load data';
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _error = 'Error: ${e.toString()}';
+        _isLoading = false;
+      });
+    }
+  }
+  
+  Future<void> _selectDate() async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime.now(),
+      lastDate: DateTime.now().add(const Duration(days: 90)),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: ColorScheme.light(
+              primary: TossColors.primary,
+              onPrimary: Colors.white,
+              surface: Colors.white,
+              onSurface: TossColors.gray900,
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+    
+    if (picked != null && picked != _selectedDate) {
+      setState(() {
+        _selectedDate = picked;
+      });
+    }
+  }
+  
+  Future<void> _saveShift() async {
+    try {
+      setState(() {
+        _isSaving = true;
+      });
+      
+      // Get required data from app state
+      final appState = ref.read(appStateProvider);
+      final storeId = appState.storeChoosen.isNotEmpty ? appState.storeChoosen : null;
+      final approvedBy = appState.user['user_id'] ?? '';
+      
+      if (storeId == null || storeId.isEmpty || approvedBy.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Error: Missing store or user information'),
+            backgroundColor: TossColors.error,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          ),
+        );
+        setState(() {
+          _isSaving = false;
+        });
+        return;
+      }
+      
+      // Format the date as yyyy-MM-dd
+      final formattedDate = '${_selectedDate!.year}-${_selectedDate!.month.toString().padLeft(2, '0')}-${_selectedDate!.day.toString().padLeft(2, '0')}';
+      
+      // Call RPC to insert the schedule
+      final response = await Supabase.instance.client.rpc(
+        'manager_shift_insert_schedule',
+        params: {
+          'p_user_id': _selectedEmployeeId,
+          'p_shift_id': _selectedShiftId,
+          'p_store_id': storeId,
+          'p_request_date': formattedDate,
+          'p_approved_by': approvedBy,
+        },
+      );
+      
+      // Show success message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Shift scheduled successfully'),
+          backgroundColor: TossColors.success,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        ),
+      );
+      
+      // Close the bottom sheet and return true to indicate success
+      Navigator.pop(context, true);
+      
+    } catch (e) {
+      // Show error message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error: ${e.toString()}'),
+          backgroundColor: TossColors.error,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        ),
+      );
+      
+      setState(() {
+        _isSaving = false;
+      });
+    }
+  }
+  
+  @override
+  Widget build(BuildContext context) {
+    // Check if all required fields are filled
+    final bool isFormValid = _selectedEmployeeId != null && 
+                            _selectedShiftId != null && 
+                            _selectedDate != null && 
+                            !_isLoading && 
+                            !_isSaving;
+    
+    return Container(
+      height: MediaQuery.of(context).size.height * 0.75,
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(24),
+          topRight: Radius.circular(24),
+        ),
+      ),
+      child: Column(
+        children: [
+          // Handle bar
+          Container(
+            margin: const EdgeInsets.only(top: 12),
+            width: 40,
+            height: 4,
+            decoration: BoxDecoration(
+              color: TossColors.gray300,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          
+          // Header
+          Container(
+            padding: const EdgeInsets.all(TossSpacing.space5),
+            child: Row(
+              children: [
+                Text(
+                  'Add Shift',
+                  style: TossTextStyles.h2.copyWith(
+                    color: TossColors.gray900,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const Spacer(),
+                InkWell(
+                  onTap: () {
+                    Navigator.pop(context, false);
+                  },
+                  borderRadius: BorderRadius.circular(20),
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    child: const Icon(
+                      Icons.close,
+                      size: 24,
+                      color: TossColors.gray600,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          
+          // Divider
+          Container(
+            height: 1,
+            color: TossColors.gray200,
+          ),
+          
+          // Content
+          Expanded(
+            child: _isLoading
+                ? Center(
+                    child: CircularProgressIndicator(
+                      color: TossColors.primary,
+                    ),
+                  )
+                : _error != null
+                    ? Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.error_outline,
+                              size: 48,
+                              color: TossColors.error,
+                            ),
+                            const SizedBox(height: TossSpacing.space3),
+                            Text(
+                              _error!,
+                              style: TossTextStyles.body.copyWith(
+                                color: TossColors.error,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: TossSpacing.space4),
+                            InkWell(
+                              onTap: _fetchScheduleData,
+                              borderRadius: BorderRadius.circular(8),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: TossSpacing.space4,
+                                  vertical: TossSpacing.space2,
+                                ),
+                                decoration: BoxDecoration(
+                                  border: Border.all(color: TossColors.primary),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Text(
+                                  'Retry',
+                                  style: TossTextStyles.bodyLarge.copyWith(
+                                    color: TossColors.primary,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                    : SingleChildScrollView(
+                        padding: const EdgeInsets.all(TossSpacing.space5),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Employee Dropdown
+                            Text(
+                              'Employee',
+                              style: TossTextStyles.bodyLarge.copyWith(
+                                color: TossColors.gray900,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            const SizedBox(height: TossSpacing.space2),
+                            Container(
+                              decoration: BoxDecoration(
+                                border: Border.all(color: TossColors.gray300),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: DropdownButtonHideUnderline(
+                                child: DropdownButton<String>(
+                                  value: _selectedEmployeeId,
+                                  hint: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: TossSpacing.space3,
+                                    ),
+                                    child: Text(
+                                      'Select Employee',
+                                      style: TossTextStyles.body.copyWith(
+                                        color: TossColors.gray500,
+                                      ),
+                                    ),
+                                  ),
+                                  isExpanded: true,
+                                  icon: const Padding(
+                                    padding: EdgeInsets.only(right: TossSpacing.space3),
+                                    child: Icon(
+                                      Icons.arrow_drop_down,
+                                      color: TossColors.gray600,
+                                    ),
+                                  ),
+                                  items: _employees.map((employee) {
+                                    return DropdownMenuItem<String>(
+                                      value: employee['user_id'],
+                                      child: Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: TossSpacing.space3,
+                                        ),
+                                        child: Text(
+                                          employee['full_name'] ?? 'Unknown',
+                                          style: TossTextStyles.body.copyWith(
+                                            color: TossColors.gray900,
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                                  }).toList(),
+                                  onChanged: _isSaving ? null : (value) {
+                                    setState(() {
+                                      _selectedEmployeeId = value;
+                                    });
+                                  },
+                                ),
+                              ),
+                            ),
+                            
+                            const SizedBox(height: TossSpacing.space5),
+                            
+                            // Shift Dropdown
+                            Text(
+                              'Shift',
+                              style: TossTextStyles.bodyLarge.copyWith(
+                                color: TossColors.gray900,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            const SizedBox(height: TossSpacing.space2),
+                            Container(
+                              decoration: BoxDecoration(
+                                border: Border.all(color: TossColors.gray300),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: DropdownButtonHideUnderline(
+                                child: DropdownButton<String>(
+                                  value: _selectedShiftId,
+                                  hint: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: TossSpacing.space3,
+                                    ),
+                                    child: Text(
+                                      'Select Shift',
+                                      style: TossTextStyles.body.copyWith(
+                                        color: TossColors.gray500,
+                                      ),
+                                    ),
+                                  ),
+                                  isExpanded: true,
+                                  icon: const Padding(
+                                    padding: EdgeInsets.only(right: TossSpacing.space3),
+                                    child: Icon(
+                                      Icons.arrow_drop_down,
+                                      color: TossColors.gray600,
+                                    ),
+                                  ),
+                                  items: _shifts.map((shift) {
+                                    return DropdownMenuItem<String>(
+                                      value: shift['shift_id'],
+                                      child: Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: TossSpacing.space3,
+                                        ),
+                                        child: Text(
+                                          '${shift['shift_name']} (${shift['start_time']} - ${shift['end_time']})',
+                                          style: TossTextStyles.body.copyWith(
+                                            color: TossColors.gray900,
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                                  }).toList(),
+                                  onChanged: _isSaving ? null : (value) {
+                                    setState(() {
+                                      _selectedShiftId = value;
+                                    });
+                                  },
+                                ),
+                              ),
+                            ),
+                            
+                            const SizedBox(height: TossSpacing.space5),
+                            
+                            // Date Selector
+                            Text(
+                              'Date',
+                              style: TossTextStyles.bodyLarge.copyWith(
+                                color: TossColors.gray900,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            const SizedBox(height: TossSpacing.space2),
+                            InkWell(
+                              onTap: _isSaving ? null : _selectDate,
+                              borderRadius: BorderRadius.circular(12),
+                              child: Container(
+                                padding: const EdgeInsets.all(TossSpacing.space4),
+                                decoration: BoxDecoration(
+                                  border: Border.all(color: TossColors.gray300),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      Icons.calendar_today,
+                                      size: 20,
+                                      color: TossColors.gray600,
+                                    ),
+                                    const SizedBox(width: TossSpacing.space3),
+                                    Expanded(
+                                      child: Text(
+                                        _selectedDate != null
+                                            ? '${_selectedDate!.year}-${_selectedDate!.month.toString().padLeft(2, '0')}-${_selectedDate!.day.toString().padLeft(2, '0')}'
+                                            : 'Select Date',
+                                        style: TossTextStyles.body.copyWith(
+                                          color: _selectedDate != null
+                                              ? TossColors.gray900
+                                              : TossColors.gray500,
+                                        ),
+                                      ),
+                                    ),
+                                    Icon(
+                                      Icons.chevron_right,
+                                      size: 20,
+                                      color: TossColors.gray400,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            
+                            const SizedBox(height: TossSpacing.space4),
+                            
+                            // Required fields note
+                            if (!isFormValid)
+                              Container(
+                                padding: const EdgeInsets.all(TossSpacing.space3),
+                                decoration: BoxDecoration(
+                                  color: TossColors.warning.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(
+                                    color: TossColors.warning.withOpacity(0.3),
+                                  ),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      Icons.info_outline,
+                                      size: 16,
+                                      color: TossColors.warning,
+                                    ),
+                                    const SizedBox(width: TossSpacing.space2),
+                                    Expanded(
+                                      child: Text(
+                                        'Please select all required fields to continue',
+                                        style: TossTextStyles.caption.copyWith(
+                                          color: TossColors.warning,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+          ),
+          
+          // Bottom buttons
+          Container(
+            padding: const EdgeInsets.all(TossSpacing.space5),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              border: Border(
+                top: BorderSide(
+                  color: TossColors.gray200,
+                  width: 1,
+                ),
+              ),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Opacity(
+                    opacity: _isSaving ? 0.5 : 1.0,
+                    child: AbsorbPointer(
+                      absorbing: _isSaving,
+                      child: InkWell(
+                        onTap: () {
+                          Navigator.pop(context, false);
+                        },
+                        borderRadius: BorderRadius.circular(12),
+                        child: Container(
+                          height: 52,
+                          decoration: BoxDecoration(
+                            color: TossColors.gray100,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Center(
+                            child: Text(
+                              'Cancel',
+                              style: TossTextStyles.bodyLarge.copyWith(
+                                color: TossColors.gray700,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: TossSpacing.space3),
+                Expanded(
+                  child: Opacity(
+                    opacity: isFormValid ? 1.0 : 0.5,
+                    child: AbsorbPointer(
+                      absorbing: !isFormValid,
+                      child: InkWell(
+                        onTap: isFormValid
+                            ? () async {
+                                HapticFeedback.mediumImpact();
+                                await _saveShift();
+                              }
+                            : null,
+                        borderRadius: BorderRadius.circular(12),
+                        child: Container(
+                          height: 52,
+                          decoration: BoxDecoration(
+                            color: isFormValid
+                                ? TossColors.primary
+                                : TossColors.gray200,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Center(
+                            child: _isSaving
+                                ? const SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(
+                                      color: Colors.white,
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                : Text(
+                                    'Save',
+                                    style: TossTextStyles.bodyLarge.copyWith(
+                                      color: isFormValid
+                                          ? Colors.white
+                                          : TossColors.gray400,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
   

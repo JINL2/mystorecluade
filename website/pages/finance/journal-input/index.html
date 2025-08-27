@@ -1,0 +1,2100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyFinance - Journal Input</title>
+    
+    <!-- Theme CSS -->
+    <link rel="stylesheet" href="../../../core/themes/toss-variables.css">
+    <link rel="stylesheet" href="../../../core/themes/toss-component-variables.css">
+    <link rel="stylesheet" href="../../../core/themes/toss-base.css">
+    <link rel="stylesheet" href="../../../core/themes/toss-typography.css">
+    
+    <!-- Component CSS -->
+    <link rel="stylesheet" href="../../../components/base/toss-button.css">
+    <link rel="stylesheet" href="../../../components/form/toss-input.css">
+    <link rel="stylesheet" href="../../../components/form/toss-select.css">
+    <link rel="stylesheet" href="../../../components/feedback/toss-alert.css">
+    <link rel="stylesheet" href="../../../components/layout/toss-modal.css">
+    <link rel="stylesheet" href="../../../components/navigation/navbar.css">
+    
+    <!-- Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- Journal Input Specific Styles -->
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: var(--font-family);
+            background: var(--toss-gray-50);
+            min-height: 100vh;
+        }
+        
+        .page-container {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .page-content {
+            flex: 1;
+            padding: var(--space-6);
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+        }
+        
+        .page-header {
+            margin-bottom: var(--space-6);
+        }
+        
+        .page-title {
+            font-size: var(--font-h1);
+            font-weight: 700;
+            color: var(--toss-text-primary);
+            margin: 0 0 var(--space-2) 0;
+        }
+        
+        .page-subtitle {
+            font-size: var(--font-body-large);
+            color: var(--toss-text-secondary);
+            margin: 0;
+        }
+
+        /* Journal Header Card */
+        .journal-header-card {
+            background: var(--toss-white);
+            border-radius: var(--radius-lg);
+            padding: var(--space-6);
+            box-shadow: var(--shadow-card);
+            margin-bottom: var(--space-1);
+        }
+
+        .journal-date-info {
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+            margin-bottom: var(--space-3);
+        }
+
+        .journal-date-info .icon {
+            width: 16px;
+            height: 16px;
+            color: var(--toss-gray-500);
+        }
+
+        .journal-date-text {
+            font-size: var(--font-body-small);
+            font-weight: 500;
+            color: var(--toss-gray-700);
+        }
+
+        .journal-company-info {
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+        }
+
+        .journal-company-info .icon {
+            width: 16px;
+            height: 16px;
+            color: var(--toss-gray-500);
+        }
+
+        .journal-company-text {
+            font-size: var(--font-body-small);
+            font-weight: 500;
+            color: var(--toss-gray-700);
+        }
+
+        .journal-store-text {
+            font-size: var(--font-body-small);
+            color: var(--toss-gray-600);
+        }
+
+        /* Balance Summary Card */
+        .balance-summary-card {
+            background: var(--toss-white);
+            border-radius: var(--radius-lg);
+            padding: var(--space-6);
+            box-shadow: var(--shadow-card);
+            margin-bottom: var(--space-1);
+        }
+
+        .balance-summary-grid {
+            display: grid;
+            grid-template-columns: 1fr 1px 1fr 1px 1fr;
+            gap: var(--space-4);
+            align-items: center;
+        }
+
+        .balance-item {
+            text-align: center;
+            padding: var(--space-2);
+            border-radius: var(--radius-md);
+            transition: all var(--transition-fast);
+            cursor: pointer;
+            position: relative;
+        }
+
+        .balance-item.clickable:hover {
+            background: var(--toss-gray-50);
+            transform: translateY(-1px);
+        }
+
+        .balance-item.clickable::after {
+            content: '+';
+            position: absolute;
+            top: -8px;
+            right: 8px;
+            width: 20px;
+            height: 20px;
+            background: var(--toss-gray-300);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--toss-gray-600);
+            opacity: 0;
+            transition: opacity var(--transition-fast);
+        }
+
+        .balance-item.clickable:hover::after {
+            opacity: 1;
+        }
+
+        .balance-label {
+            font-size: var(--font-label);
+            font-weight: 500;
+            color: var(--toss-gray-600);
+            margin-bottom: var(--space-1);
+        }
+
+        .balance-amount {
+            font-size: var(--font-body-large);
+            font-weight: 700;
+            margin-bottom: var(--space-05);
+        }
+
+        .balance-amount.debit {
+            color: var(--toss-primary);
+        }
+
+        .balance-amount.credit {
+            color: var(--toss-success);
+        }
+
+        .balance-amount.difference {
+            color: var(--toss-success);
+        }
+
+        .balance-amount.difference.unbalanced {
+            color: var(--toss-error);
+        }
+
+        .balance-count {
+            font-size: var(--font-small);
+            color: var(--toss-gray-500);
+        }
+
+        .balance-divider {
+            width: 1px;
+            height: 60px;
+            background: var(--toss-gray-200);
+        }
+
+        /* Description Card */
+        .description-card {
+            background: var(--toss-white);
+            border-radius: var(--radius-lg);
+            padding: var(--space-6);
+            box-shadow: var(--shadow-card);
+            margin-bottom: var(--space-1);
+        }
+
+        .description-label {
+            font-size: var(--font-body);
+            font-weight: 600;
+            color: var(--toss-gray-700);
+            margin-bottom: var(--space-2);
+        }
+
+        /* Transaction Lines */
+        .transaction-lines-container {
+            min-height: 200px;
+            margin-bottom: var(--space-6);
+        }
+
+        .transaction-line-card {
+            background: var(--toss-white);
+            border-radius: var(--radius-lg);
+            margin-bottom: var(--space-3);
+            box-shadow: var(--shadow-card);
+            overflow: hidden;
+            border: 1px solid transparent;
+            transition: all var(--transition-fast);
+        }
+
+        .transaction-line-card:hover {
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-3);
+        }
+
+        .transaction-line-card.debit {
+            border-color: rgba(0, 100, 255, 0.2);
+        }
+
+        .transaction-line-card.credit {
+            border-color: rgba(0, 200, 150, 0.2);
+        }
+
+        .transaction-line-header {
+            padding: var(--space-4);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .transaction-line-header.debit {
+            background: rgba(0, 100, 255, 0.05);
+        }
+
+        .transaction-line-header.credit {
+            background: rgba(0, 200, 150, 0.05);
+        }
+
+        .transaction-line-type {
+            padding: var(--space-1) var(--space-2);
+            border-radius: var(--radius-sm);
+            font-size: var(--font-small);
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            color: white;
+        }
+
+        .transaction-line-type.debit {
+            background: var(--toss-primary);
+        }
+
+        .transaction-line-type.credit {
+            background: var(--toss-success);
+        }
+
+        .transaction-line-account {
+            flex: 1;
+            margin: 0 var(--space-3);
+            font-weight: 600;
+            color: var(--toss-gray-900);
+        }
+
+        .transaction-line-amount {
+            font-size: var(--font-body-large);
+            font-weight: 700;
+        }
+
+        .transaction-line-amount.debit {
+            color: var(--toss-primary);
+        }
+
+        .transaction-line-amount.credit {
+            color: var(--toss-success);
+        }
+
+        .transaction-line-body {
+            padding: var(--space-4);
+        }
+
+        .transaction-line-description {
+            display: flex;
+            align-items: flex-start;
+            gap: var(--space-2);
+            margin-bottom: var(--space-3);
+            font-size: var(--font-body-small);
+            color: var(--toss-gray-700);
+        }
+
+        .transaction-line-description .icon {
+            width: 16px;
+            height: 16px;
+            color: var(--toss-gray-500);
+            margin-top: 2px;
+        }
+
+        .transaction-line-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--space-2);
+            margin-bottom: var(--space-4);
+        }
+
+        .transaction-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-1);
+            padding: var(--space-1) var(--space-2);
+            background: rgba(0, 100, 255, 0.1);
+            border: 1px solid rgba(0, 100, 255, 0.2);
+            border-radius: var(--radius-full);
+            font-size: var(--font-small);
+            font-weight: 600;
+            color: var(--toss-primary);
+        }
+
+        .transaction-tag.cash {
+            background: rgba(0, 150, 255, 0.1);
+            border-color: rgba(0, 150, 255, 0.2);
+            color: var(--toss-info);
+        }
+
+        .transaction-tag.counterparty {
+            background: rgba(0, 100, 255, 0.1);
+            border-color: rgba(0, 100, 255, 0.2);
+            color: var(--toss-primary);
+        }
+
+        .transaction-tag .icon {
+            width: 14px;
+            height: 14px;
+        }
+
+        .transaction-line-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: var(--space-2);
+        }
+
+        .transaction-action-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-1);
+            padding: var(--space-2) var(--space-3);
+            border: none;
+            background: transparent;
+            border-radius: var(--radius-sm);
+            font-size: var(--font-body-small);
+            cursor: pointer;
+            transition: all var(--transition-fast);
+        }
+
+        .transaction-action-btn:hover {
+            background: var(--toss-gray-50);
+        }
+
+        .transaction-action-btn.edit {
+            color: var(--toss-gray-600);
+        }
+
+        .transaction-action-btn.delete {
+            color: var(--toss-error);
+        }
+
+        .transaction-action-btn .icon {
+            width: 18px;
+            height: 18px;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: var(--space-16) var(--space-6);
+            background: var(--toss-white);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-card);
+        }
+
+        .empty-state-icon {
+            width: 64px;
+            height: 64px;
+            margin: 0 auto var(--space-4);
+            color: var(--toss-gray-300);
+        }
+
+        .empty-state-title {
+            font-size: var(--font-h3);
+            font-weight: 600;
+            color: var(--toss-gray-700);
+            margin: 0 0 var(--space-2) 0;
+        }
+
+        .empty-state-text {
+            font-size: var(--font-body);
+            color: var(--toss-gray-500);
+            margin: 0;
+        }
+
+        /* Actions Footer */
+        .actions-footer {
+            background: var(--toss-white);
+            border-radius: var(--radius-lg);
+            padding: var(--space-6);
+            box-shadow: var(--shadow-card);
+            position: sticky;
+            bottom: var(--space-6);
+        }
+
+        .actions-grid {
+            display: flex;
+            gap: var(--space-3);
+        }
+
+        .action-btn {
+            flex: 1;
+            padding: var(--space-4);
+            border-radius: var(--radius-lg);
+            font-size: var(--font-body);
+            font-weight: 600;
+            transition: all var(--transition-fast);
+            cursor: pointer;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--space-2);
+        }
+
+        .action-btn.add {
+            background: transparent;
+            border: 1.5px solid var(--toss-primary);
+            color: var(--toss-primary);
+        }
+
+        .action-btn.add:hover {
+            background: var(--toss-primary-surface);
+        }
+
+        .action-btn.submit {
+            background: var(--toss-primary);
+            color: white;
+        }
+
+        .action-btn.submit:hover {
+            background: var(--toss-primary-dark);
+        }
+
+        .action-btn:disabled {
+            background: var(--toss-gray-200);
+            color: var(--toss-gray-400);
+            border-color: var(--toss-gray-200);
+            cursor: not-allowed;
+        }
+
+        .action-btn .icon {
+            width: 20px;
+            height: 20px;
+        }
+
+        /* Modal Footer Buttons */
+        .toss-modal-footer {
+            padding: var(--space-5);
+            background: var(--toss-gray-50);
+            border-top: 1px solid var(--toss-gray-200);
+            display: flex;
+            justify-content: flex-end;
+            gap: var(--space-3);
+        }
+
+        .toss-modal-footer .toss-button {
+            min-height: 44px;
+            padding: var(--space-3) var(--space-5);
+            font-weight: 600;
+            font-size: var(--font-body);
+            border-radius: var(--radius-lg);
+            transition: all var(--transition-fast);
+            border: none;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--space-2);
+        }
+
+        .toss-modal-footer .toss-button-primary {
+            background: var(--toss-primary);
+            color: white;
+            box-shadow: 0 2px 8px rgba(0, 100, 255, 0.2);
+        }
+
+        .toss-modal-footer .toss-button-primary:hover {
+            background: var(--toss-primary-dark);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 100, 255, 0.3);
+        }
+
+        .toss-modal-footer .toss-button-primary:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(0, 100, 255, 0.2);
+        }
+
+        .toss-modal-footer .toss-button-primary:disabled {
+            background: var(--toss-gray-300);
+            color: var(--toss-gray-500);
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
+
+        .toss-modal-footer .toss-button-secondary {
+            background: white;
+            color: var(--toss-gray-700);
+            border: 1px solid var(--toss-gray-300);
+        }
+
+        .toss-modal-footer .toss-button-secondary:hover {
+            background: var(--toss-gray-50);
+            border-color: var(--toss-gray-400);
+            transform: translateY(-1px);
+        }
+
+        .toss-modal-footer .toss-button-secondary:active {
+            transform: translateY(0);
+            background: var(--toss-gray-100);
+        }
+
+        .toss-button-lg {
+            padding: var(--space-3) var(--space-6) !important;
+            font-size: var(--font-body-large) !important;
+        }
+
+        /* Transaction Modal */
+        .toss-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1100;
+            backdrop-filter: blur(4px);
+        }
+
+        .toss-modal-overlay.show {
+            display: flex;
+        }
+
+        .toss-modal {
+            background: var(--toss-white);
+            border-radius: var(--radius-xl);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+            max-width: 90%;
+            max-height: 90vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .toss-modal-header {
+            padding: var(--space-5);
+            border-bottom: 1px solid var(--toss-gray-200);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .toss-modal-title {
+            font-size: var(--font-h3);
+            font-weight: 700;
+            color: var(--toss-gray-900);
+            margin: 0;
+        }
+
+        .toss-modal-close {
+            width: 32px;
+            height: 32px;
+            border-radius: var(--radius-md);
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all var(--transition-fast);
+            color: var(--toss-gray-500);
+        }
+
+        .toss-modal-close:hover {
+            background: var(--toss-gray-100);
+            color: var(--toss-gray-700);
+        }
+
+        .toss-modal-body {
+            flex: 1;
+            padding: var(--space-5);
+            overflow-y: auto;
+        }
+
+        /* Modal Footer Buttons */
+        .transaction-modal {
+            max-width: 800px;
+        }
+
+        .transaction-form {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-5);
+        }
+
+        .transaction-form-section {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-2);
+        }
+
+        .transaction-form-title {
+            font-size: var(--font-body);
+            font-weight: 600;
+            color: var(--toss-gray-700);
+        }
+
+        /* Fix account select styling */
+        .transaction-form .toss-select {
+            background: var(--toss-white) !important;
+            color: var(--toss-gray-900) !important;
+            border: 1px solid var(--toss-gray-300) !important;
+        }
+
+        .transaction-form .toss-select:hover {
+            background: var(--toss-gray-50) !important;
+            border-color: var(--toss-primary) !important;
+        }
+
+        .transaction-form .toss-select-placeholder {
+            color: var(--toss-gray-500) !important;
+        }
+
+        /* Account search dropdown styling */
+        .account-search-menu {
+            background: var(--toss-white) !important;
+            border: 1px solid var(--toss-gray-300) !important;
+            box-shadow: var(--shadow-dropdown) !important;
+            border-radius: var(--radius-lg) !important;
+            max-height: 300px !important;
+            overflow-y: auto !important;
+        }
+
+        .account-search-menu .toss-select-option {
+            padding: var(--space-3) var(--space-4) !important;
+            border-bottom: 1px solid var(--toss-gray-100) !important;
+            background: var(--toss-white) !important;
+            color: var(--toss-gray-900) !important;
+        }
+
+        .account-search-menu .toss-select-option:last-child {
+            border-bottom: none !important;
+        }
+
+        .account-search-menu .toss-select-option:hover {
+            background: var(--toss-gray-50) !important;
+            color: var(--toss-gray-900) !important;
+        }
+
+        .account-search-menu .toss-select-option-label {
+            font-weight: 500 !important;
+            color: var(--toss-gray-900) !important;
+        }
+
+        .account-search-menu .toss-select-option-description {
+            color: var(--toss-gray-600) !important;
+            font-size: var(--font-small) !important;
+            margin-top: var(--space-1) !important;
+        }
+
+        .transaction-type-toggle {
+            display: flex;
+            background: var(--toss-gray-50);
+            border-radius: var(--radius-lg);
+            padding: var(--space-1);
+            position: relative;
+        }
+
+        .transaction-type-option {
+            flex: 1;
+            padding: var(--space-3);
+            text-align: center;
+            border-radius: var(--radius-md);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            z-index: 1;
+            position: relative;
+        }
+
+        .transaction-type-option.active {
+            color: white;
+        }
+
+        .transaction-type-toggle::before {
+            content: '';
+            position: absolute;
+            top: var(--space-1);
+            left: var(--space-1);
+            width: calc(50% - var(--space-1));
+            height: calc(100% - var(--space-2));
+            background: var(--toss-primary);
+            border-radius: var(--radius-md);
+            transition: transform var(--transition-base);
+            box-shadow: 0 2px 8px rgba(0, 100, 255, 0.3);
+        }
+
+        .transaction-type-toggle.credit::before {
+            transform: translateX(100%);
+            background: var(--toss-success);
+            box-shadow: 0 2px 8px rgba(0, 200, 150, 0.3);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--space-4);
+        }
+
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Loading States */
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--toss-gray-200);
+            border-top-color: var(--toss-primary);
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .page-content {
+                padding: var(--space-4);
+            }
+            
+            .balance-summary-grid {
+                grid-template-columns: 1fr;
+                gap: var(--space-3);
+            }
+            
+            .balance-divider {
+                display: none;
+            }
+            
+            .actions-grid {
+                flex-direction: column;
+            }
+            
+            .transaction-line-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: var(--space-2);
+            }
+            
+            .transaction-line-account {
+                margin: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="page-container">
+        <!-- Navigation Bar -->
+        <div id="navbar-container"></div>
+        
+        <!-- Page Content -->
+        <main class="page-content">
+            <div class="page-header">
+                <h1 class="page-title">Journal Entry</h1>
+                <p class="page-subtitle">Create balanced financial transactions</p>
+            </div>
+            
+            <!-- Journal Header with Date and Company Info -->
+            <div class="journal-header-card">
+                <div class="journal-date-info">
+                    <svg class="icon" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M19,3H18V1H16V3H8V1H6V3H5A2,2 0 0,0 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5A2,2 0 0,0 19,3M19,19H5V8H19V19Z"/>
+                    </svg>
+                    <span class="journal-date-text" id="journalDate">2024-01-20</span>
+                </div>
+                <div class="journal-company-info" id="companyInfo" style="display: none;">
+                    <svg class="icon" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12,7V3H2V21H22V7H12M6,19H4V17H6V19M6,15H4V13H6V15M6,11H4V9H6V11M6,7H4V5H6V7M10,19H8V17H10V19M10,15H8V13H10V15M10,11H8V9H10V11M10,7H8V5H10V7M20,19H18V17H20V19M20,15H18V13H20V15M20,11H18V9H20V11M16,19H14V17H16V19M16,15H14V13H16V15M16,11H14V9H16V11"/>
+                    </svg>
+                    <span class="journal-company-text" id="companyName">Company Name</span>
+                    <span class="journal-store-text" id="storeName" style="display: none;"> • Store Name</span>
+                </div>
+            </div>
+
+            <!-- Balance Summary -->
+            <div class="balance-summary-card">
+                <div class="balance-summary-grid">
+                    <div class="balance-item clickable" onclick="openTransactionModal(true)">
+                        <div class="balance-label">Debits</div>
+                        <div class="balance-amount debit" id="totalDebits">0</div>
+                        <div class="balance-count" id="debitCount">0 items</div>
+                    </div>
+                    <div class="balance-divider"></div>
+                    <div class="balance-item clickable" onclick="openTransactionModal(false)">
+                        <div class="balance-label">Credits</div>
+                        <div class="balance-amount credit" id="totalCredits">0</div>
+                        <div class="balance-count" id="creditCount">0 items</div>
+                    </div>
+                    <div class="balance-divider"></div>
+                    <div class="balance-item">
+                        <div class="balance-label">Difference</div>
+                        <div class="balance-amount difference" id="difference">0</div>
+                        <div class="balance-count">&nbsp;</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Description Input -->
+            <div class="description-card">
+                <label class="description-label" for="journalDescription">Description (Optional)</label>
+                <div class="toss-input-group">
+                    <textarea 
+                        id="journalDescription" 
+                        class="toss-textarea" 
+                        rows="2" 
+                        placeholder="Enter journal description..."
+                        onchange="updateJournalDescription(this.value)">
+                    </textarea>
+                </div>
+            </div>
+
+            <!-- Transaction Lines -->
+            <div class="transaction-lines-container">
+                <div id="transactionLines">
+                    <!-- Transaction lines will be rendered here -->
+                </div>
+                
+                <!-- Empty State -->
+                <div class="empty-state" id="emptyState">
+                    <svg class="empty-state-icon" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
+                    </svg>
+                    <h3 class="empty-state-title">No transactions added</h3>
+                    <p class="empty-state-text">Click Debits or Credits above to add transactions</p>
+                </div>
+            </div>
+
+            <!-- Actions Footer -->
+            <div class="actions-footer">
+                <div class="actions-grid">
+                    <button class="action-btn add" onclick="openTransactionModal()">
+                        <svg class="icon" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M17,13H13V17H11V13H7V11H11V7H13V11H17V13Z"/>
+                        </svg>
+                        Add Transaction
+                    </button>
+                    <button class="action-btn submit" id="submitBtn" onclick="submitJournalEntry()" disabled>
+                        <span id="submitBtnText">Submit Journal Entry</span>
+                        <div class="loading-spinner" id="submitSpinner" style="display: none;"></div>
+                    </button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Transaction Modal -->
+    <div class="toss-modal-overlay" id="transactionModal">
+        <div class="toss-modal transaction-modal">
+            <!-- Modal header will be populated by JavaScript -->
+            <div class="toss-modal-header">
+                <div class="toss-modal-header-content">
+                    <h2 class="toss-modal-title" id="modalTitle">Add Transaction</h2>
+                </div>
+                <button class="toss-modal-close" onclick="closeTransactionModal()">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"/>
+                    </svg>
+                </button>
+            </div>
+            
+            <div class="toss-modal-body">
+                <form class="transaction-form" id="transactionForm">
+                    <!-- Transaction Type Toggle -->
+                    <div class="transaction-form-section">
+                        <div class="transaction-form-title">Transaction Type</div>
+                        <div class="transaction-type-toggle" id="typeToggle">
+                            <div class="transaction-type-option active" onclick="setTransactionType(true)">Debit</div>
+                            <div class="transaction-type-option" onclick="setTransactionType(false)">Credit</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Account Selection -->
+                    <div class="transaction-form-section">
+                        <div class="transaction-form-title">Account *</div>
+                        <div class="toss-select-container toss-select-full">
+                            <button type="button" class="toss-select" id="accountSelect" onclick="openAccountSearch(event)">
+                                <span class="toss-select-value toss-select-placeholder">Select account</span>
+                                <svg class="toss-select-arrow" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M7,10L12,15L17,10H7Z"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Conditional Fields Container -->
+                    <div id="conditionalFields">
+                        <!-- Fields will be populated based on account type -->
+                    </div>
+                    
+                    <!-- Amount -->
+                    <div class="transaction-form-section">
+                        <div class="transaction-form-title">Amount *</div>
+                        <div class="toss-input-group">
+                            <input type="text" id="amountInput" class="toss-input" placeholder="Enter amount" oninput="formatAmount(this)">
+                        </div>
+                    </div>
+                    
+                    <!-- Description -->
+                    <div class="transaction-form-section">
+                        <div class="transaction-form-title">Description (Optional)</div>
+                        <div class="toss-input-group">
+                            <input type="text" id="descriptionInput" class="toss-input" placeholder="Enter description">
+                        </div>
+                    </div>
+                </form>
+            </div>
+            
+            <div class="toss-modal-footer">
+                <button class="toss-button toss-button-secondary toss-button-lg" onclick="closeTransactionModal()" style="min-width: 100px;">Cancel</button>
+                <button class="toss-button toss-button-primary toss-button-lg" id="saveTransactionBtn" onclick="saveTransaction()" style="min-width: 100px;">
+                    <span id="saveTransactionText">Add</span>
+                    <div class="loading-spinner" id="saveSpinner" style="display: none;"></div>
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Component JavaScript -->
+    <script src="../../../components/base/toss-button.js"></script>
+    <script src="../../../components/form/toss-input.js"></script>
+    <script src="../../../components/form/toss-select.js"></script>
+    <script src="../../../components/layout/toss-modal.js"></script>
+    <script src="../../../components/navigation/navbar.js"></script>
+    <script src="../../../components/feedback/toss-alert.js"></script>
+    
+    <!-- Core Scripts -->
+    <script src="../../../core/constants/app-icons.js"></script>
+    <script src="../../../core/config/supabase.js"></script>
+    
+    <!-- App State Management -->
+    <script src="../../../core/utils/app-state.js"></script>
+    
+    <!-- Route Mapping -->
+    <script src="../../../core/config/route-mapping.js"></script>
+    
+    <!-- Page Initialization Utility -->
+    <script src="../../../core/utils/page-init.js"></script>
+    
+    <!-- Journal Input JavaScript -->
+    <script>
+        // Data Models
+        class TransactionLine {
+            constructor() {
+                this.accountId = null;
+                this.accountName = null;
+                this.categoryTag = null;
+                this.description = null;
+                this.amount = 0;
+                this.isDebit = true;
+                this.counterpartyId = null;
+                this.counterpartyName = null;
+                this.counterpartyStoreId = null;
+                this.counterpartyStoreName = null;
+                this.cashLocationId = null;
+                this.cashLocationName = null;
+                this.cashLocationType = null;
+                this.linkedCompanyId = null;
+                // Debt fields
+                this.debtCategory = null;
+                this.interestRate = null;
+                this.issueDate = null;
+                this.dueDate = null;
+                this.debtDescription = null;
+                // Fixed asset fields
+                this.fixedAssetName = null;
+                this.salvageValue = null;
+                this.acquisitionDate = null;
+                this.usefulLife = null;
+                this.accountMapping = null;
+            }
+
+            toJson() {
+                const json = {
+                    account_id: this.accountId,
+                    description: this.description,
+                    debit: this.isDebit ? this.amount.toString() : '0',
+                    credit: !this.isDebit ? this.amount.toString() : '0'
+                };
+
+                // Add counterparty if present
+                if (this.counterpartyId) {
+                    json.counterparty_id = this.counterpartyId;
+                }
+
+                // Add cash location if it's a cash account
+                if (this.categoryTag === 'cash' && this.cashLocationId) {
+                    json.cash = {
+                        cash_location_id: this.cashLocationId
+                    };
+                }
+
+                // Add debt information if it's payable/receivable
+                if ((this.categoryTag === 'payable' || this.categoryTag === 'receivable') && 
+                    this.counterpartyId && (this.debtCategory || this.interestRate)) {
+                    const issueDate = this.issueDate || new Date();
+                    const dueDate = this.dueDate || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+                    
+                    json.debt = {
+                        direction: this.categoryTag,
+                        category: this.debtCategory || 'other',
+                        counterparty_id: this.counterpartyId,
+                        original_amount: this.amount.toString(),
+                        interest_rate: (this.interestRate || 0).toString(),
+                        interest_account_id: '',
+                        interest_due_day: 0,
+                        issue_date: issueDate.toISOString().split('T')[0],
+                        due_date: dueDate.toISOString().split('T')[0],
+                        description: this.debtDescription || '',
+                        linkedCounterparty_store_id: this.counterpartyStoreId || '',
+                        linkedCounterparty_companyId: this.linkedCompanyId || ''
+                    };
+                }
+
+                // Add fixed asset information if it's a fixed asset
+                if (this.categoryTag === 'fixedasset' && this.fixedAssetName) {
+                    const acquisitionDate = this.acquisitionDate || new Date();
+                    
+                    json.fix_asset = {
+                        asset_name: this.fixedAssetName,
+                        salvage_value: (this.salvageValue || 0).toString(),
+                        acquire_date: acquisitionDate.toISOString().split('T')[0],
+                        useful_life: (this.usefulLife || 5).toString()
+                    };
+                }
+
+                // Add account mapping if available
+                if (this.accountMapping) {
+                    json.account_mapping = this.accountMapping;
+                }
+
+                return json;
+            }
+        }
+
+        class JournalEntry {
+            constructor() {
+                this.transactionLines = [];
+                this.entryDate = new Date();
+                this.overallDescription = null;
+                this.selectedCompanyId = null;
+                this.selectedStoreId = null;
+                this.counterpartyCashLocationId = null;
+            }
+
+            get totalDebits() {
+                return this.transactionLines
+                    .filter(line => line.isDebit)
+                    .reduce((sum, line) => sum + line.amount, 0);
+            }
+
+            get totalCredits() {
+                return this.transactionLines
+                    .filter(line => !line.isDebit)
+                    .reduce((sum, line) => sum + line.amount, 0);
+            }
+
+            get difference() {
+                return this.totalDebits - this.totalCredits;
+            }
+
+            get isBalanced() {
+                return Math.abs(this.difference) < 0.01;
+            }
+
+            get debitCount() {
+                return this.transactionLines.filter(line => line.isDebit).length;
+            }
+
+            get creditCount() {
+                return this.transactionLines.filter(line => !line.isDebit).length;
+            }
+
+            addTransactionLine(line) {
+                this.transactionLines.push(line);
+                this.updateUI();
+            }
+
+            removeTransactionLine(index) {
+                if (index >= 0 && index < this.transactionLines.length) {
+                    this.transactionLines.splice(index, 1);
+                    this.updateUI();
+                }
+            }
+
+            updateTransactionLine(index, line) {
+                if (index >= 0 && index < this.transactionLines.length) {
+                    this.transactionLines[index] = line;
+                    this.updateUI();
+                }
+            }
+
+            clear() {
+                this.transactionLines = [];
+                this.entryDate = new Date();
+                this.overallDescription = null;
+                this.counterpartyCashLocationId = null;
+                this.updateUI();
+            }
+
+            canSubmit() {
+                return this.transactionLines.length > 0 && 
+                       this.isBalanced && 
+                       this.selectedCompanyId;
+            }
+
+            updateUI() {
+                updateBalanceSummary();
+                renderTransactionLines();
+                updateSubmitButton();
+            }
+        }
+
+        // Global state
+        let journalEntry = new JournalEntry();
+        let accounts = [];
+        let currentEditIndex = -1;
+
+        // Initialize page
+        window.skipNavbarAutoInit = true;
+
+        window.initializePage('finance', (companyId, company) => {
+            console.log('Company changed in journal input:', companyId);
+            journalEntry.selectedCompanyId = companyId;
+            loadJournalInputData(companyId, company);
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Initialize date
+            document.getElementById('journalDate').textContent = 
+                journalEntry.entryDate.toISOString().split('T')[0];
+            
+            // Initialize Supabase client if not already available
+            if (!window.supabaseClient && window.supabase && window.supabase.createClient) {
+                window.supabaseClient = window.supabase.createClient(
+                    'https://atkekzwgukdvucqntryo.supabase.co', 
+                    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF0a2VrendndWtkdnVjcW50cnlvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI4OTQwMjIsImV4cCI6MjA1ODQ3MDAyMn0.G4WqAmLvQSqYEfMWIpFOAZOYtnT0kxCxj8dVGhuUYO8'
+                );
+                console.log('Supabase client initialized for journal input page');
+            }
+            
+            // Wait for page initialization to complete
+            setTimeout(() => {
+                const companyId = appState.getSelectedCompanyId();
+                const company = appState.getSelectedCompany();
+                if (companyId) {
+                    journalEntry.selectedCompanyId = companyId;
+                    loadJournalInputData(companyId, company);
+                } else {
+                    // Even if no company, still try to load accounts from database
+                    loadAccounts();
+                }
+            }, 100);
+        });
+
+        // Load journal input data for company
+        async function loadJournalInputData(companyId, company) {
+            console.log('Loading journal input for company:', companyId);
+            
+            // Update company info display
+            if (company) {
+                const companyInfo = document.getElementById('companyInfo');
+                const companyName = document.getElementById('companyName');
+                const storeName = document.getElementById('storeName');
+                
+                companyName.textContent = company.company_name || 'Company';
+                companyInfo.style.display = 'flex';
+                
+                // Update store info if available
+                const storeId = appState.getSelectedStoreId();
+                const store = appState.getSelectedStore();
+                if (store && store.store_name) {
+                    storeName.textContent = ` • ${store.store_name}`;
+                    storeName.style.display = 'inline';
+                    journalEntry.selectedStoreId = storeId;
+                } else {
+                    storeName.style.display = 'none';
+                    journalEntry.selectedStoreId = null;
+                }
+            }
+            
+            // Load accounts
+            await loadAccounts();
+            
+            // Update UI
+            journalEntry.updateUI();
+        }
+
+        // Load accounts from database
+        async function loadAccounts() {
+            console.log('=== Starting loadAccounts ===');
+            console.log('Selected company ID:', journalEntry.selectedCompanyId);
+            console.log('Supabase client available:', !!window.supabaseClient);
+            
+            try {
+                // First, try to get supabaseClient from window
+                let client = window.supabaseClient;
+                
+                // If not available, try to get from global supabase object
+                if (!client && window.supabase && window.supabase.createClient) {
+                    console.log('Creating new Supabase client');
+                    client = window.supabase.createClient(
+                        'https://atkekzwgukdvucqntryo.supabase.co', 
+                        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF0a2VrendndWtkdnVjcW50cnlvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI4OTQwMjIsImV4cCI6MjA1ODQ3MDAyMn0.G4WqAmLvQSqYEfMWIpFOAZOYtnT0kxCxj8dVGhuUYO8'
+                    );
+                    window.supabaseClient = client; // Store for reuse
+                } else if (!client && window.supabase) {
+                    console.log('Using existing supabase client from global');
+                    client = window.supabase;
+                }
+
+                if (!client) {
+                    console.error('❌ Supabase client not available, cannot load accounts from database');
+                    throw new Error('Supabase client unavailable');
+                }
+
+                console.log('✅ Supabase client ready, making database query...');
+
+                // Load ALL accounts from database (accounts table doesn't have company_id)
+                console.log('📋 Loading ALL accounts from database...');
+                
+                const { data, error } = await client
+                    .from('accounts')
+                    .select('account_id, account_name, category_tag, account_type')
+                    .order('account_name');
+                
+                console.log('📊 Query result:', { 
+                    accountsFound: data?.length || 0, 
+                    error,
+                    sampleData: data?.slice(0, 3)
+                });
+                
+                if (error) {
+                    console.error('❌ Database error:', error);
+                    throw error;
+                }
+                
+                accounts = data || [];
+                console.log(`🎯 Final result: ${accounts.length} accounts loaded`);
+                console.log('📄 Sample accounts:', accounts.slice(0, 5));
+                
+                // Group accounts by type for better display
+                const accountsByType = {};
+                accounts.forEach(account => {
+                    const type = account.account_type || 'other';
+                    if (!accountsByType[type]) {
+                        accountsByType[type] = [];
+                    }
+                    accountsByType[type].push(account);
+                });
+                console.log('📊 Accounts grouped by type:', Object.keys(accountsByType).map(type => `${type}: ${accountsByType[type].length}`));
+                
+            } catch (error) {
+                console.error('💥 Exception in loadAccounts:', error);
+                console.error('❌ Failed to load accounts from database');
+                accounts = []; // Set empty array
+                
+                // Show error message to user
+                showAlert('Failed to load accounts. Please check your connection and try again.', 'error');
+            }
+            
+            console.log(`=== Finished loadAccounts: ${accounts.length} accounts available ===`);
+        }
+
+        // Demo accounts function removed - using only real database accounts
+        
+        // Debug function to manually test database connection
+        window.debugDatabaseConnection = async function() {
+            console.log('=== DEBUG: Testing Database Connection ===');
+            try {
+                let client = window.supabaseClient;
+                if (!client && window.supabase && window.supabase.createClient) {
+                    client = window.supabase.createClient(
+                        'https://atkekzwgukdvucqntryo.supabase.co', 
+                        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF0a2VrendndWtkdnVjcW50cnlvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI4OTQwMjIsImV4cCI6MjA1ODQ3MDAyMn0.G4WqAmLvQSqYEfMWIpFOAZOYtnT0kxCxj8dVGhuUYO8'
+                    );
+                }
+                
+                if (!client) {
+                    console.error('❌ No Supabase client available');
+                    return;
+                }
+                
+                console.log('✅ Testing database query...');
+                const { data, error } = await client
+                    .from('accounts')
+                    .select('account_id, account_name, category_tag')
+                    .order('account_name');
+                
+                console.log('🔍 Database query result:', { data, error });
+                console.log('📊 Found', data?.length || 0, 'accounts in database');
+                
+                if (data && data.length > 0) {
+                    console.log('✅ Sample accounts:', data.slice(0, 3));
+                } else if (error) {
+                    console.error('❌ Database error:', error);
+                } else {
+                    console.warn('⚠️  Database is empty - no accounts found');
+                }
+                
+            } catch (err) {
+                console.error('💥 Debug function error:', err);
+            }
+            console.log('=== END DEBUG ===');
+        };
+        
+        // Call debug function on page load
+        setTimeout(() => {
+            console.log('🔧 Running automatic database connection test...');
+            window.debugDatabaseConnection();
+        }, 2000);
+
+        // Format currency amount
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('en-US', {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 2
+            }).format(amount);
+        }
+
+        // Format amount input with thousand separators
+        function formatAmount(input) {
+            let value = input.value.replace(/,/g, '');
+            
+            // Check if it's a valid number format
+            if (!/^\d*\.?\d*$/.test(value)) {
+                return;
+            }
+            
+            // Split by decimal point
+            const parts = value.split('.');
+            let integerPart = parts[0];
+            
+            // Add thousand separators
+            if (integerPart) {
+                integerPart = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+            }
+            
+            // Combine parts
+            let formattedValue = integerPart;
+            if (parts.length > 1) {
+                const decimalPart = parts[1].substring(0, 2); // Limit to 2 decimal places
+                formattedValue = `${integerPart}.${decimalPart}`;
+            }
+            
+            input.value = formattedValue;
+        }
+
+        // Parse formatted amount to number
+        function parseAmount(formattedAmount) {
+            return parseFloat(formattedAmount.replace(/,/g, '')) || 0;
+        }
+
+        // Update balance summary
+        function updateBalanceSummary() {
+            document.getElementById('totalDebits').textContent = formatCurrency(journalEntry.totalDebits);
+            document.getElementById('totalCredits').textContent = formatCurrency(journalEntry.totalCredits);
+            document.getElementById('debitCount').textContent = `${journalEntry.debitCount} items`;
+            document.getElementById('creditCount').textContent = `${journalEntry.creditCount} items`;
+            
+            const differenceElement = document.getElementById('difference');
+            differenceElement.textContent = formatCurrency(Math.abs(journalEntry.difference));
+            
+            if (journalEntry.isBalanced) {
+                differenceElement.className = 'balance-amount difference';
+            } else {
+                differenceElement.className = 'balance-amount difference unbalanced';
+            }
+        }
+
+        // Render transaction lines
+        function renderTransactionLines() {
+            const container = document.getElementById('transactionLines');
+            const emptyState = document.getElementById('emptyState');
+            
+            if (journalEntry.transactionLines.length === 0) {
+                container.innerHTML = '';
+                emptyState.style.display = 'block';
+                return;
+            }
+            
+            emptyState.style.display = 'none';
+            
+            container.innerHTML = journalEntry.transactionLines.map((line, index) => `
+                <div class="transaction-line-card ${line.isDebit ? 'debit' : 'credit'}">
+                    <div class="transaction-line-header ${line.isDebit ? 'debit' : 'credit'}">
+                        <div class="transaction-line-type ${line.isDebit ? 'debit' : 'credit'}">
+                            ${line.isDebit ? 'DEBIT' : 'CREDIT'}
+                        </div>
+                        <div class="transaction-line-account">${line.accountName || 'No Account Selected'}</div>
+                        <div class="transaction-line-amount ${line.isDebit ? 'debit' : 'credit'}">
+                            ${formatCurrency(line.amount)}
+                        </div>
+                    </div>
+                    <div class="transaction-line-body">
+                        ${line.description ? `
+                            <div class="transaction-line-description">
+                                <svg class="icon" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M14,10H19.5L14,4.5V10M5,3H15L21,9V19A2,2 0 0,1 19,21H5C3.89,21 3,20.1 3,19V5C3,3.89 3.89,3 5,3M9,12H16V14H9V12M9,16H14V18H9V16Z"/>
+                                </svg>
+                                <span>${line.description}</span>
+                            </div>
+                        ` : ''}
+                        <div class="transaction-line-tags">
+                            ${line.categoryTag ? `
+                                <div class="transaction-tag category">
+                                    <svg class="icon" viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M17.63,5.84C17.27,5.33 16.67,5 16,5L5,5.01C3.9,5.01 3,5.9 3,7V17C3,18.1 3.9,19 5,19H16C16.67,19 17.27,18.67 17.63,18.16L22,12L17.63,5.84Z"/>
+                                    </svg>
+                                    ${formatCategoryTag(line.categoryTag)}
+                                </div>
+                            ` : ''}
+                            ${line.cashLocationName ? `
+                                <div class="transaction-tag cash">
+                                    <svg class="icon" viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M11,8C11,9.66 9.66,11 8,11C6.34,11 5,9.66 5,8C5,6.34 6.34,5 8,5C9.66,5 11,6.34 11,8M14,20H2V18C2,15.79 4.69,14 8,14C11.31,14 14,15.79 14,18V20M22,8V18H24V8H22M18,10V16H20V10H18M16,13V16H17V13H16Z"/>
+                                    </svg>
+                                    ${line.cashLocationName}${line.cashLocationType ? ` (${line.cashLocationType})` : ''}
+                                </div>
+                            ` : ''}
+                            ${line.counterpartyName ? `
+                                <div class="transaction-tag counterparty">
+                                    <svg class="icon" viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4M12,6A6,6 0 0,0 6,12A6,6 0 0,0 12,18A6,6 0 0,0 18,12A6,6 0 0,0 12,6Z"/>
+                                    </svg>
+                                    ${line.counterpartyName}
+                                </div>
+                            ` : ''}
+                        </div>
+                        <div class="transaction-line-actions">
+                            <button class="transaction-action-btn edit" onclick="editTransaction(${index})">
+                                <svg class="icon" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M20.71,7.04C21.1,6.65 21.1,6 20.71,5.63L18.37,3.29C18,2.9 17.35,2.9 16.96,3.29L15.12,5.12L18.87,8.87M3,17.25V21H6.75L17.81,9.93L14.06,6.18L3,17.25Z"/>
+                                </svg>
+                                Edit
+                            </button>
+                            <button class="transaction-action-btn delete" onclick="deleteTransaction(${index})">
+                                <svg class="icon" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z"/>
+                                </svg>
+                                Delete
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Format category tag for display
+        function formatCategoryTag(categoryTag) {
+            switch (categoryTag.toLowerCase()) {
+                case 'fixedasset': return 'Fixed Asset';
+                default: return categoryTag.charAt(0).toUpperCase() + categoryTag.slice(1);
+            }
+        }
+
+        // Update submit button state
+        function updateSubmitButton() {
+            const submitBtn = document.getElementById('submitBtn');
+            const canSubmit = journalEntry.canSubmit();
+            
+            submitBtn.disabled = !canSubmit;
+            
+            if (canSubmit) {
+                submitBtn.textContent = 'Submit Journal Entry';
+            } else if (journalEntry.transactionLines.length === 0) {
+                submitBtn.textContent = 'Add transactions to submit';
+            } else if (!journalEntry.isBalanced) {
+                submitBtn.textContent = 'Balance debits and credits';
+            } else {
+                submitBtn.textContent = 'Submit Journal Entry';
+            }
+        }
+
+        // Update journal description
+        function updateJournalDescription(description) {
+            journalEntry.overallDescription = description || null;
+        }
+
+        // Open transaction modal
+        function openTransactionModal(isDebit = null) {
+            currentEditIndex = -1;
+            
+            // Set default transaction type based on balance difference
+            let defaultIsDebit = true;
+            if (isDebit !== null) {
+                defaultIsDebit = isDebit;
+            } else if (journalEntry.totalDebits < journalEntry.totalCredits) {
+                defaultIsDebit = true;
+            } else if (journalEntry.totalCredits < journalEntry.totalDebits) {
+                defaultIsDebit = false;
+            }
+            
+            // Reset form
+            resetTransactionForm();
+            setTransactionType(defaultIsDebit);
+            
+            // Set suggested amount if there's a difference
+            if (Math.abs(journalEntry.difference) > 0.01) {
+                document.getElementById('amountInput').value = formatCurrency(Math.abs(journalEntry.difference));
+            }
+            
+            document.getElementById('modalTitle').textContent = 'Add Transaction';
+            document.getElementById('saveTransactionText').textContent = 'Add';
+            
+            // Show modal
+            showModal('transactionModal');
+        }
+
+        // Edit transaction
+        function editTransaction(index) {
+            currentEditIndex = index;
+            const line = journalEntry.transactionLines[index];
+            
+            // Reset form and populate with existing data
+            resetTransactionForm();
+            setTransactionType(line.isDebit);
+            
+            // Set account
+            if (line.accountId) {
+                const accountSelect = document.getElementById('accountSelect');
+                accountSelect.querySelector('.toss-select-value').textContent = line.accountName;
+                accountSelect.querySelector('.toss-select-value').classList.remove('toss-select-placeholder');
+                accountSelect.dataset.accountId = line.accountId;
+                accountSelect.dataset.categoryTag = line.categoryTag;
+                
+                // Load conditional fields for the account type
+                loadConditionalFields(line.categoryTag, line);
+            }
+            
+            // Set amount and description
+            document.getElementById('amountInput').value = formatCurrency(line.amount);
+            document.getElementById('descriptionInput').value = line.description || '';
+            
+            document.getElementById('modalTitle').textContent = 'Edit Transaction';
+            document.getElementById('saveTransactionText').textContent = 'Update';
+            
+            // Show modal
+            showModal('transactionModal');
+        }
+
+        // Delete transaction
+        function deleteTransaction(index) {
+            if (confirm('Are you sure you want to delete this transaction?')) {
+                journalEntry.removeTransactionLine(index);
+            }
+        }
+
+        // Close transaction modal
+        function closeTransactionModal() {
+            hideModal('transactionModal');
+        }
+
+        // Reset transaction form
+        function resetTransactionForm() {
+            document.getElementById('transactionForm').reset();
+            document.getElementById('accountSelect').querySelector('.toss-select-value').textContent = 'Select account';
+            document.getElementById('accountSelect').querySelector('.toss-select-value').classList.add('toss-select-placeholder');
+            document.getElementById('accountSelect').dataset.accountId = '';
+            document.getElementById('accountSelect').dataset.categoryTag = '';
+            document.getElementById('conditionalFields').innerHTML = '';
+        }
+
+        // Set transaction type
+        function setTransactionType(isDebit) {
+            const toggle = document.getElementById('typeToggle');
+            const options = toggle.querySelectorAll('.transaction-type-option');
+            
+            if (isDebit) {
+                toggle.classList.remove('credit');
+                options[0].classList.add('active');
+                options[1].classList.remove('active');
+            } else {
+                toggle.classList.add('credit');
+                options[0].classList.remove('active');
+                options[1].classList.add('active');
+            }
+            
+            toggle.dataset.isDebit = isDebit;
+        }
+
+        // Open account search dropdown - simple list view
+        function openAccountSearch(event) {
+            // Prevent form submission if this function is called from a form button
+            if (event) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            
+            console.log('Opening account search, accounts available:', accounts.length);
+            
+            const accountSelect = document.getElementById('accountSelect');
+            if (!accountSelect) {
+                console.error('Account select element not found');
+                return;
+            }
+            
+            const existingMenu = document.querySelector('.account-search-menu');
+            
+            if (existingMenu) {
+                console.log('Closing existing menu');
+                existingMenu.remove();
+                return;
+            }
+            
+            console.log('Creating account dropdown menu');
+            
+            const menu = document.createElement('div');
+            menu.className = 'toss-select-menu toss-select-menu-show account-search-menu';
+            menu.style.position = 'absolute';
+            menu.style.top = 'calc(100% + 4px)';
+            menu.style.left = '0';
+            menu.style.right = '0';
+            menu.style.zIndex = '1200';
+            menu.style.maxHeight = '400px';
+            menu.style.overflowY = 'auto';
+            
+            // Add search input at the top
+            const searchContainer = document.createElement('div');
+            searchContainer.style.padding = 'var(--space-3)';
+            searchContainer.style.borderBottom = '1px solid var(--toss-gray-200)';
+            searchContainer.style.position = 'sticky';
+            searchContainer.style.top = '0';
+            searchContainer.style.background = 'var(--toss-white)';
+            searchContainer.style.zIndex = '1';
+            
+            const searchInput = document.createElement('input');
+            searchInput.type = 'text';
+            searchInput.placeholder = 'Search accounts...';
+            searchInput.className = 'toss-input';
+            searchInput.style.width = '100%';
+            searchContainer.appendChild(searchInput);
+            menu.appendChild(searchContainer);
+            
+            const optionsContainer = document.createElement('div');
+            optionsContainer.className = 'toss-select-options';
+            
+            if (accounts.length === 0) {
+                const emptyOption = document.createElement('div');
+                emptyOption.className = 'toss-select-option';
+                emptyOption.innerHTML = `
+                    <div class="toss-select-option-content">
+                        <div class="toss-select-option-label" style="color: var(--toss-gray-500); font-style: italic;">No accounts found</div>
+                        <div class="toss-select-option-description" style="color: var(--toss-gray-400); font-size: var(--font-small);">
+                            No accounts exist for this company
+                        </div>
+                    </div>
+                `;
+                optionsContainer.appendChild(emptyOption);
+            } else {
+                // Simple list - all accounts sorted alphabetically
+                accounts.forEach(account => {
+                    const option = document.createElement('div');
+                    option.className = 'toss-select-option account-option';
+                    option.dataset.accountName = account.account_name.toLowerCase();
+                    
+                    // Format category tag with color
+                    let categoryColor = 'var(--toss-gray-500)';
+                    let categoryIcon = '';
+                    if (account.category_tag) {
+                        switch(account.category_tag.toLowerCase()) {
+                            case 'cash': 
+                                categoryIcon = '📥';
+                                categoryColor = 'var(--toss-success)';
+                                break;
+                            case 'payable': 
+                                categoryColor = 'var(--toss-error)';
+                                break;
+                            case 'receivable': 
+                                categoryIcon = '📥';
+                                categoryColor = 'var(--toss-primary)';
+                                break;
+                            case 'fixedasset': 
+                                categoryColor = 'var(--toss-info)';
+                                break;
+                            case 'equity': 
+                                categoryColor = 'var(--toss-warning)';
+                                break;
+                            case 'retained':
+                                categoryColor = 'var(--toss-purple)';
+                                break;
+                            case 'contra_asset':
+                                categoryColor = 'var(--toss-gray-600)';
+                                break;
+                        }
+                    }
+                    
+                    option.innerHTML = `
+                        <div class="toss-select-option-content" style="display: flex; align-items: center; justify-content: space-between; padding: var(--space-3) var(--space-4);">
+                            <div class="toss-select-option-label" style="font-weight: 500; color: var(--toss-gray-900);">
+                                ${account.account_name}
+                            </div>
+                            ${account.category_tag ? `
+                                <div style="display: flex; align-items: center; gap: 6px;">
+                                    ${categoryIcon ? `<span style="font-size: 14px;">${categoryIcon}</span>` : ''}
+                                    <span style="font-size: var(--font-small); color: ${categoryColor}; font-weight: 500;">
+                                        ${formatCategoryTag(account.category_tag)}
+                                    </span>
+                                </div>
+                            ` : ''}
+                        </div>
+                    `;
+                    
+                    option.onclick = () => {
+                        selectAccount(account);
+                        menu.remove();
+                    };
+                    
+                    optionsContainer.appendChild(option);
+                });
+                
+                // Add search functionality
+                searchInput.oninput = (e) => {
+                    const searchTerm = e.target.value.toLowerCase();
+                    const allOptions = optionsContainer.querySelectorAll('.account-option');
+                    
+                    allOptions.forEach(opt => {
+                        const accountName = opt.dataset.accountName;
+                        if (accountName.includes(searchTerm)) {
+                            opt.style.display = 'block';
+                        } else {
+                            opt.style.display = 'none';
+                        }
+                    });
+                };
+            }
+            
+            menu.appendChild(optionsContainer);
+            accountSelect.parentElement.appendChild(menu);
+            
+            // Focus search input
+            setTimeout(() => searchInput?.focus(), 10);
+            
+            console.log('Menu created with', accounts.length, 'accounts');
+            
+            // Close menu when clicking outside
+            setTimeout(() => {
+                document.addEventListener('click', function closeMenu(e) {
+                    if (!accountSelect.parentElement.contains(e.target)) {
+                        menu.remove();
+                        document.removeEventListener('click', closeMenu);
+                    }
+                });
+            }, 0);
+        }
+
+        // Select account
+        function selectAccount(account) {
+            console.log('Selecting account:', account);
+            
+            const accountSelect = document.getElementById('accountSelect');
+            if (!accountSelect) {
+                console.error('Account select element not found');
+                return;
+            }
+            
+            const valueElement = accountSelect.querySelector('.toss-select-value');
+            if (valueElement) {
+                valueElement.textContent = account.account_name;
+                valueElement.classList.remove('toss-select-placeholder');
+            }
+            
+            accountSelect.dataset.accountId = account.account_id;
+            accountSelect.dataset.categoryTag = account.category_tag || '';
+            
+            console.log('Account selected:', {
+                id: account.account_id,
+                name: account.account_name,
+                category: account.category_tag
+            });
+            
+            // Load conditional fields based on account type
+            loadConditionalFields(account.category_tag);
+        }
+
+        // Load conditional fields based on account type
+        function loadConditionalFields(categoryTag, existingData = null) {
+            const container = document.getElementById('conditionalFields');
+            container.innerHTML = '';
+            
+            if (!categoryTag) return;
+            
+            // Cash account fields
+            if (categoryTag === 'cash') {
+                container.innerHTML = `
+                    <div class="transaction-form-section">
+                        <div class="transaction-form-title">Cash Location</div>
+                        <div class="toss-select-container toss-select-full">
+                            <button type="button" class="toss-select" id="cashLocationSelect" onclick="openCashLocationSearch()">
+                                <span class="toss-select-value toss-select-placeholder">Select cash location</span>
+                                <svg class="toss-select-arrow" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M7,10L12,15L17,10H7Z"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                `;
+                
+                if (existingData && existingData.cashLocationId) {
+                    const select = document.getElementById('cashLocationSelect');
+                    select.querySelector('.toss-select-value').textContent = existingData.cashLocationName;
+                    select.querySelector('.toss-select-value').classList.remove('toss-select-placeholder');
+                    select.dataset.locationId = existingData.cashLocationId;
+                }
+            }
+            
+            // Payable/Receivable fields
+            if (categoryTag === 'payable' || categoryTag === 'receivable') {
+                container.innerHTML = `
+                    <div class="transaction-form-section">
+                        <div class="transaction-form-title">Counterparty</div>
+                        <div class="toss-select-container toss-select-full">
+                            <button type="button" class="toss-select" id="counterpartySelect" onclick="openCounterpartySearch()">
+                                <span class="toss-select-value toss-select-placeholder">Select counterparty</span>
+                                <svg class="toss-select-arrow" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M7,10L12,15L17,10H7Z"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="transaction-form-section">
+                            <div class="transaction-form-title">Debt Category</div>
+                            <div class="toss-select-container toss-select-full">
+                                <select class="toss-input" id="debtCategory">
+                                    <option value="">Select category</option>
+                                    <option value="note">Note</option>
+                                    <option value="account">Account</option>
+                                    <option value="loan">Loan</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="transaction-form-section">
+                            <div class="transaction-form-title">Interest Rate (%)</div>
+                            <div class="toss-input-group">
+                                <input type="number" id="interestRate" class="toss-input" placeholder="0" step="0.01" min="0">
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                if (existingData) {
+                    if (existingData.counterpartyId) {
+                        const select = document.getElementById('counterpartySelect');
+                        select.querySelector('.toss-select-value').textContent = existingData.counterpartyName;
+                        select.querySelector('.toss-select-value').classList.remove('toss-select-placeholder');
+                        select.dataset.counterpartyId = existingData.counterpartyId;
+                    }
+                    if (existingData.debtCategory) {
+                        document.getElementById('debtCategory').value = existingData.debtCategory;
+                    }
+                    if (existingData.interestRate) {
+                        document.getElementById('interestRate').value = existingData.interestRate;
+                    }
+                }
+            }
+        }
+
+        // Open cash location search (simplified)
+        function openCashLocationSearch() {
+            // For demo purposes, show a simple alert
+            alert('Cash location selection would be implemented here');
+        }
+
+        // Open counterparty search (simplified)
+        function openCounterpartySearch() {
+            // For demo purposes, show a simple alert
+            alert('Counterparty selection would be implemented here');
+        }
+
+        // Save transaction
+        function saveTransaction() {
+            const accountSelect = document.getElementById('accountSelect');
+            const amountInput = document.getElementById('amountInput');
+            const descriptionInput = document.getElementById('descriptionInput');
+            const typeToggle = document.getElementById('typeToggle');
+            
+            // Validate required fields
+            if (!accountSelect.dataset.accountId) {
+                showAlert('Please select an account', 'error');
+                return;
+            }
+            
+            const amount = parseAmount(amountInput.value);
+            if (!amount || amount <= 0) {
+                showAlert('Please enter a valid amount', 'error');
+                return;
+            }
+            
+            // Create transaction line
+            const line = new TransactionLine();
+            line.accountId = accountSelect.dataset.accountId;
+            line.accountName = accountSelect.querySelector('.toss-select-value').textContent;
+            line.categoryTag = accountSelect.dataset.categoryTag;
+            line.amount = amount;
+            line.isDebit = typeToggle.dataset.isDebit === 'true';
+            line.description = descriptionInput.value || null;
+            
+            // Add conditional field data
+            const categoryTag = accountSelect.dataset.categoryTag;
+            
+            if (categoryTag === 'cash') {
+                const cashLocationSelect = document.getElementById('cashLocationSelect');
+                if (cashLocationSelect && cashLocationSelect.dataset.locationId) {
+                    line.cashLocationId = cashLocationSelect.dataset.locationId;
+                    line.cashLocationName = cashLocationSelect.querySelector('.toss-select-value').textContent;
+                }
+            }
+            
+            if (categoryTag === 'payable' || categoryTag === 'receivable') {
+                const counterpartySelect = document.getElementById('counterpartySelect');
+                if (counterpartySelect && counterpartySelect.dataset.counterpartyId) {
+                    line.counterpartyId = counterpartySelect.dataset.counterpartyId;
+                    line.counterpartyName = counterpartySelect.querySelector('.toss-select-value').textContent;
+                }
+                
+                const debtCategory = document.getElementById('debtCategory');
+                const interestRate = document.getElementById('interestRate');
+                if (debtCategory) line.debtCategory = debtCategory.value || null;
+                if (interestRate) line.interestRate = parseFloat(interestRate.value) || null;
+            }
+            
+            // Add or update transaction
+            if (currentEditIndex >= 0) {
+                journalEntry.updateTransactionLine(currentEditIndex, line);
+            } else {
+                journalEntry.addTransactionLine(line);
+            }
+            
+            // Close modal
+            closeTransactionModal();
+        }
+
+        // Submit journal entry
+        async function submitJournalEntry() {
+            if (!journalEntry.canSubmit()) {
+                showAlert('Journal entry cannot be submitted. Please ensure transactions are balanced.', 'error');
+                return;
+            }
+            
+            const submitBtn = document.getElementById('submitBtn');
+            const submitSpinner = document.getElementById('submitSpinner');
+            const submitBtnText = document.getElementById('submitBtnText');
+            
+            // Show loading state
+            submitBtn.disabled = true;
+            submitSpinner.style.display = 'inline-block';
+            submitBtnText.textContent = 'Submitting...';
+            
+            try {
+                // Get Supabase client
+                let client = window.supabaseClient;
+                if (!client && window.supabase && window.supabase.createClient) {
+                    client = window.supabase.createClient(
+                        'https://atkekzwgukdvucqntryo.supabase.co', 
+                        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF0a2VrendndWtkdnVjcW50cnlvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI4OTQwMjIsImV4cCI6MjA1ODQ3MDAyMn0.G4WqAmLvQSqYEfMWIpFOAZOYtnT0kxCxj8dVGhuUYO8'
+                    );
+                }
+                if (!client) throw new Error('Supabase client not available');
+                
+                // Get current user
+                const { data: { user }, error: userError } = await client.auth.getUser();
+                if (userError) throw userError;
+                if (!user) throw new Error('User not authenticated');
+                
+                // Prepare journal entry data
+                const currentTime = new Date();
+                const entryDate = currentTime.toISOString();
+                
+                const pLines = journalEntry.transactionLines.map(line => line.toJson());
+                
+                // Determine main counterparty (if any)
+                let mainCounterpartyId = null;
+                for (const line of journalEntry.transactionLines) {
+                    if (line.counterpartyId) {
+                        mainCounterpartyId = line.counterpartyId;
+                        break;
+                    }
+                }
+                
+                // Call the journal RPC
+                const { data, error } = await client.rpc('insert_journal_with_everything', {
+                    p_base_amount: journalEntry.totalDebits,
+                    p_company_id: journalEntry.selectedCompanyId,
+                    p_created_by: user.id,
+                    p_description: journalEntry.overallDescription,
+                    p_entry_date: entryDate,
+                    p_lines: pLines,
+                    p_counterparty_id: mainCounterpartyId,
+                    p_if_cash_location_id: journalEntry.counterpartyCashLocationId,
+                    p_store_id: journalEntry.selectedStoreId
+                });
+                
+                if (error) throw error;
+                
+                // Show success message
+                showAlert('Journal entry created successfully!', 'success');
+                
+                // Clear the form
+                journalEntry.clear();
+                document.getElementById('journalDescription').value = '';
+                
+            } catch (error) {
+                console.error('Error submitting journal entry:', error);
+                showAlert('Error creating journal entry: ' + error.message, 'error');
+            } finally {
+                // Reset button state
+                submitBtn.disabled = false;
+                submitSpinner.style.display = 'none';
+                submitBtnText.textContent = 'Submit Journal Entry';
+                updateSubmitButton();
+            }
+        }
+
+        // Show alert (placeholder for actual alert system)
+        function showAlert(message, type = 'info') {
+            // This would integrate with your actual alert system
+            console.log(`${type.toUpperCase()}: ${message}`);
+            alert(message);
+        }
+
+        // Show modal
+        function showModal(modalId) {
+            const modal = document.getElementById(modalId);
+            modal.classList.add('show');
+            document.body.style.overflow = 'hidden';
+        }
+
+        // Hide modal
+        function hideModal(modalId) {
+            const modal = document.getElementById(modalId);
+            modal.classList.remove('show');
+            document.body.style.overflow = '';
+        }
+    </script>
+</body>
+</html>

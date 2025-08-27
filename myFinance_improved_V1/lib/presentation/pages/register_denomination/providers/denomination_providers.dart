@@ -144,10 +144,12 @@ class DenominationOperationsNotifier extends StateNotifier<AsyncValue<void>> {
   }
 
   Future<void> removeDenomination(String denominationId, String currencyId) async {
+    print('DenominationOperationsNotifier: Starting removal of denomination $denominationId');
     state = const AsyncValue.loading();
     
     try {
       await _repository.removeDenomination(denominationId);
+      print('DenominationOperationsNotifier: Successfully removed denomination $denominationId');
       
       // Refresh the denomination list for this currency
       _ref.invalidate(denominationListProvider(currencyId));
@@ -155,7 +157,10 @@ class DenominationOperationsNotifier extends StateNotifier<AsyncValue<void>> {
       
       state = const AsyncValue.data(null);
     } catch (error, stackTrace) {
+      print('DenominationOperationsNotifier: Error removing denomination: $error');
       state = AsyncValue.error(error, stackTrace);
+      // Re-throw to propagate the error
+      rethrow;
     }
   }
 
@@ -417,12 +422,7 @@ final effectiveDenominationListProvider = Provider.family<AsyncValue<List<Denomi
     return AsyncValue.data(localState[currencyId]!);
   }
   
-  // Schedule initialization for next frame to avoid modifying during build
-  remoteState.whenData((denominations) {
-    Future.microtask(() {
-      ref.read(localDenominationListProvider.notifier).initializeFromRemote(currencyId, denominations);
-    });
-  });
-  
+  // For new currencies or when no local state exists, use remote state directly
+  // Don't initialize local state here to avoid stale data issues
   return remoteState;
 });

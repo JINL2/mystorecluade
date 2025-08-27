@@ -1,0 +1,73 @@
+/**
+ * Toss Store Filter Component Styles
+ * Simplified version of toss-filter.css for store-only filtering
+ */
+
+/* Use the same styles as toss-filter but with some specific adjustments */
+.toss-filter-grid-single {
+    display: flex;
+    justify-content: stretch;
+    gap: var(--space-4);
+}
+
+.toss-filter-grid-single .toss-filter-group {
+    flex: 1;
+    max-width: 100%;
+}
+
+/* Ensure the store filter takes full width when it's the only filter */
+.toss-filter-grid-single .toss-filter-select {
+    width: 100%;
+}
+
+/* Optional: Compact mode for single filter */
+.toss-store-filter-compact .toss-filter-container {
+    background: transparent;
+    box-shadow: none;
+    padding: 0;
+}
+
+.toss-store-filter-compact .toss-filter-header {
+    padding: var(--space-3) 0;
+}
+
+.toss-store-filter-compact .toss-filter-content {
+    padding: var(--space-3) 0;
+}
+
+/* Inline mode for embedding in other components */
+.toss-store-filter-inline {
+    display: inline-block;
+    width: auto;
+}
+
+.toss-store-filter-inline .toss-filter-container {
+    background: transparent;
+    box-shadow: none;
+    padding: 0;
+    border-radius: 0;
+}
+
+.toss-store-filter-inline .toss-filter-header {
+    display: none;
+}
+
+.toss-store-filter-inline .toss-filter-content {
+    padding: 0;
+}
+
+.toss-store-filter-inline .toss-filter-actions {
+    margin-top: var(--space-3);
+    justify-content: flex-start;
+}
+
+/* Responsive adjustments for store-only filter */
+@media (max-width: 768px) {
+    .toss-filter-grid-single {
+        flex-direction: column;
+    }
+    
+    .toss-filter-grid-single .toss-filter-group {
+        width: 100%;
+    }
+}
