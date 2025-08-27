@@ -7,7 +7,11 @@ import '../../../widgets/toss/toss_checkbox.dart';
 import '../../../../core/themes/toss_colors.dart';
 import '../../../../core/themes/toss_text_styles.dart';
 import '../../../../core/themes/toss_spacing.dart';
+import '../../../../domain/entities/currency.dart';
+import '../../../providers/app_state_provider.dart';
+import '../../../providers/exchange_rate_provider.dart';
 import '../providers/currency_providers.dart';
+import '../providers/denomination_providers.dart';
 
 // Note: availableCurrenciesToAddProvider is now defined in currency_providers.dart
 
@@ -19,39 +23,151 @@ class AddCurrencyBottomSheet extends ConsumerStatefulWidget {
 }
 
 class _AddCurrencyBottomSheetState extends ConsumerState<AddCurrencyBottomSheet> {
-  Set<String> selectedCurrencyIds = {};
+  String? selectedCurrencyId;  // Changed from Set to single selection
   bool isLoading = false;
   String searchQuery = '';
   final TextEditingController searchController = TextEditingController();
+  final TextEditingController exchangeRateController = TextEditingController();
+  
+  // Step management
+  int currentStep = 1; // 1 = Currency Selection, 2 = Exchange Rate
+  CurrencyType? selectedCurrencyType;
+  String? baseCurrencyId;
+  String? baseCurrencySymbol;
+  String? baseCurrencyCode;
+  double? suggestedExchangeRate;
+  bool isFetchingExchangeRate = false;
 
   @override
   void dispose() {
     searchController.dispose();
+    exchangeRateController.dispose();
     super.dispose();
+  }
+  
+  @override
+  void initState() {
+    super.initState();
+    _fetchBaseCurrency();
+  }
+  
+  Future<void> _fetchBaseCurrency() async {
+    try {
+      final appState = ref.read(appStateProvider);
+      final companyId = appState.companyChoosen;
+      
+      if (companyId.isEmpty) return;
+      
+      final supabase = ref.read(supabaseClientProvider);
+      
+      // Query companies table to get base_currency_id
+      final companyResult = await supabase
+          .from('companies')
+          .select('base_currency_id')
+          .eq('company_id', companyId)
+          .maybeSingle();
+      
+      if (companyResult != null && companyResult['base_currency_id'] != null) {
+        baseCurrencyId = companyResult['base_currency_id'] as String;
+        
+        // Query currency_types to get base currency symbol and code
+        final currencyResult = await supabase
+            .from('currency_types')
+            .select('symbol, currency_code')
+            .eq('currency_id', baseCurrencyId!)
+            .maybeSingle();
+        
+        if (currencyResult != null) {
+          setState(() {
+            baseCurrencySymbol = currencyResult['symbol'] as String;
+            baseCurrencyCode = currencyResult['currency_code'] as String;
+          });
+        }
+      }
+    } catch (e) {
+      print('Error fetching base currency: $e');
+    }
+  }
+  
+  Future<void> _fetchExchangeRate() async {
+    if (selectedCurrencyType == null || baseCurrencyCode == null) return;
+    
+    setState(() {
+      isFetchingExchangeRate = true;
+      suggestedExchangeRate = null;
+      exchangeRateController.text = '1.0'; // Default placeholder
+    });
+    
+    try {
+      // Use the real exchange rate service
+      final exchangeRateService = ref.read(exchangeRateServiceProvider);
+      
+      // Fetch real exchange rate from API
+      // Note: API gives rate from base to target, so we need to get rate from selected currency to base currency
+      final rate = await exchangeRateService.getExchangeRate(
+        selectedCurrencyType!.currencyCode, 
+        baseCurrencyCode!
+      );
+      
+      if (mounted) {
+        if (rate != null) {
+          setState(() {
+            suggestedExchangeRate = rate;
+            exchangeRateController.text = rate.toStringAsFixed(4);
+            isFetchingExchangeRate = false;
+          });
+        } else {
+          // Fallback to 1.0 if API fails
+          setState(() {
+            suggestedExchangeRate = 1.0;
+            exchangeRateController.text = '1.0';
+            isFetchingExchangeRate = false;
+          });
+          
+          // Show error message
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Unable to fetch current exchange rates. Using default value.'),
+              backgroundColor: TossColors.warning,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      print('Error fetching exchange rate: $e');
+      
+      if (mounted) {
+        setState(() {
+          suggestedExchangeRate = 1.0;
+          exchangeRateController.text = '1.0';
+          isFetchingExchangeRate = false;
+        });
+        
+        // Show error message
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to fetch exchange rates: Network error'),
+            backgroundColor: TossColors.error,
+          ),
+        );
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final availableCurrenciesAsync = ref.watch(availableCurrenciesToAddProvider);
-
     return Column(
       mainAxisSize: MainAxisSize.min,
-        children: [
-          // Header with title and close button
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  'Currency',
-                  style: TossTextStyles.h2.copyWith(
-                    fontWeight: FontWeight.w700,
-                    color: TossColors.gray900,
-                  ),
-                ),
-              ),
+      children: [
+        // Header with title and close button
+        Row(
+          children: [
+            if (currentStep == 2)
               IconButton(
-                onPressed: () => Navigator.of(context).pop(),
-                icon: const Icon(Icons.close, color: TossColors.gray600),
+                onPressed: () => setState(() {
+                  currentStep = 1;
+                }),
+                icon: const Icon(Icons.arrow_back, color: TossColors.gray600),
                 style: IconButton.styleFrom(
                   backgroundColor: TossColors.gray100,
                   shape: const CircleBorder(),
@@ -59,32 +175,81 @@ class _AddCurrencyBottomSheetState extends ConsumerState<AddCurrencyBottomSheet>
                   minimumSize: const Size(28, 28),
                 ),
               ),
-            ],
-          ),
+            Expanded(
+              child: Text(
+                currentStep == 1 ? 'Currency' : 'Exchange Rate',
+                style: TossTextStyles.h2.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: TossColors.gray900,
+                ),
+              ),
+            ),
+            IconButton(
+              onPressed: () => Navigator.of(context).pop(),
+              icon: const Icon(Icons.close, color: TossColors.gray600),
+              style: IconButton.styleFrom(
+                backgroundColor: TossColors.gray100,
+                shape: const CircleBorder(),
+                padding: const EdgeInsets.all(6),
+                minimumSize: const Size(28, 28),
+              ),
+            ),
+          ],
+        ),
           
-          const SizedBox(height: TossSpacing.space4),
-          
-          // Search bar
-          TossSearchField(
-            controller: searchController,
-            onChanged: (value) {
-              setState(() {
-                searchQuery = value;
-              });
-            },
-            hintText: 'Search currencies...',
-            prefixIcon: Icons.search,
-            onClear: () {
-              setState(() {
-                searchController.clear();
-                searchQuery = '';
-              });
-            },
-          ),
-          const SizedBox(height: TossSpacing.space4),
-          
-          // Content
-          ConstrainedBox(
+        const SizedBox(height: TossSpacing.space4),
+        
+        // Content based on current step
+        if (currentStep == 1) _buildCurrencySelectionStep() else _buildExchangeRateStep(),
+      ],
+    );
+  }
+  
+  void _goToExchangeRateStep() async {
+    if (selectedCurrencyId == null) return;
+    
+    // Get the selected currency details
+    final currencies = ref.read(availableCurrenciesToAddProvider).valueOrNull ?? [];
+    selectedCurrencyType = currencies.firstWhere(
+      (c) => c.currencyId == selectedCurrencyId,
+      orElse: () => throw Exception('Currency not found'),
+    );
+    
+    setState(() {
+      currentStep = 2;
+    });
+    
+    // Fetch exchange rate after transitioning
+    await _fetchExchangeRate();
+  }
+  
+  Widget _buildCurrencySelectionStep() {
+    final availableCurrenciesAsync = ref.watch(availableCurrenciesToAddProvider);
+    
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // Search bar
+        TossSearchField(
+          controller: searchController,
+          onChanged: (value) {
+            setState(() {
+              searchQuery = value;
+            });
+          },
+          hintText: 'Search currencies...',
+          prefixIcon: Icons.search,
+          onClear: () {
+            setState(() {
+              searchController.clear();
+              searchQuery = '';
+            });
+          },
+        ),
+        const SizedBox(height: TossSpacing.space4),
+        
+        // Content
+        ConstrainedBox(
             constraints: BoxConstraints(
               maxHeight: MediaQuery.of(context).size.height * 0.4,
             ),
@@ -174,7 +339,7 @@ class _AddCurrencyBottomSheetState extends ConsumerState<AddCurrencyBottomSheet>
                             color: TossColors.gray500,
                           ),
                         ),
-                        if (selectedCurrencyIds.isNotEmpty)
+                        if (selectedCurrencyId != null)
                           Container(
                             padding: const EdgeInsets.symmetric(
                               horizontal: TossSpacing.space2,
@@ -185,7 +350,7 @@ class _AddCurrencyBottomSheetState extends ConsumerState<AddCurrencyBottomSheet>
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Text(
-                              '${selectedCurrencyIds.length} selected',
+                              '1 selected',
                               style: TossTextStyles.caption.copyWith(
                                 color: TossColors.white,
                                 fontWeight: FontWeight.w600,
@@ -204,7 +369,7 @@ class _AddCurrencyBottomSheetState extends ConsumerState<AddCurrencyBottomSheet>
                         itemCount: availableCurrencies.length,
                         itemBuilder: (context, index) {
                           final currency = availableCurrencies[index];
-                          final isSelected = selectedCurrencyIds.contains(currency.currencyId);
+                          final isSelected = selectedCurrencyId == currency.currencyId;
                           
                           return Padding(
                             padding: EdgeInsets.only(
@@ -214,10 +379,11 @@ class _AddCurrencyBottomSheetState extends ConsumerState<AddCurrencyBottomSheet>
                               value: isSelected,
                               onChanged: (value) {
                                 setState(() {
+                                  // Single selection: if selecting this item, deselect others
                                   if (value) {
-                                    selectedCurrencyIds.add(currency.currencyId);
+                                    selectedCurrencyId = currency.currencyId;
                                   } else {
-                                    selectedCurrencyIds.remove(currency.currencyId);
+                                    selectedCurrencyId = null;
                                   }
                                 });
                               },
@@ -308,16 +474,14 @@ class _AddCurrencyBottomSheetState extends ConsumerState<AddCurrencyBottomSheet>
                     ),
                     const SizedBox(width: TossSpacing.space3),
                     
-                    // Add button
+                    // Next/Add button
                     Expanded(
                       flex: 2,
                       child: TossPrimaryButton(
-                        text: selectedCurrencyIds.isEmpty 
-                            ? 'Add Currency' 
-                            : 'Add ${selectedCurrencyIds.length} ${selectedCurrencyIds.length == 1 ? 'Currency' : 'Currencies'}',
+                        text: 'Next',
                         isLoading: isLoading,
-                        isEnabled: selectedCurrencyIds.isNotEmpty && !isLoading,
-                        onPressed: selectedCurrencyIds.isNotEmpty && !isLoading ? _addCurrencies : null,
+                        isEnabled: selectedCurrencyId != null && !isLoading,
+                        onPressed: selectedCurrencyId != null && !isLoading ? _goToExchangeRateStep : null,
                       ),
                     ),
                   ],
@@ -330,19 +494,409 @@ class _AddCurrencyBottomSheetState extends ConsumerState<AddCurrencyBottomSheet>
     );
   }
 
-  void _addCurrencies() async {
-    if (selectedCurrencyIds.isEmpty) return;
+  Widget _buildExchangeRateStep() {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (selectedCurrencyType != null) ...[
+          // Currency selection display
+          Container(
+            padding: const EdgeInsets.all(TossSpacing.space4),
+            margin: const EdgeInsets.only(bottom: TossSpacing.space4),
+            decoration: BoxDecoration(
+              color: TossColors.gray50,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: TossColors.gray200),
+            ),
+            child: Row(
+              children: [
+                Text(
+                  selectedCurrencyType!.flagEmoji,
+                  style: TossTextStyles.h3,
+                ),
+                const SizedBox(width: TossSpacing.space3),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        selectedCurrencyType!.currencyCode,
+                        style: TossTextStyles.body.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: TossColors.gray900,
+                        ),
+                      ),
+                      Text(
+                        selectedCurrencyType!.currencyName,
+                        style: TossTextStyles.bodySmall.copyWith(
+                          color: TossColors.gray600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          
+          // Exchange rate configuration
+          Container(
+            padding: const EdgeInsets.all(TossSpacing.space4),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: TossColors.gray200),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Exchange Rate Configuration',
+                  style: TossTextStyles.bodyLarge.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: TossColors.gray900,
+                  ),
+                ),
+                const SizedBox(height: TossSpacing.space3),
+                
+                // Exchange rate display
+                if (baseCurrencySymbol != null) ...[
+                  Container(
+                    padding: const EdgeInsets.all(TossSpacing.space3),
+                    decoration: BoxDecoration(
+                      color: TossColors.gray50,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Column(
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              '1 ${selectedCurrencyType!.symbol}',
+                              style: TossTextStyles.body.copyWith(
+                                fontWeight: FontWeight.w600,
+                                color: TossColors.gray900,
+                              ),
+                            ),
+                            const SizedBox(width: TossSpacing.space2),
+                            const Icon(
+                              Icons.arrow_forward,
+                              size: 16,
+                              color: TossColors.gray600,
+                            ),
+                            const SizedBox(width: TossSpacing.space2),
+                            Text(
+                              '${exchangeRateController.text.isEmpty ? "0" : exchangeRateController.text} $baseCurrencySymbol',
+                              style: TossTextStyles.body.copyWith(
+                                fontWeight: FontWeight.w600,
+                                color: TossColors.primary,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: TossSpacing.space2),
+                        Text(
+                          'Base Currency: $baseCurrencySymbol',
+                          style: TossTextStyles.caption.copyWith(
+                            color: TossColors.gray600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: TossSpacing.space3),
+                ],
+                
+                // Exchange rate input
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Exchange Rate',
+                      style: TossTextStyles.bodySmall.copyWith(
+                        fontWeight: FontWeight.w500,
+                        color: TossColors.gray700,
+                      ),
+                    ),
+                    const SizedBox(height: TossSpacing.space2),
+                    TextFormField(
+                      controller: exchangeRateController,
+                      enabled: !isFetchingExchangeRate && suggestedExchangeRate != null,
+                      keyboardType: TextInputType.numberWithOptions(decimal: true),
+                      decoration: InputDecoration(
+                        hintText: isFetchingExchangeRate ? 'Fetching rate...' : 'Enter exchange rate',
+                        suffixText: baseCurrencySymbol,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(
+                            color: isFetchingExchangeRate ? TossColors.gray300 : TossColors.gray300,
+                          ),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: const BorderSide(color: TossColors.primary),
+                        ),
+                        disabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: const BorderSide(color: TossColors.gray200),
+                        ),
+                      ),
+                      onChanged: (value) {
+                        setState(() {}); // Trigger rebuild to update the exchange rate display
+                      },
+                    ),
+                    const SizedBox(height: TossSpacing.space2),
+                    
+                    // Loading state or suggested rate
+                    if (isFetchingExchangeRate) ...[
+                      Row(
+                        children: [
+                          const SizedBox(
+                            width: 12,
+                            height: 12,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: TossColors.primary,
+                            ),
+                          ),
+                          const SizedBox(width: TossSpacing.space2),
+                          Text(
+                            'Fetching current exchange rates...',
+                            style: TossTextStyles.caption.copyWith(
+                              color: TossColors.primary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ] else if (suggestedExchangeRate != null) ...[
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.trending_up,
+                            size: 14,
+                            color: TossColors.success,
+                          ),
+                          const SizedBox(width: TossSpacing.space1),
+                          Text(
+                            'Live rate: ${suggestedExchangeRate!.toStringAsFixed(4)} (from Exchange Rate API)',
+                            style: TossTextStyles.caption.copyWith(
+                              color: TossColors.success,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+        
+        // Bottom action buttons
+        Container(
+          margin: const EdgeInsets.only(top: TossSpacing.space4),
+          padding: const EdgeInsets.only(top: TossSpacing.space4),
+          decoration: const BoxDecoration(
+            border: Border(
+              top: BorderSide(color: TossColors.gray200, width: 1),
+            ),
+          ),
+          child: Row(
+            children: [
+              // Cancel button
+              Expanded(
+                child: TossSecondaryButton(
+                  text: 'Cancel',
+                  onPressed: () => Navigator.of(context).pop(),
+                ),
+              ),
+              const SizedBox(width: TossSpacing.space3),
+              
+              // Add button
+              Expanded(
+                flex: 2,
+                child: TossPrimaryButton(
+                  text: 'Add Currency',
+                  isLoading: isLoading,
+                  isEnabled: !isLoading && !isFetchingExchangeRate && exchangeRateController.text.isNotEmpty && suggestedExchangeRate != null,
+                  onPressed: !isLoading && !isFetchingExchangeRate && exchangeRateController.text.isNotEmpty && suggestedExchangeRate != null
+                      ? _addCurrencyWithExchangeRate 
+                      : null,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+  
+  void _addCurrencyWithExchangeRate() async {
+    if (selectedCurrencyId == null || selectedCurrencyType == null) return;
+    
+    final exchangeRateText = exchangeRateController.text.trim();
+    if (exchangeRateText.isEmpty) return;
+    
+    // Validate exchange rate
+    final double? exchangeRate = double.tryParse(exchangeRateText);
+    if (exchangeRate == null || exchangeRate <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please enter a valid exchange rate'),
+          backgroundColor: TossColors.error,
+        ),
+      );
+      return;
+    }
+    
+    setState(() {
+      isLoading = true;
+    });
+    
+    final message = '${selectedCurrencyType!.currencyCode} currency added successfully!';
+    
+    try {
+      // Get required data from app state
+      final appState = ref.read(appStateProvider);
+      final userData = ref.read(userDataProvider);
+      final companyId = appState.companyChoosen;
+      
+      if (companyId.isEmpty) {
+        throw Exception('No company selected');
+      }
+      
+      // Extract user_id from user data
+      String? userId;
+      if (userData is Map<String, dynamic> && userData.isNotEmpty) {
+        userId = userData['user_id']?.toString();
+      }
+      
+      if (userId == null || userId.isEmpty) {
+        throw Exception('User ID not found in app state');
+      }
+      
+      final supabase = ref.read(supabaseClientProvider);
+      final currentTime = DateTime.now().toIso8601String();
+      final currentDate = DateTime.now().toIso8601String().substring(0, 10); // yyyy-MM-dd format
+      
+      // First check if currency is soft-deleted and reactivate if needed
+      final existingCurrency = await supabase
+          .from('company_currency')
+          .select('company_currency_id, is_deleted')
+          .eq('company_id', companyId)
+          .eq('currency_id', selectedCurrencyId!)
+          .maybeSingle();
+      
+      if (existingCurrency != null) {
+        if (existingCurrency['is_deleted'] == true) {
+          // Reactivate soft-deleted currency
+          await supabase
+              .from('company_currency')
+              .update({
+                'is_deleted': false,
+                // Note: company_currency table only has created_at, not updated_at
+              })
+              .eq('company_currency_id', existingCurrency['company_currency_id'])
+              .eq('company_id', companyId)
+              .eq('currency_id', selectedCurrencyId!);
+        } else {
+          throw Exception('Currency already exists for this company');
+        }
+      } else {
+        // 1. Insert into company_currency table
+        await supabase
+            .from('company_currency')
+            .insert({
+              'company_id': companyId,
+              'currency_id': selectedCurrencyId!,
+              'is_deleted': false,
+              'created_at': currentTime,
+            });
+      }
+      
+      // 2. Insert into book_exchange_rates table
+      await supabase
+          .from('book_exchange_rates')
+          .insert({
+            'company_id': companyId,
+            'from_currency_id': selectedCurrencyId!,
+            'to_currency_id': baseCurrencyId!,
+            'rate': exchangeRate,
+            'rate_date': currentDate,
+            'created_by': userId,
+            'created_at': currentTime,
+          });
+      
+      // Create Currency object for local state update
+      final newCurrency = Currency(
+        id: selectedCurrencyId!,
+        code: selectedCurrencyType!.currencyCode,
+        name: selectedCurrencyType!.currencyName,
+        fullName: selectedCurrencyType!.currencyName,
+        symbol: selectedCurrencyType!.symbol,
+        flagEmoji: selectedCurrencyType!.flagEmoji,
+      );
+      
+      // Update local state immediately for instant UI update
+      ref.read(localCurrencyListProvider.notifier).optimisticallyAdd(newCurrency);
+      
+      // Clear any stale denomination data for this new currency
+      // This ensures the denomination provider will fetch fresh data from the database
+      ref.read(localDenominationListProvider.notifier).reset(selectedCurrencyId!);
+      
+      if (mounted) {
+        Navigator.of(context).pop();
+        
+        // Show success message
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(message),
+            backgroundColor: TossColors.success,
+          ),
+        );
+        
+        // Refresh providers after UI operations complete to sync with database
+        Future.microtask(() {
+          ref.invalidate(availableCurrenciesToAddProvider);
+          ref.invalidate(companyCurrenciesProvider);
+          ref.invalidate(companyCurrenciesStreamProvider);
+        });
+      }
+      
+    } catch (e) {
+      print('Error adding currency with exchange rate: $e');
+      
+      // Revert optimistic update on failure
+      ref.read(localCurrencyListProvider.notifier).optimisticallyRemove(selectedCurrencyId!);
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to add currency: $e'),
+            backgroundColor: TossColors.error,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          isLoading = false;
+        });
+      }
+    }
+  }
+
+  void _addCurrency() async {
+    if (selectedCurrencyId == null) return;
     
     // Get the currency details for the success message before closing
     final currencies = ref.read(availableCurrenciesToAddProvider).valueOrNull ?? [];
-    final addedCurrencies = currencies
-        .where((c) => selectedCurrencyIds.contains(c.currencyId))
-        .map((c) => c.currencyCode)
-        .toList();
+    final selectedCurrency = currencies
+        .firstWhere((c) => c.currencyId == selectedCurrencyId, 
+                    orElse: () => throw Exception('Currency not found'));
     
-    final message = addedCurrencies.length == 1
-        ? '${addedCurrencies.first} currency added successfully!'
-        : '${addedCurrencies.length} currencies added successfully!';
+    final message = '${selectedCurrency.currencyCode} currency added successfully!';
     
     // Close bottom sheet immediately for better UX
     if (mounted) {
@@ -358,20 +912,24 @@ class _AddCurrencyBottomSheetState extends ConsumerState<AddCurrencyBottomSheet>
     }
     
     try {
-      // Add each selected currency to the company (these already have optimistic updates)
-      for (final currencyId in selectedCurrencyIds) {
-        await ref.read(currencyOperationsProvider.notifier)
-            .addCompanyCurrency(currencyId);
-      }
+      // Add the selected currency to the company
+      await ref.read(currencyOperationsProvider.notifier)
+          .addCompanyCurrency(selectedCurrencyId!);
       
-      // Refresh available currencies to add provider
-      ref.invalidate(availableCurrenciesToAddProvider);
+      // Refresh providers after operation completes
+      Future.microtask(() {
+        ref.invalidate(availableCurrenciesToAddProvider);
+        ref.invalidate(companyCurrenciesProvider);
+        ref.invalidate(companyCurrenciesStreamProvider);
+        ref.invalidate(effectiveCompanyCurrenciesProvider);
+        ref.invalidate(searchFilteredCurrenciesProvider);
+      });
       
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to add currencies: $e. Changes reverted.'),
+            content: Text('Failed to add currency: $e'),
             backgroundColor: TossColors.error,
           ),
         );

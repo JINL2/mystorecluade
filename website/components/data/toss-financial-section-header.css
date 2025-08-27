@@ -1,0 +1,161 @@
+/**
+ * Toss Financial Section Header Component
+ * Specialized component for financial tables with reliable border rendering
+ * Based on Toss Design System
+ */
+
+.toss-financial-section-header {
+    width: 100%;
+    background: var(--toss-primary);
+    color: var(--toss-white);
+    border: var(--border-width-medium) solid var(--toss-primary);
+    border-radius: 0;
+    font-family: var(--font-family);
+    font-weight: var(--font-bold);
+    font-size: var(--font-base);
+    text-transform: uppercase;
+    letter-spacing: var(--letter-spacing-wider, 1px);
+    padding: var(--space-4) var(--space-6);
+    margin: 0;
+    display: block;
+    box-sizing: border-box;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Ensure border is always visible */
+.toss-financial-section-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border: var(--border-width-medium) solid var(--toss-primary);
+    pointer-events: none;
+}
+
+/* Different section header variants */
+.toss-financial-section-header.revenue {
+    background: var(--toss-primary);
+    border-color: var(--toss-primary);
+}
+
+.toss-financial-section-header.cogs {
+    background: var(--toss-primary);
+    border-color: var(--toss-primary);
+}
+
+.toss-financial-section-header.expenses {
+    background: var(--toss-primary);
+    border-color: var(--toss-primary);
+}
+
+.toss-financial-section-header.net-income {
+    background: var(--toss-success);
+    border-color: var(--toss-success);
+    color: var(--toss-white);
+}
+
+.toss-financial-section-header.net-income::before {
+    border-color: var(--toss-success);
+}
+
+/* When used in table context */
+.toss-financial-section-header-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin: 0;
+}
+
+.toss-financial-section-header-row {
+    background: var(--toss-primary);
+}
+
+.toss-financial-section-header-cell {
+    background: var(--toss-primary);
+    color: var(--toss-white);
+    font-family: var(--font-family);
+    font-weight: var(--font-bold);
+    font-size: var(--font-base);
+    text-transform: uppercase;
+    letter-spacing: var(--letter-spacing-wider, 1px);
+    padding: var(--space-4) var(--space-6);
+    border-top: var(--border-width-medium) solid var(--toss-primary);
+    border-bottom: var(--border-width-medium) solid var(--toss-primary);
+    border-left: var(--border-width-medium) solid var(--toss-primary);
+    border-right: var(--border-width-medium) solid var(--toss-primary);
+    vertical-align: middle;
+    position: relative;
+}
+
+/* Ensure no gaps between cells */
+.toss-financial-section-header-cell + .toss-financial-section-header-cell {
+    border-left: none;
+}
+
+.toss-financial-section-header-cell:first-child {
+    border-left: var(--border-width-medium) solid var(--toss-primary);
+}
+
+.toss-financial-section-header-cell:last-child {
+    border-right: var(--border-width-medium) solid var(--toss-primary);
+}
+
+/* Section variants for table cells */
+.toss-financial-section-header-row.revenue .toss-financial-section-header-cell {
+    background: var(--toss-primary);
+    border-color: var(--toss-primary);
+}
+
+.toss-financial-section-header-row.cogs .toss-financial-section-header-cell {
+    background: var(--toss-primary);
+    border-color: var(--toss-primary);
+}
+
+.toss-financial-section-header-row.expenses .toss-financial-section-header-cell {
+    background: var(--toss-primary);
+    border-color: var(--toss-primary);
+}
+
+.toss-financial-section-header-row.net-income .toss-financial-section-header-cell {
+    background: var(--toss-success);
+    border-color: var(--toss-success);
+    color: var(--toss-white);
+}
+
+/* Responsive adjustments */
+@media (max-width: var(--screen-md)) {
+    .toss-financial-section-header {
+        padding: var(--space-3) var(--space-4);
+        font-size: var(--font-small);
+    }
+    
+    .toss-financial-section-header-cell {
+        padding: var(--space-3) var(--space-4);
+        font-size: var(--font-small);
+    }
+}
+
+/* 12-month table specific styling */
+.toss-financial-section-header-12month .toss-financial-section-header-cell {
+    padding: var(--space-3) var(--space-2);
+    font-size: var(--font-small);
+    text-align: center;
+}
+
+.toss-financial-section-header-12month .toss-financial-section-header-cell:first-child {
+    text-align: left;
+    padding-left: var(--space-4);
+}
+
+/* Print styles */
+@media print {
+    .toss-financial-section-header,
+    .toss-financial-section-header-cell {
+        -webkit-print-color-adjust: exact;
+        color-adjust: exact;
+        print-color-adjust: exact;
+    }
+}

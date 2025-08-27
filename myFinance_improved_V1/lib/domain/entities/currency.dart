@@ -13,6 +13,7 @@ class Currency with _$Currency {
     required String fullName,
     required String symbol,
     required String flagEmoji,
+    String? companyCurrencyId, // Added for tracking company_currency relationship
     @Default([]) List<Denomination> denominations,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -41,6 +42,7 @@ class CurrencyType with _$CurrencyType {
 @freezed
 class CompanyCurrency with _$CompanyCurrency {
   const factory CompanyCurrency({
+    required String companyCurrencyId, // Primary key from company_currency table
     required String companyId,
     required String currencyId,
     @Default(true) bool isActive,

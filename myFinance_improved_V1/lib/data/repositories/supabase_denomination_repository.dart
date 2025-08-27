@@ -19,6 +19,7 @@ class SupabaseDenominationRepository implements DenominationRepository {
           .select('*')
           .eq('company_id', companyId)
           .eq('currency_id', currencyId)
+          .eq('is_deleted', false)  // Only fetch non-deleted denominations
           .order('value');
 
       return (response as List).map((json) {
@@ -46,18 +47,45 @@ class SupabaseDenominationRepository implements DenominationRepository {
   @override
   Future<Denomination> addDenomination(DenominationInput input) async {
     try {
-      final denominationId = _uuid.v4();
+      // Check if this exact denomination was previously soft deleted
+      final existingDeleted = await _client
+          .from('currency_denominations')
+          .select('denomination_id')
+          .eq('company_id', input.companyId)
+          .eq('currency_id', input.currencyId)
+          .eq('value', input.value)
+          .eq('type', input.type.name)
+          .eq('is_deleted', true)
+          .maybeSingle();
+      
+      String denominationId;
+      
+      if (existingDeleted != null) {
+        // Reactivate the existing soft-deleted denomination
+        denominationId = existingDeleted['denomination_id'] as String;
+        await _client
+            .from('currency_denominations')
+            .update({
+              'is_deleted': false,
+              'updated_at': DateTime.now().toIso8601String(),
+            })
+            .eq('denomination_id', denominationId);
+      } else {
+        // Create new denomination
+        denominationId = _uuid.v4();
 
-      final insertData = {
-        'denomination_id': denominationId,
-        'company_id': input.companyId,
-        'currency_id': input.currencyId,
-        'value': input.value,
-        'type': input.type.name, // 'coin' or 'bill'
-        'created_at': DateTime.now().toIso8601String(),
-      };
+        final insertData = {
+          'denomination_id': denominationId,
+          'company_id': input.companyId,
+          'currency_id': input.currencyId,
+          'value': input.value,
+          'type': input.type.name, // 'coin' or 'bill'
+          'is_deleted': false,  // Initialize as not deleted
+          'created_at': DateTime.now().toIso8601String(),
+        };
 
-      await _client.from('currency_denominations').insert(insertData).select();
+        await _client.from('currency_denominations').insert(insertData).select();
+      }
 
       return Denomination(
         id: denominationId,
@@ -111,13 +139,64 @@ class SupabaseDenominationRepository implements DenominationRepository {
   @override
   Future<void> removeDenomination(String denominationId) async {
     try {
-      // Hard delete from currency_denominations table
-      await _client
+      print('=== DENOMINATION SOFT DELETE DEBUG ===');
+      print('Attempting to soft delete denomination with ID: $denominationId');
+      
+      // First check if the denomination exists and is not already deleted
+      final checkResult = await _client
           .from('currency_denominations')
-          .delete()
-          .eq('denomination_id', denominationId);
+          .select('*')
+          .eq('denomination_id', denominationId)
+          .eq('is_deleted', false)  // Only check non-deleted denominations
+          .maybeSingle();
+      
+      if (checkResult == null) {
+        print('Denomination not found or already deleted with ID: $denominationId');
+        throw Exception('Denomination not found or already deleted');
+      }
+      
+      print('Found denomination to soft delete: $checkResult');
+      final companyId = checkResult['company_id'];
+      final currencyId = checkResult['currency_id'];
+      final value = checkResult['value'];
+      print('Company ID: $companyId, Currency ID: $currencyId, Value: $value');
+      
+      // Perform soft delete by updating is_deleted to true
+      print('Executing soft delete (updating is_deleted to true)...');
+      final updateResult = await _client
+          .from('currency_denominations')
+          .update({'is_deleted': true})
+          .eq('denomination_id', denominationId)
+          .eq('company_id', companyId)  // Add company_id for RLS
+          .eq('currency_id', currencyId)  // Add currency_id for extra safety
+          .select();
+      
+      print('Soft delete query executed. Result: $updateResult');
+      
+      if (updateResult.isEmpty) {
+        // Verify the update was successful
+        final verifyResult = await _client
+            .from('currency_denominations')
+            .select('is_deleted')
+            .eq('denomination_id', denominationId)
+            .maybeSingle();
+        
+        if (verifyResult != null && verifyResult['is_deleted'] == true) {
+          print('Soft delete successful (verified by checking is_deleted status)');
+        } else {
+          print('Failed to soft delete - is_deleted not updated. RLS or permission issue likely.');
+          throw Exception('Failed to delete - check Supabase RLS policies.');
+        }
+      } else {
+        print('Soft delete successful with returned data: $updateResult');
+      }
+      
+      print('Successfully soft deleted denomination with ID: $denominationId');
+      print('=== END SOFT DELETE DEBUG ===');
     } catch (e) {
-      throw Exception('Failed to remove denomination: $e');
+      print('=== SOFT DELETE ERROR ===');
+      print('Error soft deleting denomination: $e');
+      throw Exception('Failed to remove denomination: ${e.toString().replaceAll('Exception: ', '')}');
     }
   }
 
@@ -128,6 +207,7 @@ class SupabaseDenominationRepository implements DenominationRepository {
           .from('currency_denominations')
           .select('*')
           .eq('denomination_id', denominationId)
+          .eq('is_deleted', false)  // Only fetch non-deleted denominations
           .single();
 
       final type = response['type'] == 'coin' ? DenominationType.coin : DenominationType.bill;
@@ -189,6 +269,7 @@ class SupabaseDenominationRepository implements DenominationRepository {
           'currency_id': input.currencyId,
           'value': input.value,
           'type': input.type.name,
+          'is_deleted': false,  // Initialize as not deleted
           'created_at': DateTime.now().toIso8601String(),
         };
       }).toList();
@@ -271,6 +352,7 @@ class SupabaseDenominationRepository implements DenominationRepository {
         .select()
         .eq('company_id', companyId)
         .eq('currency_id', currencyId)
+        .eq('is_deleted', false)  // Only watch non-deleted denominations
         .asStream()
         .map((data) => (data as List).map((json) {
           // Handle NULL values by defaulting to 'bill'

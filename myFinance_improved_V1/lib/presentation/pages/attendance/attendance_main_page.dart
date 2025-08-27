@@ -24,7 +24,7 @@ class _AttendanceMainPageState extends State<AttendanceMainPage> with SingleTick
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: 2, vsync: this, initialIndex: 0);
     _tabController.addListener(() {
       if (_tabController.indexIsChanging) {
         HapticFeedback.selectionClick();
@@ -119,11 +119,11 @@ class _AttendanceMainPageState extends State<AttendanceMainPage> with SingleTick
                           splashBorderRadius: BorderRadius.circular(22),
                           tabs: const [
                             Tab(
-                              text: 'Register',
+                              text: 'Check In/Out',
                               height: 44,
                             ),
                             Tab(
-                              text: 'Check In/Out',
+                              text: 'Register',
                               height: 44,
                             ),
                           ],
@@ -141,11 +141,11 @@ class _AttendanceMainPageState extends State<AttendanceMainPage> with SingleTick
               child: TabBarView(
                 controller: _tabController,
                 children: [
-                  // First Tab - Register Shifts
-                  _buildRegisterTab(),
-                  
-                  // Second Tab - Attendance Page
+                  // First Tab - Check In/Out
                   const AttendanceContent(),
+                  
+                  // Second Tab - Register Shifts
+                  _buildRegisterTab(),
                 ],
               ),
             ),
@@ -177,6 +177,10 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
   List<Map<String, dynamic>>? monthlyShiftStatus; // Store monthly shift status from RPC
   bool isLoadingShiftStatus = false;
   
+  // ScrollController for auto-scroll functionality
+  final ScrollController _scrollController = ScrollController();
+  bool _isAutoScrolling = false; // Prevent conflicting scroll animations
+  
   // Selection state for shift cards
   String? selectedShift; // Store single selected shift ID
   String? selectionMode; // 'registered' or 'unregistered' - determined by selection
@@ -192,6 +196,12 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
     DateTime(2024, 11, 19): ShiftData('09:00', '18:00', 'Store A'),
     DateTime(2024, 11, 20): ShiftData('14:00', '22:00', 'Store B'),
   };
+  
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
   
   // Fetch shift metadata from Supabase RPC
   Future<void> fetchShiftMetadata(String storeId) async {
@@ -291,11 +301,103 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
         // Select the new shift and set the mode
         selectedShift = shiftId;
         selectionMode = isRegistered ? 'registered' : 'unregistered';
+        
+        // Auto-scroll to bottom with enhanced smoothness
+        _performSmoothScroll();
       }
     });
     
     // Haptic feedback
     HapticFeedback.selectionClick();
+  }
+  
+  // Enhanced smooth scroll function with dynamic duration and progressive scrolling
+  void _performSmoothScroll() {
+    // Prevent multiple simultaneous scroll animations
+    if (_isAutoScrolling) return;
+    
+    // Small delay to ensure button is rendered and for better UX flow
+    Future.delayed(const Duration(milliseconds: 200), () async {
+      if (!_scrollController.hasClients || !mounted) return;
+      
+      final currentPosition = _scrollController.position.pixels;
+      final targetPosition = _scrollController.position.maxScrollExtent;
+      final scrollDistance = (targetPosition - currentPosition).abs();
+      
+      // Skip if already at bottom or very close
+      if (scrollDistance < 50) return;
+      
+      _isAutoScrolling = true;
+      
+      try {
+        // Calculate dynamic duration based on distance
+        // Base duration: 700ms for smoothness, scales up to 1400ms for long distances
+        final baseDuration = 700;
+        final maxDuration = 1400;
+        final viewportHeight = _scrollController.position.viewportDimension;
+        final scrollRatio = (scrollDistance / viewportHeight).clamp(0.0, 3.0);
+        
+        // Use a smoother duration curve (logarithmic scaling for better feel)
+        final duration = (baseDuration + (maxDuration - baseDuration) * (scrollRatio / 3) * 0.8).round();
+        
+        // For very long distances (>2.5x viewport), use progressive multi-stage scrolling
+        if (scrollDistance > viewportHeight * 2.5) {
+          // Stage 1: Accelerate to 60% of distance
+          final stage1Position = currentPosition + (scrollDistance * 0.6);
+          await _scrollController.animateTo(
+            stage1Position,
+            duration: Duration(milliseconds: (duration * 0.45).round()),
+            curve: Curves.easeInQuad, // Start slow, accelerate
+          );
+          
+          // Stage 2: Continue to 90% with steady speed
+          final stage2Position = currentPosition + (scrollDistance * 0.9);
+          await _scrollController.animateTo(
+            stage2Position,
+            duration: Duration(milliseconds: (duration * 0.35).round()),
+            curve: Curves.linear, // Constant speed
+          );
+          
+          // Stage 3: Decelerate smoothly to final position
+          await _scrollController.animateTo(
+            targetPosition,
+            duration: Duration(milliseconds: (duration * 0.3).round()),
+            curve: Curves.easeOutQuad, // Smooth deceleration
+          );
+        } else if (scrollDistance > viewportHeight) {
+          // For medium distances, use two-stage scrolling
+          final intermediatePosition = currentPosition + (scrollDistance * 0.75);
+          
+          // First stage: smooth acceleration
+          await _scrollController.animateTo(
+            intermediatePosition,
+            duration: Duration(milliseconds: (duration * 0.6).round()),
+            curve: Curves.easeIn,
+          );
+          
+          // Second stage: smooth deceleration
+          await _scrollController.animateTo(
+            targetPosition,
+            duration: Duration(milliseconds: (duration * 0.4).round()),
+            curve: Curves.easeOut,
+          );
+        } else {
+          // For short distances, use single ultra-smooth animation
+          await _scrollController.animateTo(
+            targetPosition,
+            duration: Duration(milliseconds: duration),
+            curve: Curves.decelerate, // Ultra-smooth deceleration curve for natural feel
+          );
+        }
+        
+        // Add subtle haptic feedback when scroll completes (only for longer scrolls)
+        if (scrollDistance > viewportHeight * 1.5) {
+          HapticFeedback.lightImpact();
+        }
+      } finally {
+        _isAutoScrolling = false;
+      }
+    });
   }
   
   // Reset selections when date changes
@@ -1531,6 +1633,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
         // Main content with scroll
         Expanded(
           child: ListView(
+            controller: _scrollController,
             physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
             padding: EdgeInsets.zero,
             children: [

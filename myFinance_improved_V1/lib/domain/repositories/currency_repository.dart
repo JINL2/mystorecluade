@@ -26,4 +26,7 @@ abstract class CurrencyRepository {
 
   /// Stream of company currencies for real-time updates
   Stream<List<Currency>> watchCompanyCurrencies(String companyId);
+
+  /// Check if a currency has denominations
+  Future<bool> hasDenominations(String companyId, String currencyId);
 }

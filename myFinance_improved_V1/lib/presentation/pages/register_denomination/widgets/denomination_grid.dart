@@ -42,8 +42,13 @@ class DenominationGrid extends ConsumerWidget {
     // Add haptic feedback for better UX
     HapticFeedback.lightImpact();
     
-    // Debug print to verify tap is working
+    // Debug print to verify tap is working and check denomination details
     debugPrint('Denomination tapped: ${denomination.formattedValue}');
+    debugPrint('Denomination ID: ${denomination.id}');
+    debugPrint('Currency ID: ${denomination.currencyId}');
+    debugPrint('Company ID: ${denomination.companyId}');
+    debugPrint('Value: ${denomination.value}');
+    debugPrint('Type: ${denomination.type}');
     
     // Show edit options with proper constraints
     showModalBottomSheet(
@@ -165,30 +170,32 @@ class DenominationGrid extends ConsumerWidget {
     // Haptic feedback
     HapticFeedback.lightImpact();
     
-    // OPTIMISTIC UI UPDATE - Remove from local state immediately
-    ref.read(localDenominationListProvider.notifier)
-        .optimisticallyRemove(denomination.currencyId, denomination.id);
-    
-    // Show success message immediately
-    if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('${denomination.formattedValue} denomination removed successfully!'),
-          backgroundColor: TossColors.success,
-        ),
-      );
-    }
-    
-    // Success haptic feedback
-    HapticFeedback.selectionClick();
+    print('Starting deletion for denomination: ${denomination.id} (${denomination.formattedValue})');
     
     try {
-      // Remove the denomination from database in the background
+      // Remove the denomination from database FIRST (no optimistic update yet)
       await ref.read(denominationOperationsProvider.notifier)
           .removeDenomination(denomination.id, denomination.currencyId);
       
-      // Small delay to ensure database operations complete
-      await Future.delayed(const Duration(milliseconds: 100));
+      print('Database deletion successful for denomination: ${denomination.id}');
+      
+      // Only update UI after successful database operation
+      ref.read(localDenominationListProvider.notifier)
+          .optimisticallyRemove(denomination.currencyId, denomination.id);
+      
+      // Show success message after successful deletion
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('${denomination.formattedValue} denomination removed successfully!'),
+            backgroundColor: TossColors.success,
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
+      
+      // Success haptic feedback
+      HapticFeedback.selectionClick();
       
       // Refresh the remote providers after successful database operation
       ref.invalidate(denominationListProvider(denomination.currencyId));
@@ -197,18 +204,21 @@ class DenominationGrid extends ConsumerWidget {
       ref.invalidate(searchFilteredCurrenciesProvider);
       
     } catch (e) {
-      // If database operation fails, revert the optimistic update
-      // We need to reset local state to sync with remote
-      ref.read(localDenominationListProvider.notifier).reset(denomination.currencyId);
+      print('Failed to delete denomination: $e');
       
+      // Show error message
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to remove denomination: $e. Change reverted.'),
+            content: Text('Failed to remove denomination: ${e.toString().replaceAll('Exception: ', '')}'),
             backgroundColor: TossColors.error,
+            duration: const Duration(seconds: 3),
           ),
         );
       }
+      
+      // Error haptic feedback
+      HapticFeedback.heavyImpact();
     }
   }
 

@@ -26,6 +26,8 @@ mixin _$Currency {
   String get fullName => throw _privateConstructorUsedError;
   String get symbol => throw _privateConstructorUsedError;
   String get flagEmoji => throw _privateConstructorUsedError;
+  String? get companyCurrencyId =>
+      throw _privateConstructorUsedError; // Added for tracking company_currency relationship
   List<Denomination> get denominations => throw _privateConstructorUsedError;
   DateTime? get createdAt => throw _privateConstructorUsedError;
   DateTime? get updatedAt => throw _privateConstructorUsedError;
@@ -52,6 +54,7 @@ abstract class $CurrencyCopyWith<$Res> {
       String fullName,
       String symbol,
       String flagEmoji,
+      String? companyCurrencyId,
       List<Denomination> denominations,
       DateTime? createdAt,
       DateTime? updatedAt});
@@ -78,6 +81,7 @@ class _$CurrencyCopyWithImpl<$Res, $Val extends Currency>
     Object? fullName = null,
     Object? symbol = null,
     Object? flagEmoji = null,
+    Object? companyCurrencyId = freezed,
     Object? denominations = null,
     Object? createdAt = freezed,
     Object? updatedAt = freezed,
@@ -107,6 +111,10 @@ class _$CurrencyCopyWithImpl<$Res, $Val extends Currency>
           ? _value.flagEmoji
           : flagEmoji // ignore: cast_nullable_to_non_nullable
               as String,
+      companyCurrencyId: freezed == companyCurrencyId
+          ? _value.companyCurrencyId
+          : companyCurrencyId // ignore: cast_nullable_to_non_nullable
+              as String?,
       denominations: null == denominations
           ? _value.denominations
           : denominations // ignore: cast_nullable_to_non_nullable
@@ -138,6 +146,7 @@ abstract class _$$CurrencyImplCopyWith<$Res>
       String fullName,
       String symbol,
       String flagEmoji,
+      String? companyCurrencyId,
       List<Denomination> denominations,
       DateTime? createdAt,
       DateTime? updatedAt});
@@ -162,6 +171,7 @@ class __$$CurrencyImplCopyWithImpl<$Res>
     Object? fullName = null,
     Object? symbol = null,
     Object? flagEmoji = null,
+    Object? companyCurrencyId = freezed,
     Object? denominations = null,
     Object? createdAt = freezed,
     Object? updatedAt = freezed,
@@ -191,6 +201,10 @@ class __$$CurrencyImplCopyWithImpl<$Res>
           ? _value.flagEmoji
           : flagEmoji // ignore: cast_nullable_to_non_nullable
               as String,
+      companyCurrencyId: freezed == companyCurrencyId
+          ? _value.companyCurrencyId
+          : companyCurrencyId // ignore: cast_nullable_to_non_nullable
+              as String?,
       denominations: null == denominations
           ? _value._denominations
           : denominations // ignore: cast_nullable_to_non_nullable
@@ -217,6 +231,7 @@ class _$CurrencyImpl implements _Currency {
       required this.fullName,
       required this.symbol,
       required this.flagEmoji,
+      this.companyCurrencyId,
       final List<Denomination> denominations = const [],
       this.createdAt,
       this.updatedAt})
@@ -237,7 +252,11 @@ class _$CurrencyImpl implements _Currency {
   final String symbol;
   @override
   final String flagEmoji;
+  @override
+  final String? companyCurrencyId;
+// Added for tracking company_currency relationship
   final List<Denomination> _denominations;
+// Added for tracking company_currency relationship
   @override
   @JsonKey()
   List<Denomination> get denominations {
@@ -253,7 +272,7 @@ class _$CurrencyImpl implements _Currency {
 
   @override
   String toString() {
-    return 'Currency(id: $id, code: $code, name: $name, fullName: $fullName, symbol: $symbol, flagEmoji: $flagEmoji, denominations: $denominations, createdAt: $createdAt, updatedAt: $updatedAt)';
+    return 'Currency(id: $id, code: $code, name: $name, fullName: $fullName, symbol: $symbol, flagEmoji: $flagEmoji, companyCurrencyId: $companyCurrencyId, denominations: $denominations, createdAt: $createdAt, updatedAt: $updatedAt)';
   }
 
   @override
@@ -269,6 +288,8 @@ class _$CurrencyImpl implements _Currency {
             (identical(other.symbol, symbol) || other.symbol == symbol) &&
             (identical(other.flagEmoji, flagEmoji) ||
                 other.flagEmoji == flagEmoji) &&
+            (identical(other.companyCurrencyId, companyCurrencyId) ||
+                other.companyCurrencyId == companyCurrencyId) &&
             const DeepCollectionEquality()
                 .equals(other._denominations, _denominations) &&
             (identical(other.createdAt, createdAt) ||
@@ -287,6 +308,7 @@ class _$CurrencyImpl implements _Currency {
       fullName,
       symbol,
       flagEmoji,
+      companyCurrencyId,
       const DeepCollectionEquality().hash(_denominations),
       createdAt,
       updatedAt);
@@ -315,6 +337,7 @@ abstract class _Currency implements Currency {
       required final String fullName,
       required final String symbol,
       required final String flagEmoji,
+      final String? companyCurrencyId,
       final List<Denomination> denominations,
       final DateTime? createdAt,
       final DateTime? updatedAt}) = _$CurrencyImpl;
@@ -334,6 +357,9 @@ abstract class _Currency implements Currency {
   String get symbol;
   @override
   String get flagEmoji;
+  @override
+  String?
+      get companyCurrencyId; // Added for tracking company_currency relationship
   @override
   List<Denomination> get denominations;
   @override
@@ -636,6 +662,8 @@ CompanyCurrency _$CompanyCurrencyFromJson(Map<String, dynamic> json) {
 
 /// @nodoc
 mixin _$CompanyCurrency {
+  String get companyCurrencyId =>
+      throw _privateConstructorUsedError; // Primary key from company_currency table
   String get companyId => throw _privateConstructorUsedError;
   String get currencyId => throw _privateConstructorUsedError;
   bool get isActive => throw _privateConstructorUsedError;
@@ -664,7 +692,8 @@ abstract class $CompanyCurrencyCopyWith<$Res> {
       _$CompanyCurrencyCopyWithImpl<$Res, CompanyCurrency>;
   @useResult
   $Res call(
-      {String companyId,
+      {String companyCurrencyId,
+      String companyId,
       String currencyId,
       bool isActive,
       DateTime? createdAt,
@@ -690,6 +719,7 @@ class _$CompanyCurrencyCopyWithImpl<$Res, $Val extends CompanyCurrency>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
+    Object? companyCurrencyId = null,
     Object? companyId = null,
     Object? currencyId = null,
     Object? isActive = null,
@@ -701,6 +731,10 @@ class _$CompanyCurrencyCopyWithImpl<$Res, $Val extends CompanyCurrency>
     Object? flagEmoji = freezed,
   }) {
     return _then(_value.copyWith(
+      companyCurrencyId: null == companyCurrencyId
+          ? _value.companyCurrencyId
+          : companyCurrencyId // ignore: cast_nullable_to_non_nullable
+              as String,
       companyId: null == companyId
           ? _value.companyId
           : companyId // ignore: cast_nullable_to_non_nullable
@@ -750,7 +784,8 @@ abstract class _$$CompanyCurrencyImplCopyWith<$Res>
   @override
   @useResult
   $Res call(
-      {String companyId,
+      {String companyCurrencyId,
+      String companyId,
       String currencyId,
       bool isActive,
       DateTime? createdAt,
@@ -774,6 +809,7 @@ class __$$CompanyCurrencyImplCopyWithImpl<$Res>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
+    Object? companyCurrencyId = null,
     Object? companyId = null,
     Object? currencyId = null,
     Object? isActive = null,
@@ -785,6 +821,10 @@ class __$$CompanyCurrencyImplCopyWithImpl<$Res>
     Object? flagEmoji = freezed,
   }) {
     return _then(_$CompanyCurrencyImpl(
+      companyCurrencyId: null == companyCurrencyId
+          ? _value.companyCurrencyId
+          : companyCurrencyId // ignore: cast_nullable_to_non_nullable
+              as String,
       companyId: null == companyId
           ? _value.companyId
           : companyId // ignore: cast_nullable_to_non_nullable
@@ -829,7 +869,8 @@ class __$$CompanyCurrencyImplCopyWithImpl<$Res>
 @JsonSerializable()
 class _$CompanyCurrencyImpl implements _CompanyCurrency {
   const _$CompanyCurrencyImpl(
-      {required this.companyId,
+      {required this.companyCurrencyId,
+      required this.companyId,
       required this.currencyId,
       this.isActive = true,
       this.createdAt,
@@ -842,6 +883,9 @@ class _$CompanyCurrencyImpl implements _CompanyCurrency {
   factory _$CompanyCurrencyImpl.fromJson(Map<String, dynamic> json) =>
       _$$CompanyCurrencyImplFromJson(json);
 
+  @override
+  final String companyCurrencyId;
+// Primary key from company_currency table
   @override
   final String companyId;
   @override
@@ -865,7 +909,7 @@ class _$CompanyCurrencyImpl implements _CompanyCurrency {
 
   @override
   String toString() {
-    return 'CompanyCurrency(companyId: $companyId, currencyId: $currencyId, isActive: $isActive, createdAt: $createdAt, updatedAt: $updatedAt, currencyCode: $currencyCode, currencyName: $currencyName, symbol: $symbol, flagEmoji: $flagEmoji)';
+    return 'CompanyCurrency(companyCurrencyId: $companyCurrencyId, companyId: $companyId, currencyId: $currencyId, isActive: $isActive, createdAt: $createdAt, updatedAt: $updatedAt, currencyCode: $currencyCode, currencyName: $currencyName, symbol: $symbol, flagEmoji: $flagEmoji)';
   }
 
   @override
@@ -873,6 +917,8 @@ class _$CompanyCurrencyImpl implements _CompanyCurrency {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$CompanyCurrencyImpl &&
+            (identical(other.companyCurrencyId, companyCurrencyId) ||
+                other.companyCurrencyId == companyCurrencyId) &&
             (identical(other.companyId, companyId) ||
                 other.companyId == companyId) &&
             (identical(other.currencyId, currencyId) ||
@@ -894,8 +940,18 @@ class _$CompanyCurrencyImpl implements _CompanyCurrency {
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, companyId, currencyId, isActive,
-      createdAt, updatedAt, currencyCode, currencyName, symbol, flagEmoji);
+  int get hashCode => Object.hash(
+      runtimeType,
+      companyCurrencyId,
+      companyId,
+      currencyId,
+      isActive,
+      createdAt,
+      updatedAt,
+      currencyCode,
+      currencyName,
+      symbol,
+      flagEmoji);
 
   /// Create a copy of CompanyCurrency
   /// with the given fields replaced by the non-null parameter values.
@@ -916,7 +972,8 @@ class _$CompanyCurrencyImpl implements _CompanyCurrency {
 
 abstract class _CompanyCurrency implements CompanyCurrency {
   const factory _CompanyCurrency(
-      {required final String companyId,
+      {required final String companyCurrencyId,
+      required final String companyId,
       required final String currencyId,
       final bool isActive,
       final DateTime? createdAt,
@@ -929,6 +986,8 @@ abstract class _CompanyCurrency implements CompanyCurrency {
   factory _CompanyCurrency.fromJson(Map<String, dynamic> json) =
       _$CompanyCurrencyImpl.fromJson;
 
+  @override
+  String get companyCurrencyId; // Primary key from company_currency table
   @override
   String get companyId;
   @override

@@ -173,9 +173,9 @@ class CurrencyOperationsNotifier extends StateNotifier<AsyncValue<void>> {
       localNotifier.optimisticallyAdd(currencyToRemove);
       
       // Enhanced error reporting
-      final errorMessage = error.toString().contains('has denominations') 
-          ? 'Cannot remove currency that has denominations. Delete all denominations first.'
-          : 'Failed to remove currency: Network error or server unavailable';
+      final errorMessage = error.toString().contains('Currency not found')
+          ? 'Currency not found in your company.'
+          : 'Failed to remove currency: ${error.toString()}';
       
       state = AsyncValue.error(errorMessage, stackTrace);
     }

@@ -186,23 +186,62 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
         return;
       }
       
-      
-      // Query company_currency table
-      final response = await Supabase.instance.client
+      // Step 1: Query company_currency table to get currency_ids for this company
+      final companyCurrencyResponse = await Supabase.instance.client
           .from('company_currency')
-          .select('*')
+          .select('currency_id, company_currency_id')
           .eq('company_id', companyId);
       
-      if (response.isNotEmpty) {
+      if (companyCurrencyResponse.isEmpty) {
+        setState(() {
+          companyCurrencies = [];
+        });
+        return;
+      }
+      
+      // Step 2: Extract currency_ids
+      final currencyIds = companyCurrencyResponse
+          .map((item) => item['currency_id'].toString())
+          .toList();
+      
+      // Step 3: Query currency_types to get full currency details
+      final currencyTypesResponse = await Supabase.instance.client
+          .from('currency_types')
+          .select('currency_id, currency_code, currency_name, symbol')
+          .inFilter('currency_id', currencyIds);
+      
+      // Step 4: Combine the data - match currency details with company_currency records
+      final combinedCurrencies = <Map<String, dynamic>>[];
+      for (var companyCurrency in companyCurrencyResponse) {
+        final currencyId = companyCurrency['currency_id'].toString();
+        final currencyType = currencyTypesResponse.firstWhere(
+          (type) => type['currency_id'].toString() == currencyId,
+          orElse: () => <String, dynamic>{},
+        );
+        
+        if (currencyType.isNotEmpty) {
+          // Combine company_currency data with currency_type details
+          combinedCurrencies.add({
+            'currency_id': currencyId,
+            'company_currency_id': companyCurrency['company_currency_id'],
+            'currency_code': currencyType['currency_code'],
+            'currency_name': currencyType['currency_name'],
+            'symbol': currencyType['symbol'],
+          });
+        }
       }
       
       setState(() {
-        companyCurrencies = List<Map<String, dynamic>>.from(response);
+        companyCurrencies = combinedCurrencies;
       });
       
       // Load denominations for each currency
       await _loadCurrencyDenominations();
     } catch (e) {
+      // Error loading company currencies: $e
+      setState(() {
+        companyCurrencies = [];
+      });
     }
   }
   
@@ -383,6 +422,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
             .eq('company_id', companyId)
             .isFilter('store_id', null)
             .eq('location_type', locationType)  // Filter by location type (cash/bank/vault)
+            .eq('is_deleted', false)  // Only show active locations
             .order('location_name');
       } else if (selectedStoreId != null && selectedStoreId!.isNotEmpty) {
         // For regular store, filter by store_id and location_type
@@ -392,6 +432,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
             .eq('company_id', companyId)
             .eq('store_id', selectedStoreId!)
             .eq('location_type', locationType)  // Filter by location type (cash/bank/vault)
+            .eq('is_deleted', false)  // Only show active locations
             .order('location_name');
       } else {
         // No store selected
@@ -510,29 +551,28 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
       body: SafeArea(
         child: Column(
           children: [
-            // Tab Bar with white background
-            Container(
-              color: TossColors.white,
-              child: TossTabBar(
-                tabs: const ['Cash', 'Bank', 'Vault'],
-                controller: _tabController,
-                unselectedColor: hasVaultBankAccess 
-                    ? TossColors.gray400 
-                    : TossColors.gray300, // Lighter gray for disabled tabs
-                onTabChanged: (index) {
-                  // Prevent switching to Bank or Vault tabs if no permission
-                  if (index > 0 && !hasVaultBankAccess) {
-                    // Reset to Cash tab
-                    _tabController.index = 0;
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('You do not have permission to access Bank/Vault features'),
-                        duration: const Duration(seconds: 2),
-                      ),
-                    );
-                  }
-                },
-              ),
+            // Tab Bar without background to match Cash Control design
+            TossMinimalTabBar(
+              tabs: const ['Cash', 'Bank', 'Vault'],
+              controller: _tabController,
+              selectedColor: Colors.black87, // Use black87 to match Cash Control page exactly
+              showDivider: false, // Remove bottom divider to match Cash Control design
+              unselectedColor: hasVaultBankAccess 
+                  ? TossColors.gray400 
+                  : TossColors.gray300, // Lighter gray for disabled tabs
+              onTap: (index) {
+                // Prevent switching to Bank or Vault tabs if no permission
+                if (index > 0 && !hasVaultBankAccess) {
+                  // Reset to Cash tab
+                  _tabController.index = 0;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('You do not have permission to access Bank/Vault features'),
+                      duration: const Duration(seconds: 2),
+                    ),
+                  );
+                }
+              },
             ),
             // Tab Content
             Expanded(
@@ -866,12 +906,12 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
     return TossToggleButtonGroup(
       buttons: [
         TossToggleButtonData(
-          label: 'Debit',
+          label: 'In',
           value: 'debit',
           activeColor: TossColors.primary,
         ),
         TossToggleButtonData(
-          label: 'Credit',
+          label: 'Out',
           value: 'credit',
           activeColor: TossColors.success,
         ),
@@ -1396,6 +1436,21 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
             final locationName = location['location_name'] ?? 'Unknown';
             final isSelected = selectedLocation == locationId;
             
+            // Check if this location has a fixed currency (for bank and vault locations)
+            final locationCurrencyId = location['currency_id']?.toString();
+            final hasFixedCurrency = (locationType == 'bank' || locationType == 'vault') && 
+                                    locationCurrencyId != null && 
+                                    locationCurrencyId.isNotEmpty;
+            
+            // Get currency code if location has fixed currency
+            String? currencyCode;
+            if (hasFixedCurrency) {
+              final currency = currencyTypes.firstWhere(
+                (c) => c['currency_id']?.toString() == locationCurrencyId,
+                orElse: () => {},
+              );
+              currencyCode = currency['currency_code']?.toString();
+            }
             
             return GestureDetector(
               onTap: () {
@@ -1404,6 +1459,14 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
                     selectedLocationId = locationId;
                   } else if (locationType == 'bank') {
                     selectedBankLocationId = locationId;
+                    
+                    // Get currency_id from the selected bank location
+                    final locationCurrencyId = location['currency_id']?.toString();
+                    if (locationCurrencyId != null && locationCurrencyId.isNotEmpty) {
+                      // Auto-select the currency based on location's currency_id
+                      selectedBankCurrencyType = locationCurrencyId;
+                    }
+                    
                     // Fetch recent transactions when bank location is selected
                     _fetchRecentBankTransactions();
                   } else {
@@ -1441,12 +1504,40 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
                   ),
                   boxShadow: isSelected ? TossShadows.elevation2 : [],
                 ),
-                child: Text(
-                  locationName,
-                  style: TossTextStyles.body.copyWith(
-                    color: isSelected ? Colors.white : TossColors.gray700,
-                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                  ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      locationName,
+                      style: TossTextStyles.body.copyWith(
+                        color: isSelected ? Colors.white : TossColors.gray700,
+                        fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                      ),
+                    ),
+                    if (hasFixedCurrency && currencyCode != null) ...[
+                      const SizedBox(width: TossSpacing.space2),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: TossSpacing.space2,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: isSelected 
+                              ? Colors.white.withOpacity(0.2)
+                              : TossColors.primary.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(TossBorderRadius.xs),
+                        ),
+                        child: Text(
+                          currencyCode,
+                          style: TossTextStyles.caption.copyWith(
+                            color: isSelected ? Colors.white : TossColors.primary,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 10,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
               ),
             );
@@ -1468,24 +1559,50 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
       selectedCurrencyId = selectedVaultCurrencyId;
     }
     
+    // For Cash and Vault tabs: Always show currency selector first
+    if (tabType != 'bank') {
+      // Show currency selector even if no currency is selected yet
+      if (companyCurrencies.isEmpty) {
+        return TossEmptyStateCard(
+          message: 'Loading currency data...',
+        );
+      }
+      
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Always show currency selector for cash/vault tabs
+          _buildCurrencySelector(tabType),
+          const SizedBox(height: TossSpacing.space6),
+          
+          // Only show denominations if a currency is selected
+          if (selectedCurrencyId != null && currencyDenominations.containsKey(selectedCurrencyId)) ...[
+            _buildDenominationList(selectedCurrencyId, tabType),
+          ],
+        ],
+      );
+    }
     
+    // For Bank tab: Must have a selected currency from location
     if (selectedCurrencyId == null || !currencyDenominations.containsKey(selectedCurrencyId)) {
       return TossEmptyStateCard(
         message: 'Loading currency data...',
       );
     }
     
-    // Get currency info
+    // Bank tab continues with denominations only (no currency selector)
+    return _buildDenominationList(selectedCurrencyId, tabType);
+  }
+  
+  Widget _buildDenominationList(String selectedCurrencyId, String tabType) {
+    // Get currency info from companyCurrencies (already has all details)
     final currencyInfo = companyCurrencies.firstWhere(
       (c) => c['currency_id'].toString() == selectedCurrencyId,
       orElse: () => {},
     );
     
-    // Get currency type info
-    final currencyType = currencyTypes.firstWhere(
-      (c) => c['currency_id'].toString() == selectedCurrencyId,
-      orElse: () => {},
-    );
+    final currencyCode = currencyInfo['currency_code'] ?? 'N/A';
+    final currencySymbol = currencyInfo['symbol'] ?? '';
     
     final denominations = currencyDenominations[selectedCurrencyId] ?? [];
     final controllers = denominationControllers[selectedCurrencyId] ?? {};
@@ -1493,11 +1610,6 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Currency selector if multiple currencies
-        if (companyCurrencies.length > 1) ...[
-          _buildCurrencySelector(tabType),
-          const SizedBox(height: TossSpacing.space6),
-        ],
         TossSectionHeader(
           title: 'Cash Count',
           trailing: Row(
@@ -1514,7 +1626,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
                   borderRadius: BorderRadius.circular(TossBorderRadius.sm),
                 ),
                 child: Text(
-                  currencyType['currency_code'] ?? 'N/A',
+                  currencyCode,
                   style: TossTextStyles.caption.copyWith(
                     color: TossColors.primary,
                     fontWeight: FontWeight.w600,
@@ -1531,7 +1643,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
           return _buildDenominationInput(
             denomination: denom,
             controller: controller,
-            currencySymbol: currencyType['symbol'] ?? '',
+            currencySymbol: currencySymbol,
           );
         }).toList(),
       ],
@@ -1565,16 +1677,15 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
           runSpacing: TossSpacing.space3,
           children: companyCurrencies.map((currency) {
             final currencyId = currency['currency_id'].toString();
-            final currencyType = currencyTypes.firstWhere(
-              (c) => c['currency_id'].toString() == currencyId,
-              orElse: () => {},
-            );
+            // Currency details are already in companyCurrencies after the join
+            final symbol = currency['symbol'] ?? '';
+            final currencyCode = currency['currency_code'] ?? 'N/A';
             final isSelected = selectedCurrencyId == currencyId;
             
             return TossCurrencyChip(
               currencyId: currencyId,
-              symbol: currencyType['symbol'] ?? '',
-              currencyCode: currencyType['currency_code'] ?? 'N/A',
+              symbol: symbol,
+              currencyCode: currencyCode,
               isSelected: isSelected,
               onTap: () {
                 setState(() {
@@ -2241,11 +2352,35 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
         setState(() {
           bankAmountController.clear();
           // Don't clear selectedBankLocationId to keep showing transactions
-          selectedBankCurrencyType = null;
+          
+          // Check if the selected location has a fixed currency
+          Map<String, dynamic>? selectedLocation;
+          if (selectedBankLocationId != null) {
+            try {
+              selectedLocation = bankLocations.firstWhere(
+                (loc) => loc['cash_location_id']?.toString() == selectedBankLocationId,
+              );
+            } catch (e) {
+              // Location not found
+            }
+          }
+          
+          // Only clear currency if the location doesn't have a fixed currency
+          final locationCurrencyId = selectedLocation?['currency_id']?.toString();
+          if (locationCurrencyId == null || locationCurrencyId.isEmpty) {
+            selectedBankCurrencyType = null;
+          }
+          // If location has fixed currency, keep it selected
         });
         
         // Refresh the transaction list
         await _fetchRecentBankTransactions();
+        
+        // Refresh the Real/Journal tabs data
+        if (selectedBankLocationId != null && selectedBankLocationId!.isNotEmpty) {
+          selectedCashLocationIdForFlow = selectedBankLocationId;
+          await _fetchLocationStockFlow(selectedBankLocationId!);
+        }
       }
       
     } catch (e) {
@@ -2662,72 +2797,187 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
   
   // Build currency selector for bank tab
   Widget _buildBankCurrencySelector() {
+    // For bank tab, ALWAYS show fixed currency (no selection allowed)
+    // Get the selected bank location to find its currency
+    Map<String, dynamic>? selectedBankLocation;
+    if (selectedBankLocationId != null) {
+      try {
+        selectedBankLocation = bankLocations.firstWhere(
+          (loc) => loc['cash_location_id']?.toString() == selectedBankLocationId,
+        );
+      } catch (e) {
+        // Location not found
+      }
+    }
+    
+    // Get the currency from the location
+    final locationCurrencyId = selectedBankLocation?['currency_id']?.toString();
+    
+    // If no currency is set for this location, show a message
+    if (locationCurrencyId == null || locationCurrencyId.isEmpty) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Text(
+                'Currency',
+                style: TossTextStyles.label.copyWith(
+                  color: TossColors.gray700,
+                  letterSpacing: 0.5,
+                ),
+              ),
+              const SizedBox(width: TossSpacing.space2),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: TossSpacing.space2,
+                  vertical: TossSpacing.space1,
+                ),
+                decoration: BoxDecoration(
+                  color: TossColors.error.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.sm),
+                ),
+                child: Text(
+                  'Not configured',
+                  style: TossTextStyles.caption.copyWith(
+                    color: TossColors.error,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: TossSpacing.space3),
+          Container(
+            padding: const EdgeInsets.all(TossSpacing.space4),
+            decoration: BoxDecoration(
+              color: TossColors.gray50,
+              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+              border: Border.all(color: TossColors.gray200),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  TossIcons.info,
+                  size: UIConstants.iconSizeSmall,
+                  color: TossColors.gray500,
+                ),
+                const SizedBox(width: TossSpacing.space3),
+                Expanded(
+                  child: Text(
+                    'This bank location has no currency configured. Please contact your administrator.',
+                    style: TossTextStyles.caption.copyWith(
+                      color: TossColors.gray600,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      );
+    }
+    
+    // Find the fixed currency details from companyCurrencies
+    // First check if we have this currency in companyCurrencies
+    final fixedCurrency = companyCurrencies.firstWhere(
+      (c) => c['currency_id']?.toString() == locationCurrencyId,
+      orElse: () => {
+        // If not in companyCurrencies, fall back to currencyTypes
+        ...currencyTypes.firstWhere(
+          (c) => c['currency_id']?.toString() == locationCurrencyId,
+          orElse: () => {'currency_name': 'Unknown', 'currency_code': '', 'symbol': ''},
+        )
+      },
+    );
+    final currencyName = fixedCurrency['currency_name'] ?? 'Unknown';
+    final currencyCode = fixedCurrency['currency_code'] ?? '';
+    final currencySymbol = fixedCurrency['symbol'] ?? '';
+    
+    // Always show the bank location's currency as fixed (non-selectable)
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Currency',
-          style: TossTextStyles.label.copyWith(
-            color: TossColors.gray700,
-            letterSpacing: 0.5,
-          ),
-        ),
-        const SizedBox(height: TossSpacing.space3),
-        Wrap(
-          spacing: TossSpacing.space3,
-          runSpacing: TossSpacing.space3,
-          children: currencyTypes.map((currency) {
-            final currencyId = currency['currency_id']?.toString() ?? '';
-            final currencyName = currency['currency_name'] ?? 'Unknown';
-            final currencyCode = currency['currency_code'] ?? '';
-            final isSelected = selectedBankCurrencyType == currencyId;
-            
-            return GestureDetector(
-              onTap: () {
-                setState(() {
-                  selectedBankCurrencyType = currencyId;
-                });
-                HapticFeedback.selectionClick();
-              },
-              child: AnimatedContainer(
-                duration: TossAnimations.normal,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: TossSpacing.space4,
-                  vertical: TossSpacing.space3,
-                ),
-                decoration: BoxDecoration(
-                  color: isSelected ? TossColors.primary : Colors.white,
-                  borderRadius: BorderRadius.circular(TossBorderRadius.full),
-                  border: Border.all(
-                    color: isSelected ? TossColors.primary : TossColors.gray300,
-                    width: 1.5,
-                  ),
-                  boxShadow: isSelected ? TossShadows.elevation2 : [],
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      currencyName,
-                      style: TossTextStyles.body.copyWith(
-                        color: isSelected ? Colors.white : TossColors.gray700,
-                        fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                      ),
-                    ),
-                    if (currencyCode.isNotEmpty) ...[
-                      const SizedBox(height: 2),
-                      Text(
-                        '($currencyCode)',
-                        style: TossTextStyles.caption.copyWith(
-                          color: isSelected ? Colors.white.withOpacity(0.9) : TossColors.gray500,
-                        ),
-                      ),
-                    ],
-                  ],
+        Row(
+          children: [
+            Text(
+              'Currency',
+              style: TossTextStyles.label.copyWith(
+                color: TossColors.gray700,
+                letterSpacing: 0.5,
+              ),
+            ),
+            const SizedBox(width: TossSpacing.space2),
+            Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: TossSpacing.space2,
+                vertical: TossSpacing.space1,
+              ),
+              decoration: BoxDecoration(
+                color: TossColors.primary.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(TossBorderRadius.sm),
+              ),
+              child: Text(
+                'Fixed by location',
+                style: TossTextStyles.caption.copyWith(
+                  color: TossColors.primary,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
-            );
-          }).toList(),
+            ),
+          ],
+        ),
+        const SizedBox(height: TossSpacing.space3),
+        // Show only the fixed currency as a non-clickable selected chip
+        Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: TossSpacing.space4,
+                vertical: TossSpacing.space3,
+              ),
+              decoration: BoxDecoration(
+                color: TossColors.primary,
+                borderRadius: BorderRadius.circular(TossBorderRadius.full),
+                border: Border.all(
+                  color: TossColors.primary,
+                  width: 1.5,
+                ),
+                boxShadow: TossShadows.elevation2,
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (currencySymbol.isNotEmpty) ...[
+                    Text(
+                      currencySymbol,
+                      style: TossTextStyles.h3.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(width: TossSpacing.space2),
+                  ],
+                  Text(
+                    currencyName,
+                    style: TossTextStyles.body.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  if (currencyCode.isNotEmpty) ...[
+                    const SizedBox(width: TossSpacing.space2),
+                    Text(
+                      '($currencyCode)',
+                      style: TossTextStyles.caption.copyWith(
+                        color: Colors.white.withOpacity(0.9),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ],
         ),
       ],
     );
@@ -2985,8 +3235,8 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
       return '0';
     }
     
-    // Get currency type info
-    final currencyType = currencyTypes.firstWhere(
+    // Get currency info from companyCurrencies (already has all details)
+    final currencyInfo = companyCurrencies.firstWhere(
       (c) => c['currency_id'].toString() == selectedCurrencyId,
       orElse: () => {'symbol': ''},
     );
@@ -3005,7 +3255,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
       }
     }
     
-    final currencySymbol = currencyType['symbol'] ?? '';
+    final currencySymbol = currencyInfo['symbol'] ?? '';
     return '$currencySymbol${NumberFormat('#,###').format(total)}';
   }
   
@@ -3067,7 +3317,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
       final recordDate = DateFormat('yyyy-MM-dd').format(now);
       final createdAt = DateFormat('yyyy-MM-dd HH:mm:ss.SSSSSS').format(now);
       
-      // Build vault_amount_line_json
+      // Build vault_amount_line_json with denomination details
       List<Map<String, dynamic>> vaultAmountLineJson = [];
       
       if (denominationControllers.containsKey(selectedVaultCurrencyId)) {
@@ -3075,7 +3325,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
         final denominations = currencyDenominations[selectedVaultCurrencyId] ?? [];
         
         for (var denom in denominations) {
-          final denomId = denom['denomination_id'].toString();
+          final denomId = denom['denomination_id']?.toString() ?? denom['id']?.toString() ?? '';
           final denomValue = denom['value'].toString();
           final controller = controllers[denomValue];
           
@@ -3085,6 +3335,8 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
               vaultAmountLineJson.add({
                 'quantity': quantity.toString(),
                 'denomination_id': denomId,
+                'denomination_value': denomValue,
+                'denomination_type': denom['denomination_type'] ?? 'BILL',
               });
             }
           }
@@ -3132,6 +3384,12 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
         
         // Refresh vault balance
         _fetchVaultBalance();
+        
+        // Refresh the Real/Journal tabs data for Vault tab
+        if (selectedVaultLocationId != null && selectedVaultLocationId!.isNotEmpty) {
+          selectedCashLocationIdForFlow = selectedVaultLocationId;
+          _fetchLocationStockFlow(selectedVaultLocationId!);
+        }
       }
       
     } catch (e) {
@@ -3270,6 +3528,14 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
         
         _showSuccessBottomSheet(savedTotal);
         
+        // Refresh the Real/Journal tabs data for Cash tab
+        if (_tabController.index == 0 && selectedLocationId != null && selectedLocationId!.isNotEmpty) {
+          selectedCashLocationIdForFlow = selectedLocationId;
+          await _fetchLocationStockFlow(selectedLocationId!);
+          // Also reload recent cash endings
+          await _loadRecentCashEndings(selectedLocationId!);
+        }
+        
         // Clear the form after success
         denominationControllers.forEach((currencyId, controllers) {
           controllers.forEach((denominationId, controller) {
@@ -3299,72 +3565,104 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
   }
   
   void _showSuccessBottomSheet(double savedTotal) {
+    // Get the currency symbol from the selected currency
+    String currencySymbol = '₫';
+    if (_tabController.index == 0 && selectedCashCurrencyId != null) {
+      final currency = companyCurrencies.firstWhere(
+        (c) => c['currency_id'].toString() == selectedCashCurrencyId,
+        orElse: () => {'symbol': '₫'},
+      );
+      currencySymbol = currency['symbol'] ?? '₫';
+    } else if (_tabController.index == 1 && selectedBankCurrencyType != null) {
+      final currency = companyCurrencies.firstWhere(
+        (c) => c['currency_id'].toString() == selectedBankCurrencyType,
+        orElse: () => {'symbol': '₫'},
+      );
+      currencySymbol = currency['symbol'] ?? '₫';
+    } else if (_tabController.index == 2 && selectedVaultCurrencyId != null) {
+      final currency = companyCurrencies.firstWhere(
+        (c) => c['currency_id'].toString() == selectedVaultCurrencyId,
+        orElse: () => {'symbol': '₫'},
+      );
+      currencySymbol = currency['symbol'] ?? '₫';
+    }
+    
     // Format the total amount with currency
     final formattedTotal = NumberFormat.currency(
-      symbol: '₫',
+      symbol: currencySymbol,
       decimalDigits: 0,
     ).format(savedTotal);
     
-    showModalBottomSheet(
+    // Show dialog in center of screen instead of bottom sheet
+    showDialog(
       context: context,
-      backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        padding: const EdgeInsets.all(TossSpacing.space6),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(TossBorderRadius.xxl),
-            topRight: Radius.circular(TossBorderRadius.xxl),
-          ),
+      barrierDismissible: false,
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(TossBorderRadius.xxl),
         ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: UIConstants.iconSizeHuge + 16, // 64px for success state
-              height: UIConstants.iconSizeHuge + 16,
-              decoration: BoxDecoration(
-                color: TossColors.success.withOpacity(0.1),
-                shape: BoxShape.circle,
+        child: Container(
+          padding: const EdgeInsets.all(TossSpacing.space6),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(TossBorderRadius.xxl),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: UIConstants.iconSizeHuge + 16, // 64px for success state
+                height: UIConstants.iconSizeHuge + 16,
+                decoration: BoxDecoration(
+                  color: TossColors.success.withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  TossIcons.check,
+                  color: TossColors.success,
+                  size: UIConstants.iconSizeXL,
+                ),
               ),
-              child: const Icon(
-                TossIcons.check,
-                color: TossColors.success,
-                size: UIConstants.iconSizeXL,
+              const SizedBox(height: TossSpacing.space4),
+              Text(
+                'Cash Ending Saved',
+                style: TossTextStyles.h3.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
               ),
-            ),
-            const SizedBox(height: TossSpacing.space4),
-            Text(
-              'Cash Ending Saved',
-              style: TossTextStyles.h3.copyWith(
-                fontWeight: FontWeight.w700,
+              const SizedBox(height: TossSpacing.space2),
+              Text(
+                formattedTotal,
+                style: TossTextStyles.h2.copyWith(
+                  color: TossColors.primary,
+                  fontWeight: FontWeight.w700,
+                  fontFamily: 'JetBrains Mono',
+                ),
               ),
-            ),
-            const SizedBox(height: TossSpacing.space2),
-            Text(
-              formattedTotal,
-              style: TossTextStyles.h2.copyWith(
-                color: TossColors.primary,
-                fontWeight: FontWeight.w700,
-                fontFamily: 'JetBrains Mono',
+              const SizedBox(height: TossSpacing.space6),
+              SizedBox(
+                width: double.infinity,
+                child: TossPrimaryButton(
+                  text: 'Done',
+                  onPressed: () {
+                    Navigator.pop(context);
+                    // Reset form only for cash tab
+                    if (_tabController.index == 0) {
+                      setState(() {
+                        selectedLocationId = null;
+                        if (selectedCashCurrencyId != null && denominationControllers.containsKey(selectedCashCurrencyId)) {
+                          denominationControllers[selectedCashCurrencyId]!.forEach((key, controller) {
+                            controller.clear();
+                          });
+                        }
+                      });
+                    }
+                  },
+                  isLoading: false,
+                ),
               ),
-            ),
-            const SizedBox(height: TossSpacing.space6),
-            TossPrimaryButton(
-              text: 'Done',
-              onPressed: () {
-                Navigator.pop(context);
-                // Reset form
-                setState(() {
-                  selectedLocationId = null;
-                  denominationControllers.forEach((key, controller) {
-                    controller.clear();
-                  });
-                });
-              },
-              isLoading: false,
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -4266,7 +4564,16 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
     final currencySymbol = flow.currency.symbol;
     
     return GestureDetector(
-      onTap: () => _showRealDetailBottomSheet(flow),
+      onTap: () {
+        // Determine location type based on current tab
+        String locationType = 'cash';
+        if (_tabController.index == 1) {
+          locationType = 'bank';
+        } else if (_tabController.index == 2) {
+          locationType = 'vault';
+        }
+        _showRealDetailBottomSheet(flow, locationType: locationType);
+      },
       behavior: HitTestBehavior.opaque,
       child: Container(
         padding: EdgeInsets.only(
@@ -4350,15 +4657,34 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
           
           SizedBox(width: TossSpacing.space2),
           
-          // Balance
-          Text(
-            _formatBalance(flow.balanceAfter, currencySymbol),
-            style: TossTextStyles.body.copyWith(
-              color: Colors.black87,
-              fontWeight: FontWeight.w600,
-              fontSize: 16,
-              height: 1.2,
-            ),
+          // Flow amount and balance after
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              // Flow amount (the transaction amount) - blue for positive, black for negative
+              Text(
+                _formatBalance(flow.flowAmount, currencySymbol),
+                style: TossTextStyles.body.copyWith(
+                  color: flow.flowAmount >= 0 
+                      ? TossColors.primary 
+                      : Colors.black87,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 16,
+                  height: 1.2,
+                ),
+              ),
+              SizedBox(height: 4),
+              // Balance after in gray
+              Text(
+                _formatBalance(flow.balanceAfter, currencySymbol),
+                style: TossTextStyles.caption.copyWith(
+                  color: Colors.grey[600],
+                  fontWeight: FontWeight.w500,
+                  fontSize: 14,
+                  height: 1.2,
+                ),
+              ),
+            ],
           ),
           ],
         ),
@@ -4490,7 +4816,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
     );
   }
   
-  void _showRealDetailBottomSheet(ActualFlow flow) {
+  void _showRealDetailBottomSheet(ActualFlow flow, {String locationType = 'cash'}) {
     final currencySymbol = flow.currency.symbol;
     
     showModalBottomSheet(
@@ -4641,7 +4967,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
                                         style: TossTextStyles.body.copyWith(
                                           fontWeight: FontWeight.w600,
                                           fontSize: 15,
-                                          color: flow.flowAmount >= 0 ? Colors.green[600] : Colors.red[600],
+                                          color: flow.flowAmount >= 0 ? TossColors.primary : Colors.black87,
                                         ),
                                       ),
                                     ],
@@ -4655,8 +4981,8 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
                       
                       const SizedBox(height: 24),
                       
-                      // Denomination Breakdown Section
-                      if (flow.currentDenominations.isNotEmpty) ...[
+                      // Denomination Breakdown Section (only show for cash and vault, not for bank)
+                      if (flow.currentDenominations.isNotEmpty && locationType != 'bank') ...[
                         Text(
                           'Denomination Breakdown',
                           style: TossTextStyles.body.copyWith(
@@ -4988,7 +5314,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
                                   style: TossTextStyles.h2.copyWith(
                                     fontWeight: FontWeight.w700,
                                     fontSize: 24,
-                                    color: flow.flowAmount >= 0 ? TossColors.primary : Colors.red[600],
+                                    color: flow.flowAmount >= 0 ? TossColors.primary : Colors.black87,
                                   ),
                                 ),
                               ],
