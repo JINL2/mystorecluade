@@ -28,7 +28,10 @@ import '../pages/cash_location/cash_location_page.dart';
 import '../pages/cash_location/account_detail_page.dart';
 import '../pages/transactions/transaction_history_page.dart';
 import '../pages/transaction_template/transaction_template_page.dart';
-import '../pages/my_page/my_page.dart';
+import '../pages/my_page/my_page_redesigned.dart';
+import '../pages/my_page/edit_profile/edit_profile_page.dart';
+import '../pages/my_page/notifications_settings/notifications_settings_page.dart';
+import '../pages/my_page/privacy_security/privacy_security_page.dart';
 import '../pages/debt_account_settings/debt_account_settings_page.dart';
 import '../pages/debt_control/smart_debt_control_page.dart';
 import '../pages/debt_control/debt_relationship_page.dart';
@@ -324,7 +327,22 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           // My Page
           GoRoute(
             path: 'myPage',
-            builder: (context, state) => const MyPage(),
+            builder: (context, state) => const MyPageRedesigned(),
+          ),
+          // Edit Profile Page
+          GoRoute(
+            path: 'edit-profile',
+            builder: (context, state) => const EditProfilePage(),
+          ),
+          // Notifications Settings Page
+          GoRoute(
+            path: 'notifications-settings',
+            builder: (context, state) => const NotificationsSettingsPage(),
+          ),
+          // Privacy & Security Page
+          GoRoute(
+            path: 'privacy-security',
+            builder: (context, state) => const PrivacySecurityPage(),
           ),
           GoRoute(
             path: 'cashLocation',

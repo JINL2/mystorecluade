@@ -12,7 +12,10 @@ _$UserProfileImpl _$$UserProfileImplFromJson(Map<String, dynamic> json) =>
       firstName: json['first_name'] as String?,
       lastName: json['last_name'] as String?,
       email: json['email'] as String,
+      phoneNumber: json['phone_number'] as String?,
       profileImage: json['profile_image'] as String?,
+      bankName: json['bank_name'] as String?,
+      bankAccountNumber: json['bank_account_number'] as String?,
       isDeleted: json['is_deleted'] as bool? ?? false,
       deletedAt: json['deleted_at'] == null
           ? null
@@ -39,7 +42,10 @@ Map<String, dynamic> _$$UserProfileImplToJson(_$UserProfileImpl instance) =>
       'first_name': instance.firstName,
       'last_name': instance.lastName,
       'email': instance.email,
+      'phone_number': instance.phoneNumber,
       'profile_image': instance.profileImage,
+      'bank_name': instance.bankName,
+      'bank_account_number': instance.bankAccountNumber,
       'is_deleted': instance.isDeleted,
       'deleted_at': instance.deletedAt?.toIso8601String(),
       'created_at': instance.createdAt?.toIso8601String(),

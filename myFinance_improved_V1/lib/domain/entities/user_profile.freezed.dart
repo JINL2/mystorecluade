@@ -27,8 +27,14 @@ mixin _$UserProfile {
   @JsonKey(name: 'last_name')
   String? get lastName => throw _privateConstructorUsedError;
   String get email => throw _privateConstructorUsedError;
+  @JsonKey(name: 'phone_number')
+  String? get phoneNumber => throw _privateConstructorUsedError;
   @JsonKey(name: 'profile_image')
   String? get profileImage => throw _privateConstructorUsedError;
+  @JsonKey(name: 'bank_name')
+  String? get bankName => throw _privateConstructorUsedError;
+  @JsonKey(name: 'bank_account_number')
+  String? get bankAccountNumber => throw _privateConstructorUsedError;
   @JsonKey(name: 'is_deleted')
   bool get isDeleted => throw _privateConstructorUsedError;
   @JsonKey(name: 'deleted_at')
@@ -73,7 +79,10 @@ abstract class $UserProfileCopyWith<$Res> {
       @JsonKey(name: 'first_name') String? firstName,
       @JsonKey(name: 'last_name') String? lastName,
       String email,
+      @JsonKey(name: 'phone_number') String? phoneNumber,
       @JsonKey(name: 'profile_image') String? profileImage,
+      @JsonKey(name: 'bank_name') String? bankName,
+      @JsonKey(name: 'bank_account_number') String? bankAccountNumber,
       @JsonKey(name: 'is_deleted') bool isDeleted,
       @JsonKey(name: 'deleted_at') DateTime? deletedAt,
       @JsonKey(name: 'created_at') DateTime? createdAt,
@@ -106,7 +115,10 @@ class _$UserProfileCopyWithImpl<$Res, $Val extends UserProfile>
     Object? firstName = freezed,
     Object? lastName = freezed,
     Object? email = null,
+    Object? phoneNumber = freezed,
     Object? profileImage = freezed,
+    Object? bankName = freezed,
+    Object? bankAccountNumber = freezed,
     Object? isDeleted = null,
     Object? deletedAt = freezed,
     Object? createdAt = freezed,
@@ -135,9 +147,21 @@ class _$UserProfileCopyWithImpl<$Res, $Val extends UserProfile>
           ? _value.email
           : email // ignore: cast_nullable_to_non_nullable
               as String,
+      phoneNumber: freezed == phoneNumber
+          ? _value.phoneNumber
+          : phoneNumber // ignore: cast_nullable_to_non_nullable
+              as String?,
       profileImage: freezed == profileImage
           ? _value.profileImage
           : profileImage // ignore: cast_nullable_to_non_nullable
+              as String?,
+      bankName: freezed == bankName
+          ? _value.bankName
+          : bankName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      bankAccountNumber: freezed == bankAccountNumber
+          ? _value.bankAccountNumber
+          : bankAccountNumber // ignore: cast_nullable_to_non_nullable
               as String?,
       isDeleted: null == isDeleted
           ? _value.isDeleted
@@ -196,7 +220,10 @@ abstract class _$$UserProfileImplCopyWith<$Res>
       @JsonKey(name: 'first_name') String? firstName,
       @JsonKey(name: 'last_name') String? lastName,
       String email,
+      @JsonKey(name: 'phone_number') String? phoneNumber,
       @JsonKey(name: 'profile_image') String? profileImage,
+      @JsonKey(name: 'bank_name') String? bankName,
+      @JsonKey(name: 'bank_account_number') String? bankAccountNumber,
       @JsonKey(name: 'is_deleted') bool isDeleted,
       @JsonKey(name: 'deleted_at') DateTime? deletedAt,
       @JsonKey(name: 'created_at') DateTime? createdAt,
@@ -227,7 +254,10 @@ class __$$UserProfileImplCopyWithImpl<$Res>
     Object? firstName = freezed,
     Object? lastName = freezed,
     Object? email = null,
+    Object? phoneNumber = freezed,
     Object? profileImage = freezed,
+    Object? bankName = freezed,
+    Object? bankAccountNumber = freezed,
     Object? isDeleted = null,
     Object? deletedAt = freezed,
     Object? createdAt = freezed,
@@ -256,9 +286,21 @@ class __$$UserProfileImplCopyWithImpl<$Res>
           ? _value.email
           : email // ignore: cast_nullable_to_non_nullable
               as String,
+      phoneNumber: freezed == phoneNumber
+          ? _value.phoneNumber
+          : phoneNumber // ignore: cast_nullable_to_non_nullable
+              as String?,
       profileImage: freezed == profileImage
           ? _value.profileImage
           : profileImage // ignore: cast_nullable_to_non_nullable
+              as String?,
+      bankName: freezed == bankName
+          ? _value.bankName
+          : bankName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      bankAccountNumber: freezed == bankAccountNumber
+          ? _value.bankAccountNumber
+          : bankAccountNumber // ignore: cast_nullable_to_non_nullable
               as String?,
       isDeleted: null == isDeleted
           ? _value.isDeleted
@@ -312,7 +354,10 @@ class _$UserProfileImpl extends _UserProfile {
       @JsonKey(name: 'first_name') this.firstName,
       @JsonKey(name: 'last_name') this.lastName,
       required this.email,
+      @JsonKey(name: 'phone_number') this.phoneNumber,
       @JsonKey(name: 'profile_image') this.profileImage,
+      @JsonKey(name: 'bank_name') this.bankName,
+      @JsonKey(name: 'bank_account_number') this.bankAccountNumber,
       @JsonKey(name: 'is_deleted') this.isDeleted = false,
       @JsonKey(name: 'deleted_at') this.deletedAt,
       @JsonKey(name: 'created_at') this.createdAt,
@@ -340,8 +385,17 @@ class _$UserProfileImpl extends _UserProfile {
   @override
   final String email;
   @override
+  @JsonKey(name: 'phone_number')
+  final String? phoneNumber;
+  @override
   @JsonKey(name: 'profile_image')
   final String? profileImage;
+  @override
+  @JsonKey(name: 'bank_name')
+  final String? bankName;
+  @override
+  @JsonKey(name: 'bank_account_number')
+  final String? bankAccountNumber;
   @override
   @JsonKey(name: 'is_deleted')
   final bool isDeleted;
@@ -377,7 +431,7 @@ class _$UserProfileImpl extends _UserProfile {
 
   @override
   String toString() {
-    return 'UserProfile(userId: $userId, firstName: $firstName, lastName: $lastName, email: $email, profileImage: $profileImage, isDeleted: $isDeleted, deletedAt: $deletedAt, createdAt: $createdAt, updatedAt: $updatedAt, companyName: $companyName, storeName: $storeName, roleName: $roleName, subscriptionPlan: $subscriptionPlan, subscriptionStatus: $subscriptionStatus, subscriptionExpiresAt: $subscriptionExpiresAt)';
+    return 'UserProfile(userId: $userId, firstName: $firstName, lastName: $lastName, email: $email, phoneNumber: $phoneNumber, profileImage: $profileImage, bankName: $bankName, bankAccountNumber: $bankAccountNumber, isDeleted: $isDeleted, deletedAt: $deletedAt, createdAt: $createdAt, updatedAt: $updatedAt, companyName: $companyName, storeName: $storeName, roleName: $roleName, subscriptionPlan: $subscriptionPlan, subscriptionStatus: $subscriptionStatus, subscriptionExpiresAt: $subscriptionExpiresAt)';
   }
 
   @override
@@ -391,8 +445,14 @@ class _$UserProfileImpl extends _UserProfile {
             (identical(other.lastName, lastName) ||
                 other.lastName == lastName) &&
             (identical(other.email, email) || other.email == email) &&
+            (identical(other.phoneNumber, phoneNumber) ||
+                other.phoneNumber == phoneNumber) &&
             (identical(other.profileImage, profileImage) ||
                 other.profileImage == profileImage) &&
+            (identical(other.bankName, bankName) ||
+                other.bankName == bankName) &&
+            (identical(other.bankAccountNumber, bankAccountNumber) ||
+                other.bankAccountNumber == bankAccountNumber) &&
             (identical(other.isDeleted, isDeleted) ||
                 other.isDeleted == isDeleted) &&
             (identical(other.deletedAt, deletedAt) ||
@@ -423,7 +483,10 @@ class _$UserProfileImpl extends _UserProfile {
       firstName,
       lastName,
       email,
+      phoneNumber,
       profileImage,
+      bankName,
+      bankAccountNumber,
       isDeleted,
       deletedAt,
       createdAt,
@@ -457,7 +520,10 @@ abstract class _UserProfile extends UserProfile {
       @JsonKey(name: 'first_name') final String? firstName,
       @JsonKey(name: 'last_name') final String? lastName,
       required final String email,
+      @JsonKey(name: 'phone_number') final String? phoneNumber,
       @JsonKey(name: 'profile_image') final String? profileImage,
+      @JsonKey(name: 'bank_name') final String? bankName,
+      @JsonKey(name: 'bank_account_number') final String? bankAccountNumber,
       @JsonKey(name: 'is_deleted') final bool isDeleted,
       @JsonKey(name: 'deleted_at') final DateTime? deletedAt,
       @JsonKey(name: 'created_at') final DateTime? createdAt,
@@ -486,8 +552,17 @@ abstract class _UserProfile extends UserProfile {
   @override
   String get email;
   @override
+  @JsonKey(name: 'phone_number')
+  String? get phoneNumber;
+  @override
   @JsonKey(name: 'profile_image')
   String? get profileImage;
+  @override
+  @JsonKey(name: 'bank_name')
+  String? get bankName;
+  @override
+  @JsonKey(name: 'bank_account_number')
+  String? get bankAccountNumber;
   @override
   @JsonKey(name: 'is_deleted')
   bool get isDeleted;
