@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyFinance - Path Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-item { margin: 10px 0; padding: 10px; border: 1px solid #ccc; }
+        .success { background-color: #d4edda; border-color: #c3e6cb; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; }
+        button { padding: 8px 16px; margin: 5px; }
+        .current-path { background: #e9ecef; padding: 10px; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <h1>MyFinance Path Testing</h1>
+    
+    <div class="current-path">
+        <strong>Current Page URL:</strong> <span id="currentUrl"></span><br>
+        <strong>Current Pathname:</strong> <span id="currentPath"></span>
+    </div>
+    
+    <h2>Test Navigation Links</h2>
+    
+    <div class="test-item">
+        <h3>Login Page Access</h3>
+        <button onclick="testPath('/mcparrange-main/myFinance_claude/website/pages/auth/login.html')">
+            Test Login Page (Absolute Path)
+        </button>
+        <button onclick="navigateToPath('/mcparrange-main/myFinance_claude/website/pages/auth/login.html')">
+            Navigate to Login
+        </button>
+        <div id="login-result"></div>
+    </div>
+
+    <div class="test-item">
+        <h3>Dashboard Access</h3>
+        <button onclick="testPath('/mcparrange-main/myFinance_claude/website/pages/dashboard/')">
+            Test Dashboard (Absolute Path)
+        </button>
+        <button onclick="navigateToPath('/mcparrange-main/myFinance_claude/website/pages/dashboard/')">
+            Navigate to Dashboard
+        </button>
+        <div id="dashboard-result"></div>
+    </div>
+
+    <div class="test-item">
+        <h3>Website Root</h3>
+        <button onclick="testPath('/mcparrange-main/myFinance_claude/website/')">
+            Test Website Root
+        </button>
+        <button onclick="navigateToPath('/mcparrange-main/myFinance_claude/website/')">
+            Navigate to Root
+        </button>
+        <div id="root-result"></div>
+    </div>
+
+    <h2>Browser Cache Actions</h2>
+    <div class="test-item">
+        <button onclick="hardRefresh()">Hard Refresh Page</button>
+        <button onclick="clearLocalStorage()">Clear Local Storage</button>
+        <button onclick="showCacheInfo()">Show Cache Info</button>
+    </div>
+
+    <script>
+        // Display current URL information
+        document.getElementById('currentUrl').textContent = window.location.href;
+        document.getElementById('currentPath').textContent = window.location.pathname;
+
+        async function testPath(path) {
+            try {
+                const response = await fetch(path, { method: 'HEAD' });
+                const resultId = path.includes('login') ? 'login-result' : 
+                                path.includes('dashboard') ? 'dashboard-result' : 'root-result';
+                const resultDiv = document.getElementById(resultId);
+                
+                if (response.ok) {
+                    resultDiv.innerHTML = `<span style="color: green;">✅ ${path} - Status: ${response.status} OK</span>`;
+                } else {
+                    resultDiv.innerHTML = `<span style="color: red;">❌ ${path} - Status: ${response.status} ${response.statusText}</span>`;
+                }
+            } catch (error) {
+                console.error('Error testing path:', error);
+                const resultId = path.includes('login') ? 'login-result' : 
+                                path.includes('dashboard') ? 'dashboard-result' : 'root-result';
+                document.getElementById(resultId).innerHTML = `<span style="color: red;">❌ Error: ${error.message}</span>`;
+            }
+        }
+
+        function navigateToPath(path) {
+            console.log('Navigating to:', path);
+            window.location.href = path;
+        }
+
+        function hardRefresh() {
+            window.location.reload(true);
+        }
+
+        function clearLocalStorage() {
+            localStorage.clear();
+            sessionStorage.clear();
+            alert('Local storage and session storage cleared!');
+        }
+
+        function showCacheInfo() {
+            const info = {
+                'Current URL': window.location.href,
+                'Referrer': document.referrer,
+                'User Agent': navigator.userAgent,
+                'Local Storage Items': Object.keys(localStorage).length,
+                'Session Storage Items': Object.keys(sessionStorage).length
+            };
+            
+            let infoText = '';
+            for (const [key, value] of Object.entries(info)) {
+                infoText += `${key}: ${value}\n`;
+            }
+            alert(infoText);
+        }
+
+        // Auto-test all paths on page load
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                testPath('/mcparrange-main/myFinance_claude/website/pages/auth/login.html');
+                testPath('/mcparrange-main/myFinance_claude/website/pages/dashboard/');
+                testPath('/mcparrange-main/myFinance_claude/website/');
+            }, 500);
+        });
+    </script>
+</body>
+</html>

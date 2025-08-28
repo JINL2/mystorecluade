@@ -1,0 +1,1023 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyFinance - Dashboard</title>
+    
+    <!-- Theme CSS -->
+    <link rel="stylesheet" href="../../core/themes/toss-variables.css">
+    <link rel="stylesheet" href="../../core/themes/toss-component-variables.css">
+    <link rel="stylesheet" href="../../core/themes/toss-base.css">
+    <link rel="stylesheet" href="../../core/themes/toss-typography.css">
+    
+    <!-- Component CSS -->
+    <link rel="stylesheet" href="../../components/base/toss-button.css">
+    <link rel="stylesheet" href="../../components/feedback/toss-alert.css">
+    <link rel="stylesheet" href="../../components/form/toss-select.css">
+    <link rel="stylesheet" href="../../components/navigation/navbar.css">
+    
+    <!-- Chart.js for data visualization -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <style>
+        /* Modern Dashboard Styles - 2024 Design Standards */
+        .dashboard-container {
+            min-height: 100vh;
+            background: var(--toss-gray-50);
+            font-family: var(--font-family);
+        }
+        
+        /* Modern Layout */
+        .dashboard-layout {
+            min-height: 100vh;
+        }
+        
+        /* Remove old sidebar styles */
+        .sidebar {
+            display: none;
+        }
+        
+        /* Main Content Area */
+        .main-content {
+            background: var(--toss-gray-50);
+            min-height: calc(100vh - 120px);
+        }
+        
+        /* Page Header */
+        .page-header {
+            background: var(--toss-white);
+            border-bottom: 1px solid var(--toss-border);
+            padding: var(--space-5) var(--space-6);
+            margin-bottom: var(--space-6);
+        }
+        
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .header-title {
+            font-size: var(--font-h2);
+            font-weight: 700;
+            color: var(--text-primary);
+            margin: 0;
+        }
+        
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: var(--space-4);
+        }
+        
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+            padding: var(--space-2) var(--space-3);
+            border-radius: var(--radius-md);
+            transition: all var(--transition-fast);
+            cursor: pointer;
+        }
+        
+        .user-profile:hover {
+            background: var(--toss-gray-100);
+        }
+        
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            background: var(--toss-primary);
+            border-radius: var(--radius-full);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: var(--font-small);
+        }
+        
+        .user-info h4 {
+            font-size: var(--font-body);
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0;
+        }
+        
+        .user-info p {
+            font-size: var(--font-small);
+            color: var(--text-secondary);
+            margin: 0;
+        }
+        
+        /* Main Content */
+        .dashboard-main {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: var(--space-6);
+        }
+        
+        /* Financial Overview Cards */
+        .overview-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: var(--space-5);
+            margin-bottom: var(--space-8);
+        }
+        
+        .overview-card {
+            background: var(--toss-white);
+            border-radius: var(--radius-lg);
+            padding: var(--space-6);
+            border: 1px solid var(--toss-border);
+            box-shadow: var(--shadow-1);
+            transition: all var(--transition-fast);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .overview-card:hover {
+            box-shadow: var(--shadow-3);
+            transform: translateY(-2px);
+        }
+        
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: var(--space-4);
+        }
+        
+        .card-title {
+            font-size: var(--font-body);
+            font-weight: 600;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+        }
+        
+        .card-icon {
+            width: 20px;
+            height: 20px;
+            color: var(--toss-primary);
+        }
+        
+        .card-value {
+            font-size: var(--font-h2);
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: var(--space-2);
+        }
+        
+        .card-change {
+            font-size: var(--font-small);
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: var(--space-1);
+        }
+        
+        .change-positive {
+            color: var(--toss-success);
+        }
+        
+        .change-negative {
+            color: var(--toss-error);
+        }
+        
+        .change-neutral {
+            color: var(--text-tertiary);
+        }
+        
+        /* Content Sections */
+        .content-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: var(--space-6);
+            margin-bottom: var(--space-8);
+        }
+        
+        .content-section {
+            background: var(--toss-white);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--toss-border);
+            box-shadow: var(--shadow-1);
+        }
+        
+        .section-header {
+            padding: var(--space-5) var(--space-6);
+            border-bottom: 1px solid var(--toss-border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .section-title {
+            font-size: var(--font-large);
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0;
+        }
+        
+        .section-content {
+            padding: var(--space-6);
+        }
+        
+        /* Chart Container */
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-bottom: var(--space-4);
+        }
+        
+        /* Recent Transactions */
+        .transaction-item {
+            display: flex;
+            align-items: center;
+            justify-content: between;
+            padding: var(--space-3) 0;
+            border-bottom: 1px solid var(--toss-border-light);
+        }
+        
+        .transaction-item:last-child {
+            border-bottom: none;
+        }
+        
+        .transaction-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--toss-gray-100);
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: var(--space-3);
+            color: var(--text-secondary);
+        }
+        
+        .transaction-details {
+            flex: 1;
+        }
+        
+        .transaction-title {
+            font-size: var(--font-body);
+            font-weight: 500;
+            color: var(--text-primary);
+            margin: 0 0 var(--space-1) 0;
+        }
+        
+        .transaction-subtitle {
+            font-size: var(--font-small);
+            color: var(--text-tertiary);
+            margin: 0;
+        }
+        
+        .transaction-amount {
+            font-size: var(--font-body);
+            font-weight: 600;
+            text-align: right;
+        }
+        
+        .amount-positive {
+            color: var(--toss-success);
+        }
+        
+        .amount-negative {
+            color: var(--toss-error);
+        }
+        
+        /* Quick Actions */
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: var(--space-4);
+            margin-top: var(--space-6);
+        }
+        
+        .action-card {
+            background: var(--toss-white);
+            border: 1px solid var(--toss-border);
+            border-radius: var(--radius-lg);
+            padding: var(--space-5);
+            text-align: center;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            text-decoration: none;
+        }
+        
+        .action-card:hover {
+            box-shadow: var(--shadow-2);
+            transform: translateY(-1px);
+            border-color: var(--toss-primary);
+        }
+        
+        .action-icon {
+            width: 48px;
+            height: 48px;
+            background: var(--toss-primary-surface);
+            border-radius: var(--radius-lg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto var(--space-3);
+            color: var(--toss-primary);
+        }
+        
+        .action-title {
+            font-size: var(--font-body);
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0 0 var(--space-1) 0;
+        }
+        
+        .action-subtitle {
+            font-size: var(--font-small);
+            color: var(--text-secondary);
+            margin: 0;
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 1200px) {
+            .content-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        @media (max-width: 968px) {
+            .header-nav {
+                flex-direction: column;
+                gap: var(--space-2);
+            }
+            
+            .nav-dropdown .dropdown-menu {
+                position: static;
+                opacity: 1;
+                visibility: visible;
+                transform: none;
+                box-shadow: none;
+                border: none;
+                margin-top: var(--space-1);
+                display: none;
+            }
+            
+            .nav-dropdown .dropdown-menu.show {
+                display: block;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .header-nav {
+                display: none;
+            }
+            
+            .header-content {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .dashboard-main {
+                padding: var(--space-4);
+            }
+            
+            .overview-grid {
+                grid-template-columns: 1fr;
+                gap: var(--space-4);
+            }
+            
+            .quick-actions {
+                grid-template-columns: repeat(2, 1fr);
+                gap: var(--space-3);
+            }
+        }
+        
+        /* Loading States */
+        .skeleton {
+            background: linear-gradient(90deg, var(--toss-gray-200) 25%, var(--toss-gray-100) 50%, var(--toss-gray-200) 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
+        }
+        
+        @keyframes loading {
+            0% {
+                background-position: 200% 0;
+            }
+            100% {
+                background-position: -200% 0;
+            }
+        }
+        
+        .skeleton-text {
+            height: 1em;
+            border-radius: var(--radius-sm);
+            margin-bottom: var(--space-2);
+        }
+        
+        .skeleton-title {
+            height: 1.5em;
+            width: 60%;
+        }
+        
+        .skeleton-value {
+            height: 2em;
+            width: 40%;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-layout">
+        <!-- Navigation Bar Container -->
+        <div id="navbar-container"></div>
+        
+        
+        <!-- Main Content Area -->
+        <div class="main-content">
+            <!-- Page Header -->
+            <header class="page-header">
+                <div class="header-content">
+                    <h1 class="header-title">Dashboard</h1>
+                </div>
+            </header>
+        
+            <!-- Dashboard Content -->
+            <main class="dashboard-main">
+            <!-- Financial Overview Cards -->
+            <section class="overview-grid">
+                <div class="overview-card">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <svg class="card-icon" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                            </svg>
+                            Net Worth
+                        </div>
+                    </div>
+                    <div class="card-value" id="netWorthValue">$45,230.50</div>
+                    <div class="card-change change-positive">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M7 14l5-5 5 5z"/>
+                        </svg>
+                        +12.5% this month
+                    </div>
+                </div>
+                
+                <div class="overview-card">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <svg class="card-icon" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M7 15h2c0 1.08.81 2 2 2h2c1.19 0 2-.81 2-2s-.81-2-2-2h-2c-1.19 0-2-.81-2-2s.81-2 2-2h2c1.19 0 2 .92 2 2h2c0-1.08-.81-2-2-2V9h-2v2h-2c-1.19 0-2 .81-2 2s.81 2 2 2h2c1.19 0 2 .81 2 2s-.81 2-2 2h-2c-1.19 0-2-.92-2-2H7v2z"/>
+                            </svg>
+                            Monthly Income
+                        </div>
+                    </div>
+                    <div class="card-value" id="monthlyIncomeValue">$8,500.00</div>
+                    <div class="card-change change-positive">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M7 14l5-5 5 5z"/>
+                        </svg>
+                        +5.2% vs last month
+                    </div>
+                </div>
+                
+                <div class="overview-card">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <svg class="card-icon" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14H7v-2h5v2zm5-4H7v-2h10v2zm0-4H7V7h10v2z"/>
+                            </svg>
+                            Monthly Expenses
+                        </div>
+                    </div>
+                    <div class="card-value" id="monthlyExpensesValue">$6,230.75</div>
+                    <div class="card-change change-negative">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M7 10l5 5 5-5z"/>
+                        </svg>
+                        +8.3% vs budget
+                    </div>
+                </div>
+                
+                <div class="overview-card">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <svg class="card-icon" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                            </svg>
+                            Savings Goal
+                        </div>
+                    </div>
+                    <div class="card-value" id="savingsGoalValue">$15,500</div>
+                    <div class="card-change change-positive">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M7 14l5-5 5 5z"/>
+                        </svg>
+                        72% complete
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Content Grid -->
+            <div class="content-grid">
+                <!-- Spending Overview Chart -->
+                <section class="content-section">
+                    <div class="section-header">
+                        <h2 class="section-title">Spending Overview</h2>
+                        <button class="toss-btn toss-btn-ghost toss-btn-sm" onclick="showComingSoon('Chart Details')">
+                            View Details
+                        </button>
+                    </div>
+                    <div class="section-content">
+                        <div class="chart-container">
+                            <canvas id="spendingChart"></canvas>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- Recent Transactions -->
+                <section class="content-section">
+                    <div class="section-header">
+                        <h2 class="section-title">Recent Activity</h2>
+                        <button class="toss-btn toss-btn-ghost toss-btn-sm" onclick="showComingSoon('All Transactions')">
+                            View All
+                        </button>
+                    </div>
+                    <div class="section-content">
+                        <div id="transactionsList">
+                            <div class="transaction-item">
+                                <div class="transaction-icon">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M11 9h2V6h3V4h-3V1h-2v3H8v2h3v3zm-4 9c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zm10 0c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2zm-9.83-3.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03L21.7 4H5.21l-.94-2H1v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.13 0-.25-.11-.25-.25z"/>
+                                    </svg>
+                                </div>
+                                <div class="transaction-details">
+                                    <h4 class="transaction-title">Grocery Store</h4>
+                                    <p class="transaction-subtitle">Today, 2:30 PM</p>
+                                </div>
+                                <div class="transaction-amount amount-negative">-$85.42</div>
+                            </div>
+                            
+                            <div class="transaction-item">
+                                <div class="transaction-icon">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                                    </svg>
+                                </div>
+                                <div class="transaction-details">
+                                    <h4 class="transaction-title">Salary Deposit</h4>
+                                    <p class="transaction-subtitle">Dec 15, 9:00 AM</p>
+                                </div>
+                                <div class="transaction-amount amount-positive">+$4,250.00</div>
+                            </div>
+                            
+                            <div class="transaction-item">
+                                <div class="transaction-icon">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M19 7h-3V6a4 4 0 0 0-8 0v1H5a1 1 0 0 0-1 1v11a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3V8a1 1 0 0 0-1-1zM10 6a2 2 0 0 1 4 0v1h-4V6zm8 13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V9h2v1a1 1 0 0 0 2 0V9h4v1a1 1 0 0 0 2 0V9h2v10z"/>
+                                    </svg>
+                                </div>
+                                <div class="transaction-details">
+                                    <h4 class="transaction-title">Coffee Shop</h4>
+                                    <p class="transaction-subtitle">Dec 15, 8:15 AM</p>
+                                </div>
+                                <div class="transaction-amount amount-negative">-$12.50</div>
+                            </div>
+                            
+                            <div class="transaction-item">
+                                <div class="transaction-icon">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                                    </svg>
+                                </div>
+                                <div class="transaction-details">
+                                    <h4 class="transaction-title">Investment Return</h4>
+                                    <p class="transaction-subtitle">Dec 14, 3:45 PM</p>
+                                </div>
+                                <div class="transaction-amount amount-positive">+$180.25</div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+            
+            <!-- Quick Actions -->
+            <section class="quick-actions">
+                <div class="action-card" onclick="showComingSoon('Add Transaction')">
+                    <div class="action-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+                        </svg>
+                    </div>
+                    <h3 class="action-title">Add Transaction</h3>
+                    <p class="action-subtitle">Record income or expense</p>
+                </div>
+                
+                <div class="action-card" onclick="showComingSoon('Transfer Money')">
+                    <div class="action-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M9 3L5 6.99h3V14h2V6.99h3L9 3zm7 14.01V10h-2v7.01h-3L15 21l4-3.99h-3z"/>
+                        </svg>
+                    </div>
+                    <h3 class="action-title">Transfer</h3>
+                    <p class="action-subtitle">Move money between accounts</p>
+                </div>
+                
+                <div class="action-card" onclick="showComingSoon('Create Budget')">
+                    <div class="action-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14H7v-2h5v2zm5-4H7v-2h10v2zm0-4H7V7h10v2z"/>
+                        </svg>
+                    </div>
+                    <h3 class="action-title">Set Budget</h3>
+                    <p class="action-subtitle">Plan your spending</p>
+                </div>
+                
+                <div class="action-card" onclick="showComingSoon('Generate Report')">
+                    <div class="action-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
+                        </svg>
+                    </div>
+                    <h3 class="action-title">Reports</h3>
+                    <p class="action-subtitle">View financial insights</p>
+                </div>
+            </section>
+        </main>
+    </div>
+    
+    <!-- Toast Container -->
+    <div id="toast-container" class="toss-toast-container"></div>
+    
+    <!-- Component JavaScript -->
+    <script src="../../components/base/toss-button.js"></script>
+    <script src="../../components/feedback/toss-alert.js"></script>
+    <script src="../../components/form/toss-select.js"></script>
+    <script src="../../components/navigation/navbar.js"></script>
+    
+    <!-- App Icons -->
+    <script src="../../core/constants/app-icons.js"></script>
+    
+        <!-- Storage Manager -->
+    <script src="../../core/utils/storage-manager.js"></script>
+    
+<!-- Supabase Configuration -->
+    <script src="../../core/config/supabase.js"></script>
+    
+    <!-- App State Management -->
+    <script src="../../core/utils/app-state.js"></script>
+    
+    <!-- Route Mapping -->
+    <script src="../../core/config/route-mapping.js"></script>
+    
+    <!-- Page Initialization Utility -->
+    <script src="../../core/utils/page-init.js"></script>
+    
+    <script>
+        // Set flag immediately to prevent navbar auto-init
+        window.skipNavbarAutoInit = true;
+        
+        // Dashboard functionality with modern UX patterns
+        let spendingChart = null;
+        
+        // Initialize page using standardized pattern
+        window.initializePage('dashboard', (companyId, company) => {
+            console.log('Company changed in dashboard:', companyId);
+            loadDashboardData(companyId);
+        });
+        
+        // Additional dashboard initialization after navbar is ready
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('🎯 Dashboard DOMContentLoaded at:', new Date().toISOString());
+            
+            // Wait for page initialization to complete, then initialize dashboard-specific features
+            setTimeout(() => {
+                // Initialize icons
+                initializeIcons();
+                
+                // Initialize chart
+                initializeSpendingChart();
+                
+                // Simulate real-time data updates
+                startDataRefresh();
+                
+                // Load dashboard data for selected company
+                const companyId = appState.getSelectedCompanyId();
+                if (companyId) {
+                    loadDashboardData(companyId);
+                }
+            }, 100);
+        });
+        
+        // Keep the loadAppStateData function for backward compatibility but it won't be called anymore
+        async function loadAppStateData(session) {
+            try {
+                // Check if data already exists and is fresh
+                const existingUserData = appState.getUserData();
+                const existingCategories = appState.getCategoryFeatures();
+                
+                // Only fetch if data doesn't exist or needs refresh
+                if (!existingUserData || appState.needsRefresh()) {
+                    console.log('Loading user companies and stores...');
+                    
+                    // Call get_user_companies_and_stores RPC
+                    const { data: userData, error: userError } = await supabase.rpc('get_user_companies_and_stores', {
+                        p_user_id: session.user.id
+                    });
+                    
+                    if (userError) {
+                        console.error('Error fetching user companies:', userError);
+                        return; // Exit early on error
+                    } else if (userData) {
+                        // Store user data
+                        console.log('📥 Dashboard storing user data:', userData);
+                        console.log('📊 Companies in userData:', userData.companies?.length || 0);
+                        appState.setUserData(userData);
+                        console.log('✅ User data stored in localStorage');
+                        
+                        // Set first company as selected if none selected
+                        const selectedCompanyId = appState.getSelectedCompanyId();
+                        if (!selectedCompanyId && userData.companies && userData.companies.length > 0) {
+                            // This will also set the first store
+                            appState.setSelectedCompanyId(userData.companies[0].company_id);
+                        } else if (selectedCompanyId) {
+                            // Ensure store is also set for existing company selection
+                            const selectedCompany = userData.companies.find(c => c.company_id === selectedCompanyId);
+                            if (selectedCompany && !appState.getSelectedStoreId()) {
+                                if (selectedCompany.stores && selectedCompany.stores.length > 0) {
+                                    appState.setSelectedStoreId(selectedCompany.stores[0].store_id);
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                // Load categories with features if not exists
+                if (!existingCategories || appState.needsRefresh()) {
+                    console.log('Loading categories with features...');
+                    
+                    // Call get_categories_with_features RPC
+                    const { data: categoriesData, error: categoriesError } = await supabase.rpc('get_categories_with_features');
+                    
+                    if (categoriesError) {
+                        console.error('Error fetching categories:', categoriesError);
+                    } else if (categoriesData) {
+                        // Store categories data
+                        appState.setCategoryFeatures(categoriesData);
+                    }
+                }
+                
+                // Mark data as refreshed
+                appState.markRefreshed();
+                
+            } catch (error) {
+                console.error('Error loading app state data:', error);
+            }
+        }
+        
+        // Initialize icons with official app icons
+        function initializeIcons() {
+            if (typeof AppIcons !== 'undefined') {
+                const logoElement = document.getElementById('dashboardLogo');
+                if (logoElement) {
+                    logoElement.innerHTML = AppIcons.getSVG('wonSign', { 
+                        size: 20, 
+                        color: 'white' 
+                    });
+                }
+            }
+        }
+        
+        // Enhanced authentication check with better UX
+        async function checkAuthAndLoadUser() {
+            try {
+                const { data: { session }, error } = await supabase.auth.getSession();
+                
+                if (!session) {
+                    TossAlertUtils.showError('Authentication required. Redirecting to login...');
+                    setTimeout(() => {
+                        window.location.href = '/mcparrange-main/myFinance_claude/website/pages/auth/login.html';
+                    }, 2000);
+                    return;
+                }
+                
+                // Load user information with better formatting
+                await loadUserInfo(session.user);
+                
+            } catch (error) {
+                console.error('Error checking authentication:', error);
+                TossAlertUtils.showError('Authentication error. Please sign in again.');
+                setTimeout(() => {
+                    window.location.href = '/mcparrange-main/myFinance_claude/website/pages/auth/login.html';
+                }, 2000);
+            }
+        }
+        
+        // Enhanced user info loading
+        async function loadUserInfo(user) {
+            try {
+                // Extract user information
+                const displayName = user.user_metadata?.full_name || 
+                                  user.email.split('@')[0].replace(/[^a-zA-Z0-9]/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                
+                // Update UI elements
+                document.getElementById('userName').textContent = displayName;
+                document.getElementById('userEmail').textContent = user.email;
+                
+                // Set user avatar initial
+                const userAvatar = document.getElementById('userAvatar');
+                if (userAvatar) {
+                    userAvatar.textContent = displayName.charAt(0).toUpperCase();
+                }
+                
+                console.log('User loaded:', user.email);
+                
+            } catch (error) {
+                console.error('Error loading user info:', error);
+            }
+        }
+        
+        // Initialize modern spending chart with Chart.js
+        function initializeSpendingChart() {
+            const ctx = document.getElementById('spendingChart');
+            if (!ctx) return;
+            
+            // Placeholder data structure
+            const spendingData = {
+                labels: ['Housing', 'Food', 'Transportation', 'Entertainment', 'Utilities', 'Other'],
+                datasets: [{
+                    data: [1800, 650, 400, 300, 200, 350],
+                    backgroundColor: [
+                        '#0064FF',
+                        '#00C896', 
+                        '#FF9500',
+                        '#FF5847',
+                        '#6C757D',
+                        '#DEE2E6'
+                    ],
+                    borderWidth: 0,
+                    hoverOffset: 4
+                }]
+            };
+            
+            spendingChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: spendingData,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            labels: {
+                                usePointStyle: true,
+                                font: {
+                                    family: 'Inter',
+                                    size: 14
+                                },
+                                color: '#495057'
+                            }
+                        }
+                    },
+                    cutout: '65%',
+                    animation: {
+                        animateRotate: true,
+                        duration: 1000
+                    }
+                }
+            });
+        }
+        
+        // Simulate real-time data updates (modern dashboard pattern)
+        function startDataRefresh() {
+            // Update data every 30 seconds (in real app, this would be WebSocket or polling)
+            setInterval(() => {
+                updateFinancialMetrics();
+            }, 30000);
+        }
+        
+        // Update financial metrics with animations
+        function updateFinancialMetrics() {
+            // In a real application, this would fetch from API
+            const metrics = {
+                netWorth: generateRandomValue(45000, 50000),
+                monthlyIncome: generateRandomValue(8000, 9000),
+                monthlyExpenses: generateRandomValue(6000, 7000),
+                savingsGoal: 15500 // Static goal
+            };
+            
+            // Animate value updates
+            animateValue('netWorthValue', metrics.netWorth, '$', true);
+            animateValue('monthlyIncomeValue', metrics.monthlyIncome, '$', true);
+            animateValue('monthlyExpensesValue', metrics.monthlyExpenses, '$', true);
+        }
+        
+        // Animate number changes (modern UX pattern)
+        function animateValue(elementId, targetValue, prefix = '', isCurrency = false) {
+            const element = document.getElementById(elementId);
+            if (!element) return;
+            
+            const currentText = element.textContent.replace(/[^0-9.]/g, '');
+            const currentValue = parseFloat(currentText) || 0;
+            const difference = targetValue - currentValue;
+            const steps = 20;
+            const stepValue = difference / steps;
+            let currentStep = 0;
+            
+            const timer = setInterval(() => {
+                currentStep++;
+                const newValue = currentValue + (stepValue * currentStep);
+                
+                if (isCurrency) {
+                    element.textContent = `${prefix}${newValue.toLocaleString('en-US', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                    })}`;
+                } else {
+                    element.textContent = `${prefix}${Math.round(newValue).toLocaleString()}`;
+                }
+                
+                if (currentStep >= steps) {
+                    clearInterval(timer);
+                }
+            }, 50);
+        }
+        
+        // Load dashboard data for specific company
+        function loadDashboardData(companyId) {
+            console.log('Loading dashboard data for company:', companyId);
+            // Future implementation: Load company-specific dashboard data
+            // This could include:
+            // - Company financial metrics
+            // - Company-specific transactions
+            // - Company-specific charts and reports
+        }
+        
+        // Generate placeholder values for development
+        function generateRandomValue(min, max) {
+            return Math.random() * (max - min) + min;
+        }
+        
+        // Enhanced sign out with better UX
+        async function handleSignOut() {
+            try {
+                const result = await SupabaseAuth.signOut();
+                
+                if (result.success) {
+                    TossAlertUtils.showSuccess('Signing out...');
+                    setTimeout(() => {
+                        // Use NavBar's navigateToLogin method if available, otherwise fallback
+                        if (typeof NavBar !== 'undefined' && NavBar.navigateToLogin) {
+                            NavBar.navigateToLogin();
+                        } else {
+                            // Fallback navigation for dashboard (we're in pages/dashboard/)
+                            window.location.replace('/mcparrange-main/myFinance_claude/website/pages/auth/login.html');
+                        }
+                    }, 1000);
+                } else {
+                    TossAlertUtils.showError('Error signing out. Please try again.');
+                }
+            } catch (error) {
+                console.error('Sign out error:', error);
+                TossAlertUtils.showError('Error signing out. Please try again.');
+            }
+        }
+        
+        // Show coming soon with modern styling
+        function showComingSoon(featureName) {
+            TossAlertUtils.showInfo(`${featureName} is coming soon! This modern dashboard is currently in development.`);
+        }
+        
+        // Toggle submenu function (removed since we're using hover)
+        function toggleSubmenu(menuId) {
+            // This function is no longer needed for hover menus
+            // Keeping it for backward compatibility
+            showComingSoon('Feature');
+        }
+        
+        // User menu toggle (modern pattern)
+        function toggleUserMenu() {
+            // In a real app, this would show a dropdown menu
+            showComingSoon('User Menu');
+        }
+        
+        // Listen for auth state changes
+        if (typeof supabase !== 'undefined') {
+            supabase.auth.onAuthStateChange((event, session) => {
+                if (event === 'SIGNED_OUT') {
+                    window.location.href = '/mcparrange-main/myFinance_claude/website/pages/auth/login.html';
+                }
+            });
+        }
+        
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', () => {
+            if (spendingChart) {
+                spendingChart.destroy();
+            }
+        });
+    </script>
+</body>
+</html>

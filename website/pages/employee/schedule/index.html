@@ -1,0 +1,4144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyFinance - Employee Schedule</title>
+    
+    <!-- Theme CSS -->
+    <link rel="stylesheet" href="../../../core/themes/toss-variables.css">
+    <link rel="stylesheet" href="../../../core/themes/toss-component-variables.css">
+    <link rel="stylesheet" href="../../../core/themes/toss-base.css">
+    <link rel="stylesheet" href="../../../core/themes/toss-typography.css">
+    
+    <!-- Component CSS -->
+    <link rel="stylesheet" href="../../../components/base/toss-button.css">
+    <link rel="stylesheet" href="../../../components/form/toss-input.css">
+    <link rel="stylesheet" href="../../../components/form/toss-select.css">
+    <link rel="stylesheet" href="../../../components/feedback/toss-alert.css">
+    <link rel="stylesheet" href="../../../components/navigation/navbar.css">
+    
+    <!-- Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <style>
+        /* Page Layout */
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: var(--font-family);
+            background: var(--toss-surface-primary);
+            color: var(--text-primary);
+            line-height: 1.5;
+        }
+        
+        .page-container {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .page-content {
+            flex: 1;
+            padding: var(--space-6);
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+            position: relative;
+        }
+        
+        /* Page Header */
+        .page-header {
+            margin-bottom: var(--space-8);
+        }
+        
+        .page-title {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin: 0 0 var(--space-2) 0;
+            letter-spacing: -0.025em;
+        }
+        
+        .page-subtitle {
+            font-size: 16px;
+            color: var(--text-secondary);
+            margin: 0;
+        }
+        
+        /* Breadcrumb Navigation */
+        .breadcrumb-nav {
+            background: var(--toss-surface-secondary);
+            padding: var(--space-4) var(--space-6);
+            margin-bottom: var(--space-4);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--toss-border-lighter);
+        }
+        
+        .breadcrumb-trail {
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+        }
+        
+        .breadcrumb-item {
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+            padding: var(--space-2) var(--space-3);
+            border-radius: var(--radius-md);
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .breadcrumb-item:hover {
+            background: var(--toss-white);
+            color: var(--text-primary);
+        }
+        
+        .breadcrumb-item.active {
+            background: var(--toss-primary);
+            color: white;
+        }
+        
+        .breadcrumb-separator {
+            color: var(--text-tertiary);
+            font-size: 14px;
+        }
+        
+        /* Back to Dashboard Button */
+        .back-to-dashboard {
+            display: none;
+            align-items: center;
+            gap: var(--space-2);
+            padding: var(--space-3) var(--space-4);
+            background: var(--toss-primary);
+            color: var(--toss-white);
+            border: none;
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .back-to-dashboard:hover {
+            background: var(--toss-primary-dark);
+            transform: translateY(-1px);
+        }
+        
+        .back-to-dashboard svg {
+            width: 16px;
+            height: 16px;
+        }
+        
+        /* Control Bar */
+        .control-bar {
+            background: var(--toss-white);
+            border-radius: var(--radius-xl);
+            padding: var(--space-5);
+            margin-bottom: var(--space-6);
+            border: 1px solid var(--toss-border-light);
+            box-shadow: var(--shadow-sm);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: var(--space-6);
+            flex-wrap: wrap;
+        }
+        
+        .control-left {
+            display: flex;
+            align-items: center;
+            gap: var(--space-4);
+            flex: 1;
+        }
+        
+        /* Multi-Store Dashboard Styles */
+        .content-level {
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+        
+        .content-level:not([style*="display: none"]) {
+            opacity: 1;
+            transform: translateX(0);
+        }
+        
+        /* Dashboard Overview Cards */
+        .dashboard-overview {
+            margin-bottom: var(--space-8);
+        }
+        
+        .overview-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: var(--space-6);
+            margin-bottom: var(--space-6);
+        }
+        
+        .overview-card {
+            background: var(--toss-white);
+            border-radius: var(--radius-lg);
+            padding: var(--space-6);
+            box-shadow: var(--shadow-sm);
+            display: flex;
+            align-items: center;
+            gap: var(--space-4);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        
+        .overview-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .overview-icon {
+            font-size: 32px;
+            width: 56px;
+            height: 56px;
+            background: var(--toss-primary-surface);
+            border-radius: var(--radius-lg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .overview-content {
+            flex: 1;
+        }
+        
+        .overview-number {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--text-primary);
+            line-height: 1.2;
+        }
+        
+        .overview-label {
+            font-size: 14px;
+            color: var(--text-secondary);
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        /* Store Cards Grid */
+        .stores-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+            gap: var(--space-6);
+        }
+        
+        .store-card {
+            background: var(--toss-white);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-sm);
+            overflow: hidden;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            cursor: pointer;
+        }
+        
+        .store-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .store-card-header {
+            padding: var(--space-6);
+            border-bottom: 1px solid var(--toss-border-lighter);
+        }
+        
+        .store-card-title {
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+        }
+        
+        .store-card-icon {
+            width: 24px;
+            height: 24px;
+            color: var(--toss-primary);
+        }
+        
+        .store-card-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        
+        .store-card-code {
+            font-size: 12px;
+            font-weight: 400;
+            color: var(--text-secondary);
+            margin-left: var(--space-2);
+        }
+        
+        .store-card-status {
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+            font-size: 14px;
+            flex-wrap: wrap;
+        }
+        
+        .status-info {
+            font-size: 12px;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+        
+        .status-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+        
+        .status-indicator.active {
+            background: var(--toss-success);
+        }
+        
+        .status-indicator.warning {
+            background: var(--toss-warning);
+        }
+        
+        .status-indicator.error {
+            background: var(--toss-error);
+        }
+        
+        .store-card-body {
+            padding: var(--space-6);
+        }
+        
+        .store-summary-row {
+            display: flex;
+            justify-content: center;
+            margin-bottom: var(--space-4);
+            padding-bottom: var(--space-4);
+            border-bottom: 1px solid var(--toss-border-lighter);
+        }
+        
+        .store-metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+            gap: var(--space-4);
+            margin-bottom: var(--space-4);
+        }
+        
+        .store-metrics.four-metrics {
+            grid-template-columns: repeat(4, 1fr);
+        }
+        
+        @media (max-width: 400px) {
+            .store-metrics.four-metrics {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        .store-metric {
+            text-align: center;
+        }
+        
+        .store-metric-number {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: var(--space-1);
+        }
+        
+        .store-metric-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        /* Adjust font sizes for four metrics layout */
+        .four-metrics .store-metric-number {
+            font-size: 16px;
+        }
+        
+        .four-metrics .store-metric-label {
+            font-size: 10px;
+        }
+        
+        .store-metric.conflicts {
+            background: var(--toss-error-surface, #fef2f2);
+            border-radius: var(--radius-md);
+            padding: var(--space-2);
+        }
+        
+        .store-metric.conflicts .store-metric-number {
+            color: var(--toss-error, #ef4444);
+        }
+        
+        /* Alternative class name for problems */
+        .store-metric.problems {
+            background: var(--toss-error-surface, #fef2f2);
+            border-radius: var(--radius-md);
+            padding: var(--space-2);
+        }
+        
+        .store-metric.problems .store-metric-number {
+            color: var(--toss-error, #ef4444);
+        }
+        
+        .store-shifts-preview {
+            background: var(--toss-surface-secondary);
+            border-radius: var(--radius-md);
+            padding: var(--space-3);
+        }
+        
+        .shifts-preview-title {
+            font-size: 13px;
+            color: var(--text-primary);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: var(--space-3);
+            border-bottom: 1px solid var(--toss-border-light);
+            padding-bottom: var(--space-2);
+        }
+        
+        .shifts-preview-list {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-1);
+        }
+        
+        .shift-preview-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13px;
+            color: var(--text-primary);
+        }
+        
+        .shift-preview-time {
+            color: var(--text-secondary);
+        }
+        
+        /* Date Range Filter - Separate from Week Navigation */
+        .date-filter-section {
+            display: flex;
+            align-items: end;
+            gap: var(--space-4);
+            padding: var(--space-4);
+            background: var(--toss-white);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--toss-border-light);
+            box-shadow: var(--shadow-sm);
+            margin-bottom: var(--space-4);
+        }
+        
+        .date-filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-2);
+        }
+        
+        .date-filter-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .date-filter-input {
+            padding: var(--space-3) var(--space-4);
+            border: 1px solid var(--toss-border-light);
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            color: var(--text-primary);
+            background: var(--toss-white);
+            min-width: 140px;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        
+        .date-filter-input:focus {
+            outline: none;
+            border-color: var(--toss-primary);
+            box-shadow: 0 0 0 3px var(--toss-primary-surface);
+        }
+        
+        .date-filter-input:hover {
+            border-color: var(--toss-border-dark);
+        }
+        
+        .date-filter-separator {
+            font-size: 14px;
+            color: var(--text-secondary);
+            padding: 0 var(--space-2);
+            align-self: center;
+            margin-top: 20px;
+        }
+        
+        .date-filter-apply {
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+            padding: var(--space-3) var(--space-5);
+            background: var(--toss-primary);
+            color: var(--toss-white);
+            border: none;
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.1s ease;
+            margin-top: 20px;
+        }
+        
+        .date-filter-apply:hover {
+            background: var(--toss-primary-dark);
+            transform: translateY(-1px);
+        }
+        
+        .date-filter-apply:active {
+            transform: translateY(0);
+        }
+        
+        .date-filter-apply svg {
+            width: 16px;
+            height: 16px;
+        }
+        
+        /* Store Filter Control - Exact copy from employee settings */
+        .control-section {
+            flex: 0 1 auto;
+            min-width: 200px;
+            max-width: 280px;
+            width: 280px;
+            display: flex;
+            align-items: center;
+            padding: 10px 14px;
+            cursor: pointer;
+            border-radius: 10px;
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            background: white;
+            height: 44px;
+            gap: 10px;
+            position: relative;
+            transition: all 0.2s ease;
+        }
+        
+        .control-section:hover {
+            background: rgba(0, 0, 0, 0.02);
+            border-color: rgba(0, 0, 0, 0.12);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
+        }
+        
+        .control-section.dropdown-open {
+            background: white;
+            border-color: #0064FF;
+            box-shadow: 0 0 0 4px rgba(0, 100, 255, 0.08);
+        }
+        
+        .control-section.dropdown-open .control-dropdown {
+            transform: rotate(180deg);
+            color: #0064FF;
+        }
+        
+        .control-section.dropdown-open .control-label {
+            color: #0064FF;
+            font-weight: 500;
+        }
+        
+        .control-icon {
+            width: 18px;
+            height: 18px;
+            color: rgba(0, 0, 0, 0.4);
+            flex-shrink: 0;
+        }
+        
+        .control-icon.active {
+            color: var(--toss-primary);
+        }
+        
+        .control-label {
+            font-size: 14px;
+            font-weight: 500;
+            color: #1a1a1a;
+            flex: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .control-dropdown {
+            width: 16px;
+            height: 16px;
+            color: rgba(0, 0, 0, 0.4);
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+        }
+        
+        /* Store Filter Dropdown - Exact copy from employee settings */
+        .store-filter-dropdown {
+            position: absolute;
+            top: calc(100% + 6px);
+            left: 0;
+            min-width: 100%;
+            width: max-content;
+            max-width: 400px;
+            max-height: 300px;
+            overflow-y: auto;
+            background: white;
+            border-radius: 12px;
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-8px) scale(0.95);
+            transform-origin: top left;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .store-filter-dropdown.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0) scale(1);
+        }
+        
+        .store-filter-dropdown-option {
+            position: relative;
+            padding: 10px 16px;
+            margin: 0 6px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            user-select: none;
+        }
+        
+        .store-filter-dropdown-option:first-child {
+            margin-top: 6px;
+        }
+        
+        .store-filter-dropdown-option:last-child {
+            margin-bottom: 6px;
+        }
+        
+        .store-filter-dropdown-option:hover {
+            background: rgba(0, 0, 0, 0.04);
+        }
+        
+        .store-filter-dropdown-option:active {
+            background: rgba(0, 0, 0, 0.08);
+            transform: scale(0.98);
+        }
+        
+        .store-filter-dropdown-option.selected {
+            background: rgba(0, 100, 255, 0.08);
+            color: #0064FF;
+        }
+        
+        .store-filter-dropdown-option.selected:hover {
+            background: rgba(0, 100, 255, 0.12);
+        }
+        
+        .store-filter-dropdown-option.focused {
+            outline: 2px solid #0064FF;
+            outline-offset: -2px;
+        }
+        
+        .store-filter-dropdown-option-icon {
+            width: 20px;
+            height: 20px;
+            color: rgba(0, 0, 0, 0.4);
+            flex-shrink: 0;
+            transition: color 150ms ease;
+        }
+        
+        .store-filter-dropdown-option.selected .store-filter-dropdown-option-icon {
+            color: #0064FF;
+        }
+        
+        .store-filter-dropdown-option-text {
+            flex: 1;
+            font-size: 14px;
+            font-weight: 400;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .store-filter-dropdown-option.selected .store-filter-dropdown-option-text {
+            font-weight: 500;
+        }
+        
+        .store-filter-dropdown-option-check {
+            width: 20px;
+            height: 20px;
+            color: #0064FF;
+            flex-shrink: 0;
+            margin-left: auto;
+            opacity: 0;
+            transform: scale(0.8);
+            transition: all 0.2s ease;
+        }
+        
+        .store-filter-dropdown-option.selected .store-filter-dropdown-option-check {
+            opacity: 1;
+            transform: scale(1);
+        }
+        
+        .store-filter-dropdown::-webkit-scrollbar {
+            width: 5px;
+        }
+        
+        .store-filter-dropdown::-webkit-scrollbar-track {
+            background: transparent;
+            margin: 6px 0;
+        }
+        
+        .store-filter-dropdown::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            border: 1px solid transparent;
+            background-clip: padding-box;
+        }
+        
+        .store-filter-dropdown::-webkit-scrollbar-thumb:hover {
+            background: rgba(0, 0, 0, 0.3);
+        }
+        
+        .store-filter-search {
+            padding: 8px 16px;
+            margin: 0 6px 6px;
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            border-radius: 8px;
+            font-size: 14px;
+            background: white;
+            outline: none;
+        }
+        
+        .store-filter-search:focus {
+            outline: none;
+            border-color: #0064FF;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(0, 100, 255, 0.1);
+        }
+        
+        .store-filter-search::placeholder {
+            color: rgba(0, 0, 0, 0.4);
+        }
+        
+        .store-filter-divider {
+            height: 1px;
+            margin: 6px 12px;
+            background: rgba(0, 0, 0, 0.06);
+        }
+        
+        /* Week Navigation - Separate from Date Filter */
+        .week-nav {
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+            padding: var(--space-2);
+            background: var(--toss-surface-secondary);
+            border-radius: var(--radius-lg);
+        }
+        
+        .week-nav-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: var(--radius-md);
+            border: none;
+            background: var(--toss-white);
+            color: var(--text-secondary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        }
+        
+        .week-nav-btn:hover {
+            background: var(--toss-primary-surface);
+            color: var(--toss-primary);
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .week-nav-text {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-primary);
+            min-width: 140px;
+            text-align: center;
+        }
+        
+        .today-btn {
+            padding: var(--space-2) var(--space-4);
+            border-radius: var(--radius-md);
+            border: none;
+            background: var(--toss-white);
+            color: var(--toss-primary);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        }
+        
+        .today-btn:hover {
+            background: var(--toss-primary-surface);
+        }
+        
+        
+        /* Schedule Container */
+        .schedule-container {
+            background: var(--toss-white);
+            border-radius: var(--radius-xl);
+            border: 1px solid var(--toss-border-light);
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+            margin-bottom: var(--space-6);
+        }
+        
+        /* Schedule Grid */
+        .schedule-grid {
+            display: grid;
+            grid-template-columns: 180px repeat(7, 1fr);
+            min-height: auto; /* Changed from 650px to auto for dynamic height */
+        }
+        
+        /* Schedule Header */
+        .schedule-header {
+            display: contents;
+        }
+        
+        .schedule-header-corner {
+            background: var(--toss-surface-secondary);
+            border-bottom: 2px solid var(--toss-border-light);
+            border-right: 1px solid var(--toss-border-light);
+            padding: var(--space-5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .schedule-header-shift {
+            background: var(--toss-surface-secondary);
+            border-bottom: 2px solid var(--toss-border-light);
+            border-right: 1px solid var(--toss-border-light);
+            padding: var(--space-5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .schedule-header-day {
+            background: var(--toss-surface-secondary);
+            border-bottom: 2px solid var(--toss-border-light);
+            border-right: 1px solid var(--toss-border-lighter);
+            padding: var(--space-5) var(--space-3);
+            text-align: center;
+            position: relative;
+        }
+        
+        .schedule-header-day:last-child {
+            border-right: none;
+        }
+        
+        .schedule-header-day.today {
+            background: var(--toss-primary-surface);
+        }
+        
+        .day-name {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: var(--space-1);
+        }
+        
+        .today .day-name {
+            color: var(--toss-primary);
+        }
+        
+        .day-date {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+        
+        .today .day-date {
+            color: var(--toss-primary);
+        }
+        
+        /* Time Slots */
+        .time-slot-row {
+            display: contents;
+        }
+        
+        .time-slot-label {
+            background: var(--toss-surface-tertiary);
+            border-right: 1px solid var(--toss-border-light);
+            border-bottom: 1px solid var(--toss-border-lighter);
+            padding: var(--space-4);
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .shift-name-cell {
+            background: var(--toss-surface-secondary);
+            border-right: 1px solid var(--toss-border-light);
+            border-bottom: 1px solid var(--toss-border-lighter);
+            padding: var(--space-3); /* Reduced padding from space-4 to space-3 */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            min-height: 80px; /* Match time-slot-cell height for alignment */
+        }
+        
+        .shift-name-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: var(--space-1);
+        }
+        
+        .shift-name-time {
+            font-size: 13px;
+            color: var(--text-secondary);
+            font-weight: 400;
+        }
+        
+        .time-slot-cell {
+            border-right: 1px solid var(--toss-border-lighter);
+            border-bottom: 1px solid var(--toss-border-lighter);
+            padding: var(--space-3);
+            min-height: 80px; /* Reduced from 100px to 80px for more compact layout */
+            position: relative;
+            background: var(--toss-white);
+            transition: all 0.2s ease;
+        }
+        
+        .time-slot-cell:last-child {
+            border-right: none;
+        }
+        
+        .time-slot-cell:hover {
+            background: var(--toss-surface-primary);
+        }
+        
+        .time-slot-cell.drag-over {
+            background: var(--toss-primary-surface);
+            border: 2px dashed var(--toss-primary);
+        }
+        
+        /* Shift Blocks - Updated for Multi-Employee */
+        .shift-block {
+            background: var(--toss-white);
+            border: 1px solid var(--toss-border-light);
+            border-radius: var(--radius-lg);
+            padding: var(--space-3);
+            margin: var(--space-1);
+            cursor: pointer;
+            position: relative;
+            min-height: 70px; /* Reduced from 90px to 70px for better visual balance */
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .shift-block:hover {
+            background: var(--toss-surface-primary);
+            border-color: var(--toss-primary);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        .shift-block.has-problems {
+            border-left: 3px solid var(--toss-error, #ef4444);
+        }
+        
+        .shift-capacity.understaffed {
+            color: var(--toss-warning, #f59e0b);
+            font-weight: 600;
+        }
+        
+        .shift-header {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            margin-bottom: var(--space-2);
+            padding-bottom: var(--space-2);
+            border-bottom: 1px solid var(--toss-border-lighter);
+        }
+        
+        
+        .shift-capacity {
+            font-size: 12px;
+            color: var(--toss-primary);
+            font-weight: 600;
+            background: var(--toss-primary-surface);
+            padding: 2px 8px;
+            border-radius: var(--radius-sm);
+        }
+        
+        .shift-employees {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-1);
+        }
+        
+        .shift-employee {
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+            padding: var(--space-1);
+            border-radius: var(--radius-sm);
+            background: var(--toss-surface-secondary);
+        }
+        
+        .shift-employee-avatar {
+            width: 24px;
+            height: 24px;
+            border-radius: var(--radius-sm);
+            background: var(--toss-primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        
+        .shift-employee-info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .shift-employee-name {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-primary);
+            line-height: 1.2;
+        }
+        
+        .shift-employee-status {
+            font-size: 11px;
+            color: var(--text-tertiary);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .shift-employee.has-issue {
+            opacity: 0.8;
+        }
+        
+        .shift-employee.pending {
+            opacity: 0.7;
+        }
+        
+        .shift-employee-avatar {
+            position: relative;
+        }
+        
+        .late-indicator {
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            background: var(--toss-warning, #f59e0b);
+            color: white;
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            font-size: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .shift-employee-role {
+            font-size: 11px;
+            color: var(--text-secondary);
+            line-height: 1.2;
+        }
+        
+        .add-employee-indicator {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: var(--space-2);
+            border: 2px dashed var(--toss-border-light);
+            border-radius: var(--radius-sm);
+            color: var(--text-tertiary);
+            font-size: 12px;
+            margin-top: var(--space-1);
+            transition: all 0.2s ease;
+        }
+        
+        .add-employee-indicator:hover {
+            border-color: var(--toss-primary);
+            color: var(--toss-primary);
+            background: var(--toss-primary-surface);
+        }
+        
+        .shift-block:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 100, 255, 0.3);
+        }
+        
+        .shift-block.dragging {
+            opacity: 0.7;
+            transform: scale(0.95) rotate(2deg);
+            z-index: 1000;
+        }
+        
+        .shift-employee-name {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: var(--space-1);
+        }
+        
+        
+        .shift-remove {
+            position: absolute;
+            top: var(--space-2);
+            right: var(--space-2);
+            width: 24px;
+            height: 24px;
+            border-radius: var(--radius-sm);
+            background: rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            opacity: 0;
+            transition: all 0.2s ease;
+            font-size: 14px;
+        }
+        
+        .shift-block:hover .shift-remove {
+            opacity: 1;
+        }
+        
+        .shift-remove:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        /* Employee Sidebar */
+        .employee-sidebar {
+            position: fixed;
+            right: 0;
+            top: 0;
+            width: 400px;
+            height: 100vh;
+            background: var(--toss-white);
+            border-left: 1px solid var(--toss-border-light);
+            box-shadow: var(--shadow-lg);
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .employee-sidebar.open {
+            transform: translateX(0);
+        }
+        
+        .employee-sidebar-header {
+            padding: var(--space-6);
+            border-bottom: 1px solid var(--toss-border-lighter);
+            background: var(--toss-surface-secondary);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .employee-sidebar-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        
+        .employee-sidebar-close {
+            width: 32px;
+            height: 32px;
+            border-radius: var(--radius-md);
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+        
+        .employee-sidebar-close:hover {
+            background: var(--toss-surface-primary);
+            color: var(--text-primary);
+        }
+        
+        .employee-search {
+            padding: var(--space-4);
+            border-bottom: 1px solid var(--toss-border-lighter);
+        }
+        
+        .employee-search-input {
+            width: 100%;
+            padding: var(--space-3);
+            border: 1px solid var(--toss-border-light);
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            background: var(--toss-white);
+        }
+        
+        .employee-search-input:focus {
+            outline: none;
+            border-color: var(--toss-primary);
+            box-shadow: 0 0 0 3px var(--toss-primary-surface);
+        }
+        
+        .employee-filters {
+            padding: var(--space-4);
+            border-bottom: 1px solid var(--toss-border-lighter);
+            display: flex;
+            gap: var(--space-2);
+            flex-wrap: wrap;
+        }
+        
+        .employee-filter-btn {
+            padding: var(--space-2) var(--space-3);
+            border-radius: var(--radius-md);
+            border: 1px solid var(--toss-border-light);
+            background: var(--toss-white);
+            color: var(--text-secondary);
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .employee-filter-btn.active {
+            background: var(--toss-primary);
+            color: white;
+            border-color: var(--toss-primary);
+        }
+        
+        .employee-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: var(--space-4);
+        }
+        
+        /* Employee Assignment Modal */
+        .employee-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .employee-modal.active {
+            display: flex;
+        }
+        
+        .employee-modal-content {
+            background: var(--toss-white);
+            border-radius: var(--radius-xl);
+            width: 90%;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .employee-modal-header {
+            padding: var(--space-6);
+            border-bottom: 1px solid var(--toss-border-lighter);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .employee-modal-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        
+        /* Employee Cards - Updated for Click-to-Assign */
+        .employee-card {
+            background: var(--toss-white);
+            border: 1px solid var(--toss-border-lighter);
+            border-radius: var(--radius-lg);
+            padding: var(--space-4);
+            margin-bottom: var(--space-3);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+            position: relative;
+        }
+        
+        .employee-card:hover {
+            background: var(--toss-surface-primary);
+            border-color: var(--toss-primary);
+            transform: translateX(-2px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .employee-card.unavailable {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .employee-card.unavailable:hover {
+            transform: none;
+            border-color: var(--toss-border-lighter);
+            background: var(--toss-white);
+        }
+        
+        .employee-availability {
+            position: absolute;
+            top: var(--space-2);
+            right: var(--space-2);
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--toss-success);
+        }
+        
+        .employee-availability.unavailable {
+            background: var(--toss-error);
+        }
+        
+        .employee-availability.partial {
+            background: var(--toss-warning);
+        }
+        
+        .employee-availability.assigned {
+            background: var(--toss-success);
+        }
+        
+        .employee-card.assigned {
+            background: var(--toss-success-surface);
+            border-color: var(--toss-success);
+        }
+        
+        .employee-card.assigned:hover {
+            background: var(--toss-success-surface);
+            border-color: var(--toss-success);
+        }
+        
+        .remove-employee-btn {
+            padding: var(--space-2) var(--space-4);
+            background: var(--toss-error);
+            color: white;
+            border: none;
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-left: auto;
+        }
+        
+        .remove-employee-btn:hover {
+            background: var(--toss-error-dark);
+            transform: translateY(-1px);
+        }
+        
+        /* Add to Shift Button */
+        .add-employee-btn {
+            padding: var(--space-2) var(--space-4);
+            background: var(--toss-primary);
+            color: white;
+            border: none;
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-left: auto;
+        }
+        
+        .add-employee-btn:hover {
+            background: var(--toss-primary-dark);
+            transform: translateY(-1px);
+        }
+        
+        .add-employee-btn:disabled {
+            background: var(--toss-gray-300);
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        /* Empty State for Time Slots */
+        .time-slot-cell.empty {
+            border: 2px dashed var(--toss-border-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .time-slot-cell.empty:hover {
+            border-color: var(--toss-primary);
+            background: var(--toss-primary-surface);
+        }
+        
+        .empty-slot-hint {
+            color: var(--text-tertiary);
+            font-size: 13px;
+            text-align: center;
+            pointer-events: none;
+        }
+        
+        .employee-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: var(--radius-lg);
+            background: linear-gradient(135deg, #667EEA 0%, #764BA2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 15px;
+            font-weight: 600;
+            flex-shrink: 0;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .employee-info {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .employee-name {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .employee-role {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+        
+        .employee-hours {
+            display: flex;
+            align-items: center;
+            padding: 4px var(--space-2);
+            background: var(--toss-surface-secondary);
+            border-radius: var(--radius-md);
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+        
+        /* Stats Bar */
+        .stats-bar {
+            background: var(--toss-surface-secondary);
+            border-top: 1px solid var(--toss-border-lighter);
+            padding: var(--space-5);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: var(--space-6);
+        }
+        
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 500;
+        }
+        
+        .stat-value {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+        
+        .conflict-indicator {
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+            padding: var(--space-2) var(--space-3);
+            background: var(--toss-error-surface);
+            color: var(--toss-error);
+            border-radius: var(--radius-md);
+            font-size: 13px;
+            font-weight: 500;
+        }
+        
+        /* Drop Indicators */
+        .drop-indicator {
+            position: absolute;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--toss-primary);
+            border-radius: 2px;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+        
+        .drop-indicator.active {
+            opacity: 1;
+        }
+        
+        /* Loading and Error States for Schedule */
+        .loading-state, .error-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: var(--space-12);
+            text-align: center;
+            background: var(--toss-white);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-sm);
+            margin: var(--space-6);
+        }
+        
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid var(--toss-border-light);
+            border-top: 4px solid var(--toss-primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: var(--space-4);
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .loading-text {
+            font-size: 16px;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+        
+        .error-icon {
+            font-size: 48px;
+            margin-bottom: var(--space-4);
+        }
+        
+        .error-message {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: var(--space-2);
+        }
+        
+        .error-details {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: var(--space-6);
+        }
+        
+        .retry-btn {
+            padding: var(--space-3) var(--space-5);
+            background: var(--toss-primary);
+            color: var(--toss-white);
+            border: none;
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.1s ease;
+        }
+        
+        .retry-btn:hover {
+            background: var(--toss-primary-dark);
+            transform: translateY(-1px);
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 1400px) {
+            .control-section {
+                max-width: none;
+                width: 100%;
+                min-width: unset;
+            }
+            
+            .store-filter-dropdown {
+                left: 0;
+                right: 0;
+                width: 100%;
+                max-width: none;
+                border-radius: 12px;
+            }
+            
+            .store-filter-dropdown-option {
+                padding: 14px 16px;
+                font-size: 16px;
+            }
+        }
+        
+        @media (max-width: 1024px) {
+            .control-bar {
+                flex-direction: column;
+                align-items: stretch;
+                gap: var(--space-4);
+            }
+            
+            .control-left {
+                width: 100%;
+                justify-content: flex-start;
+                flex-wrap: wrap;
+            }
+            
+            .schedule-grid {
+                grid-template-columns: 150px repeat(7, 1fr);
+                overflow-x: auto;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .page-content {
+                padding: var(--space-4);
+            }
+            
+            .control-left {
+                flex-direction: column;
+                align-items: stretch;
+                gap: var(--space-4);
+            }
+            
+            .date-filter-section {
+                flex-direction: column;
+                align-items: stretch;
+                gap: var(--space-4);
+                padding: var(--space-4);
+            }
+            
+            .date-filter-group {
+                align-items: stretch;
+            }
+            
+            .date-filter-input {
+                min-width: unset;
+                width: 100%;
+            }
+            
+            .date-filter-separator {
+                text-align: center;
+                margin: var(--space-2) 0;
+                font-weight: 600;
+                align-self: stretch;
+            }
+            
+            .date-filter-apply {
+                width: 100%;
+                justify-content: center;
+                margin-top: var(--space-2);
+            }
+            
+            .week-nav {
+                justify-content: center;
+            }
+            
+            .schedule-grid {
+                grid-template-columns: 120px repeat(7, minmax(80px, 1fr));
+            }
+            
+            .store-filter-dropdown {
+                left: -12px;
+                right: -12px;
+                max-height: 250px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .schedule-grid {
+                grid-template-columns: 100px repeat(7, minmax(60px, 1fr));
+            }
+            
+            .time-slot-cell {
+                min-height: 60px; /* Reduced from 80px for mobile screens */
+                padding: var(--space-2);
+            }
+            
+            .shift-block {
+                min-height: 45px; /* Reduced from 50px for mobile screens */
+                padding: var(--space-2);
+                font-size: 12px;
+            }
+        }
+        
+        /* Loading State */
+        .loading-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: var(--space-16);
+            color: var(--text-secondary);
+            grid-column: 1 / -1;
+        }
+        
+        .loading-spinner {
+            width: 32px;
+            height: 32px;
+            border: 3px solid var(--toss-gray-200);
+            border-top: 3px solid var(--toss-primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: var(--space-4);
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .error-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: var(--space-16);
+            color: var(--text-secondary);
+            grid-column: 1 / -1;
+            background: var(--toss-error-surface, #fef2f2);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--toss-error-border, #fecaca);
+        }
+        
+        .error-state .error-icon {
+            width: 48px;
+            height: 48px;
+            color: var(--toss-error, #ef4444);
+            margin-bottom: var(--space-4);
+        }
+        
+        .error-state h3 {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0 0 var(--space-2) 0;
+        }
+        
+        .error-state p {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin: 0 0 var(--space-4) 0;
+        }
+        
+        .retry-btn {
+            background: var(--toss-primary);
+            color: var(--toss-white);
+            border: none;
+            border-radius: var(--radius-md);
+            padding: var(--space-3) var(--space-5);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+        
+        .retry-btn:hover {
+            background: var(--toss-primary-dark);
+        }
+        
+        /* Drag and Drop Visual States */
+        .dragging-over-grid .schedule-grid {
+            opacity: 0.8;
+        }
+        
+        .ghost-element {
+            position: fixed;
+            pointer-events: none;
+            z-index: 9999;
+            opacity: 0.8;
+            transform: rotate(5deg);
+        }
+    </style>
+</head>
+<body>
+    <div class="page-container">
+        <!-- Navigation Bar -->
+        <div id="navbar-container"></div>
+        
+        <!-- Page Content -->
+        <main class="page-content">
+            <!-- Multi-Level Navigation -->
+            <nav class="breadcrumb-nav" id="breadcrumb-nav">
+                <div class="breadcrumb-trail">
+                    <button class="breadcrumb-item active" data-level="dashboard">
+                        <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+                        </svg>
+                        Dashboard
+                    </button>
+                    <span class="breadcrumb-separator" style="display: none;">></span>
+                    <button class="breadcrumb-item" data-level="schedule" style="display: none;">
+                        Schedule
+                    </button>
+                </div>
+                
+                <!-- Back to Dashboard Button -->
+                <button class="back-to-dashboard" id="back-to-dashboard">
+                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
+                    </svg>
+                    Back to Dashboard
+                </button>
+            </nav>
+
+            <!-- Level 1: Regional Dashboard -->
+            <div class="content-level" id="dashboard-level">
+                <div class="page-header">
+                    <h1 class="page-title">Dashboard</h1>
+                    <p class="page-subtitle">Overview of all stores and scheduling status</p>
+                </div>
+                
+                <!-- Dashboard Overview Cards -->
+                <div class="dashboard-overview">
+                    <div class="overview-grid">
+                        <div class="overview-card">
+                            <div class="overview-icon">🏪</div>
+                            <div class="overview-content">
+                                <div class="overview-number">6</div>
+                                <div class="overview-label">Total Stores</div>
+                            </div>
+                        </div>
+                        <div class="overview-card">
+                            <div class="overview-icon">👥</div>
+                            <div class="overview-content">
+                                <div class="overview-number">142</div>
+                                <div class="overview-label">Total Employees</div>
+                            </div>
+                        </div>
+                        <div class="overview-card">
+                            <div class="overview-icon">📋</div>
+                            <div class="overview-content">
+                                <div class="overview-number">0</div>
+                                <div class="overview-label">Total Requests</div>
+                            </div>
+                        </div>
+                        <div class="overview-card">
+                            <div class="overview-icon">⚠️</div>
+                            <div class="overview-content">
+                                <div class="overview-number">3</div>
+                                <div class="overview-label">Problems</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Store Cards Grid -->
+                <div class="stores-grid" id="stores-grid">
+                    <!-- Loading state -->
+                    <div class="loading-state" id="loading-state">
+                        <div class="loading-spinner"></div>
+                        <p>Loading store data...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Level 2: Individual Store Schedule -->
+            <div class="content-level" id="schedule-level" style="display: none;">
+                <div class="page-header">
+                    <h1 class="page-title" id="schedule-store-title">Store Schedule</h1>
+                    <p class="page-subtitle">Drag and drop employees to create shifts</p>
+                </div>
+
+                <!-- Control Bar with Week Navigation -->
+                <div class="control-bar">
+                    <div class="control-left">
+                        <!-- Week Navigation - Separate from Date Filter -->
+                        <div class="week-nav">
+                            <button class="week-nav-btn" id="prev-week">
+                                <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
+                                </svg>
+                            </button>
+                            <span class="week-nav-text" id="week-text">Loading...</span>
+                            <button class="week-nav-btn" id="next-week">
+                                <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/>
+                                </svg>
+                            </button>
+                            <button class="today-btn" id="today-btn">Today</button>
+                        </div>
+                    </div>
+                </div>
+            
+            <!-- Schedule Container -->
+            <div class="schedule-container">
+                <!-- Schedule Grid -->
+                <div class="schedule-grid" id="schedule-grid">
+                    <!-- Grid will be populated by JavaScript -->
+                </div>
+                
+                <!-- Stats Bar -->
+                <div class="stats-bar">
+                    <div class="stat-item">
+                        <span class="stat-label">Total Hours</span>
+                        <span class="stat-value" id="total-hours">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Shifts</span>
+                        <span class="stat-value" id="total-shifts">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Employees</span>
+                        <span class="stat-value" id="total-employees">0</span>
+                    </div>
+                    <div class="conflict-indicator" id="conflict-indicator" style="display: none;">
+                        <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+                        </svg>
+                        <span id="conflict-count">0</span> Conflicts
+                    </div>
+                </div>
+            </div>
+            </div> <!-- End Level 3: Individual Store Schedule -->
+            
+            <!-- Employee Assignment Modal -->
+            <div class="employee-modal" id="employee-modal">
+                <div class="employee-modal-content">
+                    <div class="employee-modal-header">
+                        <h3 class="employee-modal-title" id="modal-title">Assign Employee</h3>
+                        <button class="employee-sidebar-close" id="close-modal">
+                            <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"/>
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <!-- Search -->
+                    <div class="employee-search">
+                        <input type="text" class="employee-search-input" id="employee-search" placeholder="Search employees...">
+                    </div>
+                    
+                    <!-- Filters -->
+                    <div class="employee-filters">
+                        <button class="employee-filter-btn active" data-filter="all">All</button>
+                        <button class="employee-filter-btn" data-filter="available">Available</button>
+                        <button class="employee-filter-btn" data-filter="manager">Managers</button>
+                        <button class="employee-filter-btn" data-filter="cashier">Cashiers</button>
+                        <button class="employee-filter-btn" data-filter="server">Servers</button>
+                    </div>
+                    
+                    <!-- Employee List -->
+                    <div class="employee-list" id="modal-employee-list">
+                        <!-- Employee cards will be populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <!-- Component JavaScript -->
+    <script src="../../../components/base/toss-button.js"></script>
+    <script src="../../../components/form/toss-input.js"></script>
+    <script src="../../../components/form/toss-select.js"></script>
+    <script src="../../../components/navigation/navbar.js"></script>
+    <script src="../../../components/feedback/toss-alert.js"></script>
+    
+    <!-- Core Scripts -->
+    <script src="../../../core/constants/app-icons.js"></script>
+    <script src="../../../core/config/supabase.js"></script>
+    <script src="../../../core/utils/app-state.js"></script>
+    <script src="../../../core/config/route-mapping.js"></script>
+    <script src="../../../core/utils/page-init.js"></script>
+    
+    <script>
+        // Prevent navbar auto-init
+        window.skipNavbarAutoInit = true;
+        
+        // Multi-Store Schedule Manager Class
+        class ScheduleManager {
+            constructor() {
+                this.currentWeek = new Date();
+                this.currentView = 'week';
+                this.employees = [];
+                this.shifts = [];
+                this.stores = [];
+                this.currentStoreFilter = null;
+                this.currentLevel = 'dashboard'; // dashboard, schedule
+                this.selectedStore = null;
+                this.dropdownOpen = false;
+                this.currentFocusIndex = 0;
+                this.draggedEmployee = null;
+                this.ghostElement = null;
+                
+                // Month-based caching for schedule data
+                this.cachedMonthData = new Map(); // Key: "YYYY-MM-storeId", Value: schedule data
+                this.currentLoadedMonth = null;   // Track currently loaded month
+                
+                // Set to Monday of current week
+                this.setToMonday(this.currentWeek);
+                
+                this.init();
+            }
+            
+            async init() {
+                // Initialize breadcrumb navigation
+                this.initBreadcrumbNavigation();
+                
+                // Initialize current level
+                this.showLevel(this.currentLevel);
+                
+                // Show loading state
+                this.showLoadingState();
+                
+                try {
+                    // Load real store data from API
+                    await this.loadStoreDataFromAPI();
+                    console.log('✅ Store data loaded successfully from API');
+                } catch (error) {
+                    console.error('❌ Failed to load store data from API:', error);
+                    this.showErrorState(error.message || 'Unable to connect to server');
+                    // Fallback to demo data
+                    // this.loadStoreData();
+                    return; // Don't continue initialization if API fails
+                }
+                
+                // Initialize week navigation
+                this.initNavigation();
+                
+                // Initialize store_id from session storage if available
+                this.selectedStoreId = sessionStorage.getItem('selectedStoreId');
+                
+                // Load employee and shift data
+                // Commenting out demo data - will be loaded from API
+                // this.loadDemoData();
+                
+                // Render current level content
+                this.renderCurrentLevel();
+            }
+            
+            // Multi-Store Navigation Methods
+            initBreadcrumbNavigation() {
+                const breadcrumbItems = document.querySelectorAll('.breadcrumb-item');
+                const backToDashboard = document.getElementById('back-to-dashboard');
+                
+                breadcrumbItems.forEach(item => {
+                    item.addEventListener('click', (e) => {
+                        const level = e.currentTarget.dataset.level;
+                        this.navigateToLevel(level);
+                    });
+                });
+                
+                // Back to Dashboard button
+                if (backToDashboard) {
+                    backToDashboard.addEventListener('click', () => {
+                        this.navigateToLevel('dashboard');
+                    });
+                }
+            }
+            
+            navigateToLevel(level) {
+                this.currentLevel = level;
+                this.showLevel(level);
+                this.updateBreadcrumbs();
+                
+                // Only render if we're going back to dashboard or if we have data for schedule
+                if (level === 'dashboard') {
+                    this.renderCurrentLevel();
+                } else if (level === 'schedule') {
+                    // Don't render immediately - wait for API data
+                    // The loadShiftScheduleData will call renderScheduleFromAPI when ready
+                    console.log('📍 Navigated to schedule level, waiting for API data...');
+                }
+            }
+            
+            showLevel(level) {
+                // Hide all levels
+                document.querySelectorAll('.content-level').forEach(levelElement => {
+                    levelElement.style.display = 'none';
+                });
+                
+                // Show selected level
+                const selectedLevel = document.getElementById(`${level}-level`);
+                if (selectedLevel) {
+                    selectedLevel.style.display = 'block';
+                }
+            }
+            
+            updateBreadcrumbs() {
+                const breadcrumbItems = document.querySelectorAll('.breadcrumb-item');
+                const breadcrumbSeparators = document.querySelectorAll('.breadcrumb-separator');
+                const backButton = document.getElementById('back-to-dashboard');
+                
+                breadcrumbItems.forEach(item => {
+                    const level = item.dataset.level;
+                    item.classList.remove('active');
+                    item.style.display = 'none';
+                });
+                
+                breadcrumbSeparators.forEach(sep => {
+                    sep.style.display = 'none';
+                });
+                
+                // Hide back button by default
+                if (backButton) {
+                    backButton.style.display = 'none';
+                }
+                
+                // Show breadcrumbs based on current level
+                if (this.currentLevel === 'dashboard') {
+                    document.querySelector('[data-level="dashboard"]').style.display = 'flex';
+                    document.querySelector('[data-level="dashboard"]').classList.add('active');
+                } else if (this.currentLevel === 'schedule') {
+                    document.querySelector('[data-level="dashboard"]').style.display = 'flex';
+                    document.querySelector('.breadcrumb-separator').style.display = 'inline';
+                    document.querySelector('[data-level="schedule"]').style.display = 'flex';
+                    document.querySelector('[data-level="schedule"]').classList.add('active');
+                    
+                    // Show back button for schedule view
+                    if (backButton) {
+                        backButton.style.display = 'flex';
+                    }
+                    
+                    // Update schedule title with store name
+                    if (this.selectedStore) {
+                        document.getElementById('schedule-store-title').textContent = `${this.selectedStore.name} Schedule`;
+                    }
+                }
+            }
+            
+            // Date Utility Functions
+            getFirstDayOfMonth() {
+                const now = new Date();
+                return new Date(now.getFullYear(), now.getMonth(), 1);
+            }
+            
+            getLastDayOfMonth() {
+                const now = new Date();
+                return new Date(now.getFullYear(), now.getMonth() + 1, 0);
+            }
+            
+            formatDateForAPI(date) {
+                // Use local date components to avoid timezone issues
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                return `${year}-${month}-${day}`;
+            }
+            
+            // API Data Management
+            async loadStoreDataFromAPI() {
+                // Get company ID from session storage
+                const companyId = appState.getSelectedCompanyId();
+                if (!companyId) {
+                    throw new Error('No company selected');
+                }
+                
+                // Get date range for current month
+                const startDate = this.formatDateForAPI(this.getFirstDayOfMonth());
+                const endDate = this.formatDateForAPI(this.getLastDayOfMonth());
+                
+                console.log('Fetching store dashboard data:', {
+                    company_id: companyId,
+                    start_date: startDate,
+                    end_date: endDate
+                });
+                
+                // Call RPC function
+                const { data, error } = await supabase.rpc('get_stores_dashboard', {
+                    p_company_id: companyId,
+                    p_start_date: startDate,
+                    p_end_date: endDate
+                });
+                
+                if (error) {
+                    console.error('RPC Error:', error);
+                    throw error;
+                }
+                
+                if (!data) {
+                    console.warn('No data returned from API');
+                    throw new Error('No data returned');
+                }
+                
+                console.log('Store dashboard data received:', data);
+                
+                // Check if new API response structure (with company_summary and stores)
+                if (data.company_summary && data.stores) {
+                    console.log('✅ New API response structure detected');
+                    
+                    // Store company summary for overview cards
+                    this.companySummary = data.company_summary;
+                    
+                    // Transform stores data to our internal format
+                    this.stores = this.transformAPIDataToStores(data.stores);
+                    
+                    console.log('Company Summary:', this.companySummary);
+                    console.log('Transformed stores:', this.stores);
+                } else if (Array.isArray(data)) {
+                    console.log('⚠️ Legacy API response structure detected');
+                    
+                    // Legacy format - data is directly the stores array
+                    this.stores = this.transformAPIDataToStores(data);
+                    
+                    // Calculate company summary from stores for backward compatibility
+                    this.companySummary = this.calculateCompanySummaryFromStores(this.stores);
+                    
+                    console.log('Legacy stores transformed:', this.stores);
+                    console.log('Calculated company summary:', this.companySummary);
+                } else {
+                    throw new Error('Invalid API response format');
+                }
+            }
+            
+            // Calculate company summary from stores for backward compatibility
+            calculateCompanySummaryFromStores(stores) {
+                const totalStores = stores.length;
+                const totalEmployees = stores.reduce((sum, store) => sum + store.employees, 0);
+                const totalRequests = stores.reduce((sum, store) => 
+                    sum + (store.statistics?.total_requests || 0), 0);
+                const totalApproved = stores.reduce((sum, store) => 
+                    sum + (store.statistics?.total_approved || 0), 0);
+                const totalPending = stores.reduce((sum, store) => 
+                    sum + (store.statistics?.total_pending || 0), 0);
+                const totalProblems = stores.reduce((sum, store) => 
+                    sum + (store.statistics?.total_problems || store.conflicts || 0), 0);
+                
+                return {
+                    total_stores: totalStores,
+                    total_employees: totalEmployees,
+                    total_requests: totalRequests,
+                    total_approved: totalApproved,
+                    total_pending: totalPending,
+                    total_problems: totalProblems
+                };
+            }
+            
+            // Transform API response to internal store format
+            transformAPIDataToStores(apiData) {
+                return apiData.map(store => {
+                    // Determine status based on has_issues_today and is_active
+                    let status = 'active';
+                    if (!store.is_active) {
+                        status = 'error';
+                    } else if (store.has_issues_today || store.issues_count_period > 0 || store.problems > 0) {
+                        status = 'warning';
+                    }
+                    
+                    // Transform shifts data - handle both legacy and new formats
+                    let shifts = [];
+                    
+                    // New format: shift_info array
+                    if (store.shift_info && Array.isArray(store.shift_info)) {
+                        shifts = store.shift_info.map(shift => ({
+                            name: shift.shift_name || shift.name,
+                            time: shift.start_time && shift.end_time 
+                                ? `${this.formatTimeForDisplay(shift.start_time)}-${this.formatTimeForDisplay(shift.end_time)}`
+                                : shift.time || '',
+                            employees: shift.number_shift || shift.employees || 0,
+                            shift_id: shift.shift_id || shift.id,
+                            // Store additional shift data
+                            shift_uuid: shift.shift_uuid,
+                            shift_type: shift.shift_type,
+                            capacity: shift.capacity,
+                            assigned_count: shift.assigned_count
+                        }));
+                    } 
+                    // Legacy format: shifts array
+                    else if (store.shifts && Array.isArray(store.shifts)) {
+                        shifts = store.shifts.map(shift => ({
+                            name: shift.shift_name,
+                            time: `${this.formatTimeForDisplay(shift.start_time)}-${this.formatTimeForDisplay(shift.end_time)}`,
+                            employees: shift.number_shift || 0,
+                            shift_id: shift.shift_id
+                        }));
+                    }
+                    
+                    // Handle conflicts/problems - support new and legacy fields
+                    const conflicts = store.statistics?.total_problems 
+                        || store.problems 
+                        || store.issues_count_period 
+                        || 0;
+                    
+                    // Handle employee count - prefer store.employee_count over statistics
+                    const employees = store.employee_count 
+                        || store.statistics?.total_employees 
+                        || 0;
+                    
+                    // Handle requests and approvals from statistics  
+                    const totalRequests = store.statistics?.total_requests || 0;
+                    const totalApproved = store.statistics?.total_approved || 0;
+                    const totalPending = store.statistics?.total_pending || 0;
+                    
+                    return {
+                        // Display data
+                        id: store.store_id,
+                        name: store.store_name,
+                        code: store.store_code,
+                        status: status,
+                        employees: employees,
+                        conflicts: conflicts,
+                        shifts: shifts,
+                        
+                        // Store UUIDs and non-display data for card functionality
+                        store_uuid: store.store_uuid,
+                        company_id: store.company_id,
+                        manager_id: store.manager_id,
+                        created_at: store.created_at,
+                        updated_at: store.updated_at,
+                        
+                        // Store complete statistics object
+                        statistics: store.statistics || {
+                            total_employees: employees,
+                            total_requests: totalRequests,
+                            total_approved: totalApproved,
+                            total_pending: totalPending,
+                            total_problems: conflicts
+                        },
+                        
+                        // Legacy compatibility data
+                        period_stats: store.period_stats || store.statistics || {},
+                        coverage_rate: store.statistics?.coverage_rate 
+                            || store.period_stats?.coverage_rate 
+                            || store.coverage_rate 
+                            || 0,
+                        approved_shifts: store.statistics?.approved_shifts
+                            || store.approved_shifts_this_week 
+                            || 0,
+                        
+                        // Additional metadata
+                        address: store.store_address || store.address || '',
+                        timezone: store.timezone,
+                        location: store.location,
+                        settings: store.settings || {}
+                    };
+                });
+            }
+            
+            // Format time from "HH:mm:ss" to "HH:mm"
+            formatTimeForDisplay(timeString) {
+                if (!timeString) return '';
+                return timeString.substring(0, 5); // Extract HH:mm from HH:mm:ss
+            }
+            
+            // Store Data Management (Fallback Demo Data)
+            loadStoreData() {
+                this.stores = [
+                    {
+                        id: 'lux1',
+                        name: 'Lux1',
+                        status: 'active',
+                        employees: 28,
+                        weeklyShifts: 45,
+                        conflicts: 1,
+                        shifts: [
+                            { name: 'Morning', time: '09:00-13:00', employees: 8 },
+                            { name: 'Afternoon', time: '13:00-17:00', employees: 6 },
+                            { name: 'Evening', time: '17:00-21:00', employees: 4 }
+                        ]
+                    },
+                    {
+                        id: 'maison',
+                        name: 'Maison',
+                        status: 'active',
+                        employees: 22,
+                        weeklyShifts: 38,
+                        conflicts: 0,
+                        shifts: [
+                            { name: 'Morning', time: '08:00-14:00', employees: 7 },
+                            { name: 'Evening', time: '14:00-20:00', employees: 8 }
+                        ]
+                    },
+                    {
+                        id: 'lux2',
+                        name: 'Lux2',
+                        status: 'warning',
+                        employees: 25,
+                        weeklyShifts: 42,
+                        conflicts: 2,
+                        shifts: [
+                            { name: 'Morning', time: '09:00-13:00', employees: 7 },
+                            { name: 'Afternoon', time: '13:00-17:00', employees: 5 },
+                            { name: 'Evening', time: '17:00-21:00', employees: 6 }
+                        ]
+                    },
+                    {
+                        id: 'vinpearl',
+                        name: 'Vinpearl',
+                        status: 'active',
+                        employees: 18,
+                        weeklyShifts: 32,
+                        conflicts: 0,
+                        shifts: [
+                            { name: 'Morning', time: '10:00-16:00', employees: 9 },
+                            { name: 'Evening', time: '16:00-22:00', employees: 7 }
+                        ]
+                    },
+                    {
+                        id: 'cameron',
+                        name: 'Cameron',
+                        status: 'active',
+                        employees: 31,
+                        weeklyShifts: 51,
+                        conflicts: 0,
+                        shifts: [
+                            { name: 'Morning', time: '08:00-12:00', employees: 10 },
+                            { name: 'Afternoon', time: '12:00-16:00', employees: 8 },
+                            { name: 'Evening', time: '16:00-20:00', employees: 9 }
+                        ]
+                    },
+                    {
+                        id: 'headsup',
+                        name: 'Headsup',
+                        status: 'active',
+                        employees: 18,
+                        weeklyShifts: 40,
+                        conflicts: 0,
+                        shifts: [
+                            { name: 'Day', time: '09:00-17:00', employees: 12 },
+                            { name: 'Night', time: '17:00-01:00', employees: 6 }
+                        ]
+                    }
+                ];
+            }
+            
+            renderCurrentLevel() {
+                console.log('🎯 renderCurrentLevel called for:', this.currentLevel);
+                switch (this.currentLevel) {
+                    case 'dashboard':
+                        this.renderDashboard();
+                        break;
+                    case 'schedule':
+                        // Check if we have any data to render
+                        console.log('📊 Schedule render check:', {
+                            hasSelectedStoreId: !!this.selectedStoreId,
+                            hasShiftScheduleData: !!this.shiftScheduleData,
+                            hasScheduleByDate: !!this.scheduleByDate,
+                            hasShiftDefinitions: !!this.shiftDefinitions
+                        });
+                        
+                        // Always try to render schedule - it will handle empty data gracefully
+                        if (this.scheduleByDate || this.shiftDefinitions || this.shiftScheduleData) {
+                            this.renderScheduleFromAPI();
+                        } else {
+                            // Only load demo data if we have absolutely no data
+                            if (!this.employees || this.employees.length === 0) {
+                                console.log('⚠️ No data available, loading demo data as fallback');
+                                this.loadDemoData();
+                            }
+                            this.renderSchedule();
+                        }
+                        this.updateStats();
+                        this.initDragAndDrop();
+                        break;
+                }
+            }
+            
+            renderDashboard() {
+                this.renderStoreCards();
+                this.updateDashboardStats();
+            }
+            
+            showLoadingState() {
+                const storesGrid = document.getElementById('stores-grid');
+                if (!storesGrid) return;
+                
+                storesGrid.innerHTML = `
+                    <div class="loading-state">
+                        <div class="loading-spinner"></div>
+                        <p>Loading store data...</p>
+                    </div>
+                `;
+            }
+            
+            showErrorState(message) {
+                const storesGrid = document.getElementById('stores-grid');
+                if (!storesGrid) return;
+                
+                storesGrid.innerHTML = `
+                    <div class="error-state">
+                        <svg class="error-icon" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+                        </svg>
+                        <h3>Failed to load store data</h3>
+                        <p>${message}</p>
+                        <button class="retry-btn" onclick="scheduleManager.init()">Retry</button>
+                    </div>
+                `;
+            }
+            
+            renderStoreCards() {
+                const storesGrid = document.getElementById('stores-grid');
+                if (!storesGrid) return;
+                
+                // Clear loading/error states
+                storesGrid.innerHTML = '';
+                
+                if (!this.stores || this.stores.length === 0) {
+                    storesGrid.innerHTML = `
+                        <div class="error-state">
+                            <svg class="error-icon" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                            </svg>
+                            <h3>No stores found</h3>
+                            <p>No stores are available for the selected company</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                this.stores.forEach(store => {
+                    const storeCard = this.createStoreCard(store);
+                    storesGrid.appendChild(storeCard);
+                });
+            }
+            
+            createStoreCard(store) {
+                const card = document.createElement('div');
+                card.className = 'store-card';
+                card.dataset.storeId = store.id;
+                
+                // Store UUIDs and non-display data
+                card.dataset.storeUuid = store.store_uuid || '';
+                card.dataset.companyId = store.company_id || '';
+                
+                // Get statistics data - always show 0 instead of N/A
+                const employees = store.employees || 0;
+                const totalRequests = store.statistics?.total_requests || 0;
+                const totalApproved = store.statistics?.total_approved || 0;
+                const totalPending = store.statistics?.total_pending || 0;
+                const totalProblems = store.statistics?.total_problems || store.conflicts || 0;
+                
+                card.innerHTML = `
+                    <div class="store-card-header">
+                        <div class="store-card-title">
+                            <svg class="store-card-icon" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12,3L2,12H5V20H19V12H22L12,3M12,8.75A1.25,1.25 0 0,1 13.25,10A1.25,1.25 0 0,1 12,11.25A1.25,1.25 0 0,1 10.75,10A1.25,1.25 0 0,1 12,8.75Z"/>
+                            </svg>
+                            <span class="store-card-name">${store.name}</span>
+                        </div>
+                    </div>
+                    <div class="store-card-body">
+                        <div class="store-summary-row">
+                            <div class="store-metric">
+                                <div class="store-metric-number">${employees}</div>
+                                <div class="store-metric-label">Employees</div>
+                            </div>
+                        </div>
+                        <div class="store-metrics four-metrics">
+                            <div class="store-metric">
+                                <div class="store-metric-number">${totalRequests}</div>
+                                <div class="store-metric-label">Requests</div>
+                            </div>
+                            <div class="store-metric">
+                                <div class="store-metric-number">${totalApproved}</div>
+                                <div class="store-metric-label">Approved</div>
+                            </div>
+                            <div class="store-metric">
+                                <div class="store-metric-number">${totalPending}</div>
+                                <div class="store-metric-label">Pending</div>
+                            </div>
+                            <div class="store-metric ${totalProblems > 0 ? 'problems' : ''}">
+                                <div class="store-metric-number">${totalProblems}</div>
+                                <div class="store-metric-label">Problems</div>
+                            </div>
+                        </div>
+                        <div class="store-shifts-preview">
+                            <div class="shifts-preview-title">Shift Schedule</div>
+                            <div class="shifts-preview-list">
+                                ${store.shifts && store.shifts.length > 0 ? 
+                                    store.shifts.map(shift => `
+                                        <div class="shift-preview-item">
+                                            <span>${shift.name}</span>
+                                            <span class="shift-preview-time">${shift.time}</span>
+                                        </div>
+                                    `).join('') : 
+                                    '<div class="shift-preview-item">No shifts scheduled</div>'
+                                }
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                // Add click handler to navigate to store schedule
+                card.addEventListener('click', () => {
+                    this.selectStore(store);
+                });
+                
+                return card;
+            }
+            
+            selectStore(store) {
+                this.selectedStore = store;
+                
+                // Store the store_id for API calls
+                this.selectedStoreId = store.id;
+                
+                // Store in session storage for persistence (including UUID if available)
+                sessionStorage.setItem('selectedStoreId', store.id);
+                sessionStorage.setItem('selectedStoreName', store.name);
+                sessionStorage.setItem('selectedStoreUuid', store.store_uuid || '');
+                sessionStorage.setItem('selectedStoreData', JSON.stringify({
+                    store_id: store.id,
+                    store_uuid: store.store_uuid,
+                    store_name: store.name,
+                    store_code: store.code,
+                    company_id: store.company_id,
+                    statistics: store.statistics
+                }));
+                
+                console.log('📍 Store selected for navigation:', {
+                    store_id: store.id,
+                    store_uuid: store.store_uuid,
+                    name: store.name,
+                    code: store.code,
+                    company_id: store.company_id
+                });
+                
+                // First navigate to schedule level (shows loading state)
+                this.navigateToLevel('schedule');
+                
+                // Then load shift schedule data for the selected store
+                // The API call will render the schedule when data is ready
+                this.loadShiftScheduleData();
+            }
+            
+            updateDashboardStats() {
+                // Use company summary data if available, otherwise calculate from stores
+                let totalStores, totalEmployees, totalRequests, totalProblems;
+                
+                if (this.companySummary) {
+                    // Use company summary from API
+                    // Total stores is calculated from the stores array length
+                    totalStores = this.stores ? this.stores.length : 0;
+                    totalEmployees = this.companySummary.total_employees || 0;
+                    totalRequests = this.companySummary.total_requests || 0;
+                    totalProblems = this.companySummary.total_problems || 0;
+                    
+                    console.log('📊 Updating dashboard stats from company summary:', this.companySummary);
+                } else {
+                    // Fallback: calculate from stores array (legacy)
+                    totalStores = this.stores.length;
+                    totalEmployees = this.stores.reduce((sum, store) => sum + store.employees, 0);
+                    // Sum up total requests from store statistics
+                    totalRequests = this.stores.reduce((sum, store) => 
+                        sum + (store.statistics?.total_requests || 0), 0);
+                    totalProblems = this.stores.reduce((sum, store) => 
+                        sum + (store.statistics?.total_problems || store.conflicts || 0), 0);
+                    
+                    console.log('📊 Updating dashboard stats from stores calculation');
+                }
+                
+                // Update overview cards with proper error handling
+                const overviewCards = document.querySelectorAll('.overview-card .overview-number');
+                if (overviewCards.length >= 4) {
+                    overviewCards[0].textContent = totalStores;
+                    overviewCards[1].textContent = totalEmployees;
+                    overviewCards[2].textContent = totalRequests;  // Changed from totalShifts
+                    overviewCards[3].textContent = totalProblems;
+                } else {
+                    console.warn('⚠️ Could not find all overview cards');
+                }
+            }
+            
+            // Shift Schedule Data Loading and Management
+            async loadShiftScheduleData(forceReload = false) {
+                if (!this.selectedStoreId) {
+                    console.warn('⚠️ No store selected for schedule loading');
+                    return;
+                }
+                
+                // Check if week spans multiple months
+                const weekMonths = this.getWeekMonths();
+                const needsMultipleMonths = weekMonths.length > 1;
+                
+                console.log('📅 Week month analysis:', {
+                    weekMonths,
+                    needsMultipleMonths,
+                    currentWeek: this.currentWeek.toISOString().split('T')[0],
+                    forceReload
+                });
+                
+                // Check if we have all needed cached data
+                let allDataCached = true;
+                const cachedDataArray = [];
+                
+                for (const month of weekMonths) {
+                    const cacheKey = `${month}-${this.selectedStoreId}`;
+                    if (!this.cachedMonthData.has(cacheKey) || forceReload) {
+                        allDataCached = false;
+                        break;
+                    }
+                    cachedDataArray.push(this.cachedMonthData.get(cacheKey));
+                }
+                
+                // If all needed data is cached, use it
+                if (allDataCached && !forceReload) {
+                    console.log('✅ Using cached data for months:', weekMonths);
+                    
+                    // Merge data if multiple months
+                    const mergedData = this.mergeMonthData(cachedDataArray);
+                    
+                    // Process the merged data
+                    this.processShiftScheduleData(mergedData);
+                    this.updateWeekDisplay();
+                    this.renderScheduleFromAPI();
+                    return;
+                }
+                
+                try {
+                    console.log('📋 Loading shift schedule data for months:', weekMonths);
+                    
+                    // Show loading state
+                    this.showScheduleLoadingState();
+                    
+                    const companyId = appState.getSelectedCompanyId();
+                    const allMonthData = [];
+                    
+                    // Load data for each month that's not cached
+                    for (const monthKey of weekMonths) {
+                        const cacheKey = `${monthKey}-${this.selectedStoreId}`;
+                        
+                        if (this.cachedMonthData.has(cacheKey) && !forceReload) {
+                            console.log(`✅ Month ${monthKey} already cached`);
+                            allMonthData.push(this.cachedMonthData.get(cacheKey));
+                        } else {
+                            // Parse month key to get year and month
+                            const [year, month] = monthKey.split('-');
+                            const monthDate = new Date(parseInt(year), parseInt(month) - 1, 1);
+                            const { startDate, endDate } = this.getMonthDateRange(monthDate);
+                            
+                            console.log(`📥 Loading data for month ${monthKey}:`, {
+                                p_company_id: companyId,
+                                p_store_id: this.selectedStoreId,
+                                p_start_date: startDate,
+                                p_end_date: endDate
+                            });
+                            
+                            // Call RPC function for this month
+                            const { data, error } = await supabase.rpc('get_shift_schedule_info', {
+                                p_company_id: companyId,
+                                p_store_id: this.selectedStoreId,
+                                p_start_date: startDate,
+                                p_end_date: endDate
+                            });
+                            
+                            if (error) {
+                                throw error;
+                            }
+                            
+                            console.log(`✅ Loaded data for month ${monthKey}:`, {
+                                hasStoreInfo: !!data?.store_info,
+                                shiftsCount: data?.shifts?.length || 0,
+                                employeesCount: data?.employees?.length || 0,
+                                scheduleDaysCount: data?.schedule?.length || 0
+                            });
+                            
+                            // Only cache and use data if it's valid
+                            if (data) {
+                                // Cache the data for this month
+                                this.cachedMonthData.set(cacheKey, data);
+                                allMonthData.push(data);
+                            } else {
+                                console.warn(`⚠️ No data returned for month ${monthKey}`);
+                            }
+                        }
+                    }
+                    
+                    // Merge all month data
+                    const mergedData = this.mergeMonthData(allMonthData);
+                    console.log('📊 Merged data from all months:', {
+                        monthCount: allMonthData.length,
+                        totalScheduleDays: mergedData.schedule?.length || 0
+                    });
+                    
+                    // Process and store the response data
+                    this.processShiftScheduleData(mergedData);
+                    
+                    // Update week display and render schedule
+                    this.updateWeekDisplay();
+                    this.renderScheduleFromAPI();
+                    
+                } catch (error) {
+                    console.error('❌ Failed to load shift schedule data:', error);
+                    this.showScheduleErrorState(error.message || 'Failed to load schedule data');
+                }
+            }
+            
+            // Merge data from multiple months
+            mergeMonthData(monthDataArray) {
+                // Filter out null/undefined data
+                const validData = monthDataArray.filter(data => data != null);
+                
+                if (validData.length === 0) {
+                    console.warn('⚠️ No valid data to merge');
+                    return null;
+                }
+                
+                if (validData.length === 1) {
+                    return validData[0];
+                }
+                
+                // Start with the first valid month's data as base
+                const mergedData = {
+                    store_info: validData[0].store_info,
+                    shifts: [],
+                    employees: [],
+                    schedule: []
+                };
+                
+                // Merge shifts (unique by shift_id)
+                const shiftMap = new Map();
+                validData.forEach(monthData => {
+                    if (monthData.shifts) {
+                        monthData.shifts.forEach(shift => {
+                            if (!shiftMap.has(shift.shift_id)) {
+                                shiftMap.set(shift.shift_id, shift);
+                            }
+                        });
+                    }
+                });
+                mergedData.shifts = Array.from(shiftMap.values());
+                
+                // Merge employees (unique by user_id)
+                const employeeMap = new Map();
+                validData.forEach(monthData => {
+                    if (monthData.employees) {
+                        monthData.employees.forEach(emp => {
+                            if (!employeeMap.has(emp.user_id)) {
+                                employeeMap.set(emp.user_id, emp);
+                            }
+                        });
+                    }
+                });
+                mergedData.employees = Array.from(employeeMap.values());
+                
+                // Merge schedule data (combine all dates)
+                const scheduleMap = new Map();
+                validData.forEach(monthData => {
+                    if (monthData.schedule) {
+                        monthData.schedule.forEach(daySchedule => {
+                            // Use date as key to avoid duplicates
+                            scheduleMap.set(daySchedule.date, daySchedule);
+                        });
+                    }
+                });
+                
+                // Sort schedule by date
+                mergedData.schedule = Array.from(scheduleMap.values())
+                    .sort((a, b) => new Date(a.date) - new Date(b.date));
+                
+                console.log('📊 Merged month data:', {
+                    monthsCount: validData.length,
+                    totalEmployees: mergedData.employees.length,
+                    totalScheduleDays: mergedData.schedule.length,
+                    dateRange: mergedData.schedule.length > 0 ? 
+                        `${mergedData.schedule[0].date} to ${mergedData.schedule[mergedData.schedule.length - 1].date}` : 
+                        'No schedule data'
+                });
+                
+                return mergedData;
+            }
+            
+            // Get month key for caching (YYYY-MM format)
+            getMonthKey(date) {
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                return `${year}-${month}`;
+            }
+            
+            // Get full month date range for a given date
+            getMonthDateRange(date) {
+                const year = date.getFullYear();
+                const month = date.getMonth();
+                
+                const firstDay = new Date(year, month, 1);
+                const lastDay = new Date(year, month + 1, 0);
+                
+                return {
+                    startDate: this.formatDateForAPI(firstDay),
+                    endDate: this.formatDateForAPI(lastDay)
+                };
+            }
+            
+            // Check if two dates are in the same month
+            isSameMonth(date1, date2) {
+                return date1.getFullYear() === date2.getFullYear() && 
+                       date1.getMonth() === date2.getMonth();
+            }
+            
+            // Check if current week spans multiple months
+            weekSpansMultipleMonths() {
+                const weekStart = new Date(this.currentWeek);
+                const weekEnd = new Date(this.currentWeek);
+                weekEnd.setDate(weekEnd.getDate() + 6); // Sunday of the week
+                
+                return !this.isSameMonth(weekStart, weekEnd);
+            }
+            
+            // Get all months that the current week spans
+            getWeekMonths() {
+                const months = [];
+                const weekStart = new Date(this.currentWeek);
+                const weekEnd = new Date(this.currentWeek);
+                weekEnd.setDate(weekEnd.getDate() + 6);
+                
+                // Add first month
+                months.push(this.getMonthKey(weekStart));
+                
+                // Add second month if different
+                const endMonth = this.getMonthKey(weekEnd);
+                if (!months.includes(endMonth)) {
+                    months.push(endMonth);
+                }
+                
+                return months;
+            }
+            
+            getCurrentDateRange() {
+                // Always return the full month range based on current week
+                return this.getMonthDateRange(this.currentWeek);
+            }
+            
+            formatDateForAPI(date) {
+                // Format as YYYY-MM-DD for API
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                return `${year}-${month}-${day}`;
+            }
+            
+            processShiftScheduleData(apiData) {
+                console.log('📊 Processing new shift schedule data structure:', apiData);
+                
+                // Check if data has the new structure
+                if (!apiData || (!apiData.schedule && !Array.isArray(apiData))) {
+                    console.warn('⚠️ Invalid or empty schedule data');
+                    this.shiftScheduleData = [];
+                    this.shifts = [];
+                    this.employees = [];
+                    this.storeInfo = null;
+                    return;
+                }
+                
+                // Handle new API response structure
+                if (apiData.store_info && apiData.shifts && apiData.employees && apiData.schedule) {
+                    console.log('✅ New API structure detected');
+                    
+                    // Store the store information
+                    this.storeInfo = apiData.store_info;
+                    
+                    // Store the shift definitions
+                    this.shiftDefinitions = apiData.shifts || [];
+                    
+                    // Store all employees
+                    this.employees = apiData.employees || [];
+                    
+                    // Store the complete schedule data
+                    this.scheduleData = apiData.schedule || [];
+                    
+                    // Transform schedule data for calendar display
+                    this.processScheduleForCalendar();
+                    
+                    console.log('📅 Processed schedule data:', {
+                        storeInfo: this.storeInfo,
+                        shiftDefinitions: this.shiftDefinitions,
+                        employees: this.employees,
+                        scheduleByDate: this.scheduleByDate
+                    });
+                    
+                } else if (Array.isArray(apiData)) {
+                    // Legacy format - array of shift data
+                    console.log('⚠️ Legacy API structure detected');
+                    this.processLegacyShiftData(apiData);
+                } else {
+                    console.error('❌ Unknown API response structure');
+                    this.shiftScheduleData = [];
+                    this.shifts = [];
+                    this.employees = [];
+                }
+            }
+            
+            processScheduleForCalendar() {
+                console.log('🔄 Processing schedule for calendar display');
+                console.log('📅 Schedule data to process:', this.scheduleData);
+                
+                // Create a map of dates to shift data for easy lookup
+                this.scheduleByDate = new Map();
+                
+                if (!this.scheduleData || this.scheduleData.length === 0) {
+                    console.warn('⚠️ No schedule data to process');
+                    return;
+                }
+                
+                this.scheduleData.forEach(daySchedule => {
+                    const date = daySchedule.date;
+                    const dateKey = date; // Use YYYY-MM-DD format as key
+                    
+                    console.log(`📆 Processing date: ${dateKey}`, daySchedule);
+                    
+                    // Process each shift for this date
+                    const shiftsForDate = daySchedule.shifts.map(shift => {
+                        // Find the shift definition
+                        const shiftDef = this.shiftDefinitions.find(def => def.shift_id === shift.shift_id);
+                        
+                        return {
+                            shiftId: shift.shift_id,
+                            shiftName: shift.shift_name,
+                            shiftTime: shift.shift_time,
+                            startTime: shiftDef?.start_time || shift.shift_time.split('-')[0],
+                            endTime: shiftDef?.end_time || shift.shift_time.split('-')[1],
+                            requiredEmployees: shift.required_employees,
+                            assignedCount: shift.assigned_count,
+                            approvedCount: shift.approved_count,
+                            canOvertime: shiftDef?.is_can_overtime || false,
+                            employees: shift.employees.map(emp => ({
+                                shiftRequestId: emp.shift_request_id,
+                                userId: emp.user_id,
+                                userName: emp.user_name,
+                                email: emp.email,
+                                profileImage: emp.profile_image,
+                                isApproved: emp.is_approved,
+                                approvedBy: emp.approved_by,
+                                approvedByName: emp.approved_by_name,
+                                // Problem/Report status
+                                isProblem: emp.is_problem,
+                                isReported: emp.is_reported,
+                                problemType: emp.problem_type,
+                                isProblemSolved: emp.is_problem_solved,
+                                // Attendance info
+                                isLate: emp.is_late,
+                                lateMinutes: emp.late_minutes,
+                                isOvertime: emp.is_overtime,
+                                overtimeMinutes: emp.overtime_minutes,
+                                // Tags
+                                noticeTags: emp.notice_tag || [],
+                                // Time info
+                                scheduledStart: emp.scheduled_start,
+                                scheduledEnd: emp.scheduled_end,
+                                actualStart: emp.actual_start,
+                                actualEnd: emp.actual_end
+                            }))
+                        };
+                    });
+                    
+                    this.scheduleByDate.set(dateKey, shiftsForDate);
+                    console.log(`✅ Added ${shiftsForDate.length} shifts for date ${dateKey}`);
+                });
+                
+                console.log('📊 Final scheduleByDate Map:', {
+                    size: this.scheduleByDate.size,
+                    dates: Array.from(this.scheduleByDate.keys()),
+                    hasData: this.scheduleByDate.size > 0
+                });
+            }
+            
+            processLegacyShiftData(apiData) {
+                // Keep the old processing logic for backward compatibility
+                this.shiftScheduleData = apiData || [];
+                this.shifts = [];
+                this.employees = [];
+                
+                const employeesMap = new Map();
+                const shiftsMap = new Map();
+                
+                apiData.forEach(item => {
+                    if (!shiftsMap.has(item.shift_id)) {
+                        const shiftDate = new Date(item.shift_date);
+                        const dayOfWeek = shiftDate.getDay();
+                        
+                        shiftsMap.set(item.shift_id, {
+                            id: item.shift_id,
+                            name: item.shift_name,
+                            startTime: item.shift_start_time,
+                            endTime: item.shift_end_time,
+                            date: item.shift_date,
+                            day: dayOfWeek,
+                            slot: this.getShiftSlot(item.shift_name, item.shift_start_time),
+                            employees: [],
+                            capacity: item.number_shift || 1,
+                            canOvertime: item.is_can_overtime || false,
+                            storeId: item.store_id,
+                            storeName: item.store_name
+                        });
+                    }
+                    
+                    if (item.user_id) {
+                        const shift = shiftsMap.get(item.shift_id);
+                        shift.employees.push({
+                            id: item.user_id,
+                            name: `${item.user_first_name} ${item.user_last_name}`.trim(),
+                            email: item.user_email,
+                            profileImage: item.user_profile_image,
+                            roles: item.user_roles || [],
+                            salaryType: item.user_salary_type,
+                            salaryAmount: item.user_salary_amount,
+                            isApproved: item.is_approved || false,
+                            isLate: item.is_late || false,
+                            isExtraTime: item.is_extratime || false,
+                            isProblem: item.is_problem || false
+                        });
+                    }
+                    
+                    if (item.available_users) {
+                        item.available_users.forEach(user => {
+                            if (!employeesMap.has(user.user_id)) {
+                                employeesMap.set(user.user_id, {
+                                    id: user.user_id,
+                                    name: `${user.first_name} ${user.last_name}`.trim(),
+                                    email: user.email,
+                                    profileImage: user.profile_image,
+                                    roles: user.roles || [],
+                                    salaryType: user.salary_type,
+                                    salaryAmount: user.salary_amount,
+                                    lastWorkedHours: user.last_worked_hours
+                                });
+                            }
+                        });
+                    }
+                });
+                
+                this.shifts = Array.from(shiftsMap.values());
+                this.employees = Array.from(employeesMap.values());
+            }
+            
+            getShiftSlot(shiftName, startTime) {
+                // Map shift names/times to slot numbers for grid display
+                const timeMap = {
+                    'Morning': 0,
+                    'Afternoon': 1,
+                    'Evening': 2,
+                    'Night': 3
+                };
+                
+                // Try to match by name first
+                if (timeMap[shiftName]) {
+                    return timeMap[shiftName];
+                }
+                
+                // Fallback: map by time
+                const hour = parseInt(startTime.split(':')[0]);
+                if (hour >= 6 && hour < 12) return 0;  // Morning
+                if (hour >= 12 && hour < 17) return 1; // Afternoon  
+                if (hour >= 17 && hour < 22) return 2; // Evening
+                return 3; // Night
+            }
+            
+            showScheduleLoadingState() {
+                const scheduleGrid = document.querySelector('.schedule-grid');
+                if (scheduleGrid) {
+                    scheduleGrid.innerHTML = `
+                        <div class="loading-state">
+                            <div class="loading-spinner"></div>
+                            <div class="loading-text">Loading schedule...</div>
+                        </div>
+                    `;
+                }
+            }
+            
+            showScheduleErrorState(message) {
+                const scheduleGrid = document.querySelector('.schedule-grid');
+                if (scheduleGrid) {
+                    scheduleGrid.innerHTML = `
+                        <div class="error-state">
+                            <div class="error-icon">❌</div>
+                            <div class="error-message">Failed to load schedule</div>
+                            <div class="error-details">${message}</div>
+                            <button class="retry-btn" onclick="scheduleManager.loadShiftScheduleData()">Retry</button>
+                        </div>
+                    `;
+                }
+            }
+            
+            renderScheduleFromAPI() {
+                console.log('🎨 renderScheduleFromAPI called!');
+                console.log('📊 Current data state:', {
+                    hasShiftDefinitions: this.shiftDefinitions?.length > 0,
+                    hasEmployees: this.employees?.length > 0,
+                    hasScheduleByDate: this.scheduleByDate?.size > 0,
+                    scheduleByDateSize: this.scheduleByDate?.size,
+                    scheduleByDateKeys: this.scheduleByDate ? Array.from(this.scheduleByDate.keys()) : []
+                });
+                
+                // Update store title
+                const storeTitle = document.getElementById('schedule-store-title');
+                const storeName = sessionStorage.getItem('selectedStoreName') || 'Store Schedule';
+                if (storeTitle) {
+                    storeTitle.textContent = `${storeName} Schedule`;
+                }
+                
+                // Render the schedule grid with API data
+                console.log('🔄 Calling renderSchedule()...');
+                this.renderSchedule();
+            }
+            
+            getShiftSlotData() {
+                // Transform processed API shifts into slot-based data structure for rendering
+                const slotData = [
+                    { name: 'Morning Shift', time: '6:00 AM - 12:00 PM', slot: 0, shifts: [] },
+                    { name: 'Afternoon Shift', time: '12:00 PM - 6:00 PM', slot: 1, shifts: [] },
+                    { name: 'Evening Shift', time: '6:00 PM - 10:00 PM', slot: 2, shifts: [] },
+                    { name: 'Night Shift', time: '10:00 PM - 6:00 AM', slot: 3, shifts: [] }
+                ];
+                
+                // Group API shifts by slot
+                this.shifts.forEach(shift => {
+                    const slot = shift.slot;
+                    if (slot >= 0 && slot < slotData.length) {
+                        slotData[slot].shifts.push(shift);
+                        // Update time range based on actual shift times
+                        const startTime = this.formatTimeDisplay(shift.startTime);
+                        const endTime = this.formatTimeDisplay(shift.endTime);
+                        slotData[slot].time = `${startTime} - ${endTime}`;
+                    }
+                });
+                
+                return slotData;
+            }
+            
+            formatTimeDisplay(timeString) {
+                // Convert "10:00:00" to "10:00 AM"
+                const [hours, minutes] = timeString.split(':');
+                const hour = parseInt(hours);
+                const ampm = hour >= 12 ? 'PM' : 'AM';
+                const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+                return `${displayHour}:${minutes} ${ampm}`;
+            }
+            
+            getEmployeeRole(employee) {
+                // Handle both API format (roles array) and demo format (role string)
+                if (employee.roles && employee.roles.length > 0) {
+                    return employee.roles[0].role_name || employee.roles[0].name;
+                }
+                return employee.role || 'Employee';
+            }
+            
+            getEmployeeRoleFromList(userId) {
+                // Find employee in the employees list and get their role
+                const employee = this.employees?.find(emp => emp.user_id === userId);
+                if (employee && employee.roles && employee.roles.length > 0) {
+                    return employee.roles[0].role_name || employee.roles[0].name || 'Employee';
+                }
+                return 'Employee';
+            }
+            
+            getEmployeeInitials(nameOrId) {
+                if (typeof nameOrId === 'string' && nameOrId.includes(' ')) {
+                    // Extract initials from full name
+                    const nameParts = nameOrId.split(' ');
+                    return nameParts.map(part => part.charAt(0).toUpperCase()).join('');
+                }
+                // Fallback for ID or single name
+                return nameOrId.toString().substring(0, 2).toUpperCase();
+            }
+            
+            getEmployeeAvatar(employeeId) {
+                // Generate consistent color based on ID
+                const colors = [
+                    '#667EEA', '#764BA2', '#F093FB', '#4ECDC4', '#45B7D1',
+                    '#FA7098', '#4FACFE', '#00F5A0', '#FD79A8', '#6C5CE7'
+                ];
+                const hash = employeeId ? employeeId.toString().split('').reduce((a, b) => {
+                    a = ((a << 5) - a) + b.charCodeAt(0);
+                    return a & a;
+                }, 0) : 0;
+                return colors[Math.abs(hash) % colors.length];
+            }
+            
+            getEmployeeHours(employee) {
+                // Handle both API format (lastWorkedHours) and demo format (hours)
+                return employee.lastWorkedHours || employee.hours || 0;
+            }
+            
+            // Store Filter - Legacy implementation (kept for compatibility but hidden in Level 3)
+            initStoreFilter() {
+                const storeFilterControl = document.getElementById('storeFilterControl');
+                const storeFilterDropdown = document.getElementById('storeFilterDropdown');
+                
+                // Toggle dropdown
+                storeFilterControl.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (this.dropdownOpen) {
+                        this.hideStoreFilterDropdown();
+                    } else {
+                        this.showStoreFilterDropdown();
+                    }
+                });
+                
+                // Close dropdown when clicking outside
+                document.addEventListener('click', (e) => {
+                    if (!e.target.closest('.control-section') && !e.target.closest('.store-filter-dropdown')) {
+                        this.hideStoreFilterDropdown();
+                    }
+                });
+                
+                // Close dropdown on Escape key
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape' && this.dropdownOpen) {
+                        this.hideStoreFilterDropdown();
+                    }
+                    
+                    if (this.dropdownOpen) {
+                        this.handleDropdownKeyNavigation(e);
+                    }
+                });
+                
+                // Initialize with demo stores
+                this.loadStoreFilterOptions();
+            }
+            
+            showStoreFilterDropdown() {
+                const storeFilterControl = document.getElementById('storeFilterControl');
+                const storeFilterDropdown = document.getElementById('storeFilterDropdown');
+                
+                storeFilterControl.classList.add('dropdown-open');
+                storeFilterDropdown.classList.add('active');
+                this.dropdownOpen = true;
+                
+                // Focus first option
+                this.currentFocusIndex = 0;
+                this.updateFocusedOption();
+            }
+            
+            hideStoreFilterDropdown() {
+                const storeFilterControl = document.getElementById('storeFilterControl');
+                const storeFilterDropdown = document.getElementById('storeFilterDropdown');
+                
+                storeFilterControl.classList.remove('dropdown-open');
+                storeFilterDropdown.classList.remove('active');
+                this.dropdownOpen = false;
+                this.clearFocusedOptions();
+            }
+            
+            handleDropdownKeyNavigation(e) {
+                if (!this.dropdownOpen) return;
+                
+                const options = document.querySelectorAll('.store-filter-dropdown-option');
+                const maxIndex = options.length - 1;
+                
+                switch (e.key) {
+                    case 'ArrowDown':
+                        e.preventDefault();
+                        this.currentFocusIndex = Math.min(this.currentFocusIndex + 1, maxIndex);
+                        this.updateFocusedOption();
+                        break;
+                    case 'ArrowUp':
+                        e.preventDefault();
+                        this.currentFocusIndex = Math.max(this.currentFocusIndex - 1, 0);
+                        this.updateFocusedOption();
+                        break;
+                    case 'Enter':
+                        e.preventDefault();
+                        if (options[this.currentFocusIndex]) {
+                            options[this.currentFocusIndex].click();
+                        }
+                        break;
+                }
+            }
+            
+            updateFocusedOption() {
+                const options = document.querySelectorAll('.store-filter-dropdown-option');
+                options.forEach((option, index) => {
+                    if (index === this.currentFocusIndex) {
+                        option.classList.add('focused');
+                        option.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+                    } else {
+                        option.classList.remove('focused');
+                    }
+                });
+            }
+            
+            clearFocusedOptions() {
+                const options = document.querySelectorAll('.store-filter-dropdown-option');
+                options.forEach(option => option.classList.remove('focused'));
+            }
+            
+            loadStoreFilterOptions() {
+                const storeFilterOptions = document.getElementById('storeFilterOptions');
+                const stores = [
+                    { store_id: 'test1', store_name: 'test1' },
+                    { store_id: 'gangnam', store_name: 'Gangnam Branch' },
+                    { store_id: 'hongdae', store_name: 'Hongdae Branch' },
+                    { store_id: 'test2', store_name: 'test2' },
+                    { store_id: 'test3', store_name: 'test3' },
+                    { store_id: 'headquarters', store_name: 'Headquarters' }
+                ];
+                
+                let optionsHTML = '';
+                
+                // Add search input if there are many stores
+                if (stores.length > 5) {
+                    optionsHTML += `
+                        <input type="text" 
+                            class="store-filter-search" 
+                            id="storeFilterSearch" 
+                            placeholder="Search stores..."
+                            autocomplete="off">
+                    `;
+                }
+                
+                // Add "All Stores" option
+                optionsHTML += `
+                    <div class="store-filter-dropdown-option${!this.currentStoreFilter ? ' selected' : ''}" data-store-filter="">
+                        <svg class="store-filter-dropdown-option-icon" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"/>
+                        </svg>
+                        <span class="store-filter-dropdown-option-text">All Stores</span>
+                        ${!this.currentStoreFilter ? '<svg class="store-filter-dropdown-option-check" fill="currentColor" viewBox="0 0 24 24"><path d="M9,20.42L2.79,14.21L5.62,11.38L9,14.77L18.88,4.88L21.71,7.71L9,20.42Z"/></svg>' : ''}
+                    </div>
+                `;
+                
+                // Add individual store options
+                stores.forEach(store => {
+                    const isSelected = store.store_id === this.currentStoreFilter;
+                    optionsHTML += `
+                        <div class="store-filter-dropdown-option${isSelected ? ' selected' : ''}" data-store-filter="${store.store_id}">
+                            <svg class="store-filter-dropdown-option-icon" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12,3L2,12H5V20H19V12H22L12,3M12,8.75A1.25,1.25 0 0,1 13.25,10A1.25,1.25 0 0,1 12,11.25A1.25,1.25 0 0,1 10.75,10A1.25,1.25 0 0,1 12,8.75Z"/>
+                            </svg>
+                            <span class="store-filter-dropdown-option-text">${store.store_name}</span>
+                            ${isSelected ? '<svg class="store-filter-dropdown-option-check" fill="currentColor" viewBox="0 0 24 24"><path d="M9,20.42L2.79,14.21L5.62,11.38L9,14.77L18.88,4.88L21.71,7.71L9,20.42Z"/></svg>' : ''}
+                        </div>
+                    `;
+                });
+                
+                storeFilterOptions.innerHTML = optionsHTML;
+                
+                // Add search functionality
+                const searchInput = document.getElementById('storeFilterSearch');
+                if (searchInput) {
+                    searchInput.addEventListener('input', (e) => {
+                        const searchTerm = e.target.value.toLowerCase();
+                        const options = storeFilterOptions.querySelectorAll('.store-filter-dropdown-option');
+                        
+                        options.forEach(option => {
+                            const text = option.querySelector('.store-filter-dropdown-option-text').textContent.toLowerCase();
+                            if (text.includes(searchTerm) || searchTerm === '') {
+                                option.style.display = 'flex';
+                            } else {
+                                option.style.display = 'none';
+                            }
+                        });
+                    });
+                }
+                
+                // Add click listeners
+                storeFilterOptions.querySelectorAll('.store-filter-dropdown-option').forEach((option, index) => {
+                    option.addEventListener('click', async () => {
+                        const storeFilter = option.dataset.storeFilter;
+                        this.currentStoreFilter = storeFilter || null;
+                        
+                        // Update label
+                        const label = option.querySelector('.store-filter-dropdown-option-text').textContent;
+                        document.getElementById('storeFilterLabel').textContent = label;
+                        
+                        // Update options
+                        this.loadStoreFilterOptions();
+                        
+                        // Hide dropdown
+                        this.hideStoreFilterDropdown();
+                        
+                        // Reload data
+                        this.loadScheduleData();
+                    });
+                    
+                    // Set initial focus
+                    if (option.classList.contains('selected')) {
+                        this.currentFocusIndex = index;
+                    }
+                });
+            }
+            
+            initNavigation() {
+                document.getElementById('prev-week').addEventListener('click', () => {
+                    this.currentWeek.setDate(this.currentWeek.getDate() - 7);
+                    console.log('⬅️ Navigate to previous week:', this.currentWeek.toISOString().split('T')[0]);
+                    
+                    // Always call loadShiftScheduleData - it will intelligently use cache or load new data
+                    if (this.selectedStoreId) {
+                        this.loadShiftScheduleData();
+                    } else {
+                        this.updateWeekDisplay();
+                        this.renderSchedule();
+                    }
+                });
+                
+                document.getElementById('next-week').addEventListener('click', () => {
+                    this.currentWeek.setDate(this.currentWeek.getDate() + 7);
+                    console.log('➡️ Navigate to next week:', this.currentWeek.toISOString().split('T')[0]);
+                    
+                    // Always call loadShiftScheduleData - it will intelligently use cache or load new data
+                    if (this.selectedStoreId) {
+                        this.loadShiftScheduleData();
+                    } else {
+                        this.updateWeekDisplay();
+                        this.renderSchedule();
+                    }
+                });
+                
+                document.getElementById('today-btn').addEventListener('click', () => {
+                    this.currentWeek = new Date();
+                    this.setToMonday(this.currentWeek);
+                    console.log('📍 Navigate to today:', this.currentWeek.toISOString().split('T')[0]);
+                    
+                    // Always call loadShiftScheduleData - it will intelligently use cache or load new data
+                    if (this.selectedStoreId) {
+                        this.loadShiftScheduleData();
+                    } else {
+                        this.updateWeekDisplay();
+                        this.renderSchedule();
+                    }
+                });
+                
+                this.updateWeekDisplay();
+            }
+            
+            
+            setToMonday(date) {
+                const day = date.getDay();
+                const diff = date.getDate() - day + (day === 0 ? -6 : 1);
+                date.setDate(diff);
+                date.setHours(0, 0, 0, 0);
+            }
+            
+            updateWeekDisplay() {
+                const endDate = new Date(this.currentWeek);
+                endDate.setDate(endDate.getDate() + 6);
+                
+                const options = { month: 'short', day: 'numeric' };
+                const start = this.currentWeek.toLocaleDateString('en-US', options);
+                const end = endDate.toLocaleDateString('en-US', options);
+                
+                document.getElementById('week-text').textContent = `${start} - ${end}`;
+            }
+            
+            loadDemoData() {
+                // Extended employee list to demonstrate scalability (15 employees)
+                this.employees = [
+                    { id: 1, name: 'John Smith', role: 'Cashier', initials: 'JS', hours: 32, avatar: '#667EEA' },
+                    { id: 2, name: 'Jane Doe', role: 'Manager', initials: 'JD', hours: 40, avatar: '#764BA2' },
+                    { id: 3, name: 'Mike Johnson', role: 'Barista', initials: 'MJ', hours: 24, avatar: '#F093FB' },
+                    { id: 4, name: 'Sarah Lee', role: 'Server', initials: 'SL', hours: 20, avatar: '#4ECDC4' },
+                    { id: 5, name: 'Tom Chen', role: 'Cook', initials: 'TC', hours: 36, avatar: '#45B7D1' },
+                    { id: 6, name: 'Lisa Wang', role: 'Cashier', initials: 'LW', hours: 28, avatar: '#FA7098' },
+                    { id: 7, name: 'David Brown', role: 'Manager', initials: 'DB', hours: 40, avatar: '#4FACFE' },
+                    { id: 8, name: 'Emma Wilson', role: 'Server', initials: 'EW', hours: 30, avatar: '#00F5A0' },
+                    { id: 9, name: 'Alex Martinez', role: 'Barista', initials: 'AM', hours: 25, avatar: '#00D9F5' },
+                    { id: 10, name: 'Rachel Green', role: 'Cook', initials: 'RG', hours: 32, avatar: '#FB8332' },
+                    { id: 11, name: 'James Kim', role: 'Server', initials: 'JK', hours: 22, avatar: '#6C5CE7' },
+                    { id: 12, name: 'Sofia Rodriguez', role: 'Cashier', initials: 'SR', hours: 26, avatar: '#A29BFE' },
+                    { id: 13, name: 'Kevin Park', role: 'Cook', initials: 'KP', hours: 35, avatar: '#FD79A8' },
+                    { id: 14, name: 'Maya Patel', role: 'Barista', initials: 'MP', hours: 20, avatar: '#FDCB6E' },
+                    { id: 15, name: 'Ryan Davis', role: 'Manager', initials: 'RD', hours: 38, avatar: '#6C5CE7' }
+                ];
+                
+                // Updated data structure for multi-employee shifts
+                this.shifts = [
+                    { 
+                        id: 1, 
+                        day: 0, 
+                        slot: 0, 
+                        startTime: '09:00', 
+                        endTime: '13:00',
+                        employees: [
+                            { id: 1, name: 'John Smith', role: 'Cashier' },
+                            { id: 4, name: 'Sarah Lee', role: 'Server' }
+                        ],
+                        capacity: 4
+                    },
+                    { 
+                        id: 2, 
+                        day: 1, 
+                        slot: 1, 
+                        startTime: '13:00', 
+                        endTime: '17:00',
+                        employees: [
+                            { id: 2, name: 'Jane Doe', role: 'Manager' }
+                        ],
+                        capacity: 3
+                    },
+                    { 
+                        id: 3, 
+                        day: 4, 
+                        slot: 2, 
+                        startTime: '17:00', 
+                        endTime: '21:00',
+                        employees: [
+                            { id: 3, name: 'Mike Johnson', role: 'Barista' },
+                            { id: 5, name: 'Tom Chen', role: 'Cook' },
+                            { id: 8, name: 'Emma Wilson', role: 'Server' }
+                        ],
+                        capacity: 5
+                    }
+                ];
+            }
+            
+            
+            renderSchedule() {
+                console.log('📅 Rendering schedule with data:', {
+                    shiftDefinitions: this.shiftDefinitions?.length || 0,
+                    employees: this.employees?.length || 0,
+                    scheduleByDate: this.scheduleByDate?.size || 0,
+                    hasNewAPIData: !!this.scheduleByDate,
+                    currentWeek: this.currentWeek,
+                    currentWeekFormatted: this.currentWeek?.toISOString()
+                });
+                
+                // Use new API data if available
+                let shiftData;
+                if (this.shiftDefinitions && this.shiftDefinitions.length > 0) {
+                    // Use shifts from API
+                    shiftData = this.shiftDefinitions.map(shift => ({
+                        id: shift.shift_id,
+                        name: shift.shift_name,
+                        time: `${this.formatTimeDisplay(shift.start_time)} - ${this.formatTimeDisplay(shift.end_time)}`,
+                        startTime: shift.start_time,
+                        endTime: shift.end_time,
+                        requiredEmployees: shift.number_shift,
+                        canOvertime: shift.is_can_overtime
+                    }));
+                } else if (this.shiftScheduleData && this.shifts.length > 0) {
+                    // Legacy data
+                    shiftData = this.getShiftSlotData();
+                } else {
+                    // Fallback demo data
+                    shiftData = [
+                        { name: 'Morning Shift', time: '9:00 AM - 1:00 PM' },
+                        { name: 'Afternoon Shift', time: '1:00 PM - 5:00 PM' },
+                        { name: 'Evening Shift', time: '5:00 PM - 9:00 PM' },
+                        { name: 'Night Shift', time: '9:00 PM - 1:00 AM' }
+                    ];
+                }
+                
+                const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+                
+                let html = `
+                    <!-- Header -->
+                    <div class="schedule-header">
+                        <div class="schedule-header-shift">Shift Names</div>
+                `;
+                
+                // Day headers
+                for (let i = 0; i < 7; i++) {
+                    const date = new Date(this.currentWeek);
+                    date.setDate(date.getDate() + i);
+                    const isToday = this.isToday(date);
+                    
+                    html += `
+                        <div class="schedule-header-day ${isToday ? 'today' : ''}">
+                            <div class="day-name">${days[i]}</div>
+                            <div class="day-date">${date.getDate()}</div>
+                        </div>
+                    `;
+                }
+                
+                html += '</div>';
+                
+                // Time slots with shift names
+                shiftData.forEach((shiftInfo, slotIndex) => {
+                    // Include shift UUID if available
+                    const shiftId = shiftInfo.id || shiftInfo.shift_id || '';
+                    html += `
+                        <div class="time-slot-row" data-shift-id="${shiftId}" data-shift-name="${shiftInfo.name}">
+                            <div class="shift-name-cell">
+                                <div class="shift-name-title">${shiftInfo.name}</div>
+                                <div class="shift-name-time">${shiftInfo.time}</div>
+                            </div>
+                    `;
+                    
+                    for (let day = 0; day < 7; day++) {
+                        // Get the current date for this day column
+                        const currentDate = new Date(this.currentWeek);
+                        currentDate.setDate(currentDate.getDate() + day);
+                        const dateString = currentDate.toISOString().split('T')[0]; // Format: YYYY-MM-DD
+                        
+                        // Log date checking for debugging
+                        if (slotIndex === 0) {
+                            console.log(`📆 Week day ${day} (${days[day]}): ${dateString}`, {
+                                hasData: this.scheduleByDate?.has(dateString),
+                                availableDates: this.scheduleByDate ? Array.from(this.scheduleByDate.keys()).filter(d => {
+                                    const scheduleDate = new Date(d);
+                                    const checkDate = new Date(dateString);
+                                    return Math.abs(scheduleDate - checkDate) < 7 * 24 * 60 * 60 * 1000; // Within a week
+                                }) : []
+                            });
+                        }
+                        
+                        // Find shifts for this date from the new data structure
+                        let cellContent = '';
+                        
+                        if (this.scheduleByDate && this.scheduleByDate.has(dateString)) {
+                            // Get all shifts for this date
+                            const shiftsForDate = this.scheduleByDate.get(dateString);
+                            // Find the shift that matches this time slot
+                            const shiftForSlot = shiftsForDate.find(s => 
+                                s.shiftId === shiftInfo.id || s.shiftName === shiftInfo.name
+                            );
+                            
+                            if (shiftForSlot) {
+                                // Render shift with employee information
+                                const hasProblems = shiftForSlot.employees.some(emp => emp.isProblem || emp.isLate);
+                                
+                                cellContent = `
+                                    <div class="time-slot-cell" data-day="${day}" data-slot="${slotIndex}" data-date="${dateString}">
+                                        <div class="shift-block ${hasProblems ? 'has-problems' : ''}" data-shift-id="${shiftForSlot.shiftId}">
+                                            <div class="shift-header">
+                                                <div class="shift-capacity ${shiftForSlot.assignedCount < shiftForSlot.requiredEmployees ? 'understaffed' : ''}">${shiftForSlot.assignedCount}/${shiftForSlot.requiredEmployees}</div>
+                                            </div>
+                                            <div class="shift-employees">
+                                                ${shiftForSlot.employees.map(emp => {
+                                                    const initials = this.getEmployeeInitials(emp.userName);
+                                                    const avatar = this.getEmployeeAvatar(emp.userId);
+                                                    const hasIssue = emp.isProblem || emp.isLate || emp.isReported;
+                                                    
+                                                    return `
+                                                        <div class="shift-employee ${hasIssue ? 'has-issue' : ''} ${emp.isApproved ? 'approved' : 'pending'}">
+                                                            <div class="shift-employee-avatar" style="background: ${avatar}">
+                                                                ${initials}
+                                                                ${emp.isLate ? '<span class="late-indicator" title="Late">⚠</span>' : ''}
+                                                            </div>
+                                                            <div class="shift-employee-info">
+                                                                <div class="shift-employee-name">${emp.userName}</div>
+                                                                <div class="shift-employee-status">
+                                                                    ${emp.isApproved ? '✓' : '○'} 
+                                                                    ${this.getEmployeeRoleFromList(emp.userId)}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    `;
+                                                }).join('')}
+                                                ${shiftForSlot.assignedCount < shiftForSlot.requiredEmployees ? `
+                                                    <div class="add-employee-indicator">
+                                                        <span>+ Add Employee</span>
+                                                    </div>
+                                                ` : ''}
+                                            </div>
+                                        </div>
+                                    </div>
+                                `;
+                            } else {
+                                // Empty slot for this shift time
+                                cellContent = `
+                                    <div class="time-slot-cell empty" data-day="${day}" data-slot="${slotIndex}" data-date="${dateString}">
+                                        <div class="empty-slot-hint">Click to assign</div>
+                                    </div>
+                                `;
+                            }
+                        } else if (this.shifts && this.shifts.length > 0) {
+                            // Legacy data handling
+                            const shiftsForCell = this.shifts.filter(s => s.day === day && s.slot === slotIndex);
+                            const shift = shiftsForCell[0];
+                            
+                            if (shift) {
+                                cellContent = `
+                                    <div class="time-slot-cell" data-day="${day}" data-slot="${slotIndex}">
+                                        <div class="shift-block" data-shift-id="${shift.id}">
+                                            <div class="shift-header">
+                                                <div class="shift-capacity">${shift.employees.length}/${shift.capacity}</div>
+                                            </div>
+                                            <div class="shift-employees">
+                                                ${shift.employees.map(emp => `
+                                                    <div class="shift-employee">
+                                                        <div class="shift-employee-avatar" style="background: ${this.getEmployeeAvatar(emp.id)}">${this.getEmployeeInitials(emp.name || emp.id)}</div>
+                                                        <div class="shift-employee-info">
+                                                            <div class="shift-employee-name">${emp.name}</div>
+                                                            <div class="shift-employee-role">${this.getEmployeeRole(emp)}</div>
+                                                        </div>
+                                                    </div>
+                                                `).join('')}
+                                                ${shift.employees.length < shift.capacity ? `
+                                                    <div class="add-employee-indicator">
+                                                        <span>+ Add Employee</span>
+                                                    </div>
+                                                ` : ''}
+                                            </div>
+                                        </div>
+                                    </div>
+                                `;
+                            } else {
+                                cellContent = `
+                                    <div class="time-slot-cell empty" data-day="${day}" data-slot="${slotIndex}">
+                                        <div class="empty-slot-hint">Click to assign</div>
+                                    </div>
+                                `;
+                            }
+                        } else {
+                            // No data - empty cell
+                            cellContent = `
+                                <div class="time-slot-cell empty" data-day="${day}" data-slot="${slotIndex}" data-date="${dateString}">
+                                    <div class="empty-slot-hint">Click to assign</div>
+                                </div>
+                            `;
+                        }
+                        
+                        html += cellContent;
+                    }
+                    
+                    html += '</div>';
+                });
+                
+                document.getElementById('schedule-grid').innerHTML = html;
+                this.initClickToAssign();
+            }
+            
+            // Click-to-Assign Implementation
+            initClickToAssign() {
+                this.selectedSlot = null;
+                this.filteredEmployees = this.employees;
+                this.currentFilter = 'all';
+                
+                // Empty time slot click handlers
+                document.querySelectorAll('.time-slot-cell.empty').forEach(cell => {
+                    cell.addEventListener('click', (e) => {
+                        const day = parseInt(cell.dataset.day);
+                        const slot = parseInt(cell.dataset.slot);
+                        this.openEmployeeModal(day, slot);
+                    });
+                });
+                
+                // Remove shift functionality
+                document.querySelectorAll('.shift-remove').forEach(removeBtn => {
+                    removeBtn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        this.removeShift(e.target.closest('.shift-block'));
+                    });
+                });
+                
+                // Initialize modal functionality
+                this.initEmployeeModal();
+            }
+            
+            openEmployeeModal(day, slot) {
+                this.selectedSlot = { day, slot };
+                this.selectedShift = null; // New shift
+                const shiftNames = ['Morning Shift', 'Afternoon Shift', 'Evening Shift', 'Night Shift'];
+                const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+                
+                document.getElementById('modal-title').textContent = 
+                    `Create ${shiftNames[slot]} - ${days[day]}`;
+                
+                this.renderEmployeeModal();
+                document.getElementById('employee-modal').classList.add('active');
+            }
+            
+            initEmployeeModal() {
+                // Close modal handlers
+                document.getElementById('close-modal').addEventListener('click', () => {
+                    this.closeEmployeeModal();
+                });
+                
+                document.getElementById('employee-modal').addEventListener('click', (e) => {
+                    if (e.target.classList.contains('employee-modal')) {
+                        this.closeEmployeeModal();
+                    }
+                });
+                
+                // Search functionality
+                document.getElementById('employee-search').addEventListener('input', (e) => {
+                    this.filterEmployees(e.target.value.toLowerCase());
+                });
+                
+                // Filter buttons
+                document.querySelectorAll('.employee-filter-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        document.querySelectorAll('.employee-filter-btn').forEach(b => b.classList.remove('active'));
+                        e.target.classList.add('active');
+                        this.currentFilter = e.target.dataset.filter;
+                        this.filterEmployees();
+                    });
+                });
+            }
+            
+            closeEmployeeModal() {
+                document.getElementById('employee-modal').classList.remove('active');
+                this.selectedSlot = null;
+                this.selectedShift = null;
+                document.getElementById('employee-search').value = '';
+                this.filteredEmployees = this.employees;
+            }
+            
+            renderEmployeeModal() {
+                const container = document.getElementById('modal-employee-list');
+                
+                if (this.filteredEmployees.length === 0) {
+                    container.innerHTML = `
+                        <div style="text-align: center; padding: 40px; color: var(--text-secondary);">
+                            No employees found
+                        </div>
+                    `;
+                    return;
+                }
+                
+                container.innerHTML = this.filteredEmployees.map(emp => {
+                    const isAvailable = this.isEmployeeAvailable(emp.id, this.selectedSlot.day, this.selectedSlot.slot);
+                    const isInShift = this.selectedShift?.employees.some(e => e.id === emp.id);
+                    const availabilityClass = isAvailable ? 'available' : 'unavailable';
+                    const availabilityText = isInShift ? 'Assigned' : (isAvailable ? 'Available' : 'Unavailable');
+                    const buttonText = isInShift ? 'Remove' : (isAvailable ? 'Assign' : 'Unavailable');
+                    const buttonClass = isInShift ? 'remove-employee-btn' : 'add-employee-btn';
+                    
+                    return `
+                        <div class="employee-card ${availabilityClass} ${isInShift ? 'assigned' : ''}" data-employee-id="${emp.id}">
+                            <div class="employee-availability ${isInShift ? 'assigned' : availabilityClass}"></div>
+                            <div class="employee-avatar" style="background: linear-gradient(135deg, ${this.getEmployeeAvatar(emp.id)} 0%, #764BA2 100%)">
+                                ${this.getEmployeeInitials(emp.name)}
+                            </div>
+                            <div class="employee-info">
+                                <div class="employee-name">${emp.name}</div>
+                                <div class="employee-role">${this.getEmployeeRole(emp)} • ${availabilityText}</div>
+                            </div>
+                            <div class="employee-hours">${this.getEmployeeHours(emp)}h</div>
+                            <button class="${buttonClass}" ${(!isAvailable && !isInShift) ? 'disabled' : ''} data-action="${isInShift ? 'remove' : 'add'}">
+                                ${buttonText}
+                            </button>
+                        </div>
+                    `;
+                }).join('');
+                
+                // Add click handlers for employee assignment/removal
+                container.querySelectorAll('.add-employee-btn:not([disabled]), .remove-employee-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const card = e.target.closest('.employee-card');
+                        const employeeId = parseInt(card.dataset.employeeId);
+                        const action = btn.dataset.action;
+                        
+                        if (action === 'remove') {
+                            this.removeEmployeeFromShift(employeeId);
+                        } else {
+                            this.assignEmployee(employeeId);
+                        }
+                    });
+                });
+            }
+            
+            filterEmployees(searchTerm = '') {
+                this.filteredEmployees = this.employees.filter(emp => {
+                    const matchesSearch = emp.name.toLowerCase().includes(searchTerm) || 
+                                        emp.role.toLowerCase().includes(searchTerm);
+                    
+                    const matchesFilter = this.currentFilter === 'all' || 
+                                        this.currentFilter === 'available' && this.isEmployeeAvailable(emp.id, this.selectedSlot?.day, this.selectedSlot?.slot) ||
+                                        emp.role.toLowerCase().includes(this.currentFilter);
+                    
+                    return matchesSearch && matchesFilter;
+                });
+                
+                if (this.selectedSlot) {
+                    this.renderEmployeeModal();
+                }
+            }
+            
+            isEmployeeAvailable(employeeId, day, slot) {
+                // Check if employee already has a shift at this time
+                const hasShift = this.shifts.some(s => 
+                    s.day === day && s.slot === slot && 
+                    s.employees.some(emp => emp.id === employeeId)
+                );
+                
+                // Simple availability simulation - in real app, this would check actual availability data
+                const unavailableSlots = {
+                    1: [1, 3], // John Smith unavailable afternoon and night
+                    3: [0, 2], // Mike Johnson unavailable morning and evening
+                };
+                
+                const employeeUnavailable = unavailableSlots[employeeId]?.includes(slot);
+                
+                return !hasShift && !employeeUnavailable;
+            }
+            
+            getEmployeeAvatar(employeeId) {
+                const employee = this.employees.find(e => e.id === employeeId);
+                return employee ? employee.avatar : '#667EEA';
+            }
+            
+            getEmployeeInitials(employeeId) {
+                const employee = this.employees.find(e => e.id === employeeId);
+                return employee ? employee.initials : '??';
+            }
+            
+            editShift(shiftId) {
+                const shift = this.shifts.find(s => s.id === shiftId);
+                if (!shift) return;
+                
+                this.selectedShift = shift;
+                this.selectedSlot = { day: shift.day, slot: shift.slot };
+                
+                const shiftNames = ['Morning Shift', 'Afternoon Shift', 'Evening Shift', 'Night Shift'];
+                const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+                
+                document.getElementById('modal-title').textContent = 
+                    `Edit ${shiftNames[shift.slot]} - ${days[shift.day]} (${shift.employees.length}/${shift.capacity})`;
+                
+                this.renderEmployeeModal();
+                document.getElementById('employee-modal').classList.add('active');
+            }
+            
+            assignEmployee(employeeId) {
+                if (!this.selectedSlot) return;
+                
+                const employee = this.employees.find(e => e.id === employeeId);
+                const timeSlots = [
+                    { start: '09:00', end: '13:00' },
+                    { start: '13:00', end: '17:00' },
+                    { start: '17:00', end: '21:00' },
+                    { start: '21:00', end: '01:00' }
+                ];
+                
+                if (this.selectedShift) {
+                    // Adding to existing shift
+                    if (this.selectedShift.employees.length < this.selectedShift.capacity) {
+                        this.selectedShift.employees.push({
+                            id: employee.id,
+                            name: employee.name,
+                            role: employee.role
+                        });
+                    }
+                } else {
+                    // Creating new shift
+                    const newShift = {
+                        id: Date.now(),
+                        day: this.selectedSlot.day,
+                        slot: this.selectedSlot.slot,
+                        startTime: timeSlots[this.selectedSlot.slot].start,
+                        endTime: timeSlots[this.selectedSlot.slot].end,
+                        employees: [{
+                            id: employee.id,
+                            name: employee.name,
+                            role: employee.role
+                        }],
+                        capacity: 5 // Default capacity
+                    };
+                    
+                    this.shifts.push(newShift);
+                    this.selectedShift = newShift;
+                }
+                
+                // Re-render modal to show updated state
+                this.renderEmployeeModal();
+                this.renderSchedule();
+                this.updateStats();
+            }
+            
+            removeEmployeeFromShift(employeeId) {
+                if (!this.selectedShift) return;
+                
+                this.selectedShift.employees = this.selectedShift.employees.filter(emp => emp.id !== employeeId);
+                
+                // Remove shift if no employees left
+                if (this.selectedShift.employees.length === 0) {
+                    this.shifts = this.shifts.filter(s => s.id !== this.selectedShift.id);
+                    this.closeEmployeeModal();
+                } else {
+                    // Re-render modal to show updated state
+                    this.renderEmployeeModal();
+                }
+                
+                this.renderSchedule();
+                this.updateStats();
+            }
+            
+            
+            removeShift(shiftBlock) {
+                const shiftId = parseInt(shiftBlock.dataset.shiftId);
+                this.shifts = this.shifts.filter(s => s.id !== shiftId);
+                this.renderSchedule();
+                this.updateStats();
+            }
+            
+            
+            updateStats() {
+                const totalHours = this.shifts.reduce((sum, shift) => {
+                    const start = parseInt(shift.startTime.split(':')[0]);
+                    const end = parseInt(shift.endTime.split(':')[0]);
+                    const duration = end - start;
+                    return sum + (duration * shift.employees.length);
+                }, 0);
+                
+                const allEmployeeIds = new Set();
+                this.shifts.forEach(shift => {
+                    shift.employees.forEach(emp => allEmployeeIds.add(emp.id));
+                });
+                
+                document.getElementById('total-hours').textContent = totalHours;
+                document.getElementById('total-shifts').textContent = this.shifts.length;
+                document.getElementById('total-employees').textContent = allEmployeeIds.size;
+            }
+            
+            isToday(date) {
+                const today = new Date();
+                return date.toDateString() === today.toDateString();
+            }
+            
+            async loadScheduleData(storeId) {
+                console.log('Loading data for store:', storeId);
+                // TODO: Load actual data from API
+            }
+        }
+        
+        // Initialize page
+        window.initializePage('employee', (companyId, company) => {
+            console.log('Company changed:', companyId);
+            if (window.scheduleManager) {
+                window.scheduleManager.loadScheduleData();
+            }
+        });
+        
+        // Initialize schedule manager
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                window.scheduleManager = new ScheduleManager();
+            }, 100);
+        });
+    </script>
+</body>
+</html>
