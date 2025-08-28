@@ -15,6 +15,7 @@ import '../../widgets/toss/toss_card.dart';
 import '../../providers/user_profile_provider.dart';
 import '../../../domain/entities/user_profile.dart';
 import '../../services/profile_image_service.dart';
+import '../../helpers/safe_navigation.dart';
 
 /// Modern finance app-inspired My Page with comprehensive analytics
 class MyPageRedesigned extends ConsumerStatefulWidget {
@@ -123,7 +124,7 @@ class _MyPageRedesignedState extends ConsumerState<MyPageRedesigned>
       ),
       leading: IconButton(
         icon: const Icon(Icons.arrow_back_ios_new_rounded),
-        onPressed: () => context.pop(),
+        onPressed: () => context.safePop(),
         color: TossColors.gray700,
         iconSize: 20,
       ),
@@ -680,17 +681,17 @@ class _MyPageRedesignedState extends ConsumerState<MyPageRedesigned>
 
   void _navigateToEditProfile() {
     HapticFeedback.lightImpact();
-    context.push('/edit-profile');
+    context.safePush('/edit-profile');
   }
 
   void _navigateToNotifications() {
     HapticFeedback.lightImpact();
-    context.push('/notifications-settings');
+    context.safePush('/notifications-settings');
   }
 
   void _navigateToPrivacySecurity() {
     HapticFeedback.lightImpact();
-    context.push('/privacy-security');
+    context.safePush('/privacy-security');
   }
 
   void _handleSignOut() async {
@@ -721,7 +722,7 @@ class _MyPageRedesignedState extends ConsumerState<MyPageRedesigned>
       try {
         await Supabase.instance.client.auth.signOut();
         if (mounted) {
-          context.go('/auth/login');
+          context.safeGo('/auth/login');
         }
       } catch (e) {
         if (mounted) {

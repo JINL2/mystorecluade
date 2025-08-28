@@ -1496,9 +1496,9 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
         await context.push(fullRoute);
         
         // Reset the flag after navigation completes
+        // Wait a short time to ensure navigation is stable
+        await Future.delayed(const Duration(milliseconds: 100));
         if (mounted) {
-          // Add a small delay to prevent immediate re-taps
-          await Future.delayed(TossAnimations.medium);
           setState(() {
             _isNavigating = false;
           });

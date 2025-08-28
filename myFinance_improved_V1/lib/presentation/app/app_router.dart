@@ -46,10 +46,13 @@ import '../widgets/common/toss_scaffold.dart';
 // Router notifier to listen to auth and app state changes
 class RouterNotifier extends ChangeNotifier {
   final Ref _ref;
+  // Store listener subscriptions for proper disposal
+  late final void Function() _authListener;
+  late final void Function() _appStateListener;
 
   RouterNotifier(this._ref) {
     // Listen to authentication state
-    _ref.listen<bool>(
+    _authListener = _ref.listen<bool>(
       isAuthenticatedProvider,
       (previous, next) {
         notifyListeners();
@@ -57,12 +60,20 @@ class RouterNotifier extends ChangeNotifier {
     );
     
     // Listen to app state changes (includes user companies)
-    _ref.listen<AppState>(
+    _appStateListener = _ref.listen<AppState>(
       appStateProvider,
       (previous, next) {
         notifyListeners();
       },
     );
+  }
+  
+  @override
+  void dispose() {
+    // Properly clean up listeners to prevent memory leaks
+    _authListener();
+    _appStateListener();
+    super.dispose();
   }
 }
 
