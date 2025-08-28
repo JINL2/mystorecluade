@@ -252,8 +252,11 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
                 print('QR Scan Result: $result');
                 print('Result type: ${result.runtimeType}');
                 
-                // Refresh the attendance provider to update the activity list
-                ref.read(shiftOverviewProvider.notifier).refresh();
+                // Force refresh the attendance provider to update the activity list
+                await ref.read(shiftOverviewProvider.notifier).refresh();
+                
+                // Add a small delay to ensure data is refreshed
+                await Future.delayed(const Duration(milliseconds: 200));
                 
                 // Show success popup
                 if (mounted) {

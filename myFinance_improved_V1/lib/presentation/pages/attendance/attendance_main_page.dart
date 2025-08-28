@@ -3646,9 +3646,23 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                     
                     // If successfully checked in/out, refresh the data
                     if (result == true) {
-                      _fetchMonthData(selectedDate);
-                      // Refresh the shift overview as well
-                      ref.read(shiftOverviewProvider.notifier).refresh();
+                      // Show loading indicator while refreshing
+                      setState(() {
+                        isLoading = true;
+                      });
+                      
+                      // Refresh all data in parallel
+                      await Future.wait([
+                        _fetchMonthData(selectedDate),
+                        ref.read(shiftOverviewProvider.notifier).refresh(),
+                      ]);
+                      
+                      // Force UI update
+                      if (mounted) {
+                        setState(() {
+                          isLoading = false;
+                        });
+                      }
                     }
                   },
                   borderRadius: BorderRadius.circular(16),
@@ -4015,9 +4029,9 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
             )
           : DateTime.now();
         
-        // Parse times - use confirm_start_time and confirm_end_time
-        final actualStart = card['confirm_start_time'];
-        final actualEnd = card['confirm_end_time'];
+        // Parse times - check both confirm_* and actual_* fields
+        final actualStart = card['confirm_start_time'] ?? card['actual_start_time'];
+        final actualEnd = card['confirm_end_time'] ?? card['actual_end_time'];
         String checkInTime = '--:--';
         String checkOutTime = '--:--';
         String hoursWorked = '0h 0m';
@@ -4111,6 +4125,18 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
         final isApproved = card['is_approved'] ?? card['approval_status'] == 'approved' ?? false;
         final isReported = card['is_reported'] ?? false;
         
+        // Determine the actual working status
+        String workStatus = 'pending';
+        if (isApproved) {
+          if (actualStart != null && actualEnd == null) {
+            workStatus = 'working'; // Currently working (checked in but not checked out)
+          } else if (actualStart != null && actualEnd != null) {
+            workStatus = 'completed'; // Finished working (checked in and checked out)
+          } else {
+            workStatus = 'approved'; // Approved but not started yet
+          }
+        }
+        
         return {
           'date': date,
           'checkIn': checkInTime,
@@ -4123,6 +4149,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
           'overtimeMinutes': card['overtime_minutes'] ?? 0,
           'isApproved': isApproved,
           'isReported': isReported,
+          'workStatus': workStatus, // Add work status
           'rawCard': card, // Keep the raw card data for debugging
         };
       }).toList();
@@ -4308,22 +4335,20 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                                   Column(
                                     crossAxisAlignment: CrossAxisAlignment.end,
                                     children: [
-                                      // Approval status
+                                      // Work status
                                       Row(
                                         children: [
                                           Container(
                                             width: 6,
                                             height: 6,
                                             decoration: BoxDecoration(
-                                              color: (activity['isApproved'] as bool)
-                                                  ? TossColors.success
-                                                  : TossColors.warning,
+                                              color: _getActivityStatusColor(activity['workStatus'] ?? 'pending'),
                                               shape: BoxShape.circle,
                                             ),
                                           ),
                                           const SizedBox(width: TossSpacing.space1),
                                           Text(
-                                            (activity['isApproved'] as bool) ? 'Approved' : 'Pending',
+                                            _getActivityStatusText(activity['workStatus'] ?? 'pending'),
                                             style: TossTextStyles.caption.copyWith(
                                               color: TossColors.gray600,
                                             ),
@@ -5175,6 +5200,72 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
         return 'Off Duty';
     }
   }
+  
+  Color _getActivityStatusColor(String status) {
+    switch (status) {
+      case 'working':
+        return TossColors.primary; // Blue for currently working
+      case 'completed':
+        return TossColors.success; // Green for completed shift
+      case 'approved':
+        return TossColors.success.withOpacity(0.7); // Lighter green for approved but not started
+      case 'pending':
+        return TossColors.warning; // Orange for pending approval
+      default:
+        return TossColors.gray400;
+    }
+  }
+  
+  String _getActivityStatusText(String status) {
+    switch (status) {
+      case 'working':
+        return 'Working';
+      case 'completed':
+        return 'Completed';
+      case 'approved':
+        return 'Approved';
+      case 'pending':
+        return 'Pending';
+      default:
+        return 'Unknown';
+    }
+  }
+  
+  String _getWorkStatusFromCard(Map<String, dynamic> card) {
+    final isApproved = card['is_approved'] ?? card['approval_status'] == 'approved' ?? false;
+    final actualStart = card['confirm_start_time'] ?? card['actual_start_time'];
+    final actualEnd = card['confirm_end_time'] ?? card['actual_end_time'];
+    
+    if (!isApproved) {
+      return 'Pending Approval';
+    }
+    
+    if (actualStart != null && actualEnd == null) {
+      return 'Working';
+    } else if (actualStart != null && actualEnd != null) {
+      return 'Completed';
+    } else {
+      return 'Approved';
+    }
+  }
+  
+  Color _getWorkStatusColorFromCard(Map<String, dynamic> card) {
+    final isApproved = card['is_approved'] ?? card['approval_status'] == 'approved' ?? false;
+    final actualStart = card['confirm_start_time'] ?? card['actual_start_time'];
+    final actualEnd = card['confirm_end_time'] ?? card['actual_end_time'];
+    
+    if (!isApproved) {
+      return TossColors.warning;
+    }
+    
+    if (actualStart != null && actualEnd == null) {
+      return TossColors.primary; // Blue for working
+    } else if (actualStart != null && actualEnd != null) {
+      return TossColors.success; // Green for completed
+    } else {
+      return TossColors.success.withOpacity(0.7); // Lighter green for approved
+    }
+  }
 
   void _showActivityDetails(Map<String, dynamic> activity) {
     // Get the raw card data which contains all the shift information
@@ -5257,22 +5348,20 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                     _buildInfoRow('Shift Time', shiftTime),
                     const SizedBox(height: TossSpacing.space4),
                     
-                    // Approval Status with clean text (no badge)
+                    // Work Status with proper detection
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          'Approval Status',
+                          'Status',
                           style: TossTextStyles.body.copyWith(
                             color: TossColors.gray500,
                           ),
                         ),
                         Text(
-                          (cardData['is_approved'] ?? false) ? 'Approved' : 'Pending',
+                          _getWorkStatusFromCard(cardData),
                           style: TossTextStyles.body.copyWith(
-                            color: (cardData['is_approved'] ?? false)
-                                ? TossColors.success
-                                : TossColors.gray500,
+                            color: _getWorkStatusColorFromCard(cardData),
                             fontWeight: FontWeight.w600,
                           ),
                         ),
