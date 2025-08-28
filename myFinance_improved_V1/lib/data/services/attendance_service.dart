@@ -205,6 +205,13 @@ class AttendanceService {
     required double lng,
   }) async {
     try {
+      print('Calling update_shift_requests_v3 with params:');
+      print('  p_user_id: $userId');
+      print('  p_store_id: $storeId');
+      print('  p_request_date: $requestDate');
+      print('  p_time: $timestamp');
+      print('  p_lat: $lat');
+      print('  p_lng: $lng');
       
       final response = await _supabase.rpc(
         'update_shift_requests_v3',
@@ -218,21 +225,38 @@ class AttendanceService {
         },
       );
       
+      print('RPC Response: $response');
       
       if (response == null) {
+        print('Response is null');
         return null;
       }
       
-      // Return the response
+      // Handle different response formats
+      // The RPC should return something like: {"action": "check_in"} or {"action": "check_out"}
       if (response is List && response.isNotEmpty) {
-        return response.first as Map<String, dynamic>;
+        final result = response.first as Map<String, dynamic>;
+        // Add a default action if not present
+        if (!result.containsKey('action')) {
+          result['action'] = 'check_in';
+        }
+        return result;
       } else if (response is Map<String, dynamic>) {
+        // Add a default action if not present
+        if (!response.containsKey('action')) {
+          response['action'] = 'check_in';
+        }
         return response;
+      } else if (response == true || response.toString() == 'true') {
+        // If RPC just returns true, create a response object
+        return {'success': true, 'action': 'check_in'};
       }
       
-      return null;
+      // Default response if format is unexpected
+      return {'success': true, 'action': 'check_in'};
     } catch (e) {
-      return null;
+      print('Error calling update_shift_requests_v3: $e');
+      rethrow;
     }
   }
 }

@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:intl/intl.dart';
 import '../../../core/themes/toss_colors.dart';
 import '../../../core/themes/toss_text_styles.dart';
 import '../../../core/themes/toss_spacing.dart';
@@ -23,6 +24,7 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
     returnImage: false,
   );
   bool isProcessing = false;
+  bool hasScanned = false; // Add flag to prevent multiple scans
 
   @override
   void dispose() {
@@ -91,17 +93,22 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
           MobileScanner(
             controller: cameraController,
             onDetect: (capture) async {
-              if (isProcessing) return;
+              // Prevent multiple scans
+              if (isProcessing || hasScanned) return;
               
               final List<Barcode> barcodes = capture.barcodes;
               if (barcodes.isEmpty) return;
               
               final String? code = barcodes.first.rawValue;
-              if (code == null) return;
+              if (code == null || code.isEmpty) return;
               
               setState(() {
                 isProcessing = true;
+                hasScanned = true; // Mark as scanned
               });
+              
+              // Stop the camera to prevent further scans
+              await cameraController.stop();
               
               // Haptic feedback
               HapticFeedback.mediumImpact();
@@ -121,49 +128,79 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
                 _showErrorDialog('User not authenticated');
                 setState(() {
                   isProcessing = false;
+                  hasScanned = false;
                 });
+                // Restart camera on error
+                await cameraController.start();
                 return;
               }
               final userId = user.id;
               
               try {
-                // Parse QR code data (expecting format: "STORE_ID|TIMESTAMP")
-                final parts = code.split('|');
-                if (parts.length != 2) {
-                  throw Exception('Invalid QR code format');
+                // QR code contains only the store_id (e.g., "d3dfa42c-9c18-46ed-8dbc-a6d67a2ab7ff")
+                final storeId = code.trim();
+                
+                // Validate store ID format (UUID)
+                final uuidRegex = RegExp(
+                  r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$'
+                );
+                
+                if (!uuidRegex.hasMatch(storeId)) {
+                  throw Exception('Invalid store ID format');
                 }
                 
-                final storeId = parts[0];
-                final timestamp = parts[1];
+                // Get current date and time
+                final now = DateTime.now();
+                final requestDate = DateFormat('yyyy-MM-dd').format(now);
+                final currentTime = DateFormat('yyyy-MM-dd HH:mm:ss').format(now);
                 
                 // Submit attendance
                 final attendanceService = ref.read(attendanceServiceProvider);
-                final requestDate = DateTime.parse(timestamp);
-                await attendanceService.updateShiftRequest(
+                final result = await attendanceService.updateShiftRequest(
                   userId: userId,
                   storeId: storeId,
-                  requestDate: '${requestDate.year}-${requestDate.month.toString().padLeft(2, '0')}-${requestDate.day.toString().padLeft(2, '0')}',
-                  timestamp: timestamp,
+                  requestDate: requestDate,
+                  timestamp: currentTime,
                   lat: position.latitude,
                   lng: position.longitude,
                 );
                 
+                // Check if the RPC call was successful
+                if (result == null) {
+                  throw Exception('Failed to update shift request. Please try again.');
+                }
+                
                 // Show success and navigate back
                 if (mounted) {
+                  // Determine if it was check-in or check-out based on result
+                  final message = result['action'] == 'check_out' 
+                    ? 'Check-out successful!' 
+                    : 'Check-in successful!';
+                    
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Check-in successful!'),
+                    SnackBar(
+                      content: Text(message),
                       backgroundColor: TossColors.success,
+                      duration: const Duration(seconds: 2),
                     ),
                   );
-                  Navigator.pop(context, true);
+                  
+                  // Wait a moment for user to see the message
+                  await Future.delayed(const Duration(milliseconds: 500));
+                  
+                  if (mounted) {
+                    Navigator.pop(context, true);
+                  }
                 }
               } catch (e) {
                 _showErrorDialog('Failed to process QR code: ${e.toString()}');
-              } finally {
+                
+                // Reset state and restart camera on error
                 setState(() {
                   isProcessing = false;
+                  hasScanned = false;
                 });
+                await cameraController.start();
               }
             },
           ),
