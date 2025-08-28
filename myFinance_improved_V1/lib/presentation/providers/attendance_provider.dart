@@ -182,8 +182,8 @@ class ShiftOverviewNotifier extends StateNotifier<ShiftOverview> {
     }
   }
 
-  void refresh() {
-    fetchShiftOverview();
+  Future<void> refresh() async {
+    await fetchShiftOverview();
   }
 }
 
