@@ -49,12 +49,14 @@ import '../widgets/common/toss_scaffold.dart';
 // Router notifier to listen to auth and app state changes
 class RouterNotifier extends ChangeNotifier {
   final Ref _ref;
+
   final List<String> _redirectHistory = [];
   static const int _maxRedirectHistory = 10;
   
+
   RouterNotifier(this._ref) {
     // Listen to authentication state
-    _ref.listen<bool>(
+    _authListener = _ref.listen<bool>(
       isAuthenticatedProvider,
       (previous, next) {
         // Add delay to prevent rapid redirects
@@ -65,7 +67,7 @@ class RouterNotifier extends ChangeNotifier {
     );
     
     // Listen to app state changes (includes user companies)
-    _ref.listen<AppState>(
+    _appStateListener = _ref.listen<AppState>(
       appStateProvider,
       (previous, next) {
         // Add delay to prevent rapid redirects
@@ -78,6 +80,7 @@ class RouterNotifier extends ChangeNotifier {
   
   @override
   void dispose() {
+
     super.dispose();
   }
   
@@ -108,6 +111,7 @@ class RouterNotifier extends ChangeNotifier {
   void clearRedirectHistory() {
     _redirectHistory.clear();
   }
+
 }
 
 final appRouterProvider = Provider<GoRouter>((ref) {
