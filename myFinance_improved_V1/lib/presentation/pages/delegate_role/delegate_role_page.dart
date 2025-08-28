@@ -19,6 +19,7 @@ import '../../../core/themes/toss_spacing.dart';
 import '../../../core/themes/toss_border_radius.dart';
 import '../../../core/themes/toss_shadows.dart';
 import '../../../core/utils/tag_validator.dart';
+import '../../../core/navigation/safe_navigation.dart';
 
 class DelegateRolePage extends ConsumerStatefulWidget {
   const DelegateRolePage({super.key});
@@ -81,7 +82,7 @@ class _DelegateRolePageState extends ConsumerState<DelegateRolePage> with Widget
             description: 'Please select a company to manage role delegations',
             action: TossPrimaryButton(
               text: 'Go to Home',
-              onPressed: () => context.go('/'),
+              onPressed: () => context.safeGo('/'),
             ),
           ),
         ),

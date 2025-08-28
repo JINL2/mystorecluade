@@ -13,6 +13,7 @@ import '../../providers/enhanced_auth_provider.dart';
 import '../../providers/app_state_provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/constants/auth_constants.dart';
+import '../../../core/navigation/safe_navigation.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
@@ -490,7 +491,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
             _passwordRevealController.stop();
             _buttonPulseController.stop();
             
-            context.go('/auth/forgot-password');
+            context.safeGo('/auth/forgot-password');
           },
           style: TextButton.styleFrom(
             padding: EdgeInsets.zero,
@@ -567,7 +568,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
             _buttonPulseController.stop();
             
             // Use router navigation for consistency
-            context.push('/auth/signup');
+            context.safePush('/auth/signup');
           },
           style: TextButton.styleFrom(
             padding: EdgeInsets.zero,
@@ -721,9 +722,9 @@ class _LoginPageState extends ConsumerState<LoginPage>
         // STEP 6: Navigate based on complete data
         // Data is already in app state, so router will see correct company count
         if (companyCount > 0) {
-          context.go('/');
+          context.safeGo('/');
         } else {
-          context.go('/onboarding/choose-role');
+          context.safeGo('/onboarding/choose-role');
         }
       }
     } catch (e) {

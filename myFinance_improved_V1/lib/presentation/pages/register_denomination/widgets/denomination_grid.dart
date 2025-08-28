@@ -170,18 +170,32 @@ class DenominationGrid extends ConsumerWidget {
     // Haptic feedback
     HapticFeedback.lightImpact();
     
-    print('Starting deletion for denomination: ${denomination.id} (${denomination.formattedValue})');
+    print('=== UI DELETION DEBUG START ===');
+    print('Starting deletion for denomination:');
+    print('  ID: ${denomination.id}');
+    print('  Value: ${denomination.formattedValue}');
+    print('  Currency ID: ${denomination.currencyId}');
+    print('  Company ID: ${denomination.companyId}');
+    print('  Type: ${denomination.type}');
     
     try {
-      // Remove the denomination from database FIRST (no optimistic update yet)
+      // Remove the denomination from database
+      print('Calling repository removeDenomination...');
       await ref.read(denominationOperationsProvider.notifier)
           .removeDenomination(denomination.id, denomination.currencyId);
       
-      print('Database deletion successful for denomination: ${denomination.id}');
+      print('✅ Database deletion successful for denomination: ${denomination.id}');
       
-      // Only update UI after successful database operation
-      ref.read(localDenominationListProvider.notifier)
-          .optimisticallyRemove(denomination.currencyId, denomination.id);
+      // Refresh the remote providers to get updated data from database
+      print('Refreshing remote providers to fetch updated data...');
+      ref.invalidate(denominationListProvider(denomination.currencyId));
+      ref.invalidate(companyCurrenciesProvider);
+      ref.invalidate(companyCurrenciesStreamProvider);
+      ref.invalidate(searchFilteredCurrenciesProvider);
+      
+      // Clear any local state for this currency to ensure we use fresh remote data
+      print('Clearing local state to ensure fresh data is used...');
+      ref.read(localDenominationListProvider.notifier).reset(denomination.currencyId);
       
       // Show success message after successful deletion
       if (context.mounted) {
@@ -197,14 +211,11 @@ class DenominationGrid extends ConsumerWidget {
       // Success haptic feedback
       HapticFeedback.selectionClick();
       
-      // Refresh the remote providers after successful database operation
-      ref.invalidate(denominationListProvider(denomination.currencyId));
-      ref.invalidate(companyCurrenciesProvider);
-      ref.invalidate(companyCurrenciesStreamProvider);
-      ref.invalidate(searchFilteredCurrenciesProvider);
+      print('=== UI DELETION DEBUG END - SUCCESS ===');
       
     } catch (e) {
-      print('Failed to delete denomination: $e');
+      print('❌ Failed to delete denomination: $e');
+      print('=== UI DELETION DEBUG END - ERROR ===');
       
       // Show error message
       if (context.mounted) {

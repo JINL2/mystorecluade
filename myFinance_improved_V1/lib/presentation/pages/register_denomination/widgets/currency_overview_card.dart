@@ -238,88 +238,72 @@ class CurrencyOverviewCard extends ConsumerWidget {
             return Padding(
               padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space5),
               child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   // Add denomination button
-                  Expanded(
-                    flex: 1,
-                    child: OutlinedButton.icon(
+                  Flexible(
+                    child: OutlinedButton(
                       onPressed: () => _showAddDenominationSheet(context),
-                      icon: const Icon(
-                        Icons.add,
-                        size: 18,
-                        color: TossColors.primary,
-                      ),
-                      label: Text(
-                        'Add',
-                        style: TossTextStyles.labelLarge.copyWith(
-                          color: TossColors.primary,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
                       style: OutlinedButton.styleFrom(
-                        minimumSize: const Size(0, 44),
+                        minimumSize: const Size(50, 44),
+                        maximumSize: const Size(80, 44),
                         side: const BorderSide(color: TossColors.primary),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(TossBorderRadius.md),
                         ),
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                      ),
+                      child: const Icon(
+                        Icons.add,
+                        size: 20,
+                        color: TossColors.primary,
                       ),
                     ),
                   ),
-                  const SizedBox(width: TossSpacing.space3),
                   
                   // Rate button (only for non-base currencies)
                   if (!isBaseCurrency) ...[
-                    Expanded(
-                      flex: 1,
-                      child: OutlinedButton.icon(
+                    const SizedBox(width: TossSpacing.space4),
+                    Flexible(
+                      child: OutlinedButton(
                         onPressed: () => _showEditExchangeRateSheet(context),
-                        icon: const Icon(
-                          Icons.swap_horiz,
-                          size: 18,
-                          color: TossColors.warning,
-                        ),
-                        label: Text(
-                          'Rate',
-                          style: TossTextStyles.labelLarge.copyWith(
-                            color: TossColors.warning,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
                         style: OutlinedButton.styleFrom(
-                          minimumSize: const Size(0, 44),
+                          minimumSize: const Size(50, 44),
+                          maximumSize: const Size(80, 44),
                           side: const BorderSide(color: TossColors.warning),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(TossBorderRadius.md),
                           ),
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                        ),
+                        child: const Icon(
+                          Icons.swap_horiz,
+                          size: 20,
+                          color: TossColors.warning,
                         ),
                       ),
                     ),
-                    const SizedBox(width: TossSpacing.space3),
                   ],
                   
+                  const SizedBox(width: TossSpacing.space4),
+                  
                   // Delete currency button
-                  Expanded(
-                    flex: 1,
-                    child: OutlinedButton.icon(
+                  Flexible(
+                    child: OutlinedButton(
                       onPressed: () => _showDeleteCurrencyDialog(context),
-                      icon: const Icon(
-                        Icons.delete_outline,
-                        size: 18,
-                        color: TossColors.error,
-                      ),
-                      label: Text(
-                        'Remove',
-                        style: TossTextStyles.labelLarge.copyWith(
-                          color: TossColors.error,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
                       style: OutlinedButton.styleFrom(
-                        minimumSize: const Size(0, 44),
+                        minimumSize: const Size(50, 44),
+                        maximumSize: const Size(80, 44),
                         side: const BorderSide(color: TossColors.error),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(TossBorderRadius.md),
                         ),
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                      ),
+                      child: const Icon(
+                        Icons.delete_outline,
+                        size: 20,
+                        color: TossColors.error,
                       ),
                     ),
                   ),

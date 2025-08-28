@@ -18,6 +18,7 @@ import '../../widgets/common/toss_scaffold.dart';
 import '../../widgets/common/toss_stats_card.dart';
 import '../../widgets/common/toss_app_bar.dart';
 import '../../widgets/toss/toss_search_field.dart';
+import '../../../core/navigation/safe_navigation.dart';
 
 class CounterPartyPage extends ConsumerStatefulWidget {
   const CounterPartyPage({super.key});
@@ -106,7 +107,7 @@ class _CounterPartyPageState extends ConsumerState<CounterPartyPage> {
         title: 'Counter Party',
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: TossColors.textPrimary),
-          onPressed: () => context.pop(),
+          onPressed: () => context.safePop(),
         ),
         primaryActionText: 'Add',
         primaryActionIcon: Icons.add,
@@ -748,7 +749,7 @@ class _CounterPartyPageState extends ConsumerState<CounterPartyPage> {
                     onEdit: () => _showEditForm(counterParty),
                     onAccountSettings: () {
                       if (counterParty.isInternal) {
-                        context.push('/debtAccountSettings/${counterParty.counterpartyId}/${Uri.encodeComponent(counterParty.name)}');
+                        context.safePush('/debtAccountSettings/${counterParty.counterpartyId}/${Uri.encodeComponent(counterParty.name)}');
                       } else {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(

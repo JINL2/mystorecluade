@@ -1,6 +1,9 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../core/navigation/safe_navigation.dart';
+import '../../core/navigation/navigation_state_provider.dart';
 import '../pages/auth/login_page.dart';
 import '../pages/auth/auth_signup_page.dart';
 import '../pages/auth/create_business_page.dart';
@@ -46,16 +49,20 @@ import '../widgets/common/toss_scaffold.dart';
 // Router notifier to listen to auth and app state changes
 class RouterNotifier extends ChangeNotifier {
   final Ref _ref;
-  // Store listener subscriptions for proper disposal
-  late final void Function() _authListener;
-  late final void Function() _appStateListener;
+
+  final List<String> _redirectHistory = [];
+  static const int _maxRedirectHistory = 10;
+  
 
   RouterNotifier(this._ref) {
     // Listen to authentication state
     _authListener = _ref.listen<bool>(
       isAuthenticatedProvider,
       (previous, next) {
-        notifyListeners();
+        // Add delay to prevent rapid redirects
+        Future.delayed(const Duration(milliseconds: 100), () {
+          notifyListeners();
+        });
       },
     );
     
@@ -63,18 +70,48 @@ class RouterNotifier extends ChangeNotifier {
     _appStateListener = _ref.listen<AppState>(
       appStateProvider,
       (previous, next) {
-        notifyListeners();
+        // Add delay to prevent rapid redirects
+        Future.delayed(const Duration(milliseconds: 100), () {
+          notifyListeners();
+        });
       },
     );
   }
   
   @override
   void dispose() {
-    // Properly clean up listeners to prevent memory leaks
-    _authListener();
-    _appStateListener();
+
     super.dispose();
   }
+  
+  // Check for redirect loops
+  bool _hasRedirectLoop(String path) {
+    _redirectHistory.add(path);
+    
+    // Keep history limited
+    if (_redirectHistory.length > _maxRedirectHistory) {
+      _redirectHistory.removeAt(0);
+    }
+    
+    // Check for loops (same path appearing 3+ times in recent history)
+    if (_redirectHistory.length >= 6) {
+      final startIndex = _redirectHistory.length - 6;
+      final recent = _redirectHistory.sublist(startIndex).toList();
+      final pathCount = recent.where((p) => p == path).length;
+      if (pathCount >= 3) {
+        debugPrint('[RouterNotifier] Redirect loop detected for path: $path');
+        _redirectHistory.clear();
+        return true;
+      }
+    }
+    
+    return false;
+  }
+  
+  void clearRedirectHistory() {
+    _redirectHistory.clear();
+  }
+
 }
 
 final appRouterProvider = Provider<GoRouter>((ref) {
@@ -86,48 +123,136 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     refreshListenable: routerNotifier,
     restorationScopeId: 'app_router',
     redirect: (context, state) {
-      final isAuth = ref.read(isAuthenticatedProvider);
-      final appState = ref.read(appStateProvider);
-      final isAuthRoute = state.matchedLocation.startsWith('/auth');
-      final isOnboardingRoute = state.matchedLocation.startsWith('/onboarding');
-      
-      // Get company count from app state
-      final userData = appState.user;
-      final hasUserData = userData is Map && userData.isNotEmpty;
-      final companyCount = userData is Map ? (userData['company_count'] ?? 0) : 0;
-      
-      
-      // Priority 1: If not authenticated and not on auth route, go to login
-      if (!isAuth && !isAuthRoute) {
-        return '/auth/login';
-      }
-      
-      // Priority 2: If authenticated, redirect away from auth pages to appropriate destination
-      if (isAuth && isAuthRoute) {
-        // If user has companies, go to main page
-        if (hasUserData && companyCount > 0) {
+      try {
+        final currentPath = state.matchedLocation;
+        
+        // Check for redirect loop
+        if (routerNotifier._hasRedirectLoop(currentPath)) {
+          debugPrint('[AppRouter] Redirect loop detected, navigating to home');
+          // Clear SafeNavigation locks for the problematic route
+          SafeNavigation.instance.clearAllLocks();
           return '/';
         }
-        // If user has no companies but has data, go to onboarding
-        else if (hasUserData && companyCount == 0) {
-          return '/onboarding/choose-role';
-        }
-        // If no user data yet, stay to let auth page load data
-        else {
+        
+        // Special handling for /cashEnding to prevent redirect loops
+        if (currentPath == '/cashEnding') {
+          final isAuth = ref.read(isAuthenticatedProvider);
+          final userData = ref.read(appStateProvider).user;
+          final hasUserData = userData is Map && userData.isNotEmpty;
+          final companyCount = userData is Map ? (userData['company_count'] ?? 0) : 0;
+          
+          // Allow access if user is authenticated and has companies
+          if (isAuth && hasUserData && companyCount > 0) {
+            debugPrint('[AppRouter] Allowing access to /cashEnding');
+            return null; // Allow navigation
+          }
+          
+          // Redirect to appropriate page if not authenticated or no companies
+          if (!isAuth) {
+            return '/auth/login';
+          } else if (hasUserData && companyCount == 0) {
+            return '/onboarding/choose-role';
+          }
+          
+          // If waiting for user data, allow the page to load (it will handle the loading state)
           return null;
         }
+        
+        // Navigation state will be updated after widget build completes
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          try {
+            final navNotifier = ref.read(navigationStateProvider.notifier);
+            navNotifier.updateCurrentRoute(currentPath);
+          } catch (e) {
+            // Silently handle any provider access errors
+            debugPrint('[AppRouter] Could not update navigation state: $e');
+          }
+        });
+        
+        final isAuth = ref.read(isAuthenticatedProvider);
+        final appState = ref.read(appStateProvider);
+        final isAuthRoute = state.matchedLocation.startsWith('/auth');
+        final isOnboardingRoute = state.matchedLocation.startsWith('/onboarding');
+        
+        // Get company count from app state
+        final userData = appState.user;
+        final hasUserData = userData is Map && userData.isNotEmpty;
+        final companyCount = userData is Map ? (userData['company_count'] ?? 0) : 0;
+        
+        // Log navigation attempt for debugging
+        debugPrint('[AppRouter] Redirect check - Path: $currentPath, Auth: $isAuth, Companies: $companyCount');
+        
+        // Priority 1: If not authenticated and not on auth route, go to login
+        if (!isAuth && !isAuthRoute) {
+          debugPrint('[AppRouter] Not authenticated, redirecting to login');
+          return '/auth/login';
+        }
+        
+        // Priority 2: If authenticated, redirect away from auth pages to appropriate destination
+        if (isAuth && isAuthRoute) {
+          // If user has companies, go to main page
+          if (hasUserData && companyCount > 0) {
+            debugPrint('[AppRouter] Authenticated with companies, redirecting to home');
+            routerNotifier.clearRedirectHistory(); // Clear history on successful auth redirect
+            return '/';
+          }
+          // If user has no companies but has data, go to onboarding
+          else if (hasUserData && companyCount == 0) {
+            debugPrint('[AppRouter] Authenticated without companies, redirecting to onboarding');
+            return '/onboarding/choose-role';
+          }
+          // If no user data yet, stay to let auth page load data
+          else {
+            debugPrint('[AppRouter] Authenticated but waiting for user data');
+            return null;
+          }
+        }
+        
+        // Priority 3: If authenticated, on main pages, but no companies
+        // Only redirect if we have loaded user data
+        if (isAuth && !isAuthRoute && !isOnboardingRoute && 
+            hasUserData && companyCount == 0) {
+          debugPrint('[AppRouter] Authenticated on main page without companies, redirecting to onboarding');
+          return '/onboarding/choose-role';
+        }
+        
+        return null;
+      } catch (error, stackTrace) {
+        debugPrint('[AppRouter] Error in redirect: $error');
+        debugPrintStack(stackTrace: stackTrace);
+        
+        // Update navigation state with error after build completes
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          try {
+            final navNotifier = ref.read(navigationStateProvider.notifier);
+            navNotifier.setNavigationError(error);
+          } catch (e) {
+            debugPrint('[AppRouter] Could not set navigation error: $e');
+          }
+        });
+        
+        // Return to home on error
+        return '/';
       }
-      
-      // Priority 3: If authenticated, on main pages, but no companies
-      // Only redirect if we have loaded user data
-      if (isAuth && !isAuthRoute && !isOnboardingRoute && 
-          hasUserData && companyCount == 0) {
-        return '/onboarding/choose-role';
-      }
-      
-      return null;
     },
     errorBuilder: (context, state) {
+      // Log navigation error
+      final error = state.error;
+      debugPrint('[AppRouter] Navigation error - Path: ${state.matchedLocation}, Error: $error');
+      
+      // Clear navigation locks on error
+      SafeNavigation.instance.clearAllLocks();
+      
+      // Update navigation state after build completes
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        try {
+          final navNotifier = ref.read(navigationStateProvider.notifier);
+          navNotifier.setNavigationError(error ?? 'Page not found');
+        } catch (e) {
+          debugPrint('[AppRouter] Could not set error state: $e');
+        }
+      });
+      
       return TossScaffold(
         body: Center(
           child: Column(
@@ -147,15 +272,31 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               ),
               const SizedBox(height: 8),
               Text(
-                'The page you are looking for does not exist.',
+                error?.toString() ?? 'The page you are looking for does not exist.',
                 style: TossTextStyles.bodyLarge.copyWith(
                   color: TossColors.gray600,
                 ),
+                textAlign: TextAlign.center,
               ),
               const SizedBox(height: 24),
               ElevatedButton(
-                onPressed: () => context.go('/'),
+                onPressed: () {
+                  // Use safe navigation for error recovery
+                  context.safeGo('/');
+                },
                 child: const Text('Go to Home'),
+              ),
+              const SizedBox(height: 12),
+              TextButton(
+                onPressed: () {
+                  // Try to go back safely
+                  if (context.canPop()) {
+                    context.safePop();
+                  } else {
+                    context.safeGo('/');
+                  }
+                },
+                child: const Text('Go Back'),
               ),
             ],
           ),

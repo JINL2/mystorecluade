@@ -15,6 +15,7 @@ import '../../providers/app_state_provider.dart';
 import '../../widgets/common/toss_scaffold.dart';
 import '../../widgets/common/toss_app_bar.dart';
 import '../../widgets/common/toss_empty_view.dart';
+import '../../../core/navigation/safe_navigation.dart';
 
 class DebtAccountSettingsPage extends ConsumerStatefulWidget {
   final String counterpartyId;
@@ -169,7 +170,7 @@ class _DebtAccountSettingsPageState extends ConsumerState<DebtAccountSettingsPag
         title: 'Debt Account Settings',
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: TossColors.textPrimary),
-          onPressed: () => context.pop(),
+          onPressed: () => context.safePop(),
         ),
         primaryActionText: 'Add',
         primaryActionIcon: Icons.add,

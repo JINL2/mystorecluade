@@ -6,6 +6,7 @@ import '../../../core/themes/toss_text_styles.dart';
 import '../../../core/themes/toss_spacing.dart';
 import '../../../core/themes/toss_border_radius.dart';
 import '../../../core/themes/toss_shadows.dart';
+import '../../../core/themes/toss_colors.dart';
 import '../../providers/app_state_provider.dart';
 import '../../widgets/toss/toss_tab_bar.dart';
 import '../../../data/services/cash_location_service.dart';
@@ -15,6 +16,8 @@ import 'total_real_page.dart';
 import 'bank_real_page.dart';
 import 'vault_real_page.dart';
 import '../../widgets/common/toss_scaffold.dart';
+import '../../widgets/common/toss_app_bar.dart';
+import '../../../core/navigation/safe_navigation.dart';
 
 class CashLocationPage extends ConsumerStatefulWidget {
   const CashLocationPage({super.key});
@@ -24,54 +27,78 @@ class CashLocationPage extends ConsumerStatefulWidget {
 }
 
 class _CashLocationPageState extends ConsumerState<CashLocationPage>
-    with SingleTickerProviderStateMixin, WidgetsBindingObserver {
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
   int _selectedTab = 0;
   
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addObserver(this);
     _tabController = TabController(length: 3, vsync: this);
     _tabController.addListener(() {
       if (_selectedTab != _tabController.index) {
         setState(() {
           _selectedTab = _tabController.index;
         });
-        // Refresh data when switching tabs
-        _refreshData();
+        // Data will be filtered client-side, no need to refresh
       }
     });
   }
   
   @override
   void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
     _tabController.dispose();
     super.dispose();
   }
   
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) {
-      // Refresh data when app comes to foreground
-      _refreshData();
-    }
-  }
-  
-  void _refreshData() {
-    final appState = ref.read(appStateProvider);
-    final companyId = appState.companyChoosen;
-    final storeId = appState.storeChoosen;
-    
-    if (companyId.isNotEmpty && storeId.isNotEmpty) {
-      // Invalidate the provider to force a refresh
-      ref.invalidate(allCashLocationsProvider(
-        CashLocationQueryParams(
-          companyId: companyId, 
-          storeId: storeId,
-        ),
-      ));
+  Future<void> _refreshData() async {
+    try {
+      final appState = ref.read(appStateProvider);
+      final companyId = appState.companyChoosen;
+      final storeId = appState.storeChoosen;
+      
+      if (companyId.isNotEmpty && storeId.isNotEmpty) {
+        // Invalidate the provider to force a refresh
+        ref.invalidate(allCashLocationsProvider(
+          CashLocationQueryParams(
+            companyId: companyId, 
+            storeId: storeId,
+          ),
+        ));
+        
+        // Wait for the refresh to complete
+        await Future.delayed(const Duration(milliseconds: 500));
+        
+        // Show success feedback
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Text('Data refreshed successfully'),
+              backgroundColor: TossColors.success,
+              behavior: SnackBarBehavior.floating,
+              duration: const Duration(seconds: 2),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      // Show error feedback
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to refresh: ${e.toString()}'),
+            backgroundColor: TossColors.error,
+            behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 3),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+        );
+      }
     }
   }
   
@@ -102,11 +129,13 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
     
     if (companyId.isEmpty || storeId.isEmpty) {
       return TossScaffold(
+        appBar: TossAppBar(
+          title: 'Cash Control',
+        ),
         backgroundColor: const Color(0xFFF7F8FA),
         body: SafeArea(
           child: Column(
             children: [
-              _buildHeader(context),
               _buildTabBar(),
               Expanded(
                 child: Center(
@@ -132,13 +161,13 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
     ));
     
     return TossScaffold(
+      appBar: TossAppBar(
+        title: 'Cash Control',
+      ),
       backgroundColor: const Color(0xFFF7F8FA),
       body: SafeArea(
         child: Column(
           children: [
-            // Header with back arrow, title, and edit button
-            _buildHeader(context),
-            
             // Tab Bar
             _buildTabBar(),
             
@@ -151,91 +180,102 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
                       .where((location) => location.locationType == _currentLocationType)
                       .toList();
                   
-                  return SingleChildScrollView(
-                    padding: EdgeInsets.all(TossSpacing.space4),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Balance Section
-                        _buildBalanceSection(filteredLocations),
-                        
-                        SizedBox(height: TossSpacing.space4),
-                        
-                        // Accounts Section
-                        _buildAccountsSection(filteredLocations),
-                      ],
+                  return RefreshIndicator(
+                    onRefresh: _refreshData,
+                    color: TossColors.primary,
+                    child: SingleChildScrollView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      padding: EdgeInsets.all(TossSpacing.space4),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Balance Section
+                          _buildBalanceSection(filteredLocations),
+                          
+                          SizedBox(height: TossSpacing.space4),
+                          
+                          // Accounts Section
+                          _buildAccountsSection(filteredLocations),
+                        ],
+                      ),
                     ),
                   );
                 },
                 loading: () => const Center(child: CircularProgressIndicator()),
-                error: (error, stack) => Center(
-                  child: Padding(
-                    padding: EdgeInsets.all(TossSpacing.space5),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        // Error icon
-                        Icon(
-                          Icons.wifi_off_rounded,
-                          size: 64,
-                          color: Colors.grey[400],
-                        ),
-                        SizedBox(height: TossSpacing.space4),
-                        Text(
-                          'Connection Error',
-                          style: TossTextStyles.h2.copyWith(
-                            color: Colors.grey[700],
-                            fontWeight: FontWeight.w600,
+                error: (error, stack) => RefreshIndicator(
+                  onRefresh: _refreshData,
+                  color: TossColors.primary,
+                  child: SingleChildScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    child: Container(
+                      height: MediaQuery.of(context).size.height - 200,
+                      padding: EdgeInsets.all(TossSpacing.space5),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          // Error icon
+                          Icon(
+                            Icons.wifi_off_rounded,
+                            size: 64,
+                            color: Colors.grey[400],
                           ),
-                        ),
-                        SizedBox(height: TossSpacing.space3),
-                        Text(
-                          'Unable to load cash locations.\nPlease check your internet connection.',
-                          style: TossTextStyles.body.copyWith(
-                            color: Colors.grey[500],
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                        SizedBox(height: TossSpacing.space5),
-                        // Retry button
-                        ElevatedButton.icon(
-                          onPressed: () => _refreshData(),
-                          icon: Icon(Icons.refresh),
-                          label: Text('Retry'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Theme.of(context).colorScheme.primary,
-                            foregroundColor: Colors.white,
-                            padding: EdgeInsets.symmetric(
-                              horizontal: TossSpacing.space5,
-                              vertical: TossSpacing.space3,
-                            ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                          SizedBox(height: TossSpacing.space4),
+                          Text(
+                            'Connection Error',
+                            style: TossTextStyles.h2.copyWith(
+                              color: Colors.grey[700],
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
-                        ),
-                        // Show technical error details in debug mode
-                        if (error.toString().contains('SocketException'))
-                          Padding(
-                            padding: EdgeInsets.only(top: TossSpacing.space4),
-                            child: Container(
-                              padding: EdgeInsets.all(TossSpacing.space3),
-                              decoration: BoxDecoration(
-                                color: Colors.red[50],
-                                borderRadius: BorderRadius.circular(TossBorderRadius.sm),
-                                border: Border.all(color: Colors.red[200]!),
+                          SizedBox(height: TossSpacing.space3),
+                          Text(
+                            'Unable to load cash locations.\nPlease check your internet connection.',
+                            style: TossTextStyles.body.copyWith(
+                              color: Colors.grey[500],
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          SizedBox(height: TossSpacing.space5),
+                          // Retry button
+                          ElevatedButton.icon(
+                            onPressed: () => _refreshData(),
+                            icon: Icon(Icons.refresh),
+                            label: Text('Retry'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Theme.of(context).colorScheme.primary,
+                              foregroundColor: Colors.white,
+                              padding: EdgeInsets.symmetric(
+                                horizontal: TossSpacing.space5,
+                                vertical: TossSpacing.space3,
                               ),
-                              child: Text(
-                                'Network connection failed',
-                                style: TossTextStyles.caption.copyWith(
-                                  color: Colors.red[700],
-                                  fontSize: 12,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                              ),
+                            ),
+                          ),
+                          // Show technical error details in debug mode
+                          if (error.toString().contains('SocketException'))
+                            Padding(
+                              padding: EdgeInsets.only(top: TossSpacing.space4),
+                              child: Container(
+                                padding: EdgeInsets.all(TossSpacing.space3),
+                                decoration: BoxDecoration(
+                                  color: Colors.red[50],
+                                  borderRadius: BorderRadius.circular(TossBorderRadius.sm),
+                                  border: Border.all(color: Colors.red[200]!),
                                 ),
-                                textAlign: TextAlign.center,
+                                child: Text(
+                                  'Network connection failed',
+                                  style: TossTextStyles.caption.copyWith(
+                                    color: Colors.red[700],
+                                    fontSize: 12,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
                               ),
                             ),
-                          ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 ),
@@ -247,31 +287,7 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
     );
   }
   
-  Widget _buildHeader(BuildContext context) {
-    return Container(
-      height: 56,
-      padding: EdgeInsets.symmetric(horizontal: TossSpacing.space2),
-      child: Row(
-        children: [
-          IconButton(
-            icon: const Icon(Icons.arrow_back_ios, size: 20),
-            onPressed: () => Navigator.of(context).pop(),
-          ),
-          Expanded(
-            child: Text(
-              'Cash Control',
-              style: TossTextStyles.h3.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ),
-          // Spacer to balance the layout
-          SizedBox(width: 48),
-        ],
-      ),
-    );
-  }
+  // Removed _buildHeader method - now using TossAppBar
   
   Widget _buildTabBar() {
     return TossTabBar(
@@ -562,7 +578,7 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
         // print('  locationName: ${location.locationName}');
         // print('  locationType: $_currentLocationType');
         
-        await context.push(
+        await context.safePush(
           '/cashLocation/account/${Uri.encodeComponent(location.locationName)}',
           extra: {
             'locationId': location.locationId,

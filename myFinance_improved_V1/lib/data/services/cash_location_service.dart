@@ -24,10 +24,7 @@ class CashLocationService {
     required String storeId,
   }) async {
     try {
-      // Priority logic: if store_id exists in record, match it; otherwise use company_id
-      // This gets locations that either:
-      // 1. Have store_id = storeId (priority)
-      // 2. Have store_id = null AND company_id = companyId (fallback)
+      // Get cash locations for the specific store and company
       // Filter out soft-deleted records
       // Debug logging (uncomment for debugging)
       // print('Fetching cash locations for companyId: $companyId, storeId: $storeId');
@@ -35,7 +32,8 @@ class CashLocationService {
       final response = await _supabase
           .from('v_cash_location')
           .select('*')
-          .or('and(store_id.eq.$storeId,company_id.eq.$companyId),and(store_id.is.null,company_id.eq.$companyId)')
+          .eq('store_id', storeId)
+          .eq('company_id', companyId)
           .eq('is_deleted', false)
           .order('location_type')
           .order('location_name');

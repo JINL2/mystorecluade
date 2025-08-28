@@ -258,11 +258,36 @@ class _EditExchangeRateBottomSheetState extends ConsumerState<EditExchangeRateBo
   @override
   Widget build(BuildContext context) {
     return TossBottomSheet(
-      title: 'Edit Exchange Rate',
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+      title: 'Exchange Rate',
+      content: LayoutBuilder(
+        builder: (context, constraints) {
+          final keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
+          final screenHeight = MediaQuery.of(context).size.height;
+          final isKeyboardVisible = keyboardHeight > 0;
+          
+          return GestureDetector(
+            onTap: () {
+              // Dismiss keyboard when tapping anywhere outside the text field
+              FocusScope.of(context).unfocus();
+            },
+            behavior: HitTestBehavior.opaque, // Ensure taps on empty areas are detected
+            child: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  minHeight: isKeyboardVisible 
+                      ? constraints.maxHeight - keyboardHeight
+                      : constraints.maxHeight,
+                ),
+                child: IntrinsicHeight(
+                  child: Padding(
+                    padding: EdgeInsets.only(
+                      bottom: isKeyboardVisible ? keyboardHeight + 16 : 16,
+                    ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
           // Currency info header
           Container(
             padding: const EdgeInsets.all(TossSpacing.space4),
@@ -358,15 +383,30 @@ class _EditExchangeRateBottomSheetState extends ConsumerState<EditExchangeRateBo
               const SizedBox(height: TossSpacing.space2),
               TextFormField(
                 controller: exchangeRateController,
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                  signed: false, // No negative numbers
+                ),
                 inputFormatters: [
+                  // Only allow digits and one decimal point with up to 4 decimal places
                   FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,4}')),
                 ],
+                textInputAction: TextInputAction.done, // Shows "Done" button on keyboard
                 enabled: !isFetchingRate,
+                autofocus: false,
                 style: TossTextStyles.body.copyWith(
                   color: !isFetchingRate ? TossColors.gray900 : TossColors.gray500,
+                  fontSize: 16,
                 ),
                 cursorColor: TossColors.primary,
+                onTapOutside: (event) {
+                  // Additional way to dismiss keyboard when tapping outside
+                  FocusScope.of(context).unfocus();
+                },
+                onEditingComplete: () {
+                  // Dismiss keyboard when user presses "Done" button
+                  FocusScope.of(context).unfocus();
+                },
                 decoration: InputDecoration(
                   hintText: 'Enter exchange rate',
                   hintStyle: TossTextStyles.body.copyWith(
@@ -467,7 +507,14 @@ class _EditExchangeRateBottomSheetState extends ConsumerState<EditExchangeRateBo
               isLoading: isLoading,
             ),
           ),
-        ],
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+          );
+        },
       ),
     );
   }

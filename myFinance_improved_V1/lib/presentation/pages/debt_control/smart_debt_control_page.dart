@@ -10,6 +10,7 @@ import '../../../core/themes/toss_spacing.dart';
 import '../../../core/utils/number_formatter.dart';
 import '../../widgets/common/toss_scaffold.dart';
 import '../../widgets/common/toss_empty_view.dart';
+import '../../widgets/common/toss_app_bar.dart';
 import '../../widgets/toss/toss_refresh_indicator.dart';
 import '../../widgets/toss/toss_tab_bar.dart';
 import '../../providers/app_state_provider.dart';
@@ -131,12 +132,13 @@ class _SmartDebtControlPageState extends ConsumerState<SmartDebtControlPage>
     final selectedStore = ref.watch(selectedStoreProvider);
 
     return TossScaffold(
+      appBar: TossAppBar(
+        title: 'Debt Control',
+      ),
       backgroundColor: const Color(0xFFF7F8FA),
       body: SafeArea(
         child: Column(
           children: [
-            // Custom Header (matches cash location page)
-            _buildHeader(context),
             
             // Tab Bar
             _buildTabBar(),
@@ -372,32 +374,7 @@ class _SmartDebtControlPageState extends ConsumerState<SmartDebtControlPage>
     );
   }
 
-  // Custom Header (matches cash location page)
-  Widget _buildHeader(BuildContext context) {
-    return Container(
-      height: 56,
-      padding: EdgeInsets.symmetric(horizontal: TossSpacing.space2),
-      child: Row(
-        children: [
-          IconButton(
-            icon: const Icon(Icons.arrow_back_ios, size: 20),
-            onPressed: () => context.pop(),
-          ),
-          Expanded(
-            child: Text(
-              'Debt Control',
-              style: TossTextStyles.h3.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ),
-          // Spacer to balance the layout
-          SizedBox(width: 48),
-        ],
-      ),
-    );
-  }
+  // Removed _buildHeader method - now using TossAppBar
   
   // Tab Bar (matches cash location page)
   Widget _buildTabBar() {

@@ -9,6 +9,7 @@ import '../../../../core/constants/icon_mapper.dart';
 import '../models/homepage_models.dart';
 import '../../../widgets/toss/toss_card.dart';
 import '../providers/homepage_providers.dart';
+import '../../../../core/navigation/safe_navigation.dart';
 
 class QuickAccessSection extends ConsumerWidget {
   const QuickAccessSection({super.key});
@@ -82,7 +83,15 @@ class QuickAccessSection extends ConsumerWidget {
     // Navigate to feature
     // The route from the database should match the route defined in app_router.dart
     // For example: "attendance", "timetableManage", "cashEnding", etc.
-    context.push('/$route');
+    
+    // Special handling for cashEnding to prevent navigation issues
+    if (route == 'cashEnding') {
+      // Clear any existing locks for this route
+      SafeNavigation.instance.clearLockForRoute('/cashEnding');
+      SafeNavigation.instance.clearLockForRoute('cashEnding');
+    }
+    
+    context.safePush('/$route');
     
     // TODO: Track feature click here if needed
     // final user = ref.read(authStateProvider);

@@ -21,6 +21,7 @@ import '../../../core/themes/toss_spacing.dart';
 import '../../../core/themes/toss_border_radius.dart';
 import '../../../core/themes/toss_shadows.dart';
 import '../../../core/themes/toss_animations.dart';
+import '../../../core/navigation/safe_navigation.dart';
 
 class RolePermissionPage extends ConsumerStatefulWidget {
   const RolePermissionPage({super.key});
@@ -227,7 +228,7 @@ class _RolePermissionPageState extends ConsumerState<RolePermissionPage> {
                       ),
                       SizedBox(height: TossSpacing.space6),
                       TossPrimaryButton(
-                        onPressed: () => context.go('/'),
+                        onPressed: () => context.safeGo('/'),
                         text: 'Go to Home',
                         fullWidth: true,
                       ),

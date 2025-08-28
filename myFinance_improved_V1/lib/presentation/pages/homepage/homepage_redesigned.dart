@@ -20,6 +20,7 @@ import 'widgets/modern_bottom_drawer.dart';
 import '../notifications/notifications_page.dart';
 import '../../../data/services/click_tracking_service.dart';
 import '../../widgets/common/toss_scaffold.dart';
+import '../../../core/navigation/safe_navigation.dart';
 
 class HomePageRedesigned extends ConsumerStatefulWidget {
   const HomePageRedesigned({super.key});
@@ -309,19 +310,19 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
               if (!mounted) return;
               
               if (value == 'settings') {
-                // Navigate to settings with safety check
+                // Navigate to My Page (user profile) with safety check
                 if (mounted) {
-                  context.push('/settings');
+                  context.safePush('/myPage');
                 }
               } else if (value == 'debug') {
                 // Navigate to debug page with safety check
                 if (mounted) {
-                  context.push('/debug/supabase');
+                  context.safePush('/debug/supabase');
                 }
               } else if (value == 'notifications') {
                 // Navigate to notification debug page
                 if (mounted) {
-                  context.push('/debug/notifications');
+                  context.safePush('/debug/notifications');
                 }
               } else if (value == 'logout') {
                 // 🔧 SAFE LOGOUT: Close popup menu first, then execute logout
@@ -348,13 +349,13 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
                 child: Row(
                   children: [
                     Icon(
-                      Icons.settings_outlined,
+                      Icons.person_outline,
                       color: TossColors.textSecondary,
                       size: 20,
                     ),
                     SizedBox(width: TossSpacing.space3),
                     Text(
-                      'Settings',
+                      'My Profile',
                       style: TossTextStyles.body.copyWith(
                         color: TossColors.textPrimary,
                       ),
@@ -493,7 +494,7 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
               SizedBox(height: TossSpacing.space5),
               ElevatedButton.icon(
                 onPressed: () {
-                  context.go('/onboarding/choose-role');
+                  context.safeGo('/onboarding/choose-role');
                 },
                 icon: Icon(Icons.arrow_forward),
                 label: Text('Get Started'),
@@ -1043,7 +1044,7 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
       child: InkWell(
         onTap: () {
           // Navigate directly using the route from TopFeature
-          context.push('/${feature.route}');
+          context.safePush('/${feature.route}');
           
           // Track the click if needed
           final clickService = ref.read(clickTrackingServiceProvider);
@@ -1493,7 +1494,7 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
             : '/$route';
         
         // Navigate and wait a bit before resetting the flag
-        await context.push(fullRoute);
+        await context.safePush(fullRoute);
         
         // Reset the flag after navigation completes
         // Wait a short time to ensure navigation is stable

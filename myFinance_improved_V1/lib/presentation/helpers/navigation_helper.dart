@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../core/navigation/safe_navigation.dart';
 
 /// Helper class for safe and reliable navigation operations
 class NavigationHelper {
@@ -7,9 +8,9 @@ class NavigationHelper {
   /// This prevents navigation issues when there's no route to pop to
   static void safeGoBack(BuildContext context, {String fallbackRoute = '/'}) {
     if (context.canPop()) {
-      context.pop();
+      context.safePop();
     } else {
-      context.go(fallbackRoute);
+      context.safeGo(fallbackRoute);
     }
   }
   
@@ -20,12 +21,12 @@ class NavigationHelper {
   
   /// Replace current route (clears navigation stack)
   static void replaceTo(BuildContext context, String route, {Object? extra}) {
-    context.go(route, extra: extra);
+    context.safeGo(route, extra: extra);
   }
   
   /// Push replacement route (replaces current route in stack)
   static void pushReplacement(BuildContext context, String route, {Object? extra}) {
-    context.pushReplacement(route, extra: extra);
+    context.safePushReplacement(route, extra: extra);
   }
   
   /// Check if we can navigate back
@@ -38,12 +39,12 @@ class NavigationHelper {
     while (context.canPop()) {
       final currentRoute = GoRouter.of(context).routerDelegate.currentConfiguration.uri.toString();
       if (currentRoute == targetRoute) break;
-      context.pop();
+      context.safePop();
     }
     
     // If we couldn't find the target route, go to it
     if (!context.canPop()) {
-      context.go(targetRoute);
+      context.safeGo(targetRoute);
     }
   }
 }

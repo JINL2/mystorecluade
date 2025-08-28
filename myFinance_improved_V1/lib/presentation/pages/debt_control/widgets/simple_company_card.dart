@@ -4,6 +4,7 @@ import '../../../../core/themes/toss_colors.dart';
 import '../../../../core/themes/toss_text_styles.dart';
 import '../../../../core/utils/number_formatter.dart';
 import '../../../widgets/common/toss_white_card.dart';
+import '../../../../core/navigation/safe_navigation.dart';
 
 /// Simplified company card for debt control
 class SimpleCompanyCard extends StatelessWidget {
@@ -52,7 +53,7 @@ class SimpleCompanyCard extends StatelessWidget {
       child: InkWell(
         onTap: () {
           // Navigate to debt relationship detail page
-          context.push(
+          context.safePush(
             '/debtRelationship/${Uri.encodeComponent(counterpartyId)}',
             extra: {
               'counterpartyId': counterpartyId,

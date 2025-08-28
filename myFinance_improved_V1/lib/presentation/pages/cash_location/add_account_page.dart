@@ -8,6 +8,7 @@ import '../../../core/themes/toss_border_radius.dart';
 import '../../providers/app_state_provider.dart';
 import '../../../data/services/cash_location_service.dart';
 import '../../widgets/common/toss_scaffold.dart';
+import '../../widgets/common/toss_app_bar.dart';
 import '../../../data/services/currency_service.dart';
 
 class AddAccountPage extends ConsumerStatefulWidget {
@@ -126,12 +127,13 @@ class _AddAccountPageState extends ConsumerState<AddAccountPage> {
   @override
   Widget build(BuildContext context) {
     return TossScaffold(
+      appBar: TossAppBar(
+        title: _pageTitle,
+      ),
       backgroundColor: const Color(0xFFF7F8FA),
       body: SafeArea(
         child: Column(
           children: [
-            // Header
-            _buildHeader(context),
             
             // Content
             Expanded(
@@ -202,30 +204,7 @@ class _AddAccountPageState extends ConsumerState<AddAccountPage> {
     );
   }
   
-  Widget _buildHeader(BuildContext context) {
-    return Container(
-      height: 56,
-      padding: EdgeInsets.symmetric(horizontal: TossSpacing.space2),
-      child: Row(
-        children: [
-          IconButton(
-            icon: const Icon(Icons.arrow_back_ios, size: 20),
-            onPressed: () => Navigator.of(context).pop(),
-          ),
-          Expanded(
-            child: Text(
-              _pageTitle,
-              style: TossTextStyles.h3.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ),
-          const SizedBox(width: 48),
-        ],
-      ),
-    );
-  }
+  // Removed _buildHeader method - now using TossAppBar
   
   Widget _buildSectionTitle(String title, {String? fieldName}) {
     bool showError = fieldName != null && _shouldShowError(fieldName);

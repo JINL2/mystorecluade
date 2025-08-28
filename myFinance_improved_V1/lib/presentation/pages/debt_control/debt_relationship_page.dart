@@ -9,11 +9,13 @@ import '../../../core/themes/toss_spacing.dart';
 import '../../../core/utils/number_formatter.dart';
 import '../../widgets/common/toss_scaffold.dart';
 import '../../widgets/common/toss_white_card.dart';
+import '../../widgets/common/toss_app_bar.dart';
 import '../../providers/app_state_provider.dart';
 import 'providers/debt_control_providers.dart';
 import '../../../data/models/transaction_history_model.dart';
 import '../../../data/services/supabase_service.dart';
 import 'widgets/edit_counterparty_sheet.dart';
+import '../../../core/navigation/safe_navigation.dart';
 
 /// Debt Relationship Detail Page
 /// Shows comprehensive relationship view between current entity and counterparty
@@ -149,12 +151,16 @@ class _DebtRelationshipPageState extends ConsumerState<DebtRelationshipPage> {
     final isStoreView = appState.storeChoosen.isNotEmpty;
 
     return TossScaffold(
+      appBar: TossAppBar(
+        title: widget.counterpartyName,
+        primaryActionText: 'Add',
+        primaryActionIcon: Icons.add,
+        onPrimaryAction: () => _showAddOptionsBottomSheet(context),
+      ),
       backgroundColor: const Color(0xFFF7F8FA),
       body: SafeArea(
         child: Column(
           children: [
-            // Custom Header (matches main debt control page)
-            _buildHeader(context),
             
             // Content
             Expanded(
@@ -183,62 +189,7 @@ class _DebtRelationshipPageState extends ConsumerState<DebtRelationshipPage> {
     );
   }
 
-  // Custom Header (matches main debt control page)
-  Widget _buildHeader(BuildContext context) {
-    return Container(
-      height: 56,
-      padding: EdgeInsets.symmetric(horizontal: TossSpacing.space2),
-      child: Row(
-        children: [
-          IconButton(
-            icon: const Icon(Icons.arrow_back_ios, size: 20),
-            onPressed: () => context.pop(),
-          ),
-          Expanded(
-            child: Text(
-              widget.counterpartyName,
-              style: TossTextStyles.h3.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ),
-          // Add button with text and icon
-          Material(
-            color: Colors.transparent,
-            child: InkWell(
-              borderRadius: BorderRadius.circular(8),
-              onTap: () => _showAddOptionsBottomSheet(context),
-              child: Padding(
-                padding: EdgeInsets.symmetric(
-                  horizontal: TossSpacing.space3,
-                  vertical: TossSpacing.space2,
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.add,
-                      size: 18,
-                      color: TossColors.primary,
-                    ),
-                    SizedBox(width: TossSpacing.space1),
-                    Text(
-                      'Add',
-                      style: TossTextStyles.h4.copyWith(
-                        color: TossColors.primary,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  // Removed _buildHeader method - now using TossAppBar
 
   Widget _buildOverviewCard(dynamic debt) {
     final isPositive = debt.amount >= 0;
@@ -456,7 +407,7 @@ class _DebtRelationshipPageState extends ConsumerState<DebtRelationshipPage> {
     final isStoreView = appState.storeChoosen.isNotEmpty;
     
     return GestureDetector(
-      onTap: () => context.push(
+      onTap: () => context.safePush(
         '/transactionHistory?counterparty=${widget.counterpartyId}&scope=${isStoreView ? "store" : "company"}',
         extra: {'counterpartyName': widget.counterpartyName},
       ),
@@ -515,7 +466,7 @@ class _DebtRelationshipPageState extends ConsumerState<DebtRelationshipPage> {
                 onTap: () {
                   final appState = ref.read(appStateProvider);
                   final isStoreView = appState.storeChoosen.isNotEmpty;
-                  context.push(
+                  context.safePush(
                     '/transactionHistory?counterparty=${widget.counterpartyId}&scope=${isStoreView ? "store" : "company"}',
                     extra: {'counterpartyName': widget.counterpartyName},
                   );
@@ -780,7 +731,7 @@ class _DebtRelationshipPageState extends ConsumerState<DebtRelationshipPage> {
                   onTap: () {
                     Navigator.pop(context);
                     // Navigate to journal input with pre-filled counterparty data
-                    context.push(
+                    context.safePush(
                       '/journalInput',
                       extra: {
                         'mode': 'debt_transaction',
@@ -804,7 +755,7 @@ class _DebtRelationshipPageState extends ConsumerState<DebtRelationshipPage> {
                   subtitle: 'Configure account relationships',
                   onTap: () {
                     Navigator.pop(context);
-                    context.push(
+                    context.safePush(
                       '/debtAccountSettings/${Uri.encodeComponent(widget.counterpartyId)}/${Uri.encodeComponent(widget.counterpartyName)}',
                     );
                   },
