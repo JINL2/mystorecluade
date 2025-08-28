@@ -1637,8 +1637,8 @@
             async loadInitialData() {
                 // Load currencies from Supabase first
                 await this.loadCurrencies();
-                // Load employees with current store filter (null = All Stores)
-                await this.loadEmployeeInfo();
+                // Load all employees without any store filter
+                await this.loadEmployeeInfo(null);
             }
             
             async loadCurrencies() {

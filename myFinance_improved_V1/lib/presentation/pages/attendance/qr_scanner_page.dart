@@ -67,6 +67,7 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
   void _showErrorDialog(String message) {
     showDialog(
       context: context,
+      barrierDismissible: false,
       builder: (context) => AlertDialog(
         title: const Text('Error'),
         content: Text(message),
@@ -78,6 +79,75 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
         ],
       ),
     );
+  }
+  
+  void _showSuccessDialog(String message) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      barrierColor: Colors.black.withOpacity(0.7),
+      builder: (context) => Center(
+        child: Container(
+          margin: const EdgeInsets.symmetric(horizontal: 40),
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: TossColors.white,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 20,
+                offset: const Offset(0, 10),
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Success Icon
+              Container(
+                width: 64,
+                height: 64,
+                decoration: BoxDecoration(
+                  color: TossColors.success.withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.check_circle,
+                  color: TossColors.success,
+                  size: 40,
+                ),
+              ),
+              const SizedBox(height: 16),
+              // Success Message
+              Text(
+                message,
+                style: TossTextStyles.h3.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                DateFormat('MMM dd, yyyy • HH:mm').format(DateTime.now()),
+                style: TossTextStyles.body.copyWith(
+                  color: TossColors.gray500,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    
+    // Auto close after 2 seconds and return to previous screen
+    Future.delayed(const Duration(seconds: 2), () {
+      if (mounted) {
+        Navigator.of(context).pop(); // Close dialog
+        Navigator.of(context).pop(true); // Return to previous screen with success result
+      }
+    });
   }
 
   @override
@@ -152,10 +222,19 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
                 // Get current date and time
                 final now = DateTime.now();
                 final requestDate = DateFormat('yyyy-MM-dd').format(now);
-                final currentTime = DateFormat('yyyy-MM-dd HH:mm:ss').format(now);
+                // Use ISO 8601 format for the time parameter
+                final currentTime = now.toIso8601String();
                 
                 // Submit attendance
                 final attendanceService = ref.read(attendanceServiceProvider);
+                
+                print('Submitting attendance with:');
+                print('  userId: $userId');
+                print('  storeId: $storeId');
+                print('  requestDate: $requestDate');
+                print('  timestamp: $currentTime');
+                print('  location: ${position.latitude}, ${position.longitude}');
+                
                 final result = await attendanceService.updateShiftRequest(
                   userId: userId,
                   storeId: storeId,
@@ -170,27 +249,37 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
                   throw Exception('Failed to update shift request. Please try again.');
                 }
                 
-                // Show success and navigate back
+                print('QR Scan Result: $result');
+                print('Result type: ${result.runtimeType}');
+                
+                // Refresh the attendance provider to update the activity list
+                ref.read(shiftOverviewProvider.notifier).refresh();
+                
+                // Show success popup
                 if (mounted) {
                   // Determine if it was check-in or check-out based on result
-                  final message = result['action'] == 'check_out' 
-                    ? 'Check-out successful!' 
-                    : 'Check-in successful!';
+                  String message = 'Check-in Successful';
+                  
+                  // Check various possible response formats from the RPC
+                  // The RPC might return different formats depending on the action
+                  if (result is Map<String, dynamic>) {
+                    // Check for action field
+                    final action = result['action']?.toString().toLowerCase() ?? '';
+                    final type = result['type']?.toString().toLowerCase() ?? '';
+                    final status = result['status']?.toString().toLowerCase() ?? '';
+                    final checkinTime = result['actual_start_time'];
+                    final checkoutTime = result['actual_end_time'];
                     
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(message),
-                      backgroundColor: TossColors.success,
-                      duration: const Duration(seconds: 2),
-                    ),
-                  );
-                  
-                  // Wait a moment for user to see the message
-                  await Future.delayed(const Duration(milliseconds: 500));
-                  
-                  if (mounted) {
-                    Navigator.pop(context, true);
+                    if (action.contains('out') || type.contains('out') || 
+                        status.contains('out') || checkoutTime != null) {
+                      message = 'Check-out Successful';
+                    } else if (checkinTime != null && checkoutTime == null) {
+                      message = 'Check-in Successful';
+                    }
                   }
+                  
+                  // Show the success dialog
+                  _showSuccessDialog(message);
                 }
               } catch (e) {
                 _showErrorDialog('Failed to process QR code: ${e.toString()}');
