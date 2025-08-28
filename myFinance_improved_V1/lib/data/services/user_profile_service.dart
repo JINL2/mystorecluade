@@ -11,6 +11,30 @@ class UserProfileService {
   void _logError(String message, dynamic error, [StackTrace? stackTrace]) {
     developer.log(message, name: 'UserProfileService', error: error, stackTrace: stackTrace);
   }
+  
+  /// Update user profile with provided fields
+  Future<bool> updateUserProfile({
+    required String userId,
+    required Map<String, dynamic> updates,
+  }) async {
+    try {
+      _log('Updating user profile for userId: $userId');
+      _log('Update data: $updates');
+      
+      final result = await _supabase
+          .from('users')
+          .update(updates)
+          .eq('user_id', userId)
+          .select();
+          
+      _log('Update result: $result');
+      _log('SUCCESS: Updated user profile');
+      return true;
+    } catch (e) {
+      _logError('Error updating user profile', e);
+      return false;
+    }
+  }
 
   /// Fix user profile by populating first_name and last_name with comprehensive debugging
   Future<bool> fixUserProfile(String userId, String firstName, String lastName) async {
