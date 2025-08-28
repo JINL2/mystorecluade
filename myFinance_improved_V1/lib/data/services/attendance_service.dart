@@ -205,14 +205,19 @@ class AttendanceService {
     required double lng,
   }) async {
     try {
-      print('Calling update_shift_requests_v3 with params:');
+      print('========================================');
+      print('Calling update_shift_requests_v3 RPC');
+      print('========================================');
+      print('Parameters:');
       print('  p_user_id: $userId');
       print('  p_store_id: $storeId');
       print('  p_request_date: $requestDate');
       print('  p_time: $timestamp');
       print('  p_lat: $lat');
       print('  p_lng: $lng');
+      print('========================================');
       
+      // Call the RPC function
       final response = await _supabase.rpc(
         'update_shift_requests_v3',
         params: {
@@ -225,37 +230,90 @@ class AttendanceService {
         },
       );
       
-      print('RPC Response: $response');
+      print('RPC Raw Response: $response');
+      print('Response Type: ${response.runtimeType}');
       
+      // If response is null, the RPC call itself failed
       if (response == null) {
-        print('Response is null');
-        return null;
+        print('ERROR: Response is null - RPC might not exist or parameters are wrong');
+        throw Exception('RPC call failed - please check database function exists');
       }
       
-      // Handle different response formats
-      // The RPC should return something like: {"action": "check_in"} or {"action": "check_out"}
-      if (response is List && response.isNotEmpty) {
-        final result = response.first as Map<String, dynamic>;
-        // Add a default action if not present
-        if (!result.containsKey('action')) {
+      // Parse different possible response formats
+      Map<String, dynamic> result = {};
+      
+      if (response is List) {
+        if (response.isEmpty) {
+          print('Warning: Response is empty list');
+          result = {'success': true, 'action': 'check_in'};
+        } else {
+          // Take first item from list
+          final firstItem = response.first;
+          if (firstItem is Map<String, dynamic>) {
+            result = firstItem;
+          } else {
+            result = {'success': true, 'action': 'check_in', 'data': firstItem};
+          }
+        }
+      } else if (response is Map<String, dynamic>) {
+        result = response;
+      } else if (response is bool) {
+        // If RPC returns boolean, create appropriate response
+        result = {
+          'success': response,
+          'action': 'check_in',
+        };
+      } else if (response is String) {
+        // If RPC returns string message
+        result = {
+          'success': true,
+          'action': response.toLowerCase().contains('out') ? 'check_out' : 'check_in',
+          'message': response,
+        };
+      } else {
+        // Unexpected format
+        print('Warning: Unexpected response format');
+        result = {
+          'success': true,
+          'action': 'check_in',
+          'raw': response.toString(),
+        };
+      }
+      
+      // Try to determine if it was check-in or check-out from the response
+      if (!result.containsKey('action') || result['action'] == null) {
+        // Look for clues in other fields
+        if (result['type']?.toString().toLowerCase().contains('out') == true ||
+            result['status']?.toString().toLowerCase().contains('out') == true ||
+            result['message']?.toString().toLowerCase().contains('out') == true) {
+          result['action'] = 'check_out';
+        } else {
           result['action'] = 'check_in';
         }
-        return result;
-      } else if (response is Map<String, dynamic>) {
-        // Add a default action if not present
-        if (!response.containsKey('action')) {
-          response['action'] = 'check_in';
-        }
-        return response;
-      } else if (response == true || response.toString() == 'true') {
-        // If RPC just returns true, create a response object
-        return {'success': true, 'action': 'check_in'};
       }
       
-      // Default response if format is unexpected
-      return {'success': true, 'action': 'check_in'};
+      print('========================================');
+      print('Final Parsed Result: $result');
+      print('========================================');
+      
+      return result;
+      
     } catch (e) {
-      print('Error calling update_shift_requests_v3: $e');
+      print('========================================');
+      print('ERROR in updateShiftRequest:');
+      print('Error Type: ${e.runtimeType}');
+      print('Error Message: $e');
+      print('========================================');
+      
+      // Check if it's a specific Supabase/PostgreSQL error
+      if (e.toString().contains('function') && e.toString().contains('does not exist')) {
+        throw Exception('RPC function update_shift_requests_v3 does not exist in database');
+      } else if (e.toString().contains('permission') || e.toString().contains('denied')) {
+        throw Exception('Permission denied - please check RPC security settings');
+      } else if (e.toString().contains('invalid') || e.toString().contains('malformed')) {
+        throw Exception('Invalid parameters - please check data format');
+      }
+      
       rethrow;
     }
   }

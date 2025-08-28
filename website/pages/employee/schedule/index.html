@@ -2645,12 +2645,8 @@
                     company_id: store.company_id
                 });
                 
-                // First navigate to schedule level (shows loading state)
-                this.navigateToLevel('schedule');
-                
-                // Then load shift schedule data for the selected store
-                // The API call will render the schedule when data is ready
-                this.loadShiftScheduleData();
+                // Navigate to employee-setting page with the selected store context
+                window.location.href = '../employee-setting/index.html';
             }
             
             updateDashboardStats() {
