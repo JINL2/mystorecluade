@@ -67,7 +67,6 @@ class SupabaseDenominationRepository implements DenominationRepository {
             .from('currency_denominations')
             .update({
               'is_deleted': false,
-              'updated_at': DateTime.now().toIso8601String(),
             })
             .eq('denomination_id', denominationId);
       } else {
@@ -112,9 +111,7 @@ class SupabaseDenominationRepository implements DenominationRepository {
     bool? isActive,
   }) async {
     try {
-      final updateData = <String, dynamic>{
-        'updated_at': DateTime.now().toIso8601String(),
-      };
+      final updateData = <String, dynamic>{};
 
       if (value != null) updateData['value'] = value;
       if (type != null) updateData['type'] = type.name;
@@ -148,55 +145,67 @@ class SupabaseDenominationRepository implements DenominationRepository {
           .select('*')
           .eq('denomination_id', denominationId)
           .eq('is_deleted', false)  // Only check non-deleted denominations
-          .maybeSingle();
-      
-      if (checkResult == null) {
-        print('Denomination not found or already deleted with ID: $denominationId');
-        throw Exception('Denomination not found or already deleted');
-      }
+          .single();  // Use single() instead of maybeSingle() to ensure we get exactly one row
       
       print('Found denomination to soft delete: $checkResult');
-      final companyId = checkResult['company_id'];
-      final currencyId = checkResult['currency_id'];
+      final companyId = checkResult['company_id'] as String;
+      final currencyId = checkResult['currency_id'] as String;
       final value = checkResult['value'];
       print('Company ID: $companyId, Currency ID: $currencyId, Value: $value');
       
-      // Perform soft delete by updating is_deleted to true
-      print('Executing soft delete (updating is_deleted to true)...');
+      // Perform soft delete by updating is_deleted to true with more specific targeting
+      print('Executing soft delete (updating is_deleted to true) for SPECIFIC denomination...');
+      
+      // Use a more targeted approach - only filter by denomination_id since it should be unique
       final updateResult = await _client
           .from('currency_denominations')
-          .update({'is_deleted': true})
-          .eq('denomination_id', denominationId)
-          .eq('company_id', companyId)  // Add company_id for RLS
-          .eq('currency_id', currencyId)  // Add currency_id for extra safety
-          .select();
+          .update({
+            'is_deleted': true,
+          })
+          .eq('denomination_id', denominationId)  // Primary filter - denomination_id should be unique
+          .eq('is_deleted', false)  // Additional safety - only update if not already deleted
+          .select('denomination_id, value, is_deleted');  // Return specific fields to verify update
       
-      print('Soft delete query executed. Result: $updateResult');
+      print('Soft delete query executed. Update result count: ${updateResult.length}');
+      print('Updated records: $updateResult');
       
       if (updateResult.isEmpty) {
-        // Verify the update was successful
-        final verifyResult = await _client
-            .from('currency_denominations')
-            .select('is_deleted')
-            .eq('denomination_id', denominationId)
-            .maybeSingle();
-        
-        if (verifyResult != null && verifyResult['is_deleted'] == true) {
-          print('Soft delete successful (verified by checking is_deleted status)');
-        } else {
-          print('Failed to soft delete - is_deleted not updated. RLS or permission issue likely.');
-          throw Exception('Failed to delete - check Supabase RLS policies.');
-        }
-      } else {
-        print('Soft delete successful with returned data: $updateResult');
+        print('No records updated - denomination may have been already deleted or not found');
+        throw Exception('Denomination not found or already deleted');
       }
       
-      print('Successfully soft deleted denomination with ID: $denominationId');
+      if (updateResult.length > 1) {
+        print('WARNING: Multiple records updated! This should not happen with denomination_id');
+        print('Updated records: $updateResult');
+        throw Exception('Multiple denominations were updated - data integrity issue');
+      }
+      
+      // Verify the specific denomination was updated
+      final updatedRecord = updateResult.first;
+      if (updatedRecord['denomination_id'] != denominationId) {
+        print('ERROR: Wrong denomination updated!');
+        print('Expected: $denominationId, Got: ${updatedRecord['denomination_id']}');
+        throw Exception('Wrong denomination was updated');
+      }
+      
+      if (updatedRecord['is_deleted'] != true) {
+        print('ERROR: is_deleted was not set to true');
+        throw Exception('Soft delete failed - is_deleted not updated');
+      }
+      
+      print('✅ Successfully soft deleted denomination with ID: $denominationId');
+      print('✅ Value: $value, is_deleted: ${updatedRecord['is_deleted']}');
       print('=== END SOFT DELETE DEBUG ===');
     } catch (e) {
       print('=== SOFT DELETE ERROR ===');
       print('Error soft deleting denomination: $e');
-      throw Exception('Failed to remove denomination: ${e.toString().replaceAll('Exception: ', '')}');
+      
+      // If it's a "No rows returned" error from single(), convert to more user-friendly message
+      if (e.toString().contains('No rows returned')) {
+        throw Exception('Denomination not found or already deleted');
+      }
+      
+      rethrow;
     }
   }
 

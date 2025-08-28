@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../core/themes/toss_colors.dart';
 import '../../../../core/themes/toss_text_styles.dart';
 import '../../../../core/themes/toss_spacing.dart';
@@ -13,6 +14,7 @@ import '../../../widgets/toss/toss_dropdown.dart';
 import '../../../../data/services/company_service.dart';
 import '../providers/homepage_providers.dart';
 import '../../../../data/services/store_service.dart';
+import '../../../../core/navigation/safe_navigation.dart';
 
 /// Modern bottom drawer using bottom sheet pattern
 class ModernBottomDrawer extends ConsumerStatefulWidget {
@@ -111,45 +113,73 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
       ),
       child: Row(
         children: [
-          // Profile Image
-          CircleAvatar(
-            radius: TossSpacing.paddingXL,
-            backgroundImage: (userData['profile_image'] ?? '').isNotEmpty
-                ? NetworkImage(userData['profile_image'])
-                : null,
-            backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.2),
-            child: (userData['profile_image'] ?? '').isEmpty
-                ? Text(
-                    (userData['user_first_name'] ?? '').isNotEmpty ? userData['user_first_name'][0] : 'U',
-                    style: TossTextStyles.h3.copyWith(
-                      color: Theme.of(context).colorScheme.primary,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  )
-                : null,
-          ),
-          const SizedBox(width: TossSpacing.space4),
-          
-          // User Info
+          // Profile Section - Make it clickable to navigate to My Page
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '${userData['user_first_name'] ?? ''} ${userData['user_last_name'] ?? ''}',
-                  style: TossTextStyles.body.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: Theme.of(context).colorScheme.onSurface,
-                  ),
+            child: InkWell(
+              onTap: () {
+                // Navigate to My Page
+                Navigator.of(context).pop(); // Close drawer first
+                context.safePush('/myPage');
+              },
+              borderRadius: BorderRadius.circular(TossBorderRadius.md),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: TossSpacing.space2),
+                child: Row(
+                  children: [
+                    // Profile Image
+                    CircleAvatar(
+                      radius: TossSpacing.paddingXL,
+                      backgroundImage: (userData['profile_image'] ?? '').isNotEmpty
+                          ? NetworkImage(userData['profile_image'])
+                          : null,
+                      backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.2),
+                      child: (userData['profile_image'] ?? '').isEmpty
+                          ? Text(
+                              (userData['user_first_name'] ?? '').isNotEmpty ? userData['user_first_name'][0] : 'U',
+                              style: TossTextStyles.h3.copyWith(
+                                color: Theme.of(context).colorScheme.primary,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            )
+                          : null,
+                    ),
+                    const SizedBox(width: TossSpacing.space4),
+                    
+                    // User Info
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Text(
+                                '${userData['user_first_name'] ?? ''} ${userData['user_last_name'] ?? ''}',
+                                style: TossTextStyles.body.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                  color: Theme.of(context).colorScheme.onSurface,
+                                ),
+                              ),
+                              const SizedBox(width: TossSpacing.space2),
+                              Icon(
+                                Icons.chevron_right,
+                                size: TossSpacing.iconXS,
+                                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: TossSpacing.space1/2),
+                          Text(
+                            'View profile • ${userData['company_count'] ?? 0} companies',
+                            style: TossTextStyles.caption.copyWith(
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: TossSpacing.space1/2),
-                Text(
-                  '${userData['company_count'] ?? 0} companies',
-                  style: TossTextStyles.caption.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
-                ),
-              ],
+              ),
             ),
           ),
           

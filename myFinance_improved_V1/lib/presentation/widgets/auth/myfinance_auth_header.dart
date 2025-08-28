@@ -5,6 +5,7 @@ import '../../../core/themes/toss_colors.dart';
 import '../../../core/themes/toss_spacing.dart';
 import '../../../core/themes/toss_text_styles.dart';
 import '../../../core/themes/toss_border_radius.dart';
+import '../../../core/navigation/safe_navigation.dart';
 
 /// MyFinance branded header for authentication pages
 /// Provides consistent branding across all auth flows
@@ -57,10 +58,10 @@ class MyFinanceAuthHeader extends StatelessWidget {
             onPressed: onBack ?? () {
               // Simple, safe back navigation
               if (context.mounted && context.canPop()) {
-                context.pop();
+                context.safePop();
               } else if (context.mounted) {
                 // If no route to pop, go to choose role
-                context.go('/onboarding/choose-role');
+                context.safeGo('/onboarding/choose-role');
               }
             },
             padding: EdgeInsets.zero,
@@ -260,7 +261,7 @@ class MyFinanceAuthHeader extends StatelessWidget {
                         onPressed: () {
                           // Navigate to contact page or open email
                           if (context.mounted) {
-                            context.pop();
+                            context.safePop();
                           }
                           // Add contact action here
                         },
@@ -278,7 +279,7 @@ class MyFinanceAuthHeader extends StatelessWidget {
                         onPressed: () {
                           // Navigate to FAQ or help center
                           if (context.mounted) {
-                            context.pop();
+                            context.safePop();
                           }
                           // Add FAQ navigation here
                         },

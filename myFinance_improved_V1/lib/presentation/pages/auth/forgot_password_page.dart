@@ -9,6 +9,7 @@ import '../../widgets/toss/toss_primary_button.dart';
 import '../../widgets/common/toss_scaffold.dart';
 import '../../widgets/toss/toss_bottom_sheet.dart';
 import '../../providers/auth_provider.dart';
+import '../../../core/navigation/safe_navigation.dart';
 
 class ForgotPasswordPage extends ConsumerStatefulWidget {
   const ForgotPasswordPage({super.key});
@@ -40,7 +41,7 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
         elevation: 0,
         leading: IconButton(
           icon: Icon(Icons.arrow_back_ios, color: TossColors.gray900),
-          onPressed: () => context.pop(),
+          onPressed: () => context.safePop(),
         ),
       ),
       body: SafeArea(
@@ -212,7 +213,7 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
                 text: 'Back to Sign In',
                 onPressed: () {
                   // Navigate with smooth transition
-                  context.go('/auth/login');
+                  context.safeGo('/auth/login');
                 },
               ),
               const SizedBox(height: TossSpacing.space5),

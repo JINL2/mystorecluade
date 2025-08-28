@@ -11,6 +11,7 @@ import '../../widgets/auth/storebase_auth_header.dart';
 import '../../widgets/common/toss_scaffold.dart';
 import '../../providers/auth_provider.dart';
 import '../../../core/constants/auth_constants.dart';
+import '../../../core/navigation/safe_navigation.dart';
 
 class AuthSignupPage extends ConsumerStatefulWidget {
   const AuthSignupPage({super.key});
@@ -692,9 +693,9 @@ class _AuthSignupPageState extends ConsumerState<AuthSignupPage>
             if (!mounted) return;
             
             if (context.canPop()) {
-              context.pop();
+              context.safePop();
             } else {
-              context.go('/auth/login');
+              context.safeGo('/auth/login');
             }
           },
           style: TextButton.styleFrom(
@@ -807,7 +808,7 @@ class _AuthSignupPageState extends ConsumerState<AuthSignupPage>
             // Stop animation for smooth transition
             _animationController.stop();
             
-            context.go('/onboarding/choose-role');
+            context.safeGo('/onboarding/choose-role');
           }
         }
       }

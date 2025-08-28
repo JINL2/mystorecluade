@@ -8,6 +8,7 @@ import '../../../core/themes/toss_shadows.dart';
 import '../../../core/themes/toss_colors.dart';
 import 'account_settings_page.dart';
 import '../../widgets/common/toss_scaffold.dart';
+import '../../widgets/common/toss_app_bar.dart';
 import '../../../data/services/stock_flow_service.dart';
 import '../../../data/services/cash_journal_service.dart';
 import '../../../data/services/cash_location_service.dart';
@@ -121,6 +122,28 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
         setState(() {
           _allJournalFlows.addAll(response.data!.journalFlows);
           _allActualFlows.addAll(response.data!.actualFlows);
+          
+          // Sort all flows by date in descending order (newest first)
+          _allJournalFlows.sort((a, b) {
+            try {
+              final dateA = DateTime.parse(a.createdAt);
+              final dateB = DateTime.parse(b.createdAt);
+              return dateB.compareTo(dateA); // Descending order
+            } catch (e) {
+              return 0;
+            }
+          });
+          
+          _allActualFlows.sort((a, b) {
+            try {
+              final dateA = DateTime.parse(a.createdAt);
+              final dateB = DateTime.parse(b.createdAt);
+              return dateB.compareTo(dateA); // Descending order
+            } catch (e) {
+              return 0;
+            }
+          });
+          
           _currentOffset += _limit;
           
           // Check if we have more data
@@ -264,11 +287,30 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
     
     if (companyId.isEmpty || storeId.isEmpty || widget.locationId == null || widget.locationId!.isEmpty) {
       return TossScaffold(
+        appBar: TossAppBar(
+          title: widget.accountName,
+          secondaryActionIcon: Icons.settings_outlined,
+          onSecondaryAction: () async {
+            // Navigate to account settings page
+            await Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => AccountSettingsPage(
+                  locationId: widget.locationId ?? '',
+                  accountName: widget.accountName,
+                  locationType: widget.locationType,
+                ),
+              ),
+            );
+            
+            // Refresh data when returning from settings
+            _onRefresh();
+          },
+        ),
         backgroundColor: const Color(0xFFF7F8FA),
         body: SafeArea(
           child: Column(
             children: [
-              _buildHeader(context),
               Expanded(
                 child: Center(
                   child: Text(
@@ -298,12 +340,30 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
     ));
     
     return TossScaffold(
+      appBar: TossAppBar(
+        title: widget.accountName,
+        secondaryActionIcon: Icons.settings_outlined,
+        onSecondaryAction: () async {
+          // Navigate to account settings page
+          await Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => AccountSettingsPage(
+                locationId: widget.locationId ?? '',
+                accountName: widget.accountName,
+                locationType: widget.locationType,
+              ),
+            ),
+          );
+          
+          // Refresh data when returning from settings
+          _onRefresh();
+        },
+      ),
       backgroundColor: const Color(0xFFF7F8FA),
       body: SafeArea(
         child: Column(
           children: [
-            // Header
-            _buildHeader(context),
             
             // Content
             Expanded(
@@ -314,6 +374,28 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
                     if (response.success && response.data != null) {
                       _allJournalFlows = List.from(response.data!.journalFlows);
                       _allActualFlows = List.from(response.data!.actualFlows);
+                      
+                      // Sort all flows by date in descending order (newest first)
+                      _allJournalFlows.sort((a, b) {
+                        try {
+                          final dateA = DateTime.parse(a.createdAt);
+                          final dateB = DateTime.parse(b.createdAt);
+                          return dateB.compareTo(dateA); // Descending order
+                        } catch (e) {
+                          return 0;
+                        }
+                      });
+                      
+                      _allActualFlows.sort((a, b) {
+                        try {
+                          final dateA = DateTime.parse(a.createdAt);
+                          final dateB = DateTime.parse(b.createdAt);
+                          return dateB.compareTo(dateA); // Descending order
+                        } catch (e) {
+                          return 0;
+                        }
+                      });
+                      
                       _locationSummary = response.data!.locationSummary;
                       _currentOffset = 0;
                       _hasMoreData = response.pagination?.hasMore ?? false;
@@ -370,55 +452,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
     );
   }
   
-  Widget _buildHeader(BuildContext context) {
-    return Container(
-      height: 56,
-      padding: EdgeInsets.symmetric(horizontal: TossSpacing.space2),
-      child: Row(
-        children: [
-          IconButton(
-            icon: const Icon(Icons.arrow_back_ios, size: 20),
-            onPressed: () => Navigator.of(context).pop(),
-          ),
-          Expanded(
-            child: Text(
-              widget.accountName,
-              style: TossTextStyles.h3.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
-              textAlign: TextAlign.center,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-          GestureDetector(
-            onTap: () async {
-              // Navigate to account settings page
-              await Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => AccountSettingsPage(
-                    locationId: widget.locationId ?? '',
-                    accountName: widget.accountName,
-                    locationType: widget.locationType,
-                  ),
-                ),
-              );
-              
-              // Refresh data when returning from settings
-              _onRefresh();
-            },
-            child: Container(
-              padding: EdgeInsets.all(8),
-              child: Icon(
-                Icons.settings_outlined,
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  // Removed _buildHeader method - now using TossAppBar with secondaryActionIcon
   
   Widget _buildBalanceCard() {
     // Use updated values if available, otherwise use widget values
@@ -1444,6 +1478,17 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
       }).toList();
     }
     
+    // Sort by date in descending order (newest first)
+    filteredFlows.sort((a, b) {
+      try {
+        final dateA = DateTime.parse(a.createdAt);
+        final dateB = DateTime.parse(b.createdAt);
+        return dateB.compareTo(dateA); // Descending order
+      } catch (e) {
+        return 0;
+      }
+    });
+    
     for (int i = 0; i < filteredFlows.length; i++) {
       final flow = filteredFlows[i];
       final currentDate = flow.getFormattedDate();
@@ -1523,6 +1568,17 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
         }
       }).toList();
     }
+    
+    // Sort by date in descending order (newest first)
+    filteredFlows.sort((a, b) {
+      try {
+        final dateA = DateTime.parse(a.createdAt);
+        final dateB = DateTime.parse(b.createdAt);
+        return dateB.compareTo(dateA); // Descending order
+      } catch (e) {
+        return 0;
+      }
+    });
     
     for (int i = 0; i < filteredFlows.length; i++) {
       final flow = filteredFlows[i];

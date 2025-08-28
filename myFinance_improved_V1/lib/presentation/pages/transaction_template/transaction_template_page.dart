@@ -22,6 +22,7 @@ import 'providers/template_filter_provider.dart';
 import 'widgets/add_template_bottom_sheet.dart';
 import 'widgets/template_usage_bottom_sheet.dart';
 import 'widgets/template_filter_sheet.dart';
+import '../../../core/navigation/safe_navigation.dart';
 
 class TransactionTemplatePage extends ConsumerStatefulWidget {
   const TransactionTemplatePage({super.key});
@@ -113,7 +114,7 @@ class _TransactionTemplatePageState extends ConsumerState<TransactionTemplatePag
         title: 'Transaction Templates',
         leading: IconButton(
           icon: Icon(TossIcons.back, color: TossColors.textPrimary),
-          onPressed: () => context.pop(),
+          onPressed: () => context.safePop(),
         ),
         actions: [
           _buildFilterButton(currentFilter),

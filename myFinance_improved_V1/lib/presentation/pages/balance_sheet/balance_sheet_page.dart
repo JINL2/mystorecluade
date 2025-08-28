@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:myfinance_improved/core/themes/toss_colors.dart';
 import 'package:myfinance_improved/core/themes/toss_text_styles.dart';
@@ -13,6 +12,7 @@ import '../../providers/app_state_provider.dart';
 import 'widgets/balance_sheet_display.dart';
 import 'widgets/income_statement_display.dart';
 import '../../widgets/common/toss_scaffold.dart';
+import '../../widgets/common/toss_app_bar.dart';
 
 class BalanceSheetPage extends ConsumerStatefulWidget {
   const BalanceSheetPage({super.key});
@@ -23,7 +23,6 @@ class BalanceSheetPage extends ConsumerStatefulWidget {
 
 class _BalanceSheetPageState extends ConsumerState<BalanceSheetPage> 
     with SingleTickerProviderStateMixin {
-  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   late TabController _tabController;
   String? selectedStoreId; // null means Headquarters (all stores combined)
   DateTime? fromDate;
@@ -349,44 +348,19 @@ class _BalanceSheetPageState extends ConsumerState<BalanceSheetPage>
     final selectedStore = ref.watch(balanceSheetSelectedStoreProvider);
 
     return TossScaffold(
-      scaffoldKey: _scaffoldKey,
       backgroundColor: TossColors.background,
+      appBar: const TossAppBar(
+        title: 'Financial Statements',
+      ),
       body: SafeArea(
         child: userCompaniesAsync.when(
           data: (userData) => Column(
             children: [
-              // App Bar with Tabs
+              // Tab Bar Container
               Container(
                 color: TossColors.background,
                 child: Column(
                   children: [
-                    // Title Bar
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: TossSpacing.space5,
-                        vertical: TossSpacing.space4,
-                      ),
-                      child: Row(
-                        children: [
-                          IconButton(
-                            icon: const Icon(Icons.arrow_back_ios, size: 24),
-                            onPressed: () => context.pop(),
-                            padding: EdgeInsets.zero,
-                            constraints: const BoxConstraints(),
-                          ),
-                          const Spacer(),
-                          Text(
-                            'Financial Statements',
-                            style: TossTextStyles.h3.copyWith(
-                              color: TossColors.gray900,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          const Spacer(),
-                        ],
-                      ),
-                    ),
-                    
                     // Tab Bar - Toss Style (Same as Attendance)
                     Container(
                       height: 48,

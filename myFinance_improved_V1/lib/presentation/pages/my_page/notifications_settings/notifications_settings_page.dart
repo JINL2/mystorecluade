@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import '../../../../core/themes/toss_colors.dart';
 import '../../../../core/themes/toss_spacing.dart';
 import '../../../../core/themes/toss_text_styles.dart';
 import '../../../widgets/common/toss_scaffold.dart';
+import '../../../widgets/common/toss_app_bar.dart';
 import '../../../widgets/toss/toss_card.dart';
 
 class NotificationsSettingsPage extends ConsumerStatefulWidget {
@@ -34,23 +34,8 @@ class _NotificationsSettingsPageState extends ConsumerState<NotificationsSetting
   Widget build(BuildContext context) {
     return TossScaffold(
       backgroundColor: TossColors.surface,
-      appBar: AppBar(
-        backgroundColor: TossColors.surface,
-        surfaceTintColor: Colors.transparent,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded),
-          onPressed: () => context.pop(),
-          color: TossColors.gray700,
-          iconSize: 20,
-        ),
-        title: Text(
-          'Notifications',
-          style: TossTextStyles.h4.copyWith(
-            color: TossColors.gray900,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
+      appBar: const TossAppBar(
+        title: 'Notifications',
       ),
       body: SingleChildScrollView(
         padding: EdgeInsets.all(TossSpacing.screenPaddingMobile),

@@ -13,6 +13,7 @@ import '../../providers/app_state_provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/constants/auth_constants.dart';
 import '../../widgets/common/toss_scaffold.dart';
+import '../../../core/navigation/safe_navigation.dart';
 
 class CreateBusinessPage extends ConsumerStatefulWidget {
   const CreateBusinessPage({super.key});
@@ -368,13 +369,13 @@ class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
                       
                       // Navigate to homepage
                       if (mounted) {
-                        context.go('/');
+                        context.safeGo('/');
                       }
                     }
                   } catch (e) {
                     // Still navigate to homepage on error
                     if (mounted) {
-                      context.go('/');
+                      context.safeGo('/');
                     }
                   }
                 },
@@ -688,7 +689,7 @@ class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
               _animationController.stop();
               _successController.stop();
               
-              context.pushReplacement('/onboarding/join-business');
+              context.safePushReplacement('/onboarding/join-business');
             },
             style: TextButton.styleFrom(
               padding: EdgeInsets.symmetric(
@@ -760,7 +761,7 @@ class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
           _animationController.stop();
           _successController.stop();
           
-          context.go('/onboarding/create-store', extra: {
+          context.safeGo('/onboarding/create-store', extra: {
             'companyId': companyId,
             'companyName': companyName,
           });

@@ -8,6 +8,7 @@ import 'package:myfinance_improved/core/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/core/themes/toss_spacing.dart';
 import 'package:myfinance_improved/presentation/providers/app_state_provider.dart';
 import '../../widgets/common/toss_scaffold.dart';
+import '../../widgets/common/toss_app_bar.dart';
 
 class TimeTableManagePage extends ConsumerStatefulWidget {
   const TimeTableManagePage({super.key});
@@ -99,49 +100,17 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
     final stores = selectedCompany?['stores'] ?? [];
     
     return TossScaffold(
+      appBar: TossAppBar(
+        title: 'Time Table Manage',
+      ),
       backgroundColor: TossColors.background,
       body: SafeArea(
         child: Column(
           children: [
-            // App Bar with Tabs
+            // Tab Bar
             Container(
               color: TossColors.background,
-              child: Column(
-                children: [
-                  // Title Bar
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: TossSpacing.space5,
-                      vertical: TossSpacing.space3,
-                    ),
-                    child: Row(
-                      children: [
-                        // Back button
-                        IconButton(
-                          icon: const Icon(
-                            Icons.arrow_back_ios,
-                            size: 20,
-                            color: TossColors.gray900,
-                          ),
-                          onPressed: () {
-                            Navigator.of(context).pop();
-                          },
-                          padding: EdgeInsets.zero,
-                          constraints: const BoxConstraints(),
-                        ),
-                        const SizedBox(width: TossSpacing.space3),
-                        Text(
-                          'Time Table Manage',
-                          style: TossTextStyles.h2.copyWith(
-                            color: TossColors.gray900,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  // Tab Bar - Attendance style
-                  Container(
+              child: Container(
                     margin: const EdgeInsets.symmetric(
                       horizontal: TossSpacing.space5,
                       vertical: TossSpacing.space3,
@@ -188,8 +157,6 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
                         ),
                       ],
                     ),
-                  ),
-                ],
               ),
             ),
             // Tab Content

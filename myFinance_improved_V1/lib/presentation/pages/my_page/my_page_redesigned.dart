@@ -15,6 +15,7 @@ import '../../widgets/toss/toss_card.dart';
 import '../../providers/user_profile_provider.dart';
 import '../../../domain/entities/user_profile.dart';
 import '../../services/profile_image_service.dart';
+import '../../../core/navigation/safe_navigation.dart';
 
 /// Modern finance app-inspired My Page with comprehensive analytics
 class MyPageRedesigned extends ConsumerStatefulWidget {
@@ -67,68 +68,82 @@ class _MyPageRedesignedState extends ConsumerState<MyPageRedesigned>
     final businessData = ref.watch(businessDashboardDataProvider);
     
     return TossScaffold(
-      backgroundColor: const Color(0xFFF7F8FA),
-      body: RefreshIndicator(
-        onRefresh: _handleRefresh,
-        color: TossColors.primary,
-        child: CustomScrollView(
-          controller: _scrollController,
-          physics: const BouncingScrollPhysics(),
-          slivers: [
-            // Modern App Bar
-            _buildModernAppBar(userProfile),
-            
-            // Main Profile Section - User's Account Information
-            SliverToBoxAdapter(
-              child: FadeTransition(
-                opacity: _animations[0],
-                child: _buildMainProfileSection(userProfile, businessData.value),
+      backgroundColor: TossColors.background,
+      body: SafeArea(
+        child: Column(
+          children: [
+            // App Bar - matching attendance page style
+            Container(
+              color: TossColors.background,
+              child: Column(
+                children: [
+                  // Title Bar
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: TossSpacing.space5,
+                      vertical: TossSpacing.space4,
+                    ),
+                    child: Row(
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.arrow_back_ios, size: 24),
+                          onPressed: () => context.safePop(),
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                        ),
+                        const Spacer(),
+                        Text(
+                          'Account',
+                          style: TossTextStyles.h3.copyWith(
+                            color: TossColors.gray900,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const Spacer(),
+                        const SizedBox(width: 24), // Balance for back button
+                      ],
+                    ),
+                  ),
+                ],
               ),
             ),
             
-            // Account Settings Section
-            SliverToBoxAdapter(
-              child: FadeTransition(
-                opacity: _animations[1],
-                child: _buildAccountSettingsSection(),
+            // Body content
+            Expanded(
+              child: RefreshIndicator(
+                onRefresh: _handleRefresh,
+                color: TossColors.primary,
+                child: SingleChildScrollView(
+                  controller: _scrollController,
+                  physics: const BouncingScrollPhysics(),
+                  child: Column(
+                    children: [
+                      // Main Profile Section - User's Account Information
+                      FadeTransition(
+                        opacity: _animations[0],
+                        child: _buildMainProfileSection(userProfile, businessData.value),
+                      ),
+                      
+                      // Account Settings Section
+                      FadeTransition(
+                        opacity: _animations[1],
+                        child: _buildAccountSettingsSection(),
+                      ),
+                      
+                      // Bottom spacing
+                      SizedBox(height: TossSpacing.space12), // More breathing space at bottom
+                    ],
+                  ),
+                ),
               ),
             ),
-            
-            
-            // Bottom spacing
-            SliverToBoxAdapter(
-              child: SizedBox(height: TossSpacing.space12), // More breathing space at bottom
-            ),
-            
           ],
         ),
       ),
     );
   }
 
-  Widget _buildModernAppBar(UserProfile? profile) {
-    return SliverAppBar(
-      expandedHeight: 56,
-      floating: true,
-      pinned: true,
-      backgroundColor: const Color(0xFFF7F8FA),
-      surfaceTintColor: Colors.transparent,
-      elevation: 0,
-      title: Text(
-        'Account',
-        style: TossTextStyles.h4.copyWith(
-          color: TossColors.gray900,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
-      leading: IconButton(
-        icon: const Icon(Icons.arrow_back_ios_new_rounded),
-        onPressed: () => context.pop(),
-        color: TossColors.gray700,
-        iconSize: 20,
-      ),
-    );
-  }
+  // Removed _buildModernAppBar as we're using inline app bar now
 
   Widget _buildMainProfileSection(UserProfile? profile, BusinessDashboardData? businessData) {
     if (profile == null) return const SizedBox.shrink();
@@ -680,17 +695,17 @@ class _MyPageRedesignedState extends ConsumerState<MyPageRedesigned>
 
   void _navigateToEditProfile() {
     HapticFeedback.lightImpact();
-    context.push('/edit-profile');
+    context.safePush('/edit-profile');
   }
 
   void _navigateToNotifications() {
     HapticFeedback.lightImpact();
-    context.push('/notifications-settings');
+    context.safePush('/notifications-settings');
   }
 
   void _navigateToPrivacySecurity() {
     HapticFeedback.lightImpact();
-    context.push('/privacy-security');
+    context.safePush('/privacy-security');
   }
 
   void _handleSignOut() async {
@@ -721,7 +736,7 @@ class _MyPageRedesignedState extends ConsumerState<MyPageRedesigned>
       try {
         await Supabase.instance.client.auth.signOut();
         if (mounted) {
-          context.go('/auth/login');
+          context.safeGo('/auth/login');
         }
       } catch (e) {
         if (mounted) {

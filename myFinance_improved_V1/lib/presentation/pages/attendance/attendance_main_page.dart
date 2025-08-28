@@ -10,6 +10,7 @@ import '../../providers/auth_provider.dart';
 import '../../providers/app_state_provider.dart';
 import 'qr_scanner_page.dart';
 import '../../widgets/common/toss_scaffold.dart';
+import '../../widgets/common/toss_app_bar.dart';
 
 class AttendanceMainPage extends StatefulWidget {
   const AttendanceMainPage({super.key});
@@ -42,42 +43,17 @@ class _AttendanceMainPageState extends State<AttendanceMainPage> with SingleTick
   Widget build(BuildContext context) {
     return TossScaffold(
       backgroundColor: TossColors.background,
+      appBar: const TossAppBar(
+        title: 'Attendance',
+      ),
       body: SafeArea(
         child: Column(
           children: [
-            // App Bar with Tabs
+            // Tab Bar Container
             Container(
               color: TossColors.background,
               child: Column(
                 children: [
-                  // Title Bar
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: TossSpacing.space5,
-                      vertical: TossSpacing.space4,
-                    ),
-                    child: Row(
-                      children: [
-                        IconButton(
-                          icon: const Icon(Icons.arrow_back_ios, size: 24),
-                          onPressed: () => Navigator.of(context).pop(),
-                          padding: EdgeInsets.zero,
-                          constraints: const BoxConstraints(),
-                        ),
-                        const Spacer(),
-                        Text(
-                          'Attendance',
-                          style: TossTextStyles.h3.copyWith(
-                            color: TossColors.gray900,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        const Spacer(),
-                        const SizedBox(width: 24), // Balance for back button
-                      ],
-                    ),
-                  ),
-                  
                   // Tab Bar - Toss Style
                   Container(
                     height: 48,

@@ -13,6 +13,7 @@ import '../../providers/app_state_provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/constants/auth_constants.dart';
 import '../../widgets/common/toss_scaffold.dart';
+import '../../../core/navigation/safe_navigation.dart';
 
 class CreateStorePage extends ConsumerStatefulWidget {
   final String companyId;
@@ -1081,13 +1082,13 @@ class _CreateStorePageState extends ConsumerState<CreateStorePage>
         }
         
         if (mounted) {
-          context.go('/');
+          context.safeGo('/');
         }
       }
     } catch (e) {
       // Fallback to homepage on error
       if (mounted) {
-        context.go('/');
+        context.safeGo('/');
       }
     }
   }

@@ -21,9 +21,10 @@ import '../../widgets/common/toss_empty_state_card.dart';
 import '../../widgets/common/toss_white_card.dart';
 import '../../widgets/common/toss_currency_chip.dart';
 import '../../widgets/common/toss_section_header.dart';
-import '../../widgets/common/toss_number_input.dart';
 import '../../widgets/common/toss_toggle_button.dart';
 import '../../widgets/common/toss_scaffold.dart';
+import '../../widgets/toss/toss_dropdown.dart';
+import '../../widgets/toss/toss_secondary_button.dart';
 import '../../../data/services/stock_flow_service.dart';
 
 // Page for cash ending functionality with tabs
@@ -69,6 +70,11 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
   String? selectedBankCurrencyType; // Selected currency_id for bank tab
   List<Map<String, dynamic>> recentBankTransactions = [];
   bool isLoadingBankTransactions = false;
+  
+  // Currency set mode for bank locations without currency
+  bool isSettingBankCurrency = false;
+  String? tempSelectedBankCurrency; // Temporarily selected currency before saving
+  bool isSavingBankCurrency = false; // Loading state for saving currency
   
   // View All transactions variables
   List<Map<String, dynamic>> allBankTransactions = [];
@@ -1460,6 +1466,10 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
                   } else if (locationType == 'bank') {
                     selectedBankLocationId = locationId;
                     
+                    // Reset currency set mode when changing location
+                    isSettingBankCurrency = false;
+                    tempSelectedBankCurrency = null;
+                    
                     // Get currency_id from the selected bank location
                     final locationCurrencyId = location['currency_id']?.toString();
                     if (locationCurrencyId != null && locationCurrencyId.isNotEmpty) {
@@ -1761,38 +1771,64 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
           const SizedBox(width: TossSpacing.space4),
           // Quantity input
           Expanded(
-            child: Container(
-              height: 48,
-              decoration: BoxDecoration(
-                color: TossColors.surface,
-                borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                border: Border.all(
-                  color: controller.text.isNotEmpty 
-                      ? TossColors.primary.withOpacity(0.3) 
-                      : TossColors.gray200,
-                ),
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: TossNumberInput(
-                      controller: controller,
-                      hintText: '0',
-                      textAlign: TextAlign.center,
-                      onChanged: (_) => setState(() {}),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Container(
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: TossColors.surface,
+                      borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                      border: Border.all(
+                        color: controller.text.isNotEmpty 
+                            ? TossColors.primary.withOpacity(0.3) 
+                            : TossColors.gray200,
+                        width: 1.0,
+                      ),
                     ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space3),
-                    child: Text(
-                      'pcs',
-                      style: TossTextStyles.caption.copyWith(
-                        color: TossColors.gray500,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                      child: TextField(
+                        controller: controller,
+                        keyboardType: const TextInputType.numberWithOptions(decimal: false),
+                        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                        textAlign: TextAlign.center,
+                        style: TossTextStyles.bodyLarge.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: TossColors.gray900,
+                        ),
+                        decoration: InputDecoration(
+                          hintText: '0',
+                          hintStyle: TossTextStyles.body.copyWith(
+                            color: TossColors.gray400,
+                          ),
+                          border: InputBorder.none,
+                          enabledBorder: InputBorder.none,
+                          focusedBorder: InputBorder.none,
+                          errorBorder: InputBorder.none,
+                          focusedErrorBorder: InputBorder.none,
+                          disabledBorder: InputBorder.none,
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: TossSpacing.space3,
+                            vertical: 12.0,
+                          ),
+                          filled: false,
+                        ),
+                        onChanged: (_) => setState(() {}),
                       ),
                     ),
                   ),
-                ],
-              ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space3),
+                  child: Text(
+                    'pcs',
+                    style: TossTextStyles.caption.copyWith(
+                      color: TossColors.gray500,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
           const SizedBox(width: TossSpacing.space3),
@@ -1960,6 +1996,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
         ),
         const SizedBox(height: TossSpacing.space3),
         Container(
+          height: 56,
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(TossBorderRadius.lg),
@@ -1977,22 +2014,47 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
               ),
             ],
           ),
-          child: TossNumberInput(
-            controller: bankAmountController,
-            hintText: '0',
-            inputFormatters: [
-              FilteringTextInputFormatter.digitsOnly,
-              TextInputFormatter.withFunction((oldValue, newValue) {
-                if (newValue.text.isEmpty) return newValue;
-                final number = int.parse(newValue.text.replaceAll(',', ''));
-                final formatted = NumberFormat('#,###').format(number);
-                return TextEditingValue(
-                  text: formatted,
-                  selection: TextSelection.collapsed(offset: formatted.length),
-                );
-              }),
-            ],
-            onChanged: (_) => setState(() {}),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+            child: TextField(
+              controller: bankAmountController,
+              keyboardType: const TextInputType.numberWithOptions(decimal: false),
+              textAlign: TextAlign.center,
+              style: TossTextStyles.bodyLarge.copyWith(
+                fontWeight: FontWeight.w600,
+                color: TossColors.gray900,
+              ),
+              inputFormatters: [
+                FilteringTextInputFormatter.digitsOnly,
+                TextInputFormatter.withFunction((oldValue, newValue) {
+                  if (newValue.text.isEmpty) return newValue;
+                  final number = int.parse(newValue.text.replaceAll(',', ''));
+                  final formatted = NumberFormat('#,###').format(number);
+                  return TextEditingValue(
+                    text: formatted,
+                    selection: TextSelection.collapsed(offset: formatted.length),
+                  );
+                }),
+              ],
+              decoration: InputDecoration(
+                hintText: '0',
+                hintStyle: TossTextStyles.body.copyWith(
+                  color: TossColors.gray400,
+                ),
+                border: InputBorder.none,
+                enabledBorder: InputBorder.none,
+                focusedBorder: InputBorder.none,
+                errorBorder: InputBorder.none,
+                focusedErrorBorder: InputBorder.none,
+                disabledBorder: InputBorder.none,
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: TossSpacing.space4,
+                  vertical: 16.0,
+                ),
+                filled: false,
+              ),
+              onChanged: (_) => setState(() {}),
+            ),
           ),
         ),
         const SizedBox(height: TossSpacing.space2),
@@ -2405,6 +2467,131 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
     }
   }
   
+  // Save currency for bank location
+  Future<void> _saveBankLocationCurrency() async {
+    try {
+      setState(() {
+        isSavingBankCurrency = true;
+      });
+
+      // Validation
+      if (selectedBankLocationId == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('No bank location selected'),
+            backgroundColor: TossColors.error,
+          ),
+        );
+        setState(() {
+          isSavingBankCurrency = false;
+        });
+        return;
+      }
+
+      if (tempSelectedBankCurrency == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Please select a currency'),
+            backgroundColor: TossColors.error,
+          ),
+        );
+        setState(() {
+          isSavingBankCurrency = false;
+        });
+        return;
+      }
+
+      // Update the currency_id in the cash_locations table
+      final response = await Supabase.instance.client
+          .from('cash_locations')
+          .update({
+            'currency_id': tempSelectedBankCurrency,
+          })
+          .eq('cash_location_id', selectedBankLocationId!)
+          .select();
+
+      // Check if update was successful
+      if (response != null && response.isNotEmpty) {
+        // Update successful
+        HapticFeedback.mediumImpact();
+        
+        // Get currency details for display
+        final currency = currencyTypes.firstWhere(
+          (c) => c['currency_id'].toString() == tempSelectedBankCurrency,
+          orElse: () => {'currency_code': 'Unknown', 'currency_name': 'Unknown'},
+        );
+        final currencyCode = currency['currency_code'] ?? 'Unknown';
+        
+        // Show success message
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Currency updated successfully to $currencyCode'),
+            backgroundColor: TossColors.success,
+            behavior: SnackBarBehavior.floating,
+            margin: const EdgeInsets.all(TossSpacing.space4),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+            ),
+          ),
+        );
+
+        // Update local state
+        setState(() {
+          // Update the currency in the local bankLocations list
+          final locationIndex = bankLocations.indexWhere(
+            (loc) => loc['cash_location_id']?.toString() == selectedBankLocationId,
+          );
+          if (locationIndex != -1) {
+            bankLocations[locationIndex]['currency_id'] = tempSelectedBankCurrency;
+          }
+
+          // Set the selected currency as the current bank currency
+          selectedBankCurrencyType = tempSelectedBankCurrency;
+
+          // Exit currency set mode
+          isSettingBankCurrency = false;
+          tempSelectedBankCurrency = null;
+          isSavingBankCurrency = false;
+        });
+
+        // Refresh the locations to get updated data
+        await _fetchLocations('bank');
+        
+        // Refresh transactions with new currency
+        if (selectedBankLocationId != null) {
+          _fetchRecentBankTransactions();
+        }
+      } else {
+        // Update failed
+        throw Exception('Failed to update currency');
+      }
+    } catch (e) {
+      // Error updating currency
+      String errorMessage = 'Failed to update currency';
+      if (e.toString().contains('violates foreign key constraint')) {
+        errorMessage = 'Invalid currency selection';
+      } else if (e.toString().contains('permission denied')) {
+        errorMessage = 'You do not have permission to update this location';
+      }
+
+      setState(() {
+        isSavingBankCurrency = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(errorMessage),
+          backgroundColor: TossColors.error,
+          behavior: SnackBarBehavior.floating,
+          margin: const EdgeInsets.all(TossSpacing.space4),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+          ),
+        ),
+      );
+    }
+  }
+  
   // Show all transactions bottom sheet
   void _showAllTransactionsBottomSheet() {
     // Reset state before showing bottom sheet
@@ -2813,8 +3000,83 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
     // Get the currency from the location
     final locationCurrencyId = selectedBankLocation?['currency_id']?.toString();
     
-    // If no currency is set for this location, show a message
+    // If no currency is set for this location, show set button and currency dropdown
     if (locationCurrencyId == null || locationCurrencyId.isEmpty) {
+      // If in currency set mode, show dropdown and save button
+      if (isSettingBankCurrency) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Text(
+                  'Set Currency',
+                  style: TossTextStyles.label.copyWith(
+                    color: TossColors.gray700,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+                const Spacer(),
+                // Cancel button
+                InkWell(
+                  onTap: () {
+                    setState(() {
+                      isSettingBankCurrency = false;
+                      tempSelectedBankCurrency = null;
+                    });
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: TossSpacing.space2,
+                      vertical: TossSpacing.space1,
+                    ),
+                    child: Text(
+                      'Cancel',
+                      style: TossTextStyles.caption.copyWith(
+                        color: TossColors.error,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: TossSpacing.space3),
+            
+            // Currency dropdown using TossDropdown
+            TossDropdown<String>(
+              label: '',
+              value: tempSelectedBankCurrency,
+              hint: 'Select a currency',
+              items: currencyTypes.map((currency) {
+                return TossDropdownItem<String>(
+                  value: currency['currency_id'].toString(),
+                  label: currency['currency_code'] ?? '',
+                  subtitle: currency['currency_name'],
+                );
+              }).toList(),
+              onChanged: (value) {
+                setState(() {
+                  tempSelectedBankCurrency = value;
+                });
+              },
+            ),
+            
+            const SizedBox(height: TossSpacing.space4),
+            
+            // Save button
+            TossPrimaryButton(
+              text: 'Save Currency',
+              onPressed: tempSelectedBankCurrency != null && !isSavingBankCurrency ? () async {
+                await _saveBankLocationCurrency();
+              } : null,
+              isLoading: isSavingBankCurrency,
+            ),
+          ],
+        );
+      }
+      
+      // Show not configured state with Set button
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -2845,6 +3107,17 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
                   ),
                 ),
               ),
+              const Spacer(),
+              // Set button
+              TossSecondaryButton(
+                text: 'Set',
+                onPressed: () {
+                  setState(() {
+                    isSettingBankCurrency = true;
+                    tempSelectedBankCurrency = null;
+                  });
+                },
+              ),
             ],
           ),
           const SizedBox(height: TossSpacing.space3),
@@ -2865,7 +3138,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
                 const SizedBox(width: TossSpacing.space3),
                 Expanded(
                   child: Text(
-                    'This bank location has no currency configured. Please contact your administrator.',
+                    'This bank location has no currency configured. Click "Set" to configure a currency.',
                     style: TossTextStyles.caption.copyWith(
                       color: TossColors.gray600,
                     ),

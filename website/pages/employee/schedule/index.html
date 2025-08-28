@@ -74,7 +74,7 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            border-bottom: 1px solid var(--toss-border-lighter);
+            border-bottom: 1px solid var(--toss-border-light);
         }
         
         .breadcrumb-trail {
@@ -252,7 +252,7 @@
         
         .store-card-header {
             padding: var(--space-6);
-            border-bottom: 1px solid var(--toss-border-lighter);
+            border-bottom: 1px solid var(--toss-border-light);
         }
         
         .store-card-title {
@@ -321,7 +321,7 @@
             justify-content: center;
             margin-bottom: var(--space-4);
             padding-bottom: var(--space-4);
-            border-bottom: 1px solid var(--toss-border-lighter);
+            border-bottom: 1px solid var(--toss-border-light);
         }
         
         .store-metrics {
@@ -853,7 +853,7 @@
         .schedule-header-day {
             background: var(--toss-surface-secondary);
             border-bottom: 2px solid var(--toss-border-light);
-            border-right: 1px solid var(--toss-border-lighter);
+            border-right: 1px solid var(--toss-border-light);
             padding: var(--space-5) var(--space-3);
             text-align: center;
             position: relative;
@@ -898,7 +898,7 @@
         .time-slot-label {
             background: var(--toss-surface-tertiary);
             border-right: 1px solid var(--toss-border-light);
-            border-bottom: 1px solid var(--toss-border-lighter);
+            border-bottom: 1px solid var(--toss-border-light);
             padding: var(--space-4);
             font-size: 14px;
             font-weight: 500;
@@ -912,7 +912,7 @@
         .shift-name-cell {
             background: var(--toss-surface-secondary);
             border-right: 1px solid var(--toss-border-light);
-            border-bottom: 1px solid var(--toss-border-lighter);
+            border-bottom: 1px solid var(--toss-border-light);
             padding: var(--space-3); /* Reduced padding from space-4 to space-3 */
             display: flex;
             flex-direction: column;
@@ -936,8 +936,8 @@
         }
         
         .time-slot-cell {
-            border-right: 1px solid var(--toss-border-lighter);
-            border-bottom: 1px solid var(--toss-border-lighter);
+            border-right: 1px solid var(--toss-border-light);
+            border-bottom: 1px solid var(--toss-border-light);
             padding: var(--space-3);
             min-height: 80px; /* Reduced from 100px to 80px for more compact layout */
             position: relative;
@@ -990,13 +990,25 @@
             font-weight: 600;
         }
         
+        .shift-capacity.overstaffed {
+            background: rgba(255, 152, 0, 0.1);
+            color: #ff9800;
+            font-weight: 600;
+        }
+
+        .shift-capacity.optimal {
+            background: rgba(76, 175, 80, 0.1);
+            color: #4caf50;
+            font-weight: 600;
+        }
+        
         .shift-header {
             display: flex;
             align-items: center;
             justify-content: flex-end;
             margin-bottom: var(--space-2);
             padding-bottom: var(--space-2);
-            border-bottom: 1px solid var(--toss-border-lighter);
+            border-bottom: 1px solid var(--toss-border-light);
         }
         
         
@@ -1177,7 +1189,7 @@
         
         .employee-sidebar-header {
             padding: var(--space-6);
-            border-bottom: 1px solid var(--toss-border-lighter);
+            border-bottom: 1px solid var(--toss-border-light);
             background: var(--toss-surface-secondary);
             display: flex;
             align-items: center;
@@ -1211,7 +1223,7 @@
         
         .employee-search {
             padding: var(--space-4);
-            border-bottom: 1px solid var(--toss-border-lighter);
+            border-bottom: 1px solid var(--toss-border-light);
         }
         
         .employee-search-input {
@@ -1231,7 +1243,7 @@
         
         .employee-filters {
             padding: var(--space-4);
-            border-bottom: 1px solid var(--toss-border-lighter);
+            border-bottom: 1px solid var(--toss-border-light);
             display: flex;
             gap: var(--space-2);
             flex-wrap: wrap;
@@ -1291,7 +1303,7 @@
         
         .employee-modal-header {
             padding: var(--space-6);
-            border-bottom: 1px solid var(--toss-border-lighter);
+            border-bottom: 1px solid var(--toss-border-light);
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -1303,10 +1315,486 @@
             color: var(--text-primary);
         }
         
+        /* Assignment Modal */
+        .assignment-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .assignment-modal.active {
+            display: flex;
+        }
+        
+        .assignment-modal-content {
+            background: var(--toss-white);
+            border-radius: var(--radius-xl);
+            width: 90%;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            padding: var(--space-6);
+        }
+        
+        .assignment-modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: var(--space-4);
+        }
+        
+        .assignment-modal-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        
+        .assignment-modal-close {
+            width: 32px;
+            height: 32px;
+            border-radius: var(--radius-md);
+            border: none;
+            background: transparent;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: var(--text-secondary);
+        }
+        
+        .assignment-modal-close:hover {
+            background: var(--toss-gray-100);
+            color: var(--text-primary);
+        }
+        
+        .assignment-modal-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: var(--space-6) 0;
+            min-height: 500px;
+            height: 500px;
+        }
+        
+        .assignment-select-group {
+            margin-bottom: var(--space-6);
+        }
+        
+        /* Specific spacing between Select Shift and Select Employee */
+        .assignment-section:first-of-type {
+            margin-bottom: var(--space-12);
+        }
+        
+        .assignment-select-label {
+            font-size: 14px;
+            font-weight: var(--font-semibold);
+            color: var(--toss-gray-900);
+            margin-bottom: var(--space-2);
+            display: block;
+            line-height: 1.4;
+        }
+        
+        /* Custom Toss Select Container */
+        .assignment-select-container {
+            position: relative;
+            width: 100%;
+            isolation: isolate;
+            /* contain: layout style paint; - REMOVED: This was preventing dropdown visibility */
+        }
+        
+        /* Custom Toss Select Button */
+        .assignment-select {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            height: 48px;
+            padding: 0 var(--space-4);
+            background: var(--toss-white);
+            border: 1px solid var(--toss-gray-200);
+            border-radius: var(--radius-lg);
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            font-family: var(--font-family);
+            font-size: 15px;
+            font-weight: 500;
+            color: var(--toss-gray-900);
+            text-align: left;
+            outline: none;
+            user-select: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            box-sizing: border-box;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .assignment-select:hover {
+            background-color: var(--toss-gray-50);
+            border-color: var(--toss-gray-300);
+        }
+        
+        .assignment-select:focus,
+        .assignment-select.active {
+            background-color: var(--toss-white);
+            border-color: var(--toss-primary);
+            box-shadow: 0 0 0 4px rgba(0, 100, 255, 0.08);
+        }
+        
+        .assignment-select:disabled {
+            background-color: var(--toss-gray-50);
+            color: var(--toss-gray-400);
+            cursor: not-allowed;
+            opacity: 0.6;
+            pointer-events: none;
+        }
+        
+        /* Select Value Display */
+        .assignment-select-value {
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        .assignment-select-placeholder {
+            color: var(--toss-gray-500);
+        }
+        
+        /* Select Arrow */
+        .assignment-select-arrow {
+            flex-shrink: 0;
+            width: 12px;
+            height: 12px;
+            color: var(--toss-gray-500);
+            transition: transform var(--transition-fast);
+        }
+        
+        .assignment-select.active .assignment-select-arrow {
+            transform: rotate(180deg);
+            color: var(--toss-primary);
+        }
+        
+        /* Custom Dropdown Menu */
+        .assignment-select-menu {
+            position: absolute;
+            top: calc(100% + 8px);
+            left: 0;
+            right: 0;
+            background: var(--toss-white);
+            border: 1px solid var(--toss-gray-200);
+            border-radius: var(--radius-lg);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.02);
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-8px);
+            transition: all 0.2s ease;
+            z-index: 9999;
+            max-height: 320px;
+            overflow-y: auto;
+            overflow-x: hidden;
+            box-sizing: border-box;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            display: flex;
+            flex-direction: column;
+            will-change: opacity, visibility, transform;
+            transform: translateZ(0);
+        }
+        
+        .assignment-select-menu.show {
+            opacity: 1 !important;
+            visibility: visible !important;
+            transform: translateY(0) !important;
+        }
+        
+        /* Backup with higher specificity */
+        .assignment-modal .assignment-select-menu.show {
+            opacity: 1 !important;
+            visibility: visible !important;
+            transform: translateY(0) !important;
+            display: flex !important;
+            flex-direction: column !important;
+        }
+        
+        /* Upward opening dropdown */
+        .assignment-select-menu.open-upward {
+            bottom: calc(100% + 8px);
+            top: auto;
+            transform: translateY(8px);
+        }
+        
+        .assignment-select-menu.open-upward.show {
+            transform: translateY(0) !important;
+        }
+        
+        /* Menu Options */
+        .assignment-select-options {
+            padding: var(--space-2) 0;
+        }
+        
+        .assignment-select-option {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: var(--space-3) var(--space-4);
+            cursor: pointer;
+            transition: background-color 0.15s ease;
+            color: var(--toss-gray-900);
+            font-size: 15px;
+        }
+        
+        .assignment-select-option:hover {
+            background-color: var(--toss-gray-50);
+        }
+        
+        .assignment-select-option.selected {
+            background-color: rgba(0, 100, 255, 0.08);
+            color: var(--toss-primary);
+            font-weight: 500;
+        }
+        
+        .assignment-select-option.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            pointer-events: none;
+            color: var(--toss-gray-400);
+        }
+        
+        .assignment-select-option-check {
+            width: 16px;
+            height: 16px;
+            color: var(--toss-primary);
+            opacity: 0;
+            transition: opacity 0.15s ease;
+        }
+        
+        .assignment-select-option.selected .assignment-select-option-check {
+            opacity: 1;
+        }
+        
+        /* Schedule Empty State */
+        .schedule-empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: var(--space-8) var(--space-6);
+            text-align: center;
+            min-height: 160px;
+            background: var(--toss-gray-50);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--toss-gray-200);
+        }
+        
+        .empty-state-icon {
+            margin-bottom: var(--space-3);
+            color: var(--toss-gray-400);
+        }
+        
+        .empty-state-content {
+            max-width: 300px;
+        }
+        
+        .empty-state-title {
+            font-size: var(--font-h3);
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0 0 var(--space-3) 0;
+        }
+        
+        .empty-state-message {
+            font-size: var(--font-base);
+            color: var(--text-secondary);
+            line-height: 1.5;
+            margin: 0 0 var(--space-6) 0;
+        }
+        
+        .empty-state-actions {
+            display: flex;
+            justify-content: center;
+            gap: var(--space-3);
+        }
+        
+        .empty-state-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-2);
+            padding: var(--space-3) var(--space-4);
+            background: var(--toss-primary);
+            color: white;
+            border: none;
+            border-radius: var(--radius-lg);
+            font-size: var(--font-base);
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .empty-state-btn:hover {
+            background: var(--toss-primary-dark);
+            transform: translateY(-1px);
+        }
+        
+        .assignment-date-display {
+            background: var(--toss-gray-100);
+            padding: var(--space-3);
+            border-radius: var(--radius-md);
+            margin-bottom: var(--space-4);
+            text-align: center;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+        
+        .assignment-modal-footer {
+            display: flex;
+            gap: var(--space-3);
+            margin-top: var(--space-4);
+            padding-top: var(--space-4);
+            border-top: 1px solid var(--toss-border-light);
+        }
+        
+        .assignment-btn {
+            flex: 1;
+            padding: var(--space-3) var(--space-4);
+            border-radius: var(--radius-lg);
+            font-size: 14px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .assignment-btn-cancel {
+            background: var(--toss-gray-100);
+            color: var(--text-primary);
+        }
+        
+        .assignment-btn-cancel:hover {
+            background: var(--toss-gray-200);
+        }
+        
+        .assignment-btn-add {
+            background: var(--toss-primary);
+            color: var(--toss-white);
+        }
+        
+        .assignment-btn-add:hover:not(:disabled) {
+            background: #0047a0;
+        }
+        
+        .assignment-btn-add:disabled {
+            background: var(--toss-gray-200);
+            color: var(--text-tertiary);
+            cursor: not-allowed;
+        }
+        
+        /* ==================== MISSING ASSIGNMENT MODAL CLASSES ==================== */
+        
+        /* Assignment Sections */
+        .assignment-section {
+            margin-bottom: var(--space-8);
+            position: relative;
+            z-index: 2;
+        }
+        
+        /* Active dropdown section gets higher z-index */
+        .assignment-section.dropdown-active {
+            z-index: 10000;
+        }
+        
+        /* Extra spacing for dropdown sections */
+        .assignment-section:has(.assignment-select-container) {
+            margin-bottom: var(--space-10);
+            padding-bottom: var(--space-4);
+        }
+        
+        .section-title {
+            font-size: var(--font-body);
+            font-weight: var(--font-semibold);
+            color: var(--text-primary);
+            margin: 0 0 var(--space-3) 0;
+            display: block;
+        }
+        
+        /* Date Display */
+        .date-display {
+            background: var(--toss-gray-100);
+            padding: var(--space-3);
+            border-radius: var(--radius-md);
+            margin-bottom: var(--space-4);
+            text-align: center;
+            font-size: var(--font-body-small);
+            color: var(--text-secondary);
+            font-weight: var(--font-medium);
+        }
+        
+        /* Assignment Actions Container */
+        .assignment-actions {
+            display: flex;
+            gap: var(--space-3);
+            margin-top: var(--space-6);
+            padding-top: var(--space-4);
+            border-top: 1px solid var(--toss-border-light);
+        }
+        
+        /* Using toss-btn classes from external CSS instead of custom button styles */
+        
+        /* Notification System */
+        .schedule-notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            min-width: 300px;
+            max-width: 500px;
+            padding: var(--space-4);
+            border-radius: var(--radius-lg);
+            background: var(--toss-white);
+            box-shadow: var(--shadow-modal);
+            font-size: 14px;
+            font-weight: 500;
+            z-index: 3000;
+            transform: translateX(calc(100% + 20px));
+            transition: transform 0.3s ease;
+            border: 1px solid var(--toss-border-light);
+        }
+        
+        .schedule-notification.show {
+            transform: translateX(0);
+        }
+        
+        .schedule-notification.success {
+            background: var(--toss-success-light);
+            border-color: var(--toss-success);
+            color: var(--toss-success-dark);
+        }
+        
+        .schedule-notification.error {
+            background: var(--toss-error-light);
+            border-color: var(--toss-error);
+            color: var(--toss-error-dark);
+        }
+        
+        .schedule-notification.info {
+            background: var(--toss-info-light);
+            border-color: var(--toss-info);
+            color: var(--toss-primary-dark);
+        }
+
         /* Employee Cards - Updated for Click-to-Assign */
         .employee-card {
             background: var(--toss-white);
-            border: 1px solid var(--toss-border-lighter);
+            border: 1px solid var(--toss-border-light);
             border-radius: var(--radius-lg);
             padding: var(--space-4);
             margin-bottom: var(--space-3);
@@ -1332,7 +1820,7 @@
         
         .employee-card.unavailable:hover {
             transform: none;
-            border-color: var(--toss-border-lighter);
+            border-color: var(--toss-border-light);
             background: var(--toss-white);
         }
         
@@ -1482,7 +1970,7 @@
         /* Stats Bar */
         .stats-bar {
             background: var(--toss-surface-secondary);
-            border-top: 1px solid var(--toss-border-lighter);
+            border-top: 1px solid var(--toss-border-light);
             padding: var(--space-5);
             display: flex;
             align-items: center;
@@ -1928,27 +2416,13 @@
                     <!-- Grid will be populated by JavaScript -->
                 </div>
                 
-                <!-- Stats Bar -->
-                <div class="stats-bar">
-                    <div class="stat-item">
-                        <span class="stat-label">Total Hours</span>
-                        <span class="stat-value" id="total-hours">0</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-label">Shifts</span>
-                        <span class="stat-value" id="total-shifts">0</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-label">Employees</span>
-                        <span class="stat-value" id="total-employees">0</span>
-                    </div>
-                    <div class="conflict-indicator" id="conflict-indicator" style="display: none;">
-                        <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
-                        </svg>
-                        <span id="conflict-count">0</span> Conflicts
+                <!-- Employee Hours Summary -->
+                <div class="employee-hours-summary" id="employee-hours-summary" style="margin-top: 24px; display: none;">
+                    <div id="hours-summary-content">
+                        <!-- Will be populated by JavaScript -->
                     </div>
                 </div>
+                
             </div>
             </div> <!-- End Level 3: Individual Store Schedule -->
             
@@ -1981,6 +2455,72 @@
                     <!-- Employee List -->
                     <div class="employee-list" id="modal-employee-list">
                         <!-- Employee cards will be populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Employee and Shift Assignment Modal -->
+            <div class="assignment-modal" id="assignment-modal">
+                <div class="assignment-modal-content">
+                    <div class="assignment-modal-header">
+                        <h3 class="assignment-modal-title">Add Employee to Shift</h3>
+                        <button class="assignment-modal-close" id="close-assignment-modal">
+                            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                                <line x1="18" y1="6" x2="6" y2="18"/>
+                                <line x1="6" y1="6" x2="18" y2="18"/>
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <div class="assignment-modal-body">
+                        <!-- Selected Date Info -->
+                        <div class="date-display">Selected Date: <span id="selected-date-display"></span></div>
+                        
+                        <!-- Shift Selection -->
+                        <div class="assignment-section">
+                            <div class="assignment-select-group">
+                                <label class="assignment-select-label">Select Shift</label>
+                                <div class="assignment-select-container">
+                                    <div class="assignment-select" id="shift-select" tabindex="0" role="button" aria-label="Select shift">
+                                        <span class="assignment-select-value assignment-select-placeholder">Choose a shift...</span>
+                                        <svg class="assignment-select-arrow" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M7.41,8.58L12,13.17L16.59,8.58L18,10L12,16L6,10L7.41,8.58Z"/>
+                                        </svg>
+                                    </div>
+                                    <div class="assignment-select-menu" id="shift-select-menu">
+                                        <div class="assignment-select-options" id="shift-select-options">
+                                            <!-- Options will be populated dynamically -->
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Employee Selection -->
+                        <div class="assignment-section">
+                            <div class="assignment-select-group">
+                                <label class="assignment-select-label">Select Employee</label>
+                                <div class="assignment-select-container">
+                                    <div class="assignment-select" id="employee-select" tabindex="0" role="button" aria-label="Select employee">
+                                        <span class="assignment-select-value assignment-select-placeholder">Choose an employee...</span>
+                                        <svg class="assignment-select-arrow" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M7.41,8.58L12,13.17L16.59,8.58L18,10L12,16L6,10L7.41,8.58Z"/>
+                                        </svg>
+                                    </div>
+                                    <div class="assignment-select-menu" id="employee-select-menu">
+                                        <div class="assignment-select-options" id="employee-select-options">
+                                            <!-- Options will be populated dynamically -->
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Action Buttons -->
+                    <div class="assignment-modal-footer">
+                        <button class="toss-btn toss-btn-secondary" id="cancel-assignment">Cancel</button>
+                        <button class="toss-btn toss-btn-primary" id="add-assignment" disabled>Add Employee</button>
                     </div>
                 </div>
             </div>
@@ -2062,6 +2602,9 @@
                 // Load employee and shift data
                 // Commenting out demo data - will be loaded from API
                 // this.loadDemoData();
+                
+                // Initialize assignment modal
+                this.initAssignmentModal();
                 
                 // Render current level content
                 this.renderCurrentLevel();
@@ -2624,6 +3167,13 @@
                 // Store the store_id for API calls
                 this.selectedStoreId = store.id;
                 
+                // Clear previous store's data to ensure clean state
+                this.shiftDefinitions = [];
+                this.employees = [];
+                this.scheduleByDate = null;
+                this.shifts = [];
+                this.shiftScheduleData = null;
+                
                 // Store in session storage for persistence (including UUID if available)
                 sessionStorage.setItem('selectedStoreId', store.id);
                 sessionStorage.setItem('selectedStoreName', store.name);
@@ -2645,8 +3195,11 @@
                     company_id: store.company_id
                 });
                 
-                // Navigate to employee-setting page with the selected store context
-                window.location.href = '../employee-setting/index.html';
+                // Navigate to schedule level within the same page
+                this.navigateToLevel('schedule');
+                
+                // Load schedule data for the selected store
+                this.loadShiftScheduleData();
             }
             
             updateDashboardStats() {
@@ -3647,13 +4200,9 @@
                     // Legacy data
                     shiftData = this.getShiftSlotData();
                 } else {
-                    // Fallback demo data
-                    shiftData = [
-                        { name: 'Morning Shift', time: '9:00 AM - 1:00 PM' },
-                        { name: 'Afternoon Shift', time: '1:00 PM - 5:00 PM' },
-                        { name: 'Evening Shift', time: '5:00 PM - 9:00 PM' },
-                        { name: 'Night Shift', time: '9:00 PM - 1:00 AM' }
-                    ];
+                    // No shift data available - render empty state instead of schedule
+                    this.renderScheduleEmptyState();
+                    return;
                 }
                 
                 const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
@@ -3729,7 +4278,10 @@
                                     <div class="time-slot-cell" data-day="${day}" data-slot="${slotIndex}" data-date="${dateString}">
                                         <div class="shift-block ${hasProblems ? 'has-problems' : ''}" data-shift-id="${shiftForSlot.shiftId}">
                                             <div class="shift-header">
-                                                <div class="shift-capacity ${shiftForSlot.assignedCount < shiftForSlot.requiredEmployees ? 'understaffed' : ''}">${shiftForSlot.assignedCount}/${shiftForSlot.requiredEmployees}</div>
+                                                <div class="shift-capacity ${
+                                                    shiftForSlot.assignedCount < shiftForSlot.requiredEmployees ? 'understaffed' : 
+                                                    shiftForSlot.assignedCount > shiftForSlot.requiredEmployees ? 'overstaffed' : 'optimal'
+                                                }">${shiftForSlot.assignedCount}/${shiftForSlot.requiredEmployees}</div>
                                             </div>
                                             <div class="shift-employees">
                                                 ${shiftForSlot.employees.map(emp => {
@@ -3753,11 +4305,9 @@
                                                         </div>
                                                     `;
                                                 }).join('')}
-                                                ${shiftForSlot.assignedCount < shiftForSlot.requiredEmployees ? `
-                                                    <div class="add-employee-indicator">
-                                                        <span>+ Add Employee</span>
-                                                    </div>
-                                                ` : ''}
+                                                <div class="add-employee-indicator">
+                                                    <span>+ Add Employee</span>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -3792,11 +4342,9 @@
                                                         </div>
                                                     </div>
                                                 `).join('')}
-                                                ${shift.employees.length < shift.capacity ? `
-                                                    <div class="add-employee-indicator">
-                                                        <span>+ Add Employee</span>
-                                                    </div>
-                                                ` : ''}
+                                                <div class="add-employee-indicator">
+                                                    <span>+ Add Employee</span>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -3825,6 +4373,27 @@
                 
                 document.getElementById('schedule-grid').innerHTML = html;
                 this.initClickToAssign();
+                
+                // Calculate and display weekly hours summary
+                this.calculateWeeklyHours();
+            }
+            
+            // Render empty state when no shifts are available for the store
+            renderScheduleEmptyState() {
+                const scheduleGrid = document.getElementById('schedule-grid');
+                scheduleGrid.innerHTML = `
+                    <div class="schedule-empty-state">
+                        <div class="empty-state-icon">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor" opacity="0.5">
+                                <path d="M19,3H5C3.89,3 3,3.89 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5C21,3.89 20.1,3 19,3M19,19H5V8H19V19M5,6V5H19V6H5Z"/>
+                            </svg>
+                        </div>
+                        <div class="empty-state-content">
+                            <h3 class="empty-state-title">No shifts available</h3>
+                            <p class="empty-state-message">This store has no shifts configured.</p>
+                        </div>
+                    </div>
+                `;
             }
             
             // Click-to-Assign Implementation
@@ -3850,6 +4419,23 @@
                     });
                 });
                 
+                // Add Employee indicator click handlers
+                document.querySelectorAll('.add-employee-indicator').forEach(indicator => {
+                    indicator.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        
+                        // Get the date from the parent cell
+                        const cell = e.target.closest('.time-slot-cell');
+                        if (cell && cell.dataset.date) {
+                            const dateStr = cell.dataset.date;
+                            console.log('🎯 Add Employee clicked for date:', dateStr);
+                            this.openAssignmentModal(dateStr);
+                        } else {
+                            console.error('❌ Could not find date for Add Employee indicator');
+                        }
+                    });
+                });
+
                 // Initialize modal functionality
                 this.initEmployeeModal();
             }
@@ -4105,9 +4691,265 @@
                     shift.employees.forEach(emp => allEmployeeIds.add(emp.id));
                 });
                 
-                document.getElementById('total-hours').textContent = totalHours;
-                document.getElementById('total-shifts').textContent = this.shifts.length;
-                document.getElementById('total-employees').textContent = allEmployeeIds.size;
+                // Update stats elements if they exist (they don't anymore since we removed them)
+                const totalHoursEl = document.getElementById('total-hours');
+                const totalShiftsEl = document.getElementById('total-shifts');
+                const totalEmployeesEl = document.getElementById('total-employees');
+                
+                if (totalHoursEl) totalHoursEl.textContent = totalHours;
+                if (totalShiftsEl) totalShiftsEl.textContent = this.shifts.length;
+                if (totalEmployeesEl) totalEmployeesEl.textContent = allEmployeeIds.size;
+            }
+            
+            calculateWeeklyHours() {
+                console.log('📊 Calculating weekly hours for current week...');
+                
+                const employeeWeeklyHours = new Map();
+                const employeeDayShifts = new Map();
+                const shiftDetails = new Map();
+                
+                // Get week date range for filtering
+                const weekStart = new Date(this.currentWeek);
+                const weekEnd = new Date(this.currentWeek);
+                weekEnd.setDate(weekEnd.getDate() + 6);
+                
+                console.log('📅 Week range:', {
+                    start: weekStart.toISOString().split('T')[0],
+                    end: weekEnd.toISOString().split('T')[0]
+                });
+                
+                // Phase 1: Group shifts by employee and date (ONLY FOR CURRENT WEEK)
+                if (this.scheduleByDate && this.scheduleByDate.size > 0) {
+                    this.scheduleByDate.forEach((shiftsForDate, dateKey) => {
+                        // Filter to only include dates in current week
+                        const checkDate = new Date(dateKey + 'T12:00:00');
+                        if (checkDate < weekStart || checkDate > weekEnd) {
+                            return; // Skip dates outside current week
+                        }
+                        shiftsForDate.forEach(shift => {
+                            // Calculate shift duration - use correct camelCase property names
+                            const startTime = this.parseTime(shift.startTime || shift.start_time);
+                            const endTime = this.parseTime(shift.endTime || shift.end_time);
+                            const duration = this.calculateDuration(startTime, endTime);
+                            
+                            const shiftName = shift.shiftName || shift.shift_name || 'Unknown';
+                            
+                            if (duration <= 0) {
+                                console.warn(`⚠️ Zero duration shift skipped: ${shiftName} on ${dateKey}`);
+                                return;
+                            }
+                            
+                            // Store shift details
+                            const shiftKey = `${shiftName} (${shift.startTime || shift.start_time} - ${shift.endTime || shift.end_time})`;
+                            if (!shiftDetails.has(shiftKey)) {
+                                shiftDetails.set(shiftKey, {
+                                    name: shiftName,
+                                    time: `${shift.startTime || shift.start_time} - ${shift.endTime || shift.end_time}`,
+                                    duration: duration,
+                                    dates: [],
+                                    employees: new Set()
+                                });
+                            }
+                            shiftDetails.get(shiftKey).dates.push(dateKey);
+                            
+                            // Process each employee in shift
+                            shift.employees.forEach(employee => {
+                                const empKey = employee.userName || employee.name || employee.employee_name || 'Unknown';
+                                const dayKey = `${empKey}_${dateKey}`;
+                                
+                                // Add to shift's employee list
+                                shiftDetails.get(shiftKey).employees.add(empKey);
+                                
+                                // Initialize day group if not exists
+                                if (!employeeDayShifts.has(dayKey)) {
+                                    employeeDayShifts.set(dayKey, {
+                                        employeeId: empKey,
+                                        date: dateKey,
+                                        shifts: []
+                                    });
+                                }
+                                
+                                // Add shift to day group
+                                employeeDayShifts.get(dayKey).shifts.push({
+                                    name: shiftName,
+                                    startTime: shift.startTime || shift.start_time,
+                                    endTime: shift.endTime || shift.end_time,
+                                    duration: duration,
+                                    isApproved: employee.isApproved === true || employee.isApproved === 'true',
+                                    time: `${shift.startTime || shift.start_time} - ${shift.endTime || shift.end_time}`
+                                });
+                            });
+                        });
+                    });
+                    
+                    // Phase 2: Apply approval-aware selection logic
+                    employeeDayShifts.forEach((dayData, dayKey) => {
+                        const { selectedShifts, reason } = this.selectShiftsForDay(dayData);
+                        const { employeeId, date } = dayData;
+                        
+                        // Initialize employee hours if not exists
+                        if (!employeeWeeklyHours.has(employeeId)) {
+                            employeeWeeklyHours.set(employeeId, {
+                                totalHours: 0,
+                                approvedHours: 0,
+                                pendingHours: 0,
+                                shifts: [],
+                                dayCount: 0
+                            });
+                        }
+                        
+                        const employeeData = employeeWeeklyHours.get(employeeId);
+                        employeeData.dayCount++;
+                        
+                        // Add selected shifts to employee's record
+                        selectedShifts.forEach(shift => {
+                            employeeData.totalHours += shift.duration;
+                            
+                            if (shift.isApproved) {
+                                employeeData.approvedHours += shift.duration;
+                            } else {
+                                employeeData.pendingHours += shift.duration;
+                            }
+                            
+                            employeeData.shifts.push({
+                                date: date,
+                                shift: shift.name,
+                                hours: shift.duration,
+                                time: shift.time,
+                                isApproved: shift.isApproved,
+                                selectionReason: reason
+                            });
+                        });
+                        
+                        console.log(`📋 ${employeeId} on ${date}: Selected ${selectedShifts.length}/${dayData.shifts.length} shifts (${reason})`);
+                    });
+                    
+                    // Phase 3: Display results with approval breakdown
+                    this.displayWeeklyHoursSummary(employeeWeeklyHours, shiftDetails);
+                    
+                } else {
+                    console.log('📊 No schedule data to calculate');
+                    document.getElementById('employee-hours-summary').style.display = 'none';
+                }
+            }
+            
+            selectShiftsForDay(dayData) {
+                const { shifts } = dayData;
+                
+                if (shifts.length === 1) {
+                    // Single shift: always use it
+                    return {
+                        selectedShifts: shifts,
+                        reason: 'single shift'
+                    };
+                }
+                
+                // Multiple shifts logic
+                const approvedShifts = shifts.filter(s => s.isApproved === true);
+                const unapprovedShifts = shifts.filter(s => s.isApproved !== true);
+                
+                if (approvedShifts.length > 0 && unapprovedShifts.length > 0) {
+                    // Mixed approval status: Use ONLY approved shifts
+                    // This is the manager's final decision for that day
+                    return {
+                        selectedShifts: approvedShifts,
+                        reason: 'mixed: approved only'
+                    };
+                } else if (approvedShifts.length === shifts.length) {
+                    // All approved: Use all shifts
+                    return {
+                        selectedShifts: shifts,
+                        reason: 'all approved'
+                    };
+                } else {
+                    // All unapproved: Use all shifts (planning phase)
+                    return {
+                        selectedShifts: shifts,
+                        reason: 'all pending (planning)'
+                    };
+                }
+            }
+            
+            parseTime(timeStr) {
+                // Parse time string like "12:29 PM" or "14:29"
+                if (!timeStr) return { hours: 0, minutes: 0 };
+                
+                const cleanTime = timeStr.trim();
+                let hours = 0, minutes = 0;
+                
+                if (cleanTime.includes('AM') || cleanTime.includes('PM')) {
+                    // 12-hour format
+                    const [time, period] = cleanTime.split(/\s+/);
+                    const [h, m] = time.split(':').map(Number);
+                    hours = h;
+                    minutes = m || 0;
+                    
+                    if (period === 'PM' && hours !== 12) hours += 12;
+                    if (period === 'AM' && hours === 12) hours = 0;
+                } else {
+                    // 24-hour format
+                    const [h, m] = cleanTime.split(':').map(Number);
+                    hours = h;
+                    minutes = m || 0;
+                }
+                
+                return { hours, minutes };
+            }
+            
+            calculateDuration(startTime, endTime) {
+                // Calculate duration in hours (decimal)
+                const startMinutes = startTime.hours * 60 + startTime.minutes;
+                const endMinutes = endTime.hours * 60 + endTime.minutes;
+                const durationMinutes = endMinutes - startMinutes;
+                
+                // Handle overnight shifts
+                const adjustedDuration = durationMinutes < 0 ? durationMinutes + 1440 : durationMinutes;
+                
+                return adjustedDuration / 60; // Return hours as decimal
+            }
+            
+            displayWeeklyHoursSummary(employeeWeeklyHours, shiftDetails) {
+                const summaryContainer = document.getElementById('employee-hours-summary');
+                const summaryContent = document.getElementById('hours-summary-content');
+                
+                if (employeeWeeklyHours.size === 0) {
+                    summaryContainer.style.display = 'none';
+                    return;
+                }
+                
+                // Clear existing content
+                summaryContent.innerHTML = '';
+                
+                // Sort employees by total hours (highest first) for easy distribution checking
+                const sortedEmployees = Array.from(employeeWeeklyHours.entries())
+                    .sort((a, b) => b[1].totalHours - a[1].totalHours);
+                
+                // Simple employee hours display - just name and total
+                const employeeSection = document.createElement('div');
+                employeeSection.innerHTML = `
+                    <div style="background: white; border-radius: 12px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+                        <h3 style="margin: 0 0 20px 0; font-size: 18px; font-weight: 600; color: #212529;">
+                            Weekly Hours Summary
+                        </h3>
+                        ${sortedEmployees.map(([name, data]) => `
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #f1f3f5;">
+                                <span style="font-size: 16px; color: #212529; font-weight: 500;">${name}</span>
+                                <div style="text-align: right;">
+                                    <span style="font-size: 18px; font-weight: 700; color: #0064FF;">
+                                        ${data.totalHours.toFixed(1)} hours
+                                    </span>
+                                    <span style="font-size: 14px; color: #6C757D; margin-left: 8px;">
+                                        (${data.shifts.length} shifts)
+                                    </span>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+                summaryContent.appendChild(employeeSection);
+                
+                // Show the summary
+                summaryContainer.style.display = 'block';
             }
             
             isToday(date) {
@@ -4118,6 +4960,714 @@
             async loadScheduleData(storeId) {
                 console.log('Loading data for store:', storeId);
                 // TODO: Load actual data from API
+            }
+
+            // Assignment Modal Methods
+            async openAssignmentModal(dateStr) {
+                console.log('🎯 Opening assignment modal for date:', dateStr);
+                
+                // Store the selected date
+                this.selectedAssignmentDate = dateStr;
+                
+                // Update date display
+                const selectedDate = new Date(dateStr);
+                const formattedDate = selectedDate.toLocaleDateString('en-US', {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                });
+                document.getElementById('selected-date-display').textContent = formattedDate;
+                
+                // Reset selections
+                this.selectedShiftId = null;
+                this.selectedEmployeeId = null;
+                
+                // Reset dropdown selections
+                const shiftSelect = document.getElementById('shift-select');
+                const employeeSelect = document.getElementById('employee-select');
+                if (shiftSelect) shiftSelect.value = '';
+                if (employeeSelect) employeeSelect.value = '';
+                
+                this.updateAddButton();
+                
+                // Load employee and shift data
+                await this.loadEmployeeAndShiftData();
+                
+                // Show modal
+                document.getElementById('assignment-modal').classList.add('active');
+            }
+
+            async loadEmployeeAndShiftData() {
+                if (!this.selectedStoreId) {
+                    console.error('❌ No store selected');
+                    return;
+                }
+
+                try {
+                    console.log('📞 Calling manager_shift_get_schedule RPC with store_id:', this.selectedStoreId);
+                    
+                    const { data, error } = await supabase.rpc('manager_shift_get_schedule', {
+                        p_store_id: this.selectedStoreId
+                    });
+
+                    if (error) {
+                        console.error('❌ RPC call failed:', error);
+                        this.showAssignmentError('Failed to load employee and shift data');
+                        return;
+                    }
+
+                    console.log('✅ RPC response:', data);
+                    console.log('📊 Store shifts:', data.store_shifts);
+                    console.log('👥 Store employees:', data.store_employees);
+                    
+                    // Store the data
+                    this.assignmentData = data;
+                    this.storeEmployees = data.store_employees || [];
+                    this.storeShifts = data.store_shifts || [];
+                    
+                    // Render the modal content
+                    this.renderShiftOptions();
+                    this.renderEmployeeOptions();
+                    
+                    // Setup dropdown event handlers with DOM render delay
+                    setTimeout(() => {
+                        this.setupDropdownHandlers();
+                    }, 50);
+                    
+                } catch (error) {
+                    console.error('❌ Error calling RPC:', error);
+                    this.showAssignmentError('Failed to load data');
+                }
+            }
+
+            renderShiftOptions() {
+                console.log('🔧 Rendering shift options, shifts available:', this.storeShifts?.length || 0);
+                
+                const shiftOptionsContainer = document.getElementById('shift-select-options');
+                const shiftSelectValue = document.querySelector('#shift-select .assignment-select-value');
+                
+                if (!shiftOptionsContainer) {
+                    console.error('❌ shift-select-options container not found');
+                    return;
+                }
+                
+                // Reset to placeholder
+                shiftSelectValue.textContent = 'Choose a shift...';
+                shiftSelectValue.className = 'assignment-select-value assignment-select-placeholder';
+                
+                // Clear existing options
+                shiftOptionsContainer.innerHTML = '';
+                
+                if (!this.storeShifts || this.storeShifts.length === 0) {
+                    shiftOptionsContainer.innerHTML = `
+                        <div class="assignment-select-option disabled">
+                            <span>No shifts available for this store</span>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                console.log('✅ Adding shift options to dropdown');
+                this.storeShifts.forEach(shift => {
+                    console.log('🔧 Adding shift:', shift.shift_name);
+                    const optionDiv = document.createElement('div');
+                    optionDiv.className = 'assignment-select-option';
+                    optionDiv.dataset.value = shift.shift_id;
+                    optionDiv.innerHTML = `
+                        <span>${shift.shift_name} (${shift.start_time} - ${shift.end_time})</span>
+                        <svg class="assignment-select-option-check" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M9,20.42L2.79,14.21L5.62,11.38L9,14.77L18.88,4.88L21.71,7.71L9,20.42Z"/>
+                        </svg>
+                    `;
+                    
+                    optionDiv.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        console.log('🎯 Shift option clicked:', shift.shift_name);
+                        
+                        // Remove selection from other options
+                        shiftOptionsContainer.querySelectorAll('.assignment-select-option').forEach(opt => {
+                            opt.classList.remove('selected');
+                        });
+                        
+                        // Select this option
+                        optionDiv.classList.add('selected');
+                        shiftSelectValue.textContent = `${shift.shift_name} (${shift.start_time} - ${shift.end_time})`;
+                        shiftSelectValue.className = 'assignment-select-value';
+                        
+                        // Store the selected value
+                        this.selectedShiftId = shift.shift_id;
+                        console.log('✅ Shift selected:', this.selectedShiftId);
+                        
+                        // Close dropdown
+                        this.closeDropdown('shift-select');
+                        
+                        // Update button state
+                        this.updateAddButton();
+                    });
+                    
+                    shiftOptionsContainer.appendChild(optionDiv);
+                });
+            }
+
+            renderEmployeeOptions() {
+                console.log('🔧 Rendering employee options, employees available:', this.storeEmployees?.length || 0);
+                
+                const employeeOptionsContainer = document.getElementById('employee-select-options');
+                const employeeSelectValue = document.querySelector('#employee-select .assignment-select-value');
+                
+                if (!employeeOptionsContainer) {
+                    console.error('❌ employee-select-options container not found');
+                    return;
+                }
+                
+                // Reset to placeholder
+                employeeSelectValue.textContent = 'Choose an employee...';
+                employeeSelectValue.className = 'assignment-select-value assignment-select-placeholder';
+                
+                // Clear existing options
+                employeeOptionsContainer.innerHTML = '';
+                
+                if (!this.storeEmployees || this.storeEmployees.length === 0) {
+                    employeeOptionsContainer.innerHTML = `
+                        <div class="assignment-select-option disabled">
+                            <span>No employees available for this store</span>
+                        </div>
+                    `;
+                    return;
+                }
+
+                // Add employee options
+                this.storeEmployees.forEach(employee => {
+                    // Extract just the name without email if it's included in full_name
+                    let displayName = employee.full_name;
+                    if (displayName && displayName.includes('(')) {
+                        // Remove email in parentheses
+                        displayName = displayName.split('(')[0].trim();
+                    }
+                    
+                    const optionDiv = document.createElement('div');
+                    optionDiv.className = 'assignment-select-option';
+                    optionDiv.dataset.value = employee.user_id;
+                    optionDiv.innerHTML = `
+                        <span>${displayName}</span>
+                        <svg class="assignment-select-option-check" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M9,20.42L2.79,14.21L5.62,11.38L9,14.77L18.88,4.88L21.71,7.71L9,20.42Z"/>
+                        </svg>
+                    `;
+                    
+                    optionDiv.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        console.log('🎯 Employee option clicked:', displayName);
+                        
+                        // Remove selection from other options
+                        employeeOptionsContainer.querySelectorAll('.assignment-select-option').forEach(opt => {
+                            opt.classList.remove('selected');
+                        });
+                        
+                        // Select this option
+                        optionDiv.classList.add('selected');
+                        employeeSelectValue.textContent = displayName;
+                        employeeSelectValue.className = 'assignment-select-value';
+                        
+                        // Store the selected value
+                        this.selectedEmployeeId = employee.user_id;
+                        console.log('✅ Employee selected:', this.selectedEmployeeId);
+                        
+                        // Close dropdown
+                        this.closeDropdown('employee-select');
+                        
+                        // Update button state
+                        this.updateAddButton();
+                    });
+                    
+                    employeeOptionsContainer.appendChild(optionDiv);
+                });
+            }
+
+            setupDropdownHandlers() {
+                const shiftSelect = document.getElementById('shift-select');
+                const employeeSelect = document.getElementById('employee-select');
+                const shiftSelectMenu = document.getElementById('shift-select-menu');
+                const employeeSelectMenu = document.getElementById('employee-select-menu');
+
+                // Validate all required elements exist
+                if (!shiftSelect || !employeeSelect || !shiftSelectMenu || !employeeSelectMenu) {
+                    console.error('❌ Dropdown elements not found:', {
+                        shiftSelect: !!shiftSelect,
+                        employeeSelect: !!employeeSelect,
+                        shiftSelectMenu: !!shiftSelectMenu,
+                        employeeSelectMenu: !!employeeSelectMenu
+                    });
+                    return;
+                }
+                
+                console.log('✅ Setting up dropdown handlers');
+
+                // Remove existing event listeners first to prevent duplicates
+                this.cleanupDropdownHandlers();
+
+                // Store handlers for cleanup
+                this.dropdownHandlers = {
+                    shiftClick: (e) => {
+                        console.log('🖱️ Shift dropdown clicked');
+                        e.stopPropagation();
+                        this.toggleDropdown('shift-select');
+                    },
+                    employeeClick: (e) => {
+                        console.log('🖱️ Employee dropdown clicked');
+                        e.stopPropagation();
+                        this.toggleDropdown('employee-select');
+                    },
+                    shiftKeydown: (e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            this.toggleDropdown('shift-select');
+                        }
+                    },
+                    employeeKeydown: (e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            this.toggleDropdown('employee-select');
+                        }
+                    },
+                    documentClick: (e) => {
+                        if (!shiftSelect.contains(e.target) && !shiftSelectMenu.contains(e.target)) {
+                            this.closeDropdown('shift-select');
+                        }
+                        if (!employeeSelect.contains(e.target) && !employeeSelectMenu.contains(e.target)) {
+                            this.closeDropdown('employee-select');
+                        }
+                    }
+                };
+
+                // Add event listeners
+                shiftSelect.addEventListener('click', this.dropdownHandlers.shiftClick);
+                employeeSelect.addEventListener('click', this.dropdownHandlers.employeeClick);
+                shiftSelect.addEventListener('keydown', this.dropdownHandlers.shiftKeydown);
+                employeeSelect.addEventListener('keydown', this.dropdownHandlers.employeeKeydown);
+                document.addEventListener('click', this.dropdownHandlers.documentClick);
+            }
+
+            cleanupDropdownHandlers() {
+                if (!this.dropdownHandlers) return;
+
+                const shiftSelect = document.getElementById('shift-select');
+                const employeeSelect = document.getElementById('employee-select');
+
+                // Remove all existing handlers
+                if (shiftSelect && this.dropdownHandlers.shiftClick) {
+                    shiftSelect.removeEventListener('click', this.dropdownHandlers.shiftClick);
+                }
+                if (employeeSelect && this.dropdownHandlers.employeeClick) {
+                    employeeSelect.removeEventListener('click', this.dropdownHandlers.employeeClick);
+                }
+                if (shiftSelect && this.dropdownHandlers.shiftKeydown) {
+                    shiftSelect.removeEventListener('keydown', this.dropdownHandlers.shiftKeydown);
+                }
+                if (employeeSelect && this.dropdownHandlers.employeeKeydown) {
+                    employeeSelect.removeEventListener('keydown', this.dropdownHandlers.employeeKeydown);
+                }
+                if (this.dropdownHandlers.documentClick) {
+                    document.removeEventListener('click', this.dropdownHandlers.documentClick);
+                }
+            }
+            
+            toggleDropdown(selectId) {
+                console.log('🔄 Toggling dropdown:', selectId);
+                const select = document.getElementById(selectId);
+                const menu = document.getElementById(selectId + '-menu');
+                
+                if (!select || !menu) {
+                    console.error('❌ Elements not found in toggleDropdown:', { 
+                        selectId, 
+                        select: !!select, 
+                        menu: !!menu 
+                    });
+                    return;
+                }
+                
+                if (menu.classList.contains('show')) {
+                    console.log('🔽 Closing dropdown:', selectId);
+                    this.closeDropdown(selectId);
+                } else {
+                    console.log('🔼 Opening dropdown:', selectId);
+                    // Close other dropdowns first
+                    this.closeAllDropdowns();
+                    
+                    // Determine if dropdown should open upward
+                    const shouldOpenUpward = this.shouldDropdownOpenUpward(selectId, menu);
+                    console.log('📍 Dropdown direction:', shouldOpenUpward ? 'upward' : 'downward');
+                    
+                    // Add direction class
+                    if (shouldOpenUpward) {
+                        menu.classList.add('open-upward');
+                    } else {
+                        menu.classList.remove('open-upward');
+                    }
+                    
+                    // Add active state to section for higher z-index
+                    const section = select.closest('.assignment-section');
+                    if (section) {
+                        section.classList.add('dropdown-active');
+                    }
+                    
+                    // Open this dropdown
+                    select.classList.add('active');
+                    menu.classList.add('show');
+                    
+                    // Debug: Check if menu is visible after adding show class
+                    const computedStyle = window.getComputedStyle(menu);
+                    console.log('📊 Menu visibility after show:', {
+                        display: computedStyle.display,
+                        opacity: computedStyle.opacity,
+                        visibility: computedStyle.visibility,
+                        hasShowClass: menu.classList.contains('show'),
+                        direction: shouldOpenUpward ? 'upward' : 'downward'
+                    });
+                    
+                    // Force visibility if CSS containment is still interfering
+                    if (computedStyle.opacity === '0' && menu.classList.contains('show')) {
+                        console.log('🔧 Forcing dropdown visibility...');
+                        menu.style.opacity = '1';
+                        menu.style.visibility = 'visible';
+                        menu.style.transform = 'translateY(0)';
+                        menu.style.display = 'flex';
+                    }
+                }
+            }
+            
+            // Determine if dropdown should open upward based on space and options
+            shouldDropdownOpenUpward(selectId, menu) {
+                const select = document.getElementById(selectId);
+                const section = select.closest('.assignment-section');
+                
+                // Count options in the dropdown
+                const options = menu.querySelectorAll('.assignment-select-option');
+                const optionCount = options.length;
+                
+                // Always open upward if there are more than 8 options (increased threshold)
+                if (optionCount > 8) {
+                    console.log('🔼 Opening upward: more than 8 options (' + optionCount + ')');
+                    return true;
+                }
+                
+                // Check available space below
+                const sectionRect = section.getBoundingClientRect();
+                const modalBody = document.querySelector('.assignment-modal-body');
+                const modalBodyRect = modalBody.getBoundingClientRect();
+                
+                const spaceBelow = modalBodyRect.bottom - sectionRect.bottom;
+                const estimatedMenuHeight = Math.min(optionCount * 50 + 20, 320); // 50px per option + padding, max 320px
+                
+                // Only open upward if there's critically insufficient space (less than 50px)
+                // This ensures downward opening is strongly preferred
+                if (spaceBelow < 50) {
+                    console.log('🔼 Opening upward: critically insufficient space below (' + spaceBelow + 'px < 50px)');
+                    return true;
+                }
+                
+                // Default: open downward for both dropdowns (even if space is tight)
+                console.log('🔽 Opening downward: adequate space below (' + spaceBelow + 'px, estimated need: ' + estimatedMenuHeight + 'px)');
+                return false;
+            }
+            
+            closeDropdown(selectId) {
+                console.log('🔽 Closing dropdown:', selectId);
+                const select = document.getElementById(selectId);
+                const menu = document.getElementById(selectId + '-menu');
+                
+                if (select && menu) {
+                    // Clear any forced inline styles first
+                    menu.style.opacity = '';
+                    menu.style.visibility = '';
+                    menu.style.transform = '';
+                    menu.style.display = '';
+                    
+                    select.classList.remove('active');
+                    menu.classList.remove('show', 'open-upward');
+                    
+                    // Remove active state from section
+                    const section = select.closest('.assignment-section');
+                    if (section) {
+                        section.classList.remove('dropdown-active');
+                    }
+                    
+                    console.log('✅ Dropdown closed:', selectId);
+                } else {
+                    console.error('❌ Cannot close dropdown - elements not found:', { 
+                        selectId, 
+                        select: !!select, 
+                        menu: !!menu 
+                    });
+                }
+            }
+            
+            closeAllDropdowns() {
+                this.closeDropdown('shift-select');
+                this.closeDropdown('employee-select');
+            }
+
+            updateAddButton() {
+                const addButton = document.getElementById('add-assignment');
+                
+                const hasShift = this.selectedShiftId && this.selectedShiftId !== '';
+                const hasEmployee = this.selectedEmployeeId && this.selectedEmployeeId !== '';
+                
+                if (hasShift && hasEmployee) {
+                    addButton.disabled = false;
+                    console.log('✅ Add button enabled - both selections made');
+                } else {
+                    addButton.disabled = true;
+                    console.log('⚠️ Add button disabled - missing selection(s)');
+                }
+            }
+
+            closeAssignmentModal() {
+                document.getElementById('assignment-modal').classList.remove('active');
+                
+                // Close all dropdowns and cleanup states
+                this.closeAllDropdowns();
+                
+                // Cleanup event handlers to prevent memory leaks
+                this.cleanupDropdownHandlers();
+                
+                // Reset custom dropdown values
+                const shiftSelectValue = document.querySelector('#shift-select .assignment-select-value');
+                const employeeSelectValue = document.querySelector('#employee-select .assignment-select-value');
+                
+                if (shiftSelectValue) {
+                    shiftSelectValue.textContent = 'Choose a shift...';
+                    shiftSelectValue.className = 'assignment-select-value assignment-select-placeholder';
+                }
+                
+                if (employeeSelectValue) {
+                    employeeSelectValue.textContent = 'Choose an employee...';
+                    employeeSelectValue.className = 'assignment-select-value assignment-select-placeholder';
+                }
+                
+                // Close any open dropdowns
+                this.closeAllDropdowns();
+                
+                // Clear selections from dropdown options
+                document.querySelectorAll('#shift-select-options .assignment-select-option').forEach(opt => {
+                    opt.classList.remove('selected');
+                });
+                document.querySelectorAll('#employee-select-options .assignment-select-option').forEach(opt => {
+                    opt.classList.remove('selected');
+                });
+                
+                // Reset state
+                this.selectedAssignmentDate = null;
+                this.selectedShiftId = null;
+                this.selectedEmployeeId = null;
+                this.assignmentData = null;
+                this.storeEmployees = [];
+                this.storeShifts = [];
+            }
+            
+            showNotification(message, type = 'info') {
+                // Create notification element if it doesn't exist
+                let notification = document.getElementById('schedule-notification');
+                
+                if (!notification) {
+                    notification = document.createElement('div');
+                    notification.id = 'schedule-notification';
+                    notification.className = 'schedule-notification';
+                    document.body.appendChild(notification);
+                }
+                
+                // Set the notification type class
+                notification.className = `schedule-notification ${type}`;
+                notification.textContent = message;
+                
+                // Show the notification
+                notification.classList.add('show');
+                
+                // Auto-hide after 3 seconds
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                }, 3000);
+            }
+
+            initAssignmentModal() {
+                // Prevent multiple initialization
+                if (this.modalInitialized) {
+                    console.log('⚠️ Modal already initialized, skipping...');
+                    return;
+                }
+                this.modalInitialized = true;
+                console.log('🔧 Initializing assignment modal...');
+                
+                // Store event handler references to prevent duplicates
+                if (!this.modalHandlers) {
+                    this.modalHandlers = {};
+                }
+                
+                // Close modal handlers
+                const closeButton = document.getElementById('close-assignment-modal');
+                if (closeButton && !this.modalHandlers.closeButton) {
+                    this.modalHandlers.closeButton = () => this.closeAssignmentModal();
+                    closeButton.addEventListener('click', this.modalHandlers.closeButton);
+                }
+
+                const cancelButton = document.getElementById('cancel-assignment');
+                if (cancelButton && !this.modalHandlers.cancelButton) {
+                    this.modalHandlers.cancelButton = () => this.closeAssignmentModal();
+                    cancelButton.addEventListener('click', this.modalHandlers.cancelButton);
+                }
+
+                // Modal background click to close
+                const modal = document.getElementById('assignment-modal');
+                if (modal && !this.modalHandlers.modalClick) {
+                    this.modalHandlers.modalClick = (e) => {
+                        if (e.target.classList.contains('assignment-modal')) {
+                            this.closeAssignmentModal();
+                        }
+                    };
+                    modal.addEventListener('click', this.modalHandlers.modalClick);
+                }
+
+                // Add assignment button implementation - PREVENT DUPLICATES
+                const addButton = document.getElementById('add-assignment');
+                if (addButton && !this.modalHandlers.addAssignment) {
+                    console.log('📎 Attaching add-assignment event listener (first time only)');
+                    this.modalHandlers.addAssignment = async () => {
+                    const addButton = document.getElementById('add-assignment');
+                    
+                    // Get selected values from stored state
+                    const shiftId = this.selectedShiftId;
+                    const employeeId = this.selectedEmployeeId;
+                    
+                    if (!shiftId || !employeeId) {
+                        console.error('❌ Missing required data for assignment');
+                        return;
+                    }
+                    
+                    // Get logged-in user's ID
+                    const userData = appState.getUserData();
+                    console.log('📊 User data from appState:', userData);
+                    
+                    // Check if user data exists and has the expected structure
+                    // The user data might have user_id instead of id
+                    const userId = userData?.id || userData?.user_id || userData?.user?.id;
+                    
+                    if (!userData || !userId) {
+                        console.error('❌ User not logged in or user ID not found');
+                        console.log('Available userData keys:', userData ? Object.keys(userData) : 'null');
+                        alert('Session expired. Please refresh the page and try again.');
+                        return;
+                    }
+                    
+                    // Use the selected assignment date (the date cell the user clicked on)
+                    const scheduleDate = this.selectedAssignmentDate;
+                    
+                    // Log to verify we're using the correct date
+                    console.log('📅 Using schedule date:', {
+                        selectedDate: scheduleDate,
+                        clickedDate: this.selectedAssignmentDate
+                    });
+                    
+                    // Prevent double-clicks: Disable the button immediately
+                    if (addButton.disabled) {
+                        console.log('⚠️ Button already disabled, ignoring click');
+                        return;
+                    }
+                    
+                    addButton.disabled = true;
+                    addButton.style.pointerEvents = 'none'; // Extra protection
+                    const originalText = addButton.textContent;
+                    addButton.textContent = 'Adding...';
+                    
+                    console.log('🚀 Starting single employee assignment...');
+                    
+                    try {
+                        console.log('📞 Calling manager_shift_insert_schedule RPC with:', {
+                            p_user_id: employeeId,
+                            p_shift_id: shiftId,
+                            p_store_id: this.selectedStoreId,
+                            p_request_date: scheduleDate,
+                            p_approved_by: userId
+                        });
+                        
+                        // Call the RPC to insert schedule
+                        const { data, error } = await supabase.rpc('manager_shift_insert_schedule', {
+                            p_user_id: employeeId,
+                            p_shift_id: shiftId,
+                            p_store_id: this.selectedStoreId,
+                            p_request_date: scheduleDate,
+                            p_approved_by: userId
+                        });
+                        
+                        if (error) {
+                            console.error('❌ RPC call failed:', error);
+                            throw error;
+                        }
+                        
+                        console.log('✅ Schedule added successfully:', {
+                            response: data,
+                            forDate: scheduleDate,
+                            employee: employeeId,
+                            shift: shiftId
+                        });
+                        
+                        // Show success message
+                        this.showNotification('Employee added to shift successfully!', 'success');
+                        
+                        // Close the modal
+                        this.closeAssignmentModal();
+                        
+                        // Force reload schedule data to show new assignment
+                        console.log('🔄 Reloading schedule data...');
+                        await this.loadShiftScheduleData(true); // Force reload
+                        console.log('✅ Schedule data reloaded');
+                        
+                    } catch (error) {
+                        console.error('❌ Error adding employee to shift:', error);
+                        
+                        // Show error message
+                        const errorMessage = error.message || 'Failed to add employee to shift';
+                        this.showNotification(errorMessage, 'error');
+                        
+                        // Re-enable the button
+                        addButton.disabled = false;
+                        addButton.style.pointerEvents = 'auto'; // Re-enable pointer events
+                        addButton.textContent = originalText;
+                    }
+                    };
+                    addButton.addEventListener('click', this.modalHandlers.addAssignment);
+                }
+            }
+
+            showAssignmentError(message) {
+                // Handle custom dropdown error display properly
+                const shiftOptionsContainer = document.getElementById('shift-select-options');
+                const employeeOptionsContainer = document.getElementById('employee-select-options');
+                
+                const shiftSelectValue = document.querySelector('#shift-select .assignment-select-value');
+                const employeeSelectValue = document.querySelector('#employee-select .assignment-select-value');
+                
+                // Show error in shift dropdown
+                if (shiftOptionsContainer && shiftSelectValue) {
+                    shiftSelectValue.textContent = 'Error loading shifts';
+                    shiftSelectValue.className = 'assignment-select-value assignment-select-placeholder';
+                    shiftOptionsContainer.innerHTML = `
+                        <div class="assignment-select-option disabled">
+                            <span>❌ ${message}</span>
+                        </div>
+                    `;
+                }
+                
+                // Show error in employee dropdown
+                if (employeeOptionsContainer && employeeSelectValue) {
+                    employeeSelectValue.textContent = 'Error loading employees';
+                    employeeSelectValue.className = 'assignment-select-value assignment-select-placeholder';
+                    employeeOptionsContainer.innerHTML = `
+                        <div class="assignment-select-option disabled">
+                            <span>❌ ${message}</span>
+                        </div>
+                    `;
+                }
             }
         }
         
@@ -4131,6 +5681,21 @@
         
         // Initialize schedule manager
         document.addEventListener('DOMContentLoaded', () => {
+            // Check if user is logged in
+            const userData = appState.getUserData();
+            console.log('🔐 User authentication check:', userData);
+            
+            if (!userData) {
+                console.warn('⚠️ No user data found - authentication may be required');
+                // The supabase auth will handle the login redirect
+            } else {
+                console.log('✅ User authenticated:', {
+                    id: userData.id || userData.user_id,
+                    email: userData.email || userData.user_email,
+                    keys: Object.keys(userData)
+                });
+            }
+            
             setTimeout(() => {
                 window.scheduleManager = new ScheduleManager();
             }, 100);

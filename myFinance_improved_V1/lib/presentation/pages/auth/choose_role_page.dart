@@ -6,6 +6,7 @@ import '../../../core/themes/toss_colors.dart';
 import '../../../core/themes/toss_text_styles.dart';
 import '../../providers/app_state_provider.dart';
 import '../../widgets/common/toss_scaffold.dart';
+import '../../../core/navigation/safe_navigation.dart';
 
 /// Simple, robust Choose Role page without complex layouts
 class ChooseRolePage extends ConsumerStatefulWidget {
@@ -167,12 +168,12 @@ class _ChooseRolePageState extends ConsumerState<ChooseRolePage> {
                         
                         // Now navigate to login page
                         if (context.mounted) {
-                          context.go('/auth/login');
+                          context.safeGo('/auth/login');
                         }
                       } catch (e) {
                         // If sign out fails, still try to navigate
                         if (context.mounted) {
-                          context.go('/auth/login');
+                          context.safeGo('/auth/login');
                         }
                       }
                     },
@@ -207,7 +208,7 @@ class _ChooseRolePageState extends ConsumerState<ChooseRolePage> {
       _isNavigating = true;
     });
     
-    context.push(route).whenComplete(() {
+    context.safePush(route).whenComplete(() {
       if (mounted) {
         setState(() {
           _isNavigating = false;

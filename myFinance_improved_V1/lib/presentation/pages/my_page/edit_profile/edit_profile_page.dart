@@ -8,10 +8,12 @@ import '../../../../core/themes/toss_colors.dart';
 import '../../../../core/themes/toss_spacing.dart';
 import '../../../../core/themes/toss_text_styles.dart';
 import '../../../widgets/common/toss_scaffold.dart';
+import '../../../widgets/common/toss_app_bar.dart';
 import '../../../widgets/toss/toss_card.dart';
 import '../../../widgets/toss/toss_enhanced_text_field.dart';
 import '../../../providers/user_profile_provider.dart';
 import '../../../services/profile_image_service.dart';
+import '../../../../core/navigation/safe_navigation.dart';
 
 class EditProfilePage extends ConsumerStatefulWidget {
   const EditProfilePage({super.key});
@@ -82,55 +84,10 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
     
     return TossScaffold(
       backgroundColor: TossColors.surface,
-      appBar: AppBar(
-        backgroundColor: TossColors.surface,
-        surfaceTintColor: Colors.transparent,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded),
-          onPressed: () => context.pop(),
-          color: TossColors.gray700,
-          iconSize: 20,
-        ),
-        title: Text(
-          'Edit Profile',
-          style: TossTextStyles.h4.copyWith(
-            color: TossColors.gray900,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        actions: [
-          if (_hasChanges)
-            Container(
-              margin: EdgeInsets.only(right: TossSpacing.space3),
-              child: TextButton(
-                onPressed: _isLoading ? null : _saveProfile,
-                style: TextButton.styleFrom(
-                  foregroundColor: TossColors.primary,
-                  padding: EdgeInsets.symmetric(
-                    horizontal: TossSpacing.space4,
-                    vertical: TossSpacing.space2,
-                  ),
-                ),
-                child: _isLoading
-                    ? SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(TossColors.primary),
-                        ),
-                      )
-                    : Text(
-                        'Save',
-                        style: TossTextStyles.h4.copyWith(
-                          color: TossColors.primary,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-              ),
-            ),
-        ],
+      appBar: TossAppBar(
+        title: 'Edit Profile',
+        primaryActionText: _hasChanges ? (_isLoading ? null : 'Save') : null,
+        onPrimaryAction: _hasChanges && !_isLoading ? _saveProfile : null,
       ),
       body: SingleChildScrollView(
         padding: EdgeInsets.all(TossSpacing.screenPaddingMobile),
@@ -584,7 +541,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
             backgroundColor: TossColors.success,
           ),
         );
-        context.pop();
+        context.safePop();
       }
     } catch (e) {
       if (mounted) {
