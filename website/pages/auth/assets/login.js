@@ -39,6 +39,24 @@ function initializeIcons() {
     }
 }
 
+// Get correct dashboard path - COMPLETELY REWRITTEN FOR ABSOLUTE URLS
+function getDashboardPath() {
+    // Get current location info
+    const origin = window.location.origin;  // http://localhost
+    const pathname = window.location.pathname;  // /mcparrange-main/myFinance_claude/website/pages/auth/login.html
+    
+    console.log('getDashboardPath - Origin:', origin);
+    console.log('getDashboardPath - Pathname:', pathname);
+    
+    // Build the FULL URL - no ambiguity possible
+    let dashboardUrl = '';
+    
+    // Primary path for XAMPP mcparrange-main structure - explicitly include index.html
+    dashboardUrl = origin + '/mcparrange-main/myFinance_claude/website/pages/dashboard/index.html';
+    console.log('getDashboardPath - Built dashboard URL:', dashboardUrl);
+    return dashboardUrl;
+}
+
 // Check authentication state
 async function checkAuthState() {
     try {
@@ -46,9 +64,18 @@ async function checkAuthState() {
         
         if (session) {
             // User is already logged in, redirect to dashboard
+            console.log('checkAuthState - User already logged in, redirecting...');
             TossAlertUtils.showSuccess('Already logged in. Redirecting...');
+            const dashboardUrl = getDashboardPath();
+            console.log('checkAuthState - Dashboard URL:', dashboardUrl);
+            
+            // Set flag to prevent AuthManager interference
+            sessionStorage.setItem('loginPageRedirecting', 'true');
+            
             setTimeout(() => {
-                window.location.href = '../dashboard/index.html';
+                // Clear flag and use replace for clean navigation
+                sessionStorage.removeItem('loginPageRedirecting');
+                window.location.replace(dashboardUrl);
             }, 1500);
         }
     } catch (error) {
@@ -90,18 +117,84 @@ async function handleFormSubmit(event) {
     }
 }
 
+// Track if redirect is in progress to prevent double redirects
+let isRedirecting = false;
+
 // Handle sign in
 async function handleSignIn(email, password) {
+    // Prevent multiple simultaneous login attempts
+    if (isRedirecting) {
+        console.log('BLOCKED: Redirect already in progress');
+        return;
+    }
+    
+    // Check remember me checkbox
+    const rememberMeCheckbox = document.getElementById('rememberMe');
+    const rememberMe = rememberMeCheckbox ? rememberMeCheckbox.checked : false;
+    
+    // Set remember me preference before sign in
+    localStorage.setItem('rememberMe', rememberMe ? 'true' : 'false');
+    
+    // Set a flag to prevent AuthManager from redirecting
+    sessionStorage.setItem('loginPageRedirecting', 'true');
+    
+    console.log('=== BEFORE SUPABASE SIGN IN ===');
+    console.log('Current URL:', window.location.href);
+    console.log('About to call SupabaseAuth.signIn');
+    console.log('================================');
+    
     const result = await SupabaseAuth.signIn(email, password);
     
+    console.log('=== AFTER SUPABASE SIGN IN ===');
+    console.log('Sign in result:', result);
+    console.log('Current URL now:', window.location.href);
+    console.log('================================');
+    
     if (result.success) {
+        // Mark that we're redirecting
+        isRedirecting = true;
+        
+        // Store auth data using appropriate storage
+        if (typeof storageManager !== 'undefined') {
+            storageManager.setAuthToken(result.session.access_token, rememberMe);
+            storageManager.setSession(result.session, rememberMe);
+            storageManager.setUserData(result.user);
+        }
+        
+        // IMPORTANT: Don't manually store in Supabase's key - let Supabase handle it
+        // Removing this as it may interfere with Supabase's internal storage
+        // const supabaseStorageKey = `sb-atkekzwgukdvucqntryo-auth-token`;
+        // localStorage.setItem(supabaseStorageKey, result.session.access_token);
+        console.log('Auth data stored via storageManager');
+        
         TossAlertUtils.showSuccess('Login successful! Redirecting...');
+        
+        // Get dashboard path IMMEDIATELY
+        const dashboardPath = getDashboardPath();
+        console.log('=== LOGIN REDIRECT DEBUG ===');
+        console.log('Current URL:', window.location.href);
+        console.log('Current pathname:', window.location.pathname);
+        console.log('Calculated dashboard path:', dashboardPath);
+        console.log('Redirecting in 1.5 seconds...');
+        console.log('===========================');
         
         // Redirect to dashboard after short delay
         setTimeout(() => {
-            window.location.href = '../dashboard/index.html';
+            console.log('=== FINAL REDIRECT ===');
+            console.log('Dashboard path:', dashboardPath);
+            console.log('Current location:', window.location.href);
+            
+            // DO NOT clear the flag - let the dashboard page clear it after successful initialization
+            // sessionStorage.removeItem('loginPageRedirecting');
+            
+            // Force redirect using href for immediate navigation
+            console.log('Using window.location.href for immediate redirect');
+            window.location.href = dashboardPath;
+            console.log('======================')
         }, 1500);
     } else {
+        // Clear the flag on error
+        sessionStorage.removeItem('loginPageRedirecting');
         showError(getAuthErrorMessage(result.error));
     }
 }

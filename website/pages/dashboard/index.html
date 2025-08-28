@@ -660,7 +660,10 @@
     <!-- App Icons -->
     <script src="../../core/constants/app-icons.js"></script>
     
-    <!-- Supabase Configuration -->
+        <!-- Storage Manager -->
+    <script src="../../core/utils/storage-manager.js"></script>
+    
+<!-- Supabase Configuration -->
     <script src="../../core/config/supabase.js"></script>
     
     <!-- App State Management -->
@@ -795,7 +798,7 @@
                 if (!session) {
                     TossAlertUtils.showError('Authentication required. Redirecting to login...');
                     setTimeout(() => {
-                        window.location.href = '../auth/login.html';
+                        window.location.href = '/mcparrange-main/myFinance_claude/website/pages/auth/login.html';
                     }, 2000);
                     return;
                 }
@@ -807,7 +810,7 @@
                 console.error('Error checking authentication:', error);
                 TossAlertUtils.showError('Authentication error. Please sign in again.');
                 setTimeout(() => {
-                    window.location.href = '../auth/login.html';
+                    window.location.href = '/mcparrange-main/myFinance_claude/website/pages/auth/login.html';
                 }, 2000);
             }
         }
@@ -970,7 +973,7 @@
                             NavBar.navigateToLogin();
                         } else {
                             // Fallback navigation for dashboard (we're in pages/dashboard/)
-                            window.location.replace('../auth/login.html');
+                            window.location.replace('/mcparrange-main/myFinance_claude/website/pages/auth/login.html');
                         }
                     }, 1000);
                 } else {
@@ -1004,7 +1007,7 @@
         if (typeof supabase !== 'undefined') {
             supabase.auth.onAuthStateChange((event, session) => {
                 if (event === 'SIGNED_OUT') {
-                    window.location.href = '../auth/login.html';
+                    window.location.href = '/mcparrange-main/myFinance_claude/website/pages/auth/login.html';
                 }
             });
         }

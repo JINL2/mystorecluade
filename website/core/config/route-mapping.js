@@ -47,7 +47,7 @@ function getRouteForMenuItem(menuItem) {
  * @param {string} basePath - The base path for pages (default: '/pages/')
  * @returns {string} The full page URL
  */
-function buildPageUrl(route, basePath = '/pages/') {
+function buildPageUrl(route, basePath = '/mcparrange-main/myFinance_claude/website/pages/') {
     // Map routes to actual page paths
     const routeToPath = {
         // Dashboard

@@ -599,21 +599,8 @@ class NavBar {
         
         console.log('Container found:', container);
         
-        // Remove duplicates from companies array - IMPORTANT FIX!
-        const uniqueCompanies = [];
-        const seenIds = new Set();
-        
-        for (const company of companies) {
-            if (!seenIds.has(company.company_id)) {
-                seenIds.add(company.company_id);
-                uniqueCompanies.push(company);
-            }
-        }
-        
-        console.log('Unique companies after deduplication:', uniqueCompanies.length);
-        
         // Convert companies to select options format
-        const options = uniqueCompanies.map(company => ({
+        const options = companies.map(company => ({
             value: company.company_id,
             label: company.company_name,
             description: company.stores ? `${company.stores.length} store${company.stores.length !== 1 ? 's' : ''}` : '0 stores',
@@ -825,10 +812,28 @@ class NavBar {
         }
     }
     
-    // Get the absolute path prefix for XAMPP environment consistency
+    // Get the relative path prefix based on current location
     static getRelativePathPrefix() {
-        // Always return absolute path to pages directory for XAMPP environment
-        return '/mcparrange-main/myFinance_claude/website/pages/';
+        const currentPath = window.location.pathname;
+        
+        // If we're in pages/[category]/[page]/
+        if (currentPath.includes('/pages/')) {
+            const afterPages = currentPath.split('/pages/')[1];
+            const segments = afterPages.split('/').filter(p => p && p !== 'index.html');
+            
+            if (segments.length >= 2) {
+                // We're in a page subdirectory (e.g., finance/balance-sheet)
+                return '../../../pages/';
+            } else if (segments.length === 1) {
+                // We're in pages directory (e.g., dashboard)
+                return '../../pages/';
+            }
+        } else if (currentPath.includes('/website/')) {
+            // We're at the website root or test pages
+            return 'pages/';
+        }
+        
+        return '';
     }
     
     static toggleUserMenu() {
@@ -843,13 +848,42 @@ class NavBar {
      */
     static navigateToLogin() {
         const currentPath = window.location.pathname;
+        let loginPath;
         
         console.log('🔄 NavBar navigating from path:', currentPath);
         
-        // Use absolute path for XAMPP environment consistency
-        const loginPath = '/mcparrange-main/myFinance_claude/website/pages/auth/login.html';
+        // Simple and reliable path calculation
+        if (currentPath.includes('/pages/')) {
+            // We're somewhere in the pages directory structure
+            const afterPages = currentPath.split('/pages/')[1];
+            const segments = afterPages.split('/').filter(p => p && p !== 'index.html');
+            
+            console.log('📂 Path segments after /pages/:', segments);
+            
+            if (segments.length >= 2) {
+                // We're in a nested page like /pages/finance/journal-input/
+                loginPath = '../../auth/login.html';
+                console.log('🎯 Detected nested page, using: ../../auth/login.html');
+            } else if (segments.length === 1) {
+                // We're in a top-level page like /pages/dashboard/
+                loginPath = '../auth/login.html';
+                console.log('🎯 Detected top-level page, using: ../auth/login.html');
+            } else {
+                // We're in pages directory itself
+                loginPath = 'auth/login.html';
+                console.log('🎯 Detected pages root, using: auth/login.html');
+            }
+        } else if (currentPath.includes('/website/')) {
+            // We're at website root level
+            loginPath = 'pages/auth/login.html';
+            console.log('🎯 Detected website root, using: pages/auth/login.html');
+        } else {
+            // Simple relative fallback that should work from anywhere
+            loginPath = '../../auth/login.html';
+            console.log('🎯 Using simple relative fallback: ../../auth/login.html');
+        }
         
-        console.log('✅ Using absolute login path:', loginPath);
+        console.log('✅ Final login path:', loginPath);
         
         // Use replace to prevent back button issues
         window.location.replace(loginPath);

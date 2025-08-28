@@ -13,8 +13,15 @@ let supabase;
 // Initialize Supabase client
 function initializeSupabase() {
     if (typeof window.supabase !== 'undefined') {
-        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        console.log('Supabase initialized successfully');
+        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+            auth: {
+                persistSession: true,
+                autoRefreshToken: true,
+                detectSessionInUrl: true,
+                storage: window.localStorage  // 명시적으로 localStorage 사용
+            }
+        });
+        console.log('Supabase initialized successfully with persistence');
         return supabase;
     } else {
         console.error('Supabase library not loaded. Make sure to include the Supabase CDN script.');
@@ -154,8 +161,25 @@ const SupabaseAuth = {
      */
     async resetPassword(email) {
         try {
+            // Build proper reset password URL with full path
+            const currentPath = window.location.pathname;
+            let resetPasswordUrl = '';
+            
+            // Check if we're in the mcparrange-main project structure
+            if (currentPath.includes('/mcparrange-main/')) {
+                resetPasswordUrl = `${window.location.origin}/mcparrange-main/myFinance_claude/website/pages/auth/reset-password.html`;
+            } else if (currentPath.includes('/myFinance_claude/website/')) {
+                // Extract base path and build full URL
+                const basePath = currentPath.substring(0, currentPath.indexOf('/pages/auth/'));
+                resetPasswordUrl = `${window.location.origin}${basePath}/pages/auth/reset-password.html`;
+            } else {
+                // Fallback - build based on current auth page location
+                const authPath = currentPath.substring(0, currentPath.lastIndexOf('/') + 1);
+                resetPasswordUrl = `${window.location.origin}${authPath}reset-password.html`;
+            }
+            
             const { error } = await supabase.auth.resetPasswordForEmail(email, {
-                redirectTo: `${window.location.origin}/reset-password.html`
+                redirectTo: resetPasswordUrl
             });
 
             if (error) {
@@ -300,16 +324,47 @@ const AuthManager = {
      * Handle successful sign in
      */
     handleSignIn(session) {
-        console.log('User signed in:', session.user);
+        console.log('AuthManager.handleSignIn called - User signed in:', session.user);
         
-        // Store user data in localStorage
-        localStorage.setItem('user', JSON.stringify(session.user));
-        localStorage.setItem('session', JSON.stringify(session));
-
-        // Redirect to dashboard if on login page
-        if (window.location.pathname.includes('login')) {
-            window.location.href = '../dashboard/index.html';
+        // Use StorageManager for hybrid storage
+        if (typeof storageManager !== 'undefined') {
+            // Check if remember me is enabled (will be set by login page)
+            const rememberMe = localStorage.getItem('rememberMe') === 'true';
+            
+            // Store auth token appropriately
+            storageManager.setAuthToken(session.access_token, rememberMe);
+            storageManager.setSession(session, rememberMe);
+            
+            // Store user data (non-sensitive) in localStorage
+            storageManager.setUserData(session.user);
+        } else {
+            // Fallback to old method if StorageManager not loaded
+            localStorage.setItem('user', JSON.stringify(session.user));
+            sessionStorage.setItem('session', JSON.stringify(session));
         }
+
+        // IMPORTANT: AuthManager should NEVER handle redirects after login
+        // The login page (login.js) handles all redirect logic with proper path calculation
+        
+        // Check if we're being called from login page redirect flow
+        const isLoginPageRedirecting = sessionStorage.getItem('loginPageRedirecting') === 'true';
+        if (isLoginPageRedirecting) {
+            console.log('=== AUTHMANAGER: LOGIN PAGE IS HANDLING REDIRECT ===');
+            console.log('AuthManager will not interfere with redirect');
+            return;
+        }
+        
+        // Also check if we're on any auth page
+        const currentPath = window.location.pathname;
+        if (currentPath.includes('/auth/') || currentPath.includes('/login.html')) {
+            console.log('=== AUTHMANAGER: ON AUTH PAGE - NO REDIRECT ===');
+            console.log('Auth pages handle their own redirects');
+            return;
+        }
+        
+        // For all other cases, still don't redirect to avoid any conflicts
+        console.log('AuthManager: Redirect disabled to prevent path issues');
+        return;
     },
 
     /**
@@ -318,12 +373,17 @@ const AuthManager = {
     handleSignOut() {
         console.log('User signed out');
         
-        // Clear all authentication data
-        localStorage.removeItem('user');
-        localStorage.removeItem('session');
-        localStorage.removeItem('companyChoosen');
-        localStorage.removeItem('storeChoosen');
-        sessionStorage.clear();
+        // Use StorageManager to clear all data
+        if (typeof storageManager !== 'undefined') {
+            storageManager.clearAll();
+        } else {
+            // Fallback to old method
+            localStorage.removeItem('user');
+            localStorage.removeItem('session');
+            localStorage.removeItem('companyChoosen');
+            localStorage.removeItem('storeChoosen');
+            sessionStorage.clear();
+        }
 
         // Navigate to login page with proper path calculation
         this.navigateToLogin();
@@ -338,8 +398,20 @@ const AuthManager = {
         
         console.log('🔄 AuthManager navigating from path:', currentPath);
         
-        // Simple and reliable path calculation
-        if (currentPath.includes('/pages/')) {
+        // Check if we're in the mcparrange-main project structure
+        if (currentPath.includes('/mcparrange-main/')) {
+            // Extract the base path up to mcparrange-main
+            const baseMatch = currentPath.match(/(.*\/mcparrange-main\/)/);
+            if (baseMatch) {
+                // Build the correct absolute path to login
+                loginPath = baseMatch[1] + 'myFinance_claude/website/pages/auth/login.html';
+                console.log('🎯 Using absolute path for mcparrange-main:', loginPath);
+            } else {
+                // Fallback for mcparrange-main without clear base
+                loginPath = '/mcparrange-main/myFinance_claude/website/pages/auth/login.html';
+                console.log('🎯 Using default mcparrange-main path:', loginPath);
+            }
+        } else if (currentPath.includes('/pages/')) {
             // We're somewhere in the pages directory structure
             const afterPages = currentPath.split('/pages/')[1];
             const segments = afterPages.split('/').filter(p => p && p !== 'index.html');
@@ -361,12 +433,12 @@ const AuthManager = {
             }
         } else if (currentPath.includes('/website/')) {
             // We're at website root level
-            loginPath = 'pages/auth/login.html';
-            console.log('🎯 Detected website root, using: pages/auth/login.html');
+            loginPath = '/mcparrange-main/myFinance_claude/website/pages/auth/login.html';
+            console.log('🎯 Detected website root, using absolute path');
         } else {
-            // Simple relative fallback that should work from anywhere
-            loginPath = '../../auth/login.html';
-            console.log('🎯 Using simple relative fallback: ../../auth/login.html');
+            // Absolute fallback path for XAMPP environment
+            loginPath = '/mcparrange-main/myFinance_claude/website/pages/auth/login.html';
+            console.log('🎯 Using absolute fallback path');
         }
         
         console.log('✅ Final login path:', loginPath);

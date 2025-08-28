@@ -21,22 +21,16 @@ class PageInitializer {
             // First check if we have stored session data (from login)
             let hasStoredSession = false;
             let storedSessionData = null;
-            let storedToken = null;
             
-            // Check multiple locations for session/token
             if (typeof storageManager !== 'undefined') {
-                storedToken = storageManager.getAuthToken();
-                storedSessionData = storageManager.getSession();
-            }
-            
-            // Also check our app token key
-            if (!storedToken) {
-                storedToken = sessionStorage.getItem('app-auth-token') || 
-                             localStorage.getItem('app-auth-token');
-            }
-            
-            if (!storedSessionData) {
+                const storedToken = storageManager.getAuthToken();
+                const storedSession = storageManager.getSession();
+                hasStoredSession = !!(storedToken || storedSession);
+                storedSessionData = storedSession;
+            } else {
+                // Fallback check
                 const sessionStr = sessionStorage.getItem('session') || localStorage.getItem('session');
+                hasStoredSession = !!sessionStr;
                 if (sessionStr) {
                     try {
                         storedSessionData = JSON.parse(sessionStr);
@@ -45,8 +39,6 @@ class PageInitializer {
                     }
                 }
             }
-            
-            hasStoredSession = !!(storedToken || storedSessionData);
             
             console.log('PageInitializer - Initial session check:', {
                 hasStoredSession: hasStoredSession,
@@ -58,12 +50,12 @@ class PageInitializer {
                 console.log('Found stored session, waiting for Supabase to restore...');
                 
                 // Try multiple times with increasing delays
-                const maxRetries = 10;  // Increased retries
+                const maxRetries = 5;
                 let sessionRestored = false;
                 
                 for (let i = 0; i < maxRetries; i++) {
-                    // Wait progressively longer, but start with shorter delay
-                    await new Promise(resolve => setTimeout(resolve, 100 * (i + 1)));  // Start at 100ms
+                    // Wait progressively longer
+                    await new Promise(resolve => setTimeout(resolve, 200 * (i + 1)));
                     
                     const { data: { session }, error } = await supabase.auth.getSession();
                     
@@ -93,23 +85,6 @@ class PageInitializer {
                             return;
                         } else if (error) {
                             console.error('Failed to manually restore session:', error);
-                            
-                            // If manual restoration fails, check if we're coming from login page
-                            // (user just logged in and was redirected here)
-                            const isFromLogin = sessionStorage.getItem('loginPageRedirecting') === 'true';
-                            if (isFromLogin) {
-                                console.log('User just logged in, waiting for session to establish...');
-                                sessionStorage.removeItem('loginPageRedirecting');
-                                
-                                // Give it one more try after a delay
-                                await new Promise(resolve => setTimeout(resolve, 1000));
-                                const { data: { session: retrySession } } = await supabase.auth.getSession();
-                                if (retrySession) {
-                                    console.log('Session found after delay from login redirect');
-                                    await this.continueInitialization(retrySession);
-                                    return;
-                                }
-                            }
                         }
                     } catch (e) {
                         console.error('Error during manual session restoration:', e);
@@ -117,32 +92,12 @@ class PageInitializer {
                 }
             }
             
-            // Check if we just came from login
-            const loginRedirectFlag = sessionStorage.getItem('loginPageRedirecting');
-            if (loginRedirectFlag === 'true') {
-                console.log('Just redirected from login, waiting for Supabase to restore session...');
-                sessionStorage.removeItem('loginPageRedirecting');
-                
-                // Give Supabase more time to restore the session
-                await new Promise(resolve => setTimeout(resolve, 1000));
-            }
-            
             // Final check for session
             const { data: { session }, error } = await supabase.auth.getSession();
             
-            if (!session) {
-                // Try one more time with Supabase auth refresh
-                console.log('No session found, trying to refresh...');
-                const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
-                
-                if (refreshData?.session) {
-                    console.log('Session refreshed successfully');
-                    await this.continueInitialization(refreshData.session);
-                    return;
-                }
-                
-                // Still no session, redirect to login
-                console.log('No session found after refresh, redirecting to login');
+            if (!session && !hasStoredSession) {
+                // No session at all, redirect to login
+                console.log('No session found, redirecting to login');
                 // Use proper path calculation for login redirect
                 const currentPath = window.location.pathname;
                 let loginPath;

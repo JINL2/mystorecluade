@@ -219,17 +219,17 @@ class TossFilter {
     loadStores() {
         if (!this.options.showStoreFilter || !this.storeFilter) return;
         
-        // Get company ID from sessionStorage (using appState)
-        const selectedCompanyId = sessionStorage.getItem('selectedCompanyId');
-        if (!selectedCompanyId) {
-            console.log('TossFilter: No company selected');
+        // Get user data from localStorage (correct location)
+        const userData = localStorage.getItem('user');
+        if (!userData) {
+            console.log('TossFilter: No user data found in localStorage');
             return;
         }
         
-        // Get user data from sessionStorage
-        const userData = sessionStorage.getItem('userData');
-        if (!userData) {
-            console.log('TossFilter: No user data found');
+        // Get selected company ID from localStorage
+        const selectedCompanyId = localStorage.getItem('companyChoosen');
+        if (!selectedCompanyId) {
+            console.log('TossFilter: No company selected');
             return;
         }
         
@@ -256,6 +256,8 @@ class TossFilter {
                     option.textContent = store.store_name || 'Unnamed Store';
                     this.storeFilter.appendChild(option);
                 });
+                
+                console.log(`TossFilter: Loaded ${selectedCompany.stores.length} stores for company ${selectedCompany.company_name || selectedCompanyId}`);
             }
         } catch (error) {
             console.error('TossFilter: Error loading stores:', error);
