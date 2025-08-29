@@ -123,13 +123,14 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
           _allJournalFlows.addAll(response.data!.journalFlows);
           _allActualFlows.addAll(response.data!.actualFlows);
           
-          // Sort all flows by date in descending order (newest first)
+          // Always sort all flows by date in descending order (newest first)
           _allJournalFlows.sort((a, b) {
             try {
               final dateA = DateTime.parse(a.createdAt);
               final dateB = DateTime.parse(b.createdAt);
-              return dateB.compareTo(dateA); // Descending order
+              return dateB.compareTo(dateA); // Descending order - recent dates first
             } catch (e) {
+              // If date parsing fails, try to maintain original order
               return 0;
             }
           });
@@ -138,8 +139,9 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
             try {
               final dateA = DateTime.parse(a.createdAt);
               final dateB = DateTime.parse(b.createdAt);
-              return dateB.compareTo(dateA); // Descending order
+              return dateB.compareTo(dateA); // Descending order - recent dates first
             } catch (e) {
+              // If date parsing fails, try to maintain original order
               return 0;
             }
           });
@@ -369,37 +371,44 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
             Expanded(
               child: stockFlowAsync.when(
                 data: (response) {
-                  // Initialize data on first load
-                  if (_allJournalFlows.isEmpty && _allActualFlows.isEmpty) {
-                    if (response.success && response.data != null) {
+                  // Always update data on load or refresh
+                  if (response.success && response.data != null) {
+                    // Only update if the data is actually new (first load or after refresh)
+                    if (_allJournalFlows.isEmpty && _allActualFlows.isEmpty) {
                       _allJournalFlows = List.from(response.data!.journalFlows);
                       _allActualFlows = List.from(response.data!.actualFlows);
-                      
-                      // Sort all flows by date in descending order (newest first)
-                      _allJournalFlows.sort((a, b) {
-                        try {
-                          final dateA = DateTime.parse(a.createdAt);
-                          final dateB = DateTime.parse(b.createdAt);
-                          return dateB.compareTo(dateA); // Descending order
-                        } catch (e) {
-                          return 0;
-                        }
-                      });
-                      
-                      _allActualFlows.sort((a, b) {
-                        try {
-                          final dateA = DateTime.parse(a.createdAt);
-                          final dateB = DateTime.parse(b.createdAt);
-                          return dateB.compareTo(dateA); // Descending order
-                        } catch (e) {
-                          return 0;
-                        }
-                      });
-                      
-                      _locationSummary = response.data!.locationSummary;
-                      _currentOffset = 0;
-                      _hasMoreData = response.pagination?.hasMore ?? false;
+                    } else if (_currentOffset == 0) {
+                      // This is a refresh, replace the data
+                      _allJournalFlows = List.from(response.data!.journalFlows);
+                      _allActualFlows = List.from(response.data!.actualFlows);
                     }
+                    
+                    // Always sort all flows by date in descending order (newest first)
+                    _allJournalFlows.sort((a, b) {
+                      try {
+                        final dateA = DateTime.parse(a.createdAt);
+                        final dateB = DateTime.parse(b.createdAt);
+                        return dateB.compareTo(dateA); // Descending order - recent dates first
+                      } catch (e) {
+                        // If date parsing fails, try to maintain original order
+                        return 0;
+                      }
+                    });
+                    
+                    _allActualFlows.sort((a, b) {
+                      try {
+                        final dateA = DateTime.parse(a.createdAt);
+                        final dateB = DateTime.parse(b.createdAt);
+                        return dateB.compareTo(dateA); // Descending order - recent dates first
+                      } catch (e) {
+                        // If date parsing fails, try to maintain original order
+                        return 0;
+                      }
+                    });
+                    
+                    _locationSummary = response.data!.locationSummary;
+                    _currentOffset = 0;
+                    _hasMoreData = response.pagination?.hasMore ?? false;
                   }
                   
                   return SingleChildScrollView(
@@ -1442,6 +1451,17 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
     // Apply filters
     var filteredFlows = List<JournalFlow>.from(_allJournalFlows);
     
+    // Ensure the list is sorted by date (newest first) before displaying
+    filteredFlows.sort((a, b) {
+      try {
+        final dateA = DateTime.parse(a.createdAt);
+        final dateB = DateTime.parse(b.createdAt);
+        return dateB.compareTo(dateA); // Descending order - recent dates first
+      } catch (e) {
+        return 0;
+      }
+    });
+    
     if (_selectedFilter == 'Money In') {
       filteredFlows = filteredFlows.where((f) => f.flowAmount > 0).toList();
     } else if (_selectedFilter == 'Money Out') {
@@ -1526,6 +1546,17 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
     
     // Apply filters
     var filteredFlows = List<ActualFlow>.from(_allActualFlows);
+    
+    // Ensure the list is sorted by date (newest first) before displaying
+    filteredFlows.sort((a, b) {
+      try {
+        final dateA = DateTime.parse(a.createdAt);
+        final dateB = DateTime.parse(b.createdAt);
+        return dateB.compareTo(dateA); // Descending order - recent dates first
+      } catch (e) {
+        return 0;
+      }
+    });
     
     if (_selectedFilter == 'Today') {
       final today = DateTime.now();

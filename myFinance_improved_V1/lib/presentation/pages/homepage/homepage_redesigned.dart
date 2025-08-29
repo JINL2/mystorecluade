@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -12,7 +11,6 @@ import 'package:myfinance_improved/core/constants/icon_mapper.dart';
 import 'providers/homepage_providers.dart';
 import '../../widgets/common/safe_popup_menu.dart';
 import '../../providers/app_state_provider.dart';
-import '../../providers/auth_provider.dart';
 import '../../providers/enhanced_auth_provider.dart';
 import '../../providers/notification_provider.dart';
 import 'models/homepage_models.dart';
@@ -32,6 +30,7 @@ class HomePageRedesigned extends ConsumerStatefulWidget {
 class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with WidgetsBindingObserver {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   bool _isNavigating = false; // Add flag to prevent multiple navigations
+  bool _isRefreshing = false; // Track refresh state to avoid duplicate loading animations
 
   @override
   void initState() {
@@ -195,9 +194,11 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
                 ],
               ),
             ),
-            loading: () => Center(
-              child: CircularProgressIndicator(color: TossColors.primary),
-            ),
+            loading: () => _isRefreshing 
+              ? _buildRefreshSkeletonScreen() // Show skeleton during refresh to avoid duplicate animations
+              : Center(
+                  child: CircularProgressIndicator(color: TossColors.primary),
+                ),
             error: (error, stack) => Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -335,9 +336,32 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
                 SchedulerBinding.instance.addPostFrameCallback((_) async {
                   if (mounted) {
                     try {
+                      print('[HomePage] User initiated logout');
+                      
+                      // CRITICAL FIX: Perform logout FIRST (before navigation)
+                      // This ensures auth state changes before router redirect logic runs
                       final enhancedAuth = ref.read(enhancedAuthProvider);
                       await enhancedAuth.signOut();
+                      print('[HomePage] Logout completed successfully');
+                      
+                      // Then navigate to login page (after auth state has changed)
+                      // Router will now allow navigation since user is unauthenticated
+                      if (mounted) {
+                        context.safeGo('/auth/login');
+                        print('[HomePage] Navigated to login page');
+                      }
                     } catch (e) {
+                      print('[HomePage] Logout error: $e');
+                      // Show error to user
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('로그아웃 실패. 다시 시도해주세요.'),
+                            backgroundColor: TossColors.error,
+                            duration: Duration(seconds: 3),
+                          ),
+                        );
+                      }
                     }
                   }
                 });
@@ -551,12 +575,16 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
           
           return topFeaturesAsync.when(
             data: (topFeatures) => _buildQuickActionsContent(topFeatures),
-            loading: () => _buildQuickActionsLoading(),
+            loading: () => _isRefreshing 
+              ? Container() // Empty during refresh since skeleton handles this
+              : _buildQuickActionsLoading(),
             error: (error, stackTrace) => _buildQuickActionsError(error, stackTrace),
           );
         },
         loading: () {
-          return _buildQuickActionsLoading();
+          return _isRefreshing 
+            ? Container() // Empty during refresh since skeleton handles this
+            : _buildQuickActionsLoading();
         },
         error: (error, stackTrace) {
           return _buildQuickActionsError(error, stackTrace);
@@ -784,58 +812,6 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
     );
   }
 
-  Widget _buildQuickActionItem(dynamic feature, String categoryId) {
-    return Material(
-      color: TossColors.transparent,
-      child: InkWell(
-        onTap: () => _handleFeatureTap(feature, categoryId),
-        borderRadius: BorderRadius.circular(12),
-        child: Container(
-          padding: EdgeInsets.symmetric(vertical: TossSpacing.space2),
-          decoration: BoxDecoration(
-            color: TossColors.transparent,
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              // Icon with ultra-minimal Toss design
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: TossColors.gray100, // Even more subtle background
-                  borderRadius: BorderRadius.circular(14),
-                  // No border for cleaner look
-                ),
-                child: DynamicIcon(
-                  iconKey: feature['icon_key'],
-                  featureName: feature['feature_name'],
-                  size: 22,
-                  color: TossColors.gray700, // More neutral, less blue
-                  useDefaultColor: false,
-                ),
-              ),
-              SizedBox(height: TossSpacing.space1),
-              Text(
-                feature['feature_name'] ?? '',
-                style: TossTextStyles.caption.copyWith(
-                  color: TossColors.textPrimary,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 13, // Increased from 11 to 13 for better readability
-                  height: 1.3,
-                  letterSpacing: -0.2,
-                ),
-                textAlign: TextAlign.center,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 
   /// Comprehensive error handling with fallback options
   /// SECURITY: Attempts fallback provider if main provider fails
@@ -1259,29 +1235,31 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
             ),
           );
         },
-        loading: () => Container(
-          color: TossColors.gray100,
-          child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: TossSpacing.space4),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'All Features',
-                  style: TossTextStyles.h2.copyWith(
-                    color: TossColors.textPrimary,
-                    fontWeight: FontWeight.w800, // Stronger weight for better hierarchy
-                    letterSpacing: -0.6,
-                  ),
+        loading: () => _isRefreshing 
+          ? Container() // Empty during refresh since skeleton handles this
+          : Container(
+              color: TossColors.gray100,
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: TossSpacing.space4),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'All Features',
+                      style: TossTextStyles.h2.copyWith(
+                        color: TossColors.textPrimary,
+                        fontWeight: FontWeight.w800, // Stronger weight for better hierarchy
+                        letterSpacing: -0.6,
+                      ),
+                    ),
+                    SizedBox(height: TossSpacing.space6),
+                    Center(
+                      child: CircularProgressIndicator(color: TossColors.primary),
+                    ),
+                  ],
                 ),
-                SizedBox(height: TossSpacing.space6),
-                Center(
-                  child: CircularProgressIndicator(color: TossColors.primary),
-                ),
-              ],
+              ),
             ),
-          ),
-        ),
         error: (error, _) => Container(
           color: TossColors.gray100,
           child: Padding(
@@ -1542,6 +1520,10 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
 
   Future<void> _handleRefresh(WidgetRef ref) async {
     try {
+      // Set refresh state to avoid duplicate loading animations
+      setState(() {
+        _isRefreshing = true;
+      });
       
       // Use the enhanced auth service for smart refresh
       final enhancedAuth = ref.read(enhancedAuthProvider);
@@ -1549,7 +1531,6 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
       
       // Wait for providers to update
       await Future.delayed(Duration(milliseconds: 500));
-      
       
       // Show success feedback
       if (mounted) {
@@ -1563,7 +1544,6 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
         );
       }
     } catch (e) {
-      
       // Show error feedback
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -1575,7 +1555,244 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
           ),
         );
       }
+    } finally {
+      // Reset refresh state
+      if (mounted) {
+        setState(() {
+          _isRefreshing = false;
+        });
+      }
     }
+  }
+
+  /// Build skeleton screen during refresh to avoid duplicate loading animations
+  /// This shows the page structure without additional loading indicators
+  Widget _buildRefreshSkeletonScreen() {
+    return Container(
+      color: TossColors.gray100,
+      child: CustomScrollView(
+        slivers: [
+          // Simple App Bar skeleton
+          SliverAppBar(
+            pinned: true,
+            backgroundColor: TossColors.gray100,
+            surfaceTintColor: TossColors.transparent,
+            elevation: 0,
+            toolbarHeight: 64,
+            leading: Container(
+              margin: EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: TossColors.gray200,
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            actions: [
+              Container(
+                margin: EdgeInsets.all(12),
+                width: 24,
+                height: 24,
+                decoration: BoxDecoration(
+                  color: TossColors.gray200,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              Container(
+                margin: EdgeInsets.all(12),
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: TossColors.gray200,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+              ),
+            ],
+          ),
+          
+          // Hello section skeleton
+          SliverPersistentHeader(
+            pinned: true,
+            delegate: _SkeletonHeaderDelegate(),
+          ),
+          
+          SliverToBoxAdapter(
+            child: SizedBox(height: TossSpacing.space4),
+          ),
+          
+          // Quick actions skeleton
+          SliverToBoxAdapter(
+            child: Container(
+              margin: EdgeInsets.symmetric(horizontal: TossSpacing.space4),
+              padding: EdgeInsets.all(TossSpacing.space5),
+              decoration: BoxDecoration(
+                color: TossColors.surface,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: TossColors.borderLight, width: 0.5),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Header
+                  Row(
+                    children: [
+                      Container(
+                        width: 4,
+                        height: 20,
+                        decoration: BoxDecoration(
+                          color: TossColors.gray200,
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                      SizedBox(width: TossSpacing.space3),
+                      Container(
+                        width: 120,
+                        height: 16,
+                        decoration: BoxDecoration(
+                          color: TossColors.gray200,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: TossSpacing.space4),
+                  // Grid skeleton
+                  GridView.builder(
+                    padding: EdgeInsets.zero,
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 3,
+                      crossAxisSpacing: TossSpacing.space3,
+                      mainAxisSpacing: TossSpacing.space3,
+                      childAspectRatio: 0.85,
+                    ),
+                    itemCount: 6,
+                    itemBuilder: (context, index) {
+                      return Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            width: 44,
+                            height: 44,
+                            decoration: BoxDecoration(
+                              color: TossColors.gray200,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          SizedBox(height: TossSpacing.space1),
+                          Container(
+                            width: 60,
+                            height: 10,
+                            decoration: BoxDecoration(
+                              color: TossColors.gray200,
+                              borderRadius: BorderRadius.circular(5),
+                            ),
+                          ),
+                        ],
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ),
+          
+          SliverToBoxAdapter(
+            child: SizedBox(height: TossSpacing.space6),
+          ),
+          
+          // Features section skeleton
+          SliverToBoxAdapter(
+            child: Container(
+              margin: EdgeInsets.symmetric(horizontal: TossSpacing.space4),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: 140,
+                    height: 20,
+                    decoration: BoxDecoration(
+                      color: TossColors.gray200,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  SizedBox(height: TossSpacing.space4),
+                  // Category skeletons
+                  ...List.generate(2, (index) => Container(
+                    margin: EdgeInsets.only(bottom: TossSpacing.space4),
+                    padding: EdgeInsets.all(TossSpacing.space5),
+                    decoration: BoxDecoration(
+                      color: TossColors.surface,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: TossColors.borderLight, width: 0.5),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Container(
+                              width: 4,
+                              height: 20,
+                              decoration: BoxDecoration(
+                                color: TossColors.gray200,
+                                borderRadius: BorderRadius.circular(2),
+                              ),
+                            ),
+                            SizedBox(width: TossSpacing.space3),
+                            Container(
+                              width: 100,
+                              height: 16,
+                              decoration: BoxDecoration(
+                                color: TossColors.gray200,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: TossSpacing.space4),
+                        ...List.generate(3, (featureIndex) => Padding(
+                          padding: EdgeInsets.symmetric(vertical: TossSpacing.space2),
+                          child: Row(
+                            children: [
+                              Container(
+                                width: 44,
+                                height: 44,
+                                decoration: BoxDecoration(
+                                  color: TossColors.gray200,
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                              SizedBox(width: TossSpacing.space3),
+                              Expanded(
+                                child: Container(
+                                  height: 14,
+                                  decoration: BoxDecoration(
+                                    color: TossColors.gray200,
+                                    borderRadius: BorderRadius.circular(7),
+                                  ),
+                                ),
+                              ),
+                              Container(
+                                width: 20,
+                                height: 20,
+                                decoration: BoxDecoration(
+                                  color: TossColors.gray200,
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                              ),
+                            ],
+                          ),
+                        )),
+                      ],
+                    ),
+                  )),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   // Removed - no longer needed since drawer is integrated in scaffold
@@ -1675,5 +1892,60 @@ class _PinnedHelloDelegate extends SliverPersistentHeaderDelegate {
   @override
   bool shouldRebuild(covariant SliverPersistentHeaderDelegate oldDelegate) {
     return oldDelegate != this;
+  }
+}
+
+class _SkeletonHeaderDelegate extends SliverPersistentHeaderDelegate {
+  @override
+  double get minExtent => 85.0;
+
+  @override
+  double get maxExtent => 85.0;
+
+  @override
+  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
+    return Container(
+      color: TossColors.gray100,
+      child: Container(
+        margin: EdgeInsets.symmetric(horizontal: TossSpacing.space4),
+        decoration: BoxDecoration(
+          color: TossColors.surface,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: TossShadows.card,
+        ),
+        padding: EdgeInsets.symmetric(
+          horizontal: TossSpacing.space4,
+          vertical: TossSpacing.space3,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 150,
+              height: 18,
+              decoration: BoxDecoration(
+                color: TossColors.gray200,
+                borderRadius: BorderRadius.circular(9),
+              ),
+            ),
+            SizedBox(height: TossSpacing.space1),
+            Container(
+              width: 200,
+              height: 14,
+              decoration: BoxDecoration(
+                color: TossColors.gray200,
+                borderRadius: BorderRadius.circular(7),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  @override
+  bool shouldRebuild(covariant SliverPersistentHeaderDelegate oldDelegate) {
+    return false;
   }
 }

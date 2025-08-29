@@ -102,6 +102,8 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
     return TossScaffold(
       appBar: TossAppBar(
         title: 'Time Table Manage',
+        backgroundColor: TossColors.background,
+        showBottomBorder: false,
       ),
       backgroundColor: TossColors.background,
       body: SafeArea(

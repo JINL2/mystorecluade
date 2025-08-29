@@ -71,6 +71,7 @@ final userCompaniesProvider = FutureProvider.autoDispose<dynamic>((ref) async {
   final user = ref.watch(authStateProvider);
   
   if (user == null) {
+    print('[userCompaniesProvider] User is null, throwing UnauthorizedException');
     throw UnauthorizedException();
   }
   

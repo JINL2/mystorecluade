@@ -13,7 +13,9 @@ class TossAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.actions,
     this.centerTitle = true,
     this.backgroundColor,
+    this.foregroundColor,
     this.elevation = 0,
+    this.showBottomBorder = true,
     // New parameters for custom action buttons
     this.primaryActionText,
     this.primaryActionIcon,
@@ -27,7 +29,9 @@ class TossAppBar extends StatelessWidget implements PreferredSizeWidget {
   final List<Widget>? actions;
   final bool centerTitle;
   final Color? backgroundColor;
+  final Color? foregroundColor;
   final double elevation;
+  final bool showBottomBorder;
   
   // Custom action button parameters (max 2 buttons)
   final String? primaryActionText;  // Text for primary button (e.g., "Add")
@@ -54,7 +58,7 @@ class TossAppBar extends StatelessWidget implements PreferredSizeWidget {
           IconButton(
             icon: Icon(
               secondaryActionIcon,
-              color: TossColors.textSecondary,
+              color: foregroundColor ?? TossColors.textSecondary,
               size: TossSpacing.iconLG,
             ),
             onPressed: onSecondaryAction,
@@ -63,7 +67,8 @@ class TossAppBar extends StatelessWidget implements PreferredSizeWidget {
       }
       
       // Add primary action button (text with optional icon) if provided
-      if (primaryActionText != null && onPrimaryAction != null) {
+      if (primaryActionText != null) {
+        final isEnabled = onPrimaryAction != null;
         finalActions.add(
           Padding(
             padding: EdgeInsets.only(right: TossSpacing.space3),
@@ -71,7 +76,7 @@ class TossAppBar extends StatelessWidget implements PreferredSizeWidget {
               color: TossColors.transparent,
               child: InkWell(
                 borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-                onTap: onPrimaryAction,
+                onTap: isEnabled ? onPrimaryAction : null,
                 child: Padding(
                   padding: EdgeInsets.symmetric(
                     horizontal: TossSpacing.space3,
@@ -84,14 +89,18 @@ class TossAppBar extends StatelessWidget implements PreferredSizeWidget {
                         Icon(
                           primaryActionIcon,
                           size: TossSpacing.iconMD,
-                          color: TossColors.primary,
+                          color: isEnabled 
+                              ? (foregroundColor ?? TossColors.primary)
+                              : TossColors.gray400,
                         ),
                         SizedBox(width: TossSpacing.space1),
                       ],
                       Text(
                         primaryActionText!,
                         style: TossTextStyles.h4.copyWith(
-                          color: TossColors.primary,
+                          color: isEnabled 
+                              ? (foregroundColor ?? TossColors.primary)
+                              : TossColors.gray400,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -114,7 +123,7 @@ class TossAppBar extends StatelessWidget implements PreferredSizeWidget {
       title: Text(
         title,
         style: TossTextStyles.h3.copyWith(
-          color: TossColors.textPrimary,
+          color: foregroundColor ?? TossColors.textPrimary,
         ),
       ),
       centerTitle: centerTitle,
@@ -123,18 +132,20 @@ class TossAppBar extends StatelessWidget implements PreferredSizeWidget {
       leading: leading,
       actions: finalActions.isNotEmpty ? finalActions : null,
       iconTheme: IconThemeData(
-        color: TossColors.textPrimary,
+        color: foregroundColor ?? TossColors.textPrimary,
       ),
-      bottom: PreferredSize(
-        preferredSize: const Size.fromHeight(1),
-        child: Container(
-          height: 1,
-          decoration: BoxDecoration(
-            color: TossColors.borderLight,
-            boxShadow: elevation > 0 ? TossShadows.elevation1 : null,
-          ),
-        ),
-      ),
+      bottom: showBottomBorder 
+        ? PreferredSize(
+            preferredSize: const Size.fromHeight(1),
+            child: Container(
+              height: 1,
+              decoration: BoxDecoration(
+                color: TossColors.borderLight,
+                boxShadow: elevation > 0 ? TossShadows.elevation1 : null,
+              ),
+            ),
+          )
+        : null,
     );
   }
 }

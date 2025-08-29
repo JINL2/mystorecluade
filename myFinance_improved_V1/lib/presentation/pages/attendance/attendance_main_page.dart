@@ -45,6 +45,8 @@ class _AttendanceMainPageState extends State<AttendanceMainPage> with SingleTick
       backgroundColor: TossColors.background,
       appBar: const TossAppBar(
         title: 'Attendance',
+        backgroundColor: TossColors.background,
+        showBottomBorder: false,
       ),
       body: SafeArea(
         child: Column(

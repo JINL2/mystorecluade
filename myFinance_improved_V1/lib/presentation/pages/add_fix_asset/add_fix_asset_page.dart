@@ -7,6 +7,7 @@ import '../../providers/app_state_provider.dart';
 import '../../../core/themes/toss_colors.dart';
 import '../../../core/themes/toss_text_styles.dart';
 import '../../widgets/common/toss_scaffold.dart';
+import '../../widgets/common/toss_app_bar.dart';
 import '../../widgets/common/safe_popup_menu.dart';
 
 class AddFixAssetPage extends ConsumerStatefulWidget {
@@ -75,11 +76,12 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
     }
 
     return TossScaffold(
-      backgroundColor: TossColors.background,
-      appBar: AppBar(
-        backgroundColor: TossColors.background,
+      backgroundColor: TossColors.gray100,
+      appBar: TossAppBar(
+        title: 'Fixed Assets',
+        backgroundColor: TossColors.gray100,
         elevation: 0,
-        centerTitle: true,
+        showBottomBorder: false,
         leading: IconButton(
           icon: const Icon(
             Icons.arrow_back_ios,
@@ -87,14 +89,6 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
             color: TossColors.gray900,
           ),
           onPressed: () => NavigationHelper.safeGoBack(context),
-        ),
-        title: const Text(
-          'Fixed Assets',
-          style: TextStyle(
-            fontSize: 17,
-            fontWeight: FontWeight.w600,
-            color: TossColors.gray900,
-          ),
         ),
       ),
       body: Column(

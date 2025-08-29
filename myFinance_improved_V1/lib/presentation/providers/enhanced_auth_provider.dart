@@ -60,23 +60,40 @@ class EnhancedAuthService {
   /// Enhanced sign-out with COMPLETE data clearing
   Future<void> signOut() async {
     try {
+      print('[EnhancedAuth] Starting signOut process...');
       
       // 1. Clear session state first
+      print('[EnhancedAuth] Clearing session state...');
       await ref.read(sessionManagerProvider.notifier).clearSession();
       
       // 2. Clear ALL app state data (user, companies, features, selections)
+      print('[EnhancedAuth] Clearing app state data...');
       await ref.read(appStateProvider.notifier).clearData();
       
       // 3. Invalidate all cached providers to ensure no stale data remains
-      ref.invalidate(userCompaniesProvider);
-      ref.invalidate(categoriesWithFeaturesProvider);
+      print('[EnhancedAuth] Invalidating cached providers...');
+      try {
+        ref.invalidate(userCompaniesProvider);
+      } catch (e) {
+        print('[EnhancedAuth] Error invalidating userCompaniesProvider: $e');
+      }
       
-      // 4. Sign out from Supabase
+      try {
+        ref.invalidate(categoriesWithFeaturesProvider);
+      } catch (e) {
+        print('[EnhancedAuth] Error invalidating categoriesWithFeaturesProvider: $e');
+      }
+      
+      // 4. Sign out from Supabase (this should be last to avoid UnauthorizedException)
+      print('[EnhancedAuth] Signing out from Supabase...');
       await ref.read(authStateProvider.notifier).signOut();
       
+      print('[EnhancedAuth] SignOut completed successfully');
       
     } catch (e) {
-      rethrow;
+      print('[EnhancedAuth] Error during signOut: $e');
+      // Don't rethrow - complete the logout even if there are errors
+      // The router will handle the redirect
     }
   }
 

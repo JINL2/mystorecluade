@@ -267,6 +267,8 @@ class _JournalInputPageState extends ConsumerState<JournalInputPage>
       resizeToAvoidBottomInset: false,
       appBar: TossAppBar(
         title: 'Journal Entry',
+        backgroundColor: TossColors.gray50,
+        showBottomBorder: false,
         leading: IconButton(
           icon: Icon(Icons.arrow_back_ios, color: TossColors.gray700, size: 20),
           onPressed: () => NavigationHelper.safeGoBack(context),

@@ -22,9 +22,9 @@ class UserProfileService {
       _log('Update data: $updates');
       
       final result = await _supabase
-          .from('users')
+          .from('profiles')
           .update(updates)
-          .eq('user_id', userId)
+          .eq('id', userId)
           .select();
           
       _log('Update result: $result');
@@ -48,22 +48,22 @@ class UserProfileService {
       // Verify connection to Supabase
       _log('Supabase client status: ${_supabase.auth.currentSession != null ? "authenticated" : "not authenticated"}');
       
-      // First check if user exists in our users table
-      _log('Checking if user exists in users table...');
+      // First check if user exists in our profiles table
+      _log('Checking if user exists in profiles table...');
       final existingUser = await _supabase
-          .from('users')
-          .select('user_id, first_name, last_name, email, created_at')
-          .eq('user_id', userId)
+          .from('profiles')
+          .select('id, first_name, last_name, email, created_at')
+          .eq('id', userId)
           .maybeSingle();
 
       _log('Existing user query result: $existingUser');
 
       if (existingUser == null) {
-        // User doesn't exist in users table, create it
+        // User doesn't exist in profiles table, create it
         _log('User does not exist, creating new profile...');
         
         final insertData = {
-          'user_id': userId,
+          'id': userId,
           'first_name': firstName,
           'last_name': lastName,
           'email': currentUser?.email ?? '',
@@ -73,7 +73,7 @@ class UserProfileService {
         
         _log('Insert data: $insertData');
         
-        final insertResult = await _supabase.from('users').insert(insertData).select();
+        final insertResult = await _supabase.from('profiles').insert(insertData).select();
         _log('Insert operation result: $insertResult');
         
         _log('SUCCESS: Created user profile for: $userId');
@@ -96,9 +96,9 @@ class UserProfileService {
         _log('Update data: $updateData');
         
         final updateResult = await _supabase
-            .from('users')
+            .from('profiles')
             .update(updateData)
-            .eq('user_id', userId)
+            .eq('id', userId)
             .select();
             
         _log('Update operation result: $updateResult');
@@ -130,9 +130,9 @@ class UserProfileService {
   Future<Map<String, dynamic>?> getUserProfile(String userId) async {
     try {
       final profile = await _supabase
-          .from('users')
-          .select('user_id, first_name, last_name, email, created_at, updated_at')
-          .eq('user_id', userId)
+          .from('profiles')
+          .select('id, first_name, last_name, email, created_at, updated_at')
+          .eq('id', userId)
           .maybeSingle();
       
       return profile;
@@ -160,7 +160,7 @@ class UserProfileService {
         _log('No existing profile found, creating new one...');
         
         final insertData = {
-          'user_id': userId,
+          'id': userId,
           'first_name': firstName,
           'last_name': lastName,
           'email': email,
@@ -170,7 +170,7 @@ class UserProfileService {
         
         _log('Insert data for new profile: $insertData');
         
-        final result = await _supabase.from('users').insert(insertData).select();
+        final result = await _supabase.from('profiles').insert(insertData).select();
         _log('Insert result: $result');
         
         _log('SUCCESS: Created new user profile');
@@ -193,9 +193,9 @@ class UserProfileService {
         _log('Update data: $updateData');
         
         final result = await _supabase
-            .from('users')
+            .from('profiles')
             .update(updateData)
-            .eq('user_id', userId)
+            .eq('id', userId)
             .select();
             
         _log('Update result: $result');
@@ -229,12 +229,12 @@ class UserProfileService {
       
       // Get all users with null names
       final usersWithNullNames = await _supabase
-          .from('users')
-          .select('user_id, first_name, last_name, email')
+          .from('profiles')
+          .select('id, first_name, last_name, email')
           .or('first_name.is.null,last_name.is.null');
       
       for (final userRecord in usersWithNullNames) {
-        final userId = userRecord['user_id'] as String;
+        final userId = userRecord['id'] as String;
         
         // Get auth user metadata
         final authUser = await _supabase.auth.admin.getUserById(userId);

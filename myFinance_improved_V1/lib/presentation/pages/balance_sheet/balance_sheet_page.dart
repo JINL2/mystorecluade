@@ -351,6 +351,9 @@ class _BalanceSheetPageState extends ConsumerState<BalanceSheetPage>
       backgroundColor: TossColors.background,
       appBar: const TossAppBar(
         title: 'Financial Statements',
+        backgroundColor: TossColors.background,
+        foregroundColor: TossColors.gray900,
+        showBottomBorder: false,
       ),
       body: SafeArea(
         child: userCompaniesAsync.when(

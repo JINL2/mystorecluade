@@ -59,7 +59,7 @@ final currentUserProfileProvider = FutureProvider.autoDispose<UserProfile?>((ref
   
   // Convert the Map to UserProfile
   return UserProfile(
-    userId: userProfileData['user_id'] ?? user.id,
+    userId: userProfileData['user_id'] ?? userProfileData['id'] ?? user.id,
     firstName: userProfileData['first_name'],
     lastName: userProfileData['last_name'],
     email: userProfileData['email'] ?? user.email ?? '',

@@ -7,7 +7,8 @@ final cashLocationServiceProvider = Provider<CashLocationService>((ref) {
 });
 
 // All cash locations provider (fetch once, filter client-side)
-final allCashLocationsProvider = FutureProvider.family<List<CashLocation>, CashLocationQueryParams>((ref, params) async {
+// Changed to autoDispose to ensure fresh data on navigation
+final allCashLocationsProvider = FutureProvider.family.autoDispose<List<CashLocation>, CashLocationQueryParams>((ref, params) async {
   final service = ref.read(cashLocationServiceProvider);
   return service.getAllCashLocations(
     companyId: params.companyId,
@@ -19,37 +20,58 @@ class CashLocationService {
   final _supabase = Supabase.instance.client;
 
   /// Get all cash locations (all types) for client-side filtering
+  /// Now uses RPC for better real-time data synchronization
   Future<List<CashLocation>> getAllCashLocations({
     required String companyId,
     required String storeId,
+    bool useRpc = true, // Option to use RPC vs direct query
   }) async {
     try {
-      // Get cash locations for the specific store and company
-      // Filter out soft-deleted records
-      // Debug logging (uncomment for debugging)
-      // print('Fetching cash locations for companyId: $companyId, storeId: $storeId');
+      // Debug logging
+      print('Fetching cash locations - companyId: $companyId, storeId: $storeId, useRpc: $useRpc');
       
-      final response = await _supabase
-          .from('v_cash_location')
-          .select('*')
-          .eq('store_id', storeId)
-          .eq('company_id', companyId)
-          .eq('is_deleted', false)
-          .order('location_type')
-          .order('location_name');
+      List<dynamic> response;
       
-      // Debug logging (uncomment for debugging)
-      // print('Response from v_cash_location: ${response.length} records');
-      // if (response.isNotEmpty) {
-      //   print('First record keys: ${response[0].keys.toList()}');
-      //   print('First record: ${response[0]}');
-      // }
+      if (useRpc) {
+        // Use RPC function for real-time data with proper calculations
+        response = await _supabase.rpc(
+          'get_cash_locations_with_totals',
+          params: {
+            'p_company_id': companyId,
+            'p_store_id': storeId,
+          },
+        ).catchError((error) async {
+          // Fallback to direct query if RPC doesn't exist
+          print('RPC fallback: $error - Using direct query instead');
+          return await _supabase
+              .from('v_cash_location')
+              .select('*')
+              .eq('store_id', storeId)
+              .eq('company_id', companyId)
+              .eq('is_deleted', false)
+              .order('location_type')
+              .order('location_name');
+        });
+      } else {
+        // Direct query from view
+        response = await _supabase
+            .from('v_cash_location')
+            .select('*')
+            .eq('store_id', storeId)
+            .eq('company_id', companyId)
+            .eq('is_deleted', false)
+            .order('location_type')
+            .order('location_name');
+      }
+      
+      // Debug logging
+      print('Response received: ${response.length} records');
       
       return (response as List)
           .map((json) => CashLocation.fromJson(json))
           .toList();
     } catch (e) {
-      // Debug: print('Error fetching cash locations: $e');
+      print('Error fetching cash locations: $e');
       // Re-throw the error so it can be handled by the UI
       throw Exception('Failed to load cash locations: ${e.toString()}');
     }

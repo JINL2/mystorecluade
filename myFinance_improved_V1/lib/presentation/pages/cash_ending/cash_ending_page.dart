@@ -558,15 +558,14 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
         child: Column(
           children: [
             // Tab Bar without background to match Cash Control design
-            TossMinimalTabBar(
+            TossTabBar(
               tabs: const ['Cash', 'Bank', 'Vault'],
               controller: _tabController,
               selectedColor: Colors.black87, // Use black87 to match Cash Control page exactly
-              showDivider: false, // Remove bottom divider to match Cash Control design
               unselectedColor: hasVaultBankAccess 
-                  ? TossColors.gray400 
-                  : TossColors.gray300, // Lighter gray for disabled tabs
-              onTap: (index) {
+                  ? Colors.grey[400]
+                  : Colors.grey[300], // Lighter gray for disabled tabs
+              onTabChanged: (index) {
                 // Prevent switching to Bank or Vault tabs if no permission
                 if (index > 0 && !hasVaultBankAccess) {
                   // Reset to Cash tab
@@ -4429,6 +4428,27 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
             actualFlows = response.data!.actualFlows;
             locationSummary = response.data!.locationSummary;
           }
+          
+          // Sort both lists by createdAt in descending order (most recent first)
+          journalFlows.sort((a, b) {
+            try {
+              final dateA = DateTime.parse(a.createdAt);
+              final dateB = DateTime.parse(b.createdAt);
+              return dateB.compareTo(dateA); // Descending order
+            } catch (e) {
+              return 0; // Keep original order if parsing fails
+            }
+          });
+          
+          actualFlows.sort((a, b) {
+            try {
+              final dateA = DateTime.parse(a.createdAt);
+              final dateB = DateTime.parse(b.createdAt);
+              return dateB.compareTo(dateA); // Descending order
+            } catch (e) {
+              return 0; // Keep original order if parsing fails
+            }
+          });
           
           if (response.pagination != null) {
             hasMoreFlows = response.pagination!.hasMore;

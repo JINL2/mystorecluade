@@ -47,6 +47,10 @@ dependencies:
   
   # QR Code Scanner
   mobile_scanner: ^6.0.2
+  # QR Code Generator
+  qr_flutter: ^4.1.0
+  # Image Gallery Saver
+  image_gallery_saver: ^2.0.3
   
   # Location Services
   geolocator: ^11.0.0

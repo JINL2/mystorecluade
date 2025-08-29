@@ -107,6 +107,7 @@ class _TransactionHistoryPageState extends ConsumerState<TransactionHistoryPage>
         title: widget.counterpartyName != null 
           ? '${widget.counterpartyName} Transactions'
           : 'Transaction History',
+        backgroundColor: TossColors.gray50,
         actions: const [],
       ),
       body: transactionsAsync.when(

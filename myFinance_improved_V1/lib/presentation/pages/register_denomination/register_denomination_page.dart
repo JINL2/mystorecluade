@@ -33,6 +33,7 @@ class RegisterDenominationPage extends ConsumerWidget {
         title: 'Denomination',
         centerTitle: true,
         backgroundColor: TossColors.background,
+        showBottomBorder: false,
       ),
       body: SafeArea(
         child: RefreshIndicator(

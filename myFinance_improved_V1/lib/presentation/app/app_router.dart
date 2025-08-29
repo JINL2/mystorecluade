@@ -81,7 +81,7 @@ class RouterNotifier extends ChangeNotifier {
     super.dispose();
   }
   
-  // Check for redirect loops
+  // Check for redirect loops - Modified to be less aggressive
   bool _hasRedirectLoop(String path) {
     _redirectHistory.add(path);
     
@@ -90,15 +90,27 @@ class RouterNotifier extends ChangeNotifier {
       _redirectHistory.removeAt(0);
     }
     
-    // Check for loops (same path appearing 3+ times in recent history)
-    if (_redirectHistory.length >= 6) {
-      final startIndex = _redirectHistory.length - 6;
-      final recent = _redirectHistory.sublist(startIndex).toList();
+    // Modified: More lenient loop detection
+    // Only consider it a loop if same path appears 4+ times in last 8 navigations
+    // AND the pattern shows rapid consecutive attempts
+    if (_redirectHistory.length >= 8) {
+      final recent = _redirectHistory.sublist(_redirectHistory.length - 8).toList();
       final pathCount = recent.where((p) => p == path).length;
-      if (pathCount >= 3) {
-        debugPrint('[RouterNotifier] Redirect loop detected for path: $path');
-        _redirectHistory.clear();
-        return true;
+      
+      // Check for rapid consecutive occurrences (real loop pattern)
+      if (pathCount >= 4) {
+        // Additional check: look for consecutive duplicates indicating real loop
+        int consecutiveCount = 0;
+        for (int i = recent.length - 1; i >= 0 && recent[i] == path; i--) {
+          consecutiveCount++;
+        }
+        
+        // Only trigger if we have 3+ consecutive identical paths
+        if (consecutiveCount >= 3) {
+          debugPrint('[RouterNotifier] Redirect loop detected for path: $path');
+          _redirectHistory.clear();
+          return true;
+        }
       }
     }
     
@@ -107,6 +119,11 @@ class RouterNotifier extends ChangeNotifier {
   
   void clearRedirectHistory() {
     _redirectHistory.clear();
+  }
+  
+  // Add: Public method to clear history for specific routes
+  void clearHistoryForPath(String path) {
+    _redirectHistory.removeWhere((p) => p == path);
   }
 }
 
@@ -122,15 +139,17 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       try {
         final currentPath = state.matchedLocation;
         
-        // Check for redirect loop
-        if (routerNotifier._hasRedirectLoop(currentPath)) {
-          debugPrint('[AppRouter] Redirect loop detected, navigating to home');
-          // Clear SafeNavigation locks for the problematic route
-          SafeNavigation.instance.clearAllLocks();
-          return '/';
+        // Special handling for logout - don't redirect during logout process
+        if (currentPath == '/auth/login') {
+          final isAuth = ref.read(isAuthenticatedProvider);
+          if (!isAuth) {
+            // User is already logged out, stay on login page
+            routerNotifier.clearRedirectHistory();
+            return null;
+          }
         }
         
-        // Special handling for /cashEnding to prevent redirect loops
+        // Special handling for /cashEnding BEFORE loop detection to prevent false positives
         if (currentPath == '/cashEnding') {
           final isAuth = ref.read(isAuthenticatedProvider);
           final userData = ref.read(appStateProvider).user;
@@ -140,6 +159,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           // Allow access if user is authenticated and has companies
           if (isAuth && hasUserData && companyCount > 0) {
             debugPrint('[AppRouter] Allowing access to /cashEnding');
+            // Clear any potential loop history for this path since we're allowing it
+            routerNotifier.clearHistoryForPath(currentPath);
             return null; // Allow navigation
           }
           
@@ -152,6 +173,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           
           // If waiting for user data, allow the page to load (it will handle the loading state)
           return null;
+        }
+        
+        // Check for redirect loop (after special route handling)
+        if (routerNotifier._hasRedirectLoop(currentPath)) {
+          debugPrint('[AppRouter] Redirect loop detected, navigating to home');
+          // Clear SafeNavigation locks for the problematic route
+          SafeNavigation.instance.clearAllLocks();
+          return '/';
         }
         
         // Navigation state will be updated after widget build completes

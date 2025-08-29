@@ -5,6 +5,10 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:qr_flutter/qr_flutter.dart';
+import 'package:image_gallery_saver/image_gallery_saver.dart';
+import 'dart:ui' as ui;
+import 'dart:typed_data';
 import 'providers/store_shift_providers.dart';
 import '../../providers/app_state_provider.dart';
 import '../../../core/themes/toss_colors.dart';
@@ -364,6 +368,62 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
           ],
           _buildDetailRow('Status', store['is_deleted'] == true ? 'Inactive' : 'Active', 
               color: store['is_deleted'] == true ? TossColors.error : TossColors.success),
+          const SizedBox(height: TossSpacing.space4),
+          
+          // My Store QR Container
+          InkWell(
+            onTap: () => _showStoreQRBottomSheet(store),
+            borderRadius: BorderRadius.circular(TossBorderRadius.md),
+            child: Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: TossSpacing.space4,
+                vertical: TossSpacing.space3,
+              ),
+              decoration: BoxDecoration(
+                color: TossColors.primary.withOpacity(0.05),
+                borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                border: Border.all(
+                  color: TossColors.primary.withOpacity(0.2),
+                  width: 1,
+                ),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    FontAwesomeIcons.qrcode,
+                    color: TossColors.primary,
+                    size: TossSpacing.iconMD,
+                  ),
+                  const SizedBox(width: TossSpacing.space3),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'My Store QR',
+                          style: TossTextStyles.body.copyWith(
+                            color: TossColors.gray900,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        Text(
+                          'Tap to view store QR code',
+                          style: TossTextStyles.caption.copyWith(
+                            color: TossColors.gray600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Icon(
+                    FontAwesomeIcons.chevronRight,
+                    color: TossColors.gray400,
+                    size: TossSpacing.iconXS,
+                  ),
+                ],
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -2438,6 +2498,287 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
         ],
       ),
     );
+  }
+  
+  // Show Store QR Bottom Sheet
+  void _showStoreQRBottomSheet(Map<String, dynamic> store) {
+    final storeId = store['store_id'] ?? '';
+    final storeName = store['store_name'] ?? 'Store';
+    
+    TossBottomSheet.show(
+      context: context,
+      title: 'Store QR Code',
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+          // Store Info Header
+          Container(
+            padding: const EdgeInsets.all(TossSpacing.space4),
+            decoration: BoxDecoration(
+              color: TossColors.gray100,
+              borderRadius: BorderRadius.circular(TossBorderRadius.md),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  FontAwesomeIcons.building,
+                  color: TossColors.gray600,
+                  size: TossSpacing.iconSM,
+                ),
+                const SizedBox(width: TossSpacing.space2),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        storeName,
+                        style: TossTextStyles.body.copyWith(
+                          color: TossColors.gray900,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: TossSpacing.space5),
+          
+          // QR Code Container
+          Container(
+            padding: const EdgeInsets.all(TossSpacing.space5),
+            decoration: BoxDecoration(
+              color: TossColors.white,
+              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+              border: Border.all(
+                color: TossColors.borderLight,
+                width: 1,
+              ),
+            ),
+            child: Column(
+              children: [
+                // QR Code
+                QrImageView(
+                  data: storeId,
+                  version: QrVersions.auto,
+                  size: 250.0,
+                  backgroundColor: TossColors.white,
+                  errorCorrectionLevel: QrErrorCorrectLevel.M,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: TossSpacing.space4),
+          
+          // Instructions
+          Container(
+            padding: const EdgeInsets.all(TossSpacing.space3),
+            decoration: BoxDecoration(
+              color: TossColors.primary.withOpacity(0.05),
+              borderRadius: BorderRadius.circular(TossBorderRadius.md),
+              border: Border.all(
+                color: TossColors.primary.withOpacity(0.2),
+                width: 1,
+              ),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(
+                  FontAwesomeIcons.circleInfo,
+                  color: TossColors.primary,
+                  size: TossSpacing.iconXS,
+                ),
+                const SizedBox(width: TossSpacing.space2),
+                Expanded(
+                  child: Text(
+                    'Employees can scan this QR code to check in/out for their shifts at this store.',
+                    style: TossTextStyles.caption.copyWith(
+                      color: TossColors.gray700,
+                      height: 1.4,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: TossSpacing.space5),
+          
+          // Action Buttons
+          Row(
+            children: [
+              Expanded(
+                child: TossPrimaryButton(
+                  text: 'Save Photo',
+                  onPressed: () => _saveQRCode(storeId, storeName),
+                ),
+              ),
+              const SizedBox(width: TossSpacing.space3),
+              Expanded(
+                child: TossSecondaryButton(
+                  text: 'Close',
+                  onPressed: () => Navigator.pop(context),
+                ),
+              ),
+            ],
+          ),
+          ],
+        ),
+      ),
+    );
+  }
+  
+  // Save QR Code to Gallery
+  Future<void> _saveQRCode(String storeId, String storeName) async {
+    try {
+      // Show loading indicator
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => Center(
+          child: Container(
+            padding: const EdgeInsets.all(TossSpacing.space5),
+            decoration: BoxDecoration(
+              color: TossColors.white,
+              borderRadius: BorderRadius.circular(TossBorderRadius.md),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CircularProgressIndicator(color: TossColors.primary),
+                const SizedBox(height: TossSpacing.space3),
+                Text(
+                  'Saving QR Code...',
+                  style: TossTextStyles.caption.copyWith(
+                    color: TossColors.gray700,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+      
+      // Generate QR code image
+      final qrValidationResult = QrValidator.validate(
+        data: storeId,
+        version: QrVersions.auto,
+        errorCorrectionLevel: QrErrorCorrectLevel.M,
+      );
+      
+      if (qrValidationResult.status == QrValidationStatus.valid) {
+        final qrCode = qrValidationResult.qrCode!;
+        final painter = QrPainter.withQr(
+          qr: qrCode,
+          color: const Color(0xFF000000),
+          emptyColor: const Color(0xFFFFFFFF),
+          gapless: true,
+          embeddedImageStyle: null,
+          embeddedImage: null,
+        );
+        
+        // Create image with padding and store name
+        final pictureRecorder = ui.PictureRecorder();
+        final canvas = Canvas(pictureRecorder);
+        const size = 400.0;
+        const padding = 40.0;
+        const totalSize = size + (padding * 2);
+        
+        // Draw white background
+        canvas.drawRect(
+          Rect.fromLTWH(0, 0, totalSize, totalSize + 60),
+          Paint()..color = Colors.white,
+        );
+        
+        // Draw store name at the top
+        final textPainter = TextPainter(
+          text: TextSpan(
+            text: storeName,
+            style: const TextStyle(
+              color: Colors.black,
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          textDirection: TextDirection.ltr,
+        );
+        textPainter.layout(maxWidth: totalSize);
+        final textOffset = Offset(
+          (totalSize - textPainter.width) / 2,
+          20,
+        );
+        textPainter.paint(canvas, textOffset);
+        
+        // Draw QR code
+        canvas.save();
+        canvas.translate(padding, padding + 60);
+        painter.paint(canvas, const Size(size, size));
+        canvas.restore();
+        
+        // Convert to image
+        final picture = pictureRecorder.endRecording();
+        final img = await picture.toImage(
+          totalSize.toInt(),
+          (totalSize + 60).toInt(),
+        );
+        final byteData = await img.toByteData(
+          format: ui.ImageByteFormat.png,
+        );
+        
+        if (byteData != null) {
+          final buffer = byteData.buffer.asUint8List();
+          
+          // Save to gallery
+          final result = await ImageGallerySaver.saveImage(
+            buffer,
+            name: 'store_qr_${storeName}_${DateTime.now().millisecondsSinceEpoch}',
+            quality: 100,
+          );
+          
+          // Close loading dialog
+          if (mounted) Navigator.pop(context);
+          
+          // Show success message
+          if (result['isSuccess'] == true) {
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: const Text('QR Code saved to gallery'),
+                  backgroundColor: TossColors.success,
+                  behavior: SnackBarBehavior.floating,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(TossBorderRadius.button),
+                  ),
+                ),
+              );
+            }
+          } else {
+            throw Exception('Failed to save image');
+          }
+        }
+      }
+    } catch (e) {
+      // Close loading dialog if still open
+      if (mounted && Navigator.canPop(context)) {
+        Navigator.pop(context);
+      }
+      
+      // Show error message
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to save QR Code: ${e.toString()}'),
+            backgroundColor: TossColors.error,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(TossBorderRadius.button),
+            ),
+          ),
+        );
+      }
+    }
   }
   
   // Show Edit Operational Settings Bottom Sheet

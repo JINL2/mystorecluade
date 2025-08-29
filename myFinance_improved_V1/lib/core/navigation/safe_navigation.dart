@@ -18,6 +18,9 @@ class SafeNavigation {
   /// Navigation history for loop detection
   final List<String> _navigationHistory = [];
   
+  /// Navigation timestamps for time-aware loop detection
+  final List<DateTime> _navigationTimestamps = [];
+  
   /// Debounce timers for navigation actions
   final Map<String, Timer?> _debounceTimers = {};
   
@@ -44,27 +47,66 @@ class SafeNavigation {
     _debounceTimers.remove(route);
   }
   
-  /// Add route to navigation history
+  /// Add route to navigation history with timestamp
   void _addToHistory(String route) {
     _navigationHistory.add(route);
+    _navigationTimestamps.add(DateTime.now());
     
     // Keep only recent history
     if (_navigationHistory.length > maxRedirectHistory) {
       _navigationHistory.removeAt(0);
+      _navigationTimestamps.removeAt(0);
     }
   }
   
-  /// Check for redirect loops
+  /// Check for redirect loops with improved detection
   bool _hasRedirectLoop() {
-    if (_navigationHistory.length < 4) return false;
+    if (_navigationHistory.length < 6) return false;
     
-    // Check if the last 4 navigations contain a loop pattern
-    final startIndex = _navigationHistory.length - 4;
-    final recent = _navigationHistory.sublist(startIndex).toList();
-    if (recent.length == 4 && 
-        recent[0] == recent[2] && 
-        recent[1] == recent[3]) {
-      return true;
+    // Get recent navigation data
+    final historyLength = _navigationHistory.length;
+    final recentHistory = _navigationHistory.sublist(
+      historyLength >= 8 ? historyLength - 8 : 0
+    );
+    final recentTimestamps = _navigationTimestamps.sublist(
+      historyLength >= 8 ? historyLength - 8 : 0
+    );
+    
+    // Check for rapid automated loops (real problems)
+    // Look for 3+ consecutive identical routes within 1 second
+    int consecutiveCount = 1;
+    for (int i = recentHistory.length - 2; i >= 0; i--) {
+      if (recentHistory[i] == recentHistory.last) {
+        // Check if navigation happened within 1 second
+        final timeDiff = recentTimestamps[i+1].difference(recentTimestamps[i]);
+        if (timeDiff.inMilliseconds < 1000) {
+          consecutiveCount++;
+          if (consecutiveCount >= 3) {
+            debugPrint('[SafeNavigation] Rapid redirect loop detected');
+            return true;
+          }
+        } else {
+          // Reset count if navigations are spread over time (user-initiated)
+          break;
+        }
+      } else {
+        break;
+      }
+    }
+    
+    // Check for A-B-A-B pattern but only if rapid (within 2 seconds total)
+    if (recentHistory.length >= 4) {
+      final last4 = recentHistory.sublist(recentHistory.length - 4);
+      if (last4[0] == last4[2] && last4[1] == last4[3] && last4[0] != last4[1]) {
+        // Check if all 4 navigations happened within 2 seconds
+        final timeSpan = recentTimestamps.last.difference(
+          recentTimestamps[recentTimestamps.length - 4]
+        );
+        if (timeSpan.inMilliseconds < 2000) {
+          debugPrint('[SafeNavigation] Rapid A-B-A-B loop detected');
+          return true;
+        }
+      }
     }
     
     return false;
@@ -414,6 +456,32 @@ class SafeNavigation {
   /// Clear navigation history (useful after successful critical navigation)
   void clearHistory() {
     _navigationHistory.clear();
+    _navigationTimestamps.clear();
+  }
+  
+  /// Clear history for a specific route to prevent false loop detection
+  void clearHistoryForRoute(String route) {
+    if (_navigationHistory.isEmpty) return;
+    
+    // Remove all occurrences of this route from history
+    final indicesToRemove = <int>[];
+    for (int i = _navigationHistory.length - 1; i >= 0; i--) {
+      if (_navigationHistory[i] == route || _navigationHistory[i] == '/$route') {
+        indicesToRemove.add(i);
+      }
+    }
+    
+    // Remove in reverse order to maintain indices
+    for (int index in indicesToRemove) {
+      if (index < _navigationHistory.length) {
+        _navigationHistory.removeAt(index);
+        if (index < _navigationTimestamps.length) {
+          _navigationTimestamps.removeAt(index);
+        }
+      }
+    }
+    
+    debugPrint('[SafeNavigation] Cleared history for route: $route');
   }
   
   /// Clear all navigation locks (use with caution)
@@ -428,6 +496,14 @@ class SafeNavigation {
     _navigationLocks.remove(route);
     _debounceTimers[route]?.cancel();
     _debounceTimers.remove(route);
+    
+    // Also clear this route from recent history to prevent false positives
+    // This is useful for routes that users frequently navigate to/from
+    if (_navigationHistory.isNotEmpty && _navigationHistory.last == route) {
+      // Keep the history but mark it as user-cleared to prevent loop detection
+      // We don't remove it entirely to maintain navigation history integrity
+    }
+    
     debugPrint('[SafeNavigation] Cleared lock for route: $route');
   }
   

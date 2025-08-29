@@ -3,17 +3,101 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'dart:io';
 import '../../../../core/themes/toss_colors.dart';
 import '../../../../core/themes/toss_spacing.dart';
 import '../../../../core/themes/toss_text_styles.dart';
 import '../../../widgets/common/toss_scaffold.dart';
 import '../../../widgets/common/toss_app_bar.dart';
+import '../../../widgets/common/toss_loading_overlay.dart';
+import '../../../widgets/common/toss_result_dialog.dart';
 import '../../../widgets/toss/toss_card.dart';
 import '../../../widgets/toss/toss_enhanced_text_field.dart';
 import '../../../providers/user_profile_provider.dart';
-import '../../../services/profile_image_service.dart';
+import '../../../providers/auth_provider.dart';
+import '../../../providers/app_state_provider.dart';
 import '../../../../core/navigation/safe_navigation.dart';
+
+// Provider to fetch user profile data from users table
+final editProfileDataProvider = FutureProvider.autoDispose<Map<String, dynamic>?>((ref) async {
+  final user = ref.watch(authStateProvider);
+  if (user == null) return null;
+  
+  try {
+    print('[EditProfile] Fetching profile data for user: ${user.id}');
+    final response = await Supabase.instance.client
+        .from('users')
+        .select('user_id, first_name, last_name, email, profile_image, user_phone_number, created_at, updated_at')
+        .eq('user_id', user.id)
+        .maybeSingle();
+    
+    print('[EditProfile] Profile data response: $response');
+    
+    // If no user exists, return basic data with user metadata
+    if (response == null) {
+      print('[EditProfile] No user found, using metadata: ${user.userMetadata}');
+      return {
+        'user_id': user.id,
+        'email': user.email ?? '',
+        'first_name': user.userMetadata?['first_name'] ?? '',
+        'last_name': user.userMetadata?['last_name'] ?? '',
+        'profile_image': null,
+        'user_phone_number': null,
+      };
+    }
+    
+    // Map the response to expected format
+    return {
+      'id': response['user_id'],
+      'email': response['email'],
+      'first_name': response['first_name'],
+      'last_name': response['last_name'],
+      'profile_image': response['profile_image'],
+      'phone_number': response['user_phone_number'],
+    };
+  } catch (e) {
+    print('[EditProfile] Error fetching profile: $e');
+    // Return basic data on error
+    return {
+      'id': user.id,
+      'email': user.email ?? '',
+      'first_name': user.userMetadata?['first_name'] ?? '',
+      'last_name': user.userMetadata?['last_name'] ?? '',
+      'profile_image': null,
+      'phone_number': null,
+    };
+  }
+});
+
+// Provider to fetch user bank account data from users_bank_account table
+final userBankAccountProvider = FutureProvider.autoDispose<Map<String, dynamic>?>((ref) async {
+  final user = ref.watch(authStateProvider);
+  final appState = ref.watch(appStateProvider);
+  
+  print('[EditProfile] Bank account provider - User: ${user?.id}, Company: ${appState.companyChoosen}');
+  
+  if (user == null || appState.companyChoosen.isEmpty) {
+    print('[EditProfile] Missing required data for bank account query');
+    return null;
+  }
+  
+  try {
+    final response = await Supabase.instance.client
+        .from('users_bank_account')
+        .select('user_bank_name, user_account_number, description')
+        .eq('user_id', user.id)
+        .eq('company_id', appState.companyChoosen)
+        .maybeSingle();
+    
+    print('[EditProfile] Bank account data response: $response');
+    return response;
+  } catch (e) {
+    print('[EditProfile] Error fetching bank account: $e');
+    return null;
+  }
+});
 
 class EditProfilePage extends ConsumerStatefulWidget {
   const EditProfilePage({super.key});
@@ -24,31 +108,133 @@ class EditProfilePage extends ConsumerStatefulWidget {
 
 class _EditProfilePageState extends ConsumerState<EditProfilePage> {
   final _formKey = GlobalKey<FormState>();
-  final _firstNameController = TextEditingController();
-  final _lastNameController = TextEditingController();
-  final _phoneNumberController = TextEditingController();
-  final _bankNameController = TextEditingController();
-  final _bankAccountController = TextEditingController();
+  late final TextEditingController _firstNameController;
+  late final TextEditingController _lastNameController;
+  late final TextEditingController _phoneNumberController;
+  late final TextEditingController _bankNameController;
+  late final TextEditingController _bankAccountController;
+  late final TextEditingController _descriptionController;
+  
+  // Store initial values to detect changes
+  String _initialFirstName = '';
+  String _initialLastName = '';
+  String _initialPhoneNumber = '';
+  String _initialBankName = '';
+  String _initialBankAccount = '';
+  String _initialDescription = '';
+  String? _initialProfileImage;
   
   bool _isLoading = false;
   bool _hasChanges = false;
-  bool _hasInitialized = false;
+  bool _controllersInitialized = false;
   File? _selectedImage;
+  bool _imageRemoved = false;
+  bool _isSaving = false; // Prevent double-tap
   
   @override
   void initState() {
     super.initState();
-    // Listen for changes
-    _firstNameController.addListener(_onFieldChanged);
-    _lastNameController.addListener(_onFieldChanged);
-    _phoneNumberController.addListener(_onFieldChanged);
-    _bankNameController.addListener(_onFieldChanged);
-    _bankAccountController.addListener(_onFieldChanged);
+    // Initialize controllers without values first
+    _firstNameController = TextEditingController();
+    _lastNameController = TextEditingController();
+    _phoneNumberController = TextEditingController();
+    _bankNameController = TextEditingController();
+    _bankAccountController = TextEditingController();
+    _descriptionController = TextEditingController();
+  }
+  
+  void _initializeControllers(Map<String, dynamic>? profileData, Map<String, dynamic>? bankAccountData) {
+    if (!_controllersInitialized && profileData != null) {
+      print('[EditProfile] Initializing controllers with data:');
+      print('[EditProfile] Profile data: $profileData');
+      print('[EditProfile] Bank account data: $bankAccountData');
+      
+      // Set initial values - Convert nulls to empty strings
+      final firstName = profileData['first_name']?.toString() ?? '';
+      final lastName = profileData['last_name']?.toString() ?? '';
+      final phoneNumber = profileData['phone_number']?.toString() ?? '';
+      
+      // Store initial values for change detection
+      _initialFirstName = firstName;
+      _initialLastName = lastName;
+      _initialPhoneNumber = phoneNumber;
+      _initialProfileImage = profileData['profile_image']?.toString();
+      
+      _firstNameController.text = firstName;
+      _lastNameController.text = lastName;
+      _phoneNumberController.text = phoneNumber;
+      
+      print('[EditProfile] Set first name: $firstName');
+      print('[EditProfile] Set last name: $lastName');
+      print('[EditProfile] Set phone: $phoneNumber');
+      
+      // Use bank account data from users_bank_account table if available
+      if (bankAccountData != null) {
+        final bankName = bankAccountData['user_bank_name']?.toString() ?? '';
+        final accountNumber = bankAccountData['user_account_number']?.toString() ?? '';
+        final description = bankAccountData['description']?.toString() ?? '';
+        
+        _initialBankName = bankName;
+        _initialBankAccount = accountNumber;
+        _initialDescription = description;
+        
+        _bankNameController.text = bankName;
+        _bankAccountController.text = accountNumber;
+        _descriptionController.text = description;
+        
+        print('[EditProfile] Set bank name from bank account: $bankName');
+        print('[EditProfile] Set account number from bank account: $accountNumber');
+        print('[EditProfile] Set description: $description');
+      } else {
+        // Fall back to profile data if no bank account data
+        final bankName = profileData['bank_name']?.toString() ?? '';
+        final accountNumber = profileData['bank_account_number']?.toString() ?? '';
+        
+        _initialBankName = bankName;
+        _initialBankAccount = accountNumber;
+        _initialDescription = '';
+        
+        _bankNameController.text = bankName;
+        _bankAccountController.text = accountNumber;
+        
+        print('[EditProfile] Set bank name from profile: $bankName');
+        print('[EditProfile] Set account number from profile: $accountNumber');
+      }
+      
+      // Add listeners after setting initial values to avoid triggering hasChanges
+      _firstNameController.addListener(_onFieldChanged);
+      _lastNameController.addListener(_onFieldChanged);
+      _phoneNumberController.addListener(_onFieldChanged);
+      _bankNameController.addListener(_onFieldChanged);
+      _bankAccountController.addListener(_onFieldChanged);
+      _descriptionController.addListener(_onFieldChanged);
+      
+      _controllersInitialized = true;
+      print('[EditProfile] Controllers initialized successfully');
+    }
   }
   
   void _onFieldChanged() {
+    // Only mark as changed if controllers are initialized (to avoid false positives during init)
+    if (_controllersInitialized) {
+      _checkForChanges();
+    }
+  }
+  
+  void _checkForChanges() {
+    // Check if any field has actually changed from its initial value
+    final hasTextChanges = 
+        _firstNameController.text != _initialFirstName ||
+        _lastNameController.text != _initialLastName ||
+        _phoneNumberController.text != _initialPhoneNumber ||
+        _bankNameController.text != _initialBankName ||
+        _bankAccountController.text != _initialBankAccount ||
+        _descriptionController.text != _initialDescription;
+    
+    final hasImageChanges = _selectedImage != null || _imageRemoved;
+    
     setState(() {
-      _hasChanges = true;
+      _hasChanges = hasTextChanges || hasImageChanges;
     });
   }
   
@@ -59,34 +245,60 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
     _phoneNumberController.dispose();
     _bankNameController.dispose();
     _bankAccountController.dispose();
+    _descriptionController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final profileAsync = ref.watch(currentUserProfileProvider);
-    final profile = profileAsync.value;
+    // Use the new providers to fetch data
+    final profileDataAsync = ref.watch(editProfileDataProvider);
+    final bankAccountDataAsync = ref.watch(userBankAccountProvider);
     final businessData = ref.watch(businessDashboardDataProvider);
     
-    // Initialize form fields if profile is available and fields are empty
-    if (profile != null && !_hasInitialized) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _firstNameController.text = profile.firstName ?? '';
-        _lastNameController.text = profile.lastName ?? '';
-        _phoneNumberController.text = profile.phoneNumber ?? '';
-        _bankNameController.text = profile.bankName ?? '';
-        _bankAccountController.text = profile.bankAccountNumber ?? '';
-        setState(() {
-          _hasInitialized = true;
-        });
-      });
+    // Handle loading state
+    if (profileDataAsync.isLoading || bankAccountDataAsync.isLoading) {
+      return TossScaffold(
+        backgroundColor: TossColors.background,
+        appBar: TossAppBar(
+          title: 'Edit Profile',
+          backgroundColor: TossColors.background,
+        ),
+        body: Center(
+          child: CircularProgressIndicator(
+            color: TossColors.primary,
+          ),
+        ),
+      );
     }
     
+    // Handle error state
+    if (profileDataAsync.hasError) {
+      return TossScaffold(
+        backgroundColor: TossColors.background,
+        appBar: TossAppBar(
+          title: 'Edit Profile',
+          backgroundColor: TossColors.background,
+        ),
+        body: Center(
+          child: Text('Error loading profile data'),
+        ),
+      );
+    }
+    
+    // Get the profile data and bank account data
+    final profileData = profileDataAsync.value;
+    final bankAccountData = bankAccountDataAsync.value;
+    
+    // Initialize controllers with fetched data
+    _initializeControllers(profileData, bankAccountData);
+    
     return TossScaffold(
-      backgroundColor: TossColors.surface,
+      backgroundColor: TossColors.background,
       appBar: TossAppBar(
         title: 'Edit Profile',
-        primaryActionText: _hasChanges ? (_isLoading ? null : 'Save') : null,
+        backgroundColor: TossColors.background,
+        primaryActionText: 'Save',
         onPrimaryAction: _hasChanges && !_isLoading ? _saveProfile : null,
       ),
       body: SingleChildScrollView(
@@ -117,16 +329,16 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                                   radius: 47,
                                   backgroundImage: FileImage(_selectedImage!),
                                 )
-                              : profile?.hasProfileImage == true
+                              : (profileData?['profile_image'] != null && !_imageRemoved)
                                   ? CircleAvatar(
                                       radius: 47,
-                                      backgroundImage: NetworkImage(profile!.profileImage!),
+                                      backgroundImage: NetworkImage(profileData!['profile_image']),
                                     )
                                   : CircleAvatar(
                                       radius: 47,
                                       backgroundColor: TossColors.primary.withOpacity(0.1),
                                       child: Text(
-                                        profile?.initials ?? 'U',
+                                        _getInitials(profileData),
                                         style: TossTextStyles.h2.copyWith(
                                           color: TossColors.primary,
                                           fontWeight: FontWeight.w700,
@@ -146,7 +358,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                                 color: TossColors.primary,
                                 shape: BoxShape.circle,
                                 border: Border.all(
-                                  color: TossColors.surface,
+                                  color: TossColors.background,
                                   width: 2,
                                 ),
                                 boxShadow: [
@@ -160,7 +372,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                               child: Icon(
                                 Icons.camera_alt,
                                 size: 14,
-                                color: TossColors.surface,
+                                color: TossColors.background,
                               ),
                             ),
                           ),
@@ -258,7 +470,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                       hintText: 'Enter your bank account number',
                       keyboardType: TextInputType.number,
                       showKeyboardToolbar: true,
-                      textInputAction: TextInputAction.done,
+                      textInputAction: TextInputAction.next,
                       validator: (value) {
                         if (value?.isNotEmpty == true) {
                           final accountRegex = RegExp(r'^\d+$');
@@ -271,6 +483,16 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                         }
                         return null;
                       },
+                    ),
+                    SizedBox(height: TossSpacing.space4),
+                    
+                    TossEnhancedTextField(
+                      controller: _descriptionController,
+                      label: 'Description',
+                      hintText: 'Enter description',
+                      showKeyboardToolbar: true,
+                      textInputAction: TextInputAction.done,
+                      maxLines: 3,
                     ),
                   ],
                 ),
@@ -292,16 +514,16 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                 padding: EdgeInsets.all(TossSpacing.space5),
                 child: Column(
                   children: [
-                    _buildReadOnlyField('Email', profile?.email ?? ''),
+                    _buildReadOnlyField('Email', profileData?['email'] ?? ''),
                     SizedBox(height: TossSpacing.space4),
-                    _buildReadOnlyField('Role', businessData.value?.userRole ?? profile?.displayRole ?? ''),
-                    if (profile?.companyName?.isNotEmpty == true) ...[
+                    _buildReadOnlyField('Role', businessData.value?.userRole ?? 'User'),
+                    if (businessData.value?.companyName?.isNotEmpty == true) ...[
                       SizedBox(height: TossSpacing.space4),
-                      _buildReadOnlyField('Company', profile!.companyName!),
+                      _buildReadOnlyField('Company', businessData.value!.companyName),
                     ],
-                    if (profile?.storeName?.isNotEmpty == true) ...[
+                    if (businessData.value?.storeName?.isNotEmpty == true) ...[
                       SizedBox(height: TossSpacing.space4),
-                      _buildReadOnlyField('Store', profile!.storeName!),
+                      _buildReadOnlyField('Store', businessData.value!.storeName),
                     ],
                   ],
                 ),
@@ -313,6 +535,28 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
         ),
       ),
     );
+  }
+  
+  String _getInitials(Map<String, dynamic>? profileData) {
+    if (profileData == null) return 'U';
+    
+    final firstName = profileData['first_name'] ?? '';
+    final lastName = profileData['last_name'] ?? '';
+    
+    if (firstName.isEmpty && lastName.isEmpty) {
+      // Try to get from email
+      final email = profileData['email'] ?? '';
+      if (email.isNotEmpty) {
+        return email[0].toUpperCase();
+      }
+      return 'U';
+    }
+    
+    String initials = '';
+    if (firstName.isNotEmpty) initials += firstName[0].toUpperCase();
+    if (lastName.isNotEmpty) initials += lastName[0].toUpperCase();
+    
+    return initials.isEmpty ? 'U' : initials;
   }
   
   Widget _buildReadOnlyField(String label, String value) {
@@ -355,12 +599,16 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
   }
 
   void _showImagePickerOptions() {
+    final profileDataAsync = ref.read(editProfileDataProvider);
+    final hasImage = _selectedImage != null || 
+                    (profileDataAsync.value?['profile_image'] != null && !_imageRemoved);
+    
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
       builder: (context) => Container(
         decoration: BoxDecoration(
-          color: TossColors.surface,
+          color: TossColors.background,
           borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
         ),
         child: SafeArea(
@@ -405,6 +653,18 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                         await _pickImage(ImageSource.gallery);
                       },
                     ),
+                    if (hasImage) ...[
+                      SizedBox(height: TossSpacing.space3),
+                      _buildImageOption(
+                        icon: Icons.delete_outline,
+                        title: 'Remove Photo',
+                        onTap: () {
+                          Navigator.pop(context);
+                          _removeImage();
+                        },
+                        isDestructive: true,
+                      ),
+                    ],
                     SizedBox(height: TossSpacing.space3),
                     _buildImageOption(
                       icon: Icons.close,
@@ -420,11 +680,20 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
       ),
     );
   }
+  
+  void _removeImage() {
+    setState(() {
+      _selectedImage = null;
+      _imageRemoved = true;
+      _checkForChanges();
+    });
+  }
 
   Widget _buildImageOption({
     required IconData icon,
     required String title,
     required VoidCallback onTap,
+    bool isDestructive = false,
   }) {
     return InkWell(
       onTap: onTap,
@@ -443,7 +712,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
             Icon(
               icon,
               size: 24,
-              color: TossColors.gray700,
+              color: isDestructive ? TossColors.error : TossColors.gray700,
             ),
             SizedBox(width: TossSpacing.space4),
             Expanded(
@@ -451,7 +720,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                 title,
                 style: TossTextStyles.bodyLarge.copyWith(
                   fontWeight: FontWeight.w600,
-                  color: TossColors.gray900,
+                  color: isDestructive ? TossColors.error : TossColors.gray900,
                 ),
               ),
             ),
@@ -462,101 +731,243 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
   }
 
   Future<void> _pickImage(ImageSource source) async {
-    final imageFile = await ProfileImageService.pickImage(source, context);
-    if (imageFile != null) {
-      setState(() {
-        _selectedImage = imageFile;
-        _hasChanges = true;
-      });
-      await _uploadProfileImage(imageFile);
-    }
-  }
-
-  Future<void> _uploadProfileImage(File imageFile) async {
-    setState(() {
-      _isLoading = true;
-    });
-
     try {
-      await ProfileImageService.uploadProfileImage(imageFile, ref);
+      // Check permissions
+      PermissionStatus status;
+      if (source == ImageSource.camera) {
+        status = await Permission.camera.request();
+      } else {
+        status = await Permission.photos.request();
+      }
       
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Profile picture updated successfully'),
-            backgroundColor: TossColors.success,
-          ),
-        );
+      if (!status.isGranted) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Permission denied. Please grant access in settings.'),
+              backgroundColor: TossColors.error,
+              action: SnackBarAction(
+                label: 'Settings',
+                onPressed: () => openAppSettings(),
+              ),
+            ),
+          );
+        }
+        return;
+      }
+      
+      final ImagePicker picker = ImagePicker();
+      final XFile? pickedFile = await picker.pickImage(
+        source: source,
+        imageQuality: 80,
+        maxWidth: 1024,
+        maxHeight: 1024,
+      );
+      
+      if (pickedFile != null) {
+        setState(() {
+          _selectedImage = File(pickedFile.path);
+          _imageRemoved = false;
+          _checkForChanges();
+        });
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(e.toString()),
+            content: Text('Error picking image: $e'),
             backgroundColor: TossColors.error,
           ),
         );
       }
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
     }
   }
+
   
   Future<void> _saveProfile() async {
     if (!_formKey.currentState!.validate()) return;
     
+    // Prevent double-tap
+    if (_isSaving) return;
+    
     setState(() {
+      _isSaving = true;
       _isLoading = true;
     });
     
+    // Show loading overlay
+    if (!mounted) return;
+    TossLoadingOverlay.show(
+      context: context,
+      message: 'Saving profile...',
+    );
+    
     try {
-      final userProfileService = ref.read(userProfileServiceProvider.notifier);
+      // Add a small delay for better UX
+      await Future.delayed(const Duration(milliseconds: 800));
       
-      final phoneValue = _phoneNumberController.text.trim().isEmpty ? null : _phoneNumberController.text.trim();
+      final user = ref.read(authStateProvider);
+      final appState = ref.read(appStateProvider);
       
-      await userProfileService.updateProfile(
-        firstName: _firstNameController.text.trim(),
-        lastName: _lastNameController.text.trim(),
-        phoneNumber: phoneValue,
-        bankName: _bankNameController.text.trim().isEmpty ? null : _bankNameController.text.trim(),
-        bankAccountNumber: _bankAccountController.text.trim().isEmpty ? null : _bankAccountController.text.trim(),
-      );
+      if (user == null) {
+        throw Exception('User not authenticated');
+      }
+      
+      // Determine profile image URL
+      String? profileImageUrl;
+      if (_selectedImage != null) {
+        // Upload new image and get URL
+        final imagePath = 'profile_images/${user.id}/${DateTime.now().millisecondsSinceEpoch}.jpg';
+        final uploadResponse = await Supabase.instance.client.storage
+            .from('icon')
+            .upload(imagePath, _selectedImage!);
+        
+        if (uploadResponse.isNotEmpty) {
+          // Get the public URL
+          profileImageUrl = Supabase.instance.client.storage
+              .from('icon')
+              .getPublicUrl(imagePath);
+        }
+      } else if (_imageRemoved) {
+        // Set to null if image was removed
+        profileImageUrl = null;
+      } else {
+        // Keep existing image URL
+        final currentData = ref.read(editProfileDataProvider).value;
+        profileImageUrl = currentData?['profile_image'];
+      }
+      
+      // Update personal info in users table
+      final personalInfoUpdates = <String, dynamic>{
+        'first_name': _firstNameController.text.trim().isEmpty ? null : _firstNameController.text.trim(),
+        'last_name': _lastNameController.text.trim().isEmpty ? null : _lastNameController.text.trim(),
+        'user_phone_number': _phoneNumberController.text.trim().isEmpty ? null : _phoneNumberController.text.trim(),
+        'updated_at': DateTime.now().toIso8601String(),
+      };
+      
+      // Only include profile_image if it changed
+      if (_selectedImage != null || _imageRemoved) {
+        personalInfoUpdates['profile_image'] = profileImageUrl;
+      }
+      
+      await Supabase.instance.client
+          .from('users')
+          .update(personalInfoUpdates)
+          .eq('user_id', user.id);
+      
+      print('[EditProfile] Updated users table with: $personalInfoUpdates');
+      
+      // Update bank account data in users_bank_account table
+      if (appState.companyChoosen.isNotEmpty) {
+        final bankName = _bankNameController.text.trim();
+        final accountNumber = _bankAccountController.text.trim();
+        final description = _descriptionController.text.trim();
+        
+        // Check if any bank fields have values
+        if (bankName.isNotEmpty || accountNumber.isNotEmpty || description.isNotEmpty) {
+          // Check if record exists
+          final existingRecord = await Supabase.instance.client
+              .from('users_bank_account')
+              .select()
+              .eq('user_id', user.id)
+              .eq('company_id', appState.companyChoosen)
+              .maybeSingle();
+          
+          if (existingRecord != null) {
+            // Update existing record
+            await Supabase.instance.client
+                .from('users_bank_account')
+                .update({
+                  'user_bank_name': bankName.isEmpty ? null : bankName,
+                  'user_account_number': accountNumber.isEmpty ? null : accountNumber,
+                  'description': description.isEmpty ? null : description,
+                  'updated_at': DateTime.now().toIso8601String(),
+                })
+                .eq('user_id', user.id)
+                .eq('company_id', appState.companyChoosen);
+            
+            print('[EditProfile] Updated users_bank_account table');
+          } else {
+            // Insert new record only if at least one field has value
+            await Supabase.instance.client
+                .from('users_bank_account')
+                .insert({
+                  'user_id': user.id,
+                  'company_id': appState.companyChoosen,
+                  'user_bank_name': bankName.isEmpty ? null : bankName,
+                  'user_account_number': accountNumber.isEmpty ? null : accountNumber,
+                  'description': description.isEmpty ? null : description,
+                  'created_at': DateTime.now().toIso8601String(),
+                  'updated_at': DateTime.now().toIso8601String(),
+                });
+            
+            print('[EditProfile] Inserted new users_bank_account record');
+          }
+        }
+      }
+      
+      // Update initial values after successful save
+      _initialFirstName = _firstNameController.text.trim();
+      _initialLastName = _lastNameController.text.trim();
+      _initialPhoneNumber = _phoneNumberController.text.trim();
+      _initialBankName = _bankNameController.text.trim();
+      _initialBankAccount = _bankAccountController.text.trim();
+      _initialDescription = _descriptionController.text.trim();
       
       setState(() {
         _hasChanges = false;
+        _selectedImage = null;
+        _imageRemoved = false;
+        _isLoading = false;
+        _isSaving = false;
       });
       
       // Refresh the profile data to show updated values
+      ref.invalidate(editProfileDataProvider);
+      ref.invalidate(userBankAccountProvider);
       ref.invalidate(currentUserProfileProvider);
+      ref.invalidate(userProfileProvider);
       
       if (mounted) {
-        HapticFeedback.lightImpact();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Profile updated successfully'),
-            backgroundColor: TossColors.success,
-          ),
+        // Hide loading overlay
+        TossLoadingOverlay.hide(context);
+        
+        // Show success dialog
+        await TossResultDialog.showSuccess(
+          context: context,
+          title: 'Profile Updated',
+          message: 'Your profile has been successfully updated.',
+          autoDismiss: true,
+          autoDismissDelay: const Duration(seconds: 2),
+          onButtonPressed: () {
+            if (mounted) {
+              context.safePop();
+            }
+          },
         );
-        context.safePop();
+        
+        // Navigate back after dialog auto-dismisses
+        if (mounted) {
+          context.safePop();
+        }
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error updating profile: $e'),
-            backgroundColor: TossColors.error,
-          ),
-        );
-      }
-    } finally {
-      if (mounted) {
         setState(() {
           _isLoading = false;
+          _isSaving = false;
         });
+        
+        // Hide loading overlay
+        TossLoadingOverlay.hide(context);
+        
+        // Show error dialog
+        await TossResultDialog.showError(
+          context: context,
+          title: 'Update Failed',
+          message: 'Failed to update profile. Please try again.',
+          buttonText: 'OK',
+        );
       }
     }
   }

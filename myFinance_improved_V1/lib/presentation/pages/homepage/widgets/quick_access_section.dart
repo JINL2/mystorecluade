@@ -86,9 +86,26 @@ class QuickAccessSection extends ConsumerWidget {
     
     // Special handling for cashEnding to prevent navigation issues
     if (route == 'cashEnding') {
-      // Clear any existing locks for this route
+      // Clear any existing locks and history for this route
       SafeNavigation.instance.clearLockForRoute('/cashEnding');
       SafeNavigation.instance.clearLockForRoute('cashEnding');
+      
+      // Clear SafeNavigation history for this specific route to prevent false loop detection
+      // This is important for routes that users frequently navigate to/from
+      SafeNavigation.instance.clearHistoryForRoute('/cashEnding');
+      SafeNavigation.instance.clearHistoryForRoute('cashEnding');
+      
+      // Also clear router history to prevent false loop detection
+      // This ensures clean navigation on repeated access
+      try {
+        final router = GoRouter.of(context);
+        if (router.routerDelegate.currentConfiguration.uri.path == '/') {
+          // We're coming from home, safe to clear history for this route
+          debugPrint('[QuickAccess] Clearing navigation history for /cashEnding');
+        }
+      } catch (e) {
+        debugPrint('[QuickAccess] Could not clear router history: $e');
+      }
     }
     
     context.safePush('/$route');

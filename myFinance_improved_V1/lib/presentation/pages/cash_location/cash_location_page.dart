@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../../core/themes/toss_text_styles.dart';
 import '../../../core/themes/toss_spacing.dart';
 import '../../../core/themes/toss_border_radius.dart';
 import '../../../core/themes/toss_shadows.dart';
 import '../../../core/themes/toss_colors.dart';
+import '../../../core/themes/toss_animations.dart';
 import '../../providers/app_state_provider.dart';
 import '../../widgets/toss/toss_tab_bar.dart';
 import '../../../data/services/cash_location_service.dart';
@@ -27,9 +27,15 @@ class CashLocationPage extends ConsumerStatefulWidget {
 }
 
 class _CashLocationPageState extends ConsumerState<CashLocationPage>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin, WidgetsBindingObserver {
   late TabController _tabController;
+  late AnimationController _entryController;
+  late AnimationController _refreshController;
+  late AnimationController _loadingController;
+  late List<Animation<double>> _animations;
+  late Animation<double> _loadingAnimation;
   int _selectedTab = 0;
+  bool _isRefreshing = false;
   
   @override
   void initState() {
@@ -40,24 +46,112 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
         setState(() {
           _selectedTab = _tabController.index;
         });
-        // Data will be filtered client-side, no need to refresh
+        // Reset and replay animations when switching tabs
+        _entryController.reset();
+        _entryController.forward();
       }
     });
+    
+    // Setup animations
+    _setupAnimations();
+    
+    // Add observer to detect when app comes to foreground
+    WidgetsBinding.instance.addObserver(this);
+    
+    // Force initial data refresh
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _forceRefreshData();
+      _entryController.forward();
+    });
+  }
+  
+  void _setupAnimations() {
+    _entryController = AnimationController(
+      duration: TossAnimations.slower,  // 400ms for entrance animations
+      vsync: this,
+    );
+    
+    _refreshController = AnimationController(
+      duration: TossAnimations.medium,  // 250ms for refresh animations
+      vsync: this,
+    );
+    
+    _loadingController = AnimationController(
+      duration: const Duration(seconds: 1),
+      vsync: this,
+    );
+    
+    // Create staggered animations for balance and accounts sections
+    _animations = [
+      // Balance section animation - starts immediately
+      Tween<double>(begin: 0, end: 1).animate(
+        CurvedAnimation(
+          parent: _entryController,
+          curve: const Interval(0, 0.6, curve: Curves.easeOutCubic),
+        ),
+      ),
+      // Accounts section animation - starts slightly delayed
+      Tween<double>(begin: 0, end: 1).animate(
+        CurvedAnimation(
+          parent: _entryController,
+          curve: const Interval(0.15, 0.75, curve: Curves.easeOutCubic),
+        ),
+      ),
+    ];
+    
+    // Circular loading animation
+    _loadingAnimation = Tween<double>(begin: 0, end: 1).animate(
+      CurvedAnimation(
+        parent: _loadingController,
+        curve: Curves.linear,
+      ),
+    );
   }
   
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _tabController.dispose();
+    _entryController.dispose();
+    _refreshController.dispose();
+    _loadingController.dispose();
     super.dispose();
   }
   
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    // Refresh data when app returns to foreground
+    if (state == AppLifecycleState.resumed) {
+      print('App resumed - refreshing cash location data');
+      _forceRefreshData();
+    }
+  }
+  
   Future<void> _refreshData() async {
+    if (_isRefreshing) return;
+    
+    setState(() {
+      _isRefreshing = true;
+    });
+    
+    // Start circular loading animation
+    _loadingController.repeat();
+    
+    // Reset animations for fresh display after refresh
+    _entryController.reset();
+    
     try {
       final appState = ref.read(appStateProvider);
       final companyId = appState.companyChoosen;
       final storeId = appState.storeChoosen;
       
       if (companyId.isNotEmpty && storeId.isNotEmpty) {
+        print('Refreshing cash location data via pull-to-refresh');
+        
+        // Add a small delay to ensure loading animation is visible
+        await Future.delayed(const Duration(milliseconds: 300));
+        
         // Invalidate the provider to force a refresh
         ref.invalidate(allCashLocationsProvider(
           CashLocationQueryParams(
@@ -66,8 +160,19 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
           ),
         ));
         
-        // Wait for the refresh to complete
-        await Future.delayed(const Duration(milliseconds: 500));
+        // Force the provider to re-fetch by reading it again
+        await ref.read(allCashLocationsProvider(
+          CashLocationQueryParams(
+            companyId: companyId,
+            storeId: storeId,
+          ),
+        ).future);
+        
+        // Stop loading animation and play entrance animation
+        _loadingController.stop();
+        _loadingController.reset();
+        // Play entrance animation for smooth transition
+        _entryController.forward();
         
         // Show success feedback
         if (mounted) {
@@ -85,6 +190,7 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
         }
       }
     } catch (e) {
+      print('Error refreshing cash location data: $e');
       // Show error feedback
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -99,6 +205,37 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
           ),
         );
       }
+    } finally {
+      // Stop loading animation and reset state
+      if (mounted) {
+        _loadingController.stop();
+        _loadingController.reset();
+        setState(() {
+          _isRefreshing = false;
+        });
+      }
+    }
+  }
+  
+  // Force refresh without showing feedback (for navigation and lifecycle)
+  void _forceRefreshData() {
+    final appState = ref.read(appStateProvider);
+    final companyId = appState.companyChoosen;
+    final storeId = appState.storeChoosen;
+    
+    if (companyId.isNotEmpty && storeId.isNotEmpty) {
+      print('Force refreshing cash location data');
+      // Invalidate to ensure fresh data
+      ref.invalidate(allCashLocationsProvider(
+        CashLocationQueryParams(
+          companyId: companyId,
+          storeId: storeId,
+        ),
+      ));
+      
+      // Replay animations when data refreshes
+      _entryController.reset();
+      _entryController.forward();
     }
   }
   
@@ -131,6 +268,7 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
       return TossScaffold(
         appBar: TossAppBar(
           title: 'Cash Control',
+          backgroundColor: const Color(0xFFF7F8FA),
         ),
         backgroundColor: const Color(0xFFF7F8FA),
         body: SafeArea(
@@ -163,6 +301,7 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
     return TossScaffold(
       appBar: TossAppBar(
         title: 'Cash Control',
+        backgroundColor: const Color(0xFFF7F8FA),
       ),
       backgroundColor: const Color(0xFFF7F8FA),
       body: SafeArea(
@@ -180,31 +319,94 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
                       .where((location) => location.locationType == _currentLocationType)
                       .toList();
                   
+                  // Ensure animations play when data loads
+                  if (_entryController.status == AnimationStatus.dismissed) {
+                    _entryController.forward();
+                  }
+                  
                   return RefreshIndicator(
                     onRefresh: _refreshData,
-                    color: TossColors.primary,
-                    child: SingleChildScrollView(
+                    color: Colors.transparent,
+                    backgroundColor: Colors.transparent,
+                    displacement: 0,
+                    strokeWidth: 0,
+                    edgeOffset: 0,  // Remove edge offset to prevent visual interference
+                    child: CustomScrollView(
                       physics: const AlwaysScrollableScrollPhysics(),
-                      padding: EdgeInsets.all(TossSpacing.space4),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Balance Section
-                          _buildBalanceSection(filteredLocations),
-                          
-                          SizedBox(height: TossSpacing.space4),
-                          
-                          // Accounts Section
-                          _buildAccountsSection(filteredLocations),
-                        ],
-                      ),
+                      slivers: [
+                        // Loading indicator when refreshing
+                        if (_isRefreshing)
+                          SliverToBoxAdapter(
+                            child: Container(
+                              alignment: Alignment.center,
+                              padding: EdgeInsets.symmetric(vertical: 12),
+                              child: _buildLoadingIndicator(),
+                            ),
+                          ),
+                        // Main content
+                        SliverPadding(
+                          padding: EdgeInsets.only(
+                            left: TossSpacing.space4,
+                            right: TossSpacing.space4,
+                            top: _isRefreshing ? 0 : TossSpacing.space4,
+                            bottom: 0,
+                          ),
+                          sliver: SliverList(
+                            delegate: SliverChildListDelegate([
+                              // Balance Section with animation - always visible
+                              AnimatedBuilder(
+                                animation: _animations[0],
+                                builder: (context, child) {
+                                  return Opacity(
+                                    opacity: _animations[0].value,
+                                    child: Transform.translate(
+                                      offset: Offset(0, 20 * (1 - _animations[0].value)),
+                                      child: Transform.scale(
+                                        scale: 0.95 + (0.05 * _animations[0].value),
+                                        child: child,
+                                      ),
+                                    ),
+                                  );
+                                },
+                                child: _buildBalanceSection(filteredLocations),
+                              ),
+                              
+                              SizedBox(height: TossSpacing.space3),
+                              
+                              // Accounts Section with animation - always visible
+                              AnimatedBuilder(
+                                animation: _animations[1],
+                                builder: (context, child) {
+                                  return Opacity(
+                                    opacity: _animations[1].value,
+                                    child: Transform.translate(
+                                      offset: Offset(0, 20 * (1 - _animations[1].value)),
+                                      child: Transform.scale(
+                                        scale: 0.95 + (0.05 * _animations[1].value),
+                                        child: child,
+                                      ),
+                                    ),
+                                  );
+                                },
+                                child: _buildAccountsSection(filteredLocations),
+                              ),
+                            ]),
+                          ),
+                        ),
+                      ],
                     ),
                   );
                 },
-                loading: () => const Center(child: CircularProgressIndicator()),
+                loading: () => Center(
+                  child: _buildLoadingIndicator(),
+                ),
                 error: (error, stack) => RefreshIndicator(
                   onRefresh: _refreshData,
-                  color: TossColors.primary,
+                  color: Colors.transparent,
+                  backgroundColor: Colors.transparent,
+                  displacement: 0,
+                  strokeWidth: 0,
+                  edgeOffset: 0,
                   child: SingleChildScrollView(
                     physics: const AlwaysScrollableScrollPhysics(),
                     child: Container(
@@ -301,7 +503,40 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
     );
   }
   
+  Widget _buildLoadingIndicator() {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 20,
+          height: 20,
+          child: AnimatedBuilder(
+            animation: _loadingAnimation,
+            builder: (context, child) {
+              return CustomPaint(
+                painter: _CircularLoadingPainter(
+                  progress: _loadingAnimation.value,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+              );
+            },
+          ),
+        ),
+        SizedBox(width: TossSpacing.space2),
+        Text(
+          'Refreshing...',
+          style: TossTextStyles.caption.copyWith(
+            color: Theme.of(context).colorScheme.primary,
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ],
+    );
+  }
+  
   Widget _buildBalanceSection(List<CashLocation> cashLocations) {
+    
     // Calculate totals from cash locations
     final totalJournal = cashLocations.fold<double>(
       0, (sum, location) => sum + location.totalJournalCashAmount
@@ -425,9 +660,6 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: () async {
-        // Refresh data before navigating
-        _refreshData();
-        
         // Navigate to appropriate page based on label
         if (label.toLowerCase().contains('journal')) {
           // Total Journal works for all tabs (cash, bank, vault)
@@ -468,8 +700,8 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
           }
         }
         
-        // Refresh data when returning from detail pages
-        _refreshData();
+        // Force refresh data when returning from detail pages
+        _forceRefreshData();
       },
       child: rowContent,
     );
@@ -482,7 +714,12 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
     );
     
     return Container(
-      padding: EdgeInsets.all(TossSpacing.space5),
+      padding: EdgeInsets.only(
+        left: TossSpacing.space5,
+        right: TossSpacing.space5,
+        top: TossSpacing.space5,
+        bottom: TossSpacing.space4,  // Reduced bottom padding
+      ),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(TossBorderRadius.lg),
@@ -500,12 +737,54 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
           ),
           SizedBox(height: TossSpacing.space3),
           
-          ...cashLocations.map((location) => _buildAccountCard(location, totalAmount)),
+          ...cashLocations.asMap().entries.map((entry) {
+            final index = entry.key;
+            final location = entry.value;
+            // Add staggered animation for each card
+            return AnimatedBuilder(
+              key: ValueKey('${_currentLocationType}_${location.locationId}'),
+              animation: _entryController,
+              builder: (context, child) {
+                // Only staggered entrance animation, no refresh animation
+                final delayFactor = (index * 0.1).clamp(0.0, 0.5);
+                final progress = Curves.easeOutCubic.transform(
+                  (_entryController.value - delayFactor).clamp(0.0, 1.0)
+                );
+                return Opacity(
+                  opacity: progress,
+                  child: Transform.translate(
+                    offset: Offset(0, 15 * (1 - progress)),
+                    child: Transform.scale(
+                      scale: 0.95 + (0.05 * progress),
+                      child: child,
+                    ),
+                  ),
+                );
+              },
+              child: _buildAccountCard(location, totalAmount),
+            );
+          }),
           
-          // Add New Account button
-          GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTap: () async {
+          // Add New Account button with animation
+          AnimatedBuilder(
+            animation: _entryController,
+            builder: (context, child) {
+              // Only entrance animation with delay, no refresh animation
+              final delayFactor = ((cashLocations.length * 0.1) + 0.2).clamp(0.0, 0.6);
+              final progress = Curves.easeOutCubic.transform(
+                (_entryController.value - delayFactor).clamp(0.0, 1.0)
+              );
+              return Opacity(
+                opacity: progress,
+                child: Transform.translate(
+                  offset: Offset(0, 10 * (1 - progress)),
+                  child: child,
+                ),
+              );
+            },
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () async {
               // Navigate to Add Account page
               await Navigator.push(
                 context,
@@ -516,12 +795,13 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
                 ),
               );
               
-              // Refresh data when returning from add account page
-              _refreshData();
+              // Force refresh data when returning from add account page
+              _forceRefreshData();
             },
             child: Container(
-              padding: EdgeInsets.symmetric(
-                vertical: TossSpacing.space4,
+              padding: EdgeInsets.only(
+                top: TossSpacing.space3,
+                bottom: 0,  // No bottom padding
               ),
               child: Row(
                 children: [
@@ -554,7 +834,8 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
                 ],
               ),
             ),
-          ),
+          ),  // Closing GestureDetector
+          ),  // Closing AnimatedBuilder
         ],
       ),
     );
@@ -569,8 +850,7 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: () async {
-        // Refresh data before navigating
-        _refreshData();
+        print('Navigating to account detail: ${location.locationName}');
         
         // Debug logging (uncomment for debugging)
         // print('Navigating to account detail:');
@@ -594,12 +874,13 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
           },
         );
         
-        // Refresh data when returning from detail page
-        _refreshData();
+        print('Returned from account detail - forcing refresh');
+        // Force refresh data when returning from detail page
+        _forceRefreshData();
       },
       child: Container(
         padding: EdgeInsets.symmetric(
-          vertical: TossSpacing.space4,
+          vertical: TossSpacing.space3,  // Reduced vertical padding
         ),
         child: Row(
           children: [
@@ -608,7 +889,7 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
                 width: 44,
                 height: 44,
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primary.withOpacity(0.08),
+                  color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Icon(
@@ -706,5 +987,52 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
       default:
         return 'Add New Cash Account';
     }
+  }
+}
+
+class _CircularLoadingPainter extends CustomPainter {
+  final double progress;
+  final Color color;
+
+  _CircularLoadingPainter({
+    required this.progress,
+    required this.color,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = size.width / 2.5;  // Adjusted for smaller indicator
+    
+    // Background circle (light gray)
+    final backgroundPaint = Paint()
+      ..color = Colors.grey.withValues(alpha: 0.2)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.5;
+    
+    canvas.drawCircle(center, radius, backgroundPaint);
+    
+    // Progress arc
+    final progressPaint = Paint()
+      ..color = color
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.5
+      ..strokeCap = StrokeCap.round;
+    
+    final startAngle = -90 * (3.14159 / 180);
+    final sweepAngle = 360 * progress * (3.14159 / 180);
+    
+    canvas.drawArc(
+      Rect.fromCenter(center: center, width: radius * 2, height: radius * 2),
+      startAngle,
+      sweepAngle,
+      false,
+      progressPaint,
+    );
+  }
+
+  @override
+  bool shouldRepaint(_CircularLoadingPainter oldDelegate) {
+    return oldDelegate.progress != progress || oldDelegate.color != color;
   }
 }

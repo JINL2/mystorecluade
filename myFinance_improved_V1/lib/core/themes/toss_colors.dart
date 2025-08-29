@@ -50,6 +50,9 @@ class TossColors {
   static const Color profit = Color(0xFF00C896);         // Positive (green) - same as success
   static const Color loss = Color(0xFFFF5847);           // Negative (red) - same as error
   
+  // Balance sheet specific color
+  static const Color balanceSheetPrimary = Color(0xFF17A2B8); // Teal color for Financial Statements app bar
+  
   // ==================== SURFACE COLORS ====================
   static const Color background = Color(0xFFFFFFFF);     // Main bg
   static const Color surface = Color(0xFFFFFFFF);        // Card surface
