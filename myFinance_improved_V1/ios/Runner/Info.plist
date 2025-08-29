@@ -53,5 +53,12 @@
 		<string>This app needs photo library access to attach receipt images and document photos to transactions.</string>
 		<key>UIStatusBarHidden</key>
 		<false/>
+		<key>UIBackgroundModes</key>
+		<array>
+			<string>fetch</string>
+			<string>remote-notification</string>
+		</array>
+		<key>FirebaseMessagingAutoInitEnabled</key>
+		<true/>
 	</dict>
 </plist>

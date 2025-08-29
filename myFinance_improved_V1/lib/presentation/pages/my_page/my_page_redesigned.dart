@@ -143,8 +143,6 @@ class _MyPageRedesignedState extends ConsumerState<MyPageRedesigned>
     );
   }
 
-  // Removed _buildModernAppBar as we're using inline app bar now
-
   Widget _buildMainProfileSection(UserProfile? profile, BusinessDashboardData? businessData) {
     if (profile == null) return const SizedBox.shrink();
 
