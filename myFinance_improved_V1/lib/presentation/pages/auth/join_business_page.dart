@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import '../../../core/themes/toss_colors.dart';
 import '../../../core/themes/toss_text_styles.dart';
 import '../../../core/themes/toss_spacing.dart';
@@ -191,7 +190,6 @@ class _JoinBusinessPageState extends ConsumerState<JoinBusinessPage>
                   );
                 });
                 
-                // Auto-join when maximum length is reached
                 if (value.length == AuthConstants.businessCodeMaxLength) {
                   _handleJoinBusiness();
                 }

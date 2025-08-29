@@ -148,11 +148,8 @@ class _AuthSignupPageState extends ConsumerState<AuthSignupPage>
   
   @override
   void dispose() {
-    try {
-      _animationController.stop();
-      _animationController.dispose();
-    } catch (e) {
-    }
+    _animationController.stop();
+    _animationController.dispose();
     
     _emailController.dispose();
     _passwordController.dispose();

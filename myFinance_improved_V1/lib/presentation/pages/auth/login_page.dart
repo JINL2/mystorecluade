@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import '../../../core/themes/toss_colors.dart';
 import '../../../core/themes/toss_text_styles.dart';
 import '../../../core/themes/toss_spacing.dart';
@@ -48,7 +47,6 @@ class _LoginPageState extends ConsumerState<LoginPage>
   void initState() {
     super.initState();
     
-    // Initialize animations
     _animationController = AnimationController(
       duration: TossAnimations.normal,
       vsync: this,
@@ -59,7 +57,6 @@ class _LoginPageState extends ConsumerState<LoginPage>
       vsync: this,
     );
     
-    // Button pulse animation
     _buttonPulseController = AnimationController(
       duration: const Duration(milliseconds: AuthConstants.buttonPulseAnimationMs),
       vsync: this,
@@ -97,17 +94,13 @@ class _LoginPageState extends ConsumerState<LoginPage>
       curve: Curves.easeInOut,
     ));
     
-    // Email validation listener
     _emailController.addListener(_onEmailChanged);
     
     _animationController.forward();
     
     _buttonPulseController.repeat(reverse: true);
-    
-    // Router will handle authenticated user redirects automatically
   }
   
-
   void _onEmailChanged() {
     if (!mounted) return;
     
@@ -162,10 +155,8 @@ class _LoginPageState extends ConsumerState<LoginPage>
       body: SafeArea(
         child: Column(
           children: [
-            // Storebase branded header
             const StorebaseAuthHeader(),
             
-            // Main content with animation
             Expanded(
               child: SingleChildScrollView(
                 padding: EdgeInsets.all(TossSpacing.space5),
@@ -180,16 +171,13 @@ class _LoginPageState extends ConsumerState<LoginPage>
                         children: [
                           const SizedBox(height: TossSpacing.space6),
                           
-                          // Professional welcome section
                           _buildWelcomeSection(),
                 
                           
                           const SizedBox(height: TossSpacing.space8),
                           
-                          // Progressive form fields with smart revelation
                           _buildEnhancedEmailField(),
                           
-                          // Animated password field reveal
                           AnimatedContainer(
                             duration: const Duration(milliseconds: 600),
                             curve: Curves.easeOutCubic,
@@ -215,16 +203,13 @@ class _LoginPageState extends ConsumerState<LoginPage>
                           
                           const SizedBox(height: TossSpacing.space3),
                           
-                          // Forgot password with trust indicators
                           _buildForgotPasswordSection(),
                 
                           
-                          // Dynamic spacing based on screen height
                           SizedBox(
                             height: MediaQuery.of(context).size.height * 0.1,
                           ),
                           
-                          // Enhanced login button with smart interactions
                           AnimatedBuilder(
                             animation: _buttonPulseAnimation,
                             builder: (context, child) {
@@ -239,15 +224,12 @@ class _LoginPageState extends ConsumerState<LoginPage>
                           
                           const SizedBox(height: TossSpacing.space4),
                           
-                          // Professional signup link
                           _buildSignupSection(),
                           
                           const SizedBox(height: TossSpacing.space4),
                           
-                          // Trust indicators
                           _buildTrustIndicators(),
                           
-                          // Bottom padding for better keyboard handling
                           const SizedBox(height: TossSpacing.space8),
                         ],
                       ),
