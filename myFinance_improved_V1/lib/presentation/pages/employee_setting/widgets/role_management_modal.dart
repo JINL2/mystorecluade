@@ -235,7 +235,7 @@ class _RoleManagementModalState extends ConsumerState<RoleManagementModal> {
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: Offset(0, -2),
           ),
@@ -367,7 +367,7 @@ class _RoleItem extends StatelessWidget {
         margin: EdgeInsets.only(bottom: TossSpacing.space3),
         padding: EdgeInsets.all(TossSpacing.space4),
         decoration: BoxDecoration(
-          color: isSelected ? TossColors.primary.withOpacity(0.05) : TossColors.background,
+          color: isSelected ? TossColors.primary.withValues(alpha: 0.05) : TossColors.background,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: isSelected ? TossColors.primary : TossColors.gray200,

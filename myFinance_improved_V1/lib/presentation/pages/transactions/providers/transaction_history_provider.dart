@@ -126,52 +126,6 @@ class TransactionHistory extends _$TransactionHistory {
       state = AsyncValue.error(e, StackTrace.current);
     }
   }
-
-  Future<void> searchTransactions(String query) async {
-    if (query.isEmpty) {
-      await refresh();
-      return;
-    }
-
-    state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() async {
-      final allTransactions = await _fetchTransactions();
-      
-      return allTransactions.where((transaction) {
-        final searchLower = query.toLowerCase();
-        
-        // Search in description
-        if (transaction.description.toLowerCase().contains(searchLower)) {
-          return true;
-        }
-        
-        // Search in journal number
-        if (transaction.journalNumber.toLowerCase().contains(searchLower)) {
-          return true;
-        }
-        
-        // Search in account names
-        if (transaction.lines.any((line) => 
-            line.accountName.toLowerCase().contains(searchLower))) {
-          return true;
-        }
-        
-        // Search in counterparty names
-        if (transaction.lines.any((line) => 
-            (line.counterparty?['name'] as String?)?.toLowerCase().contains(searchLower) ?? false)) {
-          return true;
-        }
-        
-        // Search in cash location names
-        if (transaction.lines.any((line) => 
-            (line.cashLocation?['name'] as String?)?.toLowerCase().contains(searchLower) ?? false)) {
-          return true;
-        }
-        
-        return false;
-      }).toList();
-    });
-  }
 }
 
 // Provider for current filter

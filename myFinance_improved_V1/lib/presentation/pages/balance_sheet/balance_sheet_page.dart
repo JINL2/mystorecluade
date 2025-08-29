@@ -342,8 +342,6 @@ class _BalanceSheetPageState extends ConsumerState<BalanceSheetPage>
   Widget build(BuildContext context) {
     // Watch the app state and providers exactly like homepage
     final userCompaniesAsync = ref.watch(userCompaniesProvider);
-    final categoriesAsync = ref.watch(categoriesWithFeaturesProvider);
-    final appState = ref.watch(appStateProvider);
     final selectedCompany = ref.watch(balanceSheetSelectedCompanyProvider);
     final selectedStore = ref.watch(balanceSheetSelectedStoreProvider);
 
@@ -2564,7 +2562,6 @@ class _TossDateRangePickerState extends State<_TossDateRangePicker> {
   late DateTime? _fromDate;
   late DateTime? _toDate;
   late DateTime _currentMonth;
-  bool _isSelectingFromDate = true;
 
   @override
   void initState() {
@@ -3048,28 +3045,3 @@ class _TossDateRangePickerState extends State<_TossDateRangePicker> {
   }
 }
 
-// Custom delegate for tab bar - Not needed anymore since we're not using SliverPersistentHeader
-// Keeping for potential future use
-class _TabBarDelegate extends SliverPersistentHeaderDelegate {
-  final TabBar tabBar;
-
-  _TabBarDelegate(this.tabBar);
-
-  @override
-  double get minExtent => tabBar.preferredSize.height;
-  @override
-  double get maxExtent => tabBar.preferredSize.height;
-
-  @override
-  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
-    return Container(
-      color: TossColors.background,
-      child: tabBar,
-    );
-  }
-
-  @override
-  bool shouldRebuild(_TabBarDelegate oldDelegate) {
-    return false;
-  }
-}

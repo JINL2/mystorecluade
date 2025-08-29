@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:myfinance_improved/core/themes/toss_colors.dart';
 import 'package:myfinance_improved/core/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/core/themes/toss_spacing.dart';
@@ -11,10 +10,8 @@ import 'models/account_mapping_models.dart';
 import 'providers/account_mapping_providers.dart';
 import 'widgets/account_mapping_form.dart';
 import 'widgets/account_mapping_list_item.dart';
-import '../../providers/app_state_provider.dart';
 import '../../widgets/common/toss_scaffold.dart';
 import '../../widgets/common/toss_app_bar.dart';
-import '../../widgets/common/toss_empty_view.dart';
 import '../../../core/navigation/safe_navigation.dart';
 
 class DebtAccountSettingsPage extends ConsumerStatefulWidget {
@@ -60,33 +57,8 @@ class _DebtAccountSettingsPageState extends ConsumerState<DebtAccountSettingsPag
     ref.invalidate(accountMappingsProvider(widget.counterpartyId));
   }
 
-  void _showCreateMappingForm() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: TossColors.transparent,
-      barrierColor: TossColors.overlay,
-      enableDrag: true, // Allow swipe-to-dismiss
-      constraints: BoxConstraints(
-        maxHeight: MediaQuery.of(context).size.height * 0.8,
-      ),
-      builder: (context) => Container(
-        decoration: BoxDecoration(
-          color: TossColors.surface,
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(TossBorderRadius.xl),
-            topRight: Radius.circular(TossBorderRadius.xl),
-          ),
-        ),
-        child: AccountMappingForm(
-          counterpartyId: widget.counterpartyId,
-          counterpartyName: widget.counterpartyName,
-        ),
-      ),
-    );
-  }
-
-  void _showEditMappingForm(AccountMapping mapping) {
+  // Common helper method to show modal bottom sheet forms
+  void _showMappingFormModal(AccountMapping? mapping) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -111,6 +83,14 @@ class _DebtAccountSettingsPageState extends ConsumerState<DebtAccountSettingsPag
         ),
       ),
     );
+  }
+
+  void _showCreateMappingForm() {
+    _showMappingFormModal(null);
+  }
+
+  void _showEditMappingForm(AccountMapping mapping) {
+    _showMappingFormModal(mapping);
   }
 
   Future<void> _deleteMapping(AccountMapping mapping) async {
@@ -162,7 +142,6 @@ class _DebtAccountSettingsPageState extends ConsumerState<DebtAccountSettingsPag
   @override
   Widget build(BuildContext context) {
     final mappingsAsync = ref.watch(accountMappingsProvider(widget.counterpartyId));
-    final selectedCompany = ref.watch(selectedCompanyProvider);
 
     return TossScaffold(
       backgroundColor: TossColors.gray100,
@@ -224,7 +203,7 @@ class _DebtAccountSettingsPageState extends ConsumerState<DebtAccountSettingsPag
                 width: UIConstants.profileAvatarSize,
                 height: UIConstants.profileAvatarSize,
                 decoration: BoxDecoration(
-                  color: TossColors.primary.withOpacity(0.1),
+                  color: TossColors.primary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(TossBorderRadius.sm),
                 ),
                 child: Icon(

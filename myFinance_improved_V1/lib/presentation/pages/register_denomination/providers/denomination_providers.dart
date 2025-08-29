@@ -144,28 +144,17 @@ class DenominationOperationsNotifier extends StateNotifier<AsyncValue<void>> {
   }
 
   Future<void> removeDenomination(String denominationId, String currencyId) async {
-    print('=== OPERATIONS PROVIDER DEBUG START ===');
-    print('DenominationOperationsNotifier: Starting removal of denomination');
-    print('  Denomination ID: $denominationId');
-    print('  Currency ID: $currencyId');
     state = const AsyncValue.loading();
     
     try {
-      print('Calling repository.removeDenomination...');
       await _repository.removeDenomination(denominationId);
-      print('✅ DenominationOperationsNotifier: Successfully removed denomination $denominationId');
       
       // Refresh the denomination list for this currency
-      print('Invalidating providers for currency: $currencyId');
       _ref.invalidate(denominationListProvider(currencyId));
       _ref.invalidate(denominationStatsProvider(currencyId));
       
       state = const AsyncValue.data(null);
-      print('=== OPERATIONS PROVIDER DEBUG END - SUCCESS ===');
     } catch (error, stackTrace) {
-      print('❌ DenominationOperationsNotifier: Error removing denomination: $error');
-      print('Stack trace: $stackTrace');
-      print('=== OPERATIONS PROVIDER DEBUG END - ERROR ===');
       state = AsyncValue.error(error, stackTrace);
       // Re-throw to propagate the error
       rethrow;

@@ -711,7 +711,7 @@ class _EmployeeSettingPageV2State extends ConsumerState<EmployeeSettingPageV2>
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Text(
-                      '${employee.symbol ?? '\$'}${_formatSalary(employee.salaryAmount)}',
+                      '${employee.symbol}${_formatSalary(employee.salaryAmount)}',
                       style: TossTextStyles.bodyLarge.copyWith(
                         color: TossColors.primary,
                         fontWeight: FontWeight.w700,

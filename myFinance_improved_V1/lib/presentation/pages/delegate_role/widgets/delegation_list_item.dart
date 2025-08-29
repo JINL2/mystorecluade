@@ -89,7 +89,7 @@ class DelegationListItem extends StatelessWidget {
                       ),
                       decoration: BoxDecoration(
                         color: isActive 
-                          ? TossColors.success.withOpacity(0.1) 
+                          ? TossColors.success.withValues(alpha: 0.1) 
                           : TossColors.gray200,
                         borderRadius: BorderRadius.circular(TossBorderRadius.sm),
                       ),
@@ -150,7 +150,7 @@ class DelegationListItem extends StatelessWidget {
                           vertical: 2,
                         ),
                         decoration: BoxDecoration(
-                          color: TossColors.warning.withOpacity(0.1),
+                          color: TossColors.warning.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                         ),
                         child: Text(

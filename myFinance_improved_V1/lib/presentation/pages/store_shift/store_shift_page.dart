@@ -54,10 +54,6 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
     super.dispose();
   }
 
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    // Handle app lifecycle changes if needed
-  }
 
   // Helper method to show error messages
   void _showErrorMessage(String message) {
@@ -87,10 +83,6 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
     }
   }
 
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -305,7 +297,7 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
                 width: TossSpacing.iconXL + TossSpacing.space2,
                 height: TossSpacing.iconXL + TossSpacing.space2,
                 decoration: BoxDecoration(
-                  color: TossColors.primary.withOpacity(0.1),
+                  color: TossColors.primary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                 ),
                 child: Icon(
@@ -520,12 +512,12 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-        splashColor: TossColors.primary.withOpacity(0.1),
-        highlightColor: TossColors.primary.withOpacity(0.05),
+        splashColor: TossColors.primary.withValues(alpha: 0.1),
+        highlightColor: TossColors.primary.withValues(alpha: 0.05),
         child: Ink(
           padding: const EdgeInsets.all(TossSpacing.space3),
           decoration: BoxDecoration(
-            color: onTap != null ? TossColors.gray50 : TossColors.gray50.withOpacity(0.5),
+            color: onTap != null ? TossColors.gray50 : TossColors.gray50.withValues(alpha: 0.5),
             borderRadius: BorderRadius.circular(TossBorderRadius.lg),
           ),
         child: Row(
@@ -640,12 +632,12 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
               color: TossColors.background,
               borderRadius: BorderRadius.circular(TossBorderRadius.xl),
               border: Border.all(
-                color: selectedStore != null ? TossColors.primary.withOpacity(0.3) : TossColors.gray200,
+                color: selectedStore != null ? TossColors.primary.withValues(alpha: 0.3) : TossColors.gray200,
                 width: selectedStore != null ? 1.5 : 1,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: TossColors.black.withOpacity(0.04),
+                  color: TossColors.black.withValues(alpha: 0.04),
                   blurRadius: 8,
                   offset: const Offset(0, 2),
                 ),
@@ -658,7 +650,7 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
                   height: TossSpacing.iconXL,
                   decoration: BoxDecoration(
                     color: selectedStore != null
-                      ? TossColors.primary.withOpacity(0.1) 
+                      ? TossColors.primary.withValues(alpha: 0.1) 
                       : TossColors.gray50,
                     borderRadius: BorderRadius.circular(TossBorderRadius.md),
                   ),
@@ -742,7 +734,7 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
         ),
         boxShadow: [
           BoxShadow(
-            color: TossColors.black.withOpacity(0.04),
+            color: TossColors.black.withValues(alpha: 0.04),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -768,7 +760,7 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
                     gradient: LinearGradient(
                       colors: [
                         TossColors.primary,
-                        TossColors.primary.withOpacity(0.8),
+                        TossColors.primary.withValues(alpha: 0.8),
                       ],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
@@ -776,7 +768,7 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
                     borderRadius: BorderRadius.circular(TossBorderRadius.xl),
                     boxShadow: [
                       BoxShadow(
-                        color: TossColors.primary.withOpacity(0.3),
+                        color: TossColors.primary.withValues(alpha: 0.3),
                         blurRadius: 12,
                         offset: const Offset(0, 4),
                       ),
@@ -885,7 +877,7 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
                       vertical: 2,
                     ),
                     decoration: BoxDecoration(
-                      color: TossColors.primary.withOpacity(0.1),
+                      color: TossColors.primary.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(TossBorderRadius.full),
                     ),
                     child: Text(
@@ -926,7 +918,7 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
       error: (error, stack) => Container(
         padding: const EdgeInsets.all(TossSpacing.space4),
         decoration: BoxDecoration(
-          color: TossColors.error.withOpacity(0.1),
+          color: TossColors.error.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(TossBorderRadius.lg),
         ),
         child: Column(
@@ -1004,7 +996,7 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
             width: TossSpacing.iconXL + TossSpacing.space2,
             height: TossSpacing.iconXL + TossSpacing.space2,
             decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
+              color: color.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(TossBorderRadius.lg),
             ),
             child: Icon(
@@ -1151,12 +1143,12 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
                       Container(
                         padding: const EdgeInsets.all(TossSpacing.space4),
                         decoration: BoxDecoration(
-                          color: TossColors.primary.withOpacity(0.03),
+                          color: TossColors.primary.withValues(alpha: 0.03),
                           borderRadius: BorderRadius.circular(TossBorderRadius.xl),
                           border: Border.all(
                             color: _getShiftIconAndColorFromTimeString(
                               selectedStartTime != null ? selectedStartTime!.format(context) : ''
-                            )['color'].withOpacity(0.1),
+                            )['color'].withValues(alpha: 0.1),
                             width: TossSpacing.space1/4,
                           ),
                         ),
@@ -1244,10 +1236,10 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
                         Container(
                           padding: const EdgeInsets.all(TossSpacing.space4),
                           decoration: BoxDecoration(
-                            color: TossColors.success.withOpacity(0.05),
+                            color: TossColors.success.withValues(alpha: 0.05),
                             borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                             border: Border.all(
-                              color: TossColors.success.withOpacity(0.2),
+                              color: TossColors.success.withValues(alpha: 0.2),
                               width: TossSpacing.space1/4,
                             ),
                           ),
@@ -1538,10 +1530,10 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
                       Container(
                         padding: const EdgeInsets.all(TossSpacing.space4),
                         decoration: BoxDecoration(
-                          color: TossColors.primary.withOpacity(0.03),
+                          color: TossColors.primary.withValues(alpha: 0.03),
                           borderRadius: BorderRadius.circular(TossBorderRadius.xl),
                           border: Border.all(
-                            color: _getShiftIconAndColorFromTimeString(startTime)['color'].withOpacity(0.1),
+                            color: _getShiftIconAndColorFromTimeString(startTime)['color'].withValues(alpha: 0.1),
                             width: TossSpacing.space1/4,
                           ),
                         ),
@@ -1626,10 +1618,10 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
                       Container(
                         padding: const EdgeInsets.all(TossSpacing.space4),
                         decoration: BoxDecoration(
-                          color: TossColors.success.withOpacity(0.05),
+                          color: TossColors.success.withValues(alpha: 0.05),
                           borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                           border: Border.all(
-                            color: TossColors.success.withOpacity(0.2),
+                            color: TossColors.success.withValues(alpha: 0.2),
                             width: TossSpacing.space1/4,
                           ),
                         ),
@@ -1807,15 +1799,15 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
-                    TossColors.primary.withOpacity(0.05),
-                    TossColors.primary.withOpacity(0.02),
+                    TossColors.primary.withValues(alpha: 0.05),
+                    TossColors.primary.withValues(alpha: 0.02),
                   ],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
                 borderRadius: BorderRadius.circular(TossBorderRadius.xl),
                 border: Border.all(
-                  color: TossColors.primary.withOpacity(0.2),
+                  color: TossColors.primary.withValues(alpha: 0.2),
                   width: TossSpacing.space1/4,
                 ),
               ),
@@ -1839,7 +1831,7 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
                         width: TossSpacing.iconXL + TossSpacing.space2,
                         height: TossSpacing.iconXL + TossSpacing.space2,
                         decoration: BoxDecoration(
-                          color: _getShiftIconAndColorFromTimeString(startTime)['color'].withOpacity(0.1),
+                          color: _getShiftIconAndColorFromTimeString(startTime)['color'].withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                         ),
                         child: Center(
@@ -1882,10 +1874,10 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
                   Container(
                     padding: const EdgeInsets.all(TossSpacing.space3),
                     decoration: BoxDecoration(
-                      color: TossColors.success.withOpacity(0.05),
+                      color: TossColors.success.withValues(alpha: 0.05),
                       borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                       border: Border.all(
-                        color: TossColors.success.withOpacity(0.2),
+                        color: TossColors.success.withValues(alpha: 0.2),
                         width: TossSpacing.space1/4,
                       ),
                     ),
@@ -1988,15 +1980,15 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
-                    TossColors.primary.withOpacity(0.05),
-                    TossColors.primary.withOpacity(0.02),
+                    TossColors.primary.withValues(alpha: 0.05),
+                    TossColors.primary.withValues(alpha: 0.02),
                   ],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
                 borderRadius: BorderRadius.circular(TossBorderRadius.xl),
                 border: Border.all(
-                  color: TossColors.primary.withOpacity(0.2),
+                  color: TossColors.primary.withValues(alpha: 0.2),
                   width: TossSpacing.space1/4,
                 ),
               ),
@@ -2020,7 +2012,7 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
                         width: TossSpacing.iconXL + TossSpacing.space2,
                         height: TossSpacing.iconXL + TossSpacing.space2,
                         decoration: BoxDecoration(
-                          color: _getShiftIconAndColorFromTimeString(startTime)['color'].withOpacity(0.1),
+                          color: _getShiftIconAndColorFromTimeString(startTime)['color'].withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                         ),
                         child: Center(
@@ -2063,10 +2055,10 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
                   Container(
                     padding: const EdgeInsets.all(TossSpacing.space3),
                     decoration: BoxDecoration(
-                      color: TossColors.success.withOpacity(0.05),
+                      color: TossColors.success.withValues(alpha: 0.05),
                       borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                       border: Border.all(
-                        color: TossColors.success.withOpacity(0.2),
+                        color: TossColors.success.withValues(alpha: 0.2),
                         width: TossSpacing.space1/4,
                       ),
                     ),
@@ -2210,10 +2202,10 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
             Container(
               padding: EdgeInsets.all(TossSpacing.space3),
               decoration: BoxDecoration(
-                color: TossColors.error.withOpacity(0.05),
+                color: TossColors.error.withValues(alpha: 0.05),
                 borderRadius: BorderRadius.circular(TossBorderRadius.button),
                 border: Border.all(
-                  color: TossColors.error.withOpacity(0.2),
+                  color: TossColors.error.withValues(alpha: 0.2),
                   width: TossSpacing.space1/4,
                 ),
               ),
@@ -2765,8 +2757,8 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-        splashColor: TossColors.primary.withOpacity(0.1),
-        highlightColor: TossColors.primary.withOpacity(0.05),
+        splashColor: TossColors.primary.withValues(alpha: 0.1),
+        highlightColor: TossColors.primary.withValues(alpha: 0.05),
         child: Ink(
           padding: const EdgeInsets.all(TossSpacing.space4),
           decoration: BoxDecoration(
@@ -2780,7 +2772,7 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
                 width: TossSpacing.iconXL,
                 height: TossSpacing.iconXL,
                 decoration: BoxDecoration(
-                  color: TossColors.primary.withOpacity(0.1),
+                  color: TossColors.primary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(TossBorderRadius.md),
                 ),
                 child: Icon(

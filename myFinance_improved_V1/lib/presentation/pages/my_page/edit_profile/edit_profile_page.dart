@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import '../../../../core/themes/toss_colors.dart';
@@ -124,7 +123,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                                     )
                                   : CircleAvatar(
                                       radius: 47,
-                                      backgroundColor: TossColors.primary.withOpacity(0.1),
+                                      backgroundColor: TossColors.primary.withValues(alpha: 0.1),
                                       child: Text(
                                         profile?.initials ?? 'U',
                                         style: TossTextStyles.h2.copyWith(
@@ -151,7 +150,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                                 ),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: TossColors.gray900.withOpacity(0.1),
+                                    color: TossColors.gray900.withValues(alpha: 0.1),
                                     blurRadius: 6,
                                     offset: Offset(0, 2),
                                   ),

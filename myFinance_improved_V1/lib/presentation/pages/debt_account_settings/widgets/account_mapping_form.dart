@@ -209,10 +209,10 @@ class _AccountMappingFormState extends ConsumerState<AccountMappingForm> {
                     Container(
                       padding: EdgeInsets.all(TossSpacing.space4),
                       decoration: BoxDecoration(
-                        color: TossColors.primary.withOpacity(0.05),
+                        color: TossColors.primary.withValues(alpha: 0.05),
                         borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                         border: Border.all(
-                          color: TossColors.primary.withOpacity(0.3),
+                          color: TossColors.primary.withValues(alpha: 0.3),
                           width: TossSpacing.space0 + 1,
                         ),
                       ),
@@ -222,7 +222,7 @@ class _AccountMappingFormState extends ConsumerState<AccountMappingForm> {
                           Container(
                             padding: EdgeInsets.all(TossSpacing.space2),
                             decoration: BoxDecoration(
-                              color: TossColors.primary.withOpacity(0.1),
+                              color: TossColors.primary.withValues(alpha: 0.1),
                               shape: BoxShape.circle,
                             ),
                             child: Icon(
@@ -277,10 +277,10 @@ class _AccountMappingFormState extends ConsumerState<AccountMappingForm> {
                               Container(
                                 padding: EdgeInsets.all(TossSpacing.space3),
                                 decoration: BoxDecoration(
-                                  color: TossColors.info.withOpacity(0.05),
+                                  color: TossColors.info.withValues(alpha: 0.05),
                                   borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                                   border: Border.all(
-                                    color: TossColors.info.withOpacity(0.3),
+                                    color: TossColors.info.withValues(alpha: 0.3),
                                     width: TossSpacing.space0 + 1,
                                   ),
                                 ),
@@ -362,10 +362,10 @@ class _AccountMappingFormState extends ConsumerState<AccountMappingForm> {
                               Container(
                                 padding: EdgeInsets.all(TossSpacing.space4),
                                 decoration: BoxDecoration(
-                                  color: TossColors.warning.withOpacity(0.05),
+                                  color: TossColors.warning.withValues(alpha: 0.05),
                                   borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                                   border: Border.all(
-                                    color: TossColors.warning.withOpacity(0.3),
+                                    color: TossColors.warning.withValues(alpha: 0.3),
                                     width: TossSpacing.space0 + 1,
                                   ),
                                 ),
@@ -375,7 +375,7 @@ class _AccountMappingFormState extends ConsumerState<AccountMappingForm> {
                                     Container(
                                       padding: EdgeInsets.all(TossSpacing.space2),
                                       decoration: BoxDecoration(
-                                        color: TossColors.warning.withOpacity(0.1),
+                                        color: TossColors.warning.withValues(alpha: 0.1),
                                         shape: BoxShape.circle,
                                       ),
                                       child: Icon(
@@ -485,7 +485,7 @@ class _AccountMappingFormState extends ConsumerState<AccountMappingForm> {
                       Container(
                         padding: EdgeInsets.all(TossSpacing.space3),
                         decoration: BoxDecoration(
-                          color: TossColors.error.withOpacity(0.1),
+                          color: TossColors.error.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(TossBorderRadius.sm),
                         ),
                         child: Row(
@@ -568,7 +568,7 @@ class _AccountMappingFormState extends ConsumerState<AccountMappingForm> {
     return Container(
       padding: EdgeInsets.all(TossSpacing.space3),
       decoration: BoxDecoration(
-        color: TossColors.error.withOpacity(0.1),
+        color: TossColors.error.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(TossBorderRadius.sm),
       ),
       child: Row(

@@ -3,7 +3,7 @@ import 'package:myfinance_improved/core/themes/toss_colors.dart';
 import 'package:myfinance_improved/core/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/core/themes/toss_shadows.dart';
 import 'package:myfinance_improved/core/themes/toss_animations.dart';
-import 'package:myfinance_improved/core/themes/toss_spacing.dart';
+import 'package:myfinance_improved/core/constants/ui_constants.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
 class HomepageAppBar extends StatelessWidget {
@@ -189,7 +189,7 @@ class HomepageAppBar extends StatelessWidget {
                   child: Container(
                     padding: const EdgeInsets.all(6),
                     child: AnimatedRotation(
-                      duration: TossAnimations.sync,
+                      duration: TossAnimations.quick,
                       turns: isSyncing ? 1 : 0,
                       child: Icon(
                         Icons.sync,

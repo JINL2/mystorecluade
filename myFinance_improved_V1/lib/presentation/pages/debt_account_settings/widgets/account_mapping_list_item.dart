@@ -141,8 +141,8 @@ class _AccountMappingListItemState extends State<AccountMappingListItem>
                 height: UIConstants.featureIconContainerSize,
                 decoration: BoxDecoration(
                   color: isDestructive 
-                      ? TossColors.error.withOpacity(0.1)
-                      : TossColors.primary.withOpacity(0.1),
+                      ? TossColors.error.withValues(alpha: 0.1)
+                      : TossColors.primary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(TossBorderRadius.sm),
                 ),
                 child: Icon(
@@ -272,7 +272,7 @@ class _AccountMappingListItemState extends State<AccountMappingListItem>
                     Container(
                       padding: EdgeInsets.all(TossSpacing.space2),
                       decoration: BoxDecoration(
-                        color: TossColors.primary.withOpacity(0.1),
+                        color: TossColors.primary.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(TossBorderRadius.sm),
                       ),
                       child: Icon(
@@ -408,8 +408,8 @@ class _AccountMappingListItemState extends State<AccountMappingListItem>
                       ),
                       decoration: BoxDecoration(
                         color: widget.mapping.isActive 
-                            ? TossColors.success.withOpacity(0.1)
-                            : TossColors.gray300.withOpacity(0.1),
+                            ? TossColors.success.withValues(alpha: 0.1)
+                            : TossColors.gray300.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                       ),
                       child: Text(

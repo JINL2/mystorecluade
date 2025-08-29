@@ -20,14 +20,10 @@ class SalaryService {
           .eq('company_id', companyId)
           .order('full_name', ascending: true);
 
-      if (response == null) {
-        return [];
-      }
-
       return (response as List)
           .map((json) {
             try {
-              return EmployeeSalary.fromJson(json as Map<String, dynamic>);
+              return EmployeeSalary.fromJson(json);
             } catch (e) {
               return null;
             }
@@ -66,14 +62,10 @@ class SalaryService {
 
       final response = await query.order('full_name', ascending: true);
 
-      if (response == null) {
-        return [];
-      }
-
       return (response as List)
           .map((json) {
             try {
-              return EmployeeSalary.fromJson(json as Map<String, dynamic>);
+              return EmployeeSalary.fromJson(json);
             } catch (e) {
               return null;
             }
@@ -108,7 +100,7 @@ class SalaryService {
       return (response as List)
           .map((json) {
             try {
-              return CurrencyType.fromJson(json as Map<String, dynamic>);
+              return CurrencyType.fromJson(json);
             } catch (e) {
               return null;
             }
@@ -210,7 +202,7 @@ class SalaryService {
         .map((data) => data
             .map((json) {
               try {
-                return EmployeeSalary.fromJson(json as Map<String, dynamic>);
+                return EmployeeSalary.fromJson(json);
               } catch (e) {
                 return null;
               }

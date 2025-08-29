@@ -8,6 +8,9 @@
 /// - Performance monitoring
 /// - Graceful error handling
 
+import 'dart:async';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../core/cache/smart_cache_manager.dart';

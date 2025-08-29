@@ -141,10 +141,10 @@ class _RoleTagsWidgetState extends State<RoleTagsWidget> {
         vertical: TossSpacing.space1,
       ),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(TossBorderRadius.sm),
         border: Border.all(
-          color: color.withOpacity(0.3),
+          color: color.withValues(alpha: 0.3),
           width: 1,
         ),
       ),
@@ -301,10 +301,10 @@ class _RoleTagsWidgetState extends State<RoleTagsWidget> {
           vertical: TossSpacing.space1,
         ),
         decoration: BoxDecoration(
-          color: TossColors.primary.withOpacity(0.1),
+          color: TossColors.primary.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(TossBorderRadius.sm),
           border: Border.all(
-            color: TossColors.primary.withOpacity(0.3),
+            color: TossColors.primary.withValues(alpha: 0.3),
             width: 1,
           ),
         ),

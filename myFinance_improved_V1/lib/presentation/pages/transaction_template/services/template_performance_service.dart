@@ -10,7 +10,6 @@
 /// - Automatic optimization recommendations
 
 import 'dart:async';
-import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/performance/performance_monitor.dart';

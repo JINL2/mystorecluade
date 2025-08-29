@@ -6,7 +6,6 @@ import '../../../../core/themes/toss_text_styles.dart';
 import '../../../../core/themes/toss_spacing.dart';
 import '../../../../core/themes/toss_animations.dart';
 import '../../../providers/app_state_provider.dart';
-import '../../../providers/auth_provider.dart';
 import '../../../widgets/toss/toss_primary_button.dart';
 import '../../../widgets/toss/toss_dropdown.dart';
 import '../../../../data/services/company_service.dart';
@@ -74,7 +73,7 @@ class _ModernDrawerState extends ConsumerState<ModernDrawer> {
       decoration: BoxDecoration(
         color: TossColors.white,  // White header for contrast against gray background
         border: Border(
-          bottom: BorderSide(color: Theme.of(context).colorScheme.outline.withOpacity(0.2), width: 1),
+          bottom: BorderSide(color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.2), width: 1),
         ),
       ),
       child: Column(
@@ -89,7 +88,7 @@ class _ModernDrawerState extends ConsumerState<ModernDrawer> {
                 backgroundImage: (userData['profile_image'] ?? '').isNotEmpty
                     ? NetworkImage(userData['profile_image'])
                     : null,
-                backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.2),
+                backgroundColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.2),
                 child: (userData['profile_image'] ?? '').isEmpty
                     ? Text(
                         (userData['user_first_name'] ?? '').isNotEmpty ? userData['user_first_name'][0] : 'U',
@@ -210,7 +209,7 @@ class _ModernDrawerState extends ConsumerState<ModernDrawer> {
             color: TossColors.white,  // White footer for consistency
             border: Border(
               top: BorderSide(
-                color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
+                color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
                 width: 1,
               ),
             ),
@@ -241,8 +240,8 @@ class _ModernDrawerState extends ConsumerState<ModernDrawer> {
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: isSelected 
-            ? Theme.of(context).colorScheme.primary.withOpacity(0.3) 
-            : Theme.of(context).colorScheme.outline.withOpacity(0.1),
+            ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.3) 
+            : Theme.of(context).colorScheme.outline.withValues(alpha: 0.1),
           width: 1,
         ),
       ),
@@ -287,7 +286,7 @@ class _ModernDrawerState extends ConsumerState<ModernDrawer> {
                     decoration: BoxDecoration(
                       color: isSelected 
                         ? Theme.of(context).colorScheme.primary 
-                        : Theme.of(context).colorScheme.surfaceVariant,
+                        : Theme.of(context).colorScheme.surfaceContainerHighest,
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Icon(
@@ -416,7 +415,7 @@ class _ModernDrawerState extends ConsumerState<ModernDrawer> {
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             decoration: BoxDecoration(
               color: isSelected 
-                ? Theme.of(context).colorScheme.surfaceVariant 
+                ? Theme.of(context).colorScheme.surfaceContainerHighest 
                 : Colors.transparent,
               borderRadius: BorderRadius.circular(8),
             ),
@@ -468,7 +467,7 @@ class _ModernDrawerState extends ConsumerState<ModernDrawer> {
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.5),
+              color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Row(
@@ -509,7 +508,7 @@ class _ModernDrawerState extends ConsumerState<ModernDrawer> {
               color: TossColors.white,  // White background for better contrast
               borderRadius: BorderRadius.circular(8),
               border: Border.all(
-                color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
+                color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
               ),
             ),
             child: Row(
@@ -566,7 +565,7 @@ class _ModernDrawerState extends ConsumerState<ModernDrawer> {
               height: 4,
               margin: const EdgeInsets.only(top: 8, bottom: 24),
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.outline.withOpacity(0.3),
+                color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.3),
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -652,7 +651,7 @@ class _ModernDrawerState extends ConsumerState<ModernDrawer> {
               height: 4,
               margin: const EdgeInsets.only(top: 8, bottom: 24),
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.outline.withOpacity(0.3),
+                color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.3),
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -745,7 +744,7 @@ class _ModernDrawerState extends ConsumerState<ModernDrawer> {
             color: Theme.of(context).colorScheme.surface,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
+              color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
             ),
           ),
           child: Row(
@@ -754,7 +753,7 @@ class _ModernDrawerState extends ConsumerState<ModernDrawer> {
                 width: 48,
                 height: 48,
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                  color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(
@@ -869,7 +868,7 @@ class _ModernDrawerState extends ConsumerState<ModernDrawer> {
                 height: 4,
                 margin: const EdgeInsets.only(top: 8, bottom: 24),
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.outline.withOpacity(0.3),
+                  color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.3),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -991,7 +990,7 @@ class _ModernDrawerState extends ConsumerState<ModernDrawer> {
                   height: 4,
                   margin: const EdgeInsets.only(top: 8, bottom: 24),
                   decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.outline.withOpacity(0.3),
+                    color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.3),
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -1184,7 +1183,7 @@ class _ModernDrawerState extends ConsumerState<ModernDrawer> {
                   height: 4,
                   margin: const EdgeInsets.only(top: 8, bottom: 24),
                   decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.outline.withOpacity(0.3),
+                    color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.3),
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -1670,7 +1669,7 @@ class _ModernDrawerState extends ConsumerState<ModernDrawer> {
               height: 4,
               margin: const EdgeInsets.only(top: 8, bottom: 24),
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.outline.withOpacity(0.3),
+                color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.3),
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -1755,10 +1754,10 @@ class _ModernDrawerState extends ConsumerState<ModernDrawer> {
         child: Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.3),
+            color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: Theme.of(context).colorScheme.outline.withOpacity(0.1),
+              color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.1),
             ),
           ),
           child: Row(
@@ -1767,7 +1766,7 @@ class _ModernDrawerState extends ConsumerState<ModernDrawer> {
                 width: 40,
                 height: 40,
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                  color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Icon(
@@ -1814,7 +1813,7 @@ class _ModernDrawerState extends ConsumerState<ModernDrawer> {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                      color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: Row(

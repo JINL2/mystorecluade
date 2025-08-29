@@ -528,8 +528,6 @@ final allCompanyRolesProvider = FutureProvider<List<Map<String, dynamic>>>((ref)
     }).toList();
     
   } catch (e) {
-    // Debug logging for troubleshooting
-    print('allCompanyRolesProvider error: $e');
     // Graceful fallback - return empty list instead of throwing
     return [];
   }

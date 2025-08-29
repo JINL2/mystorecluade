@@ -78,7 +78,6 @@ final journalCounterpartyCashLocationsProvider = FutureProvider.family<List<Map<
   }
 });
 
-// Provider for fetching cash locations by store ID (for counterparty cash locations with store)
 final journalCounterpartyStoreCashLocationsProvider = FutureProvider.family<List<Map<String, dynamic>>, String?>((ref, storeId) async {
   try {
     if (storeId == null || storeId.isEmpty) {

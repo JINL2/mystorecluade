@@ -218,8 +218,6 @@ class _BankRealPageState extends ConsumerState<BankRealPage> {
     );
   }
   
-  // Removed _buildHeader method - now using TossAppBar
-  
   Widget _buildRealList(List<BankRealDisplay> allItems) {
     final filteredItems = _getFilteredItems(allItems);
     

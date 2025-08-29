@@ -88,9 +88,42 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
   }
   
   // Helper widget for common spacing
+  Widget get _horizontalSpaceSmall => const SizedBox(width: TossSpacing.space2);
+  Widget get _horizontalSpaceMedium => const SizedBox(width: TossSpacing.space3);
+  Widget get _horizontalSpaceLarge => const SizedBox(width: TossSpacing.space5);
+  Widget get _verticalSpaceSmall => const SizedBox(height: TossSpacing.space2);
+  Widget get _verticalSpaceMedium => const SizedBox(height: TossSpacing.space3);
+  Widget get _verticalSpaceLarge => const SizedBox(height: TossSpacing.space5);
+  
+  // Helper method for common empty state widget
+  Widget _buildEmptyState(String message) {
+    return Container(
+      padding: const EdgeInsets.all(TossSpacing.space5),
+      child: Center(
+        child: Text(
+          message,
+          style: TossTextStyles.body.copyWith(
+            color: TossColors.gray500,
+          ),
+        ),
+      ),
+    );
+  }
+  
+  // Helper method for common loading widget
+  Widget _buildLoadingIndicator() {
+    return const Center(
+      child: CircularProgressIndicator(
+        color: TossColors.primary,
+      ),
+    );
+  }
   
   @override
   Widget build(BuildContext context) {
+    // Access app state data (removed unused variables)
+    final selectedCompany = ref.watch(selectedCompanyProvider);
+    
     return TossScaffold(
       appBar: TossAppBar(
         title: 'Time Table Manage',
@@ -125,7 +158,7 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
                             borderRadius: BorderRadius.circular(22),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.08),
+                                color: Colors.black.withOpacity(0.08),
                                 blurRadius: 4,
                                 offset: const Offset(0, 2),
                               ),
@@ -597,7 +630,7 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
               color: isSelected 
                   ? TossColors.primary 
                   : isToday 
-                      ? TossColors.primary.withValues(alpha: 0.1)
+                      ? TossColors.primary.withOpacity(0.1)
                       : Colors.transparent,
               borderRadius: BorderRadius.circular(12),
               border: isToday && !isSelected
@@ -755,7 +788,7 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
                             width: 40,
                             height: 40,
                             decoration: BoxDecoration(
-                              color: isSelected ? TossColors.primary.withValues(alpha: 0.1) : TossColors.gray100,
+                              color: isSelected ? TossColors.primary.withOpacity(0.1) : TossColors.gray100,
                               borderRadius: BorderRadius.circular(10),
                             ),
                             child: Icon(
@@ -922,7 +955,7 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
               color: isSelected
                   ? TossColors.primary
                   : isToday
-                      ? TossColors.primary.withValues(alpha: 0.1)
+                      ? TossColors.primary.withOpacity(0.1)
                       : Colors.transparent,
               borderRadius: BorderRadius.circular(12),
               border: isToday && !isSelected
@@ -1066,14 +1099,14 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
                   border: Border.all(
                     color: hasEmployee 
                         ? (assignedEmployees.any((e) => e['is_approved'] == true) 
-                            ? TossColors.success.withValues(alpha: 0.3) 
-                            : TossColors.warning.withValues(alpha: 0.3))
-                        : TossColors.error.withValues(alpha: 0.2),
+                            ? TossColors.success.withOpacity(0.3) 
+                            : TossColors.warning.withOpacity(0.3))
+                        : TossColors.error.withOpacity(0.2),
                     width: 1.5,
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.04),
+                      color: Colors.black.withOpacity(0.04),
                       blurRadius: 4,
                       offset: const Offset(0, 2),
                     ),
@@ -1088,7 +1121,7 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
                       decoration: BoxDecoration(
                         color: hasEmployee 
                             ? TossColors.gray50 
-                            : TossColors.error.withValues(alpha: 0.05),
+                            : TossColors.error.withOpacity(0.05),
                         borderRadius: const BorderRadius.only(
                           topLeft: Radius.circular(11),
                           topRight: Radius.circular(11),
@@ -1101,8 +1134,8 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
                             height: 36,
                             decoration: BoxDecoration(
                               color: hasEmployee 
-                                  ? TossColors.primary.withValues(alpha: 0.1)
-                                  : TossColors.error.withValues(alpha: 0.1),
+                                  ? TossColors.primary.withOpacity(0.1)
+                                  : TossColors.error.withOpacity(0.1),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Icon(
@@ -1141,7 +1174,7 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
                                 vertical: TossSpacing.space1,
                               ),
                               decoration: BoxDecoration(
-                                color: TossColors.error.withValues(alpha: 0.1),
+                                color: TossColors.error.withOpacity(0.1),
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Text(
@@ -1202,10 +1235,10 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
                             padding: const EdgeInsets.all(TossSpacing.space3),
                             decoration: BoxDecoration(
                               color: isSelected 
-                                  ? TossColors.primary.withValues(alpha: 0.08)
+                                  ? TossColors.primary.withOpacity(0.08)
                                   : (isApproved 
-                                      ? TossColors.success.withValues(alpha: 0.03)
-                                      : TossColors.warning.withValues(alpha: 0.03)),
+                                      ? TossColors.success.withOpacity(0.03)
+                                      : TossColors.warning.withOpacity(0.03)),
                               border: Border(
                                 top: BorderSide(
                                   color: TossColors.gray100,
@@ -1226,10 +1259,10 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
                                   height: 32,
                                   decoration: BoxDecoration(
                                     color: isSelected
-                                        ? TossColors.primary.withValues(alpha: 0.15)
+                                        ? TossColors.primary.withOpacity(0.15)
                                         : (isApproved 
-                                            ? TossColors.success.withValues(alpha: 0.1)
-                                            : TossColors.warning.withValues(alpha: 0.1)),
+                                            ? TossColors.success.withOpacity(0.1)
+                                            : TossColors.warning.withOpacity(0.1)),
                                     shape: BoxShape.circle,
                                   ),
                                   child: Icon(
@@ -1263,14 +1296,14 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
                                   ),
                                   decoration: BoxDecoration(
                                     color: isSelected
-                                        ? TossColors.primary.withValues(alpha: 0.15)
+                                        ? TossColors.primary.withOpacity(0.15)
                                         : (isApproved 
-                                            ? TossColors.success.withValues(alpha: 0.1)
-                                            : TossColors.warning.withValues(alpha: 0.1)),
+                                            ? TossColors.success.withOpacity(0.1)
+                                            : TossColors.warning.withOpacity(0.1)),
                                     borderRadius: BorderRadius.circular(12),
                                     border: isSelected 
                                         ? Border.all(
-                                            color: TossColors.primary.withValues(alpha: 0.3),
+                                            color: TossColors.primary.withOpacity(0.3),
                                             width: 1,
                                           )
                                         : null,
@@ -1314,13 +1347,13 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
                             Icon(
                               Icons.warning_amber_rounded,
                               size: 16,
-                              color: TossColors.error.withValues(alpha: 0.7),
+                              color: TossColors.error.withOpacity(0.7),
                             ),
                             const SizedBox(width: TossSpacing.space2),
                             Text(
                               'No employee assigned',
                               style: TossTextStyles.bodySmall.copyWith(
-                                color: TossColors.error.withValues(alpha: 0.7),
+                                color: TossColors.error.withOpacity(0.7),
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
@@ -1445,7 +1478,11 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
     final monthName = _getMonthName(now.month);
     final selectedMonthName = _getMonthName(manageSelectedDate.month);
     
+    // Calculate week dates (Wednesday to Tuesday)
     final today = DateTime.now();
+    final weekday = today.weekday;
+    final daysFromWednesday = (weekday - 3 + 7) % 7;
+    final wednesday = today.subtract(Duration(days: daysFromWednesday));
     
     if (isLoadingOverview) {
       return const Center(
@@ -1667,7 +1704,7 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
                                   : TossColors.gray50,
                               borderRadius: BorderRadius.circular(isSelected ? 20 : 12),
                               border: isToday && !isSelected
-                                  ? Border.all(color: TossColors.primary.withValues(alpha: 0.3), width: 1)
+                                  ? Border.all(color: TossColors.primary.withOpacity(0.3), width: 1)
                                   : null,
                             ),
                             child: Column(
@@ -1677,7 +1714,7 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
                                   dayName,
                                   style: TossTextStyles.caption.copyWith(
                                     color: isSelected 
-                                        ? Colors.white.withValues(alpha: 0.8)
+                                        ? Colors.white.withOpacity(0.8)
                                         : TossColors.gray500,
                                     fontSize: 12,
                                   ),
@@ -1746,7 +1783,7 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
                                           margin: const EdgeInsets.symmetric(horizontal: 1),
                                           decoration: BoxDecoration(
                                             color: isSelected 
-                                                ? Colors.white.withValues(alpha: 0.5)
+                                                ? Colors.white.withOpacity(0.5)
                                                 : TossColors.gray300,
                                             shape: BoxShape.circle,
                                           ),
@@ -1902,10 +1939,10 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
                   ),
                   decoration: BoxDecoration(
                     color: selectedFilter == 'problem'
-                        ? TossColors.error.withValues(alpha: 0.1)
+                        ? TossColors.error.withOpacity(0.1)
                         : selectedFilter == 'approved'
-                            ? TossColors.success.withValues(alpha: 0.1)
-                            : TossColors.warning.withValues(alpha: 0.1),
+                            ? TossColors.success.withOpacity(0.1)
+                            : TossColors.warning.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: Text(
@@ -1942,11 +1979,14 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
     final isApproved = card['is_approved'] ?? false;
     final isProblem = card['is_problem'] ?? false;
     final isProblemSolved = card['is_problem_solved'] ?? false;
+    final problemType = card['problem_type'];
     final isLate = card['is_late'] ?? false;
     final lateMinute = card['late_minute'] ?? 0;
     final isOverTime = card['is_over_time'] ?? false;
     final overTimeMinute = card['over_time_minute'] ?? 0;
     final paidHour = card['paid_hour'] ?? 0;
+    final actualStart = card['actual_start'];
+    final actualEnd = card['actual_end'];
     final confirmStartTime = card['confirm_start_time'];
     final confirmEndTime = card['confirm_end_time'];
     final isReported = card['is_reported'] ?? false;
@@ -1980,16 +2020,16 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
       margin: const EdgeInsets.only(bottom: TossSpacing.space3),
       decoration: BoxDecoration(
         color: isReportedUnsolvedProblem
-            ? TossColors.primary.withValues(alpha: 0.05) // Light primary background for reported unsolved
+            ? TossColors.primary.withOpacity(0.05) // Light primary background for reported unsolved
             : TossColors.background,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: borderColor.withValues(alpha: 0.3),
+          color: borderColor.withOpacity(0.3),
           width: 1.5,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
+            color: Colors.black.withOpacity(0.04),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -2002,12 +2042,12 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
             padding: const EdgeInsets.all(TossSpacing.space4),
             decoration: BoxDecoration(
               color: isReportedUnsolvedProblem
-                  ? TossColors.primary.withValues(alpha: 0.08) // Slightly darker primary for header
+                  ? TossColors.primary.withOpacity(0.08) // Slightly darker primary for header
                   : hasUnsolvedProblem 
-                      ? TossColors.error.withValues(alpha: 0.05)
+                      ? TossColors.error.withOpacity(0.05)
                       : isApproved
-                          ? TossColors.success.withValues(alpha: 0.05)
-                          : TossColors.warning.withValues(alpha: 0.05),
+                          ? TossColors.success.withOpacity(0.05)
+                          : TossColors.warning.withOpacity(0.05),
               borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(15),
                 topRight: Radius.circular(15),
@@ -2020,7 +2060,7 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
                   width: 40,
                   height: 40,
                   decoration: BoxDecoration(
-                    color: TossColors.primary.withValues(alpha: 0.1),
+                    color: TossColors.primary.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Center(
@@ -2082,7 +2122,7 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
                       vertical: TossSpacing.space1,
                     ),
                     decoration: BoxDecoration(
-                      color: TossColors.error.withValues(alpha: 0.1),
+                      color: TossColors.error.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
@@ -2100,7 +2140,7 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
                       vertical: TossSpacing.space1,
                     ),
                     decoration: BoxDecoration(
-                      color: TossColors.success.withValues(alpha: 0.1),
+                      color: TossColors.success.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
@@ -2118,7 +2158,7 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
                       vertical: TossSpacing.space1,
                     ),
                     decoration: BoxDecoration(
-                      color: TossColors.success.withValues(alpha: 0.1),
+                      color: TossColors.success.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
@@ -2136,7 +2176,7 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
                       vertical: TossSpacing.space1,
                     ),
                     decoration: BoxDecoration(
-                      color: TossColors.warning.withValues(alpha: 0.1),
+                      color: TossColors.warning.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
@@ -2220,7 +2260,7 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
                               vertical: 2,
                             ),
                             decoration: BoxDecoration(
-                              color: TossColors.warning.withValues(alpha: 0.1),
+                              color: TossColors.warning.withOpacity(0.1),
                               borderRadius: BorderRadius.circular(6),
                             ),
                             child: Text(
@@ -2240,7 +2280,7 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
                               vertical: 2,
                             ),
                             decoration: BoxDecoration(
-                              color: TossColors.info.withValues(alpha: 0.1),
+                              color: TossColors.info.withOpacity(0.1),
                               borderRadius: BorderRadius.circular(6),
                             ),
                             child: Text(
@@ -2260,7 +2300,7 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
                               vertical: 2,
                             ),
                             decoration: BoxDecoration(
-                              color: TossColors.primary.withValues(alpha: 0.1),
+                              color: TossColors.primary.withOpacity(0.1),
                               borderRadius: BorderRadius.circular(6),
                             ),
                             child: Text(
@@ -2310,7 +2350,7 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.04),
+                              color: Colors.black.withOpacity(0.04),
                               blurRadius: 8,
                               offset: const Offset(0, 2),
                             ),
@@ -2489,7 +2529,7 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
                         
                         try {
                           // Call RPC function to toggle shift approval
-                          await Supabase.instance.client.rpc(
+                          final response = await Supabase.instance.client.rpc(
                             'toggle_shift_approval',
                             params: {
                               'p_user_id': userId,
@@ -2603,12 +2643,12 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
-                    color: TossColors.primary.withValues(alpha: 0.3),
+                    color: TossColors.primary.withOpacity(0.3),
                     blurRadius: 12,
                     offset: const Offset(0, 6),
                   ),
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.08),
+                    color: Colors.black.withOpacity(0.08),
                     blurRadius: 8,
                     offset: const Offset(0, 3),
                   ),
@@ -2699,7 +2739,7 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
           borderRadius: BorderRadius.circular(16),
           border: isSelected 
               ? Border.all(
-                  color: iconColor.withValues(alpha: 0.5),
+                  color: iconColor.withOpacity(0.5),
                   width: 2,
                 )
               : backgroundColor == TossColors.background
@@ -2711,7 +2751,7 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
           boxShadow: isSelected
               ? [
                   BoxShadow(
-                    color: iconColor.withValues(alpha: 0.2),
+                    color: iconColor.withOpacity(0.2),
                     blurRadius: 8,
                     offset: const Offset(0, 2),
                   ),
@@ -2719,7 +2759,7 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
               : backgroundColor == TossColors.background
                   ? [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.05),
+                        color: Colors.black.withOpacity(0.05),
                         blurRadius: 4,
                         offset: const Offset(0, 2),
                       ),
@@ -3164,7 +3204,7 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<_ShiftDetailsBottomShe
       final userId = appState.user['user_id'] ?? '';
       
       // Call RPC to delete tag
-      await Supabase.instance.client.rpc(
+      final response = await Supabase.instance.client.rpc(
         'manager_shift_delete_tag',
         params: {
           'p_tag_id': tagId,
@@ -3248,7 +3288,7 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<_ShiftDetailsBottomShe
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
+            color: Colors.black.withOpacity(0.1),
             blurRadius: 20,
             offset: const Offset(0, -4),
           ),
@@ -3283,7 +3323,7 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<_ShiftDetailsBottomShe
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       colors: [
-                        TossColors.primary.withValues(alpha: 0.8),
+                        TossColors.primary.withOpacity(0.8),
                         TossColors.primary,
                       ],
                       begin: Alignment.topLeft,
@@ -3368,7 +3408,7 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<_ShiftDetailsBottomShe
                     borderRadius: BorderRadius.circular(22),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.08),
+                        color: Colors.black.withOpacity(0.08),
                         blurRadius: 4,
                         offset: const Offset(0, 2),
                       ),
@@ -3428,10 +3468,10 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<_ShiftDetailsBottomShe
               ),
               padding: const EdgeInsets.all(TossSpacing.space4),
               decoration: BoxDecoration(
-                color: TossColors.error.withValues(alpha: 0.05),
+                color: TossColors.error.withOpacity(0.05),
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
-                  color: TossColors.error.withValues(alpha: 0.2),
+                  color: TossColors.error.withOpacity(0.2),
                   width: 1,
                 ),
               ),
@@ -3460,7 +3500,7 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<_ShiftDetailsBottomShe
                     Text(
                       'Type: ${card['problem_type']}',
                       style: TossTextStyles.bodySmall.copyWith(
-                        color: TossColors.error.withValues(alpha: 0.8),
+                        color: TossColors.error.withOpacity(0.8),
                       ),
                     ),
                   ],
@@ -3490,15 +3530,15 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<_ShiftDetailsBottomShe
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
                           colors: [
-                            TossColors.primary.withValues(alpha: 0.05),
-                            TossColors.primary.withValues(alpha: 0.02),
+                            TossColors.primary.withOpacity(0.05),
+                            TossColors.primary.withOpacity(0.02),
                           ],
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                         ),
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
-                          color: TossColors.primary.withValues(alpha: 0.1),
+                          color: TossColors.primary.withOpacity(0.1),
                           width: 1,
                         ),
                       ),
@@ -3512,7 +3552,7 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<_ShiftDetailsBottomShe
                                 width: 32,
                                 height: 32,
                                 decoration: BoxDecoration(
-                                  color: TossColors.primary.withValues(alpha: 0.1),
+                                  color: TossColors.primary.withOpacity(0.1),
                                   borderRadius: BorderRadius.circular(10),
                                 ),
                                 child: const Icon(
@@ -3786,7 +3826,7 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<_ShiftDetailsBottomShe
                                 vertical: TossSpacing.space1,
                               ),
                               decoration: BoxDecoration(
-                                color: TossColors.primary.withValues(alpha: 0.1),
+                                color: TossColors.primary.withOpacity(0.1),
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Text(
@@ -3898,7 +3938,7 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<_ShiftDetailsBottomShe
                                   });
                                 },
                                 activeColor: TossColors.success,
-                                activeTrackColor: TossColors.success.withValues(alpha: 0.5),
+                                activeTrackColor: TossColors.success.withOpacity(0.5),
                                 inactiveThumbColor: TossColors.gray400,
                                 inactiveTrackColor: TossColors.gray200,
                                 materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -4085,10 +4125,10 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<_ShiftDetailsBottomShe
                                   vertical: TossSpacing.space2,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: TossColors.primary.withValues(alpha: 0.1),
+                                  color: TossColors.primary.withOpacity(0.1),
                                   borderRadius: BorderRadius.circular(20),
                                   border: Border.all(
-                                    color: TossColors.primary.withValues(alpha: 0.2),
+                                    color: TossColors.primary.withOpacity(0.2),
                                     width: 1,
                                   ),
                                 ),
@@ -4106,7 +4146,7 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<_ShiftDetailsBottomShe
                                     Icon(
                                       Icons.close,
                                       size: 14,
-                                      color: TossColors.primary.withValues(alpha: 0.6),
+                                      color: TossColors.primary.withOpacity(0.6),
                                     ),
                                   ],
                                 ),
@@ -4142,7 +4182,7 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<_ShiftDetailsBottomShe
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.05),
+                color: Colors.black.withOpacity(0.05),
                 blurRadius: 10,
                 offset: const Offset(0, -2),
               ),
@@ -4223,7 +4263,7 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<_ShiftDetailsBottomShe
                             TextButton(
                               onPressed: () => Navigator.pop(dialogContext, true),
                               style: TextButton.styleFrom(
-                                backgroundColor: TossColors.primary.withValues(alpha: 0.1),
+                                backgroundColor: TossColors.primary.withOpacity(0.1),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12),
                                 ),
@@ -4392,7 +4432,7 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<_ShiftDetailsBottomShe
             color: outlined ? Colors.transparent : (disabled ? TossColors.gray100 : effectiveColor),
             borderRadius: BorderRadius.circular(14),
             border: Border.all(
-              color: outlined ? (disabled ? TossColors.gray200 : effectiveColor.withValues(alpha: 0.3)) : (disabled ? TossColors.gray200 : effectiveColor),
+              color: outlined ? (disabled ? TossColors.gray200 : effectiveColor.withOpacity(0.3)) : (disabled ? TossColors.gray200 : effectiveColor),
               width: outlined ? 1.5 : 0,
             ),
           ),
@@ -4512,10 +4552,10 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<_ShiftDetailsBottomShe
         vertical: TossSpacing.space2,
       ),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
+        color: color.withOpacity(0.1),
         borderRadius: BorderRadius.circular(18),
         border: Border.all(
-          color: color.withValues(alpha: 0.2),
+          color: color.withOpacity(0.2),
           width: 1,
         ),
       ),
@@ -5039,10 +5079,10 @@ class _AddShiftBottomSheetState extends ConsumerState<_AddShiftBottomSheet> {
                               Container(
                                 padding: const EdgeInsets.all(TossSpacing.space3),
                                 decoration: BoxDecoration(
-                                  color: TossColors.warning.withValues(alpha: 0.1),
+                                  color: TossColors.warning.withOpacity(0.1),
                                   borderRadius: BorderRadius.circular(8),
                                   border: Border.all(
-                                    color: TossColors.warning.withValues(alpha: 0.3),
+                                    color: TossColors.warning.withOpacity(0.3),
                                   ),
                                 ),
                                 child: Row(

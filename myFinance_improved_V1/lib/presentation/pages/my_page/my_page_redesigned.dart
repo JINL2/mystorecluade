@@ -2,7 +2,6 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -178,7 +177,7 @@ class _MyPageRedesignedState extends ConsumerState<MyPageRedesigned>
                             )
                           : CircleAvatar(
                               radius: 56,
-                              backgroundColor: TossColors.primary.withOpacity(0.1),
+                              backgroundColor: TossColors.primary.withValues(alpha: 0.1),
                               child: Text(
                                 profile.initials,
                                 style: TossTextStyles.display.copyWith(
@@ -204,7 +203,7 @@ class _MyPageRedesignedState extends ConsumerState<MyPageRedesigned>
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color: TossColors.gray900.withOpacity(0.1),
+                              color: TossColors.gray900.withValues(alpha: 0.1),
                               blurRadius: 8,
                               offset: Offset(0, 2),
                             ),
@@ -242,7 +241,7 @@ class _MyPageRedesignedState extends ConsumerState<MyPageRedesigned>
                   vertical: TossSpacing.space2,
                 ),
                 decoration: BoxDecoration(
-                  color: TossColors.primary.withOpacity(0.1),
+                  color: TossColors.primary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
@@ -257,7 +256,7 @@ class _MyPageRedesignedState extends ConsumerState<MyPageRedesigned>
               SizedBox(height: TossSpacing.space4),
               
               // Clean info display
-              if (businessData?.companyName?.isNotEmpty == true)
+              if (businessData?.companyName.isNotEmpty == true)
                 Text(
                   businessData!.companyName,
                   style: TossTextStyles.bodyLarge.copyWith(
@@ -267,7 +266,7 @@ class _MyPageRedesignedState extends ConsumerState<MyPageRedesigned>
                   textAlign: TextAlign.center,
                 ),
               
-              if (businessData?.storeName?.isNotEmpty == true) ...[
+              if (businessData?.storeName.isNotEmpty == true) ...[
                 SizedBox(height: TossSpacing.space1),
                 Text(
                   businessData!.storeName,
@@ -379,7 +378,7 @@ class _MyPageRedesignedState extends ConsumerState<MyPageRedesigned>
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: (isDestructive ? TossColors.error : TossColors.gray500).withOpacity(0.1),
+                color: (isDestructive ? TossColors.error : TossColors.gray500).withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Icon(

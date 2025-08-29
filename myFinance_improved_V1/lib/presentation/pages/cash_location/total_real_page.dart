@@ -10,6 +10,7 @@ import '../../widgets/common/toss_scaffold.dart';
 import '../../widgets/common/toss_app_bar.dart';
 import '../../../data/services/cash_real_service.dart';
 import '../../providers/app_state_provider.dart';
+import 'utils/string_extensions.dart';
 
 class TotalRealPage extends ConsumerStatefulWidget {
   final String locationType; // 'cash', 'bank', 'vault'
@@ -229,8 +230,6 @@ class _TotalRealPageState extends ConsumerState<TotalRealPage> {
       ),
     );
   }
-  
-  // Removed _buildHeader method - now using TossAppBar
   
   Widget _buildRealList(List<CashRealDisplay> allItems) {
     final filteredItems = _getFilteredItems(allItems);
@@ -645,11 +644,6 @@ class _TotalRealPageState extends ConsumerState<TotalRealPage> {
   }
 }
 
-extension StringExtension on String {
-  String capitalize() {
-    return '${this[0].toUpperCase()}${substring(1)}';
-  }
-}
 
 class _DenominationDetailBottomSheet extends StatelessWidget {
   final CashRealDisplay cashRealItem;

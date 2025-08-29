@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
 import '../../../core/themes/toss_colors.dart';
 import '../../../core/themes/toss_text_styles.dart';
 import '../../../core/themes/toss_animations.dart';
 import '../../../core/themes/toss_border_radius.dart';
-import '../../../core/themes/toss_spacing.dart';
 import '../../../core/utils/number_formatter.dart';
 import '../../widgets/common/toss_scaffold.dart';
 import '../../widgets/common/toss_empty_view.dart';
@@ -19,8 +17,6 @@ import 'providers/perspective_providers.dart';
 import 'widgets/simple_company_card.dart';
 import 'widgets/perspective_summary_card.dart';
 
-/// Enhanced Smart Debt Control Page with Counterparty Focus
-/// Shows debt amounts with each counterparty as the primary information
 class SmartDebtControlPage extends ConsumerStatefulWidget {
   static const String routeName = 'smart-debt-control';
   static const String routePath = '/debt-control';
@@ -128,8 +124,6 @@ class _SmartDebtControlPageState extends ConsumerState<SmartDebtControlPage>
     final smartOverview = ref.watch(smartDebtOverviewProvider);
     final prioritizedDebts = ref.watch(prioritizedDebtsProvider);
     final perspectiveSummary = ref.watch(perspectiveDebtSummaryProvider);
-    final selectedCompany = ref.watch(selectedCompanyProvider);
-    final selectedStore = ref.watch(selectedStoreProvider);
 
     return TossScaffold(
       appBar: TossAppBar(
@@ -374,7 +368,6 @@ class _SmartDebtControlPageState extends ConsumerState<SmartDebtControlPage>
     );
   }
 
-  // Removed _buildHeader method - now using TossAppBar
   
   // Tab Bar (matches cash location page)
   Widget _buildTabBar() {
@@ -406,7 +399,7 @@ class _SmartDebtControlPageState extends ConsumerState<SmartDebtControlPage>
           borderRadius: BorderRadius.circular(25),
           boxShadow: isSelected ? [
             BoxShadow(
-              color: Colors.black.withOpacity(0.08),
+              color: Colors.black.withValues(alpha: 0.08),
               blurRadius: 4,
               offset: const Offset(0, 2),
             ),

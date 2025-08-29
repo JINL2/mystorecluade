@@ -11,8 +11,6 @@
 
 import 'dart:async';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../services/template_performance_service.dart';
 import '../services/monitored_template_service.dart';
 import '../../../../core/cache/smart_cache_manager.dart';
 import '../../../../core/performance/performance_monitor.dart';

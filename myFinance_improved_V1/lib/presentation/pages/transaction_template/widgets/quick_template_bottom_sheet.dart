@@ -8,7 +8,6 @@ import '../../../widgets/toss/toss_bottom_sheet.dart';
 import '../../../widgets/toss/toss_primary_button.dart';
 import '../../../widgets/toss/toss_secondary_button.dart';
 import '../../../widgets/toss/toss_text_field.dart';
-import '../../../widgets/toss/toss_dropdown.dart';
 import '../../../widgets/specific/selectors/autonomous_cash_location_selector.dart';
 import '../../../widgets/specific/selectors/autonomous_counterparty_selector.dart';
 import '../../../../core/themes/toss_colors.dart';
@@ -17,7 +16,6 @@ import '../../../../core/themes/toss_spacing.dart';
 import '../../../../core/themes/toss_border_radius.dart';
 import '../../../providers/app_state_provider.dart';
 import '../../../providers/auth_provider.dart';
-import '../providers/transaction_template_providers.dart';
 import 'quick_template_analyzer.dart';
 import 'template_usage_bottom_sheet.dart';
 
@@ -203,9 +201,9 @@ class _QuickTemplateBottomSheetState extends ConsumerState<QuickTemplateBottomSh
     return Container(
       padding: EdgeInsets.all(TossSpacing.space3),
       decoration: BoxDecoration(
-        color: statusColor.withOpacity(0.1),
+        color: statusColor.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(TossBorderRadius.md),
-        border: Border.all(color: statusColor.withOpacity(0.3)),
+        border: Border.all(color: statusColor.withValues(alpha: 0.3)),
       ),
       child: Row(
         children: [
@@ -297,7 +295,7 @@ class _QuickTemplateBottomSheetState extends ConsumerState<QuickTemplateBottomSh
             ),
             boxShadow: _amountController.text.isNotEmpty ? [
               BoxShadow(
-                color: TossColors.primary.withOpacity(0.1),
+                color: TossColors.primary.withValues(alpha: 0.1),
                 blurRadius: 8,
                 offset: Offset(0, 2),
               ),

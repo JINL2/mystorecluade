@@ -6,7 +6,6 @@ import '../../../../core/themes/toss_colors.dart';
 import '../../../../core/themes/toss_text_styles.dart';
 import '../../../../core/themes/toss_spacing.dart';
 import '../../../widgets/toss/toss_dropdown.dart';
-import '../../../widgets/toss/toss_text_field.dart';
 import '../../../widgets/toss/toss_primary_button.dart';
 import '../../../widgets/toss/toss_secondary_button.dart';
 import '../models/employee_salary.dart';
@@ -357,7 +356,7 @@ class _SalaryEditModalState extends ConsumerState<SalaryEditModal> {
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: Offset(0, -2),
           ),

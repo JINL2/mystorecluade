@@ -11,7 +11,6 @@ import '../../../../core/themes/toss_border_radius.dart';
 import '../../../../domain/entities/currency.dart';
 import '../../../providers/app_state_provider.dart';
 import '../../../providers/exchange_rate_provider.dart';
-import '../providers/currency_providers.dart';
 
 class EditExchangeRateBottomSheet extends ConsumerStatefulWidget {
   final Currency currency;
@@ -262,7 +261,6 @@ class _EditExchangeRateBottomSheetState extends ConsumerState<EditExchangeRateBo
       content: LayoutBuilder(
         builder: (context, constraints) {
           final keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
-          final screenHeight = MediaQuery.of(context).size.height;
           final isKeyboardVisible = keyboardHeight > 0;
           
           return GestureDetector(

@@ -7,6 +7,7 @@ import '../../../../core/themes/toss_text_styles.dart';
 import '../../../widgets/common/toss_scaffold.dart';
 import '../../../widgets/common/toss_app_bar.dart';
 import '../../../widgets/toss/toss_card.dart';
+import '../widgets/common_widgets.dart';
 
 class NotificationsSettingsPage extends ConsumerStatefulWidget {
   const NotificationsSettingsPage({super.key});
@@ -62,7 +63,7 @@ class _NotificationsSettingsPageState extends ConsumerState<NotificationsSetting
                     _pushNotifications,
                     (value) => setState(() => _pushNotifications = value),
                   ),
-                  _buildDivider(),
+                  const CommonDivider(),
                   _buildNotificationToggle(
                     'Transaction Alerts',
                     'Get notified of new transactions',
@@ -70,7 +71,7 @@ class _NotificationsSettingsPageState extends ConsumerState<NotificationsSetting
                     (value) => setState(() => _transactionNotifications = value),
                     enabled: _pushNotifications,
                   ),
-                  _buildDivider(),
+                  const CommonDivider(),
                   _buildNotificationToggle(
                     'Cash Ending Reminders',
                     'Daily reminders for cash ending',
@@ -78,7 +79,7 @@ class _NotificationsSettingsPageState extends ConsumerState<NotificationsSetting
                     (value) => setState(() => _cashEndingReminders = value),
                     enabled: _pushNotifications,
                   ),
-                  _buildDivider(),
+                  const CommonDivider(),
                   _buildNotificationToggle(
                     'Employee Updates',
                     'Notifications about employee activities',
@@ -86,7 +87,7 @@ class _NotificationsSettingsPageState extends ConsumerState<NotificationsSetting
                     (value) => setState(() => _employeeUpdates = value),
                     enabled: _pushNotifications,
                   ),
-                  _buildDivider(),
+                  const CommonDivider(),
                   _buildNotificationToggle(
                     'System Maintenance',
                     'Important system updates and maintenance',
@@ -120,7 +121,7 @@ class _NotificationsSettingsPageState extends ConsumerState<NotificationsSetting
                     _emailNotifications,
                     (value) => setState(() => _emailNotifications = value),
                   ),
-                  _buildDivider(),
+                  const CommonDivider(),
                   _buildNotificationToggle(
                     'Weekly Reports',
                     'Summary of your weekly business activity',
@@ -128,7 +129,7 @@ class _NotificationsSettingsPageState extends ConsumerState<NotificationsSetting
                     (value) => setState(() => _weeklyReports = value),
                     enabled: _emailNotifications,
                   ),
-                  _buildDivider(),
+                  const CommonDivider(),
                   _buildNotificationToggle(
                     'Monthly Reports',
                     'Comprehensive monthly business reports',
@@ -136,7 +137,7 @@ class _NotificationsSettingsPageState extends ConsumerState<NotificationsSetting
                     (value) => setState(() => _monthlyReports = value),
                     enabled: _emailNotifications,
                   ),
-                  _buildDivider(),
+                  const CommonDivider(),
                   _buildNotificationToggle(
                     'Security Alerts',
                     'Important security notifications',
@@ -225,15 +226,6 @@ class _NotificationsSettingsPageState extends ConsumerState<NotificationsSetting
           ),
         ],
       ),
-    );
-  }
-
-
-  Widget _buildDivider() {
-    return Container(
-      height: 1,
-      margin: EdgeInsets.symmetric(horizontal: TossSpacing.space4),
-      color: TossColors.gray100,
     );
   }
 }

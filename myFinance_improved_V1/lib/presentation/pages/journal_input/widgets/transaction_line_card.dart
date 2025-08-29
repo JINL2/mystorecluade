@@ -41,26 +41,22 @@ class TransactionLineCard extends StatelessWidget {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Type indicator - full height bar
                 Container(
                   width: 4,
                   decoration: BoxDecoration(
                     color: line.isDebit ? TossColors.primary : TossColors.success,
                   ),
                 ),
-                // Main content with padding
                 Expanded(
                   child: Padding(
                     padding: EdgeInsets.all(TossSpacing.space3),
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Main content
                         Expanded(
                           child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // First row: Account and Amount
                     Row(
                       children: [
                         Expanded(
@@ -111,7 +107,6 @@ class TransactionLineCard extends StatelessWidget {
                         ),
                       ],
                     ),
-                    // Tags in a single row
                     if (_hasAnyTags()) ...[
                       SizedBox(height: TossSpacing.space2),
                       SingleChildScrollView(
@@ -135,7 +130,6 @@ class TransactionLineCard extends StatelessWidget {
                   ],
                           ),
                         ),
-                        // Delete button
                         IconButton(
                 onPressed: onDelete,
                 icon: Icon(

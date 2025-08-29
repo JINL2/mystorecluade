@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import '../delegate_role/providers/delegate_role_providers.dart';
 import '../delegate_role/widgets/role_management_sheet.dart';
@@ -8,13 +7,10 @@ import '../../providers/app_state_provider.dart';
 import '../../widgets/common/toss_scaffold.dart';
 import '../../widgets/common/toss_app_bar.dart';
 import '../../widgets/common/toss_loading_view.dart';
-import '../../widgets/common/toss_error_view.dart';
-import '../../widgets/common/toss_empty_view.dart';
 import '../../widgets/toss/toss_search_field.dart';
 import '../../widgets/toss/toss_primary_button.dart';
 import '../../widgets/toss/toss_secondary_button.dart';
 import '../../widgets/toss/toss_text_field.dart';
-import '../../widgets/toss/toss_checkbox.dart';
 import '../../../core/themes/toss_colors.dart';
 import '../../../core/themes/toss_text_styles.dart';
 import '../../../core/themes/toss_spacing.dart';
@@ -886,7 +882,7 @@ class _CreateRoleBottomSheetState extends ConsumerState<_CreateRoleBottomSheet> 
                               border: Border.all(
                                 color: allSelected || someSelected
                                     ? TossColors.primary
-                                    : TossColors.border!,
+                                    : TossColors.border,
                                 width: allSelected || someSelected ? 2 : 1,
                               ),
                               borderRadius: BorderRadius.circular(6),
@@ -991,7 +987,7 @@ class _CreateRoleBottomSheetState extends ConsumerState<_CreateRoleBottomSheet> 
                                     border: Border.all(
                                       color: isSelected
                                           ? TossColors.primary
-                                          : TossColors.border!,
+                                          : TossColors.border,
                                       width: isSelected ? 2 : 1,
                                     ),
                                     borderRadius: BorderRadius.circular(6),

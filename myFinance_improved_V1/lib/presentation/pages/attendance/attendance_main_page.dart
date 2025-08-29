@@ -737,7 +737,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
                             
                             try {
                               // Call RPC function to register shift
-                              final response = await Supabase.instance.client.rpc(
+                              await Supabase.instance.client.rpc(
                                 'insert_shift_request_v2',
                                 params: {
                                   'p_user_id': user.id,
@@ -1448,7 +1448,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
 
   @override
   Widget build(BuildContext context) {
-    final appState = ref.watch(appStateProvider);
+    ref.watch(appStateProvider);
     final selectedCompany = ref.read(appStateProvider.notifier).selectedCompany;
     final stores = selectedCompany?['stores'] as List<dynamic>? ?? [];
     
@@ -1624,8 +1624,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
                   const SizedBox(height: TossSpacing.space4),
                   
                   // Selected Date Shift Details
-                  if (selectedDate != null)
-                    _buildSelectedDateShiftDetails(),
+                  _buildSelectedDateShiftDetails(),
                   
                   // Add bottom padding for comfortable scrolling
                   const SizedBox(height: 24),
@@ -2159,7 +2158,6 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
               final shiftName = shift['shift_name'] ?? shift['name'] ?? shift['shift_type'] ?? 'Shift ${shiftId ?? ""}';
               final startTime = shift['start_time'] ?? shift['shift_start_time'] ?? shift['default_start_time'] ?? '--:--';
               final endTime = shift['end_time'] ?? shift['shift_end_time'] ?? shift['default_end_time'] ?? '--:--';
-              final description = shift['description'] ?? shift['shift_description'] ?? '';
               
               // Check registration status
               final userShiftForDate = _getShiftForDate(selectedDate);
@@ -6052,19 +6050,18 @@ class _CalendarBottomSheetState extends State<_CalendarBottomSheet> {
           ),
           
           // Selected Date Info
-          if (selectedDate != null)
-            Container(
-              margin: const EdgeInsets.all(TossSpacing.space5),
-              padding: const EdgeInsets.all(TossSpacing.space4),
-              decoration: BoxDecoration(
-                color: TossColors.primary.withOpacity(0.05),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: TossColors.primary.withOpacity(0.2),
-                  width: 1,
-                ),
+          Container(
+            margin: const EdgeInsets.all(TossSpacing.space5),
+            padding: const EdgeInsets.all(TossSpacing.space4),
+            decoration: BoxDecoration(
+              color: TossColors.primary.withOpacity(0.05),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: TossColors.primary.withOpacity(0.2),
+                width: 1,
               ),
-              child: Row(
+            ),
+            child: Row(
                 children: [
                   Container(
                     padding: const EdgeInsets.all(TossSpacing.space2),

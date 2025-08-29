@@ -11,6 +11,7 @@ import '../../../widgets/toss/toss_card.dart';
 import '../../../widgets/toss/toss_primary_button.dart';
 import '../../../widgets/toss/toss_secondary_button.dart';
 import '../../../widgets/toss/toss_text_field.dart';
+import '../widgets/common_widgets.dart';
 
 class PrivacySecurityPage extends ConsumerStatefulWidget {
   const PrivacySecurityPage({super.key});
@@ -71,14 +72,14 @@ class _PrivacySecurityPageState extends ConsumerState<PrivacySecurityPage> {
                     'Update your account password',
                     () => _toggleChangePassword(),
                   ),
-                  _buildDivider(),
+                  const CommonDivider(),
                   _buildSecurityItem(
                     Icons.security_outlined,
                     'Two-Factor Authentication',
                     'Add an extra layer of security',
                     () => _showComingSoon('Two-Factor Authentication'),
                   ),
-                  _buildDivider(),
+                  const CommonDivider(),
                   _buildSecurityItem(
                     Icons.devices_outlined,
                     'Active Sessions',
@@ -117,7 +118,7 @@ class _PrivacySecurityPageState extends ConsumerState<PrivacySecurityPage> {
                     'Read our privacy policy',
                     () => _showComingSoon('Privacy Policy'),
                   ),
-                  _buildDivider(),
+                  const CommonDivider(),
                   _buildSecurityItem(
                     Icons.description_outlined,
                     'Terms of Service',
@@ -150,7 +151,7 @@ class _PrivacySecurityPageState extends ConsumerState<PrivacySecurityPage> {
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: (isDestructive ? TossColors.error : TossColors.gray500).withOpacity(0.1),
+                color: (isDestructive ? TossColors.error : TossColors.gray500).withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Icon(
@@ -317,13 +318,6 @@ class _PrivacySecurityPageState extends ConsumerState<PrivacySecurityPage> {
     );
   }
 
-  Widget _buildDivider() {
-    return Container(
-      height: 1,
-      margin: EdgeInsets.symmetric(horizontal: TossSpacing.space4),
-      color: TossColors.gray100,
-    );
-  }
 
   void _toggleChangePassword() {
     setState(() {

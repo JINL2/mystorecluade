@@ -1,4 +1,3 @@
-import 'package:myfinance_improved/domain/entities/user.dart';
 import 'package:myfinance_improved/domain/entities/company.dart';
 import 'package:myfinance_improved/domain/entities/store.dart';
 import 'package:myfinance_improved/domain/entities/feature.dart';

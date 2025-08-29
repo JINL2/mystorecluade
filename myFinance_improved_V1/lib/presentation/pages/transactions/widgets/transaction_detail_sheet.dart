@@ -105,7 +105,7 @@ class TransactionDetailSheet extends StatelessWidget {
                   const SizedBox(width: TossSpacing.space2),
                   _buildStatusBadge(
                     transaction.journalType.toUpperCase(),
-                    _getTypeColor(transaction.journalType),
+                    TossColors.gray600,
                   ),
                   if (transaction.isDraft) ...[
                     const SizedBox(width: TossSpacing.space1),
@@ -551,17 +551,6 @@ class TransactionDetailSheet extends StatelessWidget {
         ),
       ],
     );
-  }
-
-  Color _getTypeColor(String type) {
-    switch (type.toLowerCase()) {
-      case 'sales':
-      case 'purchase':
-      case 'payment':
-      case 'receipt':
-      default:
-        return TossColors.gray600;
-    }
   }
 
   IconData _getCashLocationIcon(String type) {

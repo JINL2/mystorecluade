@@ -84,13 +84,6 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
   // Tags functionality
   List<String> _selectedTags = [];
   
-  // Predefined suggested tags (same as Create Role modal)
-  static const List<String> _suggestedTags = [
-    'Critical', 'Support', 'Management', 'Operations', 
-    'Temporary', 'Finance', 'Sales', 'Marketing',
-    'Technical', 'Customer Service', 'Admin', 'Restricted'
-  ];
-  
   // Tag colors mapping using Toss color system
   static final Map<String, Color> _tagColors = {
     'Critical': TossColors.error,
@@ -530,7 +523,6 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
     return rolePermissionsAsync.when(
       data: (permissionData) {
         final categories = permissionData['categories'] as List;
-        final currentPermissions = permissionData['currentPermissions'] as Set<String>;
         
         return Column(
           children: [
@@ -1682,13 +1674,6 @@ class _AddMemberBottomSheetState extends ConsumerState<_AddMemberBottomSheet> {
         ],
       ),
     );
-  }
-
-  bool _isOwnerUser(Map<String, dynamic> user) {
-    // This is a simple check - in a real app you'd check the user's actual role
-    // For now, we'll assume owners are marked by having 'owner' in their role field
-    final role = user['role']?.toString().toLowerCase() ?? '';
-    return role.contains('owner');
   }
 
   bool _isUserAlreadyAssigned(String userId, String currentRole) {

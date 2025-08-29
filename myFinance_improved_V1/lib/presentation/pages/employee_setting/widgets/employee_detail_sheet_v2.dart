@@ -5,9 +5,7 @@ import '../../../../core/themes/toss_text_styles.dart';
 import '../../../../core/themes/toss_spacing.dart';
 import '../../../../core/themes/toss_border_radius.dart';
 import '../../../../core/utils/number_formatter.dart';
-import '../../../widgets/toss/toss_bottom_sheet.dart';
 import '../../../widgets/toss/toss_primary_button.dart';
-import '../../../widgets/toss/toss_secondary_button.dart';
 import '../models/employee_salary.dart';
 import '../providers/employee_setting_providers.dart';
 
@@ -298,7 +296,7 @@ class _InfoTab extends StatelessWidget {
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.02),
+            color: Colors.black.withValues(alpha: 0.02),
             blurRadius: 4,
             offset: const Offset(0, 2),
           ),
@@ -311,14 +309,14 @@ class _InfoTab extends StatelessWidget {
           Container(
             padding: EdgeInsets.all(TossSpacing.space4),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.05),
+              color: color.withValues(alpha: 0.05),
               borderRadius: BorderRadius.only(
                 topLeft: Radius.circular(TossBorderRadius.lg),
                 topRight: Radius.circular(TossBorderRadius.lg),
               ),
               border: Border(
                 bottom: BorderSide(
-                  color: color.withOpacity(0.1),
+                  color: color.withValues(alpha: 0.1),
                   width: 1,
                 ),
               ),
@@ -328,7 +326,7 @@ class _InfoTab extends StatelessWidget {
                 Container(
                   padding: EdgeInsets.all(TossSpacing.space2),
                   decoration: BoxDecoration(
-                    color: color.withOpacity(0.1),
+                    color: color.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Icon(

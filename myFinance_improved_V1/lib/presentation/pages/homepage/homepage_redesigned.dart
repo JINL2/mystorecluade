@@ -1,8 +1,6 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:myfinance_improved/core/themes/toss_colors.dart';
 import 'package:myfinance_improved/core/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/core/themes/toss_spacing.dart';
@@ -12,7 +10,6 @@ import 'package:myfinance_improved/core/constants/icon_mapper.dart';
 import 'providers/homepage_providers.dart';
 import '../../widgets/common/safe_popup_menu.dart';
 import '../../providers/app_state_provider.dart';
-import '../../providers/auth_provider.dart';
 import '../../providers/enhanced_auth_provider.dart';
 import '../../providers/notification_provider.dart';
 import 'models/homepage_models.dart';
@@ -427,7 +424,7 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
               backgroundImage: (userData['profile_image'] ?? '').isNotEmpty
                   ? NetworkImage(userData['profile_image'])
                   : null,
-              backgroundColor: TossColors.primary.withOpacity(0.1),
+              backgroundColor: TossColors.primary.withValues(alpha: 0.1),
               child: (userData['profile_image'] ?? '').isEmpty
                   ? Text(
                       (userData['user_first_name'] ?? '').isNotEmpty ? userData['user_first_name'][0] : 'U',
@@ -456,10 +453,10 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
           margin: EdgeInsets.all(TossSpacing.space4),
           padding: EdgeInsets.all(TossSpacing.space5),
           decoration: BoxDecoration(
-            color: TossColors.primary.withOpacity(0.05),
+            color: TossColors.primary.withValues(alpha: 0.05),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: TossColors.primary.withOpacity(0.2),
+              color: TossColors.primary.withValues(alpha: 0.2),
               width: 1,
             ),
           ),
@@ -599,7 +596,7 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: TossColors.textPrimary.withOpacity(0.02),
+                    color: TossColors.textPrimary.withValues(alpha: 0.02),
                     blurRadius: 12,
                     offset: const Offset(0, 4),
                   ),
@@ -680,7 +677,7 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: TossColors.textPrimary.withOpacity(0.02),
+                    color: TossColors.textPrimary.withValues(alpha: 0.02),
                     blurRadius: 12,
                     offset: const Offset(0, 4),
                   ),
@@ -861,7 +858,7 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: TossColors.textPrimary.withOpacity(0.02),
+                    color: TossColors.textPrimary.withValues(alpha: 0.02),
                     blurRadius: 12,
                     offset: const Offset(0, 4),
                   ),
@@ -930,10 +927,10 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
                   Container(
                     padding: EdgeInsets.all(TossSpacing.space3),
                     decoration: BoxDecoration(
-                      color: TossColors.warning.withOpacity(0.1),
+                      color: TossColors.warning.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
-                        color: TossColors.warning.withOpacity(0.3),
+                        color: TossColors.warning.withValues(alpha: 0.3),
                         width: 1,
                       ),
                     ),
@@ -1055,8 +1052,8 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
           );
         },
         borderRadius: BorderRadius.circular(12),
-        splashColor: TossColors.primary.withOpacity(0.1),
-        highlightColor: TossColors.primary.withOpacity(0.05),
+        splashColor: TossColors.primary.withValues(alpha: 0.1),
+        highlightColor: TossColors.primary.withValues(alpha: 0.05),
         child: AnimatedContainer(
           duration: TossAnimations.normal,
           curve: TossAnimations.standard,
@@ -1140,7 +1137,7 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
                   width: 36,
                   height: 36,
                   decoration: BoxDecoration(
-                    color: TossColors.primary.withOpacity(0.1),
+                    color: TossColors.primary.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Icon(
@@ -1335,7 +1332,7 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
         ),
         boxShadow: [
           BoxShadow(
-            color: TossColors.textPrimary.withOpacity(0.02),
+            color: TossColors.textPrimary.withValues(alpha: 0.02),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -1396,8 +1393,8 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
       child: InkWell(
         onTap: () => _handleFeatureTap(feature, categoryId),
         borderRadius: BorderRadius.circular(12),
-        splashColor: TossColors.primary.withOpacity(0.08),
-        highlightColor: TossColors.primary.withOpacity(0.04),
+        splashColor: TossColors.primary.withValues(alpha: 0.08),
+        highlightColor: TossColors.primary.withValues(alpha: 0.04),
         child: AnimatedContainer(
           duration: TossAnimations.normal,
           curve: TossAnimations.standard,

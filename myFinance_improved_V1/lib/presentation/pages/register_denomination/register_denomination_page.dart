@@ -178,8 +178,6 @@ class RegisterDenominationPage extends ConsumerWidget {
     );
   }
 
-  // This method is no longer needed as we're using TossErrorView directly
-
   Future<void> _onRefresh(WidgetRef ref) async {
     // Haptic feedback for better UX
     HapticFeedback.lightImpact();

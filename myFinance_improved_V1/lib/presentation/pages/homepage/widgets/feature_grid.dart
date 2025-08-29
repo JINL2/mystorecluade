@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:myfinance_improved/core/themes/toss_colors.dart';
 import 'package:myfinance_improved/core/themes/toss_text_styles.dart';
+import 'package:myfinance_improved/domain/entities/feature.dart';
 import '../models/homepage_models.dart';
 import 'feature_card.dart';
 

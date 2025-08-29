@@ -91,17 +91,6 @@ final accountMappingsProvider = StateNotifierProvider.family<
   return AccountMappingsNotifier(ref, counterpartyId);
 });
 
-// Legacy provider for backward compatibility - now just reads from state notifier
-final accountMappingsListProvider = FutureProvider.family<List<AccountMapping>, String>((ref, counterpartyId) async {
-  // Simply watch the state notifier
-  final state = ref.watch(accountMappingsProvider(counterpartyId));
-  return state.when(
-    data: (mappings) => mappings,
-    loading: () => [],
-    error: (_, __) => [],
-  );
-});
-
 // Available DEBT accounts for current company using RPC
 final availableAccountsProvider = FutureProvider<List<AccountInfo>>((ref) async {
   final supabase = ref.watch(supabaseClientProvider);
@@ -153,7 +142,6 @@ final linkedCompanyAccountsProvider = FutureProvider.family<List<AccountInfo>, S
 
 // Available internal companies (for linking)
 final availableInternalCompaniesProvider = FutureProvider<List<CompanyInfo>>((ref) async {
-  final supabase = ref.watch(supabaseClientProvider);
   final selectedCompany = ref.watch(selectedCompanyProvider);
   
   if (selectedCompany == null) {

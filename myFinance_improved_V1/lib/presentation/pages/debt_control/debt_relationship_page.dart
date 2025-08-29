@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
 import '../../../core/themes/toss_colors.dart';
 import '../../../core/themes/toss_text_styles.dart';
@@ -17,8 +16,6 @@ import '../../../data/services/supabase_service.dart';
 import 'widgets/edit_counterparty_sheet.dart';
 import '../../../core/navigation/safe_navigation.dart';
 
-/// Debt Relationship Detail Page
-/// Shows comprehensive relationship view between current entity and counterparty
 class DebtRelationshipPage extends ConsumerStatefulWidget {
   final String counterpartyId;
   final String counterpartyName;
@@ -134,9 +131,6 @@ class _DebtRelationshipPageState extends ConsumerState<DebtRelationshipPage> {
 
   @override
   Widget build(BuildContext context) {
-    final appState = ref.watch(appStateProvider);
-    final selectedCompany = ref.watch(selectedCompanyProvider);
-    final selectedStore = ref.watch(selectedStoreProvider);
     final prioritizedDebts = ref.watch(prioritizedDebtsProvider);
 
     // Find the specific debt record for this counterparty
@@ -147,8 +141,6 @@ class _DebtRelationshipPageState extends ConsumerState<DebtRelationshipPage> {
           )
         : null;
 
-    // Determine current context (company or store viewpoint)
-    final isStoreView = appState.storeChoosen.isNotEmpty;
 
     return TossScaffold(
       appBar: TossAppBar(
@@ -189,7 +181,6 @@ class _DebtRelationshipPageState extends ConsumerState<DebtRelationshipPage> {
     );
   }
 
-  // Removed _buildHeader method - now using TossAppBar
 
   Widget _buildOverviewCard(dynamic debt) {
     final isPositive = debt.amount >= 0;
@@ -646,18 +637,6 @@ class _DebtRelationshipPageState extends ConsumerState<DebtRelationshipPage> {
     );
   }
 
-  Color _getRiskColor(String riskCategory) {
-    switch (riskCategory) {
-      case 'critical':
-        return TossColors.error;
-      case 'attention':
-        return TossColors.warning;
-      case 'watch':
-        return TossColors.primary;
-      default:
-        return TossColors.success;
-    }
-  }
 
 
   String _determineSuggestedAccountType() {

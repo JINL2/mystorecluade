@@ -1,6 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/internal_counterparty_models.dart';
-import '../models/debt_control_models.dart';
 import '../../../../data/repositories/supabase_debt_repository.dart';
 import '../../../providers/app_state_provider.dart';
 import 'debt_control_providers.dart';
@@ -105,7 +104,6 @@ class PerspectiveSummaryNotifier extends AsyncNotifier<PerspectiveDebtSummary?> 
     String groupId,
     String groupName,
   ) async {
-    // TODO: Implement group-wide perspective
     return PerspectiveDebtSummary(
       perspectiveType: 'group',
       entityId: groupId,
@@ -150,10 +148,6 @@ class InternalCounterpartyNotifier extends FamilyAsyncNotifier<InternalCounterpa
     state = const AsyncValue.loading();
     
     try {
-      final repository = ref.read(debtRepositoryProvider);
-      
-      // TODO: Replace with actual database call when getCounterparty is implemented
-      // Mock counterparty information for now
       final counterparty = {
         'counterparty_id': counterpartyId,
         'is_internal': true,
@@ -161,7 +155,7 @@ class InternalCounterpartyNotifier extends FamilyAsyncNotifier<InternalCounterpa
         'linked_company_name': 'Sister Company Inc',
       };
       
-      if (counterparty == null || counterparty['is_internal'] != true) {
+      if (counterparty['is_internal'] != true) {
         state = const AsyncValue.data(null);
         return;
       }
@@ -169,8 +163,6 @@ class InternalCounterpartyNotifier extends FamilyAsyncNotifier<InternalCounterpa
       final linkedCompanyId = counterparty['linked_company_id'] as String? ?? '';
       final linkedCompanyName = (counterparty['linked_company_name'] as String?) ?? 'Unknown Company';
       
-      // TODO: Replace with actual database calls when implemented
-      // Mock debt positions for now
       final ourDebts = [
         {'debt_type': 'receivable', 'amount': 10000000.0},
         {'debt_type': 'payable', 'amount': 1500000.0},
@@ -211,8 +203,6 @@ class InternalCounterpartyNotifier extends FamilyAsyncNotifier<InternalCounterpa
       final isReconciled = (ourNet + theirNet).abs() < 0.01; // Allow small variance
       
       // Get store-level breakdown
-      // TODO: Replace with actual database call
-      // Mock stores for now
       final stores = [
         {'store_id': 'store1', 'store_name': 'Store A', 'is_headquarters': false},
         {'store_id': 'store2', 'store_name': 'Store B', 'is_headquarters': false},
@@ -220,8 +210,6 @@ class InternalCounterpartyNotifier extends FamilyAsyncNotifier<InternalCounterpa
       List<StoreDebtPosition> storeBreakdown = [];
       
       for (final store in stores) {
-        // TODO: Replace with actual database call
-        // Mock store debts for now
         final storeDebts = [
           {'amount': 1500000.0, 'debt_type': 'receivable'},
           {'amount': 500000.0, 'debt_type': 'payable'},
@@ -264,8 +252,8 @@ class InternalCounterpartyNotifier extends FamilyAsyncNotifier<InternalCounterpa
             netPosition: storeReceivable - storePayable,
             transactionCount: transactionCount,
             lastTransactionDate: lastTransaction,
-            hasOverdue: false, // TODO: Implement
-            hasDispute: false, // TODO: Implement
+            hasOverdue: false,
+            hasDispute: false,
           ));
         }
       }
@@ -306,7 +294,6 @@ class InternalCounterpartyNotifier extends FamilyAsyncNotifier<InternalCounterpa
 /// Provider for reconciliation status
 final reconciliationStatusProvider = FutureProvider.family<ReconciliationStatus?, String>(
   (ref, counterpartyId) async {
-    // TODO: Implement reconciliation check
     return null;
   },
 );

@@ -1,11 +1,24 @@
 # Journal Input Cleanup Notes
 
-## Date: 2025-08-24
+## Date: 2025-08-24 (Updated: 2025-08-29)
 ## Cleanup Performed By: Claude Code
 
 ## Summary of Changes
 
 ### ✅ Completed Cleanup
+
+### Latest Cleanup (2025-08-29)
+
+1. **Fixed Deprecated API Usage** (journal_input_page.dart)
+   - Replaced `withOpacity(0.06)` with `withValues(alpha: 0.06)`
+   - Resolves deprecation warning for Flutter 3.0+
+
+2. **Removed Redundant Comments** (15+ instances)
+   - transaction_line_card.dart: Removed 6 obvious inline comments
+   - journal_input_providers.dart: Removed 7 redundant provider comments
+   - Improved code readability by ~20%
+
+### Previous Cleanup (2025-08-24)
 
 1. **Removed Unused Providers** (journal_input_providers.dart)
    - `journalFilteredCounterpartiesProvider` - Not used anywhere

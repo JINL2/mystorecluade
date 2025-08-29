@@ -2,9 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/themes/toss_colors.dart';
 import '../../../../core/themes/toss_text_styles.dart';
-import '../../../../core/themes/toss_shadows.dart';
 import '../../../../core/themes/toss_border_radius.dart';
-import '../../../../core/themes/toss_animations.dart';
 import '../../../../core/utils/number_formatter.dart';
 import '../models/internal_counterparty_models.dart';
 
@@ -182,7 +180,6 @@ class PerspectiveSummaryCard extends ConsumerWidget {
                         itemCount: summary.storeAggregates.length,
                         itemBuilder: (context, index) {
                           final store = summary.storeAggregates[index];
-                          final storePositive = store.netPosition >= 0;
                           
                           return Container(
                             margin: const EdgeInsets.only(right: 8),
@@ -346,36 +343,6 @@ class PerspectiveSummaryCard extends ConsumerWidget {
     );
   }
 
-  Widget _buildMetric({
-    required String label,
-    required String value,
-    required IconData icon,
-    bool isWarning = false,
-  }) {
-    return Column(
-      children: [
-        Icon(
-          icon,
-          size: 16,
-          color: isWarning ? TossColors.warning : TossColors.textInverse.withValues(alpha: 0.7),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          value,
-          style: TossTextStyles.body.copyWith(
-            color: isWarning ? TossColors.warning : TossColors.textInverse,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        Text(
-          label,
-          style: TossTextStyles.small.copyWith(
-            color: TossColors.textInverse.withValues(alpha: 0.7),
-          ),
-        ),
-      ],
-    );
-  }
 
   IconData _getPerspectiveIcon() {
     switch (summary.perspectiveType) {

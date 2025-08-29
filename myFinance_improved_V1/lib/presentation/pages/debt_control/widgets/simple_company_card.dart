@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import '../../../../core/themes/toss_colors.dart';
 import '../../../../core/themes/toss_text_styles.dart';
 import '../../../../core/utils/number_formatter.dart';
-import '../../../widgets/common/toss_white_card.dart';
 import '../../../../core/navigation/safe_navigation.dart';
 
 /// Simplified company card for debt control
@@ -125,13 +123,6 @@ class SimpleCompanyCard extends StatelessWidget {
     );
   }
 
-  String _getInitials(String name) {
-    final parts = name.trim().split(' ');
-    if (parts.length >= 2) {
-      return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
-    }
-    return name.substring(0, name.length >= 2 ? 2 : 1).toUpperCase();
-  }
 
   String _formatDate(DateTime date) {
     final now = DateTime.now();

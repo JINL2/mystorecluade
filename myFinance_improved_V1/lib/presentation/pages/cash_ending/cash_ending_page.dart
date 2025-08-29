@@ -457,7 +457,6 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
         return;
       }
       
-      // Debug: Print the first location to see its structure
       if (response.isNotEmpty) {
       }
       
@@ -666,7 +665,6 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
     );
   }
   
-  // NOTE: This method is commented out as the history section has been replaced with Journal/Real tabs
   // Keeping for reference in case needed in the future
   /*
   Widget _buildRecentEndingDetail(Map<String, dynamic> ending) {
@@ -1430,7 +1428,6 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
           spacing: TossSpacing.space3,
           runSpacing: TossSpacing.space3,
           children: locations.map((location) {
-            // Debug: Print location structure
             
             // Try different possible field names for the location ID
             final locationId = location['cash_location_id']?.toString() ?? 
@@ -2386,7 +2383,6 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
         'p_created_at': createdAt,
       };
       
-      // Debug: Log the params
       
       // Call the RPC function
       final response = await Supabase.instance.client
@@ -3786,7 +3782,6 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
         'p_store_id': (selectedStoreId == 'headquarter') ? null : selectedStoreId,
       };
       
-      // Debug: Log the params to see what's being sent
       
       // Call the RPC function
       final response = await Supabase.instance.client
@@ -4364,7 +4359,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
             'parsed_currencies': currencies,
             'denomination_data': denominationData,
             'currency_data': currencyData,
-            'transaction_rows': transactionRows, // Store raw rows for debugging
+            'transaction_rows': transactionRows,
           }];
           isLoadingRecentEndings = false;
         });
@@ -4443,7 +4438,6 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
         });
       }
     } catch (e) {
-      print('Error fetching stock flow: $e');
       setState(() {
         isLoadingFlows = false;
       });

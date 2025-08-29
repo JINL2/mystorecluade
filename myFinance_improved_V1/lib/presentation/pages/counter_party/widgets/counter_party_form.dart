@@ -671,7 +671,7 @@ class _CounterPartyFormState extends ConsumerState<CounterPartyForm> with Ticker
 
   @override
   Widget build(BuildContext context) {
-    final unlinkedCompaniesAsync = ref.watch(unlinkedCompaniesProvider);
+    ref.watch(unlinkedCompaniesProvider);
 
     return Container(
       decoration: BoxDecoration(

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'providers/delegate_role_providers.dart';
 import 'widgets/role_management_sheet.dart';
 import '../../providers/app_state_provider.dart';
@@ -28,15 +27,13 @@ class DelegateRolePage extends ConsumerStatefulWidget {
   ConsumerState<DelegateRolePage> createState() => _DelegateRolePageState();
 }
 
-class _DelegateRolePageState extends ConsumerState<DelegateRolePage> with WidgetsBindingObserver {
-  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+class _DelegateRolePageState extends ConsumerState<DelegateRolePage> {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addObserver(this);
     _searchController.addListener(() {
       setState(() {
         _searchQuery = _searchController.text.toLowerCase();
@@ -47,19 +44,9 @@ class _DelegateRolePageState extends ConsumerState<DelegateRolePage> with Widget
   @override
   void dispose() {
     _searchController.dispose();
-    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
 
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    // Handle app lifecycle changes if needed
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -90,7 +77,6 @@ class _DelegateRolePageState extends ConsumerState<DelegateRolePage> with Widget
     }
 
     return TossScaffold(
-      scaffoldKey: _scaffoldKey,
       backgroundColor: TossColors.gray100,
       appBar: TossAppBar(
         title: 'Team Roles',
@@ -401,26 +387,6 @@ class _DelegateRolePageState extends ConsumerState<DelegateRolePage> with Widget
     }
   }
 
-
-  Color _getTagColorFromName(String tag) {
-    // Use the same color mapping as in Create Role modal
-    const tagColors = {
-      'Critical': TossColors.error,
-      'Support': TossColors.info,
-      'Management': TossColors.primary,
-      'Operations': TossColors.success,
-      'Temporary': TossColors.warning,
-      'Finance': TossColors.primary,
-      'Sales': TossColors.success,
-      'Marketing': TossColors.info,
-      'Technical': TossColors.textSecondary,
-      'Customer Service': TossColors.info,
-      'Admin': TossColors.primary,
-      'Restricted': TossColors.error,
-    };
-    
-    return tagColors[tag] ?? TossColors.gray600;
-  }
 
   Color _getRoleColor(String roleName) {
     switch (roleName.toLowerCase()) {
@@ -914,9 +880,6 @@ class _CreateRoleBottomSheetState extends ConsumerState<_CreateRoleBottomSheet> 
         .where((tag) => !_selectedTags.contains(tag))
         .toList();
     
-    // Calculate remaining slots
-    final remainingSlots = TagValidator.MAX_TAGS - _selectedTags.length;
-    
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1295,7 +1258,7 @@ class _CreateRoleBottomSheetState extends ConsumerState<_CreateRoleBottomSheet> 
                               border: Border.all(
                                 color: allSelected || someSelected
                                     ? TossColors.primary
-                                    : TossColors.border!,
+                                    : TossColors.border,
                                 width: allSelected || someSelected ? 2 : 1,
                               ),
                               borderRadius: BorderRadius.circular(6),
@@ -1400,7 +1363,7 @@ class _CreateRoleBottomSheetState extends ConsumerState<_CreateRoleBottomSheet> 
                                     border: Border.all(
                                       color: isSelected
                                           ? TossColors.primary
-                                          : TossColors.border!,
+                                          : TossColors.border,
                                       width: isSelected ? 2 : 1,
                                     ),
                                     borderRadius: BorderRadius.circular(6),

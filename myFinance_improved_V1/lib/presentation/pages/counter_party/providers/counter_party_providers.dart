@@ -22,7 +22,7 @@ final selectedCounterPartyProvider = StateProvider<CounterParty?>((ref) => null)
 // Counter parties list provider
 final counterPartiesProvider = FutureProvider<List<CounterParty>>((ref) async {
   final supabase = ref.watch(supabaseClientProvider);
-  final appState = ref.watch(appStateProvider);
+  ref.watch(appStateProvider);
   final selectedCompany = ref.watch(selectedCompanyProvider);
   final filter = ref.watch(counterPartyFilterProvider);
   
@@ -232,7 +232,7 @@ final updateCounterPartyProvider = FutureProvider.family<CounterPartyResponse, C
     final supabase = ref.watch(supabaseClientProvider);
     final validator = ref.watch(counterPartyFormValidationProvider);
     
-    final user = supabase.auth.currentUser;
+    supabase.auth.currentUser;
     
     if (formData.counterpartyId == null) {
       return const CounterPartyResponse.error(

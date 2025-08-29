@@ -3,7 +3,6 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 part 'debt_control_models.freezed.dart';
 part 'debt_control_models.g.dart';
 
-/// Critical alert data model for proactive debt management notifications
 @freezed
 class CriticalAlert with _$CriticalAlert {
   const factory CriticalAlert({
@@ -20,7 +19,6 @@ class CriticalAlert with _$CriticalAlert {
       _$CriticalAlertFromJson(json);
 }
 
-/// Key Performance Indicators for debt management dashboard
 @freezed
 class KPIMetrics with _$KPIMetrics {
   const factory KPIMetrics({
@@ -41,7 +39,6 @@ class KPIMetrics with _$KPIMetrics {
       _$KPIMetricsFromJson(json);
 }
 
-/// Aging analysis data for debt portfolio insights
 @freezed
 class AgingAnalysis with _$AgingAnalysis {
   const factory AgingAnalysis({
@@ -56,7 +53,6 @@ class AgingAnalysis with _$AgingAnalysis {
       _$AgingAnalysisFromJson(json);
 }
 
-/// Trend data point for aging analysis charts
 @freezed
 class AgingTrendPoint with _$AgingTrendPoint {
   const factory AgingTrendPoint({
@@ -71,7 +67,6 @@ class AgingTrendPoint with _$AgingTrendPoint {
       _$AgingTrendPointFromJson(json);
 }
 
-/// Risk-prioritized debt item with intelligent scoring
 @freezed
 class PrioritizedDebt with _$PrioritizedDebt {
   const factory PrioritizedDebt({
@@ -101,7 +96,6 @@ class PrioritizedDebt with _$PrioritizedDebt {
       _$PrioritizedDebtFromJson(json);
 }
 
-/// Contextual action suggestion for debt management
 @freezed
 class SuggestedAction with _$SuggestedAction {
   const factory SuggestedAction({
@@ -119,7 +113,6 @@ class SuggestedAction with _$SuggestedAction {
       _$SuggestedActionFromJson(json);
 }
 
-/// Individual debt transaction for history tracking
 @freezed
 class DebtTransaction with _$DebtTransaction {
   const factory DebtTransaction({
@@ -138,7 +131,6 @@ class DebtTransaction with _$DebtTransaction {
       _$DebtTransactionFromJson(json);
 }
 
-/// Smart debt overview containing all intelligence data
 @freezed
 class SmartDebtOverview with _$SmartDebtOverview {
   const factory SmartDebtOverview({
@@ -154,7 +146,6 @@ class SmartDebtOverview with _$SmartDebtOverview {
       _$SmartDebtOverviewFromJson(json);
 }
 
-/// Quick action configuration for actions hub
 @freezed
 class QuickAction with _$QuickAction {
   const factory QuickAction({
@@ -172,7 +163,6 @@ class QuickAction with _$QuickAction {
       _$QuickActionFromJson(json);
 }
 
-/// Communication record for debt follow-up tracking
 @freezed
 class DebtCommunication with _$DebtCommunication {
   const factory DebtCommunication({

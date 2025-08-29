@@ -99,7 +99,7 @@ class SmartDebtOverviewNotifier extends AsyncNotifier<SmartDebtOverview?> {
       );
       
       state = AsyncValue.data(overview);
-    } catch (error, stackTrace) {
+    } catch (error) {
       // Provide a default state instead of error state for better UX
       // Critical error in loadSmartOverview
       state = AsyncValue.data(SmartDebtOverview(
@@ -163,7 +163,7 @@ class PrioritizedDebtsNotifier extends AsyncNotifier<List<PrioritizedDebt>> {
       );
       
       state = AsyncValue.data(debts);
-    } catch (error, stackTrace) {
+    } catch (error) {
       // Provide empty list instead of error state for better UX
       // Error loading prioritized debts
       state = const AsyncValue.data([]);

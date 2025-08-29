@@ -219,8 +219,6 @@ class _VaultRealPageState extends ConsumerState<VaultRealPage> {
     );
   }
   
-  // Removed _buildHeader method - now using TossAppBar
-  
   Widget _buildRealList(List<VaultRealDisplay> allItems) {
     final filteredItems = _getFilteredItems(allItems);
     

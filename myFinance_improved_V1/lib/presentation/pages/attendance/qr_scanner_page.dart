@@ -228,13 +228,6 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
                 // Submit attendance
                 final attendanceService = ref.read(attendanceServiceProvider);
                 
-                print('Submitting attendance with:');
-                print('  userId: $userId');
-                print('  storeId: $storeId');
-                print('  requestDate: $requestDate');
-                print('  timestamp: $currentTime');
-                print('  location: ${position.latitude}, ${position.longitude}');
-                
                 final result = await attendanceService.updateShiftRequest(
                   userId: userId,
                   storeId: storeId,
@@ -249,9 +242,6 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
                   throw Exception('Failed to update shift request. Please try again.');
                 }
                 
-                print('QR Scan Result: $result');
-                print('Result type: ${result.runtimeType}');
-                
                 // Force refresh the attendance provider to update the activity list
                 await ref.read(shiftOverviewProvider.notifier).refresh();
                 
@@ -265,7 +255,7 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
                   
                   // Check various possible response formats from the RPC
                   // The RPC might return different formats depending on the action
-                  if (result is Map<String, dynamic>) {
+                  {
                     // Check for action field
                     final action = result['action']?.toString().toLowerCase() ?? '';
                     final type = result['type']?.toString().toLowerCase() ?? '';

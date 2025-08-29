@@ -67,14 +67,6 @@ class _TransactionHistoryPageState extends ConsumerState<TransactionHistoryPage>
   @override
   void dispose() {
     _scrollController.dispose();
-    // Clear the counterparty filter when leaving the page if it was set from navigation
-    if (widget.counterpartyId != null && mounted) {
-      // Schedule the cleanup for the next frame to avoid modifying provider during disposal
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        // The provider will be cleared when the page is fully disposed
-        // No need to explicitly clear here as the provider will rebuild with new state
-      });
-    }
     super.dispose();
   }
 

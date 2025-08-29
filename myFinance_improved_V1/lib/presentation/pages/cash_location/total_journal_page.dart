@@ -10,6 +10,7 @@ import '../../widgets/common/toss_scaffold.dart';
 import '../../widgets/common/toss_app_bar.dart';
 import '../../../data/services/cash_journal_service.dart';
 import '../../providers/app_state_provider.dart';
+import 'utils/string_extensions.dart';
 
 class TotalJournalPage extends ConsumerStatefulWidget {
   final String locationType; // 'cash', 'bank', 'vault'
@@ -236,8 +237,6 @@ class _TotalJournalPageState extends ConsumerState<TotalJournalPage> {
       ),
     );
   }
-  
-  // Removed _buildHeader method - now using TossAppBar
   
   
   Widget _buildTransactionList(List<TransactionDisplay> allTransactions) {
@@ -746,11 +745,6 @@ class _TotalJournalPageState extends ConsumerState<TotalJournalPage> {
   }
 }
 
-extension StringExtension on String {
-  String capitalize() {
-    return '${this[0].toUpperCase()}${substring(1)}';
-  }
-}
 
 class _TransactionDetailBottomSheet extends StatelessWidget {
   final TransactionDisplay transaction;
