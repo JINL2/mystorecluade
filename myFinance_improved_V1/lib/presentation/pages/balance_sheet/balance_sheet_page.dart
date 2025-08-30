@@ -369,7 +369,7 @@ class _BalanceSheetPageState extends ConsumerState<BalanceSheetPage>
                           Container(
                             decoration: BoxDecoration(
                               color: TossColors.gray100,
-                              borderRadius: BorderRadius.circular(24),
+                              borderRadius: BorderRadius.circular(TossBorderRadius.xxxl),
                             ),
                           ),
                           // Tab Bar
@@ -377,7 +377,7 @@ class _BalanceSheetPageState extends ConsumerState<BalanceSheetPage>
                             controller: _tabController,
                             indicator: BoxDecoration(
                               color: TossColors.background,
-                              borderRadius: BorderRadius.circular(22),
+                              borderRadius: BorderRadius.circular(TossBorderRadius.xxl),
                               boxShadow: [
                                 BoxShadow(
                                   color: Colors.black.withOpacity(0.08),
@@ -397,7 +397,7 @@ class _BalanceSheetPageState extends ConsumerState<BalanceSheetPage>
                             unselectedLabelStyle: TossTextStyles.labelLarge.copyWith(
                               fontWeight: FontWeight.w400,
                             ),
-                            splashBorderRadius: BorderRadius.circular(22),
+                            splashBorderRadius: BorderRadius.circular(TossBorderRadius.xxl),
                             tabs: const [
                               Tab(
                                 text: 'Balance Sheet',
@@ -1371,12 +1371,12 @@ class _BalanceSheetPageState extends ConsumerState<BalanceSheetPage>
         const SizedBox(height: TossSpacing.space2),
         InkWell(
           onTap: () => _showStoreSelector(),
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(TossBorderRadius.xl),
           child: Container(
             padding: const EdgeInsets.all(TossSpacing.space4),
             decoration: BoxDecoration(
               color: TossColors.background,
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(TossBorderRadius.xl),
               border: Border.all(
                 color: selectedStoreId != null ? TossColors.primary.withOpacity(0.3) : TossColors.gray200,
                 width: selectedStoreId != null ? 1.5 : 1,
@@ -1398,7 +1398,7 @@ class _BalanceSheetPageState extends ConsumerState<BalanceSheetPage>
                     color: (selectedStoreId != null || (selectedStoreId == null && stores.isNotEmpty))
                       ? TossColors.primary.withOpacity(0.1) 
                       : TossColors.gray50,
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(TossBorderRadius.buttonLarge),
                   ),
                   child: Icon(
                     selectedStoreId == null && stores.isNotEmpty
@@ -1476,7 +1476,7 @@ class _BalanceSheetPageState extends ConsumerState<BalanceSheetPage>
               height: 4,
               decoration: BoxDecoration(
                 color: TossColors.gray300,
-                borderRadius: BorderRadius.circular(100),
+                borderRadius: BorderRadius.circular(TossBorderRadius.full),
               ),
             ),
             // Title
@@ -1541,7 +1541,7 @@ class _BalanceSheetPageState extends ConsumerState<BalanceSheetPage>
                                 color: isSelected 
                                   ? TossColors.primary.withOpacity(0.1) 
                                   : TossColors.gray50,
-                                borderRadius: BorderRadius.circular(10),
+                                borderRadius: BorderRadius.circular(TossBorderRadius.buttonLarge),
                               ),
                               child: Icon(
                                 Icons.business_outlined,
@@ -1621,7 +1621,7 @@ class _BalanceSheetPageState extends ConsumerState<BalanceSheetPage>
                               color: isSelected 
                                 ? TossColors.primary.withOpacity(0.1) 
                                 : TossColors.gray50,
-                              borderRadius: BorderRadius.circular(10),
+                              borderRadius: BorderRadius.circular(TossBorderRadius.buttonLarge),
                             ),
                             child: Icon(
                               Icons.store_outlined,
@@ -1690,12 +1690,12 @@ class _BalanceSheetPageState extends ConsumerState<BalanceSheetPage>
         // Single Date Range Selector
         InkWell(
           onTap: () => _showDateRangePicker('range'),
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(TossBorderRadius.xl),
           child: Container(
             padding: const EdgeInsets.all(TossSpacing.space4),
             decoration: BoxDecoration(
               color: TossColors.background,
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(TossBorderRadius.xl),
               border: Border.all(
                 color: (fromDate != null && toDate != null) 
                   ? TossColors.primary.withOpacity(0.3) 
@@ -1719,7 +1719,7 @@ class _BalanceSheetPageState extends ConsumerState<BalanceSheetPage>
                     color: (fromDate != null && toDate != null)
                       ? TossColors.primary.withOpacity(0.1) 
                       : TossColors.gray50,
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(TossBorderRadius.buttonLarge),
                   ),
                   child: Icon(
                     Icons.date_range_outlined,
@@ -1822,7 +1822,7 @@ class _BalanceSheetPageState extends ConsumerState<BalanceSheetPage>
   Widget _buildQuickDateButton(String label, VoidCallback onTap) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(20),
+      borderRadius: BorderRadius.circular(TossBorderRadius.xxl),
       child: Container(
         padding: const EdgeInsets.symmetric(
           horizontal: TossSpacing.space3,
@@ -1830,7 +1830,7 @@ class _BalanceSheetPageState extends ConsumerState<BalanceSheetPage>
         ),
         decoration: BoxDecoration(
           color: TossColors.gray50,
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(TossBorderRadius.xxl),
           border: Border.all(
             color: TossColors.gray200,
             width: 1,
@@ -2619,7 +2619,7 @@ class _TossDateRangePickerState extends State<_TossDateRangePicker> {
             height: 4,
             decoration: BoxDecoration(
               color: TossColors.gray300,
-              borderRadius: BorderRadius.circular(100),
+              borderRadius: BorderRadius.circular(TossBorderRadius.full),
             ),
           ),
           // Header
@@ -2642,7 +2642,7 @@ class _TossDateRangePickerState extends State<_TossDateRangePicker> {
                     color: (_fromDate != null && _toDate != null)
                       ? TossColors.primary.withOpacity(0.05)
                       : TossColors.gray50,
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                   ),
                   child: Row(
                     children: [
@@ -2778,7 +2778,7 @@ class _TossDateRangePickerState extends State<_TossDateRangePicker> {
                     ),
                     decoration: BoxDecoration(
                       color: TossColors.gray50,
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(TossBorderRadius.md),
                     ),
                     child: Row(
                       children: [
@@ -2910,7 +2910,7 @@ class _TossDateRangePickerState extends State<_TossDateRangePicker> {
                         });
                         HapticFeedback.selectionClick();
                       },
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(TossBorderRadius.md),
                       child: Container(
                         margin: const EdgeInsets.all(3),
                         child: Stack(
@@ -2948,7 +2948,7 @@ class _TossDateRangePickerState extends State<_TossDateRangePicker> {
                                 color: (isFromDate || isToDate)
                                     ? TossColors.primary
                                     : Colors.transparent,
-                                borderRadius: BorderRadius.circular(8),
+                                borderRadius: BorderRadius.circular(TossBorderRadius.md),
                                 border: isToday && !(isFromDate || isToDate)
                                     ? Border.all(
                                         color: TossColors.primary,
@@ -3020,7 +3020,7 @@ class _TossDateRangePickerState extends State<_TossDateRangePicker> {
                       elevation: 0,
                       padding: const EdgeInsets.symmetric(vertical: TossSpacing.space4),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                       ),
                     ),
                     child: Text(

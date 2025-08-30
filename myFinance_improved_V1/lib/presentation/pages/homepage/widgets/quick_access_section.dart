@@ -4,6 +4,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../core/themes/toss_colors.dart';
 import '../../../../core/themes/toss_text_styles.dart';
 import '../../../../core/themes/toss_spacing.dart';
+import '../../../../core/themes/toss_border_radius.dart';
 import '../../../../core/constants/icon_mapper.dart';
 import '../models/homepage_models.dart';
 import '../../../widgets/toss/toss_card.dart';
@@ -124,7 +125,7 @@ class QuickAccessSection extends ConsumerWidget {
               margin: const EdgeInsets.symmetric(vertical: 12),
               decoration: BoxDecoration(
                 color: TossColors.gray300,
-                borderRadius: BorderRadius.circular(2),
+                borderRadius: BorderRadius.circular(TossBorderRadius.micro),
               ),
             ),
             
@@ -156,7 +157,7 @@ class QuickAccessSection extends ConsumerWidget {
                   final feature = topFeatures[index];
                   return ListTile(
                     leading: ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(TossBorderRadius.md),
                       child: CachedNetworkImage(
                         imageUrl: feature.icon,
                         width: 40,
@@ -224,7 +225,7 @@ class QuickAccessFeatureCard extends StatelessWidget {
             height: 56,
             decoration: BoxDecoration(
               color: TossColors.primary.withAlpha(26),  // Light blue background (10% opacity)
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(TossBorderRadius.large),
             ),
             child: Center(
               child: Icon(

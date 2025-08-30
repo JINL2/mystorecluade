@@ -438,7 +438,7 @@ class _CounterPartyPageState extends ConsumerState<CounterPartyPage> {
             margin: EdgeInsets.only(top: TossSpacing.space3),
             decoration: BoxDecoration(
               color: TossColors.gray300,
-              borderRadius: BorderRadius.circular(2),
+              borderRadius: BorderRadius.circular(TossBorderRadius.micro),
             ),
           ),
           
@@ -606,7 +606,7 @@ class _CounterPartyPageState extends ConsumerState<CounterPartyPage> {
             margin: EdgeInsets.only(top: TossSpacing.space3),
             decoration: BoxDecoration(
               color: TossColors.gray300,
-              borderRadius: BorderRadius.circular(2),
+              borderRadius: BorderRadius.circular(TossBorderRadius.micro),
             ),
           ),
           

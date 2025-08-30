@@ -127,7 +127,7 @@ class DenominationGrid extends ConsumerWidget {
             height: 4,
             decoration: BoxDecoration(
               color: TossColors.gray300,
-              borderRadius: BorderRadius.circular(2),
+              borderRadius: BorderRadius.circular(TossBorderRadius.micro),
             ),
           ),
           const SizedBox(height: TossSpacing.space5),

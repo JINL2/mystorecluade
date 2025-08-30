@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/themes/toss_colors.dart';
 import '../../../../core/themes/toss_text_styles.dart';
 import '../../../../core/themes/toss_spacing.dart';
+import '../../../../core/themes/toss_border_radius.dart';
 import '../../../../core/themes/toss_animations.dart';
 import '../../../providers/app_state_provider.dart';
 import '../../../widgets/toss/toss_primary_button.dart';
@@ -142,7 +143,7 @@ class _ModernDrawerState extends ConsumerState<ModernDrawer> {
                 height: 20,
                 decoration: BoxDecoration(
                   color: Theme.of(context).colorScheme.primary,
-                  borderRadius: BorderRadius.circular(2),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.micro),
                 ),
               ),
               const SizedBox(width: 12),
@@ -237,7 +238,7 @@ class _ModernDrawerState extends ConsumerState<ModernDrawer> {
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
         color: TossColors.white,  // White cards for contrast against gray background
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
         border: Border.all(
           color: isSelected 
             ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.3) 
@@ -274,7 +275,7 @@ class _ModernDrawerState extends ConsumerState<ModernDrawer> {
                 Navigator.of(context).pop();
               }
             },
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
             child: Container(
               padding: const EdgeInsets.all(16),
               child: Row(
@@ -287,7 +288,7 @@ class _ModernDrawerState extends ConsumerState<ModernDrawer> {
                       color: isSelected 
                         ? Theme.of(context).colorScheme.primary 
                         : Theme.of(context).colorScheme.surfaceContainerHighest,
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(TossBorderRadius.buttonLarge),
                     ),
                     child: Icon(
                       Icons.business,
@@ -410,14 +411,14 @@ class _ModernDrawerState extends ConsumerState<ModernDrawer> {
               Navigator.of(context).pop();
             }
           },
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(TossBorderRadius.md),
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             decoration: BoxDecoration(
               color: isSelected 
                 ? Theme.of(context).colorScheme.surfaceContainerHighest 
                 : Colors.transparent,
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(TossBorderRadius.md),
             ),
             child: Row(
               children: [
@@ -463,12 +464,12 @@ class _ModernDrawerState extends ConsumerState<ModernDrawer> {
         color: Colors.transparent,
         child: InkWell(
           onTap: () => _showStoreActionsBottomSheet(context, ref, company),
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(TossBorderRadius.md),
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             decoration: BoxDecoration(
               color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(TossBorderRadius.md),
             ),
             child: Row(
               children: [
@@ -501,12 +502,12 @@ class _ModernDrawerState extends ConsumerState<ModernDrawer> {
         color: Colors.transparent,
         child: InkWell(
           onTap: () => _showCodesBottomSheet(context, company),
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(TossBorderRadius.md),
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             decoration: BoxDecoration(
               color: TossColors.white,  // White background for better contrast
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(TossBorderRadius.md),
               border: Border.all(
                 color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
               ),
@@ -566,7 +567,7 @@ class _ModernDrawerState extends ConsumerState<ModernDrawer> {
               margin: const EdgeInsets.only(top: 8, bottom: 24),
               decoration: BoxDecoration(
                 color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.3),
-                borderRadius: BorderRadius.circular(2),
+                borderRadius: BorderRadius.circular(TossBorderRadius.micro),
               ),
             ),
             
@@ -652,7 +653,7 @@ class _ModernDrawerState extends ConsumerState<ModernDrawer> {
               margin: const EdgeInsets.only(top: 8, bottom: 24),
               decoration: BoxDecoration(
                 color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.3),
-                borderRadius: BorderRadius.circular(2),
+                borderRadius: BorderRadius.circular(TossBorderRadius.micro),
               ),
             ),
             
@@ -737,12 +738,12 @@ class _ModernDrawerState extends ConsumerState<ModernDrawer> {
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
         child: Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             color: Theme.of(context).colorScheme.surface,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
             border: Border.all(
               color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
             ),
@@ -754,7 +755,7 @@ class _ModernDrawerState extends ConsumerState<ModernDrawer> {
                 height: 48,
                 decoration: BoxDecoration(
                   color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                 ),
                 child: Icon(
                   icon,
@@ -869,7 +870,7 @@ class _ModernDrawerState extends ConsumerState<ModernDrawer> {
                 margin: const EdgeInsets.only(top: 8, bottom: 24),
                 decoration: BoxDecoration(
                   color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.3),
-                  borderRadius: BorderRadius.circular(2),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.micro),
                 ),
               ),
               
@@ -921,7 +922,7 @@ class _ModernDrawerState extends ConsumerState<ModernDrawer> {
                         decoration: InputDecoration(
                           labelText: inputLabel,
                           border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                           ),
                         ),
                       ),
@@ -942,7 +943,7 @@ class _ModernDrawerState extends ConsumerState<ModernDrawer> {
                             foregroundColor: Theme.of(context).colorScheme.onPrimary,
                             padding: const EdgeInsets.symmetric(vertical: 16),
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                             ),
                           ),
                           child: Text(buttonText),
@@ -991,7 +992,7 @@ class _ModernDrawerState extends ConsumerState<ModernDrawer> {
                   margin: const EdgeInsets.only(top: 8, bottom: 24),
                   decoration: BoxDecoration(
                     color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.3),
-                    borderRadius: BorderRadius.circular(2),
+                    borderRadius: BorderRadius.circular(TossBorderRadius.micro),
                   ),
                 ),
                 
@@ -1055,7 +1056,7 @@ class _ModernDrawerState extends ConsumerState<ModernDrawer> {
                               decoration: InputDecoration(
                                 hintText: 'Enter store name',
                                 border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
+                                  borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                                 ),
                               ),
                                     onChanged: (value) {
@@ -1084,7 +1085,7 @@ class _ModernDrawerState extends ConsumerState<ModernDrawer> {
                               decoration: InputDecoration(
                                 hintText: 'Enter store address',
                                 border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
+                                  borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                                 ),
                               ),
                               maxLines: 2,
@@ -1111,7 +1112,7 @@ class _ModernDrawerState extends ConsumerState<ModernDrawer> {
                               decoration: InputDecoration(
                                 hintText: 'Enter store phone number',
                                 border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
+                                  borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                                 ),
                               ),
                               keyboardType: TextInputType.phone,
@@ -1184,7 +1185,7 @@ class _ModernDrawerState extends ConsumerState<ModernDrawer> {
                   margin: const EdgeInsets.only(top: 8, bottom: 24),
                   decoration: BoxDecoration(
                     color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.3),
-                    borderRadius: BorderRadius.circular(2),
+                    borderRadius: BorderRadius.circular(TossBorderRadius.micro),
                   ),
                 ),
                 
@@ -1248,7 +1249,7 @@ class _ModernDrawerState extends ConsumerState<ModernDrawer> {
                               decoration: InputDecoration(
                                 hintText: 'Enter company name',
                                 border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
+                                  borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                                 ),
                               ),
                                     onChanged: (value) {
@@ -1382,7 +1383,7 @@ class _ModernDrawerState extends ConsumerState<ModernDrawer> {
           padding: EdgeInsets.all(TossSpacing.space4),
           decoration: BoxDecoration(
             color: Theme.of(context).colorScheme.surface,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -1454,7 +1455,7 @@ class _ModernDrawerState extends ConsumerState<ModernDrawer> {
               content: Text('Company "$name" created!'),
               backgroundColor: Theme.of(context).colorScheme.primary,
               behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(TossBorderRadius.md)),
             ),
           );
         }
@@ -1465,7 +1466,7 @@ class _ModernDrawerState extends ConsumerState<ModernDrawer> {
               content: const Text('Failed to create company. Please try again.'),
               backgroundColor: Theme.of(context).colorScheme.error,
               behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(TossBorderRadius.md)),
             ),
           );
         }
@@ -1480,7 +1481,7 @@ class _ModernDrawerState extends ConsumerState<ModernDrawer> {
             content: Text('Error: ${e.toString()}'),
             backgroundColor: Theme.of(context).colorScheme.error,
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(TossBorderRadius.md)),
           ),
         );
       }
@@ -1516,7 +1517,7 @@ class _ModernDrawerState extends ConsumerState<ModernDrawer> {
           padding: EdgeInsets.all(TossSpacing.space4),
           decoration: BoxDecoration(
             color: Theme.of(context).colorScheme.surface,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -1589,7 +1590,7 @@ class _ModernDrawerState extends ConsumerState<ModernDrawer> {
               content: Text('Store "$name" created!'),
               backgroundColor: Theme.of(context).colorScheme.primary,
               behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(TossBorderRadius.md)),
             ),
           );
         }
@@ -1600,7 +1601,7 @@ class _ModernDrawerState extends ConsumerState<ModernDrawer> {
               content: const Text('Failed to create store. Please try again.'),
               backgroundColor: Theme.of(context).colorScheme.error,
               behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(TossBorderRadius.md)),
             ),
           );
         }
@@ -1615,7 +1616,7 @@ class _ModernDrawerState extends ConsumerState<ModernDrawer> {
             content: Text('Error: ${e.toString()}'),
             backgroundColor: Theme.of(context).colorScheme.error,
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(TossBorderRadius.md)),
           ),
         );
       }
@@ -1641,7 +1642,7 @@ class _ModernDrawerState extends ConsumerState<ModernDrawer> {
         content: Text('$label copied to clipboard'),
         backgroundColor: Theme.of(context).colorScheme.primary,
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(TossBorderRadius.md)),
         duration: const Duration(seconds: 2),
       ),
     );
@@ -1670,7 +1671,7 @@ class _ModernDrawerState extends ConsumerState<ModernDrawer> {
               margin: const EdgeInsets.only(top: 8, bottom: 24),
               decoration: BoxDecoration(
                 color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.3),
-                borderRadius: BorderRadius.circular(2),
+                borderRadius: BorderRadius.circular(TossBorderRadius.micro),
               ),
             ),
             
@@ -1750,12 +1751,12 @@ class _ModernDrawerState extends ConsumerState<ModernDrawer> {
       color: Colors.transparent,
       child: InkWell(
         onTap: onCopy,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
         child: Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
             border: Border.all(
               color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.1),
             ),
@@ -1767,7 +1768,7 @@ class _ModernDrawerState extends ConsumerState<ModernDrawer> {
                 height: 40,
                 decoration: BoxDecoration(
                   color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.buttonLarge),
                 ),
                 child: Icon(
                   icon,
@@ -1814,7 +1815,7 @@ class _ModernDrawerState extends ConsumerState<ModernDrawer> {
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
                       color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(4),
+                      borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,

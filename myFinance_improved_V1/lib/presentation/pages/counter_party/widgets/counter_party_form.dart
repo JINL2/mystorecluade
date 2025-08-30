@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:myfinance_improved/core/themes/toss_colors.dart';
 import 'package:myfinance_improved/core/themes/toss_text_styles.dart';
+import 'package:myfinance_improved/core/themes/toss_border_radius.dart';
 import '../models/counter_party_models.dart';
 import '../providers/counter_party_providers.dart';
 import '../../../providers/app_state_provider.dart';
@@ -156,7 +157,7 @@ class _CounterPartyFormState extends ConsumerState<CounterPartyForm> with Ticker
         content: Text(message),
         backgroundColor: TossColors.error,
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(TossBorderRadius.md)),
       ),
     );
   }
@@ -167,7 +168,7 @@ class _CounterPartyFormState extends ConsumerState<CounterPartyForm> with Ticker
         content: Text(message),
         backgroundColor: TossColors.success,
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(TossBorderRadius.md)),
       ),
     );
   }
@@ -177,14 +178,14 @@ class _CounterPartyFormState extends ConsumerState<CounterPartyForm> with Ticker
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(TossBorderRadius.xl)),
           title: Row(
             children: [
               Container(
                 padding: EdgeInsets.all(8),
                 decoration: BoxDecoration(
                   color: TossColors.error.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.md),
                 ),
                 child: Icon(
                   Icons.delete_outline,
@@ -232,7 +233,7 @@ class _CounterPartyFormState extends ConsumerState<CounterPartyForm> with Ticker
                 foregroundColor: Colors.white,
                 padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.md),
                 ),
                 elevation: 0,
               ),
@@ -339,7 +340,7 @@ class _CounterPartyFormState extends ConsumerState<CounterPartyForm> with Ticker
                 height: 8,
                 decoration: BoxDecoration(
                   color: index <= _currentStep ? TossColors.primary : TossColors.gray300,
-                  borderRadius: BorderRadius.circular(4),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                 ),
               ),
               if (index < _totalSteps - 1)
@@ -482,7 +483,7 @@ class _CounterPartyFormState extends ConsumerState<CounterPartyForm> with Ticker
             padding: EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: _isInternal ? TossColors.primary.withOpacity(0.05) : TossColors.gray50,
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(TossBorderRadius.xl),
               border: Border.all(
                 color: _isInternal ? TossColors.primary.withOpacity(0.3) : TossColors.gray200,
                 width: 1,
@@ -573,7 +574,7 @@ class _CounterPartyFormState extends ConsumerState<CounterPartyForm> with Ticker
                     padding: EdgeInsets.symmetric(vertical: 16),
                     backgroundColor: TossColors.gray50,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
+                      borderRadius: BorderRadius.circular(TossBorderRadius.large),
                     ),
                   ),
                   child: Row(
@@ -599,7 +600,7 @@ class _CounterPartyFormState extends ConsumerState<CounterPartyForm> with Ticker
                   style: TextButton.styleFrom(
                     padding: EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
+                      borderRadius: BorderRadius.circular(TossBorderRadius.large),
                     ),
                   ),
                   child: Text(
@@ -625,7 +626,7 @@ class _CounterPartyFormState extends ConsumerState<CounterPartyForm> with Ticker
                   padding: EdgeInsets.symmetric(vertical: 16),
                   elevation: 0,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
+                    borderRadius: BorderRadius.circular(TossBorderRadius.large),
                   ),
                   disabledBackgroundColor: TossColors.gray300,
                   disabledForegroundColor: TossColors.gray500,
@@ -693,7 +694,7 @@ class _CounterPartyFormState extends ConsumerState<CounterPartyForm> with Ticker
                 height: 4,
                 decoration: BoxDecoration(
                   color: TossColors.gray300,
-                  borderRadius: BorderRadius.circular(2),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.micro),
                 ),
               ),
               Padding(
@@ -839,19 +840,19 @@ class _CounterPartyFormState extends ConsumerState<CounterPartyForm> with Ticker
             filled: true,
             fillColor: TossColors.gray50,
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(TossBorderRadius.large),
               borderSide: BorderSide.none,
             ),
             enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(TossBorderRadius.large),
               borderSide: BorderSide(color: TossColors.gray200, width: 1),
             ),
             focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(TossBorderRadius.large),
               borderSide: BorderSide(color: TossColors.primary, width: 1.5),
             ),
             errorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(TossBorderRadius.large),
               borderSide: BorderSide(color: TossColors.error, width: 1),
             ),
             contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -869,7 +870,7 @@ class _CounterPartyFormState extends ConsumerState<CounterPartyForm> with Ticker
         duration: Duration(milliseconds: 200),
         decoration: BoxDecoration(
           color: isSelected ? color.withOpacity(0.08) : TossColors.gray50,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(TossBorderRadius.xl),
           border: Border.all(
             color: isSelected ? color : TossColors.gray200,
             width: isSelected ? 2 : 1,
@@ -924,7 +925,7 @@ class _CounterPartyFormState extends ConsumerState<CounterPartyForm> with Ticker
             padding: EdgeInsets.all(12),
             decoration: BoxDecoration(
               color: TossColors.warning.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(TossBorderRadius.md),
             ),
             child: Row(
               children: [
@@ -968,7 +969,7 @@ class _CounterPartyFormState extends ConsumerState<CounterPartyForm> with Ticker
         padding: EdgeInsets.all(12),
         decoration: BoxDecoration(
           color: TossColors.error.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(TossBorderRadius.md),
         ),
         child: Row(
           children: [

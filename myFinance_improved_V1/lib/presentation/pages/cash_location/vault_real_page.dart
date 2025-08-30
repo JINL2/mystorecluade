@@ -127,7 +127,7 @@ class _VaultRealPageState extends ConsumerState<VaultRealPage> {
     
     if (companyId.isEmpty || storeId.isEmpty) {
       return TossScaffold(
-        backgroundColor: const Color(0xFFF7F8FA),
+        backgroundColor: TossColors.backgroundPage,
         body: const Center(
           child: Text('Please select a company and store first'),
         ),
@@ -144,7 +144,7 @@ class _VaultRealPageState extends ConsumerState<VaultRealPage> {
     ));
     
     return TossScaffold(
-      backgroundColor: const Color(0xFFF7F8FA),
+      backgroundColor: TossColors.backgroundPage,
       appBar: TossAppBar(
         title: 'Vault Total Real',
       ),
@@ -529,7 +529,7 @@ class _VaultRealPageState extends ConsumerState<VaultRealPage> {
                 height: 4,
                 decoration: BoxDecoration(
                   color: TossColors.gray300,
-                  borderRadius: BorderRadius.circular(2),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.micro),
                 ),
               ),
               
@@ -662,7 +662,7 @@ class _VaultDetailBottomSheet extends StatelessWidget {
             height: 4,
             decoration: BoxDecoration(
               color: TossColors.gray300,
-              borderRadius: BorderRadius.circular(2),
+              borderRadius: BorderRadius.circular(TossBorderRadius.micro),
             ),
           ),
           
@@ -704,7 +704,7 @@ class _VaultDetailBottomSheet extends StatelessWidget {
                       color: isNegative 
                           ? Colors.red.withOpacity(0.1)
                           : Theme.of(context).colorScheme.primary.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -820,7 +820,7 @@ class _VaultDetailBottomSheet extends StatelessWidget {
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Colors.grey[50],
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(TossBorderRadius.md),
         border: Border.all(color: Colors.grey[200]!),
       ),
       child: Column(
@@ -835,7 +835,7 @@ class _VaultDetailBottomSheet extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
                       color: Colors.blue.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(4),
+                      borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                     ),
                     child: Text(
                       _formatCurrency(denomination.denominationValue, symbol),
@@ -875,7 +875,7 @@ class _VaultDetailBottomSheet extends StatelessWidget {
                     color: denomination.dailyChange > 0 
                         ? Colors.green.withOpacity(0.1)
                         : Colors.red.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(4),
+                    borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                   ),
                   child: Text(
                     'Change: ${denomination.dailyChange > 0 ? "+" : ""}${denomination.dailyChange}',

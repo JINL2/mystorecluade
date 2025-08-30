@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/themes/toss_colors.dart';
 import '../../../../core/themes/toss_text_styles.dart';
 import '../../../../core/themes/toss_spacing.dart';
+import '../../../../core/themes/toss_border_radius.dart';
 import '../../../widgets/toss/toss_search_field.dart';
 import '../../../widgets/toss/toss_primary_button.dart';
 import '../../../widgets/toss/toss_secondary_button.dart';
@@ -60,7 +61,7 @@ class _RoleManagementModalState extends ConsumerState<RoleManagementModal> {
             height: 4,
             decoration: BoxDecoration(
               color: TossColors.gray300,
-              borderRadius: BorderRadius.circular(2),
+              borderRadius: BorderRadius.circular(TossBorderRadius.micro),
             ),
           ),
           // Header
@@ -368,7 +369,7 @@ class _RoleItem extends StatelessWidget {
         padding: EdgeInsets.all(TossSpacing.space4),
         decoration: BoxDecoration(
           color: isSelected ? TossColors.primary.withValues(alpha: 0.05) : TossColors.background,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
           border: Border.all(
             color: isSelected ? TossColors.primary : TossColors.gray200,
             width: isSelected ? 2 : 1,
@@ -382,7 +383,7 @@ class _RoleItem extends StatelessWidget {
               height: 24,
               decoration: BoxDecoration(
                 color: isSelected ? TossColors.primary : TossColors.background,
-                borderRadius: BorderRadius.circular(6),
+                borderRadius: BorderRadius.circular(TossBorderRadius.sm),
                 border: Border.all(
                   color: isSelected ? TossColors.primary : TossColors.gray300,
                   width: 2,
@@ -423,7 +424,7 @@ class _RoleItem extends StatelessWidget {
                           ),
                           decoration: BoxDecoration(
                             color: TossColors.success.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(6),
+                            borderRadius: BorderRadius.circular(TossBorderRadius.sm),
                           ),
                           child: Text(
                             'Current',

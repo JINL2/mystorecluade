@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/themes/toss_colors.dart';
 import '../../../core/themes/toss_text_styles.dart';
 import '../../../core/themes/toss_spacing.dart';
+import '../../../core/themes/toss_border_radius.dart';
 import '../../../core/notifications/models/notification_db_model.dart';
 import '../../../core/notifications/services/notification_service.dart';
 import '../../providers/notification_provider.dart';
@@ -78,7 +79,7 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage> {
                 ),
                 decoration: BoxDecoration(
                   color: TossColors.primary,
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                 ),
                 child: Text(
                   '$_unreadCount',
@@ -134,7 +135,7 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage> {
   Widget _buildDatabaseStatsCard() {
     return Card(
       elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(TossBorderRadius.xl)),
       child: Padding(
         padding: EdgeInsets.all(TossSpacing.space4),
         child: Column(
@@ -147,7 +148,7 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage> {
                   height: 20,
                   decoration: BoxDecoration(
                     color: TossColors.primary,
-                    borderRadius: BorderRadius.circular(2),
+                    borderRadius: BorderRadius.circular(TossBorderRadius.micro),
                   ),
                 ),
                 SizedBox(width: TossSpacing.space3),
@@ -204,7 +205,7 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage> {
   Widget _buildNotificationsList() {
     return Card(
       elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(TossBorderRadius.xl)),
       child: Padding(
         padding: EdgeInsets.all(TossSpacing.space4),
         child: Column(
@@ -217,7 +218,7 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage> {
                   height: 20,
                   decoration: BoxDecoration(
                     color: TossColors.primary,
-                    borderRadius: BorderRadius.circular(2),
+                    borderRadius: BorderRadius.circular(TossBorderRadius.micro),
                   ),
                 ),
                 SizedBox(width: TossSpacing.space3),
@@ -237,7 +238,7 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage> {
                 padding: EdgeInsets.all(TossSpacing.space4),
                 decoration: BoxDecoration(
                   color: TossColors.gray100,
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                 ),
                 child: Row(
                   children: [
@@ -267,7 +268,7 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage> {
       margin: EdgeInsets.only(bottom: TossSpacing.space3),
       decoration: BoxDecoration(
         color: notification.isRead ? TossColors.gray50 : TossColors.primary.withOpacity(0.05),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
         border: Border.all(
           color: notification.isRead ? TossColors.borderLight : TossColors.primary.withOpacity(0.2),
         ),
@@ -276,7 +277,7 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage> {
         color: Colors.transparent,
         child: InkWell(
           onTap: notification.isRead ? null : () => _markAsRead(notification.id ?? ''),
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
           child: Padding(
             padding: EdgeInsets.all(TossSpacing.space4),
             child: Column(
@@ -323,7 +324,7 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage> {
                         ),
                         decoration: BoxDecoration(
                           color: TossColors.primary.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(6),
+                          borderRadius: BorderRadius.circular(TossBorderRadius.sm),
                         ),
                         child: Text(
                           notification.category!,
@@ -370,7 +371,7 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage> {
           content: const Text('📖 Notification marked as read'),
           backgroundColor: Colors.green,
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(TossBorderRadius.lg)),
         ),
       );
       _loadNotificationData(); // Refresh the list
@@ -382,7 +383,7 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage> {
           content: const Text('❌ Failed to mark as read'),
           backgroundColor: Colors.red,
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(TossBorderRadius.lg)),
         ),
       );
     }

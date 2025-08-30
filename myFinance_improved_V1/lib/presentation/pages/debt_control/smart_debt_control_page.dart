@@ -396,7 +396,7 @@ class _SmartDebtControlPageState extends ConsumerState<SmartDebtControlPage>
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
         decoration: BoxDecoration(
           color: isSelected ? TossColors.background : TossColors.gray100,
-          borderRadius: BorderRadius.circular(25),
+          borderRadius: BorderRadius.circular(TossBorderRadius.xxxl),
           boxShadow: isSelected ? [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.08),

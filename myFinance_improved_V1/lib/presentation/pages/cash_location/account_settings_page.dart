@@ -143,7 +143,7 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage> {
       appBar: TossAppBar(
         title: 'Account Settings',
       ),
-      backgroundColor: const Color(0xFFF7F8FA),
+      backgroundColor: TossColors.backgroundPage,
       body: SafeArea(
         child: Column(
           children: [
@@ -926,7 +926,7 @@ class _SimpleNameEditSheet extends StatelessWidget {
                 height: 4,
                 decoration: BoxDecoration(
                   color: TossColors.gray300,
-                  borderRadius: BorderRadius.circular(2),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.micro),
                 ),
               ),
               
@@ -1008,7 +1008,7 @@ class _SimpleNameEditSheet extends StatelessWidget {
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Theme.of(context).colorScheme.primary,
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                           ),
                           elevation: 0,
                         ),
@@ -1075,7 +1075,7 @@ class _SimpleNoteEditSheet extends StatelessWidget {
                 height: 4,
                 decoration: BoxDecoration(
                   color: TossColors.gray300,
-                  borderRadius: BorderRadius.circular(2),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.micro),
                 ),
               ),
               
@@ -1155,7 +1155,7 @@ class _SimpleNoteEditSheet extends StatelessWidget {
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Theme.of(context).colorScheme.primary,
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                           ),
                           elevation: 0,
                         ),

@@ -7,6 +7,7 @@ import '../../../core/notifications/services/notification_service.dart';
 import '../../../core/notifications/services/fcm_service.dart';
 import '../../../core/notifications/repositories/notification_repository.dart';
 import '../../widgets/common/toss_scaffold.dart';
+import '../../../core/themes/toss_border_radius.dart';
 
 class NotificationDebugPage extends ConsumerStatefulWidget {
   const NotificationDebugPage({Key? key}) : super(key: key);
@@ -297,7 +298,7 @@ class _NotificationDebugPageState extends ConsumerState<NotificationDebugPage> {
                             : _statusMessage.startsWith('❌')
                                 ? Colors.red.withOpacity(0.1)
                                 : Colors.blue.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(TossBorderRadius.md),
                         border: Border.all(
                           color: _statusMessage.startsWith('✅')
                               ? Colors.green

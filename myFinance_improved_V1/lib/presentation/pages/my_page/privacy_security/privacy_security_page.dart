@@ -5,6 +5,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../core/themes/toss_colors.dart';
 import '../../../../core/themes/toss_spacing.dart';
 import '../../../../core/themes/toss_text_styles.dart';
+import '../../../../core/themes/toss_border_radius.dart';
 import '../../../widgets/common/toss_scaffold.dart';
 import '../../../widgets/common/toss_app_bar.dart';
 import '../../../widgets/toss/toss_card.dart';
@@ -152,7 +153,7 @@ class _PrivacySecurityPageState extends ConsumerState<PrivacySecurityPage> {
               height: 40,
               decoration: BoxDecoration(
                 color: (isDestructive ? TossColors.error : TossColors.gray500).withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(TossBorderRadius.buttonLarge),
               ),
               child: Icon(
                 icon,

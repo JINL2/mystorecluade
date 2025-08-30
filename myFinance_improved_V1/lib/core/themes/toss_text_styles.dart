@@ -126,6 +126,46 @@ class TossTextStyles {
     height: 1.455,  // 16px line height
   );
 
+  // Micro - Ultra small text (10px/12px)
+  static TextStyle get micro => GoogleFonts.inter(
+    fontSize: 10,
+    fontWeight: FontWeight.w400,  // Regular
+    letterSpacing: 0.03,
+    height: 1.2,  // 12px line height
+  );
+
+  // Tiny - Very small text (9px/12px)  
+  static TextStyle get tiny => GoogleFonts.inter(
+    fontSize: 9,
+    fontWeight: FontWeight.w400,  // Regular
+    letterSpacing: 0.03,
+    height: 1.333,  // 12px line height
+  );
+
+  // Mini - Smallest readable text (8px/12px)
+  static TextStyle get mini => GoogleFonts.inter(
+    fontSize: 8,
+    fontWeight: FontWeight.w400,  // Regular
+    letterSpacing: 0.04,
+    height: 1.5,  // 12px line height
+  );
+
+  // Subtitle - Between body and heading (15px/20px)
+  static TextStyle get subtitle => GoogleFonts.inter(
+    fontSize: 15,
+    fontWeight: FontWeight.w500,  // Medium
+    letterSpacing: 0,
+    height: 1.333,  // 20px line height
+  );
+
+  // Hero - Large display text (48px/52px)
+  static TextStyle get hero => GoogleFonts.inter(
+    fontSize: 48,
+    fontWeight: FontWeight.w800,  // Extra bold
+    letterSpacing: -0.03,
+    height: 1.083,  // 52px line height
+  );
+
   // ==================== FINANCIAL STYLES ====================
   
   // Amount - Money display (20px/24px) - Keep for financial numbers

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'dart:convert';
+import '../../../core/themes/toss_colors.dart';
 import '../../../core/themes/toss_text_styles.dart';
 import '../../../core/themes/toss_spacing.dart';
 import '../../../core/themes/toss_border_radius.dart';
@@ -130,7 +131,7 @@ class _AddAccountPageState extends ConsumerState<AddAccountPage> {
       appBar: TossAppBar(
         title: _pageTitle,
       ),
-      backgroundColor: const Color(0xFFF7F8FA),
+      backgroundColor: TossColors.backgroundPage,
       body: SafeArea(
         child: Column(
           children: [

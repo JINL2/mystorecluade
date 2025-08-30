@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/themes/toss_colors.dart';
 import '../../../core/themes/toss_text_styles.dart';
+import '../../../core/themes/toss_border_radius.dart';
 import '../../providers/app_state_provider.dart';
 import '../../widgets/common/toss_scaffold.dart';
 import '../../../core/navigation/safe_navigation.dart';
@@ -44,7 +45,7 @@ class _ChooseRolePageState extends ConsumerState<ChooseRolePage> {
                     height: 40,
                     decoration: BoxDecoration(
                       color: TossColors.primary,
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(TossBorderRadius.md),
                     ),
                     child: const Icon(
                       Icons.store,
@@ -228,12 +229,12 @@ class _ChooseRolePageState extends ConsumerState<ChooseRolePage> {
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(TossBorderRadius.xl),
         child: Container(
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(TossBorderRadius.xl),
             border: Border.all(
               color: TossColors.gray200,
               width: 1,
@@ -253,7 +254,7 @@ class _ChooseRolePageState extends ConsumerState<ChooseRolePage> {
                 height: 56,
                 decoration: BoxDecoration(
                   color: color.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                 ),
                 child: Icon(
                   icon,

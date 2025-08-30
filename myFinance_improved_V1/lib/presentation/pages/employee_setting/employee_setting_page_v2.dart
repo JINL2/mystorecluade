@@ -629,7 +629,7 @@ class _EmployeeSettingPageV2State extends ConsumerState<EmployeeSettingPageV2>
                   height: 52,
                   decoration: BoxDecoration(
                     color: TossColors.gray100,
-                    borderRadius: BorderRadius.circular(26),
+                    borderRadius: BorderRadius.circular(TossBorderRadius.xxxl),
                     image: employee.profileImage?.isNotEmpty == true
                         ? DecorationImage(
                             image: NetworkImage(employee.profileImage!),
@@ -828,7 +828,7 @@ class _EmployeeSettingPageV2State extends ConsumerState<EmployeeSettingPageV2>
             margin: EdgeInsets.only(top: TossSpacing.space3),
             decoration: BoxDecoration(
               color: TossColors.gray300,
-              borderRadius: BorderRadius.circular(2),
+              borderRadius: BorderRadius.circular(TossBorderRadius.micro),
             ),
           ),
           
@@ -1039,7 +1039,7 @@ class _EmployeeSettingPageV2State extends ConsumerState<EmployeeSettingPageV2>
             margin: EdgeInsets.only(top: TossSpacing.space3),
             decoration: BoxDecoration(
               color: TossColors.gray300,
-              borderRadius: BorderRadius.circular(2),
+              borderRadius: BorderRadius.circular(TossBorderRadius.micro),
             ),
           ),
           

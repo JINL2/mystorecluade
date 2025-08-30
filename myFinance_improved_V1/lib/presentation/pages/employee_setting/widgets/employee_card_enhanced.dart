@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/themes/toss_colors.dart';
 import '../../../../core/themes/toss_text_styles.dart';
 import '../../../../core/themes/toss_spacing.dart';
+import '../../../../core/themes/toss_border_radius.dart';
 import '../../../widgets/toss/toss_card.dart';
 import '../models/employee_salary.dart';
 
@@ -63,7 +64,7 @@ class EmployeeCardEnhanced extends ConsumerWidget {
                           ),
                           decoration: BoxDecoration(
                             color: _getRoleColor(employee.roleName!).withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(6),
+                            borderRadius: BorderRadius.circular(TossBorderRadius.sm),
                           ),
                           child: Text(
                             employee.roleName!,
@@ -150,7 +151,7 @@ class EmployeeCardEnhanced extends ConsumerWidget {
   Color _getRoleColor(String role) {
     switch (role.toLowerCase()) {
       case 'owner':
-        return const Color(0xFF8B5CF6); // Purple for Owner
+        return TossColors.roleOwner; // Purple for Owner
       case 'assistant manager':
       case 'manager':
         return TossColors.primary; // Primary color for managers
@@ -162,7 +163,7 @@ class EmployeeCardEnhanced extends ConsumerWidget {
       case 'intern':
         return TossColors.warning; // Orange for interns
       case 'contractor':
-        return const Color(0xFF06B6D4); // Cyan for contractors
+        return TossColors.roleContractor; // Cyan for contractors
       default:
         return TossColors.gray600; // Default gray
     }

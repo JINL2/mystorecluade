@@ -149,7 +149,7 @@ class _TossModalState extends State<TossModal> with SingleTickerProviderStateMix
                       height: 4,
                       decoration: BoxDecoration(
                         color: TossColors.gray300, // Restore grey handle bar
-                        borderRadius: BorderRadius.circular(2),
+                        borderRadius: BorderRadius.circular(TossBorderRadius.micro),
                       ),
                     ),
 

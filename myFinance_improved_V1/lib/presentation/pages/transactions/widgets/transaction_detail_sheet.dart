@@ -148,7 +148,7 @@ class TransactionDetailSheet extends StatelessWidget {
       ),
       decoration: BoxDecoration(
         color: TossColors.gray50,
-        borderRadius: BorderRadius.circular(4),
+        borderRadius: BorderRadius.circular(TossBorderRadius.xs),
       ),
       child: Text(
         label,
@@ -221,7 +221,7 @@ class TransactionDetailSheet extends StatelessWidget {
               height: 16,
               decoration: BoxDecoration(
                 color: color,
-                borderRadius: BorderRadius.circular(2),
+                borderRadius: BorderRadius.circular(TossBorderRadius.micro),
               ),
             ),
             const SizedBox(width: TossSpacing.space2),
@@ -240,7 +240,7 @@ class TransactionDetailSheet extends StatelessWidget {
               ),
               decoration: BoxDecoration(
                 color: TossColors.gray100,
-                borderRadius: BorderRadius.circular(4),
+                borderRadius: BorderRadius.circular(TossBorderRadius.xs),
               ),
               child: Text(
                 '${lines.length} items',
@@ -322,7 +322,7 @@ class TransactionDetailSheet extends StatelessWidget {
               padding: const EdgeInsets.all(TossSpacing.space2),
               decoration: BoxDecoration(
                 color: TossColors.gray50,
-                borderRadius: BorderRadius.circular(4),
+                borderRadius: BorderRadius.circular(TossBorderRadius.xs),
               ),
               child: Row(
                 children: [

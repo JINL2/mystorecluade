@@ -372,7 +372,7 @@ class _AutonomousCashLocationSelectorState extends ConsumerState<AutonomousCashL
                   Container(
                     decoration: BoxDecoration(
                       color: TossColors.gray50,
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                       border: Border.all(color: TossColors.gray200),
                     ),
                     child: Row(

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:myfinance_improved/core/themes/toss_colors.dart';
 import 'package:myfinance_improved/core/constants/ui_constants.dart';
 import 'package:myfinance_improved/core/constants/icon_mapper.dart';
+import 'package:myfinance_improved/core/themes/toss_spacing.dart';
+import 'package:myfinance_improved/core/themes/toss_border_radius.dart';
 
 /// Reusable icon widget that displays either Font Awesome icons (via iconKey)
 /// or network images (via iconUrl) with consistent styling
@@ -10,10 +12,10 @@ class AppIcon extends StatelessWidget {
     super.key,
     this.iconKey,
     this.iconUrl,
-    this.size = UIConstants.iconSizeLarge,
+    this.size = TossSpacing.iconMD,
     this.color,
     this.backgroundColor,
-    this.borderRadius = UIConstants.borderRadiusSmall,
+    this.borderRadius = TossBorderRadius.md,
     this.showContainer = true,
     this.useDefaultColor = true,
   });
@@ -158,9 +160,9 @@ class FeatureIcon extends StatelessWidget {
       case FeatureIconSize.small:
         return UIConstants.featureIconCompact;
       case FeatureIconSize.medium:
-        return UIConstants.featureIconSize;
+        return TossSpacing.iconMD;
       case FeatureIconSize.large:
-        return UIConstants.iconSizeXL;
+        return TossSpacing.iconLG;
     }
   }
   
@@ -178,11 +180,11 @@ class FeatureIcon extends StatelessWidget {
   double _getBorderRadius(FeatureIconSize size) {
     switch (size) {
       case FeatureIconSize.small:
-        return UIConstants.borderRadiusSmall;
+        return TossBorderRadius.md;
       case FeatureIconSize.medium:
-        return UIConstants.borderRadiusSmall;
+        return TossBorderRadius.md;
       case FeatureIconSize.large:
-        return UIConstants.borderRadiusMedium;
+        return TossBorderRadius.lg;
     }
   }
 }

@@ -21,8 +21,14 @@ class TossSpacing {
   static const double space12 = 48.0;  // Container spacing (12x base)
   static const double space14 = 56.0;  // Large block (14x base)
   static const double space16 = 64.0;  // Page section (16x base)
+  static const double space18 = 72.0;  // Extended spacing (18x base)
   static const double space20 = 80.0;  // Major section (20x base)
   static const double space24 = 96.0;  // Hero spacing (24x base)
+  
+  // Micro spacing (for borders and fine details)
+  static const double micro = 1.0;     // 1px borders
+  static const double tiny = 2.0;      // 2px fine spacing
+  static const double minimal = 6.0;   // Between space1 and space2
 
   // ==================== COMPONENT SPACING ====================
   // Common spacing patterns in Toss components

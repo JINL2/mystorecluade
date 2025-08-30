@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:myfinance_improved/core/themes/toss_colors.dart';
 import 'package:myfinance_improved/core/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/core/themes/toss_spacing.dart';
+import '../../../core/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/core/themes/toss_shadows.dart';
 import 'package:myfinance_improved/core/themes/toss_animations.dart';
 import 'package:myfinance_improved/core/constants/icon_mapper.dart';
@@ -285,7 +286,10 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
                   ),
                 ).then((_) {
                   // Refresh unread count when returning from notifications page
-                  ref.invalidate(unreadNotificationCountProvider);
+                  // Check if widget is still mounted before using ref
+                  if (mounted) {
+                    ref.invalidate(unreadNotificationCountProvider);
+                  }
                 });
               },
               padding: EdgeInsets.all(TossSpacing.space3),
@@ -329,12 +333,16 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
                 }
                 
                 // Execute logout after popup is safely closed
-                SchedulerBinding.instance.addPostFrameCallback((_) async {
+                // Use a delayed Future instead of SchedulerBinding to ensure proper timing
+                Future.delayed(const Duration(milliseconds: 100), () async {
+                  // Double-check mounted state before using ref
                   if (mounted) {
                     try {
                       final enhancedAuth = ref.read(enhancedAuthProvider);
                       await enhancedAuth.signOut();
+                      // Navigation will be handled by the router's auth state listener
                     } catch (e) {
+                      // Silent fail - user is logging out anyway
                     }
                   }
                 });
@@ -454,7 +462,7 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
           padding: EdgeInsets.all(TossSpacing.space5),
           decoration: BoxDecoration(
             color: TossColors.primary.withValues(alpha: 0.05),
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(TossBorderRadius.xl),
             border: Border.all(
               color: TossColors.primary.withValues(alpha: 0.2),
               width: 1,
@@ -503,7 +511,7 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
                     vertical: TossSpacing.space3,
                   ),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                   ),
                 ),
               ),
@@ -589,7 +597,7 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
               padding: EdgeInsets.all(TossSpacing.space5),
               decoration: BoxDecoration(
                 color: TossColors.surface,
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(TossBorderRadius.xxl),
                 border: Border.all(
                   color: TossColors.borderLight,
                   width: 0.5,
@@ -616,7 +624,7 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
                             height: 20,
                             decoration: BoxDecoration(
                               color: TossColors.primary, // Blue accent line
-                              borderRadius: BorderRadius.circular(2),
+                              borderRadius: BorderRadius.circular(TossBorderRadius.micro),
                             ),
                           ),
                           SizedBox(width: TossSpacing.space3),
@@ -670,7 +678,7 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
               padding: EdgeInsets.all(TossSpacing.space5),
               decoration: BoxDecoration(
                 color: TossColors.surface,
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(TossBorderRadius.xxl),
                 border: Border.all(
                   color: TossColors.borderLight,
                   width: 0.5,
@@ -697,7 +705,7 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
                             height: 20,
                             decoration: BoxDecoration(
                               color: TossColors.primary, // Blue accent line
-                              borderRadius: BorderRadius.circular(2),
+                              borderRadius: BorderRadius.circular(TossBorderRadius.micro),
                             ),
                           ),
                           SizedBox(width: TossSpacing.space3),
@@ -741,7 +749,7 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
                         padding: EdgeInsets.symmetric(vertical: TossSpacing.space1), // Reduced padding
                         decoration: BoxDecoration(
                           color: TossColors.transparent,
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                         ),
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -753,7 +761,7 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
                               height: 44, // Reduced from 48 to 44 to match updated size
                               decoration: BoxDecoration(
                                 color: TossColors.gray200,
-                                borderRadius: BorderRadius.circular(12), // Reduced from 14 to 12
+                                borderRadius: BorderRadius.circular(TossBorderRadius.lg), // Reduced from 14 to 12
                               ),
                             ),
                             SizedBox(height: TossSpacing.space1), // Reduced from space2 to space1
@@ -763,7 +771,7 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
                               height: 10,
                               decoration: BoxDecoration(
                                 color: TossColors.gray200,
-                                borderRadius: BorderRadius.circular(5),
+                                borderRadius: BorderRadius.circular(TossBorderRadius.sm),
                               ),
                             ),
                           ],
@@ -786,12 +794,12 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
       color: TossColors.transparent,
       child: InkWell(
         onTap: () => _handleFeatureTap(feature, categoryId),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
         child: Container(
           padding: EdgeInsets.symmetric(vertical: TossSpacing.space2),
           decoration: BoxDecoration(
             color: TossColors.transparent,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
           ),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -802,7 +810,7 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
                 height: 48,
                 decoration: BoxDecoration(
                   color: TossColors.gray100, // Even more subtle background
-                  borderRadius: BorderRadius.circular(14),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.large),
                   // No border for cleaner look
                 ),
                 child: DynamicIcon(
@@ -851,7 +859,7 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
               padding: EdgeInsets.all(TossSpacing.space5),
               decoration: BoxDecoration(
                 color: TossColors.surface,
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(TossBorderRadius.xxl),
                 border: Border.all(
                   color: TossColors.borderLight,
                   width: 0.5,
@@ -878,7 +886,7 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
                             height: 20,
                             decoration: BoxDecoration(
                               color: TossColors.warning,
-                              borderRadius: BorderRadius.circular(2),
+                              borderRadius: BorderRadius.circular(TossBorderRadius.micro),
                             ),
                           ),
                           SizedBox(width: TossSpacing.space3),
@@ -928,7 +936,7 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
                     padding: EdgeInsets.all(TossSpacing.space3),
                     decoration: BoxDecoration(
                       color: TossColors.warning.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                       border: Border.all(
                         color: TossColors.warning.withValues(alpha: 0.3),
                         width: 1,
@@ -1051,7 +1059,7 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
             categoryId: feature.categoryId ?? '',
           );
         },
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
         splashColor: TossColors.primary.withValues(alpha: 0.1),
         highlightColor: TossColors.primary.withValues(alpha: 0.05),
         child: AnimatedContainer(
@@ -1060,7 +1068,7 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
           padding: EdgeInsets.symmetric(vertical: TossSpacing.space1), // Reduced padding
           decoration: BoxDecoration(
             color: TossColors.transparent,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
           ),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -1074,7 +1082,7 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
                 height: 44, // Reduced from 48 to 44
                 decoration: BoxDecoration(
                   color: TossColors.gray100, // Even more subtle background
-                  borderRadius: BorderRadius.circular(12), // Reduced from 14 to 12
+                  borderRadius: BorderRadius.circular(TossBorderRadius.lg), // Reduced from 14 to 12
                   // No border for cleaner look
                 ),
                 child: DynamicIcon(
@@ -1124,7 +1132,7 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
             padding: EdgeInsets.all(TossSpacing.space3),
             decoration: BoxDecoration(
               color: TossColors.white,
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
               border: Border.all(
                 color: TossColors.borderLight,
                 width: 0.5,
@@ -1138,7 +1146,7 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
                   height: 36,
                   decoration: BoxDecoration(
                     color: TossColors.primary.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(TossBorderRadius.buttonLarge),
                   ),
                   child: Icon(
                     feature['icon'] as IconData,
@@ -1198,7 +1206,7 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
                   padding: EdgeInsets.all(TossSpacing.space8),
                   decoration: BoxDecoration(
                     color: TossColors.surface,
-                    borderRadius: BorderRadius.circular(20),
+                    borderRadius: BorderRadius.circular(TossBorderRadius.xxl),
                     border: Border.all(
                       color: TossColors.borderLight,
                       width: 0.5,
@@ -1287,7 +1295,7 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
               padding: EdgeInsets.all(TossSpacing.space6),
               decoration: BoxDecoration(
                 color: TossColors.surface,
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(TossBorderRadius.xxl),
                 border: Border.all(
                   color: TossColors.borderLight,
                   width: 0.5,
@@ -1325,7 +1333,7 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
       padding: EdgeInsets.all(TossSpacing.space5), // More generous padding
       decoration: BoxDecoration(
         color: TossColors.surface,
-        borderRadius: BorderRadius.circular(20), // More rounded for modern look
+        borderRadius: BorderRadius.circular(TossBorderRadius.xxl), // More rounded for modern look
         border: Border.all(
           color: TossColors.borderLight,
           width: 0.5,
@@ -1349,7 +1357,7 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
                 height: 20,
                 decoration: BoxDecoration(
                   color: TossColors.primary,
-                  borderRadius: BorderRadius.circular(2),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.micro),
                 ),
               ),
               SizedBox(width: TossSpacing.space3),
@@ -1392,7 +1400,7 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
       color: TossColors.transparent,
       child: InkWell(
         onTap: () => _handleFeatureTap(feature, categoryId),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
         splashColor: TossColors.primary.withValues(alpha: 0.08),
         highlightColor: TossColors.primary.withValues(alpha: 0.04),
         child: AnimatedContainer(
@@ -1412,7 +1420,7 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
                 height: 44,
                 decoration: BoxDecoration(
                   color: TossColors.gray100, // Even more subtle background
-                  borderRadius: BorderRadius.circular(12), // More subtle rounding
+                  borderRadius: BorderRadius.circular(TossBorderRadius.lg), // More subtle rounding
                   // No border for cleaner look
                 ),
                 child: DynamicIcon(
@@ -1508,7 +1516,7 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
             content: Text('${feature['feature_name']} coming soon!'),
             backgroundColor: TossColors.primary,
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(TossBorderRadius.lg)),
           ),
         );
         // Reset the flag since we're not navigating
@@ -1530,7 +1538,7 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
             content: Text('Error opening ${feature['feature_name']}'),
             backgroundColor: TossColors.error,
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(TossBorderRadius.lg)),
           ),
         );
       }
@@ -1555,7 +1563,7 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
             content: const Text('Data refreshed successfully'),
             backgroundColor: TossColors.success,
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(TossBorderRadius.lg)),
           ),
         );
       }
@@ -1568,7 +1576,7 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
             content: Text('Failed to refresh: ${e.toString()}'),
             backgroundColor: TossColors.error,
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(TossBorderRadius.lg)),
           ),
         );
       }
@@ -1605,7 +1613,7 @@ class _PinnedHelloDelegate extends SliverPersistentHeaderDelegate {
         margin: EdgeInsets.symmetric(horizontal: TossSpacing.space4),
         decoration: BoxDecoration(
           color: TossColors.surface,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(TossBorderRadius.xl),
           boxShadow: TossShadows.card,
         ),
         padding: EdgeInsets.symmetric(

@@ -14,6 +14,7 @@ class TossColors {
   // ==================== BRAND COLORS ====================
   // Toss's signature blue - used strategically for CTAs
   static const Color primary = Color(0xFF0064FF);        // Toss Blue (436 uses)
+  static const Color primaryDark = Color(0xFF1E40AF);    // Darker primary blue
   static const Color primarySurface = Color(0xFFF0F6FF); // Blue tinted bg
   
   // ==================== GRAYSCALE (MAIN UI) ====================
@@ -50,6 +51,11 @@ class TossColors {
   static const Color profit = Color(0xFF00C896);         // Positive (green) - same as success
   static const Color loss = Color(0xFFFF5847);           // Negative (red) - same as error
   
+  // Transaction states
+  static const Color pending = Color(0xFFFF9500);        // Pending transactions
+  static const Color completed = Color(0xFF00C896);      // Completed transactions
+  static const Color cancelled = Color(0xFF6C757D);      // Cancelled transactions
+  
   // ==================== SURFACE COLORS ====================
   static const Color background = Color(0xFFFFFFFF);     // Main bg
   static const Color surface = Color(0xFFFFFFFF);        // Card surface
@@ -69,4 +75,28 @@ class TossColors {
   static const Color shimmer = Color(0xFFF1F3F5);        // Loading
   static const Color shadow = Color(0x0A000000);         // 4% black
   static const Color transparent = Color(0x00000000);    // Fully transparent
+  
+  // ==================== ADDITIONAL APP COLORS ====================
+  // Validation and feedback
+  static const Color validationError = Color(0xFFDC3545);   // Form validation errors
+  static const Color validationSuccess = Color(0xFF28A745); // Form validation success
+  
+  // Background variations
+  static const Color backgroundLight = Color(0xFFFAFBFC);   // Lighter background
+  static const Color backgroundPage = Color(0xFFF7F8FA);    // Page background
+  static const Color surfaceElevated = Color(0xFFF8F9FA);   // Elevated surface
+  
+  // Interactive states
+  static const Color hover = Color(0xFFF1F3F5);            // Hover state
+  static const Color pressed = Color(0xFFE9ECEF);          // Pressed state
+  static const Color focused = Color(0xFFF0F6FF);          // Focus state
+  
+  // Status indicators
+  static const Color online = Color(0xFF00C896);           // Online status
+  static const Color offline = Color(0xFF6C757D);          // Offline status
+  static const Color away = Color(0xFFFF9500);             // Away status
+  
+  // Role indicators  
+  static const Color roleOwner = Color(0xFF8B5CF6);        // Owner role purple
+  static const Color roleContractor = Color(0xFF06B6D4);   // Contractor role cyan
 }

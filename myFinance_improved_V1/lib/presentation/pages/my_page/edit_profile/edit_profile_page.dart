@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import '../../../../core/themes/toss_colors.dart';
 import '../../../../core/themes/toss_spacing.dart';
+import '../../../../core/themes/toss_border_radius.dart';
 import '../../../../core/themes/toss_text_styles.dart';
 import '../../../widgets/common/toss_scaffold.dart';
 import '../../../widgets/common/toss_app_bar.dart';
@@ -334,7 +335,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
           ),
           decoration: BoxDecoration(
             color: TossColors.gray50,
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(TossBorderRadius.md),
             border: Border.all(color: TossColors.gray100),
           ),
           child: Text(
@@ -372,7 +373,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                 margin: EdgeInsets.symmetric(vertical: TossSpacing.space3),
                 decoration: BoxDecoration(
                   color: TossColors.gray300,
-                  borderRadius: BorderRadius.circular(2),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.micro),
                 ),
               ),
               Padding(
@@ -427,7 +428,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
   }) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(TossBorderRadius.lg),
       child: Container(
         padding: EdgeInsets.symmetric(
           horizontal: TossSpacing.space4,
@@ -435,7 +436,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
         ),
         decoration: BoxDecoration(
           color: TossColors.gray50,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
         ),
         child: Row(
           children: [

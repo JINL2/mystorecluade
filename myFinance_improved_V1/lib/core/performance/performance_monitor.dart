@@ -11,9 +11,7 @@
 /// - Memory usage monitoring and optimization
 
 import 'dart:async';
-import 'dart:collection';
 import 'dart:math';
-import 'package:flutter/foundation.dart';
 
 /// Performance metrics for individual operations
 class PerformanceMetric {
@@ -550,7 +548,7 @@ class PerformanceMonitor {
 }
 
 /// Performance monitoring extensions for common operations
-extension PerformanceMonitoring on Future<T> {
+extension PerformanceMonitoring<T> on Future<T> {
   /// Add performance monitoring to any Future
   Future<T> withPerformanceMonitoring<T>(
     String operationName, {

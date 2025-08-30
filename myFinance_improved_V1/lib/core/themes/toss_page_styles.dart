@@ -25,7 +25,7 @@ class TossPageStyles {
   static BoxDecoration cardDecoration = BoxDecoration(
     color: cardBackground,
     borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-    boxShadow: [TossShadows.card],
+    boxShadow: TossShadows.card,
   );
   
   static const EdgeInsets cardPadding = EdgeInsets.all(TossSpacing.space5);

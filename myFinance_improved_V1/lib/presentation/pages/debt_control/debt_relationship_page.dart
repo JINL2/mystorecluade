@@ -466,7 +466,7 @@ class _DebtRelationshipPageState extends ConsumerState<DebtRelationshipPage> {
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
                     color: TossColors.primary.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(TossBorderRadius.xl),
                   ),
                   child: Text(
                     'View All',
@@ -594,7 +594,7 @@ class _DebtRelationshipPageState extends ConsumerState<DebtRelationshipPage> {
           decoration: BoxDecoration(
             // Green for receivables (money we will receive), Red for payables (money we owe)
             color: isReceivable ? TossColors.success : TossColors.error,
-            borderRadius: BorderRadius.circular(4),
+            borderRadius: BorderRadius.circular(TossBorderRadius.xs),
           ),
         ),
         
@@ -685,7 +685,7 @@ class _DebtRelationshipPageState extends ConsumerState<DebtRelationshipPage> {
                   height: 4,
                   decoration: BoxDecoration(
                     color: TossColors.gray300,
-                    borderRadius: BorderRadius.circular(2),
+                    borderRadius: BorderRadius.circular(TossBorderRadius.micro),
                   ),
                 ),
                 

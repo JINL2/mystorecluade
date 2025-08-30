@@ -307,7 +307,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
             _onRefresh();
           },
         ),
-        backgroundColor: const Color(0xFFF7F8FA),
+        backgroundColor: TossColors.backgroundPage,
         body: SafeArea(
           child: Column(
             children: [
@@ -360,7 +360,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
           _onRefresh();
         },
       ),
-      backgroundColor: const Color(0xFFF7F8FA),
+      backgroundColor: TossColors.backgroundPage,
       body: SafeArea(
         child: Column(
           children: [
@@ -1114,7 +1114,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
                 height: 4,
                 decoration: BoxDecoration(
                   color: Colors.grey[300],
-                  borderRadius: BorderRadius.circular(2),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.micro),
                 ),
               ),
               
@@ -1211,7 +1211,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
                 height: 4,
                 decoration: BoxDecoration(
                   color: Colors.grey[300],
-                  borderRadius: BorderRadius.circular(2),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.micro),
                 ),
               ),
               
@@ -1885,7 +1885,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
                 height: 4,
                 decoration: BoxDecoration(
                   color: Colors.grey[300],
-                  borderRadius: BorderRadius.circular(2),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.micro),
                 ),
               ),
               
@@ -1925,7 +1925,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
                           color: Colors.grey[50],
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -1958,7 +1958,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
                           color: flow.flowAmount > 0 
                               ? Theme.of(context).colorScheme.primary.withOpacity(0.1)
                               : Colors.red.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                         ),
                         child: Column(
                           children: [
@@ -2028,7 +2028,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
                 height: 4,
                 decoration: BoxDecoration(
                   color: Colors.grey[300],
-                  borderRadius: BorderRadius.circular(2),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.micro),
                 ),
               ),
               
@@ -2068,7 +2068,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
                           color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                         ),
                         child: Column(
                           children: [
@@ -2173,7 +2173,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
                             padding: const EdgeInsets.all(12),
                             decoration: BoxDecoration(
                               color: Colors.grey[50],
-                              borderRadius: BorderRadius.circular(8),
+                              borderRadius: BorderRadius.circular(TossBorderRadius.md),
                               border: Border.all(color: Colors.grey[200]!),
                             ),
                             child: Column(
@@ -2186,7 +2186,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
                                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                       decoration: BoxDecoration(
                                         color: Colors.blue.withOpacity(0.1),
-                                        borderRadius: BorderRadius.circular(4),
+                                        borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                                       ),
                                       child: Text(
                                         _formatCurrency(denomination.denominationValue, currencySymbol),
@@ -2203,7 +2203,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
                                       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                       decoration: BoxDecoration(
                                         color: Colors.grey[200],
-                                        borderRadius: BorderRadius.circular(4),
+                                        borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                                       ),
                                       child: Text(
                                         denomination.denominationType.toUpperCase(),
@@ -2298,7 +2298,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
                                   padding: const EdgeInsets.all(8),
                                   decoration: BoxDecoration(
                                     color: Colors.white,
-                                    borderRadius: BorderRadius.circular(4),
+                                    borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                                   ),
                                   child: Row(
                                     mainAxisAlignment: MainAxisAlignment.spaceBetween,

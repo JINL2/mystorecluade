@@ -253,7 +253,7 @@ class _TossMultiSelectorState<T> extends State<TossMultiSelector<T>> {
                                         color: isSelected ? TossColors.primary : TossColors.gray300,
                                         width: 2,
                                       ),
-                                      borderRadius: BorderRadius.circular(4),
+                                      borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                                       color: isSelected ? TossColors.primary : Colors.white,
                                     ),
                                     child: isSelected

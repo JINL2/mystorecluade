@@ -29,7 +29,7 @@ class TossLocationBar extends StatelessWidget {
         vertical: TossSpacing.space2,
       ),
       decoration: BoxDecoration(
-        color: backgroundColor ?? const Color(0xFFEFF6FF),
+        color: backgroundColor ?? TossColors.primarySurface,
         border: Border(
           bottom: BorderSide(
             color: TossColors.borderLight,
@@ -43,7 +43,7 @@ class TossLocationBar extends StatelessWidget {
             Icon(
               icon,
               size: TossSpacing.iconSM,
-              color: textColor ?? const Color(0xFF1E40AF),
+              color: textColor ?? TossColors.primaryDark,
             ),
             SizedBox(width: TossSpacing.space2),
           ],
@@ -53,7 +53,7 @@ class TossLocationBar extends StatelessWidget {
                 ? '$companyName > $storeName'
                 : companyName,
               style: TossTextStyles.caption.copyWith(
-                color: textColor ?? const Color(0xFF1E40AF),
+                color: textColor ?? TossColors.primaryDark,
                 fontWeight: FontWeight.w500,
               ),
               overflow: TextOverflow.ellipsis,

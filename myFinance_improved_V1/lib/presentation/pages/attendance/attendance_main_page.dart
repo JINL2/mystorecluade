@@ -5,6 +5,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/themes/toss_colors.dart';
 import '../../../core/themes/toss_text_styles.dart';
 import '../../../core/themes/toss_spacing.dart';
+import '../../../core/themes/toss_border_radius.dart';
 import '../../providers/attendance_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/app_state_provider.dart';
@@ -64,7 +65,7 @@ class _AttendanceMainPageState extends State<AttendanceMainPage> with SingleTick
                         Container(
                           decoration: BoxDecoration(
                             color: TossColors.gray100,
-                            borderRadius: BorderRadius.circular(24),
+                            borderRadius: BorderRadius.circular(TossBorderRadius.xxxl),
                           ),
                         ),
                         // Tab Bar
@@ -72,7 +73,7 @@ class _AttendanceMainPageState extends State<AttendanceMainPage> with SingleTick
                           controller: _tabController,
                           indicator: BoxDecoration(
                             color: TossColors.background,
-                            borderRadius: BorderRadius.circular(22),
+                            borderRadius: BorderRadius.circular(TossBorderRadius.xxl),
                             boxShadow: [
                               BoxShadow(
                                 color: Colors.black.withOpacity(0.08),
@@ -92,7 +93,7 @@ class _AttendanceMainPageState extends State<AttendanceMainPage> with SingleTick
                           unselectedLabelStyle: TossTextStyles.labelLarge.copyWith(
                             fontWeight: FontWeight.w400,
                           ),
-                          splashBorderRadius: BorderRadius.circular(22),
+                          splashBorderRadius: BorderRadius.circular(TossBorderRadius.xxl),
                           tabs: const [
                             Tab(
                               text: 'Check In/Out',
@@ -408,7 +409,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
               height: 4,
               decoration: BoxDecoration(
                 color: TossColors.gray300,
-                borderRadius: BorderRadius.circular(100),
+                borderRadius: BorderRadius.circular(TossBorderRadius.full),
               ),
             ),
             // Title
@@ -476,7 +477,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
                             height: 40,
                             decoration: BoxDecoration(
                               color: isSelected ? TossColors.primary.withOpacity(0.1) : TossColors.gray100,
-                              borderRadius: BorderRadius.circular(10),
+                              borderRadius: BorderRadius.circular(TossBorderRadius.buttonLarge),
                             ),
                             child: Icon(
                               Icons.store_outlined,
@@ -610,7 +611,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
           child: Container(
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: BorderRadius.circular(TossBorderRadius.xxl),
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withOpacity(0.1),
@@ -662,7 +663,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
                         padding: const EdgeInsets.all(TossSpacing.space3),
                         decoration: BoxDecoration(
                           color: TossColors.gray100,
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                         ),
                         child: Column(
                           children: [
@@ -767,7 +768,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
                                       child: Container(
                                         decoration: BoxDecoration(
                                           color: Colors.white,
-                                          borderRadius: BorderRadius.circular(20),
+                                          borderRadius: BorderRadius.circular(TossBorderRadius.xxl),
                                           boxShadow: [
                                             BoxShadow(
                                               color: Colors.black.withOpacity(0.1),
@@ -892,7 +893,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
           child: Container(
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: BorderRadius.circular(TossBorderRadius.xxl),
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withOpacity(0.1),
@@ -1050,7 +1051,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
           child: Container(
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: BorderRadius.circular(TossBorderRadius.xxl),
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withOpacity(0.1),
@@ -1153,7 +1154,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
           child: Container(
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: BorderRadius.circular(TossBorderRadius.xxl),
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withOpacity(0.1),
@@ -1325,7 +1326,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
               child: Container(
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.xxl),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black.withOpacity(0.1),
@@ -1478,7 +1479,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
                 HapticFeedback.selectionClick();
                 _showStoreSelector(stores);
               },
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(TossBorderRadius.xl),
               child: Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: TossSpacing.space4,
@@ -1486,7 +1487,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
                 ),
                 decoration: BoxDecoration(
                   color: TossColors.background,
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.xl),
                   border: Border.all(
                     color: TossColors.gray200,
                     width: 1,
@@ -1499,7 +1500,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
                       height: 32,
                       decoration: BoxDecoration(
                         color: TossColors.gray100,
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(TossBorderRadius.md),
                       ),
                       child: const Icon(
                         Icons.store_outlined,
@@ -1563,7 +1564,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
                   await fetchMonthlyShiftStatus();
                   HapticFeedback.selectionClick();
                 },
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(TossBorderRadius.xxl),
                 child: Container(
                   padding: const EdgeInsets.all(TossSpacing.space2),
                   child: const Icon(
@@ -1594,7 +1595,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
                   await fetchMonthlyShiftStatus();
                   HapticFeedback.selectionClick();
                 },
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(TossBorderRadius.xxl),
                 child: Container(
                   padding: const EdgeInsets.all(TossSpacing.space2),
                   child: const Icon(
@@ -1668,7 +1669,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
                     _handleRegisterShift();
                   }
                 } : null,
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(TossBorderRadius.xl),
                 child: Container(
                   height: 56,
                   decoration: BoxDecoration(
@@ -1677,7 +1678,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
                         ? TossColors.gray900
                         : TossColors.primary)
                       : TossColors.gray300,
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(TossBorderRadius.xl),
                   ),
                   child: Center(
                     child: Text(
@@ -1757,7 +1758,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
             });
             HapticFeedback.selectionClick();
           },
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
           child: Container(
             margin: const EdgeInsets.all(3),
             decoration: BoxDecoration(
@@ -1766,7 +1767,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
                   : isToday
                       ? TossColors.gray100
                       : Colors.transparent,
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
             ),
             child: Stack(
               alignment: Alignment.center,
@@ -1833,7 +1834,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
       padding: const EdgeInsets.all(TossSpacing.space4),
       decoration: BoxDecoration(
         color: TossColors.gray50,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
         border: Border.all(
           color: TossColors.gray200,
           width: 1,
@@ -1848,7 +1849,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
                 padding: const EdgeInsets.all(TossSpacing.space2),
                 decoration: BoxDecoration(
                   color: TossColors.primary.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.md),
                 ),
                 child: const Icon(
                   Icons.calendar_today,
@@ -1916,7 +1917,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
               padding: const EdgeInsets.all(TossSpacing.space3),
               decoration: BoxDecoration(
                 color: TossColors.warning.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(TossBorderRadius.md),
                 border: Border.all(
                   color: TossColors.warning.withOpacity(0.3),
                   width: 1,
@@ -2019,7 +2020,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
             ),
             decoration: BoxDecoration(
               color: TossColors.background,
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(TossBorderRadius.xl),
               border: Border.all(
                 color: TossColors.gray200,
                 width: 1,
@@ -2063,7 +2064,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
                     ),
                     decoration: BoxDecoration(
                       color: TossColors.primary.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(20),
+                      borderRadius: BorderRadius.circular(TossBorderRadius.xxl),
                     ),
                     child: Text(
                       '1 Selected',
@@ -2114,7 +2115,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
                           ),
                           decoration: BoxDecoration(
                             color: TossColors.primary.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
@@ -2185,7 +2186,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
                                 ? TossColors.success.withOpacity(0.05)
                                 : TossColors.warning.withOpacity(0.05))
                             : TossColors.background),
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(TossBorderRadius.xl),
                       border: Border.all(
                         color: isSelected
                           ? TossColors.primary
@@ -2235,7 +2236,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
                               height: 32,
                               decoration: BoxDecoration(
                                 color: TossColors.gray100,
-                                borderRadius: BorderRadius.circular(8),
+                                borderRadius: BorderRadius.circular(TossBorderRadius.md),
                               ),
                               child: Icon(
                                 Icons.access_time,
@@ -2266,7 +2267,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
                                   color: isApproved 
                                     ? TossColors.success
                                     : TossColors.warning,
-                                  borderRadius: BorderRadius.circular(12),
+                                  borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                                 ),
                                 child: Text(
                                   isApproved ? 'Approved' : 'Pending',
@@ -2289,7 +2290,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
                       ),
                       decoration: BoxDecoration(
                         color: TossColors.gray50,
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(TossBorderRadius.md),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
@@ -2338,7 +2339,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
               padding: const EdgeInsets.all(TossSpacing.space3),
               decoration: BoxDecoration(
                 color: TossColors.warning.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(TossBorderRadius.md),
                 border: Border.all(
                   color: TossColors.warning.withOpacity(0.3),
                   width: 1,
@@ -2436,7 +2437,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
               height: 4,
               decoration: BoxDecoration(
                 color: TossColors.gray300,
-                borderRadius: BorderRadius.circular(100),
+                borderRadius: BorderRadius.circular(TossBorderRadius.full),
               ),
             ),
             Padding(
@@ -2459,7 +2460,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
                       padding: const EdgeInsets.all(TossSpacing.space3),
                       decoration: BoxDecoration(
                         color: TossColors.gray50,
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(TossBorderRadius.md),
                       ),
                       child: Row(
                         children: [
@@ -2512,7 +2513,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
                               backgroundColor: TossColors.primary,
                               padding: const EdgeInsets.symmetric(vertical: TossSpacing.space3),
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
+                                borderRadius: BorderRadius.circular(TossBorderRadius.md),
                               ),
                             ),
                             child: Text(
@@ -3009,7 +3010,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                 TossColors.surface,
               ],
             ),
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(TossBorderRadius.xl),
           ),
           child: const Center(
             child: CircularProgressIndicator(),
@@ -3026,7 +3027,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
           padding: const EdgeInsets.all(TossSpacing.space5),
           decoration: BoxDecoration(
             color: TossColors.error.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(TossBorderRadius.xl),
           ),
           child: Text(
             errorMessage!,
@@ -3044,7 +3045,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
           padding: const EdgeInsets.all(TossSpacing.space5),
           decoration: BoxDecoration(
             color: TossColors.gray100,
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(TossBorderRadius.xl),
           ),
           child: Center(
             child: Text(
@@ -3101,7 +3102,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
               TossColors.primary.withOpacity(0.12),
             ],
           ),
-          borderRadius: BorderRadius.circular(24),
+          borderRadius: BorderRadius.circular(TossBorderRadius.xxxl),
         ),
         child: Padding(
           padding: const EdgeInsets.all(TossSpacing.space5),
@@ -3140,7 +3141,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                     ),
                     decoration: BoxDecoration(
                       color: TossColors.surface.withOpacity(0.95),
-                      borderRadius: BorderRadius.circular(20),
+                      borderRadius: BorderRadius.circular(TossBorderRadius.xxl),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -3177,7 +3178,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                       padding: const EdgeInsets.all(TossSpacing.space4),
                       decoration: BoxDecoration(
                         color: TossColors.primary.withOpacity(0.08),
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BorderRadius.circular(TossBorderRadius.xl),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -3230,7 +3231,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                       padding: const EdgeInsets.all(TossSpacing.space4),
                       decoration: BoxDecoration(
                         color: TossColors.info.withOpacity(0.08),
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BorderRadius.circular(TossBorderRadius.xl),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -3289,7 +3290,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                       padding: const EdgeInsets.all(TossSpacing.space4),
                       decoration: BoxDecoration(
                         color: TossColors.success.withOpacity(0.08),
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BorderRadius.circular(TossBorderRadius.xl),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -3342,7 +3343,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                       padding: const EdgeInsets.all(TossSpacing.space4),
                       decoration: BoxDecoration(
                         color: TossColors.warning.withOpacity(0.08),
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BorderRadius.circular(TossBorderRadius.xl),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -3399,7 +3400,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                 padding: const EdgeInsets.all(TossSpacing.space4),
                 decoration: BoxDecoration(
                   color: TossColors.surface.withOpacity(0.95),
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.xl),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -3410,7 +3411,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                           padding: const EdgeInsets.all(TossSpacing.space2),
                           decoration: BoxDecoration(
                             color: TossColors.primary.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: BorderRadius.circular(TossBorderRadius.md),
                           ),
                           child: Icon(
                             Icons.account_balance_wallet,
@@ -3451,7 +3452,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                                 ),
                                 decoration: BoxDecoration(
                                   color: TossColors.success.withOpacity(0.1),
-                                  borderRadius: BorderRadius.circular(8),
+                                  borderRadius: BorderRadius.circular(TossBorderRadius.md),
                                 ),
                                 child: Text(
                                   '+${currencySymbol}${(overtimeTotal * salaryAmount / 60).toStringAsFixed(0)}',
@@ -3492,7 +3493,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
       padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
       child: Material(
         color: TossColors.primary,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(TossBorderRadius.xl),
         child: InkWell(
           onTap: () async {
                     HapticFeedback.mediumImpact();
@@ -3513,7 +3514,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                         context: context,
                         builder: (context) => AlertDialog(
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
+                            borderRadius: BorderRadius.circular(TossBorderRadius.xl),
                           ),
                           title: Row(
                             children: [
@@ -3566,7 +3567,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                         context: context,
                         builder: (context) => AlertDialog(
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
+                            borderRadius: BorderRadius.circular(TossBorderRadius.xl),
                           ),
                           title: Row(
                             children: [
@@ -3639,7 +3640,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                       }
                     }
                   },
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.xl),
                   child: Container(
                     padding: const EdgeInsets.symmetric(vertical: TossSpacing.space4),
                     child: Row(
@@ -3679,7 +3680,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
       padding: const EdgeInsets.all(TossSpacing.space3),
       decoration: BoxDecoration(
         color: backgroundColor,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
         border: Border.all(
           color: iconColor.withOpacity(0.2),
           width: 1,
@@ -3803,7 +3804,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                     HapticFeedback.selectionClick();
                     _showCalendarBottomSheet();
                   },
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.md),
                   child: Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: TossSpacing.space3,
@@ -3839,7 +3840,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
             padding: const EdgeInsets.all(TossSpacing.space3),
             decoration: BoxDecoration(
               color: TossColors.gray50,
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: BorderRadius.circular(TossBorderRadius.xxl),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -3891,7 +3892,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                           : isToday 
                             ? TossColors.surface
                             : Colors.transparent,
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BorderRadius.circular(TossBorderRadius.xl),
                         border: isToday && !isSelected
                           ? Border.all(
                               color: TossColors.gray200,
@@ -4152,7 +4153,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
               ),
               decoration: BoxDecoration(
                 color: TossColors.gray50,
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(TossBorderRadius.lg),
               ),
               child: Center(
                 child: Column(
@@ -4221,7 +4222,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
           Container(
             decoration: BoxDecoration(
               color: TossColors.background,
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
               border: Border.all(
                 color: TossColors.gray100,
                 width: 1,
@@ -4411,7 +4412,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
               height: 4,
               decoration: BoxDecoration(
                 color: TossColors.gray200,
-                borderRadius: BorderRadius.circular(100),
+                borderRadius: BorderRadius.circular(TossBorderRadius.full),
               ),
             ),
             
@@ -4587,7 +4588,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                         margin: const EdgeInsets.only(bottom: TossSpacing.space2),
                         decoration: BoxDecoration(
                           color: TossColors.background,
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                           border: Border.all(
                             color: TossColors.gray100,
                             width: 1,
@@ -4612,7 +4613,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                               _showActivityDetails(activity);
                               HapticFeedback.selectionClick();
                             },
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                             child: Padding(
                               padding: const EdgeInsets.all(TossSpacing.space3),
                               child: Row(
@@ -4723,7 +4724,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                                               color: isApproved
                                                   ? TossColors.success.withOpacity(0.1)
                                                   : TossColors.warning.withOpacity(0.1),
-                                              borderRadius: BorderRadius.circular(4),
+                                              borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                                             ),
                                             child: Row(
                                               mainAxisSize: MainAxisSize.min,
@@ -4762,7 +4763,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                                               ),
                                               decoration: BoxDecoration(
                                                 color: TossColors.error.withOpacity(0.1),
-                                                borderRadius: BorderRadius.circular(4),
+                                                borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                                               ),
                                               child: Row(
                                                 mainAxisSize: MainAxisSize.min,
@@ -4829,7 +4830,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
               height: 4,
               decoration: BoxDecoration(
                 color: TossColors.gray300,
-                borderRadius: BorderRadius.circular(100),
+                borderRadius: BorderRadius.circular(TossBorderRadius.full),
               ),
             ),
             
@@ -4851,7 +4852,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                 margin: const EdgeInsets.all(TossSpacing.space5),
                 decoration: BoxDecoration(
                   color: Colors.black,
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.xl),
                 ),
                 child: Center(
                   child: Column(
@@ -5045,7 +5046,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
       calendarDays.add(
         InkWell(
           onTap: () => onDateSelected(date),
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(TossBorderRadius.md),
           child: Container(
             margin: const EdgeInsets.all(2),
             decoration: BoxDecoration(
@@ -5054,7 +5055,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                   : isToday
                       ? TossColors.primary.withOpacity(0.1)
                       : Colors.transparent,
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(TossBorderRadius.md),
               border: Border.all(
                 color: isToday && !isSelected
                     ? TossColors.primary
@@ -5292,7 +5293,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                 height: 4,
                 decoration: BoxDecoration(
                   color: TossColors.gray200,
-                  borderRadius: BorderRadius.circular(100),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.full),
                 ),
               ),
             ),
@@ -5402,7 +5403,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                       padding: const EdgeInsets.all(TossSpacing.space4),
                       decoration: BoxDecoration(
                         color: TossColors.info.withOpacity(0.05),
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -5496,7 +5497,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                         padding: const EdgeInsets.all(TossSpacing.space4),
                         decoration: BoxDecoration(
                           color: TossColors.warning.withOpacity(0.06),
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                           border: Border.all(
                             color: TossColors.warning.withOpacity(0.15),
                             width: 1,
@@ -5547,7 +5548,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                         color: (cardData['is_reported'] ?? false) || !(cardData['is_approved'] ?? false)
                             ? TossColors.gray50
                             : TossColors.background,
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                         border: Border.all(
                           color: (cardData['is_reported'] ?? false) || !(cardData['is_approved'] ?? false)
                               ? TossColors.gray100
@@ -5584,7 +5585,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                                 padding: const EdgeInsets.all(TossSpacing.space4),
                                 decoration: BoxDecoration(
                                   color: TossColors.surface,
-                                  borderRadius: BorderRadius.circular(12),
+                                  borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                                 ),
                                 child: const CircularProgressIndicator(),
                               ),
@@ -5630,7 +5631,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                             );
                           }
                         },
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                         child: Container(
                           padding: const EdgeInsets.symmetric(
                             vertical: TossSpacing.space3,
@@ -5918,7 +5919,7 @@ class _CalendarBottomSheetState extends State<_CalendarBottomSheet> {
             height: 4,
             decoration: BoxDecoration(
               color: TossColors.gray300,
-              borderRadius: BorderRadius.circular(100),
+              borderRadius: BorderRadius.circular(TossBorderRadius.full),
             ),
           ),
           
@@ -5952,7 +5953,7 @@ class _CalendarBottomSheetState extends State<_CalendarBottomSheet> {
               margin: const EdgeInsets.symmetric(horizontal: TossSpacing.space5),
               decoration: BoxDecoration(
                 color: TossColors.surface,
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(TossBorderRadius.xl),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withOpacity(0.01),
@@ -6055,7 +6056,7 @@ class _CalendarBottomSheetState extends State<_CalendarBottomSheet> {
             padding: const EdgeInsets.all(TossSpacing.space4),
             decoration: BoxDecoration(
               color: TossColors.primary.withOpacity(0.05),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
               border: Border.all(
                 color: TossColors.primary.withOpacity(0.2),
                 width: 1,
@@ -6067,7 +6068,7 @@ class _CalendarBottomSheetState extends State<_CalendarBottomSheet> {
                     padding: const EdgeInsets.all(TossSpacing.space2),
                     decoration: BoxDecoration(
                       color: TossColors.primary.withOpacity(0.15),
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(TossBorderRadius.md),
                     ),
                     child: const Icon(
                       Icons.event,

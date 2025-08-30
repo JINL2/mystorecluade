@@ -288,13 +288,13 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
       builder: (BuildContext dialogContext) {
         return Dialog(
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(TossBorderRadius.xl),
           ),
           child: Container(
             padding: EdgeInsets.all(24),
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(TossBorderRadius.xl),
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -353,7 +353,7 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
                       foregroundColor: Colors.white,
                       padding: EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                       ),
                       elevation: 0,
                     ),
@@ -461,7 +461,7 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
             height: 4,
             decoration: BoxDecoration(
               color: TossColors.gray300,
-              borderRadius: BorderRadius.circular(2),
+              borderRadius: BorderRadius.circular(TossBorderRadius.micro),
             ),
           ),
           
@@ -887,7 +887,7 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
                                           padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                           decoration: BoxDecoration(
                                             color: TossColors.info.withValues(alpha: 0.1),
-                                            borderRadius: BorderRadius.circular(4),
+                                            borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                                           ),
                                           child: Text(
                                             _selectedCounterpartyStoreId != null ? 'Store-based' : 'Company-based',

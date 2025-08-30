@@ -7,6 +7,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../../../core/themes/toss_colors.dart';
 import '../../../core/themes/toss_spacing.dart';
+import '../../../core/themes/toss_border_radius.dart';
 import '../../../core/themes/toss_text_styles.dart';
 import '../../../core/constants/ui_constants.dart';
 import '../../widgets/common/toss_scaffold.dart';
@@ -242,7 +243,7 @@ class _MyPageRedesignedState extends ConsumerState<MyPageRedesigned>
                 ),
                 decoration: BoxDecoration(
                   color: TossColors.primary.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.xxl),
                 ),
                 child: Text(
                   businessData?.userRole ?? profile.displayRole,
@@ -379,7 +380,7 @@ class _MyPageRedesignedState extends ConsumerState<MyPageRedesigned>
               height: 40,
               decoration: BoxDecoration(
                 color: (isDestructive ? TossColors.error : TossColors.gray500).withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(TossBorderRadius.buttonLarge),
               ),
               child: Icon(
                 icon,
@@ -449,7 +450,7 @@ class _MyPageRedesignedState extends ConsumerState<MyPageRedesigned>
                 margin: EdgeInsets.symmetric(vertical: TossSpacing.space3),
                 decoration: BoxDecoration(
                   color: TossColors.gray300,
-                  borderRadius: BorderRadius.circular(2),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.micro),
                 ),
               ),
               Padding(
@@ -539,7 +540,7 @@ class _MyPageRedesignedState extends ConsumerState<MyPageRedesigned>
   }) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(TossBorderRadius.lg),
       child: Container(
         padding: EdgeInsets.symmetric(
           horizontal: TossSpacing.space4,
@@ -547,7 +548,7 @@ class _MyPageRedesignedState extends ConsumerState<MyPageRedesigned>
         ),
         decoration: BoxDecoration(
           color: TossColors.gray50,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
         ),
         child: Row(
           children: [
@@ -589,7 +590,7 @@ class _MyPageRedesignedState extends ConsumerState<MyPageRedesigned>
           padding: EdgeInsets.all(TossSpacing.space6),
           decoration: BoxDecoration(
             color: TossColors.surface,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
           ),
           child: CircularProgressIndicator(
             color: TossColors.primary,
@@ -633,7 +634,7 @@ class _MyPageRedesignedState extends ConsumerState<MyPageRedesigned>
           padding: EdgeInsets.all(TossSpacing.space6),
           decoration: BoxDecoration(
             color: TossColors.surface,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
           ),
           child: CircularProgressIndicator(
             color: TossColors.primary,

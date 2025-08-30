@@ -203,14 +203,14 @@ class _TransactionHistoryPageState extends ConsumerState<TransactionHistoryPage>
                         Expanded(
                           child: InkWell(
                             onTap: _showFilterSheet,
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: BorderRadius.circular(TossBorderRadius.md),
                             child: Container(
                               padding: const EdgeInsets.all(TossSpacing.space3),
                               decoration: BoxDecoration(
                                 color: _hasActiveFilters(filter) 
                                     ? TossColors.primarySurface
                                     : TossColors.gray100,
-                                borderRadius: BorderRadius.circular(8),
+                                borderRadius: BorderRadius.circular(TossBorderRadius.md),
                                 border: Border.all(
                                   color: _hasActiveFilters(filter) 
                                       ? TossColors.primary
@@ -248,12 +248,12 @@ class _TransactionHistoryPageState extends ConsumerState<TransactionHistoryPage>
                             onTap: () {
                               ref.read(transactionFilterStateProvider.notifier).clearFilter();
                             },
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: BorderRadius.circular(TossBorderRadius.md),
                             child: Container(
                               padding: const EdgeInsets.all(TossSpacing.space3),
                               decoration: BoxDecoration(
                                 color: TossColors.errorLight,
-                                borderRadius: BorderRadius.circular(8),
+                                borderRadius: BorderRadius.circular(TossBorderRadius.md),
                                 border: Border.all(color: TossColors.error.withValues(alpha: 0.3)),
                               ),
                               child: const Icon(
@@ -388,7 +388,7 @@ class _TransactionHistoryPageState extends ConsumerState<TransactionHistoryPage>
       ),
       decoration: BoxDecoration(
         color: TossColors.gray100,
-        borderRadius: BorderRadius.circular(4),
+        borderRadius: BorderRadius.circular(TossBorderRadius.xs),
       ),
       child: Text(
         '$count',

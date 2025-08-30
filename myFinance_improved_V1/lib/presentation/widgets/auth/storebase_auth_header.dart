@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/themes/toss_colors.dart';
 import '../../../core/themes/toss_spacing.dart';
+import '../../../core/themes/toss_border_radius.dart';
 import '../../../core/navigation/safe_navigation.dart';
 
 /// Storebase branded header for authentication pages
@@ -76,7 +77,7 @@ class StorebaseAuthHeader extends StatelessWidget {
           padding: EdgeInsets.symmetric(horizontal: TossSpacing.space3),
           decoration: BoxDecoration(
             color: TossColors.primary,
-            borderRadius: BorderRadius.circular(6),
+            borderRadius: BorderRadius.circular(TossBorderRadius.sm),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
@@ -87,7 +88,7 @@ class StorebaseAuthHeader extends StatelessWidget {
                 height: 20,
                 decoration: BoxDecoration(
                   color: TossColors.white,
-                  borderRadius: BorderRadius.circular(4),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                 ),
                 child: Center(
                   child: Text(
@@ -129,7 +130,7 @@ class StorebaseAuthHeader extends StatelessWidget {
         padding: EdgeInsets.symmetric(horizontal: TossSpacing.space4),
         decoration: BoxDecoration(
           color: TossColors.primary,
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(TossBorderRadius.md),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -139,7 +140,7 @@ class StorebaseAuthHeader extends StatelessWidget {
               height: 24,
               decoration: BoxDecoration(
                 color: TossColors.white,
-                borderRadius: BorderRadius.circular(6),
+                borderRadius: BorderRadius.circular(TossBorderRadius.sm),
               ),
               child: Center(
                 child: Text(
@@ -198,7 +199,7 @@ class StorebaseAuthHeader extends StatelessWidget {
                   height: 4,
                   decoration: BoxDecoration(
                     color: TossColors.gray300,
-                    borderRadius: BorderRadius.circular(2),
+                    borderRadius: BorderRadius.circular(TossBorderRadius.micro),
                   ),
                 ),
                 const SizedBox(height: TossSpacing.space4),
@@ -309,7 +310,7 @@ class StorebaseWelcomeHeader extends StatelessWidget {
             height: 80,
             decoration: BoxDecoration(
               color: TossColors.primary,
-              borderRadius: BorderRadius.circular(18),
+              borderRadius: BorderRadius.circular(TossBorderRadius.xxl),
             ),
             child: Center(
               child: Text(

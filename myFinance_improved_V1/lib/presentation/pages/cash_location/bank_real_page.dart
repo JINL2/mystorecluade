@@ -126,7 +126,7 @@ class _BankRealPageState extends ConsumerState<BankRealPage> {
     
     if (companyId.isEmpty || storeId.isEmpty) {
       return TossScaffold(
-        backgroundColor: const Color(0xFFF7F8FA),
+        backgroundColor: TossColors.backgroundPage,
         body: const Center(
           child: Text('Please select a company and store first'),
         ),
@@ -549,7 +549,7 @@ class _BankRealPageState extends ConsumerState<BankRealPage> {
                 height: 4,
                 decoration: BoxDecoration(
                   color: TossColors.gray300,
-                  borderRadius: BorderRadius.circular(2),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.micro),
                 ),
               ),
               
@@ -684,7 +684,7 @@ class _BankDetailBottomSheet extends StatelessWidget {
             height: 4,
             decoration: BoxDecoration(
               color: TossColors.gray300,
-              borderRadius: BorderRadius.circular(2),
+              borderRadius: BorderRadius.circular(TossBorderRadius.micro),
             ),
           ),
           
@@ -723,7 +723,7 @@ class _BankDetailBottomSheet extends StatelessWidget {
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
                     color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,

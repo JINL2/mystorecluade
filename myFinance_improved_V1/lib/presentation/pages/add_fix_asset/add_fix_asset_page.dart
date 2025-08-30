@@ -6,6 +6,7 @@ import 'providers/add_fix_asset_providers.dart';
 import '../../providers/app_state_provider.dart';
 import '../../../core/themes/toss_colors.dart';
 import '../../../core/themes/toss_text_styles.dart';
+import '../../../core/themes/toss_border_radius.dart';
 import '../../widgets/common/toss_scaffold.dart';
 import '../../widgets/common/safe_popup_menu.dart';
 
@@ -127,12 +128,12 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
       margin: const EdgeInsets.all(20),
       child: InkWell(
         onTap: () => _showStoreSelector(stores),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(TossBorderRadius.xl),
         child: Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             color: TossColors.background,
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(TossBorderRadius.xl),
             border: Border.all(
               color: TossColors.gray100,
               width: 1,
@@ -299,7 +300,7 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
       margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
       decoration: BoxDecoration(
         color: TossColors.background,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(TossBorderRadius.xxl),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.05),
@@ -327,7 +328,7 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
                   height: 40,
                   decoration: BoxDecoration(
                     color: TossColors.primary.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(TossBorderRadius.buttonLarge),
                   ),
                   child: Icon(
                     Icons.business_center_outlined,
@@ -366,7 +367,7 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
                     color: TossColors.gray600,
                   ),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                   ),
                   onSelected: (value) async {
                     if (value == 'edit') {
@@ -419,7 +420,7 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
                         TossColors.primary.withOpacity(0.1),
                       ],
                     ),
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(TossBorderRadius.xl),
                   ),
                   child: Row(
                     children: [
@@ -451,7 +452,7 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
                           color: depreciationRate > 50 
                               ? TossColors.error.withOpacity(0.1)
                               : TossColors.warning.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(20),
+                          borderRadius: BorderRadius.circular(TossBorderRadius.xxl),
                         ),
                         child: Row(
                           children: [
@@ -538,7 +539,7 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: TossColors.gray50,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
         border: Border.all(
           color: TossColors.gray100,
           width: 1,
@@ -551,7 +552,7 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
             height: 32,
             decoration: BoxDecoration(
               color: color.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(TossBorderRadius.md),
             ),
             child: Icon(
               icon,
@@ -665,7 +666,7 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
                       margin: const EdgeInsets.only(bottom: 20),
                       decoration: BoxDecoration(
                         color: TossColors.gray200,
-                        borderRadius: BorderRadius.circular(2),
+                        borderRadius: BorderRadius.circular(TossBorderRadius.micro),
                       ),
                     ),
                   ),
@@ -678,7 +679,7 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
                         height: 44,
                         decoration: BoxDecoration(
                           color: TossColors.primary.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                         ),
                         child: const Icon(
                           Icons.edit_outlined,
@@ -746,19 +747,19 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
                           filled: true,
                           fillColor: TossColors.gray50,
                           border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                             borderSide: const BorderSide(
                               color: TossColors.gray200,
                             ),
                           ),
                           enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                             borderSide: const BorderSide(
                               color: TossColors.gray200,
                             ),
                           ),
                           focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                             borderSide: const BorderSide(
                               color: TossColors.primary,
                               width: 2,
@@ -794,7 +795,7 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
                         ),
                         decoration: BoxDecoration(
                           color: TossColors.gray100,
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                           border: Border.all(
                             color: TossColors.gray300,
                           ),
@@ -855,25 +856,25 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
                                 filled: true,
                                 fillColor: TossColors.gray100,
                                 border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
+                                  borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                                   borderSide: const BorderSide(
                                     color: TossColors.gray300,
                                   ),
                                 ),
                                 enabledBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
+                                  borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                                   borderSide: const BorderSide(
                                     color: TossColors.gray300,
                                   ),
                                 ),
                                 disabledBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
+                                  borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                                   borderSide: const BorderSide(
                                     color: TossColors.gray300,
                                   ),
                                 ),
                                 focusedBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
+                                  borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                                   borderSide: const BorderSide(
                                     color: TossColors.gray300,
                                     width: 1,
@@ -919,19 +920,19 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
                                 filled: true,
                                 fillColor: TossColors.gray50,
                                 border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
+                                  borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                                   borderSide: const BorderSide(
                                     color: TossColors.gray200,
                                   ),
                                 ),
                                 enabledBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
+                                  borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                                   borderSide: const BorderSide(
                                     color: TossColors.gray200,
                                   ),
                                 ),
                                 focusedBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
+                                  borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                                   borderSide: const BorderSide(
                                     color: TossColors.primary,
                                     width: 2,
@@ -977,19 +978,19 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
                           filled: true,
                           fillColor: TossColors.gray50,
                           border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                             borderSide: const BorderSide(
                               color: TossColors.gray200,
                             ),
                           ),
                           enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                             borderSide: const BorderSide(
                               color: TossColors.gray200,
                             ),
                           ),
                           focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                             borderSide: const BorderSide(
                               color: TossColors.primary,
                               width: 2,
@@ -1011,7 +1012,7 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
                       color: TossColors.primary.withOpacity(0.05),
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(TossBorderRadius.xl),
                       border: Border.all(
                         color: TossColors.primary.withOpacity(0.2),
                       ),
@@ -1093,7 +1094,7 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
                               width: 1,
                             ),
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                             ),
                           ),
                           child: Text(
@@ -1118,7 +1119,7 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
                                 backgroundColor: TossColors.success,
                                 behavior: SnackBarBehavior.floating,
                                 shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
+                                  borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                                 ),
                               ),
                             );
@@ -1127,7 +1128,7 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
                             backgroundColor: TossColors.primary,
                             padding: const EdgeInsets.symmetric(vertical: 16),
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                             ),
                           ),
                           child: Text(
@@ -1220,7 +1221,7 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
                       margin: const EdgeInsets.only(bottom: 20),
                       decoration: BoxDecoration(
                         color: TossColors.gray200,
-                        borderRadius: BorderRadius.circular(2),
+                        borderRadius: BorderRadius.circular(TossBorderRadius.micro),
                       ),
                     ),
                   ),
@@ -1240,7 +1241,7 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
                               TossColors.primary,
                             ],
                           ),
-                          borderRadius: BorderRadius.circular(14),
+                          borderRadius: BorderRadius.circular(TossBorderRadius.large),
                         ),
                         child: const Icon(
                           Icons.add_business,
@@ -1330,18 +1331,18 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
                           filled: true,
                           fillColor: TossColors.gray50,
                           border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(14),
+                            borderRadius: BorderRadius.circular(TossBorderRadius.large),
                             borderSide: BorderSide.none,
                           ),
                           enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(14),
+                            borderRadius: BorderRadius.circular(TossBorderRadius.large),
                             borderSide: BorderSide(
                               color: TossColors.gray200,
                               width: 1,
                             ),
                           ),
                           focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(14),
+                            borderRadius: BorderRadius.circular(TossBorderRadius.large),
                             borderSide: const BorderSide(
                               color: TossColors.primary,
                               width: 2,
@@ -1422,7 +1423,7 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
                           ),
                           decoration: BoxDecoration(
                             color: TossColors.gray50,
-                            borderRadius: BorderRadius.circular(14),
+                            borderRadius: BorderRadius.circular(TossBorderRadius.large),
                             border: Border.all(
                               color: TossColors.gray200,
                             ),
@@ -1433,7 +1434,7 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
                                 padding: const EdgeInsets.all(8),
                                 decoration: BoxDecoration(
                                   color: TossColors.primary.withOpacity(0.1),
-                                  borderRadius: BorderRadius.circular(8),
+                                  borderRadius: BorderRadius.circular(TossBorderRadius.md),
                                 ),
                                 child: const Icon(
                                   Icons.calendar_month,
@@ -1468,7 +1469,7 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
                       color: TossColors.gray50,
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(TossBorderRadius.xl),
                       border: Border.all(
                         color: TossColors.gray100,
                       ),
@@ -1482,7 +1483,7 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
                               padding: const EdgeInsets.all(6),
                               decoration: BoxDecoration(
                                 color: TossColors.success.withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(8),
+                                borderRadius: BorderRadius.circular(TossBorderRadius.md),
                               ),
                               child: Icon(
                                 Icons.payments_outlined,
@@ -1538,18 +1539,18 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
                                 filled: true,
                                 fillColor: Colors.white,
                                 border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
+                                  borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                                   borderSide: BorderSide.none,
                                 ),
                                 enabledBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
+                                  borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                                   borderSide: BorderSide(
                                     color: TossColors.gray200,
                                     width: 1,
                                   ),
                                 ),
                                 focusedBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
+                                  borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                                   borderSide: const BorderSide(
                                     color: TossColors.success,
                                     width: 1.5,
@@ -1602,18 +1603,18 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
                                       filled: true,
                                       fillColor: Colors.white,
                                       border: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(12),
+                                        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                                         borderSide: BorderSide.none,
                                       ),
                                       enabledBorder: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(12),
+                                        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                                         borderSide: BorderSide(
                                           color: TossColors.gray200,
                                           width: 1,
                                         ),
                                       ),
                                       focusedBorder: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(12),
+                                        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                                         borderSide: const BorderSide(
                                           color: TossColors.primary,
                                           width: 1.5,
@@ -1662,18 +1663,18 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
                                       filled: true,
                                       fillColor: Colors.white,
                                       border: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(12),
+                                        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                                         borderSide: BorderSide.none,
                                       ),
                                       enabledBorder: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(12),
+                                        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                                         borderSide: BorderSide(
                                           color: TossColors.gray200,
                                           width: 1,
                                         ),
                                       ),
                                       focusedBorder: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(12),
+                                        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                                         borderSide: const BorderSide(
                                           color: TossColors.primary,
                                           width: 1.5,
@@ -1708,7 +1709,7 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
                           TossColors.primary.withOpacity(0.1),
                         ],
                       ),
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(TossBorderRadius.xl),
                       border: Border.all(
                         color: TossColors.primary.withOpacity(0.2),
                       ),
@@ -1722,7 +1723,7 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
                               padding: const EdgeInsets.all(6),
                               decoration: BoxDecoration(
                                 color: TossColors.primary.withOpacity(0.2),
-                                borderRadius: BorderRadius.circular(8),
+                                borderRadius: BorderRadius.circular(TossBorderRadius.md),
                               ),
                               child: Icon(
                                 Icons.trending_down,
@@ -1746,7 +1747,7 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
                             color: Colors.white.withOpacity(0.8),
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                           ),
                           child: Column(
                             children: [
@@ -1838,7 +1839,7 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
                               width: 1,
                             ),
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(14),
+                              borderRadius: BorderRadius.circular(TossBorderRadius.large),
                             ),
                           ),
                           child: Text(
@@ -1864,7 +1865,7 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
                                 TossColors.primary,
                               ],
                             ),
-                            borderRadius: BorderRadius.circular(14),
+                            borderRadius: BorderRadius.circular(TossBorderRadius.large),
                             boxShadow: [
                               BoxShadow(
                                 color: TossColors.primary.withOpacity(0.3),
@@ -1893,7 +1894,7 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
                                   backgroundColor: TossColors.success,
                                   behavior: SnackBarBehavior.floating,
                                   shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
+                                    borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                                   ),
                                 ),
                               );
@@ -1903,7 +1904,7 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
                               shadowColor: Colors.transparent,
                               padding: const EdgeInsets.symmetric(vertical: 18),
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(14),
+                                borderRadius: BorderRadius.circular(TossBorderRadius.large),
                               ),
                             ),
                             child: Row(
@@ -1968,7 +1969,7 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
                 margin: const EdgeInsets.symmetric(vertical: 12),
                 decoration: BoxDecoration(
                   color: TossColors.gray200,
-                  borderRadius: BorderRadius.circular(2),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.micro),
                 ),
               ),
               
@@ -2043,7 +2044,7 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
               height: 40,
               decoration: BoxDecoration(
                 color: isSelected ? TossColors.primary.withOpacity(0.1) : TossColors.gray100,
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(TossBorderRadius.buttonLarge),
               ),
               child: Icon(
                 Icons.store_outlined,

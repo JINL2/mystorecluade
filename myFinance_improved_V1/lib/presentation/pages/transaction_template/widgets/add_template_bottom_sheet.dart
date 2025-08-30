@@ -259,7 +259,7 @@ class _AddTemplateBottomSheetState extends ConsumerState<AddTemplateBottomSheet>
           builder: (BuildContext dialogContext) {
             return AlertDialog(
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(TossBorderRadius.xl),
               ),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -320,7 +320,7 @@ class _AddTemplateBottomSheetState extends ConsumerState<AddTemplateBottomSheet>
           builder: (BuildContext dialogContext) {
             return AlertDialog(
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(TossBorderRadius.xl),
               ),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -485,7 +485,7 @@ class _AddTemplateBottomSheetState extends ConsumerState<AddTemplateBottomSheet>
               height: 4,
               decoration: BoxDecoration(
                 color: TossColors.gray300,
-                borderRadius: BorderRadius.circular(2),
+                borderRadius: BorderRadius.circular(TossBorderRadius.micro),
               ),
             ),
             
@@ -559,7 +559,7 @@ class _AddTemplateBottomSheetState extends ConsumerState<AddTemplateBottomSheet>
           height: 8,
           decoration: BoxDecoration(
             color: isActive ? TossColors.primary : TossColors.gray300,
-            borderRadius: BorderRadius.circular(4),
+            borderRadius: BorderRadius.circular(TossBorderRadius.xs),
           ),
         );
       }),

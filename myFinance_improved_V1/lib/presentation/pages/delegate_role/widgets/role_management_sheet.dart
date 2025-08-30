@@ -846,7 +846,7 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
                                 _toggleCategoryPermissions(featureIds, !allSelected);
                               }
                             : null,
-                        borderRadius: BorderRadius.circular(6),
+                        borderRadius: BorderRadius.circular(TossBorderRadius.sm),
                         child: Padding(
                           padding: EdgeInsets.all(4), // Add padding for better touch target
                           child: AnimatedContainer(
@@ -865,7 +865,7 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
                                     : TossColors.gray300,
                                 width: allSelected || someSelected ? 2 : 1.5,
                               ),
-                              borderRadius: BorderRadius.circular(6),
+                              borderRadius: BorderRadius.circular(TossBorderRadius.sm),
                             ),
                             child: allSelected
                                 ? Icon(
@@ -974,7 +974,7 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
                                       : TossColors.gray300,
                                   width: isSelected ? 2 : 1.5,
                                 ),
-                                borderRadius: BorderRadius.circular(6),
+                                borderRadius: BorderRadius.circular(TossBorderRadius.sm),
                               ),
                               child: isSelected
                                   ? Icon(
@@ -1105,7 +1105,7 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
             height: 44,
             decoration: BoxDecoration(
               color: TossColors.gray200,
-              borderRadius: BorderRadius.circular(22),
+              borderRadius: BorderRadius.circular(TossBorderRadius.xxl),
             ),
             child: Icon(Icons.person, color: TossColors.gray600),
           ),
@@ -1428,7 +1428,7 @@ class _AddMemberBottomSheetState extends ConsumerState<_AddMemberBottomSheet> {
             height: 4,
             decoration: BoxDecoration(
               color: TossColors.gray300, // Restore grey handle bar
-              borderRadius: BorderRadius.circular(2),
+              borderRadius: BorderRadius.circular(TossBorderRadius.micro),
             ),
           ),
 
@@ -1542,7 +1542,7 @@ class _AddMemberBottomSheetState extends ConsumerState<_AddMemberBottomSheet> {
                                       : isDisabled
                                           ? TossColors.gray100
                                           : TossColors.gray200,
-                                  borderRadius: BorderRadius.circular(22),
+                                  borderRadius: BorderRadius.circular(TossBorderRadius.xxl),
                                 ),
                                 child: Icon(
                                   isOwner ? Icons.star : Icons.person, 
@@ -1945,7 +1945,7 @@ class _TagSelectionBottomSheetState extends State<_TagSelectionBottomSheet> {
             height: 4,
             decoration: BoxDecoration(
               color: TossColors.gray300, // Restore grey handle bar
-              borderRadius: BorderRadius.circular(2),
+              borderRadius: BorderRadius.circular(TossBorderRadius.micro),
             ),
           ),
 

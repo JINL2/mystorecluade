@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import '../../../core/themes/toss_colors.dart';
 import '../../../core/themes/toss_text_styles.dart';
 import '../../../core/themes/toss_spacing.dart';
+import '../../../core/themes/toss_border_radius.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/attendance_provider.dart';
 import '../../widgets/common/toss_scaffold.dart';
@@ -92,7 +93,7 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
             color: TossColors.white,
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(TossBorderRadius.xl),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withOpacity(0.1),
@@ -303,7 +304,7 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
                         color: TossColors.primary,
                         width: 2,
                       ),
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(TossBorderRadius.xl),
                     ),
                   ),
                 ),

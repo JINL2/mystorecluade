@@ -7,6 +7,7 @@ import '../../../widgets/toss/toss_checkbox.dart';
 import '../../../../core/themes/toss_colors.dart';
 import '../../../../core/themes/toss_text_styles.dart';
 import '../../../../core/themes/toss_spacing.dart';
+import '../../../../core/themes/toss_border_radius.dart';
 import '../../../../domain/entities/currency.dart';
 import '../../../providers/app_state_provider.dart';
 import '../../../providers/exchange_rate_provider.dart';
@@ -347,7 +348,7 @@ class _AddCurrencyBottomSheetState extends ConsumerState<AddCurrencyBottomSheet>
                             ),
                             decoration: BoxDecoration(
                               color: TossColors.primary,
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                             ),
                             child: Text(
                               '1 selected',
@@ -505,7 +506,7 @@ class _AddCurrencyBottomSheetState extends ConsumerState<AddCurrencyBottomSheet>
             margin: const EdgeInsets.only(bottom: TossSpacing.space4),
             decoration: BoxDecoration(
               color: TossColors.gray50,
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
               border: Border.all(color: TossColors.gray200),
             ),
             child: Row(
@@ -543,7 +544,7 @@ class _AddCurrencyBottomSheetState extends ConsumerState<AddCurrencyBottomSheet>
           Container(
             padding: const EdgeInsets.all(TossSpacing.space4),
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
               border: Border.all(color: TossColors.gray200),
             ),
             child: Column(
@@ -564,7 +565,7 @@ class _AddCurrencyBottomSheetState extends ConsumerState<AddCurrencyBottomSheet>
                     padding: const EdgeInsets.all(TossSpacing.space3),
                     decoration: BoxDecoration(
                       color: TossColors.gray50,
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(TossBorderRadius.md),
                     ),
                     child: Column(
                       children: [
@@ -627,17 +628,17 @@ class _AddCurrencyBottomSheetState extends ConsumerState<AddCurrencyBottomSheet>
                         hintText: isFetchingExchangeRate ? 'Fetching rate...' : 'Enter exchange rate',
                         suffixText: baseCurrencySymbol,
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(TossBorderRadius.md),
                           borderSide: BorderSide(
                             color: isFetchingExchangeRate ? TossColors.gray300 : TossColors.gray300,
                           ),
                         ),
                         focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(TossBorderRadius.md),
                           borderSide: const BorderSide(color: TossColors.primary),
                         ),
                         disabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(TossBorderRadius.md),
                           borderSide: const BorderSide(color: TossColors.gray200),
                         ),
                       ),

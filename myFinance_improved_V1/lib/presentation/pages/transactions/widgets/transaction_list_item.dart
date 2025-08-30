@@ -70,7 +70,7 @@ class TransactionListItem extends ConsumerWidget {
                         ),
                         decoration: BoxDecoration(
                           color: TossColors.primarySurface.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(4),
+                          borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                           border: Border.all(
                             color: TossColors.primary.withValues(alpha: 0.2),
                             width: 0.5,
@@ -111,7 +111,7 @@ class TransactionListItem extends ConsumerWidget {
                 ),
                 decoration: BoxDecoration(
                   color: TossColors.gray50,
-                  borderRadius: BorderRadius.circular(4),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                 ),
                 child: Text(
                   'JRN-${transaction.journalNumber.substring(0, 8).toUpperCase()}',
@@ -252,7 +252,7 @@ class TransactionListItem extends ConsumerWidget {
                         ),
                         decoration: BoxDecoration(
                           color: TossColors.gray50,
-                          borderRadius: BorderRadius.circular(4),
+                          borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,

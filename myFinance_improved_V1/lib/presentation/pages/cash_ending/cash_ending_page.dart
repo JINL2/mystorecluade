@@ -1306,12 +1306,12 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
         const SizedBox(height: TossSpacing.space2),
         InkWell(
           onTap: () => _showStoreSelector(),
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(TossBorderRadius.xl),
           child: Container(
             padding: const EdgeInsets.all(TossSpacing.space4),
             decoration: BoxDecoration(
               color: TossColors.background,
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(TossBorderRadius.xl),
               border: Border.all(
                 color: TossColors.gray200,
                 width: 1,
@@ -1331,7 +1331,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
                   height: UIConstants.avatarSizeSmall,
                   decoration: BoxDecoration(
                     color: TossColors.gray50,
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(TossBorderRadius.buttonLarge),
                   ),
                   child: Icon(
                     TossIcons.getStoreIcon(selectedStoreId == 'headquarter' ? 'headquarter' : 'store'),
@@ -3961,7 +3961,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
               height: UIConstants.modalDragHandleHeight,
               decoration: BoxDecoration(
                 color: TossColors.gray600,
-                borderRadius: BorderRadius.circular(100),
+                borderRadius: BorderRadius.circular(TossBorderRadius.full),
               ),
             ),
             // Title
@@ -4031,7 +4031,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
                               height: 40,
                               decoration: BoxDecoration(
                                 color: isSelected ? TossColors.primary.withOpacity(0.1) : TossColors.gray50,
-                                borderRadius: BorderRadius.circular(10),
+                                borderRadius: BorderRadius.circular(TossBorderRadius.buttonLarge),
                               ),
                               child: Icon(
                                 TossIcons.business,
@@ -4125,7 +4125,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
                             height: 40,
                             decoration: BoxDecoration(
                               color: isSelected ? TossColors.primary.withOpacity(0.1) : TossColors.gray50,
-                              borderRadius: BorderRadius.circular(10),
+                              borderRadius: BorderRadius.circular(TossBorderRadius.buttonLarge),
                             ),
                             child: Icon(
                               TossIcons.store,
@@ -4498,7 +4498,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
                 height: 4,
                 decoration: BoxDecoration(
                   color: Colors.grey[300],
-                  borderRadius: BorderRadius.circular(2),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.micro),
                 ),
               ),
               
@@ -5112,7 +5112,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
                 height: 4,
                 decoration: BoxDecoration(
                   color: Colors.grey[300],
-                  borderRadius: BorderRadius.circular(2),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.micro),
                 ),
               ),
               
@@ -5151,7 +5151,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
                         padding: const EdgeInsets.all(20),
                         decoration: BoxDecoration(
                           color: const Color(0xFFE8F0FF),
-                          borderRadius: BorderRadius.circular(16),
+                          borderRadius: BorderRadius.circular(TossBorderRadius.xl),
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -5180,7 +5180,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
                                   padding: const EdgeInsets.all(8),
                                   decoration: BoxDecoration(
                                     color: Colors.white,
-                                    borderRadius: BorderRadius.circular(8),
+                                    borderRadius: BorderRadius.circular(TossBorderRadius.md),
                                   ),
                                   child: Icon(
                                     Icons.account_balance_wallet_outlined,
@@ -5267,7 +5267,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
                             margin: const EdgeInsets.only(bottom: 16),
                             decoration: BoxDecoration(
                               color: Colors.white,
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                               border: Border.all(color: Colors.grey[200]!),
                               boxShadow: [
                                 BoxShadow(
@@ -5304,7 +5304,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
                                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                         decoration: BoxDecoration(
                                           color: TossColors.primary.withOpacity(0.1),
-                                          borderRadius: BorderRadius.circular(6),
+                                          borderRadius: BorderRadius.circular(TossBorderRadius.sm),
                                         ),
                                         child: Text(
                                           denomination.denominationType.toUpperCase(),
@@ -5442,7 +5442,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
                           color: Colors.grey[50],
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                         ),
                         child: Column(
                           children: [
@@ -5500,7 +5500,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
                 height: 4,
                 decoration: BoxDecoration(
                   color: Colors.grey[300],
-                  borderRadius: BorderRadius.circular(2),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.micro),
                 ),
               ),
               
@@ -5560,7 +5560,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
                         padding: const EdgeInsets.all(20),
                         decoration: BoxDecoration(
                           color: const Color(0xFFFFF0F5),
-                          borderRadius: BorderRadius.circular(16),
+                          borderRadius: BorderRadius.circular(TossBorderRadius.xl),
                         ),
                         child: Column(
                           children: [
@@ -5649,7 +5649,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
                           color: Colors.grey[50],
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                         ),
                         child: Column(
                           children: [

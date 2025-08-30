@@ -78,7 +78,7 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
               behavior: SnackBarBehavior.floating,
               duration: const Duration(seconds: 2),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(TossBorderRadius.lg),
               ),
             ),
           );
@@ -94,7 +94,7 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
             behavior: SnackBarBehavior.floating,
             duration: const Duration(seconds: 3),
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
             ),
           ),
         );
@@ -132,7 +132,7 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
         appBar: TossAppBar(
           title: 'Cash Control',
         ),
-        backgroundColor: const Color(0xFFF7F8FA),
+        backgroundColor: TossColors.backgroundPage,
         body: SafeArea(
           child: Column(
             children: [
@@ -164,7 +164,7 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
       appBar: TossAppBar(
         title: 'Cash Control',
       ),
-      backgroundColor: const Color(0xFFF7F8FA),
+      backgroundColor: TossColors.backgroundPage,
       body: SafeArea(
         child: Column(
           children: [
@@ -531,7 +531,7 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
                     height: 44,
                     decoration: BoxDecoration(
                       color: Colors.grey[100],
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(TossBorderRadius.buttonLarge),
                     ),
                     child: Icon(
                       Icons.add,
@@ -609,7 +609,7 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
                 height: 44,
                 decoration: BoxDecoration(
                   color: Theme.of(context).colorScheme.primary.withOpacity(0.08),
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.buttonLarge),
                 ),
                 child: Icon(
                   _getLocationIcon(_currentLocationType),

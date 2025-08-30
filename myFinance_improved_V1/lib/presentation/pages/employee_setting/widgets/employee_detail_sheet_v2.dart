@@ -72,7 +72,7 @@ class _EmployeeDetailSheetV2State extends ConsumerState<EmployeeDetailSheetV2>
             ),
             decoration: BoxDecoration(
               color: TossColors.gray300,
-              borderRadius: BorderRadius.circular(2),
+              borderRadius: BorderRadius.circular(TossBorderRadius.micro),
             ),
           ),
           
@@ -165,7 +165,7 @@ class _EmployeeDetailSheetV2State extends ConsumerState<EmployeeDetailSheetV2>
               ),
               decoration: BoxDecoration(
                 color: TossColors.gray100,
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(TossBorderRadius.lg),
               ),
               child: Text(
                 employee.roleName!,
@@ -327,7 +327,7 @@ class _InfoTab extends StatelessWidget {
                   padding: EdgeInsets.all(TossSpacing.space2),
                   decoration: BoxDecoration(
                     color: color.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(TossBorderRadius.md),
                   ),
                   child: Icon(
                     icon,
@@ -420,7 +420,7 @@ class _SalaryTab extends StatelessWidget {
                   padding: EdgeInsets.all(TossSpacing.space4),
                   decoration: BoxDecoration(
                     color: TossColors.gray50,
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                     border: Border.all(
                       color: TossColors.gray200,
                     ),
@@ -574,7 +574,7 @@ class _RoleTab extends StatelessWidget {
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(TossBorderRadius.xl),
                     border: Border.all(
                       color: hasRole ? TossColors.primary.withValues(alpha: 0.2) : TossColors.gray200,
                     ),
@@ -674,7 +674,7 @@ class _AttendanceTab extends StatelessWidget {
             padding: EdgeInsets.all(TossSpacing.space4),
             decoration: BoxDecoration(
               color: TossColors.gray50,
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
               border: Border.all(
                 color: TossColors.gray200,
               ),
@@ -756,7 +756,7 @@ class _AttendanceTab extends StatelessWidget {
             padding: EdgeInsets.all(TossSpacing.space3),
             decoration: BoxDecoration(
               color: TossColors.gray50,
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(TossBorderRadius.md),
             ),
             child: Row(
               children: [
@@ -787,7 +787,7 @@ class _AttendanceTab extends StatelessWidget {
       padding: EdgeInsets.all(TossSpacing.space3),
       decoration: BoxDecoration(
         color: TossColors.gray50,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(TossBorderRadius.md),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

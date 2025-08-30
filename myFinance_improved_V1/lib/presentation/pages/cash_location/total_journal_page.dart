@@ -144,7 +144,7 @@ class _TotalJournalPageState extends ConsumerState<TotalJournalPage> {
     
     if (companyId.isEmpty || storeId.isEmpty) {
       return TossScaffold(
-        backgroundColor: const Color(0xFFF7F8FA),
+        backgroundColor: TossColors.backgroundPage,
         body: const Center(
           child: Text('Please select a company and store first'),
         ),
@@ -656,7 +656,7 @@ class _TotalJournalPageState extends ConsumerState<TotalJournalPage> {
                 height: 4,
                 decoration: BoxDecoration(
                   color: TossColors.gray300,
-                  borderRadius: BorderRadius.circular(2),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.micro),
                 ),
               ),
               
@@ -794,7 +794,7 @@ class _TransactionDetailBottomSheet extends StatelessWidget {
             height: 4,
             decoration: BoxDecoration(
               color: TossColors.gray300,
-              borderRadius: BorderRadius.circular(2),
+              borderRadius: BorderRadius.circular(TossBorderRadius.micro),
             ),
           ),
           
@@ -835,7 +835,7 @@ class _TransactionDetailBottomSheet extends StatelessWidget {
                     color: transaction.isIncome 
                         ? Theme.of(context).colorScheme.primary.withOpacity(0.1)
                         : Colors.red.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1002,7 +1002,7 @@ class _TransactionDetailBottomSheet extends StatelessWidget {
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Colors.grey[50],
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(TossBorderRadius.md),
         border: Border.all(color: Colors.grey[200]!),
       ),
       child: Column(

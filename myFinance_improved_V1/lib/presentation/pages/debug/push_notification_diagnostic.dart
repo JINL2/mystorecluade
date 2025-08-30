@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_core/firebase_core.dart';
+import '../../../core/themes/toss_text_styles.dart';
 
 class PushNotificationDiagnostic extends StatefulWidget {
   const PushNotificationDiagnostic({Key? key}) : super(key: key);
@@ -301,7 +302,7 @@ class _PushNotificationDiagnosticState extends State<PushNotificationDiagnostic>
               color: Colors.grey.shade200,
               child: SelectableText(
                 _fcmToken!,
-                style: const TextStyle(fontSize: 12),
+                style: TossTextStyles.caption,
               ),
             ),
           ],

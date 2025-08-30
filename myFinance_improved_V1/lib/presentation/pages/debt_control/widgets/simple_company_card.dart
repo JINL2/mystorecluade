@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../core/themes/toss_colors.dart';
 import '../../../../core/themes/toss_text_styles.dart';
+import '../../../../core/themes/toss_border_radius.dart';
 import '../../../../core/utils/number_formatter.dart';
 import '../../../../core/navigation/safe_navigation.dart';
 
@@ -32,7 +33,7 @@ class SimpleCompanyCard extends StatelessWidget {
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(TossBorderRadius.xl),
         // Subtle left border for group companies
         border: isGroup ? Border(
           left: BorderSide(
@@ -59,7 +60,7 @@ class SimpleCompanyCard extends StatelessWidget {
             },
           );
         },
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(TossBorderRadius.xl),
         child: Padding(
           padding: const EdgeInsets.all(20),
           child: Row(

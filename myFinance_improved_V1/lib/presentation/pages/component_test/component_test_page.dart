@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/themes/toss_colors.dart';
 import '../../../core/themes/toss_text_styles.dart';
 import '../../../core/themes/toss_spacing.dart';
+import '../../../core/themes/toss_border_radius.dart';
 import '../../../core/notifications/models/notification_db_model.dart';
 import '../../../core/notifications/services/notification_service.dart';
 import '../../providers/notification_provider.dart';
@@ -102,7 +103,7 @@ class _ComponentTestPageState extends ConsumerState<ComponentTestPage> {
   Widget _buildStatusCard(NotificationState state) {
     return Card(
       elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(TossBorderRadius.lg)),
       child: Padding(
         padding: EdgeInsets.all(TossSpacing.space4),
         child: Column(
@@ -146,7 +147,7 @@ class _ComponentTestPageState extends ConsumerState<ComponentTestPage> {
             ),
             decoration: BoxDecoration(
               color: status ? Colors.green.withOpacity(0.1) : Colors.red.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(6),
+              borderRadius: BorderRadius.circular(TossBorderRadius.sm),
             ),
             child: Text(
               status ? 'Active' : 'Inactive',
@@ -164,7 +165,7 @@ class _ComponentTestPageState extends ConsumerState<ComponentTestPage> {
   Widget _buildTokensCard(NotificationState state) {
     return Card(
       elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(TossBorderRadius.lg)),
       child: Padding(
         padding: EdgeInsets.all(TossSpacing.space4),
         child: Column(
@@ -195,7 +196,7 @@ class _ComponentTestPageState extends ConsumerState<ComponentTestPage> {
                   padding: EdgeInsets.all(TossSpacing.space2),
                   decoration: BoxDecoration(
                     color: TossColors.gray100,
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(TossBorderRadius.md),
                     border: Border.all(color: TossColors.borderLight),
                   ),
                   child: Row(
@@ -218,7 +219,7 @@ class _ComponentTestPageState extends ConsumerState<ComponentTestPage> {
                 padding: EdgeInsets.all(TossSpacing.space3),
                 decoration: BoxDecoration(
                   color: Colors.orange.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.md),
                 ),
                 child: Row(
                   children: [
@@ -243,7 +244,7 @@ class _ComponentTestPageState extends ConsumerState<ComponentTestPage> {
   Widget _buildTestActionsCard(NotificationNotifier notifier) {
     return Card(
       elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(TossBorderRadius.lg)),
       child: Padding(
         padding: EdgeInsets.all(TossSpacing.space4),
         child: Column(
@@ -269,7 +270,7 @@ class _ComponentTestPageState extends ConsumerState<ComponentTestPage> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: TossColors.primary,
                   foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(TossBorderRadius.md)),
                 ),
               ),
             ),
@@ -283,7 +284,7 @@ class _ComponentTestPageState extends ConsumerState<ComponentTestPage> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.orange,
                   foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(TossBorderRadius.md)),
                 ),
               ),
             ),
@@ -297,7 +298,7 @@ class _ComponentTestPageState extends ConsumerState<ComponentTestPage> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.green,
                   foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(TossBorderRadius.md)),
                 ),
               ),
             ),
@@ -311,7 +312,7 @@ class _ComponentTestPageState extends ConsumerState<ComponentTestPage> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.purple,
                   foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(TossBorderRadius.md)),
                 ),
               ),
             ),
@@ -324,7 +325,7 @@ class _ComponentTestPageState extends ConsumerState<ComponentTestPage> {
   Widget _buildNotificationHistoryCard(NotificationState state) {
     return Card(
       elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(TossBorderRadius.lg)),
       child: Padding(
         padding: EdgeInsets.all(TossSpacing.space4),
         child: Column(
@@ -347,7 +348,7 @@ class _ComponentTestPageState extends ConsumerState<ComponentTestPage> {
                     ),
                     decoration: BoxDecoration(
                       color: Colors.red,
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                     ),
                     child: Text(
                       '$_unreadCount',
@@ -370,7 +371,7 @@ class _ComponentTestPageState extends ConsumerState<ComponentTestPage> {
                 padding: EdgeInsets.all(TossSpacing.space3),
                 decoration: BoxDecoration(
                   color: TossColors.gray100,
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.md),
                 ),
                 child: Row(
                   children: [
@@ -401,7 +402,7 @@ class _ComponentTestPageState extends ConsumerState<ComponentTestPage> {
       padding: EdgeInsets.all(TossSpacing.space3),
       decoration: BoxDecoration(
         color: notification.isRead ? TossColors.gray50 : TossColors.primary.withOpacity(0.05),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(TossBorderRadius.md),
         border: Border.all(
           color: notification.isRead ? TossColors.borderLight : TossColors.primary.withOpacity(0.2),
         ),
@@ -429,7 +430,7 @@ class _ComponentTestPageState extends ConsumerState<ComponentTestPage> {
                     ),
                     decoration: BoxDecoration(
                       color: TossColors.primary,
-                      borderRadius: BorderRadius.circular(4),
+                      borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                     ),
                     child: Text(
                       'Mark Read',
@@ -457,7 +458,7 @@ class _ComponentTestPageState extends ConsumerState<ComponentTestPage> {
                   ),
                   decoration: BoxDecoration(
                     color: Colors.blue.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(4),
+                    borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                   ),
                   child: Text(
                     notification.category!,
@@ -484,7 +485,7 @@ class _ComponentTestPageState extends ConsumerState<ComponentTestPage> {
     
     return Card(
       elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(TossBorderRadius.lg)),
       child: Padding(
         padding: EdgeInsets.all(TossSpacing.space4),
         child: Column(
@@ -617,7 +618,7 @@ class _ComponentTestPageState extends ConsumerState<ComponentTestPage> {
   Widget _buildDatabaseStatsCard() {
     return Card(
       elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(TossBorderRadius.lg)),
       child: Padding(
         padding: EdgeInsets.all(TossSpacing.space4),
         child: Column(

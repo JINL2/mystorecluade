@@ -174,7 +174,7 @@ class _DelegateRolePageState extends ConsumerState<DelegateRolePage> {
       padding: EdgeInsets.all(TossSpacing.space5),
       decoration: BoxDecoration(
         color: TossColors.surface,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -222,7 +222,7 @@ class _DelegateRolePageState extends ConsumerState<DelegateRolePage> {
         padding: EdgeInsets.all(TossSpacing.space10),
         decoration: BoxDecoration(
           color: TossColors.surface,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
         ),
         child: Center(
           child: Column(
@@ -257,7 +257,7 @@ class _DelegateRolePageState extends ConsumerState<DelegateRolePage> {
       padding: EdgeInsets.all(TossSpacing.space5),
       decoration: BoxDecoration(
         color: TossColors.surface,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -320,7 +320,7 @@ class _DelegateRolePageState extends ConsumerState<DelegateRolePage> {
         height: 44,
         decoration: BoxDecoration(
           color: _getRoleColor(role['roleName']).withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(TossBorderRadius.buttonLarge),
         ),
         child: Icon(
           _getRoleIcon(role['roleName']),
@@ -608,7 +608,7 @@ class _CreateRoleBottomSheetState extends ConsumerState<_CreateRoleBottomSheet> 
               height: 4,
               decoration: BoxDecoration(
                 color: TossColors.border,
-                borderRadius: BorderRadius.circular(2),
+                borderRadius: BorderRadius.circular(TossBorderRadius.micro),
               ),
             ),
             
@@ -1242,7 +1242,7 @@ class _CreateRoleBottomSheetState extends ConsumerState<_CreateRoleBottomSheet> 
                         onTap: () {
                           _toggleCategoryPermissions(featureIds, !allSelected);
                         },
-                        borderRadius: BorderRadius.circular(6),
+                        borderRadius: BorderRadius.circular(TossBorderRadius.sm),
                         child: Padding(
                           padding: EdgeInsets.all(4),
                           child: AnimatedContainer(
@@ -1261,7 +1261,7 @@ class _CreateRoleBottomSheetState extends ConsumerState<_CreateRoleBottomSheet> 
                                     : TossColors.border,
                                 width: allSelected || someSelected ? 2 : 1,
                               ),
-                              borderRadius: BorderRadius.circular(6),
+                              borderRadius: BorderRadius.circular(TossBorderRadius.sm),
                             ),
                             child: allSelected
                                 ? Icon(
@@ -1366,7 +1366,7 @@ class _CreateRoleBottomSheetState extends ConsumerState<_CreateRoleBottomSheet> 
                                           : TossColors.border,
                                       width: isSelected ? 2 : 1,
                                     ),
-                                    borderRadius: BorderRadius.circular(6),
+                                    borderRadius: BorderRadius.circular(TossBorderRadius.sm),
                                   ),
                                   child: isSelected
                                       ? Icon(

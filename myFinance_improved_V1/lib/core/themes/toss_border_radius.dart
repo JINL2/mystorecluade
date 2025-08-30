@@ -17,6 +17,12 @@ class TossBorderRadius {
   static const double xxxl = 24.0;     // Special large elements
   static const double full = 999.0;    // Fully circular
   
+  // Additional common values found in codebase
+  static const double micro = 2.0;     // Very small radius
+  static const double large = 14.0;    // Between md and xl
+  static const double modal = 28.0;    // Modal windows
+  static const double sheet = 32.0;    // Bottom sheets
+  
   // ==================== COMPONENT SPECIFIC ====================
   
   // Buttons

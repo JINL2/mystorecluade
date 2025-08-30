@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/themes/toss_colors.dart';
 import '../../../core/themes/toss_text_styles.dart';
 import '../../../core/themes/toss_spacing.dart';
+import '../../../core/themes/toss_border_radius.dart';
 import '../../widgets/toss/toss_text_field.dart';
 import '../../widgets/toss/toss_primary_button.dart';
 import '../../widgets/common/toss_scaffold.dart';
@@ -93,7 +94,7 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
                   padding: const EdgeInsets.all(TossSpacing.space4),
                   decoration: BoxDecoration(
                     color: TossColors.info.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                   ),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,

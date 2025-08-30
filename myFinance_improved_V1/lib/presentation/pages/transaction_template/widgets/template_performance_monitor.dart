@@ -13,6 +13,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../services/template_performance_service.dart';
 import '../services/monitored_template_service.dart';
+import '../../../../core/themes/toss_text_styles.dart';
+import '../../../../core/themes/toss_border_radius.dart';
 
 /// Performance Monitor Widget - Shows in debug mode only
 class TemplatePerformanceMonitor extends ConsumerWidget {
@@ -69,7 +71,7 @@ class _PerformanceMonitorPanelState extends ConsumerState<_PerformanceMonitorPan
       right: 16,
       child: Material(
         elevation: 8,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
         color: Colors.black87,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 300),
@@ -84,12 +86,12 @@ class _PerformanceMonitorPanelState extends ConsumerState<_PerformanceMonitorPan
   Widget _buildCollapsedPanel() {
     return InkWell(
       onTap: () => setState(() => _isExpanded = true),
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(TossBorderRadius.lg),
       child: Container(
         width: 48,
         height: 48,
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
           gradient: LinearGradient(
             colors: [Colors.blue[600]!, Colors.blue[800]!],
             begin: Alignment.topLeft,
@@ -160,7 +162,7 @@ class _PerformanceMonitorPanelState extends ConsumerState<_PerformanceMonitorPan
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: BoxDecoration(
                   color: Colors.red[600],
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.buttonLarge),
                 ),
                 child: Text(
                   '$criticalIssues',
@@ -297,7 +299,7 @@ class _PerformanceMonitorPanelState extends ConsumerState<_PerformanceMonitorPan
         padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
         decoration: BoxDecoration(
           color: color.withValues(alpha: 0.2),
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(TossBorderRadius.md),
           border: Border.all(color: color.withValues(alpha: 0.5)),
         ),
         child: Column(
@@ -329,7 +331,7 @@ class _PerformanceMonitorPanelState extends ConsumerState<_PerformanceMonitorPan
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(6),
+        borderRadius: BorderRadius.circular(TossBorderRadius.sm),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -356,7 +358,7 @@ class _PerformanceMonitorPanelState extends ConsumerState<_PerformanceMonitorPan
             padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
             decoration: BoxDecoration(
               color: _getGradeColor(stats.performanceGrade),
-              borderRadius: BorderRadius.circular(4),
+              borderRadius: BorderRadius.circular(TossBorderRadius.xs),
             ),
             child: Text(
               stats.performanceGrade,
@@ -381,7 +383,7 @@ class _PerformanceMonitorPanelState extends ConsumerState<_PerformanceMonitorPan
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(TossBorderRadius.md),
       ),
       child: Column(
         children: [
@@ -390,11 +392,11 @@ class _PerformanceMonitorPanelState extends ConsumerState<_PerformanceMonitorPan
             children: [
               Text(
                 'System Score: ${avgScore.toStringAsFixed(1)}',
-                style: const TextStyle(color: Colors.white, fontSize: 11),
+                style: TossTextStyles.small.copyWith(color: Colors.white),
               ),
               Text(
                 'Total Ops: $totalExecutions',
-                style: const TextStyle(color: Colors.white70, fontSize: 10),
+                style: TossTextStyles.micro.copyWith(color: Colors.white70),
               ),
             ],
           ),
@@ -409,7 +411,7 @@ class _PerformanceMonitorPanelState extends ConsumerState<_PerformanceMonitorPan
       padding: const EdgeInsets.all(6),
       decoration: BoxDecoration(
         color: Colors.orange.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(4),
+        borderRadius: BorderRadius.circular(TossBorderRadius.xs),
         border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
       ),
       child: Text(
@@ -428,7 +430,7 @@ class _PerformanceMonitorPanelState extends ConsumerState<_PerformanceMonitorPan
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.03),
-        borderRadius: BorderRadius.circular(6),
+        borderRadius: BorderRadius.circular(TossBorderRadius.sm),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -460,15 +462,15 @@ class _PerformanceMonitorPanelState extends ConsumerState<_PerformanceMonitorPan
             children: [
               Text(
                 'Avg: ${stats.averageLoadTime.inMilliseconds}ms',
-                style: const TextStyle(color: Colors.white70, fontSize: 9),
+                style: TossTextStyles.tiny.copyWith(color: Colors.white70),
               ),
               Text(
                 'Cache: ${(stats.cacheHitRate * 100).toStringAsFixed(0)}%',
-                style: const TextStyle(color: Colors.white70, fontSize: 9),
+                style: TossTextStyles.tiny.copyWith(color: Colors.white70),
               ),
               Text(
                 'Exec: ${stats.totalExecutions}',
-                style: const TextStyle(color: Colors.white70, fontSize: 9),
+                style: TossTextStyles.tiny.copyWith(color: Colors.white70),
               ),
             ],
           ),
@@ -565,7 +567,7 @@ class PerformanceAlert extends ConsumerWidget {
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Colors.red.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(TossBorderRadius.md),
         border: Border.all(color: Colors.red.withValues(alpha: 0.3)),
       ),
       child: Row(

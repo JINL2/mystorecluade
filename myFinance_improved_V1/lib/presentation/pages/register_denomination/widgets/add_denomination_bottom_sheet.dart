@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/themes/toss_colors.dart';
 import '../../../../core/themes/toss_text_styles.dart';
 import '../../../../core/themes/toss_animations.dart';
+import '../../../../core/themes/toss_border_radius.dart';
 import '../../../../domain/entities/currency.dart';
 import '../../../../domain/entities/denomination.dart';
 import '../providers/denomination_providers.dart';
@@ -60,7 +61,7 @@ class _AddDenominationBottomSheetState extends ConsumerState<AddDenominationBott
               margin: const EdgeInsets.only(top: 8, bottom: 12),
               decoration: BoxDecoration(
                 color: TossColors.gray300,
-                borderRadius: BorderRadius.circular(2),
+                borderRadius: BorderRadius.circular(TossBorderRadius.micro),
               ),
             ),
             
@@ -126,14 +127,14 @@ class _AddDenominationBottomSheetState extends ConsumerState<AddDenominationBott
                         vertical: 12,
                       ),
                       enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                         borderSide: const BorderSide(
                           color: TossColors.gray200,
                           width: 1,
                         ),
                       ),
                       focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                         borderSide: const BorderSide(
                           color: TossColors.primary,
                           width: 1.5,
@@ -195,7 +196,7 @@ class _AddDenominationBottomSheetState extends ConsumerState<AddDenominationBott
                       style: TextButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 13),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                           side: BorderSide(color: TossColors.gray200, width: 1),
                         ),
                       ),
@@ -220,7 +221,7 @@ class _AddDenominationBottomSheetState extends ConsumerState<AddDenominationBott
                         padding: const EdgeInsets.symmetric(vertical: 13),
                         elevation: 0,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                         ),
                       ),
                       child: isLoading
@@ -347,7 +348,7 @@ class _TypeSelectionButton extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 12),
         decoration: BoxDecoration(
           color: isSelected ? TossColors.primary : TossColors.gray50,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
           border: Border.all(
             color: isSelected ? TossColors.primary : TossColors.gray200,
             width: isSelected ? 1.5 : 1,

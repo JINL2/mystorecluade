@@ -177,11 +177,11 @@ class _SmartTemplateSelectorState extends ConsumerState<SmartTemplateSelector> {
                     padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
                     decoration: BoxDecoration(
                       color: TossColors.success,
-                      borderRadius: BorderRadius.circular(6),
+                      borderRadius: BorderRadius.circular(TossBorderRadius.sm),
                     ),
                     child: const Text(
                       '⚡',
-                      style: TextStyle(fontSize: 8),
+                      style: TossTextStyles.mini,
                     ),
                   ),
               ],

@@ -418,7 +418,7 @@ class _EnhancedAccountSelectorState extends ConsumerState<EnhancedAccountSelecto
                           ),
                           decoration: BoxDecoration(
                             color: TossColors.warning.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(10),
+                            borderRadius: BorderRadius.circular(TossBorderRadius.buttonLarge),
                           ),
                           child: Text(
                             '${usageCount}×',
@@ -506,7 +506,7 @@ class _EnhancedAccountSelectorState extends ConsumerState<EnhancedAccountSelecto
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: BoxDecoration(
                   color: TossColors.warning.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.buttonLarge),
                 ),
                 child: Text(
                   '${usageCount}×',
