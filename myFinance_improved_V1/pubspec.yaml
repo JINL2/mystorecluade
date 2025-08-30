@@ -58,6 +58,10 @@ dependencies:
   firebase_analytics: ^11.2.0
   flutter_local_notifications: ^17.2.1
   
+  # Enhanced Token Management Dependencies
+  crypto: ^3.0.3  # For SHA256 token hashing and deduplication
+  connectivity_plus: ^6.0.2  # For network monitoring and resilient updates
+  
   # Permission Handling
   permission_handler: ^11.3.1
   

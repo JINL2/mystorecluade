@@ -42,6 +42,7 @@ import '../pages/component_test/component_test_page.dart';
 import '../pages/debug/supabase_connection_test_page.dart';
 import '../pages/debug/notification_debug_page.dart';
 import '../pages/debug/push_notification_diagnostic.dart';
+import '../pages/debug/fcm_token_debug_page.dart';
 import '../../core/themes/toss_text_styles.dart';
 import '../../core/themes/toss_colors.dart';
 import '../widgets/common/toss_scaffold.dart';
@@ -542,6 +543,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: 'debug/push-diagnostic',
             builder: (context, state) => const PushNotificationDiagnostic(),
+          ),
+          // Debug Page (FCM Token Debug)
+          GoRoute(
+            path: 'debug/fcm-token',
+            builder: (context, state) => const FcmTokenDebugPage(),
           ),
         ],
       ),

@@ -373,18 +373,21 @@ class NotificationService {
     );
   }
   
-  /// Get device ID
+  /// Get device ID (DEPRECATED - handled by TokenManager)
   Future<String> _getDeviceId() async {
+    // Now handled internally by enhanced TokenManager
     return 'device_${DateTime.now().millisecondsSinceEpoch}';
   }
   
-  /// Get device model
+  /// Get device model (DEPRECATED - handled by TokenManager)
   Future<String> _getDeviceModel() async {
+    // Now handled internally by enhanced TokenManager
     return Platform.operatingSystem;
   }
   
-  /// Get app version
+  /// Get app version (DEPRECATED - handled by TokenManager)
   Future<String> _getAppVersion() async {
+    // Now handled internally by enhanced TokenManager
     return '1.0.0';
   }
   

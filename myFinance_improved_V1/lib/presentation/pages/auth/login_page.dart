@@ -13,6 +13,7 @@ import '../../providers/app_state_provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/constants/auth_constants.dart';
 import '../../../core/navigation/safe_navigation.dart';
+import '../../../core/notifications/services/token_manager.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
@@ -644,7 +645,22 @@ class _LoginPageState extends ConsumerState<LoginPage>
         throw Exception('Sign-in succeeded but no user ID found');
       }
       
-      // Fetch user data and categories immediately after sign-in
+      // STEP 2.5: IMMEDIATELY register FCM token (Best Practice: < 100ms)
+      // This ensures push notifications work right after login
+      try {
+        final tokenManager = TokenManager();
+        final tokenRegistered = await tokenManager.ensureTokenRegistered();
+        if (!tokenRegistered && mounted) {
+          debugPrint('⚠️ FCM token registration pending');
+        } else if (mounted) {
+          debugPrint('✅ FCM token registered immediately');
+        }
+      } catch (e) {
+        // Don't fail login if token registration fails
+        debugPrint('❌ FCM token registration failed: $e');
+      }
+      
+      // STEP 3: Fetch user data and categories immediately after sign-in
       
       // STEP 3: Fetch companies and categories in parallel
       // Do this BEFORE showing success message to ensure data is ready

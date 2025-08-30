@@ -321,6 +321,11 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
                 if (mounted) {
                   context.safePush('/debug/notifications');
                 }
+              } else if (value == 'fcm_debug') {
+                // Navigate to FCM token debug page
+                if (mounted) {
+                  context.safePush('/debug/fcm-token');
+                }
               } else if (value == 'logout') {
                 // 🔧 SAFE LOGOUT: Close popup menu first, then execute logout
                 // This prevents popup menu context disposal issues
@@ -391,6 +396,25 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
                     SizedBox(width: TossSpacing.space3),
                     Text(
                       '🔔 Test Notifications',
+                      style: TossTextStyles.body.copyWith(
+                        color: TossColors.textPrimary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              SafePopupMenuItem<String>(
+                value: 'fcm_debug',
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.key,
+                      color: TossColors.textSecondary,
+                      size: 20,
+                    ),
+                    SizedBox(width: TossSpacing.space3),
+                    Text(
+                      '🔑 FCM Token Debug',
                       style: TossTextStyles.body.copyWith(
                         color: TossColors.textPrimary,
                       ),

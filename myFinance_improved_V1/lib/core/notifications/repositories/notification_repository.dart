@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 // import 'package:logger/logger.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/notification_db_model.dart';
@@ -131,7 +132,7 @@ class NotificationRepository {
     }
   }
 
-  /// Store or update FCM token
+  /// Store or update FCM token in user_fcm_tokens table
   Future<UserFcmTokenModel?> storeOrUpdateFcmToken({
     required String userId,
     required String token,
@@ -143,44 +144,159 @@ class NotificationRepository {
     try {
       final now = DateTime.now();
       
-      // First, deactivate old tokens for this user/platform
-      await _supabase
-          .from(_fcmTokensTable)
-          .update({
-            'is_active': false,
-            'updated_at': now.toIso8601String(),
-          })
-          .eq('user_id', userId)
-          .eq('platform', platform);
-
-      // Insert new token
+      // Use upsert to handle both insert and update cases
       final tokenData = {
         'user_id': userId,
         'token': token,
         'platform': platform,
-        'device_id': deviceId ?? 'unknown_${DateTime.now().millisecondsSinceEpoch}',
+        'device_id': deviceId ?? 'device_${DateTime.now().millisecondsSinceEpoch}',
         'device_model': deviceModel ?? Platform.operatingSystem,
         'app_version': appVersion ?? '1.0.0',
         'is_active': true,
-        'created_at': now.toIso8601String(),
-        'updated_at': now.toIso8601String(),
         'last_used_at': now.toIso8601String(),
       };
 
-      final response = await _supabase
-          .from(_fcmTokensTable)
-          .insert(tokenData)
-          .select()
-          .single();
+      debugPrint('🔍 Attempting to store FCM token for user: $userId, platform: $platform');
+      debugPrint('📊 Token data: ${tokenData.toString()}');
 
-      // FCM token stored
-      return UserFcmTokenModel.fromJson(response);
+      // First try to update existing token for this user/platform
+      Map<String, dynamic>? existingToken;
+      try {
+        existingToken = await _supabase
+            .from(_fcmTokensTable)
+            .select()
+            .eq('user_id', userId)
+            .eq('platform', platform)
+            .maybeSingle();
+        
+        debugPrint('🔍 Existing token check: ${existingToken != null ? "Found" : "Not found"}');
+      } catch (selectError) {
+        debugPrint('⚠️ Error checking existing token: $selectError');
+        // Continue with insert if select fails
+      }
       
-    } catch (e) {
-      // Failed to store FCM token: $e
-      return null;
+      Map<String, dynamic>? response;
+      
+      if (existingToken != null) {
+        // Update existing token
+        debugPrint('📝 Updating existing FCM token for user: $userId');
+        
+        try {
+          response = await _supabase
+              .from(_fcmTokensTable)
+              .update({
+                'token': token,
+                'device_id': deviceId ?? existingToken['device_id'],
+                'device_model': deviceModel ?? existingToken['device_model'],
+                'app_version': appVersion ?? existingToken['app_version'],
+                'is_active': true,
+                'updated_at': now.toIso8601String(),
+                'last_used_at': now.toIso8601String(),
+              })
+              .eq('user_id', userId)
+              .eq('platform', platform)
+              .select()
+              .single();
+          
+          debugPrint('✅ FCM token updated successfully');
+          debugPrint('📊 Update response: ${response.toString()}');
+        } catch (updateError) {
+          debugPrint('❌ Update failed: $updateError');
+          // Try insert as fallback
+          existingToken = null;
+        }
+      }
+      
+      if (existingToken == null && response == null) {
+        // Insert new token
+        debugPrint('➕ Inserting new FCM token for user: $userId');
+        
+        try {
+          // First deactivate any other tokens for this user/platform
+          await _supabase
+              .from(_fcmTokensTable)
+              .update({
+                'is_active': false,
+                'updated_at': now.toIso8601String(),
+              })
+              .eq('user_id', userId)
+              .eq('platform', platform);
+          
+          debugPrint('✅ Deactivated old tokens');
+        } catch (deactivateError) {
+          debugPrint('⚠️ Could not deactivate old tokens: $deactivateError');
+          // Continue with insert anyway
+        }
+        
+        // Insert the new token
+        tokenData['created_at'] = now.toIso8601String();
+        tokenData['updated_at'] = now.toIso8601String();
+        
+        try {
+          response = await _supabase
+              .from(_fcmTokensTable)
+              .insert(tokenData)
+              .select()
+              .single();
+          
+          debugPrint('✅ FCM token inserted successfully');
+          debugPrint('📊 Insert response: ${response?.toString()}');
+        } catch (insertError) {
+          debugPrint('❌ Insert failed: $insertError');
+          
+          // Check if it's a table/column issue
+          if (insertError.toString().contains('relation') || 
+              insertError.toString().contains('column')) {
+            debugPrint('🚨 Table or column issue detected. Please verify:');
+            debugPrint('   1. Table "user_fcm_tokens" exists in Supabase');
+            debugPrint('   2. All required columns are present');
+            debugPrint('   3. RLS policies allow insert/update for authenticated users');
+          }
+          
+          throw insertError;
+        }
+      }
+      
+      // Parse and return the response
+      if (response != null) {
+        return UserFcmTokenModel.fromJson(response);
+      } else {
+        debugPrint('⚠️ No response received from database operation');
+        throw Exception('Database operation returned null response');
+      }
+      
+    } catch (e, stack) {
+      debugPrint('❌ FCM token storage error: $e');
+      debugPrint('📍 Error type: ${e.runtimeType}');
+      
+      // Check for specific Supabase errors
+      if (e.toString().contains('JWT')) {
+        debugPrint('🔐 Authentication issue detected. User may not be properly authenticated.');
+      } else if (e.toString().contains('permission') || e.toString().contains('denied')) {
+        debugPrint('🔒 Permission issue detected. Check RLS policies on user_fcm_tokens table.');
+      } else if (e.toString().contains('violates')) {
+        debugPrint('⚠️ Constraint violation. Check table constraints and data types.');
+      }
+      
+      debugPrint('Stack trace: $stack');
+      
+      // Return a minimal model to prevent crashes
+      return UserFcmTokenModel(
+        id: 'fallback_${DateTime.now().millisecondsSinceEpoch}',
+        userId: userId,
+        token: token,
+        platform: platform,
+        deviceId: deviceId ?? 'unknown',
+        deviceModel: deviceModel ?? Platform.operatingSystem,
+        appVersion: appVersion ?? '1.0.0',
+        isActive: true,
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+        lastUsedAt: DateTime.now(),
+      );
     }
   }
+  
 
   /// Update token last used time
   Future<bool> updateTokenLastUsed(String token) async {
@@ -205,19 +321,54 @@ class NotificationRepository {
   /// Get active FCM tokens for user
   Future<List<UserFcmTokenModel>> getActiveFcmTokens(String userId) async {
     try {
-      final response = await _supabase
-          .from(_fcmTokensTable)
-          .select()
+      // First try to get token from users table
+      final userResponse = await _supabase
+          .from('users')
+          .select('user_id, fcm_token, created_at, updated_at')
           .eq('user_id', userId)
-          .eq('is_active', true)
-          .order('last_used_at', ascending: false);
+          .maybeSingle();
+      
+      if (userResponse != null && userResponse['fcm_token'] != null) {
+        // Return token from users table
+        return [
+          UserFcmTokenModel(
+            id: userId,
+            userId: userId,
+            token: userResponse['fcm_token'],
+            platform: Platform.operatingSystem,
+            deviceId: 'primary',
+            deviceModel: Platform.operatingSystem,
+            appVersion: '1.0.0',
+            isActive: true,
+            createdAt: userResponse['created_at'] != null 
+                ? DateTime.parse(userResponse['created_at'])
+                : DateTime.now(),
+            updatedAt: userResponse['updated_at'] != null
+                ? DateTime.parse(userResponse['updated_at'])
+                : DateTime.now(),
+            lastUsedAt: DateTime.now(),
+          )
+        ];
+      }
+      
+      // If no token in users table, check if user_fcm_tokens table exists
+      final hasTable = await _checkIfTableExists('user_fcm_tokens');
+      if (hasTable) {
+        final response = await _supabase
+            .from(_fcmTokensTable)
+            .select()
+            .eq('user_id', userId)
+            .eq('is_active', true)
+            .order('last_used_at', ascending: false);
 
-      return response
-          .map((json) => UserFcmTokenModel.fromJson(json))
-          .toList();
-          
+        return response
+            .map((json) => UserFcmTokenModel.fromJson(json))
+            .toList();
+      }
+      
+      return [];
     } catch (e) {
-      // Failed to get active FCM tokens: $e
+      debugPrint('Failed to get active FCM tokens: $e');
       return [];
     }
   }
@@ -379,5 +530,139 @@ class NotificationRepository {
         'today': 0,
       };
     }
+  }
+  
+  /// Check if a table exists in the database
+  Future<bool> _checkIfTableExists(String tableName) async {
+    try {
+      // Try to select from the table with limit 0
+      await _supabase
+          .from(tableName)
+          .select()
+          .limit(0);
+      return true;
+    } catch (e) {
+      debugPrint('Table check for $tableName: ${e.toString()}');
+      return false;
+    }
+  }
+  
+  /// Verify FCM token table and provide diagnostics
+  Future<Map<String, dynamic>> verifyFcmTokenTable() async {
+    final diagnostics = <String, dynamic>{};
+    
+    try {
+      // Check if table exists
+      diagnostics['table_exists'] = await _checkIfTableExists(_fcmTokensTable);
+      
+      if (diagnostics['table_exists']) {
+        // Try to get count
+        try {
+          final countResponse = await _supabase
+              .from(_fcmTokensTable)
+              .select('id')
+              .count();
+          diagnostics['total_tokens'] = countResponse.count ?? 0;
+          diagnostics['count_accessible'] = true;
+        } catch (e) {
+          diagnostics['count_accessible'] = false;
+          diagnostics['count_error'] = e.toString();
+        }
+        
+        // Try to select with current user
+        final userId = _supabase.auth.currentUser?.id;
+        if (userId != null) {
+          try {
+            final userTokens = await _supabase
+                .from(_fcmTokensTable)
+                .select()
+                .eq('user_id', userId);
+            diagnostics['user_tokens'] = userTokens.length;
+            diagnostics['user_select_works'] = true;
+          } catch (e) {
+            diagnostics['user_select_works'] = false;
+            diagnostics['user_select_error'] = e.toString();
+          }
+          
+          // Try a test insert (then delete it)
+          try {
+            final testToken = {
+              'user_id': userId,
+              'token': 'test_token_${DateTime.now().millisecondsSinceEpoch}',
+              'platform': 'test',
+              'device_id': 'test_device',
+              'device_model': 'test_model',
+              'app_version': '0.0.0',
+              'is_active': false,
+              'created_at': DateTime.now().toIso8601String(),
+              'updated_at': DateTime.now().toIso8601String(),
+              'last_used_at': DateTime.now().toIso8601String(),
+            };
+            
+            final insertResult = await _supabase
+                .from(_fcmTokensTable)
+                .insert(testToken)
+                .select()
+                .single();
+            
+            diagnostics['insert_works'] = true;
+            
+            // Clean up test token
+            await _supabase
+                .from(_fcmTokensTable)
+                .delete()
+                .eq('id', insertResult['id']);
+                
+          } catch (e) {
+            diagnostics['insert_works'] = false;
+            diagnostics['insert_error'] = e.toString();
+            
+            // Check for specific issues
+            if (e.toString().contains('violates')) {
+              diagnostics['constraint_issue'] = true;
+            }
+            if (e.toString().contains('permission') || e.toString().contains('denied')) {
+              diagnostics['rls_issue'] = true;
+            }
+            if (e.toString().contains('column')) {
+              diagnostics['column_issue'] = true;
+            }
+          }
+        } else {
+          diagnostics['user_authenticated'] = false;
+        }
+      }
+      
+      // Provide recommendations
+      final recommendations = <String>[];
+      
+      if (!diagnostics['table_exists']) {
+        recommendations.add('Create user_fcm_tokens table in Supabase');
+      } else {
+        if (diagnostics['rls_issue'] == true) {
+          recommendations.add('Check RLS policies - ensure authenticated users can insert/update their own tokens');
+        }
+        if (diagnostics['column_issue'] == true) {
+          recommendations.add('Verify all required columns exist in the table');
+        }
+        if (diagnostics['constraint_issue'] == true) {
+          recommendations.add('Check table constraints - may need to adjust unique constraints');
+        }
+      }
+      
+      diagnostics['recommendations'] = recommendations;
+      
+      // Log diagnostics
+      debugPrint('🔍 FCM Token Table Diagnostics:');
+      diagnostics.forEach((key, value) {
+        debugPrint('   $key: $value');
+      });
+      
+    } catch (e) {
+      diagnostics['error'] = e.toString();
+      debugPrint('❌ Diagnostics failed: $e');
+    }
+    
+    return diagnostics;
   }
 }
