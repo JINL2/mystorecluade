@@ -4413,6 +4413,19 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
             locationSummary = response.data!.locationSummary;
           }
           
+          // Sort both lists by createdAt date in descending order (latest first)
+          journalFlows.sort((a, b) {
+            DateTime dateA = DateTime.parse(a.createdAt);
+            DateTime dateB = DateTime.parse(b.createdAt);
+            return dateB.compareTo(dateA); // Descending order
+          });
+          
+          actualFlows.sort((a, b) {
+            DateTime dateA = DateTime.parse(a.createdAt);
+            DateTime dateB = DateTime.parse(b.createdAt);
+            return dateB.compareTo(dateA); // Descending order
+          });
+          
           if (response.pagination != null) {
             hasMoreFlows = response.pagination!.hasMore;
             flowsOffset = response.pagination!.offset + flowsLimit;
@@ -4625,6 +4638,13 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
       }).toList();
     }
     
+    // Always sort filtered flows by createdAt in descending order (latest first)
+    filteredFlows.sort((a, b) {
+      DateTime dateA = DateTime.parse(a.createdAt);
+      DateTime dateB = DateTime.parse(b.createdAt);
+      return dateB.compareTo(dateA); // Descending order
+    });
+    
     if (filteredFlows.isEmpty) {
       return Container(
         padding: EdgeInsets.all(TossSpacing.space5),
@@ -4746,6 +4766,13 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
         }
       }).toList();
     }
+    
+    // Always sort filtered flows by createdAt in descending order (latest first)
+    filteredFlows.sort((a, b) {
+      DateTime dateA = DateTime.parse(a.createdAt);
+      DateTime dateB = DateTime.parse(b.createdAt);
+      return dateB.compareTo(dateA); // Descending order
+    });
     
     if (filteredFlows.isEmpty) {
       return Container(

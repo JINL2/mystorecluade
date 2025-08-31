@@ -166,6 +166,7 @@ class _TotalJournalPageState extends ConsumerState<TotalJournalPage> {
       backgroundColor: const Color(0xFFF7F8FA),
       appBar: TossAppBar(
         title: _pageTitle,
+        backgroundColor: const Color(0xFFF7F8FA),
       ),
       body: SafeArea(
         child: Column(

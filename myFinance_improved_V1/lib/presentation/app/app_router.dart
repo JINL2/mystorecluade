@@ -56,6 +56,8 @@ class RouterNotifier extends ChangeNotifier {
 
   final List<String> _redirectHistory = [];
   static const int _maxRedirectHistory = 10;
+  static const Duration _redirectTimeWindow = Duration(seconds: 5);
+  final List<DateTime> _redirectTimestamps = [];
   
 
   RouterNotifier(this._ref) {
@@ -89,32 +91,53 @@ class RouterNotifier extends ChangeNotifier {
     super.dispose();
   }
   
-  // Check for redirect loops
-  bool _hasRedirectLoop(String path) {
-    _redirectHistory.add(path);
+  // Check for redirect loops - only track actual redirects, not user navigation
+  bool _checkForRedirectLoop(String path) {
+    final now = DateTime.now();
     
-    // Keep history limited
-    if (_redirectHistory.length > _maxRedirectHistory) {
+    // Remove old entries outside the time window FIRST
+    while (_redirectTimestamps.isNotEmpty && 
+           now.difference(_redirectTimestamps.first) > _redirectTimeWindow) {
       _redirectHistory.removeAt(0);
+      _redirectTimestamps.removeAt(0);
     }
     
-    // Check for loops (same path appearing 3+ times in recent history)
-    if (_redirectHistory.length >= 6) {
-      final startIndex = _redirectHistory.length - 6;
-      final recent = _redirectHistory.sublist(startIndex).toList();
-      final pathCount = recent.where((p) => p == path).length;
-      if (pathCount >= 3) {
-        debugPrint('[RouterNotifier] Redirect loop detected for path: $path');
-        _redirectHistory.clear();
-        return true;
-      }
+    // Check if this path would cause a loop BEFORE adding it
+    // Only consider paths within the recent time window
+    final recentPathCount = _redirectHistory.where((p) => p == path).length;
+    
+    // If the same path appears 3+ times in the time window, it's likely a loop
+    if (recentPathCount >= 3) {
+      debugPrint('[RouterNotifier] Redirect loop detected for path: $path');
+      debugPrint('[RouterNotifier] Path appeared ${recentPathCount + 1} times in last ${_redirectTimeWindow.inSeconds} seconds');
+      _clearRedirectHistory();
+      return true;
     }
     
     return false;
   }
   
-  void clearRedirectHistory() {
+  // Add path to redirect history (only call this for actual redirects)
+  void _trackRedirect(String path) {
+    final now = DateTime.now();
+    
+    _redirectHistory.add(path);
+    _redirectTimestamps.add(now);
+    
+    // Keep history limited
+    if (_redirectHistory.length > _maxRedirectHistory) {
+      _redirectHistory.removeAt(0);
+      _redirectTimestamps.removeAt(0);
+    }
+  }
+  
+  void _clearRedirectHistory() {
     _redirectHistory.clear();
+    _redirectTimestamps.clear();
+  }
+  
+  void clearRedirectHistory() {
+    _clearRedirectHistory();
   }
 
 }
@@ -131,12 +154,20 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       try {
         final currentPath = state.matchedLocation;
         
-        // Check for redirect loop
-        if (routerNotifier._hasRedirectLoop(currentPath)) {
-          debugPrint('[AppRouter] Redirect loop detected, navigating to home');
-          // Clear SafeNavigation locks for the problematic route
-          SafeNavigation.instance.clearAllLocks();
-          return '/';
+        // Helper function to safely return a redirect with loop detection
+        String? safeRedirect(String targetPath, String reason) {
+          // First check if this would cause a loop
+          if (routerNotifier._checkForRedirectLoop(targetPath)) {
+            debugPrint('[AppRouter] Redirect loop detected, navigating to home');
+            SafeNavigation.instance.clearAllLocks();
+            routerNotifier._clearRedirectHistory();
+            return '/';
+          }
+          
+          // Only track as redirect if we're actually redirecting
+          debugPrint('[AppRouter] $reason');
+          routerNotifier._trackRedirect(targetPath);
+          return targetPath;
         }
         
         // Special handling for /cashEnding to prevent redirect loops
@@ -154,9 +185,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           
           // Redirect to appropriate page if not authenticated or no companies
           if (!isAuth) {
-            return '/auth/login';
+            return safeRedirect('/auth/login', 'CashEnding: Not authenticated, redirecting to login');
           } else if (hasUserData && companyCount == 0) {
-            return '/onboarding/choose-role';
+            return safeRedirect('/onboarding/choose-role', 'CashEnding: No companies, redirecting to onboarding');
           }
           
           // If waiting for user data, allow the page to load (it will handle the loading state)
@@ -189,22 +220,19 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         
         // Priority 1: If not authenticated and not on auth route, go to login
         if (!isAuth && !isAuthRoute) {
-          debugPrint('[AppRouter] Not authenticated, redirecting to login');
-          return '/auth/login';
+          return safeRedirect('/auth/login', 'Not authenticated, redirecting to login');
         }
         
         // Priority 2: If authenticated, redirect away from auth pages to appropriate destination
         if (isAuth && isAuthRoute) {
           // If user has companies, go to main page
           if (hasUserData && companyCount > 0) {
-            debugPrint('[AppRouter] Authenticated with companies, redirecting to home');
             routerNotifier.clearRedirectHistory(); // Clear history on successful auth redirect
-            return '/';
+            return safeRedirect('/', 'Authenticated with companies, redirecting to home');
           }
           // If user has no companies but has data, go to onboarding
           else if (hasUserData && companyCount == 0) {
-            debugPrint('[AppRouter] Authenticated without companies, redirecting to onboarding');
-            return '/onboarding/choose-role';
+            return safeRedirect('/onboarding/choose-role', 'Authenticated without companies, redirecting to onboarding');
           }
           // If no user data yet, stay to let auth page load data
           else {
@@ -217,8 +245,17 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         // Only redirect if we have loaded user data
         if (isAuth && !isAuthRoute && !isOnboardingRoute && 
             hasUserData && companyCount == 0) {
-          debugPrint('[AppRouter] Authenticated on main page without companies, redirecting to onboarding');
-          return '/onboarding/choose-role';
+          return safeRedirect('/onboarding/choose-role', 'Authenticated on main page without companies, redirecting to onboarding');
+        }
+        
+        // No redirect needed - clear history periodically
+        // This prevents false positives from accumulating over time
+        if (routerNotifier._redirectHistory.isNotEmpty) {
+          final now = DateTime.now();
+          if (routerNotifier._redirectTimestamps.isNotEmpty &&
+              now.difference(routerNotifier._redirectTimestamps.first) > Duration(seconds: 10)) {
+            routerNotifier._clearRedirectHistory();
+          }
         }
         
         return null;

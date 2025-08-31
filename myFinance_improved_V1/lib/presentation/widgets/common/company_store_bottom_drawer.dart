@@ -44,7 +44,7 @@ class _CompanyStoreBottomDrawerState extends ConsumerState<CompanyStoreBottomDra
   @override
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
-    final userData = ref.watch(appStateProvider).userData;
+    final userData = ref.watch(appStateProvider).user;
     final selectedCompany = ref.watch(appStateProvider.notifier).selectedCompany;
     final companies = userData['companies'] as List<dynamic>? ?? [];
     

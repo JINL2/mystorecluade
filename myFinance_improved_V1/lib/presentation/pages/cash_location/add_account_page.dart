@@ -131,6 +131,7 @@ class _AddAccountPageState extends ConsumerState<AddAccountPage> {
     return TossScaffold(
       appBar: TossAppBar(
         title: _pageTitle,
+        backgroundColor: const Color(0xFFF7F8FA),
       ),
       backgroundColor: const Color(0xFFF7F8FA),
       body: SafeArea(

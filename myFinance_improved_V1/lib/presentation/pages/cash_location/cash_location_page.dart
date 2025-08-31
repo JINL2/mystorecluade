@@ -132,6 +132,7 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
       return TossScaffold(
         appBar: TossAppBar(
           title: 'Cash Control',
+          backgroundColor: TossColors.gray100,
         ),
         backgroundColor: TossColors.gray100,
         body: SafeArea(
@@ -164,6 +165,7 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
     return TossScaffold(
       appBar: TossAppBar(
         title: 'Cash Control',
+        backgroundColor: TossColors.gray100,
       ),
       backgroundColor: TossColors.gray100,
       body: SafeArea(

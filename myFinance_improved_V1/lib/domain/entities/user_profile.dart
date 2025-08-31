@@ -10,7 +10,7 @@ class UserProfile with _$UserProfile {
     @JsonKey(name: 'first_name') String? firstName,
     @JsonKey(name: 'last_name') String? lastName,
     required String email,
-    @JsonKey(name: 'phone_number') String? phoneNumber,
+    @JsonKey(name: 'user_phone_number') String? phoneNumber,
     @JsonKey(name: 'profile_image') String? profileImage,
     @JsonKey(name: 'bank_name') String? bankName,
     @JsonKey(name: 'bank_account_number') String? bankAccountNumber,

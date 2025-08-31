@@ -44,7 +44,7 @@ class AccountDetailPage extends ConsumerStatefulWidget {
 }
 
 class _AccountDetailPageState extends ConsumerState<AccountDetailPage> 
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   late TabController _tabController;
   int _selectedTab = 0;
   String _selectedFilter = 'All';
@@ -69,6 +69,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _tabController = TabController(length: 2, vsync: this);
     _tabController.addListener(() {
       setState(() {
@@ -76,10 +77,24 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
       });
     });
     _scrollController.addListener(_onScroll);
+    
+    // Refresh data on initial load
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _refreshDataSilently();
+    });
+  }
+  
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      // Refresh when app comes back to foreground
+      _refreshDataSilently();
+    }
   }
   
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _tabController.dispose();
     _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
@@ -198,8 +213,134 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
       ),
     ));
     
+    // Force immediate data refresh by reading the provider
+    try {
+      final response = await ref.read(stockFlowProvider(
+        StockFlowParams(
+          companyId: companyId,
+          storeId: storeId,
+          cashLocationId: widget.locationId!,
+          offset: 0,
+          limit: _limit,
+        ),
+      ).future);
+      
+      if (response.success && response.data != null) {
+        setState(() {
+          _allJournalFlows = List.from(response.data!.journalFlows);
+          _allActualFlows = List.from(response.data!.actualFlows);
+          
+          // Sort all flows by date in descending order (newest first)
+          _allJournalFlows.sort((a, b) {
+            try {
+              final dateA = DateTime.parse(a.createdAt);
+              final dateB = DateTime.parse(b.createdAt);
+              return dateB.compareTo(dateA);
+            } catch (e) {
+              return 0;
+            }
+          });
+          
+          _allActualFlows.sort((a, b) {
+            try {
+              final dateA = DateTime.parse(a.createdAt);
+              final dateB = DateTime.parse(b.createdAt);
+              return dateB.compareTo(dateA);
+            } catch (e) {
+              return 0;
+            }
+          });
+          
+          _locationSummary = response.data!.locationSummary;
+          _currentOffset = 0;
+          _hasMoreData = response.pagination?.hasMore ?? false;
+        });
+      }
+    } catch (e) {
+      // If fetching fails, the provider will handle the error state
+    }
+    
     // Fetch updated balance data
     await _fetchUpdatedBalance();
+  }
+  
+  Future<void> _refreshDataSilently() async {
+    // Silently refresh data without showing loading indicators
+    final appState = ref.read(appStateProvider);
+    final companyId = appState.companyChoosen;
+    final storeId = appState.storeChoosen;
+    
+    if (widget.locationId == null || companyId.isEmpty || storeId.isEmpty) return;
+    
+    try {
+      // Invalidate providers to get fresh data
+      ref.invalidate(stockFlowProvider(
+        StockFlowParams(
+          companyId: companyId,
+          storeId: storeId,
+          cashLocationId: widget.locationId!,
+          offset: 0,
+          limit: _limit,
+        ),
+      ));
+      
+      ref.invalidate(allCashLocationsProvider(
+        CashLocationQueryParams(
+          companyId: companyId,
+          storeId: storeId,
+        ),
+      ));
+      
+      // Fetch fresh data
+      final response = await ref.read(stockFlowProvider(
+        StockFlowParams(
+          companyId: companyId,
+          storeId: storeId,
+          cashLocationId: widget.locationId!,
+          offset: 0,
+          limit: _limit,
+        ),
+      ).future);
+      
+      if (response.success && response.data != null) {
+        if (mounted) {
+          setState(() {
+            _allJournalFlows = List.from(response.data!.journalFlows);
+            _allActualFlows = List.from(response.data!.actualFlows);
+            
+            // Sort all flows by date in descending order
+            _allJournalFlows.sort((a, b) {
+              try {
+                final dateA = DateTime.parse(a.createdAt);
+                final dateB = DateTime.parse(b.createdAt);
+                return dateB.compareTo(dateA);
+              } catch (e) {
+                return 0;
+              }
+            });
+            
+            _allActualFlows.sort((a, b) {
+              try {
+                final dateA = DateTime.parse(a.createdAt);
+                final dateB = DateTime.parse(b.createdAt);
+                return dateB.compareTo(dateA);
+              } catch (e) {
+                return 0;
+              }
+            });
+            
+            _locationSummary = response.data!.locationSummary;
+            _currentOffset = 0;
+            _hasMoreData = response.pagination?.hasMore ?? false;
+          });
+        }
+      }
+      
+      // Also fetch updated balance
+      await _fetchUpdatedBalance();
+    } catch (e) {
+      // Silently handle errors - don't show error messages for background refresh
+    }
   }
   
   Future<void> _fetchUpdatedBalance() async {
@@ -274,6 +415,14 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
   }
   
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Refresh data when the page becomes visible again
+    // This handles navigation back from other pages
+    _refreshDataSilently();
+  }
+  
+  @override
   Widget build(BuildContext context) {
     final appState = ref.watch(appStateProvider);
     final companyId = appState.companyChoosen;
@@ -290,6 +439,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
       return TossScaffold(
         appBar: TossAppBar(
           title: widget.accountName,
+          backgroundColor: const Color(0xFFF7F8FA),
           secondaryActionIcon: Icons.settings_outlined,
           onSecondaryAction: () async {
             // Navigate to account settings page
@@ -305,7 +455,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
             );
             
             // Refresh data when returning from settings
-            _onRefresh();
+            await _refreshDataSilently();
           },
         ),
         backgroundColor: const Color(0xFFF7F8FA),
@@ -343,6 +493,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
     return TossScaffold(
       appBar: TossAppBar(
         title: widget.accountName,
+        backgroundColor: const Color(0xFFF7F8FA),
         secondaryActionIcon: Icons.settings_outlined,
         onSecondaryAction: () async {
           // Navigate to account settings page
@@ -358,7 +509,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
           );
           
           // Refresh data when returning from settings
-          _onRefresh();
+          await _refreshDataSilently();
         },
       ),
       backgroundColor: const Color(0xFFF7F8FA),
@@ -370,9 +521,13 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
             Expanded(
               child: stockFlowAsync.when(
                 data: (response) {
-                  // Initialize data on first load
-                  if (_allJournalFlows.isEmpty && _allActualFlows.isEmpty) {
-                    if (response.success && response.data != null) {
+                  // Always use fresh data from the provider
+                  if (response.success && response.data != null) {
+                    // Update data if it's different from cached
+                    if (_allJournalFlows.isEmpty || 
+                        _allActualFlows.isEmpty ||
+                        _allJournalFlows.length != response.data!.journalFlows.length ||
+                        _allActualFlows.length != response.data!.actualFlows.length) {
                       _allJournalFlows = List.from(response.data!.journalFlows);
                       _allActualFlows = List.from(response.data!.actualFlows);
                       
@@ -403,26 +558,30 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
                     }
                   }
                   
-                  return SingleChildScrollView(
-                    controller: _scrollController,
-                    child: Column(
-                      children: [
-                        // Balance Card with padding
-                        Padding(
-                          padding: EdgeInsets.all(TossSpacing.space4),
-                          child: _buildBalanceCard(),
-                        ),
-                        
-                        // Transaction List (has its own padding)
-                        _buildTransactionList(),
-                        
-                        // Loading indicator for pagination
-                        if (_isLoadingMore)
+                  return RefreshIndicator(
+                    onRefresh: _onRefresh,
+                    child: SingleChildScrollView(
+                      controller: _scrollController,
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      child: Column(
+                        children: [
+                          // Balance Card with padding
                           Padding(
                             padding: EdgeInsets.all(TossSpacing.space4),
-                            child: TossLoadingView(),
+                            child: _buildBalanceCard(),
                           ),
-                      ],
+                          
+                          // Transaction List (has its own padding)
+                          _buildTransactionList(),
+                          
+                          // Loading indicator for pagination
+                          if (_isLoadingMore)
+                            Padding(
+                              padding: EdgeInsets.all(TossSpacing.space4),
+                              child: TossLoadingView(),
+                            ),
+                        ],
+                      ),
                     ),
                   );
                 },
@@ -648,11 +807,12 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
       Navigator.pop(context); // Close loading dialog
       
       if (result['success'] == true) {
-        // Show success message
-        _showSuccessDialog(isError: true);
-        
-        // Refresh data
+        // Refresh data immediately after successful creation
+        await Future.delayed(Duration(milliseconds: 500)); // Small delay to ensure server processing
         await _onRefresh();
+        
+        // Show success message after refresh
+        _showSuccessDialog(isError: true);
       } else {
         // Show error message
         final errorMsg = result['error'] ?? 'Failed to create journal entry';
@@ -736,11 +896,12 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
       Navigator.pop(context); // Close loading dialog
       
       if (result['success'] == true) {
-        // Show success message
-        _showSuccessDialog(isError: false);
-        
-        // Refresh data
+        // Refresh data immediately after successful creation
+        await Future.delayed(Duration(milliseconds: 500)); // Small delay to ensure server processing
         await _onRefresh();
+        
+        // Show success message after refresh
+        _showSuccessDialog(isError: false);
       } else {
         // Show error message
         final errorMsg = result['error'] ?? 'Failed to create journal entry';
@@ -937,9 +1098,9 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
   }
   
   void _showMappingConfirmationDialog(String mappingType) {
-    // Calculate the error amount
-    final totalJournal = widget.totalJournal ?? widget.balance;
-    final totalReal = widget.totalReal ?? widget.balance;
+    // Calculate the error amount using updated values if available
+    final totalJournal = _updatedTotalJournal ?? widget.totalJournal ?? widget.balance;
+    final totalReal = _updatedTotalReal ?? widget.totalReal ?? widget.balance;
     final errorAmount = totalReal - totalJournal;
     final currencySymbol = widget.currencySymbol ?? '';
     

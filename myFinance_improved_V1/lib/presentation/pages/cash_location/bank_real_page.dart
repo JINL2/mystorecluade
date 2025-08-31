@@ -147,6 +147,7 @@ class _BankRealPageState extends ConsumerState<BankRealPage> {
       backgroundColor: const Color(0xFFF7F8FA),
       appBar: TossAppBar(
         title: 'Bank Total Real',
+        backgroundColor: const Color(0xFFF7F8FA),
       ),
       body: SafeArea(
         child: Column(

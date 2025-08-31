@@ -142,6 +142,7 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage> {
     return TossScaffold(
       appBar: TossAppBar(
         title: 'Account Settings',
+        backgroundColor: const Color(0xFFF7F8FA),
       ),
       backgroundColor: const Color(0xFFF7F8FA),
       body: SafeArea(

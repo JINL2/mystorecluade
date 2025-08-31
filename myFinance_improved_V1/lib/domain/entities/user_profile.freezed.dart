@@ -27,7 +27,7 @@ mixin _$UserProfile {
   @JsonKey(name: 'last_name')
   String? get lastName => throw _privateConstructorUsedError;
   String get email => throw _privateConstructorUsedError;
-  @JsonKey(name: 'phone_number')
+  @JsonKey(name: 'user_phone_number')
   String? get phoneNumber => throw _privateConstructorUsedError;
   @JsonKey(name: 'profile_image')
   String? get profileImage => throw _privateConstructorUsedError;
@@ -79,7 +79,7 @@ abstract class $UserProfileCopyWith<$Res> {
       @JsonKey(name: 'first_name') String? firstName,
       @JsonKey(name: 'last_name') String? lastName,
       String email,
-      @JsonKey(name: 'phone_number') String? phoneNumber,
+      @JsonKey(name: 'user_phone_number') String? phoneNumber,
       @JsonKey(name: 'profile_image') String? profileImage,
       @JsonKey(name: 'bank_name') String? bankName,
       @JsonKey(name: 'bank_account_number') String? bankAccountNumber,
@@ -220,7 +220,7 @@ abstract class _$$UserProfileImplCopyWith<$Res>
       @JsonKey(name: 'first_name') String? firstName,
       @JsonKey(name: 'last_name') String? lastName,
       String email,
-      @JsonKey(name: 'phone_number') String? phoneNumber,
+      @JsonKey(name: 'user_phone_number') String? phoneNumber,
       @JsonKey(name: 'profile_image') String? profileImage,
       @JsonKey(name: 'bank_name') String? bankName,
       @JsonKey(name: 'bank_account_number') String? bankAccountNumber,
@@ -354,7 +354,7 @@ class _$UserProfileImpl extends _UserProfile {
       @JsonKey(name: 'first_name') this.firstName,
       @JsonKey(name: 'last_name') this.lastName,
       required this.email,
-      @JsonKey(name: 'phone_number') this.phoneNumber,
+      @JsonKey(name: 'user_phone_number') this.phoneNumber,
       @JsonKey(name: 'profile_image') this.profileImage,
       @JsonKey(name: 'bank_name') this.bankName,
       @JsonKey(name: 'bank_account_number') this.bankAccountNumber,
@@ -385,7 +385,7 @@ class _$UserProfileImpl extends _UserProfile {
   @override
   final String email;
   @override
-  @JsonKey(name: 'phone_number')
+  @JsonKey(name: 'user_phone_number')
   final String? phoneNumber;
   @override
   @JsonKey(name: 'profile_image')
@@ -520,7 +520,7 @@ abstract class _UserProfile extends UserProfile {
       @JsonKey(name: 'first_name') final String? firstName,
       @JsonKey(name: 'last_name') final String? lastName,
       required final String email,
-      @JsonKey(name: 'phone_number') final String? phoneNumber,
+      @JsonKey(name: 'user_phone_number') final String? phoneNumber,
       @JsonKey(name: 'profile_image') final String? profileImage,
       @JsonKey(name: 'bank_name') final String? bankName,
       @JsonKey(name: 'bank_account_number') final String? bankAccountNumber,
@@ -552,7 +552,7 @@ abstract class _UserProfile extends UserProfile {
   @override
   String get email;
   @override
-  @JsonKey(name: 'phone_number')
+  @JsonKey(name: 'user_phone_number')
   String? get phoneNumber;
   @override
   @JsonKey(name: 'profile_image')

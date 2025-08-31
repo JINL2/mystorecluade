@@ -148,6 +148,7 @@ class _VaultRealPageState extends ConsumerState<VaultRealPage> {
       backgroundColor: const Color(0xFFF7F8FA),
       appBar: TossAppBar(
         title: 'Vault Total Real',
+        backgroundColor: const Color(0xFFF7F8FA),
       ),
       body: SafeArea(
         child: Column(
