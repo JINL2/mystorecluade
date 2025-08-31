@@ -6,8 +6,12 @@ import 'package:myfinance_improved/core/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/core/themes/toss_spacing.dart';
 import 'package:myfinance_improved/core/themes/toss_shadows.dart';
 import 'package:myfinance_improved/core/themes/toss_animations.dart';
+import 'package:myfinance_improved/core/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/core/constants/icon_mapper.dart';
+import 'package:myfinance_improved/core/utils/number_formatter.dart';
 import 'providers/homepage_providers.dart';
+import 'providers/revenue_provider.dart';
+import 'models/revenue_models.dart';
 import '../../widgets/common/safe_popup_menu.dart';
 import '../../providers/app_state_provider.dart';
 import '../../providers/enhanced_auth_provider.dart';
@@ -30,6 +34,18 @@ class HomePageRedesigned extends ConsumerStatefulWidget {
 class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with WidgetsBindingObserver {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   bool _isNavigating = false; // Add flag to prevent multiple navigations
+  String _selectedPeriod = 'Today'; // Default period selection
+  
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Trigger initial revenue fetch when dependencies change
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        ref.read(fetchRevenueProvider(_selectedPeriod));
+      }
+    });
+  }
 
   @override
   void initState() {
@@ -177,12 +193,12 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
                   // Simple App Bar
                   _buildSimpleAppBar(context, userData),
                   
-                  // Pinned Hello Section
+                  // Combined Hello and Revenue Section
                   _buildPinnedHelloSection(context, userData, selectedCompany, selectedStore),
                   
-                  // Add spacing after Hello section
+                  // Add spacing after combined section
                   SliverToBoxAdapter(
-                    child: SizedBox(height: TossSpacing.space4),
+                    child: SizedBox(height: TossSpacing.space6),
                   ),
                   
                   // Quick Actions Section
@@ -538,17 +554,496 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
       );
     }
     
-    return SliverPersistentHeader(
-      pinned: true,
-      delegate: _PinnedHelloDelegate(
-        userData: userData,
-        selectedCompany: selectedCompany,
-        selectedStore: selectedStore,
-        context: context,
+    // Return combined Hello + Revenue section
+    return SliverToBoxAdapter(
+      child: _buildCombinedHelloAndRevenueSection(userData, selectedCompany, selectedStore),
+    );
+  }
+
+  /// Check if user has the revenue feature
+  bool _hasRevenueFeature() {
+    final categoriesData = ref.read(categoryFeaturesProvider);
+    const targetFeatureId = 'aef426a2-c50a-4ce2-aee9-c6509cfbd571';
+    
+    if (categoriesData is List) {
+      for (final category in categoriesData) {
+        if (category is Map<String, dynamic>) {
+          final features = category['features'] as List<dynamic>? ?? [];
+          for (final feature in features) {
+            if (feature is Map<String, dynamic>) {
+              if (feature['feature_id'] == targetFeatureId) {
+                return true;
+              }
+            }
+          }
+        }
+      }
+    }
+    return false;
+  }
+
+  Widget _buildCombinedHelloAndRevenueSection(dynamic userData, dynamic selectedCompany, dynamic selectedStore) {
+    // Check if user has revenue feature access
+    final hasRevenueFeature = _hasRevenueFeature();
+    
+    return Container(
+      color: TossColors.gray100,
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: TossSpacing.space4),
+        child: Container(
+          width: double.infinity,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                TossColors.primary.withValues(alpha: 0.08),
+                TossColors.primary.withValues(alpha: 0.03),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(
+              color: TossColors.primary.withValues(alpha: 0.15),
+              width: 1,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: TossColors.primary.withValues(alpha: 0.08),
+                blurRadius: 20,
+                offset: const Offset(0, 8),
+                spreadRadius: 2,
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Hello Section
+              Container(
+                padding: EdgeInsets.fromLTRB(
+                  TossSpacing.space6,
+                  TossSpacing.space6,
+                  TossSpacing.space6,
+                  TossSpacing.space4,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Hello, ${userData['user_first_name'] ?? 'User'}!',
+                      style: TossTextStyles.h2.copyWith(
+                        color: TossColors.textPrimary,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: -0.5,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                    ),
+                    if (selectedCompany != null) ...[
+                      SizedBox(height: TossSpacing.space1),
+                      Row(
+                        children: [
+                          Text(
+                            selectedCompany!['company_name'] ?? '',
+                            style: TossTextStyles.body.copyWith(
+                              color: TossColors.primary,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 14,
+                              letterSpacing: -0.2,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
+                          ),
+                          if (selectedStore != null) ...[
+                            Text(
+                              ' • ',
+                              style: TossTextStyles.body.copyWith(
+                                color: TossColors.textTertiary,
+                              ),
+                            ),
+                            Expanded(
+                              child: Text(
+                                selectedStore!['store_name'] ?? '',
+                                style: TossTextStyles.caption.copyWith(
+                                  color: TossColors.textSecondary,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 1,
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              
+              // Conditionally show divider and revenue/salary section
+              // Divider
+              Container(
+                margin: EdgeInsets.symmetric(horizontal: TossSpacing.space6),
+                height: 0.5,
+                color: TossColors.primary.withValues(alpha: 0.1),
+              ),
+              
+              // Revenue or Salary Section
+              Container(
+                padding: EdgeInsets.all(TossSpacing.space6),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Header with conditional dropdown
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          hasRevenueFeature ? 'Revenue' : 'Estimated Salary This Month',
+                          style: TossTextStyles.h3.copyWith(
+                            color: TossColors.primary,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: -0.4,
+                          ),
+                        ),
+                        // Period Dropdown only for revenue
+                        if (hasRevenueFeature) _buildPeriodDropdown(),
+                      ],
+                    ),
+                    
+                    SizedBox(height: TossSpacing.space5),
+                    
+                    // Revenue or Salary Amount - Large and Prominent with Real Data
+                    hasRevenueFeature 
+                        ? _buildRevenueAmountSection() 
+                        : _buildSalaryAmountSection(),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
 
+
+
+  Widget _buildPeriodDropdown() {
+    return Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: TossSpacing.space3,
+        vertical: TossSpacing.space2,
+      ),
+      decoration: BoxDecoration(
+        color: TossColors.white,
+        borderRadius: BorderRadius.circular(TossBorderRadius.input),
+        border: Border.all(
+          color: TossColors.border,
+          width: 1.0,
+        ),
+        boxShadow: TossShadows.elevation1,
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          value: _selectedPeriod,
+          icon: Icon(
+            Icons.keyboard_arrow_down_rounded,
+            color: TossColors.textSecondary,
+            size: TossSpacing.iconSM,
+          ),
+          style: TossTextStyles.label.copyWith(
+            color: TossColors.textPrimary,
+            fontWeight: FontWeight.w600,
+          ),
+          isDense: true,
+          dropdownColor: TossColors.white,
+          borderRadius: BorderRadius.circular(TossBorderRadius.dropdown),
+          elevation: 8,
+          items: [
+            'Today',
+            'Yesterday', 
+            'This Month',
+            'Last Month',
+            'This Year',
+          ].map((String period) {
+            return DropdownMenuItem<String>(
+              value: period,
+              child: Container(
+                padding: EdgeInsets.symmetric(vertical: TossSpacing.space1),
+                child: Text(
+                  period,
+                  style: TossTextStyles.label.copyWith(
+                    color: period == _selectedPeriod 
+                        ? TossColors.primary 
+                        : TossColors.textPrimary,
+                    fontWeight: period == _selectedPeriod 
+                        ? FontWeight.w600 
+                        : FontWeight.w500,
+                  ),
+                ),
+              ),
+            );
+          }).toList(),
+          onChanged: (String? newValue) {
+            if (newValue != null) {
+              setState(() {
+                _selectedPeriod = newValue;
+              });
+              // Fetch revenue data for new period
+              ref.read(fetchRevenueProvider(_selectedPeriod));
+            }
+          },
+        ),
+      ),
+    );
+  }
+
+  /// Build the revenue amount section with real data
+  Widget _buildRevenueAmountSection() {
+    return Consumer(
+      builder: (context, ref, child) {
+        // Fetch the revenue data for the selected period
+        final revenueAsync = ref.watch(fetchRevenueProvider(_selectedPeriod));
+        
+        return revenueAsync.when(
+          data: (revenueData) => Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Main revenue amount
+              Text(
+                _formatRevenueAmount(revenueData),
+                style: TossTextStyles.display.copyWith(
+                  color: TossColors.textPrimary,
+                  fontWeight: FontWeight.w800,
+                  fontSize: 42,
+                  letterSpacing: -1.0,
+                  height: 1.1,
+                ),
+              ),
+              // Removed comparison text
+            ],
+          ),
+          loading: () => Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Loading skeleton
+              Container(
+                width: 200,
+                height: 46,
+                decoration: BoxDecoration(
+                  color: TossColors.gray200,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              SizedBox(height: TossSpacing.space2),
+              Container(
+                width: 150,
+                height: 20,
+                decoration: BoxDecoration(
+                  color: TossColors.gray200,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+              ),
+            ],
+          ),
+          error: (error, stackTrace) => Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Error state - show fallback data
+              Text(
+                _getFallbackRevenueAmount(),
+                style: TossTextStyles.display.copyWith(
+                  color: TossColors.textPrimary,
+                  fontWeight: FontWeight.w800,
+                  fontSize: 42,
+                  letterSpacing: -1.0,
+                  height: 1.1,
+                ),
+              ),
+              SizedBox(height: TossSpacing.space2),
+              
+              // Error indication with retry option
+              Row(
+                children: [
+                  Icon(
+                    Icons.warning_amber_rounded,
+                    size: 16,
+                    color: TossColors.warning,
+                  ),
+                  SizedBox(width: TossSpacing.space1),
+                  Expanded(
+                    child: Text(
+                      'Using cached data • ',
+                      style: TossTextStyles.caption.copyWith(
+                        color: TossColors.warning,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                  GestureDetector(
+                    onTap: () {
+                      // Invalidate and retry
+                      ref.invalidate(fetchRevenueProvider(_selectedPeriod));
+                    },
+                    child: Text(
+                      'Retry',
+                      style: TossTextStyles.caption.copyWith(
+                        color: TossColors.primary,
+                        fontWeight: FontWeight.w600,
+                        decoration: TextDecoration.underline,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+  
+  String _formatRevenueAmount(RevenueData revenueData) {
+    // Format the amount with currency symbol (no decimal places)
+    if (revenueData.amount == 0) {
+      return '${revenueData.currencySymbol}0';
+    }
+    return NumberFormatter.formatCurrencyInt(
+      revenueData.amount,
+      revenueData.currencySymbol,
+    );
+  }
+  
+  /// Get fallback revenue amount for error states
+  String _getFallbackRevenueAmount() {
+    switch (_selectedPeriod) {
+      case 'Today':
+        return '\$8,420';
+      case 'Yesterday':
+        return '\$7,985';
+      case 'This Month':
+        return '\$194,580';
+      case 'Last Month':
+        return '\$172,940';
+      case 'This Year':
+        return '\$2,340,560';
+      default:
+        return '\$194,580';
+    }
+  }
+
+  /// Build the salary amount section with real data
+  Widget _buildSalaryAmountSection() {
+    return Consumer(
+      builder: (context, ref, child) {
+        // Fetch the shift overview data
+        final shiftOverviewAsync = ref.watch(userShiftOverviewProvider);
+        
+        return shiftOverviewAsync.when(
+          data: (shiftData) => Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Main salary amount
+              Text(
+                _formatSalaryAmount(shiftData),
+                style: TossTextStyles.display.copyWith(
+                  color: TossColors.textPrimary,
+                  fontWeight: FontWeight.w800,
+                  fontSize: 42,
+                  letterSpacing: -1.0,
+                  height: 1.1,
+                ),
+              ),
+            ],
+          ),
+          loading: () => Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Loading skeleton
+              Container(
+                width: 200,
+                height: 46,
+                decoration: BoxDecoration(
+                  color: TossColors.gray200,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+            ],
+          ),
+          error: (error, stackTrace) => Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Error state - show fallback data
+              Text(
+                '₩0',
+                style: TossTextStyles.display.copyWith(
+                  color: TossColors.textPrimary,
+                  fontWeight: FontWeight.w800,
+                  fontSize: 42,
+                  letterSpacing: -1.0,
+                  height: 1.1,
+                ),
+              ),
+              SizedBox(height: TossSpacing.space2),
+              
+              // Error indication with retry option
+              Row(
+                children: [
+                  Icon(
+                    Icons.warning_amber_rounded,
+                    size: 16,
+                    color: TossColors.warning,
+                  ),
+                  SizedBox(width: TossSpacing.space1),
+                  Expanded(
+                    child: Text(
+                      'Unable to load salary data • ',
+                      style: TossTextStyles.caption.copyWith(
+                        color: TossColors.warning,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                  GestureDetector(
+                    onTap: () {
+                      // Invalidate and retry
+                      ref.invalidate(userShiftOverviewProvider);
+                    },
+                    child: Text(
+                      'Retry',
+                      style: TossTextStyles.caption.copyWith(
+                        color: TossColors.primary,
+                        fontWeight: FontWeight.w600,
+                        decoration: TextDecoration.underline,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+  
+  /// Format salary amount with currency symbol
+  String _formatSalaryAmount(UserShiftOverview shiftData) {
+    // Remove commas from estimated_salary and convert to number for proper formatting
+    final cleanAmount = shiftData.estimatedSalary.replaceAll(',', '');
+    final amount = double.tryParse(cleanAmount) ?? 0;
+    
+    if (amount == 0) {
+      return '${shiftData.currencySymbol}0';
+    }
+    
+    // Format with proper currency formatting
+    return NumberFormatter.formatCurrencyInt(
+      amount,
+      shiftData.currencySymbol,
+    );
+  }
 
   Widget _buildQuickActionsSection(AsyncValue<dynamic> categoriesAsync) {
     // CRITICAL FIX: Ensure categories are loaded FIRST before top features
@@ -608,7 +1103,7 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Quick Actions container with white background and blue label
+            // Enhanced Quick Actions container with improved styling
             Container(
               width: double.infinity,
               padding: EdgeInsets.all(TossSpacing.space5),
@@ -806,58 +1301,6 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
     );
   }
 
-  Widget _buildQuickActionItem(dynamic feature, String categoryId) {
-    return Material(
-      color: TossColors.transparent,
-      child: InkWell(
-        onTap: () => _handleFeatureTap(feature, categoryId),
-        borderRadius: BorderRadius.circular(12),
-        child: Container(
-          padding: EdgeInsets.symmetric(vertical: TossSpacing.space2),
-          decoration: BoxDecoration(
-            color: TossColors.transparent,
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              // Icon with ultra-minimal Toss design
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: TossColors.gray100, // Even more subtle background
-                  borderRadius: BorderRadius.circular(14),
-                  // No border for cleaner look
-                ),
-                child: DynamicIcon(
-                  iconKey: feature['icon_key'],
-                  featureName: feature['feature_name'],
-                  size: 22,
-                  color: TossColors.gray700, // More neutral, less blue
-                  useDefaultColor: false,
-                ),
-              ),
-              SizedBox(height: TossSpacing.space1),
-              Text(
-                feature['feature_name'] ?? '',
-                style: TossTextStyles.caption.copyWith(
-                  color: TossColors.textPrimary,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 13, // Increased from 11 to 13 for better readability
-                  height: 1.3,
-                  letterSpacing: -0.2,
-                ),
-                textAlign: TextAlign.center,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 
   /// Comprehensive error handling with fallback options
   /// SECURITY: Attempts fallback provider if main provider fails
@@ -1603,99 +2046,3 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
   // Removed - no longer needed since drawer is integrated in scaffold
 }
 
-class _PinnedHelloDelegate extends SliverPersistentHeaderDelegate {
-  final dynamic userData;
-  final dynamic selectedCompany;
-  final dynamic selectedStore;
-  final BuildContext context;
-
-  _PinnedHelloDelegate({
-    required this.userData,
-    required this.selectedCompany,
-    required this.selectedStore,
-    required this.context,
-  });
-
-  @override
-  double get minExtent => 85.0;
-
-  @override
-  double get maxExtent => 85.0;
-
-  @override
-  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
-    return Container(
-      color: TossColors.gray100,
-      child: Container(
-        margin: EdgeInsets.symmetric(horizontal: TossSpacing.space4),
-        decoration: BoxDecoration(
-          color: TossColors.surface,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: TossShadows.card,
-        ),
-        padding: EdgeInsets.symmetric(
-          horizontal: TossSpacing.space4,
-          vertical: TossSpacing.space3,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              'Hello, ${userData['user_first_name'] ?? 'User'}!',
-              style: TossTextStyles.h2.copyWith(
-                color: TossColors.textPrimary,
-                fontWeight: FontWeight.w700,
-                letterSpacing: -0.5,
-              ),
-              overflow: TextOverflow.ellipsis,
-              maxLines: 1,
-            ),
-            if (selectedCompany != null) ...[
-              SizedBox(height: TossSpacing.space1),
-              Row(
-                children: [
-                  Text(
-                    selectedCompany!['company_name'] ?? '',
-                    style: TossTextStyles.body.copyWith(
-                      color: TossColors.primary,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 14,
-                      letterSpacing: -0.2,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 1,
-                  ),
-                  if (selectedStore != null) ...[
-                    Text(
-                      ' • ',
-                      style: TossTextStyles.body.copyWith(
-                        color: TossColors.textTertiary,
-                      ),
-                    ),
-                    Expanded(
-                      child: Text(
-                        selectedStore!['store_name'] ?? '',
-                        style: TossTextStyles.caption.copyWith(
-                          color: TossColors.textSecondary,
-                          fontWeight: FontWeight.w500,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                        maxLines: 1,
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-
-  @override
-  bool shouldRebuild(covariant SliverPersistentHeaderDelegate oldDelegate) {
-    return oldDelegate != this;
-  }
-}

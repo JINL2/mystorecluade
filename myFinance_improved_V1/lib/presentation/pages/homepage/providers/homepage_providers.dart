@@ -10,6 +10,7 @@ import 'package:myfinance_improved/presentation/providers/auth_provider.dart';
 import 'package:myfinance_improved/presentation/providers/app_state_provider.dart';
 import 'package:myfinance_improved/presentation/providers/session_manager_provider.dart';
 import '../models/homepage_models.dart';
+import '../../../../data/services/attendance_service.dart';
 
 /// Utility methods for API calls and permission filtering
 class _HomepageUtils {
@@ -494,6 +495,41 @@ final companyRepositoryProvider = Provider<CompanyRepository>((ref) {
 
 final featureRepositoryProvider = Provider<FeatureRepository>((ref) {
   return data_repo.SupabaseFeatureRepository(Supabase.instance.client, ref);
+});
+
+/// Provider for user shift overview data (for salary display)
+final userShiftOverviewProvider = FutureProvider.autoDispose<UserShiftOverview>((ref) async {
+  final user = ref.watch(authStateProvider);
+  final appState = ref.watch(appStateProvider);
+  
+  if (user == null) {
+    throw UnauthorizedException();
+  }
+  
+  // Get required parameters from app state
+  final userId = user.id;
+  final companyId = appState.companyChoosen;
+  final storeId = appState.storeChoosen;
+  
+  // Check if required data is available
+  if (companyId.isEmpty || storeId.isEmpty) {
+    throw Exception('Company or store not selected');
+  }
+  
+  // Get today's date in yyyy-MM-dd format
+  final today = DateTime.now();
+  final requestDate = '${today.year}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}';
+  
+  // Use AttendanceService to fetch shift overview
+  final attendanceService = AttendanceService();
+  final response = await attendanceService.getUserShiftOverview(
+    requestDate: requestDate,
+    userId: userId,
+    companyId: companyId,
+    storeId: storeId,
+  );
+  
+  return UserShiftOverview.fromJson(response);
 });
 
 /// Exception classes

@@ -229,3 +229,56 @@ class StoreSelected extends CompanySelectionEvent {
   const StoreSelected(this.store);
   final Store store;
 }
+
+/// User shift overview data for salary display
+class UserShiftOverview {
+  const UserShiftOverview({
+    required this.requestMonth,
+    required this.actualWorkDays,
+    required this.actualWorkHours,
+    required this.estimatedSalary,
+    required this.currencySymbol,
+    required this.salaryAmount,
+    required this.salaryType,
+    required this.lateDeductionTotal,
+    required this.overtimeTotal,
+  });
+
+  final String requestMonth;
+  final int actualWorkDays;
+  final double actualWorkHours;
+  final String estimatedSalary;
+  final String currencySymbol;
+  final double salaryAmount;
+  final String salaryType;
+  final int lateDeductionTotal;
+  final int overtimeTotal;
+
+  factory UserShiftOverview.fromJson(Map<String, dynamic> json) {
+    return UserShiftOverview(
+      requestMonth: json['request_month'] as String? ?? '',
+      actualWorkDays: json['actual_work_days'] as int? ?? 0,
+      actualWorkHours: (json['actual_work_hours'] as num?)?.toDouble() ?? 0.0,
+      estimatedSalary: json['estimated_salary'] as String? ?? '0',
+      currencySymbol: json['currency_symbol'] as String? ?? '₩',
+      salaryAmount: (json['salary_amount'] as num?)?.toDouble() ?? 0.0,
+      salaryType: json['salary_type'] as String? ?? 'hourly',
+      lateDeductionTotal: json['late_deduction_total'] as int? ?? 0,
+      overtimeTotal: json['overtime_total'] as int? ?? 0,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'request_month': requestMonth,
+      'actual_work_days': actualWorkDays,
+      'actual_work_hours': actualWorkHours,
+      'estimated_salary': estimatedSalary,
+      'currency_symbol': currencySymbol,
+      'salary_amount': salaryAmount,
+      'salary_type': salaryType,
+      'late_deduction_total': lateDeductionTotal,
+      'overtime_total': overtimeTotal,
+    };
+  }
+}
