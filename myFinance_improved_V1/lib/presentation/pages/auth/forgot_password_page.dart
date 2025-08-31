@@ -6,6 +6,7 @@ import '../../../core/themes/toss_spacing.dart';
 import '../../widgets/toss/toss_text_field.dart';
 import '../../widgets/toss/toss_primary_button.dart';
 import '../../widgets/common/toss_scaffold.dart';
+import '../../widgets/common/toss_empty_state_card.dart';
 import '../../widgets/toss/toss_bottom_sheet.dart';
 import '../../providers/auth_provider.dart';
 import '../../../core/navigation/safe_navigation.dart';
@@ -89,31 +90,11 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
                 
                 const SizedBox(height: TossSpacing.space3),
                 
-                Container(
-                  padding: const EdgeInsets.all(TossSpacing.space4),
-                  decoration: BoxDecoration(
-                    color: TossColors.info.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Icon(
-                        Icons.info_outline,
-                        size: 20,
-                        color: TossColors.info,
-                      ),
-                      const SizedBox(width: TossSpacing.space2),
-                      Expanded(
-                        child: Text(
-                          'Check your spam folder if you don\'t receive the email',
-                          style: TossTextStyles.caption.copyWith(
-                            color: TossColors.info,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+                TossEmptyStateCard(
+                  message: 'Check your spam folder if you don\'t receive the email',
+                  icon: Icons.info_outline,
+                  backgroundColor: TossColors.info.withValues(alpha: 0.1),
+                  textColor: TossColors.info,
                 ),
               ],
             ),

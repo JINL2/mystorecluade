@@ -11,6 +11,7 @@ import '../../../widgets/toss/toss_dropdown.dart';
 import '../../../../data/services/company_service.dart';
 import '../providers/homepage_providers.dart';
 import '../../../../data/services/store_service.dart';
+import '../../../widgets/common/toss_loading_view.dart';
 
 class ModernDrawer extends ConsumerStatefulWidget {
   const ModernDrawer({
@@ -292,7 +293,7 @@ class _ModernDrawerState extends ConsumerState<ModernDrawer> {
                     child: Icon(
                       Icons.business,
                       color: isSelected 
-                        ? Colors.white
+                        ? TossColors.white
                         : Theme.of(context).colorScheme.onSurfaceVariant,
                       size: 20,
                     ),
@@ -400,7 +401,7 @@ class _ModernDrawerState extends ConsumerState<ModernDrawer> {
     return Container(
       margin: const EdgeInsets.only(bottom: 6, left: 12),
       child: Material(
-        color: Colors.transparent,
+        color: TossColors.transparent,
         child: InkWell(
           onTap: () async {
             // Set both company and store when selecting a store
@@ -416,7 +417,7 @@ class _ModernDrawerState extends ConsumerState<ModernDrawer> {
             decoration: BoxDecoration(
               color: isSelected 
                 ? Theme.of(context).colorScheme.surfaceContainerHighest 
-                : Colors.transparent,
+                : TossColors.transparent,
               borderRadius: BorderRadius.circular(8),
             ),
             child: Row(
@@ -460,7 +461,7 @@ class _ModernDrawerState extends ConsumerState<ModernDrawer> {
     return Container(
       margin: const EdgeInsets.only(top: 4, left: 12),
       child: Material(
-        color: Colors.transparent,
+        color: TossColors.transparent,
         child: InkWell(
           onTap: () => _showStoreActionsBottomSheet(context, ref, company),
           borderRadius: BorderRadius.circular(8),
@@ -498,7 +499,7 @@ class _ModernDrawerState extends ConsumerState<ModernDrawer> {
     return Container(
       margin: const EdgeInsets.only(top: 8, left: 12),
       child: Material(
-        color: Colors.transparent,
+        color: TossColors.transparent,
         child: InkWell(
           onTap: () => _showCodesBottomSheet(context, company),
           borderRadius: BorderRadius.circular(8),
@@ -547,7 +548,7 @@ class _ModernDrawerState extends ConsumerState<ModernDrawer> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      backgroundColor: TossColors.transparent,
       builder: (context) => Container(
         decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.surface,
@@ -633,7 +634,7 @@ class _ModernDrawerState extends ConsumerState<ModernDrawer> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      backgroundColor: TossColors.transparent,
       builder: (context) => Container(
         decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.surface,
@@ -734,7 +735,7 @@ class _ModernDrawerState extends ConsumerState<ModernDrawer> {
     required VoidCallback onTap,
   }) {
     return Material(
-      color: Colors.transparent,
+      color: TossColors.transparent,
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(12),
@@ -846,7 +847,7 @@ class _ModernDrawerState extends ConsumerState<ModernDrawer> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      backgroundColor: TossColors.transparent,
       builder: (context) => Padding(
         padding: EdgeInsets.only(
           bottom: MediaQuery.of(context).viewInsets.bottom,
@@ -967,7 +968,7 @@ class _ModernDrawerState extends ConsumerState<ModernDrawer> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      backgroundColor: TossColors.transparent,
       builder: (context) => StatefulBuilder(
         builder: (context, setState) => Padding(
           padding: EdgeInsets.only(
@@ -1160,7 +1161,7 @@ class _ModernDrawerState extends ConsumerState<ModernDrawer> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      backgroundColor: TossColors.transparent,
       builder: (context) => StatefulBuilder(
         builder: (context, setState) => Padding(
           padding: EdgeInsets.only(
@@ -1387,8 +1388,7 @@ class _ModernDrawerState extends ConsumerState<ModernDrawer> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              CircularProgressIndicator(
-                color: Theme.of(context).colorScheme.primary,
+              const TossLoadingView(
               ),
               SizedBox(height: TossSpacing.space3),
               Text(
@@ -1521,8 +1521,7 @@ class _ModernDrawerState extends ConsumerState<ModernDrawer> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              CircularProgressIndicator(
-                color: Theme.of(context).colorScheme.primary,
+              const TossLoadingView(
               ),
               SizedBox(height: TossSpacing.space3),
               Text(
@@ -1651,7 +1650,7 @@ class _ModernDrawerState extends ConsumerState<ModernDrawer> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      backgroundColor: TossColors.transparent,
       builder: (context) => Container(
         decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.surface,
@@ -1747,7 +1746,7 @@ class _ModernDrawerState extends ConsumerState<ModernDrawer> {
     required VoidCallback onCopy,
   }) {
     return Material(
-      color: Colors.transparent,
+      color: TossColors.transparent,
       child: InkWell(
         onTap: onCopy,
         borderRadius: BorderRadius.circular(12),

@@ -753,6 +753,155 @@ class _SearchCounterpartiesProviderElement
       (origin as SearchCounterpartiesProvider).searchQuery;
 }
 
+String _$counterpartyStoresHash() =>
+    r'9ec19caaa7c342ebd277d6198e02d29e5f70c1e9';
+
+/// Get stores for a counterparty company
+///
+/// Copied from [counterpartyStores].
+@ProviderFor(counterpartyStores)
+const counterpartyStoresProvider = CounterpartyStoresFamily();
+
+/// Get stores for a counterparty company
+///
+/// Copied from [counterpartyStores].
+class CounterpartyStoresFamily
+    extends Family<AsyncValue<List<Map<String, dynamic>>>> {
+  /// Get stores for a counterparty company
+  ///
+  /// Copied from [counterpartyStores].
+  const CounterpartyStoresFamily();
+
+  /// Get stores for a counterparty company
+  ///
+  /// Copied from [counterpartyStores].
+  CounterpartyStoresProvider call(
+    String companyId,
+  ) {
+    return CounterpartyStoresProvider(
+      companyId,
+    );
+  }
+
+  @override
+  CounterpartyStoresProvider getProviderOverride(
+    covariant CounterpartyStoresProvider provider,
+  ) {
+    return call(
+      provider.companyId,
+    );
+  }
+
+  static const Iterable<ProviderOrFamily>? _dependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
+
+  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
+      _allTransitiveDependencies;
+
+  @override
+  String? get name => r'counterpartyStoresProvider';
+}
+
+/// Get stores for a counterparty company
+///
+/// Copied from [counterpartyStores].
+class CounterpartyStoresProvider
+    extends AutoDisposeFutureProvider<List<Map<String, dynamic>>> {
+  /// Get stores for a counterparty company
+  ///
+  /// Copied from [counterpartyStores].
+  CounterpartyStoresProvider(
+    String companyId,
+  ) : this._internal(
+          (ref) => counterpartyStores(
+            ref as CounterpartyStoresRef,
+            companyId,
+          ),
+          from: counterpartyStoresProvider,
+          name: r'counterpartyStoresProvider',
+          debugGetCreateSourceHash:
+              const bool.fromEnvironment('dart.vm.product')
+                  ? null
+                  : _$counterpartyStoresHash,
+          dependencies: CounterpartyStoresFamily._dependencies,
+          allTransitiveDependencies:
+              CounterpartyStoresFamily._allTransitiveDependencies,
+          companyId: companyId,
+        );
+
+  CounterpartyStoresProvider._internal(
+    super._createNotifier, {
+    required super.name,
+    required super.dependencies,
+    required super.allTransitiveDependencies,
+    required super.debugGetCreateSourceHash,
+    required super.from,
+    required this.companyId,
+  }) : super.internal();
+
+  final String companyId;
+
+  @override
+  Override overrideWith(
+    FutureOr<List<Map<String, dynamic>>> Function(
+            CounterpartyStoresRef provider)
+        create,
+  ) {
+    return ProviderOverride(
+      origin: this,
+      override: CounterpartyStoresProvider._internal(
+        (ref) => create(ref as CounterpartyStoresRef),
+        from: from,
+        name: null,
+        dependencies: null,
+        allTransitiveDependencies: null,
+        debugGetCreateSourceHash: null,
+        companyId: companyId,
+      ),
+    );
+  }
+
+  @override
+  AutoDisposeFutureProviderElement<List<Map<String, dynamic>>> createElement() {
+    return _CounterpartyStoresProviderElement(this);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is CounterpartyStoresProvider && other.companyId == companyId;
+  }
+
+  @override
+  int get hashCode {
+    var hash = _SystemHash.combine(0, runtimeType.hashCode);
+    hash = _SystemHash.combine(hash, companyId.hashCode);
+
+    return _SystemHash.finish(hash);
+  }
+}
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+mixin CounterpartyStoresRef
+    on AutoDisposeFutureProviderRef<List<Map<String, dynamic>>> {
+  /// The parameter `companyId` of this provider.
+  String get companyId;
+}
+
+class _CounterpartyStoresProviderElement
+    extends AutoDisposeFutureProviderElement<List<Map<String, dynamic>>>
+    with CounterpartyStoresRef {
+  _CounterpartyStoresProviderElement(super.provider);
+
+  @override
+  String get companyId => (origin as CounterpartyStoresProvider).companyId;
+}
+
 String _$counterpartyListHash() => r'f5c20d53ef978ccf74a91483664faf315b7bb248';
 
 abstract class _$CounterpartyList

@@ -11,6 +11,7 @@ import '../../../core/themes/toss_text_styles.dart';
 import '../../../core/constants/ui_constants.dart';
 import '../../widgets/common/toss_scaffold.dart';
 import '../../widgets/toss/toss_card.dart';
+import '../../widgets/common/toss_loading_view.dart';
 import '../../providers/user_profile_provider.dart';
 import '../../../domain/entities/user_profile.dart';
 import '../../services/profile_image_service.dart';
@@ -433,7 +434,7 @@ class _MyPageRedesignedState extends ConsumerState<MyPageRedesigned>
   void _showAvatarOptions() {
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.transparent,
+      backgroundColor: TossColors.transparent,
       builder: (context) => Container(
         decoration: BoxDecoration(
           color: TossColors.surface,
@@ -591,9 +592,7 @@ class _MyPageRedesignedState extends ConsumerState<MyPageRedesigned>
             color: TossColors.surface,
             borderRadius: BorderRadius.circular(12),
           ),
-          child: CircularProgressIndicator(
-            color: TossColors.primary,
-          ),
+          child: TossLoadingView(),
         ),
       ),
     );
@@ -635,9 +634,7 @@ class _MyPageRedesignedState extends ConsumerState<MyPageRedesigned>
             color: TossColors.surface,
             borderRadius: BorderRadius.circular(12),
           ),
-          child: CircularProgressIndicator(
-            color: TossColors.primary,
-          ),
+          child: TossLoadingView(),
         ),
       ),
     );

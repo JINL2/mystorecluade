@@ -5,7 +5,9 @@ import '../../../core/themes/toss_colors.dart';
 import '../../../core/themes/toss_text_styles.dart';
 import '../../../core/themes/toss_spacing.dart';
 import '../../widgets/common/toss_scaffold.dart';
+import '../../widgets/common/toss_loading_view.dart';
 import '../../widgets/toss/toss_primary_button.dart';
+import '../../widgets/toss/toss_card.dart';
 import '../../../core/notifications/repositories/notification_repository.dart';
 import '../../../core/notifications/services/token_manager.dart';
 import '../../../core/notifications/services/fcm_service.dart';
@@ -184,7 +186,7 @@ class _FcmTokenDebugPageState extends ConsumerState<FcmTokenDebugPage> {
         elevation: 0,
       ),
       body: _isLoading && _diagnostics == null
-          ? const Center(child: CircularProgressIndicator())
+          ? const TossLoadingView()
           : SingleChildScrollView(
               padding: EdgeInsets.all(TossSpacing.space4),
               child: Column(
@@ -238,28 +240,23 @@ class _FcmTokenDebugPageState extends ConsumerState<FcmTokenDebugPage> {
     final userId = _supabase.auth.currentUser?.id;
     final isAuthenticated = userId != null;
     
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Padding(
-        padding: EdgeInsets.all(TossSpacing.space4),
+    return TossCard(
+      padding: EdgeInsets.all(TossSpacing.space4),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildStatusRow(
               'Authenticated',
               isAuthenticated ? 'Yes' : 'No',
-              isAuthenticated ? Colors.green : Colors.red,
+              isAuthenticated ? TossColors.success : TossColors.error,
             ),
             if (isAuthenticated) ...[
-              _buildStatusRow('User ID', userId!.substring(0, 8) + '...', Colors.blue),
+              _buildStatusRow('User ID', userId!.substring(0, 8) + '...', TossColors.primary),
             ],
             _buildStatusRow(
               'FCM Token',
               _currentFcmToken != null ? 'Available' : 'Not Available',
-              _currentFcmToken != null ? Colors.green : Colors.orange,
+              _currentFcmToken != null ? TossColors.success : TossColors.warning,
             ),
             if (_currentFcmToken != null) ...[
               const SizedBox(height: TossSpacing.space2),
@@ -289,11 +286,10 @@ class _FcmTokenDebugPageState extends ConsumerState<FcmTokenDebugPage> {
             _buildStatusRow(
               'Stored Tokens',
               '${_storedTokens.length}',
-              _storedTokens.isNotEmpty ? Colors.green : Colors.orange,
+              _storedTokens.isNotEmpty ? TossColors.success : TossColors.warning,
             ),
           ],
         ),
-      ),
     );
   }
 
@@ -329,7 +325,7 @@ class _FcmTokenDebugPageState extends ConsumerState<FcmTokenDebugPage> {
           onPressed: _isLoading ? null : _runDiagnostics,
           isLoading: _isLoading,
           fullWidth: true,
-          leadingIcon: const Icon(Icons.health_and_safety, color: Colors.white),
+          leadingIcon: const Icon(Icons.health_and_safety, color: TossColors.white),
         ),
         const SizedBox(height: TossSpacing.space2),
         TossPrimaryButton(
@@ -337,7 +333,7 @@ class _FcmTokenDebugPageState extends ConsumerState<FcmTokenDebugPage> {
           onPressed: _isLoading ? null : _testTokenStorage,
           isLoading: _isLoading,
           fullWidth: true,
-          leadingIcon: const Icon(Icons.storage, color: Colors.white),
+          leadingIcon: const Icon(Icons.storage, color: TossColors.white),
         ),
         const SizedBox(height: TossSpacing.space2),
         TossPrimaryButton(
@@ -345,7 +341,7 @@ class _FcmTokenDebugPageState extends ConsumerState<FcmTokenDebugPage> {
           onPressed: _isLoading ? null : _forceTokenRefresh,
           isLoading: _isLoading,
           fullWidth: true,
-          leadingIcon: const Icon(Icons.refresh, color: Colors.white),
+          leadingIcon: const Icon(Icons.refresh, color: TossColors.white),
         ),
         const SizedBox(height: TossSpacing.space2),
         TossPrimaryButton(
@@ -353,7 +349,7 @@ class _FcmTokenDebugPageState extends ConsumerState<FcmTokenDebugPage> {
           onPressed: _isLoading ? null : _loadInitialData,
           isLoading: _isLoading,
           fullWidth: true,
-          leadingIcon: const Icon(Icons.sync, color: Colors.white),
+          leadingIcon: const Icon(Icons.sync, color: TossColors.white),
         ),
       ],
     );
@@ -370,13 +366,8 @@ class _FcmTokenDebugPageState extends ConsumerState<FcmTokenDebugPage> {
     final hasConstraintIssue = _diagnostics!['constraint_issue'] == true;
     final recommendations = _diagnostics!['recommendations'] as List<String>? ?? [];
     
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Padding(
-        padding: EdgeInsets.all(TossSpacing.space4),
+    return TossCard(
+      padding: EdgeInsets.all(TossSpacing.space4),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -385,9 +376,9 @@ class _FcmTokenDebugPageState extends ConsumerState<FcmTokenDebugPage> {
               _buildDiagnosticRow('Can Select', canSelect),
               _buildDiagnosticRow('Can Insert', canInsert),
               if (_diagnostics!['total_tokens'] != null)
-                _buildStatusRow('Total Tokens', '${_diagnostics!['total_tokens']}', Colors.blue),
+                _buildStatusRow('Total Tokens', '${_diagnostics!['total_tokens']}', TossColors.primary),
               if (_diagnostics!['user_tokens'] != null)
-                _buildStatusRow('User Tokens', '${_diagnostics!['user_tokens']}', Colors.blue),
+                _buildStatusRow('User Tokens', '${_diagnostics!['user_tokens']}', TossColors.primary),
             ],
             if (hasRlsIssue)
               _buildWarningRow('RLS Policy Issue Detected'),
@@ -452,7 +443,6 @@ class _FcmTokenDebugPageState extends ConsumerState<FcmTokenDebugPage> {
             ],
           ],
         ),
-      ),
     );
   }
 
@@ -470,7 +460,7 @@ class _FcmTokenDebugPageState extends ConsumerState<FcmTokenDebugPage> {
           ),
           Icon(
             value ? Icons.check_circle : Icons.cancel,
-            color: value ? Colors.green : Colors.red,
+            color: value ? TossColors.success : TossColors.error,
             size: 20,
           ),
         ],
@@ -485,7 +475,7 @@ class _FcmTokenDebugPageState extends ConsumerState<FcmTokenDebugPage> {
         children: [
           const Icon(
             Icons.warning,
-            color: Colors.orange,
+            color: TossColors.warning,
             size: 18,
           ),
           const SizedBox(width: TossSpacing.space2),
@@ -493,7 +483,7 @@ class _FcmTokenDebugPageState extends ConsumerState<FcmTokenDebugPage> {
             child: Text(
               text,
               style: TossTextStyles.body.copyWith(
-                color: Colors.orange,
+                color: TossColors.warning,
               ),
             ),
           ),
@@ -505,51 +495,45 @@ class _FcmTokenDebugPageState extends ConsumerState<FcmTokenDebugPage> {
   Widget _buildTokenStatusCard() {
     if (_tokenStatus == null) return const SizedBox.shrink();
     
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Padding(
-        padding: EdgeInsets.all(TossSpacing.space4),
+    return TossCard(
+      padding: EdgeInsets.all(TossSpacing.space4),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildStatusRow(
               'Tokens Match',
               _tokenStatus!['tokens_match']?.toString() ?? 'N/A',
-              _tokenStatus!['tokens_match'] == true ? Colors.green : Colors.orange,
+              _tokenStatus!['tokens_match'] == true ? TossColors.success : TossColors.warning,
             ),
             _buildStatusRow(
               'Needs Validation',
               _tokenStatus!['needs_validation']?.toString() ?? 'N/A',
-              _tokenStatus!['needs_validation'] == false ? Colors.green : Colors.orange,
+              _tokenStatus!['needs_validation'] == false ? TossColors.success : TossColors.warning,
             ),
             _buildStatusRow(
               'Needs Update',
               _tokenStatus!['needs_update']?.toString() ?? 'N/A',
-              _tokenStatus!['needs_update'] == false ? Colors.green : Colors.orange,
+              _tokenStatus!['needs_update'] == false ? TossColors.success : TossColors.warning,
             ),
             _buildStatusRow(
               'Pending Updates',
               '${_tokenStatus!['pending_updates'] ?? 0}',
-              _tokenStatus!['pending_updates'] == 0 ? Colors.green : Colors.orange,
+              _tokenStatus!['pending_updates'] == 0 ? TossColors.success : TossColors.warning,
             ),
             if (_tokenStatus!['last_update'] != null)
               _buildStatusRow(
                 'Last Update',
                 _formatDateTime(_tokenStatus!['last_update']),
-                Colors.blue,
+                TossColors.primary,
               ),
             if (_tokenStatus!['time_since_update'] != null)
               _buildStatusRow(
                 'Minutes Since Update',
                 '${_tokenStatus!['time_since_update']}',
-                Colors.blue,
+                TossColors.primary,
               ),
           ],
         ),
-      ),
     );
   }
 
@@ -562,16 +546,13 @@ class _FcmTokenDebugPageState extends ConsumerState<FcmTokenDebugPage> {
             ? DateTime.parse(token['created_at']) 
             : null;
         
-        return Card(
-          elevation: 1,
-          margin: EdgeInsets.only(bottom: TossSpacing.space2),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: ListTile(
+        return Padding(
+          padding: EdgeInsets.only(bottom: TossSpacing.space2),
+          child: TossCard(
+            child: ListTile(
             leading: Icon(
               isActive ? Icons.check_circle : Icons.cancel,
-              color: isActive ? Colors.green : Colors.grey,
+              color: isActive ? TossColors.success : TossColors.gray500,
             ),
             title: Text(
               'Platform: $platform',
@@ -596,11 +577,12 @@ class _FcmTokenDebugPageState extends ConsumerState<FcmTokenDebugPage> {
               ],
             ),
             trailing: IconButton(
-              icon: const Icon(Icons.delete, color: Colors.red),
+              icon: const Icon(Icons.delete, color: TossColors.error),
               onPressed: token['id'] != null 
                   ? () => _deleteToken(token['id'] as String)
                   : null,
             ),
+          ),
           ),
         );
       }).toList(),

@@ -13,6 +13,7 @@ import 'widgets/balance_sheet_display.dart';
 import 'widgets/income_statement_display.dart';
 import '../../widgets/common/toss_scaffold.dart';
 import '../../widgets/common/toss_app_bar.dart';
+import '../../widgets/common/toss_loading_view.dart';
 
 class BalanceSheetPage extends ConsumerStatefulWidget {
   const BalanceSheetPage({super.key});
@@ -349,6 +350,7 @@ class _BalanceSheetPageState extends ConsumerState<BalanceSheetPage>
       backgroundColor: TossColors.background,
       appBar: const TossAppBar(
         title: 'Financial Statements',
+        backgroundColor: TossColors.background,
       ),
       body: SafeArea(
         child: userCompaniesAsync.when(
@@ -380,7 +382,7 @@ class _BalanceSheetPageState extends ConsumerState<BalanceSheetPage>
                               borderRadius: BorderRadius.circular(22),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withOpacity(0.08),
+                                  color: TossColors.black.withOpacity(0.08),
                                   blurRadius: 4,
                                   offset: const Offset(0, 2),
                                 ),
@@ -388,7 +390,7 @@ class _BalanceSheetPageState extends ConsumerState<BalanceSheetPage>
                             ),
                             indicatorSize: TabBarIndicatorSize.tab,
                             indicatorPadding: const EdgeInsets.all(2),
-                            dividerColor: Colors.transparent,
+                            dividerColor: TossColors.transparent,
                             labelColor: TossColors.gray900,
                             unselectedLabelColor: TossColors.gray500,
                             labelStyle: TossTextStyles.labelLarge.copyWith(
@@ -477,10 +479,7 @@ class _BalanceSheetPageState extends ConsumerState<BalanceSheetPage>
             ],
           ),
         loading: () => Center(
-          child: CircularProgressIndicator(
-            color: TossColors.primary,
-            strokeWidth: 2,
-          ),
+          child: const TossLoadingView(),
         ),
         error: (error, stack) => Center(
           child: Column(
@@ -590,7 +589,7 @@ class _BalanceSheetPageState extends ConsumerState<BalanceSheetPage>
                 gradient: LinearGradient(
                   colors: [
                     TossColors.primary.withOpacity(0.03),
-                    Colors.white,
+                    TossColors.white,
                   ],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
@@ -1052,7 +1051,7 @@ class _BalanceSheetPageState extends ConsumerState<BalanceSheetPage>
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Data refreshed', 
-              style: TossTextStyles.body.copyWith(color: Colors.white),
+              style: TossTextStyles.body.copyWith(color: TossColors.white),
             ),
             backgroundColor: TossColors.success,
             behavior: SnackBarBehavior.floating,
@@ -1068,7 +1067,7 @@ class _BalanceSheetPageState extends ConsumerState<BalanceSheetPage>
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Failed to refresh', 
-              style: TossTextStyles.body.copyWith(color: Colors.white),
+              style: TossTextStyles.body.copyWith(color: TossColors.white),
             ),
             backgroundColor: TossColors.error,
             behavior: SnackBarBehavior.floating,
@@ -1137,7 +1136,7 @@ class _BalanceSheetPageState extends ConsumerState<BalanceSheetPage>
                   label: Text('Try Again'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: TossColors.primary,
-                    foregroundColor: Colors.white,
+                    foregroundColor: TossColors.white,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(TossBorderRadius.md),
                     ),
@@ -1311,10 +1310,7 @@ class _BalanceSheetPageState extends ConsumerState<BalanceSheetPage>
           borderRadius: BorderRadius.circular(TossBorderRadius.lg),
         ),
         child: Center(
-          child: CircularProgressIndicator(
-            color: TossColors.primary,
-            strokeWidth: 2,
-          ),
+          child: const TossLoadingView(),
         ),
       );
     }
@@ -1383,7 +1379,7 @@ class _BalanceSheetPageState extends ConsumerState<BalanceSheetPage>
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.04),
+                  color: TossColors.black.withOpacity(0.04),
                   blurRadius: 8,
                   offset: const Offset(0, 2),
                 ),
@@ -1456,11 +1452,11 @@ class _BalanceSheetPageState extends ConsumerState<BalanceSheetPage>
   void _showStoreSelector() {
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.transparent,
+      backgroundColor: TossColors.transparent,
       isScrollControlled: true,
       builder: (context) => Container(
         decoration: const BoxDecoration(
-          color: Colors.white,
+          color: TossColors.white,
           borderRadius: BorderRadius.only(
             topLeft: Radius.circular(24),
             topRight: Radius.circular(24),
@@ -1524,7 +1520,7 @@ class _BalanceSheetPageState extends ConsumerState<BalanceSheetPage>
                           vertical: TossSpacing.space4,
                         ),
                         decoration: BoxDecoration(
-                          color: isSelected ? TossColors.primary.withOpacity(0.05) : Colors.transparent,
+                          color: isSelected ? TossColors.primary.withOpacity(0.05) : TossColors.transparent,
                           border: Border(
                             bottom: BorderSide(
                               color: TossColors.gray100,
@@ -1604,7 +1600,7 @@ class _BalanceSheetPageState extends ConsumerState<BalanceSheetPage>
                         vertical: TossSpacing.space4,
                       ),
                       decoration: BoxDecoration(
-                        color: isSelected ? TossColors.primary.withOpacity(0.05) : Colors.transparent,
+                        color: isSelected ? TossColors.primary.withOpacity(0.05) : TossColors.transparent,
                         border: Border(
                           bottom: BorderSide(
                             color: TossColors.gray100,
@@ -1704,7 +1700,7 @@ class _BalanceSheetPageState extends ConsumerState<BalanceSheetPage>
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.04),
+                  color: TossColors.black.withOpacity(0.04),
                   blurRadius: 8,
                   offset: const Offset(0, 2),
                 ),
@@ -1851,7 +1847,7 @@ class _BalanceSheetPageState extends ConsumerState<BalanceSheetPage>
   void _showDateRangePicker(String type) {
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.transparent,
+      backgroundColor: TossColors.transparent,
       isScrollControlled: true,
       builder: (context) => _TossDateRangePicker(
         initialFromDate: fromDate,
@@ -1897,7 +1893,7 @@ class _BalanceSheetPageState extends ConsumerState<BalanceSheetPage>
         style: ElevatedButton.styleFrom(
           backgroundColor: TossColors.primary,
           disabledBackgroundColor: TossColors.gray200,
-          foregroundColor: Colors.white,
+          foregroundColor: TossColors.white,
           disabledForegroundColor: TossColors.gray400,
           elevation: 0,
           shape: RoundedRectangleBorder(
@@ -1908,10 +1904,7 @@ class _BalanceSheetPageState extends ConsumerState<BalanceSheetPage>
           ? SizedBox(
               width: 24,
               height: 24,
-              child: CircularProgressIndicator(
-                color: Colors.white,
-                strokeWidth: 2.5,
-              ),
+              child: const TossLoadingView(),
             )
           : Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -1922,7 +1915,7 @@ class _BalanceSheetPageState extends ConsumerState<BalanceSheetPage>
                   'Generate Balance Sheet',
                   style: TossTextStyles.labelLarge.copyWith(
                     fontWeight: FontWeight.w600,
-                    color: Colors.white,
+                    color: TossColors.white,
                   ),
                 ),
               ],
@@ -1946,7 +1939,7 @@ class _BalanceSheetPageState extends ConsumerState<BalanceSheetPage>
         style: ElevatedButton.styleFrom(
           backgroundColor: TossColors.primary,
           disabledBackgroundColor: TossColors.gray200,
-          foregroundColor: Colors.white,
+          foregroundColor: TossColors.white,
           disabledForegroundColor: TossColors.gray400,
           elevation: 0,
           shape: RoundedRectangleBorder(
@@ -1957,10 +1950,7 @@ class _BalanceSheetPageState extends ConsumerState<BalanceSheetPage>
           ? SizedBox(
               width: 24,
               height: 24,
-              child: CircularProgressIndicator(
-                color: Colors.white,
-                strokeWidth: 2.5,
-              ),
+              child: const TossLoadingView(),
             )
           : Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -1971,7 +1961,7 @@ class _BalanceSheetPageState extends ConsumerState<BalanceSheetPage>
                   'Generate Income Statement',
                   style: TossTextStyles.labelLarge.copyWith(
                     fontWeight: FontWeight.w600,
-                    color: Colors.white,
+                    color: TossColors.white,
                   ),
                 ),
               ],
@@ -2034,8 +2024,7 @@ class _BalanceSheetPageState extends ConsumerState<BalanceSheetPage>
     // Loading state
     if (balanceSheetData == null) {
       return Center(
-        child: CircularProgressIndicator(
-          color: TossColors.primary,
+        child: const TossLoadingView(
         ),
       );
     }
@@ -2603,7 +2592,7 @@ class _TossDateRangePickerState extends State<_TossDateRangePicker> {
     
     return Container(
       decoration: const BoxDecoration(
-        color: Colors.white,
+        color: TossColors.white,
         borderRadius: BorderRadius.only(
           topLeft: Radius.circular(24),
           topRight: Radius.circular(24),
@@ -2947,7 +2936,7 @@ class _TossDateRangePickerState extends State<_TossDateRangePicker> {
                               decoration: BoxDecoration(
                                 color: (isFromDate || isToDate)
                                     ? TossColors.primary
-                                    : Colors.transparent,
+                                    : TossColors.transparent,
                                 borderRadius: BorderRadius.circular(8),
                                 border: isToday && !(isFromDate || isToDate)
                                     ? Border.all(
@@ -2961,7 +2950,7 @@ class _TossDateRangePickerState extends State<_TossDateRangePicker> {
                                   '${day.day}',
                                   style: TossTextStyles.body.copyWith(
                                     color: (isFromDate || isToDate)
-                                        ? Colors.white
+                                        ? TossColors.white
                                         : isInRange
                                             ? TossColors.primary
                                             : isToday
@@ -3015,7 +3004,7 @@ class _TossDateRangePickerState extends State<_TossDateRangePicker> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: TossColors.primary,
                       disabledBackgroundColor: TossColors.gray200,
-                      foregroundColor: Colors.white,
+                      foregroundColor: TossColors.white,
                       disabledForegroundColor: TossColors.gray400,
                       elevation: 0,
                       padding: const EdgeInsets.symmetric(vertical: TossSpacing.space4),
@@ -3027,7 +3016,7 @@ class _TossDateRangePickerState extends State<_TossDateRangePicker> {
                       'OK',
                       style: TossTextStyles.body.copyWith(
                         color: (_fromDate != null && _toDate != null) 
-                            ? Colors.white 
+                            ? TossColors.white 
                             : TossColors.gray400,
                         fontWeight: FontWeight.w600,
                       ),

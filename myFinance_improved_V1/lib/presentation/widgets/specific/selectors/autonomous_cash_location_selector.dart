@@ -148,7 +148,7 @@ class _AutonomousCashLocationSelectorState extends ConsumerState<AutonomousCashL
           orElse: () => [],
         ),
         selectedItem: selectedLocation,
-        onChanged: widget.onChanged,
+        onChanged: widget.onChanged ?? (String? id) {},
         isLoading: allLocationsAsync.isLoading,
         config: SelectorConfig(
           label: widget.label ?? 'Cash Location',
@@ -161,15 +161,8 @@ class _AutonomousCashLocationSelectorState extends ConsumerState<AutonomousCashL
           searchHint: 'Search cash locations',
         ),
         itemTitleBuilder: (location) => location.displayName,
-        itemSubtitleBuilder: widget.showTransactionCount 
-            ? (location) => location.subtitle
-            : null,
+        itemSubtitleBuilder: (location) => widget.showTransactionCount ? location.subtitle : '',
         itemIdBuilder: (location) => location.id,
-        itemFilterBuilder: (location, query) {
-          final queryLower = query.toLowerCase();
-          return location.name.toLowerCase().contains(queryLower) ||
-                 location.type.toLowerCase().contains(queryLower);
-        },
       );
     }
 
@@ -191,7 +184,7 @@ class _AutonomousCashLocationSelectorState extends ConsumerState<AutonomousCashL
         Text(
           widget.label ?? 'Cash Location',
           style: TossTextStyles.caption.copyWith(
-            color: hasError ? TossColors.error : TossColors.gray700,
+            color: hasError ? TossColors.error : TossColors.gray600,
             fontWeight: FontWeight.w600,
           ),
           overflow: TextOverflow.ellipsis,
@@ -211,9 +204,7 @@ class _AutonomousCashLocationSelectorState extends ConsumerState<AutonomousCashL
               border: Border.all(
                 color: hasError
                   ? TossColors.error
-                  : widget.selectedLocationId != null 
-                    ? TossColors.primary
-                    : TossColors.gray200,
+                  : TossColors.gray200,
                 width: 1,
               ),
               boxShadow: null, // Remove shadow for consistency
@@ -224,7 +215,7 @@ class _AutonomousCashLocationSelectorState extends ConsumerState<AutonomousCashL
                     // Icon
                     Icon(
                       Icons.location_on,
-                      size: 20,
+                      size: TossSpacing.iconSM,
                       color: widget.selectedLocationId != null
                         ? TossColors.primary
                         : TossColors.gray400,
@@ -235,8 +226,8 @@ class _AutonomousCashLocationSelectorState extends ConsumerState<AutonomousCashL
                     Expanded(
                       child: isLoading
                         ? const SizedBox(
-                            height: 20,
-                            width: 20,
+                            height: TossSpacing.iconSM,
+                            width: TossSpacing.iconSM,
                             child: CircularProgressIndicator(
                               strokeWidth: 2,
                               color: TossColors.primary,
@@ -255,7 +246,6 @@ class _AutonomousCashLocationSelectorState extends ConsumerState<AutonomousCashL
                                   fontWeight: widget.selectedLocationId != null 
                                     ? FontWeight.w600 
                                     : FontWeight.w400,
-                                  fontSize: 16,
                                 ),
                                 overflow: TextOverflow.ellipsis,
                                 maxLines: 1,
@@ -352,9 +342,8 @@ class _AutonomousCashLocationSelectorState extends ConsumerState<AutonomousCashL
                       Flexible(
                         child: Text(
                           'Select ${widget.label ?? 'Cash Location'}',
-                          style: const TextStyle(
+                          style: TossTextStyles.h3.copyWith(
                             fontWeight: FontWeight.bold,
-                            fontSize: 18,
                           ),
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -366,7 +355,7 @@ class _AutonomousCashLocationSelectorState extends ConsumerState<AutonomousCashL
                     ],
                   ),
                   
-                  const SizedBox(height: 16),
+                  const SizedBox(height: TossSpacing.space4),
                   
                   // Tab Bar
                   Container(
@@ -378,13 +367,13 @@ class _AutonomousCashLocationSelectorState extends ConsumerState<AutonomousCashL
                     child: Row(
                       children: [
                         _buildTabButton(setModalState, 0, 'Company', Icons.business),
-                        Container(width: 1, height: 24, color: TossColors.gray200),
+                        Container(width: 1, height: TossSpacing.space6, color: TossColors.gray200),
                         _buildTabButton(setModalState, 1, 'Store', Icons.store),
                       ],
                     ),
                   ),
                   
-                  const SizedBox(height: 16),
+                  const SizedBox(height: TossSpacing.space4),
                   
                   // Search field
                   if (widget.showSearch) ...[ 
@@ -396,7 +385,7 @@ class _AutonomousCashLocationSelectorState extends ConsumerState<AutonomousCashL
                         });
                       },
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: TossSpacing.space4),
                   ],
                   
                   // Clear selection option
@@ -410,7 +399,7 @@ class _AutonomousCashLocationSelectorState extends ConsumerState<AutonomousCashL
                     final currentItems = _selectedTabIndex == 0 ? _companyItems : _storeItems;
                     if (currentItems.isEmpty) {
                       return Padding(
-                        padding: const EdgeInsets.all(24),
+                        padding: const EdgeInsets.all(TossSpacing.space6),
                         child: Center(
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
@@ -423,9 +412,8 @@ class _AutonomousCashLocationSelectorState extends ConsumerState<AutonomousCashL
                               const SizedBox(height: 8),
                               Text(
                                 'Go to Cash and create Cash Location',
-                                style: TextStyle(
+                                style: TossTextStyles.caption.copyWith(
                                   color: TossColors.primary,
-                                  fontSize: 14,
                                   fontWeight: FontWeight.w500,
                                 ),
                                 textAlign: TextAlign.center,
@@ -437,7 +425,7 @@ class _AutonomousCashLocationSelectorState extends ConsumerState<AutonomousCashL
                     }
                     return _filteredItems.isEmpty
                     ? Padding(
-                        padding: const EdgeInsets.all(24),
+                        padding: const EdgeInsets.all(TossSpacing.space6),
                         child: Center(
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
@@ -453,9 +441,8 @@ class _AutonomousCashLocationSelectorState extends ConsumerState<AutonomousCashL
                                 const SizedBox(height: 8),
                                 Text(
                                   'Go to Cash and create Cash Location',
-                                  style: TextStyle(
+                                  style: TossTextStyles.caption.copyWith(
                                     color: TossColors.primary,
-                                    fontSize: 14,
                                     fontWeight: FontWeight.w500,
                                   ),
                                   textAlign: TextAlign.center,
@@ -492,10 +479,10 @@ class _AutonomousCashLocationSelectorState extends ConsumerState<AutonomousCashL
                                   // Icon
                                   Icon(
                                     Icons.location_on,
-                                    size: 20,
+                                    size: TossSpacing.iconSM,
                                     color: isSelected ? TossColors.primary : TossColors.gray500,
                                   ),
-                                  const SizedBox(width: 12),
+                                  const SizedBox(width: TossSpacing.space3),
                                   
                                   // Content
                                   Expanded(
@@ -515,9 +502,8 @@ class _AutonomousCashLocationSelectorState extends ConsumerState<AutonomousCashL
                                           const SizedBox(height: 2),
                                           Text(
                                             item.subtitle,
-                                            style: const TextStyle(
+                                            style: TossTextStyles.small.copyWith(
                                               color: TossColors.gray500,
-                                              fontSize: 12,
                                             ),
                                             overflow: TextOverflow.ellipsis,
                                             maxLines: 1,
@@ -531,7 +517,7 @@ class _AutonomousCashLocationSelectorState extends ConsumerState<AutonomousCashL
                                   if (isSelected)
                                     const Icon(
                                       Icons.check,
-                                      size: 20,
+                                      size: TossSpacing.iconSM,
                                       color: TossColors.primary,
                                     ),
                                 ],
@@ -543,7 +529,7 @@ class _AutonomousCashLocationSelectorState extends ConsumerState<AutonomousCashL
                   },
                   loading: () => const Center(
                     child: Padding(
-                      padding: EdgeInsets.all(24),
+                      padding: EdgeInsets.all(TossSpacing.space6),
                       child: CircularProgressIndicator(color: TossColors.primary),
                     ),
                   ),
@@ -594,7 +580,7 @@ class _AutonomousCashLocationSelectorState extends ConsumerState<AutonomousCashL
           right: index == 1 ? const Radius.circular(11) : Radius.zero,
         ),
         child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 12),
+          padding: const EdgeInsets.symmetric(vertical: TossSpacing.space3),
           decoration: BoxDecoration(
             color: isSelected ? TossColors.white : TossColors.transparent,
             borderRadius: BorderRadius.horizontal(
@@ -609,10 +595,10 @@ class _AutonomousCashLocationSelectorState extends ConsumerState<AutonomousCashL
               children: [
                 Icon(
                   icon,
-                  size: 16,
+                  size: TossSpacing.iconXS,
                   color: isSelected ? TossColors.primary : TossColors.gray500,
                 ),
-                const SizedBox(width: 4),
+                const SizedBox(width: TossSpacing.space1),
                 Text(
                   label,
                   style: TextStyle(
@@ -647,7 +633,7 @@ class _AutonomousCashLocationSelectorState extends ConsumerState<AutonomousCashL
               size: 20,
               color: TossColors.gray500,
             ),
-            SizedBox(width: 12),
+            SizedBox(width: TossSpacing.space3),
             Text(
               'Clear selection',
               style: TextStyle(color: TossColors.gray500),

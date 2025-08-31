@@ -11,6 +11,10 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/themes/toss_colors.dart';
+import '../../../../core/themes/toss_text_styles.dart';
+import '../../../../core/themes/toss_spacing.dart';
+import '../../../../core/themes/toss_border_radius.dart';
 import '../services/template_performance_service.dart';
 import '../services/monitored_template_service.dart';
 
@@ -91,14 +95,14 @@ class _PerformanceMonitorPanelState extends ConsumerState<_PerformanceMonitorPan
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
           gradient: LinearGradient(
-            colors: [Colors.blue[600]!, Colors.blue[800]!],
+            colors: [TossColors.primary[600]!, TossColors.primary[800]!],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
         ),
         child: const Icon(
           Icons.speed,
-          color: Colors.white,
+          color: TossColors.white,
           size: 24,
         ),
       ),
@@ -139,7 +143,7 @@ class _PerformanceMonitorPanelState extends ConsumerState<_PerformanceMonitorPan
             const Text(
               'Performance Monitor',
               style: TextStyle(
-                color: Colors.white,
+                color: TossColors.white,
                 fontSize: 14,
                 fontWeight: FontWeight.bold,
               ),
@@ -159,13 +163,13 @@ class _PerformanceMonitorPanelState extends ConsumerState<_PerformanceMonitorPan
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: BoxDecoration(
-                  color: Colors.red[600],
+                  color: TossColors.error[600],
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Text(
                   '$criticalIssues',
                   style: const TextStyle(
-                    color: Colors.white,
+                    color: TossColors.white,
                     fontSize: 10,
                     fontWeight: FontWeight.bold,
                   ),
@@ -209,9 +213,9 @@ class _PerformanceMonitorPanelState extends ConsumerState<_PerformanceMonitorPan
         // Quick metrics
         Row(
           children: [
-            _buildMetricCard('Avg Load', _getAverageLoadTime(performanceStats), Colors.blue),
+            _buildMetricCard('Avg Load', _getAverageLoadTime(performanceStats), TossColors.primary),
             const SizedBox(width: 8),
-            _buildMetricCard('Cache Hit', _getAverageCacheHit(performanceStats), Colors.green),
+            _buildMetricCard('Cache Hit', _getAverageCacheHit(performanceStats), TossColors.success),
           ],
         ),
         const SizedBox(height: 12),
@@ -328,7 +332,7 @@ class _PerformanceMonitorPanelState extends ConsumerState<_PerformanceMonitorPan
       margin: const EdgeInsets.only(bottom: 4),
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.05),
+        color: TossColors.white.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(6),
       ),
       child: Row(
@@ -338,7 +342,7 @@ class _PerformanceMonitorPanelState extends ConsumerState<_PerformanceMonitorPan
             child: Text(
               _getDisplayName(operationName),
               style: const TextStyle(
-                color: Colors.white,
+                color: TossColors.white,
                 fontSize: 11,
               ),
             ),
@@ -361,7 +365,7 @@ class _PerformanceMonitorPanelState extends ConsumerState<_PerformanceMonitorPan
             child: Text(
               stats.performanceGrade,
               style: const TextStyle(
-                color: Colors.white,
+                color: TossColors.white,
                 fontSize: 8,
                 fontWeight: FontWeight.bold,
               ),
@@ -380,7 +384,7 @@ class _PerformanceMonitorPanelState extends ConsumerState<_PerformanceMonitorPan
     return Container(
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.05),
+        color: TossColors.white.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Column(
@@ -390,7 +394,7 @@ class _PerformanceMonitorPanelState extends ConsumerState<_PerformanceMonitorPan
             children: [
               Text(
                 'System Score: ${avgScore.toStringAsFixed(1)}',
-                style: const TextStyle(color: Colors.white, fontSize: 11),
+                style: const TextStyle(color: TossColors.white, fontSize: 11),
               ),
               Text(
                 'Total Ops: $totalExecutions',
@@ -408,14 +412,14 @@ class _PerformanceMonitorPanelState extends ConsumerState<_PerformanceMonitorPan
       margin: const EdgeInsets.only(bottom: 4),
       padding: const EdgeInsets.all(6),
       decoration: BoxDecoration(
-        color: Colors.orange.withValues(alpha: 0.1),
+        color: TossColors.warning.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(4),
-        border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
+        border: Border.all(color: TossColors.warning.withValues(alpha: 0.3)),
       ),
       child: Text(
         recommendation,
         style: const TextStyle(
-          color: Colors.orange,
+          color: TossColors.warning,
           fontSize: 9,
         ),
       ),
@@ -427,7 +431,7 @@ class _PerformanceMonitorPanelState extends ConsumerState<_PerformanceMonitorPan
       margin: const EdgeInsets.only(bottom: 6),
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.03),
+        color: TossColors.white.withValues(alpha: 0.03),
         borderRadius: BorderRadius.circular(6),
       ),
       child: Column(
@@ -439,7 +443,7 @@ class _PerformanceMonitorPanelState extends ConsumerState<_PerformanceMonitorPan
               Text(
                 _getDisplayName(operationName),
                 style: const TextStyle(
-                  color: Colors.white,
+                  color: TossColors.white,
                   fontSize: 11,
                   fontWeight: FontWeight.bold,
                 ),
@@ -480,31 +484,31 @@ class _PerformanceMonitorPanelState extends ConsumerState<_PerformanceMonitorPan
   Color _getHealthColor(String health) {
     switch (health) {
       case 'healthy':
-        return Colors.green;
+        return TossColors.success;
       case 'needs_attention':
-        return Colors.orange;
+        return TossColors.warning;
       default:
-        return Colors.red;
+        return TossColors.error;
     }
   }
 
   Color _getPerformanceColor(int milliseconds) {
-    if (milliseconds < 200) return Colors.green;
-    if (milliseconds < 500) return Colors.orange;
-    return Colors.red;
+    if (milliseconds < 200) return TossColors.success;
+    if (milliseconds < 500) return TossColors.warning;
+    return TossColors.error;
   }
 
   Color _getGradeColor(String grade) {
     switch (grade) {
       case 'A+':
       case 'A':
-        return Colors.green;
+        return TossColors.success;
       case 'B':
-        return Colors.blue;
+        return TossColors.primary;
       case 'C':
-        return Colors.orange;
+        return TossColors.warning;
       default:
-        return Colors.red;
+        return TossColors.error;
     }
   }
 
@@ -564,19 +568,19 @@ class PerformanceAlert extends ConsumerWidget {
       margin: const EdgeInsets.all(16),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.red.withValues(alpha: 0.1),
+        color: TossColors.error.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.red.withValues(alpha: 0.3)),
+        border: Border.all(color: TossColors.error.withValues(alpha: 0.3)),
       ),
       child: Row(
         children: [
-          Icon(Icons.warning, color: Colors.red[600], size: 20),
+          Icon(Icons.warning, color: TossColors.error[600], size: 20),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
               '${criticalIssues.length} performance issue(s) detected',
               style: TextStyle(
-                color: Colors.red[700],
+                color: TossColors.error[700],
                 fontWeight: FontWeight.bold,
                 fontSize: 12,
               ),
@@ -599,7 +603,7 @@ class PerformanceTestWidget extends ConsumerWidget {
     return FloatingActionButton.small(
       onPressed: () => _runPerformanceTest(ref),
       backgroundColor: Colors.purple,
-      child: const Icon(Icons.speed, color: Colors.white),
+      child: const Icon(Icons.speed, color: TossColors.white),
     );
   }
 

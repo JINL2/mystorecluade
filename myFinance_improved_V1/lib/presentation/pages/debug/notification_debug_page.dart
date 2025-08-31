@@ -7,6 +7,9 @@ import '../../../core/notifications/services/notification_service.dart';
 import '../../../core/notifications/services/fcm_service.dart';
 import '../../../core/notifications/repositories/notification_repository.dart';
 import '../../widgets/common/toss_scaffold.dart';
+import '../../widgets/common/toss_loading_view.dart';
+import '../../widgets/toss/toss_card.dart';
+import '../../../core/themes/toss_colors.dart';
 
 class NotificationDebugPage extends ConsumerStatefulWidget {
   const NotificationDebugPage({Key? key}) : super(key: key);
@@ -279,7 +282,7 @@ class _NotificationDebugPageState extends ConsumerState<NotificationDebugPage> {
         ],
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(child: TossLoadingView())
           : SingleChildScrollView(
               padding: const EdgeInsets.all(16),
               child: Column(
@@ -293,27 +296,27 @@ class _NotificationDebugPageState extends ConsumerState<NotificationDebugPage> {
                       margin: const EdgeInsets.only(bottom: 16),
                       decoration: BoxDecoration(
                         color: _statusMessage.startsWith('✅')
-                            ? Colors.green.withOpacity(0.1)
+                            ? TossColors.success.withOpacity(0.1)
                             : _statusMessage.startsWith('❌')
-                                ? Colors.red.withOpacity(0.1)
-                                : Colors.blue.withOpacity(0.1),
+                                ? TossColors.error.withOpacity(0.1)
+                                : TossColors.primary.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(
                           color: _statusMessage.startsWith('✅')
-                              ? Colors.green
+                              ? TossColors.success
                               : _statusMessage.startsWith('❌')
-                                  ? Colors.red
-                                  : Colors.blue,
+                                  ? TossColors.error
+                                  : TossColors.primary,
                         ),
                       ),
                       child: Text(
                         _statusMessage,
                         style: TextStyle(
                           color: _statusMessage.startsWith('✅')
-                              ? Colors.green[800]
+                              ? TossColors.success
                               : _statusMessage.startsWith('❌')
-                                  ? Colors.red[800]
-                                  : Colors.blue[800],
+                                  ? TossColors.error
+                                  : TossColors.primary,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -349,7 +352,7 @@ class _NotificationDebugPageState extends ConsumerState<NotificationDebugPage> {
                         icon: const Icon(Icons.refresh),
                         label: const Text('Refresh Token'),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.orange,
+                          backgroundColor: TossColors.warning,
                         ),
                       ),
                       ElevatedButton.icon(
@@ -401,7 +404,7 @@ class _NotificationDebugPageState extends ConsumerState<NotificationDebugPage> {
   }
   
   Widget _buildSection(String title, List<Widget> children) {
-    return Card(
+    return TossCard(
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -444,7 +447,7 @@ class _NotificationDebugPageState extends ConsumerState<NotificationDebugPage> {
                     value,
                     style: TextStyle(
                       color: value == 'null' || value == 'N/A' 
-                          ? Colors.grey 
+                          ? TossColors.gray500 
                           : null,
                     ),
                   ),
@@ -471,11 +474,11 @@ class _NotificationDebugPageState extends ConsumerState<NotificationDebugPage> {
     final lastUsedAt = token['last_used_at'] ?? '';
     final tokenValue = token['token'] ?? '';
     
-    return Card(
-      margin: const EdgeInsets.only(bottom: 8),
-      color: isActive ? Colors.green.withOpacity(0.05) : Colors.grey.withOpacity(0.05),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: TossCard(
+        child: Padding(
+          padding: const EdgeInsets.all(12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -484,13 +487,13 @@ class _NotificationDebugPageState extends ConsumerState<NotificationDebugPage> {
               children: [
                 Chip(
                   label: Text(platform.toUpperCase()),
-                  backgroundColor: Colors.blue.withOpacity(0.2),
+                  backgroundColor: TossColors.primary.withOpacity(0.2),
                 ),
                 Chip(
                   label: Text(isActive ? 'ACTIVE' : 'INACTIVE'),
                   backgroundColor: isActive 
-                      ? Colors.green.withOpacity(0.2)
-                      : Colors.grey.withOpacity(0.2),
+                      ? TossColors.success.withOpacity(0.2)
+                      : TossColors.gray500.withOpacity(0.2),
                 ),
               ],
             ),
@@ -503,6 +506,7 @@ class _NotificationDebugPageState extends ConsumerState<NotificationDebugPage> {
             _buildInfoRow('Last Used', lastUsedAt),
           ],
         ),
+      ),
       ),
     );
   }

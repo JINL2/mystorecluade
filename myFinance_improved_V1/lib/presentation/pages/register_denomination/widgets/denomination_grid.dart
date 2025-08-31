@@ -53,7 +53,7 @@ class DenominationGrid extends ConsumerWidget {
     // Show edit options with proper constraints
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.transparent,
+      backgroundColor: TossColors.transparent,
       isScrollControlled: true,
       builder: (context) => Padding(
         padding: EdgeInsets.only(

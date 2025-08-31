@@ -10,7 +10,7 @@ import '../../../widgets/toss/toss_secondary_button.dart';
 import '../../../widgets/toss/toss_text_field.dart';
 import '../../../widgets/specific/selectors/autonomous_cash_location_selector.dart';
 import '../../../widgets/specific/selectors/autonomous_counterparty_selector.dart';
-import '../../../widgets/specific/selectors/autonomous_account_selector.dart';
+import '../../../widgets/specific/selectors/enhanced_account_selector.dart';
 import '../providers/template_filter_provider.dart';
 
 class TemplateFilterSheet extends ConsumerStatefulWidget {
@@ -83,14 +83,21 @@ class _TemplateFilterSheetState extends ConsumerState<TemplateFilterSheet> {
               
               const SizedBox(height: TossSpacing.space4),
               
-              // Account Multi-Selector
-              AutonomousMultiAccountSelector(
-                selectedAccountIds: _selectedAccountIds,
-                onChanged: (values) {
+              // Account Selector - Enhanced with Frequently Used
+              EnhancedAccountSelector(
+                selectedAccountId: _selectedAccountIds?.isNotEmpty == true ? _selectedAccountIds!.first : null,
+                contextType: 'template_filter', // Enable usage tracking
+                showQuickAccess: true, // Enable "Frequently Used" section
+                maxQuickItems: 5, // Show top 5 frequently used accounts
+                onChanged: (accountId) {
                   setState(() {
-                    _selectedAccountIds = values;
+                    _selectedAccountIds = accountId != null ? [accountId] : null;
                   });
                 },
+                label: 'Account',
+                hint: 'All Accounts',
+                showSearch: true,
+                showTransactionCount: false,
               ),
               
               const SizedBox(height: TossSpacing.space4),

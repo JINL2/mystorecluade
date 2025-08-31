@@ -5,10 +5,12 @@ import 'dart:convert';
 import '../../../core/themes/toss_text_styles.dart';
 import '../../../core/themes/toss_spacing.dart';
 import '../../../core/themes/toss_border_radius.dart';
+import '../../../core/themes/toss_colors.dart';
 import '../../providers/app_state_provider.dart';
 import '../../../data/services/cash_location_service.dart';
 import '../../widgets/common/toss_scaffold.dart';
 import '../../widgets/common/toss_app_bar.dart';
+import '../../widgets/common/toss_loading_view.dart';
 import '../../../data/services/currency_service.dart';
 
 class AddAccountPage extends ConsumerStatefulWidget {
@@ -229,10 +231,10 @@ class _AddAccountPageState extends ConsumerState<AddAccountPage> {
     
     return Container(
       decoration: BoxDecoration(
-        color: showError ? const Color(0xFFFEF2F2) : Colors.white,
+        color: showError ? const Color(0xFFFEF2F2) : TossColors.white,
         borderRadius: BorderRadius.circular(TossBorderRadius.md),
         border: Border.all(
-          color: showError ? const Color(0xFFEF4444) : Colors.grey[300]!,
+          color: showError ? const Color(0xFFEF4444) : TossColors.gray300,
           width: 1.0,
         ),
       ),
@@ -260,7 +262,7 @@ class _AddAccountPageState extends ConsumerState<AddAccountPage> {
           hintText: hintText,
           hintStyle: TossTextStyles.body.copyWith(
             fontSize: 16,
-            color: showError ? const Color(0xFFEF4444).withOpacity(0.7) : Colors.grey[400],
+            color: showError ? const Color(0xFFEF4444).withOpacity(0.7) : TossColors.gray400,
           ),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(TossBorderRadius.md),
@@ -294,9 +296,9 @@ class _AddAccountPageState extends ConsumerState<AddAccountPage> {
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: TossColors.white,
         borderRadius: BorderRadius.circular(TossBorderRadius.md),
-        border: Border.all(color: Colors.grey[300]!),
+        border: Border.all(color: TossColors.gray300),
       ),
       child: TextField(
         controller: controller,
@@ -308,13 +310,13 @@ class _AddAccountPageState extends ConsumerState<AddAccountPage> {
           hintText: hintText,
           hintStyle: TossTextStyles.body.copyWith(
             fontSize: 16,
-            color: Colors.grey[400],
+            color: TossColors.gray400,
           ),
           border: InputBorder.none,
           contentPadding: EdgeInsets.all(TossSpacing.space4),
           suffixIcon: Icon(
             Icons.keyboard_arrow_down,
-            color: Colors.grey[400],
+            color: TossColors.gray400,
             size: 24,
           ),
         ),
@@ -330,10 +332,10 @@ class _AddAccountPageState extends ConsumerState<AddAccountPage> {
       data: (currencies) {
         return Container(
           decoration: BoxDecoration(
-            color: showError ? const Color(0xFFFEF2F2) : Colors.white,
+            color: showError ? const Color(0xFFFEF2F2) : TossColors.white,
             borderRadius: BorderRadius.circular(TossBorderRadius.md),
             border: Border.all(
-              color: showError ? const Color(0xFFEF4444) : Colors.grey[300]!,
+              color: showError ? const Color(0xFFEF4444) : TossColors.gray300,
               width: 1.0,
             ),
           ),
@@ -357,7 +359,7 @@ class _AddAccountPageState extends ConsumerState<AddAccountPage> {
               hintText: 'Select currency',
               hintStyle: TossTextStyles.body.copyWith(
                 fontSize: 16,
-                color: showError ? const Color(0xFFEF4444).withOpacity(0.7) : Colors.grey[400],
+                color: showError ? const Color(0xFFEF4444).withOpacity(0.7) : TossColors.gray400,
               ),
               border: InputBorder.none,
               contentPadding: EdgeInsets.symmetric(
@@ -367,7 +369,7 @@ class _AddAccountPageState extends ConsumerState<AddAccountPage> {
             ),
             icon: Icon(
               Icons.keyboard_arrow_down,
-              color: Colors.grey[400],
+              color: TossColors.gray400,
               size: 24,
             ),
             isExpanded: true,
@@ -410,7 +412,7 @@ class _AddAccountPageState extends ConsumerState<AddAccountPage> {
                       currency.currencyCode,
                       style: TossTextStyles.caption.copyWith(
                         fontSize: 14,
-                        color: Colors.grey[600],
+                        color: TossColors.gray600,
                       ),
                     ),
                   ],
@@ -422,13 +424,13 @@ class _AddAccountPageState extends ConsumerState<AddAccountPage> {
       },
       loading: () => Container(
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: TossColors.white,
           borderRadius: BorderRadius.circular(TossBorderRadius.md),
-          border: Border.all(color: Colors.grey[300]!),
+          border: Border.all(color: TossColors.gray300),
         ),
         padding: EdgeInsets.all(TossSpacing.space4),
         child: const Center(
-          child: CircularProgressIndicator(strokeWidth: 2),
+          child: const TossLoadingView(),
         ),
       ),
       error: (error, stack) => Container(
@@ -475,8 +477,8 @@ class _AddAccountPageState extends ConsumerState<AddAccountPage> {
             style: ElevatedButton.styleFrom(
               backgroundColor: isButtonEnabled 
                   ? Theme.of(context).colorScheme.primary 
-                  : Colors.grey[300],
-              disabledBackgroundColor: Colors.grey[300],
+                  : TossColors.gray300,
+              disabledBackgroundColor: TossColors.gray300,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(TossBorderRadius.md),
               ),
@@ -485,7 +487,7 @@ class _AddAccountPageState extends ConsumerState<AddAccountPage> {
             child: Text(
               'Confirm',
               style: TossTextStyles.body.copyWith(
-                color: isButtonEnabled ? Colors.white : Colors.grey[500],
+                color: isButtonEnabled ? TossColors.white : TossColors.gray500,
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
               ),
@@ -537,7 +539,7 @@ class _AddAccountPageState extends ConsumerState<AddAccountPage> {
       barrierDismissible: true, // Allow dismissing loading dialogs
       builder: (BuildContext context) {
         return const Center(
-          child: CircularProgressIndicator(),
+          child: TossLoadingView(),
         );
       },
     );
@@ -593,7 +595,7 @@ class _AddAccountPageState extends ConsumerState<AddAccountPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('${_pageTitle.replaceAll('Add ', '')} added successfully'),
-            backgroundColor: Colors.green,
+            backgroundColor: TossColors.success,
           ),
         );
       }
@@ -610,7 +612,7 @@ class _AddAccountPageState extends ConsumerState<AddAccountPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Failed to add account: ${e.toString()}'),
-            backgroundColor: Colors.red,
+            backgroundColor: TossColors.error,
           ),
         );
       }

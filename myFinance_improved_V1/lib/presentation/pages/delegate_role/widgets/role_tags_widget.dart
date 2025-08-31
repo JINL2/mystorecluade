@@ -49,13 +49,13 @@ class _RoleTagsWidgetState extends State<RoleTagsWidget> {
     'Management': TossColors.primary,
     'Operations': TossColors.success,
     'Temporary': TossColors.warning,
-    'Finance': Colors.green,
-    'Sales': Colors.blue,
+    'Finance': TossColors.success,
+    'Sales': TossColors.primary,
     'Marketing': Colors.purple,
     'Technical': Colors.indigo,
-    'Customer Service': Colors.orange,
+    'Customer Service': TossColors.warning,
     'Admin': Colors.teal,
-    'Restricted': Colors.red,
+    'Restricted': TossColors.error,
   };
 
   @override

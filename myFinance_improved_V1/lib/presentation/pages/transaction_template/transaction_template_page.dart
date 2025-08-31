@@ -295,7 +295,7 @@ class _TransactionTemplatePageState extends ConsumerState<TransactionTemplatePag
             showModalBottomSheet(
               context: context,
               isScrollControlled: true,
-              backgroundColor: Colors.transparent,
+              backgroundColor: TossColors.transparent,
               builder: (context) => const TemplateFilterSheet(),
             );
           },
@@ -470,10 +470,9 @@ class _TransactionTemplatePageState extends ConsumerState<TransactionTemplatePag
                                 ),
                                 child: Text(
                                   'ADMIN',
-                                  style: TossTextStyles.caption.copyWith(
+                                  style: TossTextStyles.small.copyWith(
                                     color: TossColors.textSecondary,
                                     fontWeight: FontWeight.bold,
-                                    fontSize: TossTextStyles.small.fontSize! - 1,
                                   ),
                                 ),
                               ),

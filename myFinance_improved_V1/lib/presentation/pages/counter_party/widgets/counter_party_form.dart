@@ -6,6 +6,7 @@ import '../models/counter_party_models.dart';
 import '../providers/counter_party_providers.dart';
 import '../../../providers/app_state_provider.dart';
 import '../../../widgets/toss/toss_dropdown.dart';
+import '../../../widgets/common/toss_loading_view.dart';
 
 class CounterPartyForm extends ConsumerStatefulWidget {
   final CounterParty? counterParty;
@@ -229,7 +230,7 @@ class _CounterPartyFormState extends ConsumerState<CounterPartyForm> with Ticker
               onPressed: _deleteCounterParty,
               style: ElevatedButton.styleFrom(
                 backgroundColor: TossColors.error,
-                foregroundColor: Colors.white,
+                foregroundColor: TossColors.white,
                 padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
@@ -239,7 +240,7 @@ class _CounterPartyFormState extends ConsumerState<CounterPartyForm> with Ticker
               child: Text(
                 'Delete',
                 style: TossTextStyles.body.copyWith(
-                  color: Colors.white,
+                  color: TossColors.white,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -556,7 +557,7 @@ class _CounterPartyFormState extends ConsumerState<CounterPartyForm> with Ticker
     return Container(
       padding: EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: TossColors.white,
         border: Border(
           top: BorderSide(color: TossColors.gray100),
         ),
@@ -621,7 +622,7 @@ class _CounterPartyFormState extends ConsumerState<CounterPartyForm> with Ticker
                 onPressed: _isLoading || !_isCurrentStepValid ? null : _nextStep,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: _isCurrentStepValid ? TossColors.primary : TossColors.gray300,
-                  foregroundColor: _isCurrentStepValid ? Colors.white : TossColors.gray500,
+                  foregroundColor: _isCurrentStepValid ? TossColors.white : TossColors.gray500,
                   padding: EdgeInsets.symmetric(vertical: 16),
                   elevation: 0,
                   shape: RoundedRectangleBorder(
@@ -634,10 +635,7 @@ class _CounterPartyFormState extends ConsumerState<CounterPartyForm> with Ticker
                     ? SizedBox(
                         height: 20,
                         width: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                        ),
+                        child: const TossLoadingView(),
                       )
                     : Row(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -647,7 +645,7 @@ class _CounterPartyFormState extends ConsumerState<CounterPartyForm> with Ticker
                                 ? 'Next' 
                                 : (widget.counterParty == null ? 'Create' : 'Update'),
                             style: TossTextStyles.body.copyWith(
-                              color: _isCurrentStepValid ? Colors.white : TossColors.gray500,
+                              color: _isCurrentStepValid ? TossColors.white : TossColors.gray500,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -657,7 +655,7 @@ class _CounterPartyFormState extends ConsumerState<CounterPartyForm> with Ticker
                                 ? Icons.arrow_forward 
                                 : Icons.check,
                             size: 18,
-                            color: _isCurrentStepValid ? Colors.white : TossColors.gray500,
+                            color: _isCurrentStepValid ? TossColors.white : TossColors.gray500,
                           ),
                         ],
                       ),
@@ -675,7 +673,7 @@ class _CounterPartyFormState extends ConsumerState<CounterPartyForm> with Ticker
 
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: TossColors.white,
         borderRadius: const BorderRadius.only(
           topLeft: Radius.circular(24),
           topRight: Radius.circular(24),
@@ -889,7 +887,7 @@ class _CounterPartyFormState extends ConsumerState<CounterPartyForm> with Ticker
               duration: Duration(milliseconds: 200),
               padding: EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: isSelected ? color.withOpacity(0.1) : Colors.transparent,
+                color: isSelected ? color.withOpacity(0.1) : TossColors.transparent,
                 shape: BoxShape.circle,
               ),
               child: Icon(

@@ -6,11 +6,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../data/models/selector_entities.dart';
-import '../../../../data/services/supabase_service.dart';
-import '../../../providers/app_state_provider.dart';
 import '../../../providers/entities/account_provider.dart';
 import 'toss_base_selector.dart';
-import 'enhanced_account_selector.dart';
+import 'selector_utils.dart';
 
 /// Autonomous account selector that can be used anywhere in the app
 /// Uses dedicated RPC function and entity providers
@@ -42,24 +40,6 @@ class AutonomousAccountSelector extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Use enhanced selector with quick access if enabled
-    if (showQuickAccess) {
-      return EnhancedAccountSelector(
-        selectedAccountId: selectedAccountId,
-        onChanged: onChanged,
-        label: label,
-        hint: hint,
-        errorText: errorText,
-        showSearch: showSearch,
-        showTransactionCount: showTransactionCount,
-        accountType: accountType,
-        contextType: contextType,
-        showQuickAccess: true,
-        maxQuickItems: 5,
-      );
-    }
-    
-    // Otherwise use the regular selector
     // Choose the appropriate provider based on account type filter
     final accountsAsync = accountType != null
         ? ref.watch(currentAccountsByTypeProvider(accountType!))
@@ -101,14 +81,14 @@ class AutonomousAccountSelector extends ConsumerWidget {
       },
       isLoading: accountsAsync.isLoading,
       config: SelectorConfig(
-        label: label ?? _getAccountTypeLabel(),
-        hint: hint ?? _getAccountTypeHint(),
+        label: label ?? AccountTypeUtils.getAccountTypeLabel(accountType, label, isPlural: false),
+        hint: hint ?? AccountTypeUtils.getAccountTypeHint(accountType, hint, isPlural: false),
         errorText: errorText,
         showSearch: showSearch,
         showTransactionCount: showTransactionCount,
         icon: Icons.account_balance_wallet,
-        emptyMessage: 'No ${_getAccountTypeLabel().toLowerCase()} available',
-        searchHint: 'Search ${_getAccountTypeLabel().toLowerCase()}',
+        emptyMessage: 'No ${AccountTypeUtils.getAccountTypeLabel(accountType, label, isPlural: false).toLowerCase()} available',
+        searchHint: 'Search ${AccountTypeUtils.getAccountTypeLabel(accountType, label, isPlural: false).toLowerCase()}',
       ),
       itemTitleBuilder: (account) => account.displayName,
       itemSubtitleBuilder: (account) {
@@ -123,96 +103,27 @@ class AutonomousAccountSelector extends ConsumerWidget {
         return parts.isNotEmpty ? parts.join(' • ') : '';
       },
       itemIdBuilder: (account) => account.id,
-      itemFilterBuilder: (account, query) {
-        final queryLower = query.toLowerCase();
-        return account.name.toLowerCase().contains(queryLower) ||
-               account.type.toLowerCase().contains(queryLower) ||
-               (account.categoryTag?.toLowerCase().contains(queryLower) ?? false);
-      },
     );
   }
 
-  String _getAccountTypeLabel() {
-    if (accountType == null) return label ?? 'Account';
-    switch (accountType!.toLowerCase()) {
-      case 'asset':
-        return 'Asset Account';
-      case 'liability':
-        return 'Liability Account';
-      case 'equity':
-        return 'Equity Account';
-      case 'income':
-        return 'Income Account';
-      case 'expense':
-        return 'Expense Account';
-      default:
-        return '${accountType!.capitalize()} Account';
-    }
-  }
 
-  String _getAccountTypeHint() {
-    if (accountType == null) return hint ?? 'All Accounts';
-    switch (accountType!.toLowerCase()) {
-      case 'asset':
-        return 'Select Asset';
-      case 'liability':
-        return 'Select Liability';
-      case 'equity':
-        return 'Select Equity';
-      case 'income':
-        return 'Select Income';
-      case 'expense':
-        return 'Select Expense';
-      default:
-        return 'Select ${accountType!.capitalize()}';
-    }
-  }
-
-  /// Track account usage for analytics - stores in accounts_preferences table
+  /// Track account usage for analytics
   void _trackAccountUsage(WidgetRef ref, AccountData account, String contextType) async {
-    try {
-      final appState = ref.read(appStateProvider);
-      if (appState.companyChoosen.isEmpty) return;
-
-      // Use correct log_account_usage RPC parameters for accounts_preferences table
-      await ref.read(supabaseServiceProvider).client.rpc('log_account_usage', params: {
-        'p_account_id': account.id,
-        'p_account_name': account.name,
-        'p_company_id': appState.companyChoosen,
-        'p_account_type': account.type,
-        'p_usage_type': 'selected',
-        'p_metadata': {
-          'context': contextType,
-          'category_tag': account.categoryTag,
-          'selection_source': 'autonomous_selector',
-        },
-      });
-    } catch (e) {
-      // Silent fail - don't interrupt user experience
-    }
+    await QuickAccessHelper.trackAccountUsage(
+      ref,
+      account,
+      'autonomous_selector',
+      contextType: contextType,
+    );
   }
 
   /// Track account usage with minimal data when account details not available
   void _trackAccountUsageMinimal(WidgetRef ref, String accountId, String contextType) async {
-    try {
-      final appState = ref.read(appStateProvider);
-      if (appState.companyChoosen.isEmpty) return;
-
-      // Track with minimal data
-      await ref.read(supabaseServiceProvider).client.rpc('log_account_usage', params: {
-        'p_account_id': accountId,
-        'p_account_name': 'Unknown Account',
-        'p_company_id': appState.companyChoosen,
-        'p_usage_type': 'selected',
-        'p_metadata': {
-          'context': contextType,
-          'selection_source': 'autonomous_selector',
-          'note': 'minimal_tracking',
-        },
-      });
-    } catch (e) {
-      // Silent fail
-    }
+    await QuickAccessHelper.trackAccountUsageMinimal(
+      ref,
+      accountId,
+      contextType: contextType,
+    );
   }
 }
 
@@ -288,14 +199,14 @@ class _AutonomousMultiAccountSelectorState extends ConsumerState<AutonomousMulti
       },
       isLoading: accountsAsync.isLoading,
       config: SelectorConfig(
-        label: widget.label ?? _getAccountTypeLabel(),
-        hint: widget.hint ?? _getAccountTypeHint(),
+        label: widget.label ?? AccountTypeUtils.getAccountTypeLabel(widget.accountType, widget.label, isPlural: true),
+        hint: widget.hint ?? AccountTypeUtils.getAccountTypeHint(widget.accountType, widget.hint, isPlural: true),
         errorText: widget.errorText,
         showSearch: widget.showSearch,
         showTransactionCount: widget.showTransactionCount,
         icon: Icons.account_balance_wallet,
-        emptyMessage: 'No ${_getAccountTypeLabel().toLowerCase()} available',
-        searchHint: 'Search ${_getAccountTypeLabel().toLowerCase()}',
+        emptyMessage: 'No ${AccountTypeUtils.getAccountTypeLabel(widget.accountType, widget.label, isPlural: true).toLowerCase()} available',
+        searchHint: 'Search ${AccountTypeUtils.getAccountTypeLabel(widget.accountType, widget.label, isPlural: true).toLowerCase()}',
       ),
       itemTitleBuilder: (account) => account.displayName,
       itemSubtitleBuilder: (account) {
@@ -310,43 +221,7 @@ class _AutonomousMultiAccountSelectorState extends ConsumerState<AutonomousMulti
         return parts.isNotEmpty ? parts.join(' • ') : '';
       },
       itemIdBuilder: (account) => account.id,
-      itemFilterBuilder: (account, query) {
-        final queryLower = query.toLowerCase();
-        return account.name.toLowerCase().contains(queryLower) ||
-               account.type.toLowerCase().contains(queryLower) ||
-               (account.categoryTag?.toLowerCase().contains(queryLower) ?? false);
-      },
     );
   }
 
-  String _getAccountTypeLabel() {
-    if (widget.accountType == null) return widget.label ?? 'Accounts';
-    switch (widget.accountType!.toLowerCase()) {
-      case 'asset':
-        return 'Asset Accounts';
-      case 'liability':
-        return 'Liability Accounts';
-      case 'equity':
-        return 'Equity Accounts';
-      case 'income':
-        return 'Income Accounts';
-      case 'expense':
-        return 'Expense Accounts';
-      default:
-        return '${widget.accountType!.capitalize()} Accounts';
-    }
-  }
-
-  String _getAccountTypeHint() {
-    if (widget.accountType == null) return widget.hint ?? 'Select Accounts';
-    return 'Select ${_getAccountTypeLabel()}';
-  }
-}
-
-// Helper extension for string capitalization
-extension StringExtension on String {
-  String capitalize() {
-    if (isEmpty) return this;
-    return '${this[0].toUpperCase()}${substring(1).toLowerCase()}';
-  }
 }

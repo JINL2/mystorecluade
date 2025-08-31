@@ -94,11 +94,12 @@ class _TransactionHistoryPageState extends ConsumerState<TransactionHistoryPage>
     final filter = ref.watch(transactionFilterStateProvider);
 
     return TossScaffold(
-      backgroundColor: TossColors.gray50,
+      backgroundColor: TossColors.gray100,
       appBar: TossAppBar(
         title: widget.counterpartyName != null 
           ? '${widget.counterpartyName} Transactions'
           : 'Transaction History',
+        backgroundColor: TossColors.gray100,
         actions: const [],
       ),
       body: transactionsAsync.when(
@@ -333,9 +334,7 @@ class _TransactionHistoryPageState extends ConsumerState<TransactionHistoryPage>
                     child: Padding(
                       padding: EdgeInsets.all(TossSpacing.space4),
                       child: Center(
-                        child: CircularProgressIndicator(
-                          valueColor: AlwaysStoppedAnimation<Color>(TossColors.primary),
-                        ),
+                        child: const TossLoadingView(),
                       ),
                     ),
                   ),

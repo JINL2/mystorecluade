@@ -248,3 +248,28 @@ Future<List<CashLocationData>> cashLocationsByStore(
   final locations = await ref.watch(currentCashLocationsProvider.future);
   return locations.filterByStore(storeId);
 }
+
+// =====================================================
+// COUNTERPARTY CASH LOCATION PROVIDERS
+// For fetching cash locations of other companies
+// =====================================================
+
+/// Get cash locations for a counterparty company
+@riverpod
+Future<List<CashLocationData>> counterpartyCompanyCashLocations(
+  CounterpartyCompanyCashLocationsRef ref,
+  String companyId,
+) async {
+  // Fetch all cash locations for the counterparty company
+  return ref.watch(cashLocationListProvider(companyId, null).future);
+}
+
+/// Get cash locations for a specific counterparty store
+@riverpod
+Future<List<CashLocationData>> counterpartyStoreCashLocations(
+  CounterpartyStoreCashLocationsRef ref,
+  ({String companyId, String storeId}) params,
+) async {
+  // Fetch cash locations for the specific store of the counterparty
+  return ref.watch(cashLocationListProvider(params.companyId, params.storeId).future);
+}

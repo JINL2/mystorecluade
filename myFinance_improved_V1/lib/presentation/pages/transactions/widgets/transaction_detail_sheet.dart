@@ -267,18 +267,11 @@ class TransactionDetailSheet extends StatelessWidget {
     final amount = isDebit ? line.debit : line.credit;
     final color = isDebit ? TossColors.primary : TossColors.textPrimary;
     
-    return Container(
-      margin: const EdgeInsets.only(bottom: TossSpacing.space3),
-      padding: const EdgeInsets.all(TossSpacing.space3),
-      decoration: BoxDecoration(
-        color: TossColors.white,
-        borderRadius: BorderRadius.circular(TossBorderRadius.sm),
-        border: Border.all(
-          color: TossColors.gray100,
-          width: 1,
-        ),
-      ),
-      child: Column(
+    return Padding(
+      padding: const EdgeInsets.only(bottom: TossSpacing.space3),
+      child: TossCard(
+        padding: const EdgeInsets.all(TossSpacing.space3),
+        child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Account and Amount
@@ -396,6 +389,7 @@ class TransactionDetailSheet extends StatelessWidget {
             ),
           ],
         ],
+      ),
       ),
     );
   }

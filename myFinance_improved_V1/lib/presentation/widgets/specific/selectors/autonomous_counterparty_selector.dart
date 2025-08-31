@@ -8,6 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../data/models/selector_entities.dart';
 import '../../../providers/entities/counterparty_provider.dart';
 import 'toss_base_selector.dart';
+import 'selector_utils.dart';
 
 /// Autonomous counterparty selector that can be used anywhere in the app
 /// Uses dedicated RPC function and entity providers
@@ -72,7 +73,7 @@ class AutonomousCounterpartySelector extends ConsumerWidget {
         orElse: () => [],
       ),
       selectedItem: selectedCounterparty,
-      onChanged: onChanged,
+      onChanged: onChanged ?? (_) {},
       isLoading: counterpartiesAsync.isLoading,
       config: SelectorConfig(
         label: label ?? _getCounterpartyTypeLabel(),
@@ -89,13 +90,6 @@ class AutonomousCounterpartySelector extends ConsumerWidget {
           ? (counterparty) => _buildCounterpartySubtitle(counterparty)
           : (counterparty) => _buildCounterpartySubtitle(counterparty),
       itemIdBuilder: (counterparty) => counterparty.id,
-      itemFilterBuilder: (counterparty, query) {
-        final queryLower = query.toLowerCase();
-        return counterparty.name.toLowerCase().contains(queryLower) ||
-               counterparty.type.toLowerCase().contains(queryLower) ||
-               (counterparty.email?.toLowerCase().contains(queryLower) ?? false) ||
-               (counterparty.isInternal && 'internal'.contains(queryLower));
-      },
     );
   }
 
@@ -334,12 +328,6 @@ class _AutonomousMultiCounterpartySelectorState extends ConsumerState<Autonomous
       itemTitleBuilder: (counterparty) => _buildCounterpartyTitle(counterparty),
       itemSubtitleBuilder: (counterparty) => _buildCounterpartySubtitle(counterparty),
       itemIdBuilder: (counterparty) => counterparty.id,
-      itemFilterBuilder: (counterparty, query) {
-        final queryLower = query.toLowerCase();
-        return counterparty.name.toLowerCase().contains(queryLower) ||
-               counterparty.type.toLowerCase().contains(queryLower) ||
-               (counterparty.email?.toLowerCase().contains(queryLower) ?? false);
-      },
     );
   }
 
@@ -431,9 +419,3 @@ class _AutonomousMultiCounterpartySelectorState extends ConsumerState<Autonomous
 }
 
 // Helper extension for string capitalization
-extension StringExtension on String {
-  String capitalize() {
-    if (isEmpty) return this;
-    return '${this[0].toUpperCase()}${substring(1).toLowerCase()}';
-  }
-}

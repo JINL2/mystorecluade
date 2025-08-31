@@ -31,7 +31,7 @@ class SimpleCompanyCard extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: TossColors.white,
         borderRadius: BorderRadius.circular(16),
         // Subtle left border for group companies
         border: isGroup ? Border(
@@ -42,7 +42,7 @@ class SimpleCompanyCard extends StatelessWidget {
         ) : null,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
+            color: TossColors.black.withValues(alpha: 0.04),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),

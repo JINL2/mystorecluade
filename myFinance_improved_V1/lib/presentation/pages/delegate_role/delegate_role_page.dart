@@ -496,7 +496,7 @@ class _DelegateRolePageState extends ConsumerState<DelegateRolePage> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      backgroundColor: TossColors.transparent,
       enableDrag: true,
       builder: (context) => Padding(
         padding: EdgeInsets.only(
@@ -1001,7 +1001,7 @@ class _CreateRoleBottomSheetState extends ConsumerState<_CreateRoleBottomSheet> 
                   runSpacing: TossSpacing.space2,
                   children: availableSuggestions
                       .map((tag) => Material(
-                  color: Colors.transparent,
+                  color: TossColors.transparent,
                   child: InkWell(
                     onTap: () => _addTag(tag),
                     borderRadius: BorderRadius.circular(TossBorderRadius.sm),
@@ -1122,7 +1122,7 @@ class _CreateRoleBottomSheetState extends ConsumerState<_CreateRoleBottomSheet> 
                     ),
                   ),
                   Material(
-                    color: Colors.transparent,
+                    color: TossColors.transparent,
                     child: InkWell(
                       onTap: () {
                         setState(() {
@@ -1212,7 +1212,7 @@ class _CreateRoleBottomSheetState extends ConsumerState<_CreateRoleBottomSheet> 
         children: [
           // Collapsible header
           Material(
-            color: Colors.transparent,
+            color: TossColors.transparent,
             borderRadius: BorderRadius.vertical(
               top: Radius.circular(TossBorderRadius.lg),
               bottom: Radius.circular(isExpanded ? 0 : TossBorderRadius.lg),

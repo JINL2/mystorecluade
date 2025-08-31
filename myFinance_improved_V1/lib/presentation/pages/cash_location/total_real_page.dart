@@ -8,6 +8,7 @@ import '../../../core/themes/toss_shadows.dart';
 import '../../../core/themes/toss_colors.dart';
 import '../../widgets/common/toss_scaffold.dart';
 import '../../widgets/common/toss_app_bar.dart';
+import '../../widgets/common/toss_loading_view.dart';
 import '../../../data/services/cash_real_service.dart';
 import '../../providers/app_state_provider.dart';
 import 'utils/string_extensions.dart';
@@ -185,7 +186,7 @@ class _TotalRealPageState extends ConsumerState<TotalRealPage> {
                     return _buildRealList(displayItems);
                   },
                   loading: () => const Center(
-                    child: CircularProgressIndicator(),
+                    child: TossLoadingView(),
                   ),
                   error: (error, stack) => Center(
                     child: Column(
@@ -361,12 +362,7 @@ class _TotalRealPageState extends ConsumerState<TotalRealPage> {
     return Container(
       padding: EdgeInsets.symmetric(vertical: TossSpacing.space4),
       child: Center(
-        child: CircularProgressIndicator(
-          strokeWidth: 2,
-          valueColor: AlwaysStoppedAnimation<Color>(
-            Theme.of(context).colorScheme.primary,
-          ),
-        ),
+        child: const TossLoadingView(),
       ),
     );
   }
@@ -529,7 +525,7 @@ class _TotalRealPageState extends ConsumerState<TotalRealPage> {
   void _showDenominationDetailBottomSheet(CashRealDisplay item) {
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.transparent,
+      backgroundColor: TossColors.transparent,
       isScrollControlled: true,
       builder: (BuildContext context) {
         return _DenominationDetailBottomSheet(
@@ -683,7 +679,7 @@ class _DenominationDetailBottomSheet extends StatelessWidget {
     
     return Container(
       decoration: const BoxDecoration(
-        color: Colors.white,
+        color: TossColors.white,
         borderRadius: BorderRadius.only(
           topLeft: Radius.circular(20),
           topRight: Radius.circular(20),
@@ -852,9 +848,9 @@ class _DenominationDetailBottomSheet extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.grey[50],
+        color: TossColors.gray50,
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.grey[200]!),
+        border: Border.all(color: TossColors.gray200),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -865,14 +861,14 @@ class _DenominationDetailBottomSheet extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: Colors.blue.withOpacity(0.1),
+                  color: TossColors.primary.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: Text(
                   _formatCurrency(denomination.denominationValue, symbol),
                   style: TossTextStyles.body.copyWith(
                     fontWeight: FontWeight.w600,
-                    color: Colors.blue[700],
+                    color: TossColors.primary,
                     fontSize: 14,
                   ),
                 ),

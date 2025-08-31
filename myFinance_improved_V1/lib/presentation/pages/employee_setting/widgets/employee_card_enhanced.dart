@@ -4,6 +4,7 @@ import '../../../../core/themes/toss_colors.dart';
 import '../../../../core/themes/toss_text_styles.dart';
 import '../../../../core/themes/toss_spacing.dart';
 import '../../../widgets/toss/toss_card.dart';
+import '../../../widgets/toss/toss_badge.dart';
 import '../models/employee_salary.dart';
 
 class EmployeeCardEnhanced extends ConsumerWidget {
@@ -56,22 +57,10 @@ class EmployeeCardEnhanced extends ConsumerWidget {
                       
                       // Role Badge (moved under name)
                       if (employee.roleName != null)
-                        Container(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: TossSpacing.space2,
-                            vertical: TossSpacing.space1,
-                          ),
-                          decoration: BoxDecoration(
-                            color: _getRoleColor(employee.roleName!).withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: Text(
-                            employee.roleName!,
-                            style: TossTextStyles.small.copyWith(
-                              color: _getRoleColor(employee.roleName!),
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
+                        TossBadge(
+                          label: employee.roleName!,
+                          backgroundColor: _getRoleColor(employee.roleName!).withValues(alpha: 0.1),
+                          textColor: _getRoleColor(employee.roleName!),
                         ),
                     ],
                   ),

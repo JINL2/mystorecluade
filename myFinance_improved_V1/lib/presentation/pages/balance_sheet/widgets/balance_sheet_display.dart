@@ -100,7 +100,7 @@ class BalanceSheetDisplay extends StatelessWidget {
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: TossColors.black.withOpacity(0.05),
               offset: Offset(0, 2),
               blurRadius: 8,
             ),
@@ -438,7 +438,7 @@ class BalanceSheetDisplay extends StatelessWidget {
         borderRadius: BorderRadius.circular(TossBorderRadius.lg),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.08),
+            color: TossColors.black.withOpacity(0.08),
             offset: Offset(0, 2),
             blurRadius: 8,
           ),

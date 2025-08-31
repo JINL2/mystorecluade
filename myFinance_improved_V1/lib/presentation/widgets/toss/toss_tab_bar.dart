@@ -148,15 +148,12 @@ class _TossTabBarState extends State<TossTabBar> with SingleTickerProviderStateM
     final unselectedColor = widget.unselectedColor ?? Colors.grey[400]!;
     
     final selectedStyle = widget.selectedLabelStyle ?? 
-      TossTextStyles.body.copyWith(
+      TossTextStyles.bodyLarge.copyWith(
         fontWeight: FontWeight.w600,
-        fontSize: TossTextStyles.bodyLarge.fontSize!,
       );
       
     final unselectedStyle = widget.unselectedLabelStyle ?? 
-      TossTextStyles.body.copyWith(
-        fontSize: TossTextStyles.bodyLarge.fontSize!,
-      );
+      TossTextStyles.bodyLarge;
     
     return Container(
       padding: widget.padding ?? EdgeInsets.symmetric(horizontal: TossSpacing.space4),
@@ -424,14 +421,12 @@ class TossPillTabBar extends StatelessWidget {
         labelColor: labelColor ?? TossColors.gray900,
         unselectedLabelColor: unselectedLabelColor ?? TossColors.gray400,
         labelStyle: labelStyle ??
-            TossTextStyles.body.copyWith(
+            TossTextStyles.bodyLarge.copyWith(
               fontWeight: FontWeight.w600,
-              fontSize: TossTextStyles.bodyLarge.fontSize!,
             ),
         unselectedLabelStyle: unselectedLabelStyle ??
-            TossTextStyles.body.copyWith(
+            TossTextStyles.bodyLarge.copyWith(
               fontWeight: FontWeight.w400,
-              fontSize: TossTextStyles.bodyLarge.fontSize!,
             ),
         labelPadding: EdgeInsets.symmetric(horizontal: TossSpacing.space4),
         tabs: tabs.map((tab) => _buildTab(tab)).toList(),
@@ -540,11 +535,9 @@ class TossMinimalTabBar extends StatelessWidget {
         unselectedLabelColor: unselectedColor ?? TossColors.gray400,
         labelStyle: TossTextStyles.body.copyWith(
           fontWeight: FontWeight.w600,
-          fontSize: TossTextStyles.body.fontSize!,
         ),
         unselectedLabelStyle: TossTextStyles.body.copyWith(
           fontWeight: FontWeight.w500,
-          fontSize: TossTextStyles.body.fontSize!,
         ),
         labelPadding: EdgeInsets.zero,
         tabs: tabs.map((text) => Tab(

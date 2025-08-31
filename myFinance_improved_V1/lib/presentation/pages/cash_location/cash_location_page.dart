@@ -17,6 +17,7 @@ import 'bank_real_page.dart';
 import 'vault_real_page.dart';
 import '../../widgets/common/toss_scaffold.dart';
 import '../../widgets/common/toss_app_bar.dart';
+import '../../widgets/common/toss_loading_view.dart';
 import '../../../core/navigation/safe_navigation.dart';
 
 class CashLocationPage extends ConsumerStatefulWidget {
@@ -132,7 +133,7 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
         appBar: TossAppBar(
           title: 'Cash Control',
         ),
-        backgroundColor: const Color(0xFFF7F8FA),
+        backgroundColor: TossColors.gray100,
         body: SafeArea(
           child: Column(
             children: [
@@ -142,7 +143,7 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
                   child: Text(
                     'Please select a company and store',
                     style: TossTextStyles.body.copyWith(
-                      color: Colors.grey[500],
+                      color: TossColors.gray500,
                     ),
                   ),
                 ),
@@ -164,7 +165,7 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
       appBar: TossAppBar(
         title: 'Cash Control',
       ),
-      backgroundColor: const Color(0xFFF7F8FA),
+      backgroundColor: TossColors.gray100,
       body: SafeArea(
         child: Column(
           children: [
@@ -201,7 +202,7 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
                     ),
                   );
                 },
-                loading: () => const Center(child: CircularProgressIndicator()),
+                loading: () => const Center(child: TossLoadingView()),
                 error: (error, stack) => RefreshIndicator(
                   onRefresh: _refreshData,
                   color: TossColors.primary,
@@ -217,13 +218,13 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
                           Icon(
                             Icons.wifi_off_rounded,
                             size: 64,
-                            color: Colors.grey[400],
+                            color: TossColors.gray400,
                           ),
                           SizedBox(height: TossSpacing.space4),
                           Text(
                             'Connection Error',
                             style: TossTextStyles.h2.copyWith(
-                              color: Colors.grey[700],
+                              color: TossColors.gray700,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -231,7 +232,7 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
                           Text(
                             'Unable to load cash locations.\nPlease check your internet connection.',
                             style: TossTextStyles.body.copyWith(
-                              color: Colors.grey[500],
+                              color: TossColors.gray500,
                             ),
                             textAlign: TextAlign.center,
                           ),
@@ -243,7 +244,7 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
                             label: Text('Retry'),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Theme.of(context).colorScheme.primary,
-                              foregroundColor: Colors.white,
+                              foregroundColor: TossColors.white,
                               padding: EdgeInsets.symmetric(
                                 horizontal: TossSpacing.space5,
                                 vertical: TossSpacing.space3,
@@ -260,14 +261,14 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
                               child: Container(
                                 padding: EdgeInsets.all(TossSpacing.space3),
                                 decoration: BoxDecoration(
-                                  color: Colors.red[50],
+                                  color: TossColors.error.withOpacity(0.1),
                                   borderRadius: BorderRadius.circular(TossBorderRadius.sm),
-                                  border: Border.all(color: Colors.red[200]!),
+                                  border: Border.all(color: TossColors.error.withOpacity(0.3)),
                                 ),
                                 child: Text(
                                   'Network connection failed',
                                   style: TossTextStyles.caption.copyWith(
-                                    color: Colors.red[700],
+                                    color: TossColors.error,
                                     fontSize: 12,
                                   ),
                                   textAlign: TextAlign.center,
@@ -317,7 +318,7 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
     return Container(
       padding: EdgeInsets.all(TossSpacing.space5),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: TossColors.white,
         borderRadius: BorderRadius.circular(TossBorderRadius.lg),
         boxShadow: TossShadows.card,
       ),
@@ -409,7 +410,7 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
                 Icon(
                   Icons.chevron_right,
                   size: 20,
-                  color: Colors.grey[400],
+                  color: TossColors.gray400,
                 ),
             ],
           ),
@@ -484,7 +485,7 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
     return Container(
       padding: EdgeInsets.all(TossSpacing.space5),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: TossColors.white,
         borderRadius: BorderRadius.circular(TossBorderRadius.lg),
         boxShadow: TossShadows.card,
       ),
@@ -530,12 +531,12 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
                     width: 44,
                     height: 44,
                     decoration: BoxDecoration(
-                      color: Colors.grey[100],
+                      color: TossColors.gray100,
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Icon(
                       Icons.add,
-                      color: Colors.grey[600],
+                      color: TossColors.gray600,
                       size: 24,
                     ),
                   ),
@@ -546,7 +547,7 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
                   Text(
                     _getAddAccountText(),
                     style: TossTextStyles.body.copyWith(
-                      color: Colors.grey[600],
+                      color: TossColors.gray600,
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
                     ),
@@ -637,7 +638,7 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
                     Text(
                       '$percentage% of total balance',
                       style: TossTextStyles.caption.copyWith(
-                        color: Colors.grey[600],
+                        color: TossColors.gray600,
                         fontSize: 13,
                       ),
                     ),
@@ -673,7 +674,7 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
                   SizedBox(width: TossSpacing.space2),
                   Icon(
                     Icons.chevron_right,
-                    color: Colors.grey[400],
+                    color: TossColors.gray400,
                     size: 22,
                   ),
                 ],

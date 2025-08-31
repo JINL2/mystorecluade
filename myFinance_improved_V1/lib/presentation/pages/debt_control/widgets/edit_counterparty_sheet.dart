@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../../../core/themes/toss_colors.dart';
 import '../../counter_party/models/counter_party_models.dart';
 import '../../counter_party/widgets/counter_party_form.dart';
 
@@ -35,7 +36,7 @@ class EditCounterpartySheet {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Failed to load counterparty details'),
-          backgroundColor: Colors.red,
+          backgroundColor: TossColors.error,
         ),
       );
       return null;
@@ -45,7 +46,7 @@ class EditCounterpartySheet {
     return showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      backgroundColor: TossColors.transparent,
       enableDrag: true,
       isDismissible: true,
       builder: (context) => Container(

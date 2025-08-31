@@ -356,7 +356,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
   void _showImagePickerOptions() {
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.transparent,
+      backgroundColor: TossColors.transparent,
       builder: (context) => Container(
         decoration: BoxDecoration(
           color: TossColors.surface,

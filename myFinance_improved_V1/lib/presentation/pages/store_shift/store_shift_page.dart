@@ -27,6 +27,7 @@ import '../../widgets/common/toss_scaffold.dart';
 import '../../../data/services/store_service.dart';
 import '../../widgets/toss/toss_bottom_sheet.dart';
 import '../../widgets/common/toss_number_input.dart';
+import '../../widgets/common/toss_loading_view.dart';
 
 class StoreShiftPage extends ConsumerStatefulWidget {
   const StoreShiftPage({super.key});
@@ -127,9 +128,7 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
             ),
           ],
         ),
-        loading: () => Center(
-          child: CircularProgressIndicator(color: TossColors.primary),
-        ),
+        loading: () => const TossLoadingView(),
         error: (error, stack) => Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -250,9 +249,7 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
             ),
           );
         },
-        loading: () => Center(
-          child: CircularProgressIndicator(color: TossColors.primary),
-        ),
+        loading: () => const TossLoadingView(),
         error: (error, stack) => Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -508,7 +505,7 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
     VoidCallback? onTap,
   }) {
     return Material(
-      color: Colors.transparent,
+      color: TossColors.transparent,
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(TossBorderRadius.lg),
@@ -910,9 +907,7 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
       loading: () => Center(
         child: Padding(
           padding: const EdgeInsets.all(TossSpacing.space6),
-          child: CircularProgressIndicator(
-            color: TossColors.primary,
-          ),
+          child: const TossLoadingView(),
         ),
       ),
       error: (error, stack) => Container(
@@ -1573,6 +1568,7 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
                                 const SizedBox(height: TossSpacing.space2),
                                 TossSimpleTimePicker(
                                   time: selectedStartTime,
+                                  placeholder: 'Select start time',
                                   onTimeChanged: (TimeOfDay time) {
                                     setState(() {
                                       selectedStartTime = time;
@@ -1599,6 +1595,7 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
                                 const SizedBox(height: TossSpacing.space2),
                                 TossSimpleTimePicker(
                                   time: selectedEndTime,
+                                  placeholder: 'Select end time',
                                   onTimeChanged: (TimeOfDay time) {
                                     setState(() {
                                       selectedEndTime = time;
@@ -2753,7 +2750,7 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
     required VoidCallback onTap,
   }) {
     return Material(
-      color: Colors.transparent,
+      color: TossColors.transparent,
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(TossBorderRadius.lg),
@@ -2969,7 +2966,7 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  CircularProgressIndicator(color: TossColors.primary),
+                  const TossLoadingView(),
                   const SizedBox(height: TossSpacing.space3),
                   Text(
                     'Getting current location...',

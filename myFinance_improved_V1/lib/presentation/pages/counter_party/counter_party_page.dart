@@ -17,6 +17,7 @@ import '../../widgets/common/toss_scaffold.dart';
 import '../../widgets/common/toss_stats_card.dart';
 import '../../widgets/common/toss_app_bar.dart';
 import '../../widgets/toss/toss_search_field.dart';
+import '../../widgets/common/toss_loading_view.dart';
 import '../../../core/navigation/safe_navigation.dart';
 
 class CounterPartyPage extends ConsumerStatefulWidget {
@@ -536,7 +537,7 @@ class _CounterPartyPageState extends ConsumerState<CounterPartyPage> {
         }
         
         return Material(
-          color: Colors.transparent,
+          color: TossColors.transparent,
           child: InkWell(
             onTap: onTap,
             child: Container(
@@ -773,9 +774,7 @@ class _CounterPartyPageState extends ConsumerState<CounterPartyPage> {
       },
       loading: () => SliverFillRemaining(
         child: Center(
-          child: CircularProgressIndicator(
-            color: TossColors.primary,
-          ),
+          child: TossLoadingView(),
         ),
       ),
       error: (error, _) => SliverFillRemaining(

@@ -1,6 +1,6 @@
 // =====================================================
-// ENHANCED ACCOUNT SELECTOR WITH QUICK ACCESS
-// Modern, intuitive account selector with frequently used accounts
+// ENHANCED MULTI ACCOUNT SELECTOR WITH QUICK ACCESS
+// Multi-select account selector with frequently used accounts
 // =====================================================
 
 import 'package:flutter/material.dart';
@@ -13,12 +13,16 @@ import '../../../../core/themes/toss_border_radius.dart';
 import '../../../providers/entities/account_provider.dart';
 import '../../toss/toss_bottom_sheet.dart';
 import '../../toss/toss_search_field.dart';
+import '../../toss/toss_primary_button.dart';
+import '../../toss/toss_secondary_button.dart';
 import 'selector_utils.dart';
 
-/// Enhanced account selector with quick access to frequently used accounts
-class EnhancedAccountSelector extends ConsumerStatefulWidget {
-  final String? selectedAccountId;
-  final Function(String?)? onChanged;
+typedef MultiSelectionCallback = void Function(List<String>?);
+
+/// Enhanced multi-account selector with quick access to frequently used accounts
+class EnhancedMultiAccountSelector extends ConsumerStatefulWidget {
+  final List<String>? selectedAccountIds;
+  final MultiSelectionCallback? onChanged;
   final String? label;
   final String? hint;
   final String? errorText;
@@ -29,9 +33,9 @@ class EnhancedAccountSelector extends ConsumerStatefulWidget {
   final bool showQuickAccess;
   final int maxQuickItems;
 
-  const EnhancedAccountSelector({
+  const EnhancedMultiAccountSelector({
     super.key,
-    this.selectedAccountId,
+    this.selectedAccountIds,
     this.onChanged,
     this.label,
     this.hint,
@@ -45,19 +49,29 @@ class EnhancedAccountSelector extends ConsumerStatefulWidget {
   });
 
   @override
-  ConsumerState<EnhancedAccountSelector> createState() => _EnhancedAccountSelectorState();
+  ConsumerState<EnhancedMultiAccountSelector> createState() => _EnhancedMultiAccountSelectorState();
 }
 
-class _EnhancedAccountSelectorState extends ConsumerState<EnhancedAccountSelector> {
+class _EnhancedMultiAccountSelectorState extends ConsumerState<EnhancedMultiAccountSelector> {
   String _searchQuery = '';
   List<AccountData> _filteredAccounts = [];
   List<Map<String, dynamic>> _quickAccessAccounts = [];
+  List<String> _tempSelectedIds = [];
 
   @override
   void initState() {
     super.initState();
+    _tempSelectedIds = widget.selectedAccountIds?.toList() ?? [];
     if (widget.showQuickAccess) {
       _loadQuickAccessAccounts();
+    }
+  }
+
+  @override
+  void didUpdateWidget(EnhancedMultiAccountSelector oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.selectedAccountIds != oldWidget.selectedAccountIds) {
+      _tempSelectedIds = widget.selectedAccountIds?.toList() ?? [];
     }
   }
 
@@ -84,15 +98,13 @@ class _EnhancedAccountSelectorState extends ConsumerState<EnhancedAccountSelecto
         ? ref.watch(currentAccountsByTypeProvider(widget.accountType!))
         : ref.watch(currentAccountsProvider);
 
-    // Find selected account
-    AccountData? selectedAccount;
-    if (widget.selectedAccountId != null) {
+    // Find selected accounts
+    List<AccountData> selectedAccounts = [];
+    if (widget.selectedAccountIds != null && widget.selectedAccountIds!.isNotEmpty) {
       accountsAsync.whenData((accounts) {
-        try {
-          selectedAccount = accounts.firstWhere((account) => account.id == widget.selectedAccountId);
-        } catch (e) {
-          selectedAccount = null;
-        }
+        selectedAccounts = accounts.where((account) => 
+          widget.selectedAccountIds!.contains(account.id)
+        ).toList();
       });
     }
 
@@ -124,7 +136,7 @@ class _EnhancedAccountSelectorState extends ConsumerState<EnhancedAccountSelecto
             Icon(
               Icons.account_balance_wallet,
               size: TossSpacing.iconSM,
-              color: selectedAccount != null ? TossColors.primary : TossColors.gray500,
+              color: selectedAccounts.isNotEmpty ? TossColors.primary : TossColors.gray500,
             ),
             const SizedBox(width: TossSpacing.space3),
             Expanded(
@@ -140,15 +152,17 @@ class _EnhancedAccountSelectorState extends ConsumerState<EnhancedAccountSelecto
                       ),
                     ),
                   Text(
-                    selectedAccount?.displayName ?? widget.hint ?? AccountTypeUtils.getAccountTypeHint(widget.accountType, widget.hint, isPlural: false),
+                    selectedAccounts.isNotEmpty 
+                        ? '${selectedAccounts.length} account${selectedAccounts.length > 1 ? 's' : ''} selected'
+                        : widget.hint ?? AccountTypeUtils.getAccountTypeHint(widget.accountType, widget.hint, isPlural: true),
                     style: TossTextStyles.body.copyWith(
-                      color: selectedAccount != null ? TossColors.textPrimary : TossColors.textTertiary,
-                      fontWeight: selectedAccount != null ? FontWeight.w600 : FontWeight.normal,
+                      color: selectedAccounts.isNotEmpty ? TossColors.textPrimary : TossColors.textTertiary,
+                      fontWeight: selectedAccounts.isNotEmpty ? FontWeight.w600 : FontWeight.normal,
                     ),
                   ),
-                  if (selectedAccount?.categoryTag != null && selectedAccount!.categoryTag!.isNotEmpty)
+                  if (selectedAccounts.length == 1 && selectedAccounts.first.categoryTag != null && selectedAccounts.first.categoryTag!.isNotEmpty)
                     Text(
-                      selectedAccount!.categoryTag!,
+                      selectedAccounts.first.categoryTag!,
                       style: TossTextStyles.caption.copyWith(
                         color: TossColors.gray500,
                       ),
@@ -200,7 +214,7 @@ class _EnhancedAccountSelectorState extends ConsumerState<EnhancedAccountSelecto
                   children: [
                     Flexible(
                       child: Text(
-                        'Select ${widget.label ?? AccountTypeUtils.getAccountTypeLabel(widget.accountType, widget.label, isPlural: false)}',
+                        'Select ${widget.label ?? AccountTypeUtils.getAccountTypeLabel(widget.accountType, widget.label, isPlural: true)}',
                         style: TossTextStyles.h3.copyWith(
                           fontWeight: FontWeight.bold,
                         ),
@@ -232,7 +246,36 @@ class _EnhancedAccountSelectorState extends ConsumerState<EnhancedAccountSelecto
                 
                 // Main content with quick access and regular list
                 Flexible(
-                  child: _buildAccountList(allAccounts, scrollController),
+                  child: _buildAccountList(allAccounts, scrollController, setModalState),
+                ),
+                
+                const SizedBox(height: TossSpacing.space4),
+                
+                // Action buttons for multi-select
+                Row(
+                  children: [
+                    Expanded(
+                      child: TossSecondaryButton(
+                        text: 'Cancel',
+                        onPressed: () {
+                          setState(() {
+                            _tempSelectedIds = widget.selectedAccountIds?.toList() ?? [];
+                          });
+                          Navigator.pop(context);
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: TossSpacing.space3),
+                    Expanded(
+                      child: TossPrimaryButton(
+                        text: 'Apply (${_tempSelectedIds.length})',
+                        onPressed: () {
+                          widget.onChanged?.call(_tempSelectedIds);
+                          Navigator.pop(context);
+                        },
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -242,7 +285,7 @@ class _EnhancedAccountSelectorState extends ConsumerState<EnhancedAccountSelecto
     );
   }
 
-  Widget _buildAccountList(List<AccountData> allAccounts, ScrollController scrollController) {
+  Widget _buildAccountList(List<AccountData> allAccounts, ScrollController scrollController, StateSetter setModalState) {
     if (_filteredAccounts.isEmpty && _searchQuery.isNotEmpty) {
       return Padding(
         padding: const EdgeInsets.all(TossSpacing.space6),
@@ -262,7 +305,7 @@ class _EnhancedAccountSelectorState extends ConsumerState<EnhancedAccountSelecto
       children: [
         // Quick Access Section (only show when not searching)
         if (widget.showQuickAccess && _searchQuery.isEmpty && _quickAccessAccounts.isNotEmpty) ...[
-          _buildQuickAccessSection(allAccounts),
+          _buildQuickAccessSection(allAccounts, setModalState),
           const SizedBox(height: TossSpacing.space2),
           Container(height: 1, color: TossColors.gray200),
           const SizedBox(height: TossSpacing.space2),
@@ -285,12 +328,12 @@ class _EnhancedAccountSelectorState extends ConsumerState<EnhancedAccountSelecto
           ),
         
         // Regular accounts list
-        ..._filteredAccounts.map((account) => _buildAccountItem(account, false)),
+        ..._filteredAccounts.map((account) => _buildAccountItem(account, false, setModalState)),
       ],
     );
   }
 
-  Widget _buildQuickAccessSection(List<AccountData> allAccounts) {
+  Widget _buildQuickAccessSection(List<AccountData> allAccounts, StateSetter setModalState) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -327,25 +370,35 @@ class _EnhancedAccountSelectorState extends ConsumerState<EnhancedAccountSelecto
             return _buildAccountItem(
               account, 
               true,
+              setModalState,
               usageCount: quickAccount['usage_count'] as int? ?? 0,
             );
           } catch (e) {
             // Account not found in current list, show basic info
-            return _buildQuickAccountItem(quickAccount);
+            return _buildQuickAccountItem(quickAccount, setModalState);
           }
         }).toList(),
       ],
     );
   }
 
-  Widget _buildAccountItem(AccountData account, bool isQuickAccess, {int usageCount = 0}) {
-    final isSelected = account.id == widget.selectedAccountId;
+  Widget _buildAccountItem(AccountData account, bool isQuickAccess, StateSetter setModalState, {int usageCount = 0}) {
+    final isSelected = _tempSelectedIds.contains(account.id);
     
     return InkWell(
       onTap: () {
-        _trackAccountUsage(account, isQuickAccess ? 'quick_access' : 'regular_list');
-        widget.onChanged?.call(account.id);
-        Navigator.pop(context);
+        setModalState(() {
+          if (isSelected) {
+            _tempSelectedIds.remove(account.id);
+          } else {
+            _tempSelectedIds.add(account.id);
+          }
+        });
+        setState(() {}); // Update main widget display
+        
+        if (!isSelected) { // Only track when selecting, not deselecting
+          _trackAccountUsage(account, isQuickAccess ? 'quick_access' : 'regular_list');
+        }
       },
       child: Container(
         padding: const EdgeInsets.symmetric(
@@ -355,6 +408,28 @@ class _EnhancedAccountSelectorState extends ConsumerState<EnhancedAccountSelecto
         color: isSelected ? TossColors.primary.withValues(alpha: 0.05) : null,
         child: Row(
           children: [
+            // Selection checkbox
+            Container(
+              width: 20,
+              height: 20,
+              decoration: BoxDecoration(
+                color: isSelected ? TossColors.primary : TossColors.white,
+                border: Border.all(
+                  color: isSelected ? TossColors.primary : TossColors.gray300,
+                  width: 2,
+                ),
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: isSelected
+                  ? const Icon(
+                      Icons.check,
+                      size: TossSpacing.iconXS - 2,
+                      color: TossColors.white,
+                    )
+                  : null,
+            ),
+            const SizedBox(width: TossSpacing.space3),
+            
             // Icon with frequency indicator
             Stack(
               children: [
@@ -437,32 +512,33 @@ class _EnhancedAccountSelectorState extends ConsumerState<EnhancedAccountSelecto
                 ],
               ),
             ),
-            
-            // Selection indicator
-            if (isSelected)
-              Icon(
-                Icons.check_circle,
-                size: TossSpacing.iconSM,
-                color: TossColors.primary,
-              ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildQuickAccountItem(Map<String, dynamic> quickAccount) {
+  Widget _buildQuickAccountItem(Map<String, dynamic> quickAccount, StateSetter setModalState) {
     final accountName = quickAccount['account_name'] ?? 'Unknown Account';
     final accountId = quickAccount['account_id'] as String?;
     final usageCount = quickAccount['usage_count'] as int? ?? 0;
-    final isSelected = accountId == widget.selectedAccountId;
+    final isSelected = accountId != null && _tempSelectedIds.contains(accountId);
     
     return InkWell(
       onTap: () {
         if (accountId != null) {
-          _trackQuickAccountUsage(quickAccount);
-          widget.onChanged?.call(accountId);
-          Navigator.pop(context);
+          setModalState(() {
+            if (isSelected) {
+              _tempSelectedIds.remove(accountId);
+            } else {
+              _tempSelectedIds.add(accountId);
+            }
+          });
+          setState(() {}); // Update main widget display
+          
+          if (!isSelected) { // Only track when selecting, not deselecting
+            _trackQuickAccountUsage(quickAccount);
+          }
         }
       },
       child: Container(
@@ -473,6 +549,28 @@ class _EnhancedAccountSelectorState extends ConsumerState<EnhancedAccountSelecto
         color: isSelected ? TossColors.primary.withValues(alpha: 0.05) : null,
         child: Row(
           children: [
+            // Selection checkbox
+            Container(
+              width: 20,
+              height: 20,
+              decoration: BoxDecoration(
+                color: isSelected ? TossColors.primary : TossColors.white,
+                border: Border.all(
+                  color: isSelected ? TossColors.primary : TossColors.gray300,
+                  width: 2,
+                ),
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: isSelected
+                  ? const Icon(
+                      Icons.check,
+                      size: TossSpacing.iconXS - 2,
+                      color: TossColors.white,
+                    )
+                  : null,
+            ),
+            const SizedBox(width: TossSpacing.space3),
+            
             Icon(
               Icons.account_balance_wallet,
               size: TossSpacing.iconSM,
@@ -516,6 +614,7 @@ class _EnhancedAccountSelectorState extends ConsumerState<EnhancedAccountSelecto
       account,
       selectionSource,
       contextType: widget.contextType,
+      selectionType: 'multi_select',
     );
   }
 
@@ -524,8 +623,8 @@ class _EnhancedAccountSelectorState extends ConsumerState<EnhancedAccountSelecto
       ref,
       quickAccount,
       contextType: widget.contextType,
+      selectionType: 'multi_select',
     );
   }
 
 }
-

@@ -23,6 +23,7 @@ import '../../widgets/common/toss_currency_chip.dart';
 import '../../widgets/common/toss_section_header.dart';
 import '../../widgets/common/toss_toggle_button.dart';
 import '../../widgets/common/toss_scaffold.dart';
+import '../../widgets/common/toss_loading_view.dart';
 import '../../widgets/toss/toss_dropdown.dart';
 import '../../widgets/toss/toss_secondary_button.dart';
 import '../../../data/services/stock_flow_service.dart';
@@ -531,9 +532,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
     if (isLoadingCurrency || isLoadingStores) {
       return TossScaffold(
         backgroundColor: TossColors.gray100,
-        body: const Center(
-          child: CircularProgressIndicator(color: TossColors.primary),
-        ),
+        body: const TossLoadingView(),
       );
     }
     
@@ -556,16 +555,15 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
       body: SafeArea(
         child: Column(
           children: [
-            // Tab Bar without background to match Cash Control design
-            TossMinimalTabBar(
+            // Tab Bar matching Cash Control design
+            TossTabBar(
               tabs: const ['Cash', 'Bank', 'Vault'],
               controller: _tabController,
               selectedColor: Colors.black87, // Use black87 to match Cash Control page exactly
-              showDivider: false, // Remove bottom divider to match Cash Control design
               unselectedColor: hasVaultBankAccess 
                   ? TossColors.gray400 
                   : TossColors.gray300, // Lighter gray for disabled tabs
-              onTap: (index) {
+              onTabChanged: (index) {
                 // Prevent switching to Bank or Vault tabs if no permission
                 if (index > 0 && !hasVaultBankAccess) {
                   // Reset to Cash tab
@@ -934,10 +932,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
       return Center(
         child: Padding(
           padding: const EdgeInsets.all(TossSpacing.space4),
-          child: CircularProgressIndicator(
-            color: TossColors.primary,
-            strokeWidth: 2,
-          ),
+          child: TossLoadingView(),
         ),
       );
     }
@@ -1120,7 +1115,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
                                   Container(
                                     padding: const EdgeInsets.all(TossSpacing.space2),
                                     decoration: BoxDecoration(
-                                      color: Colors.white,
+                                      color: TossColors.white,
                                       borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                                       border: Border.all(
                                         color: TossColors.gray200,
@@ -1318,7 +1313,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.04),
+                  color: TossColors.black.withOpacity(0.04),
                   blurRadius: 8,
                   offset: const Offset(0, 2),
                 ),
@@ -1398,10 +1393,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
       return Center(
         child: Padding(
           padding: const EdgeInsets.all(TossSpacing.space4),
-          child: CircularProgressIndicator(
-            color: TossColors.primary,
-            strokeWidth: 2,
-          ),
+          child: TossLoadingView(),
         ),
       );
     }
@@ -1503,7 +1495,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
                   vertical: TossSpacing.space3,
                 ),
                 decoration: BoxDecoration(
-                  color: isSelected ? TossColors.primary : Colors.white,
+                  color: isSelected ? TossColors.primary : TossColors.white,
                   borderRadius: BorderRadius.circular(TossBorderRadius.full),
                   border: Border.all(
                     color: isSelected ? TossColors.primary : TossColors.gray300,
@@ -1517,7 +1509,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
                     Text(
                       locationName,
                       style: TossTextStyles.body.copyWith(
-                        color: isSelected ? Colors.white : TossColors.gray700,
+                        color: isSelected ? TossColors.white : TossColors.gray700,
                         fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
                       ),
                     ),
@@ -1530,14 +1522,14 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
                         ),
                         decoration: BoxDecoration(
                           color: isSelected 
-                              ? Colors.white.withOpacity(0.2)
+                              ? TossColors.white.withOpacity(0.2)
                               : TossColors.primary.withOpacity(0.1),
                           borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                         ),
                         child: Text(
                           currencyCode,
                           style: TossTextStyles.caption.copyWith(
-                            color: isSelected ? Colors.white : TossColors.primary,
+                            color: isSelected ? TossColors.white : TossColors.primary,
                             fontWeight: FontWeight.w600,
                             fontSize: 10,
                           ),
@@ -1915,18 +1907,20 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
       canSubmit = _calculateTotalAmount(tabType: 'vault') > 0 && vaultTransactionType != null;
     }
     
-    return TossPrimaryButton(
-      text: buttonText,
-      onPressed: canSubmit ? () async {
-        if (_tabController.index == 2) {
-          // For vault tab, use the vault-specific save function
-          await _saveVaultBalance();
-        } else {
-          // For cash and bank tabs, use the existing save function
-          await _saveCashEnding();
-        }
-      } : null,
-      isLoading: false,
+    return Center(
+      child: TossPrimaryButton(
+        text: buttonText,
+        onPressed: canSubmit ? () async {
+          if (_tabController.index == 2) {
+            // For vault tab, use the vault-specific save function
+            await _saveVaultBalance();
+          } else {
+            // For cash and bank tabs, use the existing save function
+            await _saveCashEnding();
+          }
+        } : null,
+        isLoading: false,
+      ),
     );
   }
   
@@ -1995,7 +1989,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
         Container(
           height: 56,
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: TossColors.white,
             borderRadius: BorderRadius.circular(TossBorderRadius.lg),
             border: Border.all(
               color: bankAmountController.text.isNotEmpty 
@@ -2005,7 +1999,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.05),
+                color: TossColors.black.withOpacity(0.05),
                 blurRadius: 10,
                 offset: const Offset(0, 2),
               ),
@@ -2600,7 +2594,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      backgroundColor: TossColors.transparent,
       builder: (BuildContext context) {
         return StatefulBuilder(
           builder: (BuildContext context, StateSetter setBottomSheetState) {
@@ -2617,7 +2611,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
             return Container(
               height: MediaQuery.of(context).size.height * 0.8,
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: TossColors.white,
                 borderRadius: BorderRadius.only(
                   topLeft: Radius.circular(TossBorderRadius.xxl),
                   topRight: Radius.circular(TossBorderRadius.xxl),
@@ -2660,10 +2654,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
                   Expanded(
                     child: isLoadingAllTransactions && allBankTransactions.isEmpty
                         ? Center(
-                            child: CircularProgressIndicator(
-                              color: TossColors.primary,
-                              strokeWidth: 2,
-                            ),
+                            child: TossLoadingView(),
                           )
                         : allBankTransactions.isEmpty && !isLoadingAllTransactions
                             ? Center(
@@ -2885,7 +2876,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
           child: Container(
             padding: const EdgeInsets.all(TossSpacing.space6),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: TossColors.white,
               borderRadius: BorderRadius.circular(TossBorderRadius.xxl),
             ),
             child: Column(
@@ -3221,7 +3212,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
                     Text(
                       currencySymbol,
                       style: TossTextStyles.h3.copyWith(
-                        color: Colors.white,
+                        color: TossColors.white,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
@@ -3230,7 +3221,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
                   Text(
                     currencyName,
                     style: TossTextStyles.body.copyWith(
-                      color: Colors.white,
+                      color: TossColors.white,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -3239,7 +3230,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
                     Text(
                       '($currencyCode)',
                       style: TossTextStyles.caption.copyWith(
-                        color: Colors.white.withOpacity(0.9),
+                        color: TossColors.white.withOpacity(0.9),
                       ),
                     ),
                   ],
@@ -3258,10 +3249,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
       return Center(
         child: Padding(
           padding: const EdgeInsets.all(TossSpacing.space8),
-          child: CircularProgressIndicator(
-            color: TossColors.primary,
-            strokeWidth: 2,
-          ),
+          child: TossLoadingView(),
         ),
       );
     }
@@ -3872,7 +3860,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
         child: Container(
           padding: const EdgeInsets.all(TossSpacing.space6),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: TossColors.white,
             borderRadius: BorderRadius.circular(TossBorderRadius.xxl),
           ),
           child: Column(
@@ -3941,11 +3929,11 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
   void _showStoreSelector() {
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.transparent,
+      backgroundColor: TossColors.transparent,
       isScrollControlled: true,
       builder: (context) => Container(
         decoration: const BoxDecoration(
-          color: Colors.white,
+          color: TossColors.white,
           borderRadius: BorderRadius.only(
             topLeft: Radius.circular(24),
             topRight: Radius.circular(24),
@@ -4016,7 +4004,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
                           vertical: TossSpacing.space4,
                         ),
                         decoration: BoxDecoration(
-                          color: isSelected ? TossColors.gray50 : Colors.transparent,
+                          color: isSelected ? TossColors.gray50 : TossColors.transparent,
                           border: const Border(
                             bottom: BorderSide(
                               color: TossColors.gray100,
@@ -4070,7 +4058,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
                                 child: const Icon(
                                   TossIcons.check,
                                   size: 16,
-                                  color: Colors.white,
+                                  color: TossColors.white,
                                 ),
                               ),
                           ],
@@ -4110,7 +4098,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
                         vertical: TossSpacing.space4,
                       ),
                       decoration: BoxDecoration(
-                        color: isSelected ? TossColors.gray50 : Colors.transparent,
+                        color: isSelected ? TossColors.gray50 : TossColors.transparent,
                         border: Border(
                           bottom: BorderSide(
                             color: TossColors.gray100,
@@ -4166,7 +4154,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
                               child: Icon(
                                 TossIcons.check,
                                 size: UIConstants.iconSizeXS,
-                                color: Colors.white,
+                                color: TossColors.white,
                               ),
                             ),
                         ],
@@ -4477,12 +4465,12 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
     
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.transparent,
+      backgroundColor: TossColors.transparent,
       isScrollControlled: true,
       builder: (BuildContext context) {
         return Container(
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: TossColors.white,
             borderRadius: BorderRadius.only(
               topLeft: Radius.circular(20),
               topRight: Radius.circular(20),
@@ -4497,7 +4485,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: Colors.grey[300],
+                  color: TossColors.gray300,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -4574,10 +4562,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
   Widget _buildRealTabContent() {
     if (isLoadingFlows) {
       return Center(
-        child: CircularProgressIndicator(
-          color: TossColors.primary,
-          strokeWidth: 2,
-        ),
+        child: TossLoadingView(),
       );
     }
     
@@ -4588,7 +4573,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
           child: Text(
             'No real data available',
             style: TossTextStyles.body.copyWith(
-              color: Colors.grey[500],
+              color: TossColors.gray500,
             ),
           ),
         ),
@@ -4647,7 +4632,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
           child: Text(
             'No data for selected filter',
             style: TossTextStyles.body.copyWith(
-              color: Colors.grey[500],
+              color: TossColors.gray500,
             ),
           ),
         ),
@@ -4705,10 +4690,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
   Widget _buildJournalTabContent() {
     if (isLoadingFlows) {
       return Center(
-        child: CircularProgressIndicator(
-          color: TossColors.primary,
-          strokeWidth: 2,
-        ),
+        child: TossLoadingView(),
       );
     }
     
@@ -4719,7 +4701,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
           child: Text(
             'No journal entries found',
             style: TossTextStyles.body.copyWith(
-              color: Colors.grey[500],
+              color: TossColors.gray500,
             ),
           ),
         ),
@@ -4772,7 +4754,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
           child: Text(
             'No data for selected filter',
             style: TossTextStyles.body.copyWith(
-              color: Colors.grey[500],
+              color: TossColors.gray500,
             ),
           ),
         ),
@@ -4859,7 +4841,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
                 ? Text(
                     flow.getFormattedDate(),
                     style: TossTextStyles.caption.copyWith(
-                      color: Colors.grey[600],
+                      color: TossColors.gray600,
                       fontWeight: FontWeight.w600,
                       fontSize: 14,
                       height: 1.2,
@@ -4891,7 +4873,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
                       child: Text(
                         flow.createdBy.fullName,
                         style: TossTextStyles.caption.copyWith(
-                          color: Colors.grey[500],
+                          color: TossColors.gray500,
                           fontSize: 13,
                           height: 1.2,
                         ),
@@ -4902,7 +4884,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
                       Text(
                         ' • ',
                         style: TossTextStyles.caption.copyWith(
-                          color: Colors.grey[500],
+                          color: TossColors.gray500,
                           fontSize: 13,
                           height: 1.2,
                         ),
@@ -4910,7 +4892,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
                       Text(
                         flow.getFormattedTime(),
                         style: TossTextStyles.caption.copyWith(
-                          color: Colors.grey[500],
+                          color: TossColors.gray500,
                           fontSize: 13,
                           height: 1.2,
                         ),
@@ -4945,7 +4927,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
               Text(
                 _formatBalance(flow.balanceAfter, currencySymbol),
                 style: TossTextStyles.caption.copyWith(
-                  color: Colors.grey[600],
+                  color: TossColors.gray600,
                   fontWeight: FontWeight.w500,
                   fontSize: 14,
                   height: 1.2,
@@ -4984,7 +4966,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
                 ? Text(
                     flow.getFormattedDate(),
                     style: TossTextStyles.caption.copyWith(
-                      color: Colors.grey[600],
+                      color: TossColors.gray600,
                       fontWeight: FontWeight.w600,
                       fontSize: 14,
                       height: 1.2,
@@ -5018,7 +5000,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
                       child: Text(
                         flow.createdBy.fullName,
                         style: TossTextStyles.caption.copyWith(
-                          color: Colors.grey[500],
+                          color: TossColors.gray500,
                           fontSize: 13,
                           height: 1.2,
                         ),
@@ -5029,7 +5011,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
                       Text(
                         ' • ',
                         style: TossTextStyles.caption.copyWith(
-                          color: Colors.grey[500],
+                          color: TossColors.gray500,
                           fontSize: 13,
                           height: 1.2,
                         ),
@@ -5037,7 +5019,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
                       Text(
                         flow.getFormattedTime(),
                         style: TossTextStyles.caption.copyWith(
-                          color: Colors.grey[500],
+                          color: TossColors.gray500,
                           fontSize: 13,
                           height: 1.2,
                         ),
@@ -5070,7 +5052,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
               Text(
                 _formatBalance(flow.balanceAfter, currencySymbol),
                 style: TossTextStyles.caption.copyWith(
-                  color: Colors.grey[500],
+                  color: TossColors.gray500,
                   fontSize: 13,
                   height: 1.2,
                 ),
@@ -5088,12 +5070,12 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
     
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.transparent,
+      backgroundColor: TossColors.transparent,
       isScrollControlled: true,
       builder: (BuildContext context) {
         return Container(
           decoration: const BoxDecoration(
-            color: Colors.white,
+            color: TossColors.white,
             borderRadius: BorderRadius.only(
               topLeft: Radius.circular(20),
               topRight: Radius.circular(20),
@@ -5111,7 +5093,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: Colors.grey[300],
+                  color: TossColors.gray300,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -5130,7 +5112,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
                       ),
                     ),
                     IconButton(
-                      icon: const Icon(Icons.close, size: 24, color: Colors.grey),
+                      icon: const Icon(Icons.close, size: 24, color: TossColors.gray500),
                       onPressed: () => Navigator.pop(context),
                       padding: EdgeInsets.zero,
                       constraints: const BoxConstraints(),
@@ -5159,7 +5141,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
                             Text(
                               'Total Balance',
                               style: TossTextStyles.body.copyWith(
-                                color: Colors.grey[700],
+                                color: TossColors.gray700,
                                 fontSize: 13,
                                 fontWeight: FontWeight.w500,
                               ),
@@ -5179,7 +5161,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
                                 Container(
                                   padding: const EdgeInsets.all(8),
                                   decoration: BoxDecoration(
-                                    color: Colors.white,
+                                    color: TossColors.white,
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                   child: Icon(
@@ -5200,7 +5182,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
                                       Text(
                                         'Previous Balance',
                                         style: TossTextStyles.caption.copyWith(
-                                          color: Colors.grey[600],
+                                          color: TossColors.gray600,
                                           fontSize: 12,
                                         ),
                                       ),
@@ -5224,7 +5206,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
                                       Text(
                                         'Change',
                                         style: TossTextStyles.caption.copyWith(
-                                          color: Colors.grey[600],
+                                          color: TossColors.gray600,
                                           fontSize: 12,
                                         ),
                                       ),
@@ -5266,12 +5248,12 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
                           return Container(
                             margin: const EdgeInsets.only(bottom: 16),
                             decoration: BoxDecoration(
-                              color: Colors.white,
+                              color: TossColors.white,
                               borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: Colors.grey[200]!),
+                              border: Border.all(color: TossColors.gray200),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withOpacity(0.04),
+                                  color: TossColors.black.withOpacity(0.04),
                                   blurRadius: 8,
                                   offset: const Offset(0, 2),
                                 ),
@@ -5283,7 +5265,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
                                 Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                                   decoration: BoxDecoration(
-                                    color: Colors.grey[50],
+                                    color: TossColors.gray50,
                                     borderRadius: const BorderRadius.only(
                                       topLeft: Radius.circular(12),
                                       topRight: Radius.circular(12),
@@ -5333,7 +5315,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
                                                 Text(
                                                   'Previous Qty',
                                                   style: TossTextStyles.caption.copyWith(
-                                                    color: Colors.grey[600],
+                                                    color: TossColors.gray600,
                                                     fontSize: 12,
                                                   ),
                                                 ),
@@ -5355,7 +5337,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
                                                 Text(
                                                   'Change',
                                                   style: TossTextStyles.caption.copyWith(
-                                                    color: Colors.grey[600],
+                                                    color: TossColors.gray600,
                                                     fontSize: 12,
                                                   ),
                                                 ),
@@ -5366,9 +5348,9 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
                                                     fontWeight: FontWeight.w600,
                                                     fontSize: 15,
                                                     color: denomination.quantityChange > 0 
-                                                        ? Colors.green[600] 
+                                                        ? TossColors.success 
                                                         : denomination.quantityChange < 0 
-                                                            ? Colors.red[600] 
+                                                            ? TossColors.error 
                                                             : Colors.black87,
                                                   ),
                                                 ),
@@ -5382,7 +5364,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
                                                 Text(
                                                   'Current Qty',
                                                   style: TossTextStyles.caption.copyWith(
-                                                    color: Colors.grey[600],
+                                                    color: TossColors.gray600,
                                                     fontSize: 12,
                                                   ),
                                                 ),
@@ -5401,7 +5383,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
                                       ),
                                       
                                       const SizedBox(height: 16),
-                                      Divider(color: Colors.grey[200], thickness: 1),
+                                      Divider(color: TossColors.gray200, thickness: 1),
                                       const SizedBox(height: 12),
                                       
                                       // Subtotal
@@ -5411,7 +5393,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
                                           Text(
                                             'Subtotal',
                                             style: TossTextStyles.body.copyWith(
-                                              color: Colors.grey[700],
+                                              color: TossColors.gray700,
                                               fontSize: 14,
                                               fontWeight: FontWeight.w500,
                                             ),
@@ -5441,7 +5423,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
                       Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: Colors.grey[50],
+                          color: TossColors.gray50,
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Column(
@@ -5476,12 +5458,12 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
     
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.transparent,
+      backgroundColor: TossColors.transparent,
       isScrollControlled: true,
       builder: (BuildContext context) {
         return Container(
           decoration: const BoxDecoration(
-            color: Colors.white,
+            color: TossColors.white,
             borderRadius: BorderRadius.only(
               topLeft: Radius.circular(20),
               topRight: Radius.circular(20),
@@ -5499,7 +5481,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: Colors.grey[300],
+                  color: TossColors.gray300,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -5518,7 +5500,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
                       ),
                     ),
                     IconButton(
-                      icon: const Icon(Icons.close, size: 24, color: Colors.grey),
+                      icon: const Icon(Icons.close, size: 24, color: TossColors.gray500),
                       onPressed: () => Navigator.pop(context),
                       padding: EdgeInsets.zero,
                       constraints: const BoxConstraints(),
@@ -5538,7 +5520,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
                       Text(
                         'Description',
                         style: TossTextStyles.body.copyWith(
-                          color: Colors.grey[700],
+                          color: TossColors.gray700,
                           fontSize: 13,
                           fontWeight: FontWeight.w500,
                         ),
@@ -5570,7 +5552,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
                                 Text(
                                   'Transaction\nAmount',
                                   style: TossTextStyles.body.copyWith(
-                                    color: Colors.grey[700],
+                                    color: TossColors.gray700,
                                     fontSize: 13,
                                     fontWeight: FontWeight.w500,
                                     height: 1.3,
@@ -5596,7 +5578,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
                                       Text(
                                         'Balance Before',
                                         style: TossTextStyles.caption.copyWith(
-                                          color: Colors.grey[600],
+                                          color: TossColors.gray600,
                                           fontSize: 12,
                                         ),
                                       ),
@@ -5620,7 +5602,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
                                       Text(
                                         'Balance After',
                                         style: TossTextStyles.caption.copyWith(
-                                          color: Colors.grey[600],
+                                          color: TossColors.gray600,
                                           fontSize: 12,
                                         ),
                                       ),
@@ -5648,7 +5630,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
                       Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: Colors.grey[50],
+                          color: TossColors.gray50,
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Column(
@@ -5692,7 +5674,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
             child: Text(
               label,
               style: TossTextStyles.body.copyWith(
-                color: Colors.grey[600],
+                color: TossColors.gray600,
                 fontSize: 14,
               ),
             ),
@@ -5719,7 +5701,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
         Text(
           label,
           style: TossTextStyles.body.copyWith(
-            color: Colors.grey[600],
+            color: TossColors.gray600,
             fontSize: 14,
             fontWeight: FontWeight.w500,
           ),
@@ -5750,7 +5732,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
         Container(
           height: 400, // Fixed height for the container
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: TossColors.white,
             borderRadius: BorderRadius.circular(TossBorderRadius.lg),
             boxShadow: TossShadows.card,
           ),
@@ -5769,8 +5751,8 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
                 ),
                 child: Theme(
                   data: ThemeData(
-                    splashColor: Colors.transparent,
-                    highlightColor: Colors.transparent,
+                    splashColor: TossColors.transparent,
+                    highlightColor: TossColors.transparent,
                   ),
                   child: TabBar(
                     controller: _journalTabController,
@@ -5784,7 +5766,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
                     ),
                     indicatorColor: Colors.black87,
                     labelColor: Colors.black87,
-                    unselectedLabelColor: Colors.grey[400],
+                    unselectedLabelColor: TossColors.gray400,
                     labelStyle: TossTextStyles.body.copyWith(
                       fontWeight: FontWeight.w600,
                       fontSize: 17,
@@ -5792,7 +5774,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
                     unselectedLabelStyle: TossTextStyles.body.copyWith(
                       fontSize: 17,
                     ),
-                    overlayColor: WidgetStateProperty.all(Colors.transparent),
+                    overlayColor: WidgetStateProperty.all(TossColors.transparent),
                     tabs: const [
                       Tab(text: 'Real'),
                       Tab(text: 'Journal'),
@@ -5816,7 +5798,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
                       Text(
                         selectedFilter,
                         style: TossTextStyles.body.copyWith(
-                          color: Colors.grey[600],
+                          color: TossColors.gray600,
                           fontWeight: FontWeight.w600,
                           fontSize: 14,
                         ),
@@ -5824,7 +5806,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
                       Icon(
                         Icons.keyboard_arrow_down,
                         size: 18,
-                        color: Colors.grey[600],
+                        color: TossColors.gray600,
                       ),
                     ],
                   ),

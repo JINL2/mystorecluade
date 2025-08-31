@@ -7,6 +7,7 @@ import '../../../../core/themes/toss_spacing.dart';
 import '../../../widgets/toss/toss_search_field.dart';
 import '../../../widgets/toss/toss_primary_button.dart';
 import '../../../widgets/toss/toss_secondary_button.dart';
+import '../../../widgets/common/toss_loading_view.dart';
 import '../models/role.dart';
 import '../providers/employee_setting_providers.dart';
 
@@ -143,7 +144,7 @@ class _RoleManagementModalState extends ConsumerState<RoleManagementModal> {
                 );
               },
               loading: () => Center(
-                child: CircularProgressIndicator(color: TossColors.primary),
+                child: TossLoadingView(),
               ),
               error: (error, stack) => Center(
                 child: Column(
@@ -235,7 +236,7 @@ class _RoleManagementModalState extends ConsumerState<RoleManagementModal> {
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: TossColors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: Offset(0, -2),
           ),
@@ -282,9 +283,7 @@ class _RoleManagementModalState extends ConsumerState<RoleManagementModal> {
       context: context,
       barrierDismissible: false,
       builder: (context) => Center(
-        child: CircularProgressIndicator(
-          color: TossColors.primary,
-        ),
+        child: TossLoadingView(),
       ),
     );
     

@@ -102,7 +102,7 @@ class MyFinanceAuthHeader extends StatelessWidget {
                       style: TextStyle(
                         color: TossColors.primary,
                         fontWeight: FontWeight.w800,
-                        fontSize: TossTextStyles.caption.fontSize!,
+                        fontSize: 12,
                       ),
                     ),
                   ),
@@ -113,7 +113,7 @@ class MyFinanceAuthHeader extends StatelessWidget {
                   style: TextStyle(
                     color: TossColors.white,
                     fontWeight: FontWeight.w700,
-                    fontSize: TossTextStyles.bodyLarge.fontSize!,
+                    fontSize: 18,
                     letterSpacing: -0.3,
                   ),
                 ),
@@ -159,7 +159,7 @@ class MyFinanceAuthHeader extends StatelessWidget {
                     style: TextStyle(
                       color: TossColors.primary,
                       fontWeight: FontWeight.w800,
-                      fontSize: TossTextStyles.body.fontSize!,
+                      fontSize: 16,
                     ),
                   ),
                 ),
@@ -170,7 +170,7 @@ class MyFinanceAuthHeader extends StatelessWidget {
                 style: TextStyle(
                   color: TossColors.white,
                   fontWeight: FontWeight.w700,
-                  fontSize: TossTextStyles.h4.fontSize!,
+                  fontSize: 24,
                   letterSpacing: -0.4,
                 ),
               ),
@@ -234,7 +234,7 @@ class MyFinanceAuthHeader extends StatelessWidget {
                             style: TextStyle(
                               color: TossColors.textPrimary,
                               fontWeight: FontWeight.w600,
-                              fontSize: TossTextStyles.bodyLarge.fontSize!,
+                              fontSize: 18,
                             ),
                           ),
                           const SizedBox(height: TossSpacing.space1),
@@ -242,7 +242,7 @@ class MyFinanceAuthHeader extends StatelessWidget {
                             'Contact our support team for assistance with your account',
                             style: TextStyle(
                               color: TossColors.textSecondary,
-                              fontSize: TossTextStyles.body.fontSize!,
+                              fontSize: 16,
                             ),
                           ),
                         ],
@@ -335,7 +335,7 @@ class MyFinanceWelcomeHeader extends StatelessWidget {
                   style: TextStyle(
                     color: TossColors.white,
                     fontWeight: FontWeight.w800,
-                    fontSize: TossTextStyles.display.fontSize!,
+                    fontSize: 32,
                   ),
                 ),
               ),
@@ -350,7 +350,7 @@ class MyFinanceWelcomeHeader extends StatelessWidget {
             style: TextStyle(
               color: TossColors.textPrimary,
               fontWeight: FontWeight.w800,
-              fontSize: TossTextStyles.display.fontSize!,
+              fontSize: 32,
               letterSpacing: -0.8,
             ),
           ),
@@ -363,7 +363,7 @@ class MyFinanceWelcomeHeader extends StatelessWidget {
             style: TextStyle(
               color: TossColors.textSecondary,
               fontWeight: FontWeight.w500,
-              fontSize: TossTextStyles.bodyLarge.fontSize!,
+              fontSize: 18,
               letterSpacing: -0.2,
             ),
           ),

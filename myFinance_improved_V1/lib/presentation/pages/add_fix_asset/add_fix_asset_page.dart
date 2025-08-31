@@ -8,6 +8,7 @@ import '../../../core/themes/toss_colors.dart';
 import '../../../core/themes/toss_text_styles.dart';
 import '../../widgets/common/toss_scaffold.dart';
 import '../../widgets/common/safe_popup_menu.dart';
+import '../../widgets/common/toss_loading_view.dart';
 
 class AddFixAssetPage extends ConsumerStatefulWidget {
   const AddFixAssetPage({super.key});
@@ -116,7 +117,7 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
         elevation: 2,
         child: const Icon(
           Icons.add,
-          color: Colors.white,
+          color: TossColors.white,
         ),
       ),
     );
@@ -243,10 +244,7 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
         );
       },
       loading: () => const Center(
-        child: CircularProgressIndicator(
-          color: TossColors.primary,
-          strokeWidth: 2,
-        ),
+        child: const TossLoadingView(),
       ),
       error: (error, stack) => Center(
         child: Column(
@@ -302,7 +300,7 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: TossColors.black.withOpacity(0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -636,7 +634,7 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
     
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.transparent,
+      backgroundColor: TossColors.transparent,
       isScrollControlled: true,
       builder: (context) => StatefulBuilder(
         builder: (context, setBottomSheetState) => Container(
@@ -1133,7 +1131,7 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
                           child: Text(
                             'Save Changes',
                             style: TossTextStyles.body.copyWith(
-                              color: Colors.white,
+                              color: TossColors.white,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -1191,7 +1189,7 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
     
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.transparent,
+      backgroundColor: TossColors.transparent,
       isScrollControlled: true,
       builder: (context) => StatefulBuilder(
         builder: (context, setBottomSheetState) => Container(
@@ -1245,7 +1243,7 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
                         child: const Icon(
                           Icons.add_business,
                           size: 26,
-                          color: Colors.white,
+                          color: TossColors.white,
                         ),
                       ),
                       const SizedBox(width: 16),
@@ -1400,7 +1398,7 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
                                 data: Theme.of(context).copyWith(
                                   colorScheme: const ColorScheme.light(
                                     primary: TossColors.primary,
-                                    onPrimary: Colors.white,
+                                    onPrimary: TossColors.white,
                                     surface: TossColors.background,
                                     onSurface: TossColors.gray900,
                                   ),
@@ -1536,7 +1534,7 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
                                   color: TossColors.gray400,
                                 ),
                                 filled: true,
-                                fillColor: Colors.white,
+                                fillColor: TossColors.white,
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(12),
                                   borderSide: BorderSide.none,
@@ -1600,7 +1598,7 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
                                         color: TossColors.gray400,
                                       ),
                                       filled: true,
-                                      fillColor: Colors.white,
+                                      fillColor: TossColors.white,
                                       border: OutlineInputBorder(
                                         borderRadius: BorderRadius.circular(12),
                                         borderSide: BorderSide.none,
@@ -1660,7 +1658,7 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
                                         color: TossColors.gray400,
                                       ),
                                       filled: true,
-                                      fillColor: Colors.white,
+                                      fillColor: TossColors.white,
                                       border: OutlineInputBorder(
                                         borderRadius: BorderRadius.circular(12),
                                         borderSide: BorderSide.none,
@@ -1745,7 +1743,7 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
                         Container(
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.8),
+                            color: TossColors.white.withOpacity(0.8),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Column(
@@ -1883,7 +1881,7 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
                                     children: [
                                       Icon(
                                         Icons.check_circle,
-                                        color: Colors.white,
+                                        color: TossColors.white,
                                         size: 20,
                                       ),
                                       const SizedBox(width: 12),
@@ -1899,8 +1897,8 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
                               );
                             },
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.transparent,
-                              shadowColor: Colors.transparent,
+                              backgroundColor: TossColors.transparent,
+                              shadowColor: TossColors.transparent,
                               padding: const EdgeInsets.symmetric(vertical: 18),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(14),
@@ -1911,14 +1909,14 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
                               children: [
                                 Icon(
                                   Icons.add_circle_outline,
-                                  color: Colors.white,
+                                  color: TossColors.white,
                                   size: 20,
                                 ),
                                 const SizedBox(width: 8),
                                 Text(
                                   'Add Asset',
                                   style: TossTextStyles.body.copyWith(
-                                    color: Colors.white,
+                                    color: TossColors.white,
                                     fontWeight: FontWeight.w700,
                                     fontSize: 16,
                                   ),
@@ -1944,7 +1942,7 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
   void _showStoreSelector(List<dynamic> stores) {
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.transparent,
+      backgroundColor: TossColors.transparent,
       isScrollControlled: true,
       builder: (context) => Container(
         constraints: BoxConstraints(

@@ -20,8 +20,8 @@ class TossDropdown<T> extends StatelessWidget {
   static const double _minBottomSheetHeight = 200.0;
   static const double _handleBarWidth = 36.0;
   static const double _handleBarHeight = 4.0;
-  static const double _iconSize = 24.0;
-  static const double _checkIconSize = 16.0;
+  static const double _iconSize = TossSpacing.iconMD;
+  static const double _checkIconSize = TossSpacing.iconXS;
 
   const TossDropdown({
     super.key,
@@ -46,8 +46,8 @@ class TossDropdown<T> extends StatelessWidget {
         if (label.isNotEmpty) ...[
           Text(
             label,
-            style: TossTextStyles.caption.copyWith(
-              color: hasError ? TossColors.error : TossColors.gray700,
+            style: TossTextStyles.label.copyWith(
+              color: hasError ? TossColors.error : TossColors.textSecondary,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -62,10 +62,8 @@ class TossDropdown<T> extends StatelessWidget {
             border: Border.all(
               color: hasError
                 ? TossColors.error
-                : value != null 
-                  ? TossColors.primary
-                  : TossColors.gray200,
-              width: 1,
+                : TossColors.border,
+              width: hasError ? 2 : 1,
             ),
           ),
           child: Material(
@@ -194,7 +192,7 @@ class TossDropdown<T> extends StatelessWidget {
   /// Helper method to get display text style
   TextStyle _getDisplayTextStyle() {
     return TossTextStyles.body.copyWith(
-      color: value != null ? TossColors.gray900 : TossColors.gray400,
+      color: value != null ? TossColors.textPrimary : TossColors.textTertiary,
       fontWeight: value != null ? FontWeight.w600 : FontWeight.w400,
       fontSize: UIConstants.textSizeLarge,
     );
@@ -397,7 +395,7 @@ class _BottomSheetContent<T> extends StatelessWidget {
         Text(
           item.label,
           style: TossTextStyles.body.copyWith(
-            color: isSelected ? TossColors.primary : TossColors.gray900,
+            color: isSelected ? TossColors.primary : TossColors.textPrimary,
             fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
             fontSize: UIConstants.textSizeLarge,
           ),

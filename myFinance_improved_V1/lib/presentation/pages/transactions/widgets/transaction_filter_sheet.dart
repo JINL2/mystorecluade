@@ -12,7 +12,8 @@ import '../../../widgets/toss/toss_secondary_button.dart';
 import '../../../widgets/toss/toss_dropdown.dart';
 import '../../../widgets/specific/selectors/autonomous_cash_location_selector.dart';
 import '../../../widgets/specific/selectors/autonomous_counterparty_selector.dart';
-import '../../../widgets/specific/selectors/autonomous_account_selector.dart';
+import '../../../widgets/specific/selectors/enhanced_multi_account_selector.dart';
+import '../../../widgets/common/toss_loading_view.dart';
 import '../providers/transaction_history_provider.dart';
 
 class TransactionFilterSheet extends ConsumerStatefulWidget {
@@ -43,6 +44,10 @@ class _TransactionFilterSheetState extends ConsumerState<TransactionFilterSheet>
     _selectedToDate = _filter.dateTo;
     _selectedAccountId = _filter.accountId;
     _selectedAccountIds = _filter.accountIds;
+    // Initialize single account from multi if available
+    if (_selectedAccountIds != null && _selectedAccountIds!.isNotEmpty) {
+      _selectedAccountId = _selectedAccountIds!.first;
+    }
     _selectedCashLocationId = _filter.cashLocationId;
     _selectedCounterpartyId = _filter.counterpartyId;
     _selectedJournalType = _filter.journalType;
@@ -103,15 +108,22 @@ class _TransactionFilterSheetState extends ConsumerState<TransactionFilterSheet>
           // New Toss selector components (self-managing)
           Column(
             children: [
-              // Accounts - using new autonomous multi selector
-              AutonomousMultiAccountSelector(
+              // Accounts - using enhanced multi-account selector with frequently used
+              EnhancedMultiAccountSelector(
                 selectedAccountIds: _selectedAccountIds,
-                onChanged: (values) {
+                contextType: 'transaction_filter', // Enable usage tracking
+                showQuickAccess: true, // Enable "Frequently Used" section
+                maxQuickItems: 5, // Show top 5 frequently used accounts
+                onChanged: (accountIds) {
                   setState(() {
-                    _selectedAccountIds = values ?? [];
-                    _selectedAccountId = null; // Clear single selection
+                    _selectedAccountIds = accountIds;
+                    _selectedAccountId = accountIds?.isNotEmpty == true ? accountIds!.first : null; // Sync with single-selection
                   });
                 },
+                label: 'Accounts',
+                hint: 'All Accounts',
+                showSearch: true,
+                showTransactionCount: false,
               ),
               const SizedBox(height: TossSpacing.space4),
               
@@ -202,7 +214,7 @@ class _TransactionFilterSheetState extends ConsumerState<TransactionFilterSheet>
               children: [
                 SizedBox(height: TossSpacing.space6),
                 Center(
-                  child: CircularProgressIndicator(color: TossColors.primary),
+                  child: TossLoadingView(),
                 ),
                 SizedBox(height: TossSpacing.space6),
               ],
@@ -217,7 +229,7 @@ class _TransactionFilterSheetState extends ConsumerState<TransactionFilterSheet>
                   ),
                   child: Row(
                     children: [
-                      const Icon(Icons.error_outline, color: TossColors.error, size: 20),
+                      Icon(Icons.error_outline, color: TossColors.error, size: TossSpacing.iconSM),
                       const SizedBox(width: TossSpacing.space2),
                       Expanded(
                         child: Text(
@@ -270,8 +282,8 @@ class _TransactionFilterSheetState extends ConsumerState<TransactionFilterSheet>
       children: [
         Text(
           'Scope',
-          style: TossTextStyles.caption.copyWith(
-            color: TossColors.gray500,
+          style: TossTextStyles.label.copyWith(
+            color: TossColors.textSecondary,
             fontWeight: FontWeight.w600,
           ),
         ),
@@ -309,7 +321,7 @@ class _TransactionFilterSheetState extends ConsumerState<TransactionFilterSheet>
                         children: [
                           Icon(
                             Icons.store,
-                            size: 16,
+                            size: TossSpacing.iconXS,
                             color: _selectedScope == TransactionScope.store
                                 ? TossColors.primary
                                 : TossColors.gray500,
@@ -332,7 +344,7 @@ class _TransactionFilterSheetState extends ConsumerState<TransactionFilterSheet>
                   ),
                 ),
               ),
-              Container(width: 1, height: 24, color: TossColors.gray200),
+              Container(width: 1, height: TossSpacing.space6, color: TossColors.gray200),
               Expanded(
                 child: InkWell(
                   onTap: () => setState(() => _selectedScope = TransactionScope.company),
@@ -358,7 +370,7 @@ class _TransactionFilterSheetState extends ConsumerState<TransactionFilterSheet>
                         children: [
                           Icon(
                             Icons.business,
-                            size: 16,
+                            size: TossSpacing.iconXS,
                             color: _selectedScope == TransactionScope.company
                                 ? TossColors.primary
                                 : TossColors.gray500,
@@ -395,8 +407,8 @@ class _TransactionFilterSheetState extends ConsumerState<TransactionFilterSheet>
       children: [
         Text(
           'Quick Filters',
-          style: TossTextStyles.caption.copyWith(
-            color: TossColors.gray500,
+          style: TossTextStyles.label.copyWith(
+            color: TossColors.textSecondary,
             fontWeight: FontWeight.w600,
           ),
         ),
@@ -474,8 +486,8 @@ class _TransactionFilterSheetState extends ConsumerState<TransactionFilterSheet>
       children: [
         Text(
           'Date Range',
-          style: TossTextStyles.caption.copyWith(
-            color: TossColors.gray500,
+          style: TossTextStyles.label.copyWith(
+            color: TossColors.textSecondary,
             fontWeight: FontWeight.w600,
           ),
         ),
@@ -542,7 +554,7 @@ class _TransactionFilterSheetState extends ConsumerState<TransactionFilterSheet>
           color: TossColors.white,
           borderRadius: BorderRadius.circular(TossBorderRadius.lg),
           border: Border.all(
-            color: value != null ? TossColors.primary : TossColors.gray200,
+            color: TossColors.border,
             width: 1,
           ),
         ),
@@ -554,26 +566,27 @@ class _TransactionFilterSheetState extends ConsumerState<TransactionFilterSheet>
               children: [
                 Text(
                   label,
-                  style: TossTextStyles.caption.copyWith(
-                    color: TossColors.gray500,
-                    fontSize: 10,
+                  style: TossTextStyles.small.copyWith(
+                    color: TossColors.textSecondary,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
-                const SizedBox(height: 2),
+                const SizedBox(height: TossSpacing.space1 / 2),
                 Text(
                   value != null
                       ? DateFormat('MMM d, yyyy').format(value)
                       : 'Select date',
-                  style: TossTextStyles.caption.copyWith(
+                  style: TossTextStyles.body.copyWith(
                     color: value != null ? TossColors.gray900 : TossColors.gray400,
+                    fontWeight: value != null ? FontWeight.w500 : FontWeight.normal,
                   ),
                 ),
               ],
             ),
             Icon(
               Icons.calendar_today,
-              size: 16,
-              color: value != null ? TossColors.primary : TossColors.gray400,
+              size: TossSpacing.iconXS,
+              color: TossColors.gray500,
             ),
           ],
         ),

@@ -8,6 +8,7 @@ import '../../../../core/themes/toss_spacing.dart';
 import '../../../../core/themes/toss_text_styles.dart';
 import '../../../../core/themes/toss_border_radius.dart';
 import '../../../../data/models/transaction_history_model.dart';
+import '../../../widgets/toss/toss_badge.dart';
 import '../../../widgets/toss/toss_card.dart';
 import 'transaction_detail_sheet.dart';
 
@@ -63,63 +64,36 @@ class TransactionListItem extends ConsumerWidget {
                     // Show store name (always show if available)
                     if (transaction.storeName != null && transaction.storeName!.isNotEmpty) ...[
                       const SizedBox(width: TossSpacing.space2),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: TossSpacing.space1,
-                          vertical: 1,
-                        ),
-                        decoration: BoxDecoration(
-                          color: TossColors.primarySurface.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(4),
+                      Flexible(
+                        child: TossBadge(
+                          label: transaction.storeName!,
+                          icon: Icons.store,
+                          iconSize: 10,
+                          backgroundColor: TossColors.primarySurface.withValues(alpha: 0.1),
+                          textColor: TossColors.primary,
                           border: Border.all(
                             color: TossColors.primary.withValues(alpha: 0.2),
                             width: 0.5,
                           ),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(
-                              Icons.store,
-                              size: 10,
-                              color: TossColors.primary,
-                            ),
-                            const SizedBox(width: 2),
-                            Flexible(
-                              child: Text(
-                                transaction.storeName!,
-                                style: TossTextStyles.caption.copyWith(
-                                  color: TossColors.primary,
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                                maxLines: 1,
-                              ),
-                            ),
-                          ],
+                          borderRadius: 4,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: TossSpacing.space1,
+                            vertical: 1,
+                          ),
                         ),
                       ),
                     ],
                   ],
                 ),
               ),
-              Container(
+              TossBadge(
+                label: 'JRN-${transaction.journalNumber.substring(0, 8).toUpperCase()}',
+                backgroundColor: TossColors.gray50,
+                textColor: TossColors.gray600,
+                borderRadius: 4,
                 padding: const EdgeInsets.symmetric(
                   horizontal: TossSpacing.space2,
                   vertical: 2,
-                ),
-                decoration: BoxDecoration(
-                  color: TossColors.gray50,
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: Text(
-                  'JRN-${transaction.journalNumber.substring(0, 8).toUpperCase()}',
-                  style: TossTextStyles.caption.copyWith(
-                    color: TossColors.gray600,
-                    fontSize: 11,
-                    fontFamily: 'JetBrains Mono',
-                  ),
                 ),
               ),
             ],

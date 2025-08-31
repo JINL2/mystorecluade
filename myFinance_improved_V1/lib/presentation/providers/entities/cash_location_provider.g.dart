@@ -902,6 +902,310 @@ class _CashLocationsByStoreProviderElement
   String get storeId => (origin as CashLocationsByStoreProvider).storeId;
 }
 
+String _$counterpartyCompanyCashLocationsHash() =>
+    r'd0df209039f1443d0debcb348e3347f1abd90a83';
+
+/// Get cash locations for a counterparty company
+///
+/// Copied from [counterpartyCompanyCashLocations].
+@ProviderFor(counterpartyCompanyCashLocations)
+const counterpartyCompanyCashLocationsProvider =
+    CounterpartyCompanyCashLocationsFamily();
+
+/// Get cash locations for a counterparty company
+///
+/// Copied from [counterpartyCompanyCashLocations].
+class CounterpartyCompanyCashLocationsFamily
+    extends Family<AsyncValue<List<CashLocationData>>> {
+  /// Get cash locations for a counterparty company
+  ///
+  /// Copied from [counterpartyCompanyCashLocations].
+  const CounterpartyCompanyCashLocationsFamily();
+
+  /// Get cash locations for a counterparty company
+  ///
+  /// Copied from [counterpartyCompanyCashLocations].
+  CounterpartyCompanyCashLocationsProvider call(
+    String companyId,
+  ) {
+    return CounterpartyCompanyCashLocationsProvider(
+      companyId,
+    );
+  }
+
+  @override
+  CounterpartyCompanyCashLocationsProvider getProviderOverride(
+    covariant CounterpartyCompanyCashLocationsProvider provider,
+  ) {
+    return call(
+      provider.companyId,
+    );
+  }
+
+  static const Iterable<ProviderOrFamily>? _dependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
+
+  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
+      _allTransitiveDependencies;
+
+  @override
+  String? get name => r'counterpartyCompanyCashLocationsProvider';
+}
+
+/// Get cash locations for a counterparty company
+///
+/// Copied from [counterpartyCompanyCashLocations].
+class CounterpartyCompanyCashLocationsProvider
+    extends AutoDisposeFutureProvider<List<CashLocationData>> {
+  /// Get cash locations for a counterparty company
+  ///
+  /// Copied from [counterpartyCompanyCashLocations].
+  CounterpartyCompanyCashLocationsProvider(
+    String companyId,
+  ) : this._internal(
+          (ref) => counterpartyCompanyCashLocations(
+            ref as CounterpartyCompanyCashLocationsRef,
+            companyId,
+          ),
+          from: counterpartyCompanyCashLocationsProvider,
+          name: r'counterpartyCompanyCashLocationsProvider',
+          debugGetCreateSourceHash:
+              const bool.fromEnvironment('dart.vm.product')
+                  ? null
+                  : _$counterpartyCompanyCashLocationsHash,
+          dependencies: CounterpartyCompanyCashLocationsFamily._dependencies,
+          allTransitiveDependencies:
+              CounterpartyCompanyCashLocationsFamily._allTransitiveDependencies,
+          companyId: companyId,
+        );
+
+  CounterpartyCompanyCashLocationsProvider._internal(
+    super._createNotifier, {
+    required super.name,
+    required super.dependencies,
+    required super.allTransitiveDependencies,
+    required super.debugGetCreateSourceHash,
+    required super.from,
+    required this.companyId,
+  }) : super.internal();
+
+  final String companyId;
+
+  @override
+  Override overrideWith(
+    FutureOr<List<CashLocationData>> Function(
+            CounterpartyCompanyCashLocationsRef provider)
+        create,
+  ) {
+    return ProviderOverride(
+      origin: this,
+      override: CounterpartyCompanyCashLocationsProvider._internal(
+        (ref) => create(ref as CounterpartyCompanyCashLocationsRef),
+        from: from,
+        name: null,
+        dependencies: null,
+        allTransitiveDependencies: null,
+        debugGetCreateSourceHash: null,
+        companyId: companyId,
+      ),
+    );
+  }
+
+  @override
+  AutoDisposeFutureProviderElement<List<CashLocationData>> createElement() {
+    return _CounterpartyCompanyCashLocationsProviderElement(this);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is CounterpartyCompanyCashLocationsProvider &&
+        other.companyId == companyId;
+  }
+
+  @override
+  int get hashCode {
+    var hash = _SystemHash.combine(0, runtimeType.hashCode);
+    hash = _SystemHash.combine(hash, companyId.hashCode);
+
+    return _SystemHash.finish(hash);
+  }
+}
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+mixin CounterpartyCompanyCashLocationsRef
+    on AutoDisposeFutureProviderRef<List<CashLocationData>> {
+  /// The parameter `companyId` of this provider.
+  String get companyId;
+}
+
+class _CounterpartyCompanyCashLocationsProviderElement
+    extends AutoDisposeFutureProviderElement<List<CashLocationData>>
+    with CounterpartyCompanyCashLocationsRef {
+  _CounterpartyCompanyCashLocationsProviderElement(super.provider);
+
+  @override
+  String get companyId =>
+      (origin as CounterpartyCompanyCashLocationsProvider).companyId;
+}
+
+String _$counterpartyStoreCashLocationsHash() =>
+    r'2e6c22cdba29e302fa32539594996fa66f8ab193';
+
+/// Get cash locations for a specific counterparty store
+///
+/// Copied from [counterpartyStoreCashLocations].
+@ProviderFor(counterpartyStoreCashLocations)
+const counterpartyStoreCashLocationsProvider =
+    CounterpartyStoreCashLocationsFamily();
+
+/// Get cash locations for a specific counterparty store
+///
+/// Copied from [counterpartyStoreCashLocations].
+class CounterpartyStoreCashLocationsFamily
+    extends Family<AsyncValue<List<CashLocationData>>> {
+  /// Get cash locations for a specific counterparty store
+  ///
+  /// Copied from [counterpartyStoreCashLocations].
+  const CounterpartyStoreCashLocationsFamily();
+
+  /// Get cash locations for a specific counterparty store
+  ///
+  /// Copied from [counterpartyStoreCashLocations].
+  CounterpartyStoreCashLocationsProvider call(
+    ({String companyId, String storeId}) params,
+  ) {
+    return CounterpartyStoreCashLocationsProvider(
+      params,
+    );
+  }
+
+  @override
+  CounterpartyStoreCashLocationsProvider getProviderOverride(
+    covariant CounterpartyStoreCashLocationsProvider provider,
+  ) {
+    return call(
+      provider.params,
+    );
+  }
+
+  static const Iterable<ProviderOrFamily>? _dependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
+
+  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
+      _allTransitiveDependencies;
+
+  @override
+  String? get name => r'counterpartyStoreCashLocationsProvider';
+}
+
+/// Get cash locations for a specific counterparty store
+///
+/// Copied from [counterpartyStoreCashLocations].
+class CounterpartyStoreCashLocationsProvider
+    extends AutoDisposeFutureProvider<List<CashLocationData>> {
+  /// Get cash locations for a specific counterparty store
+  ///
+  /// Copied from [counterpartyStoreCashLocations].
+  CounterpartyStoreCashLocationsProvider(
+    ({String companyId, String storeId}) params,
+  ) : this._internal(
+          (ref) => counterpartyStoreCashLocations(
+            ref as CounterpartyStoreCashLocationsRef,
+            params,
+          ),
+          from: counterpartyStoreCashLocationsProvider,
+          name: r'counterpartyStoreCashLocationsProvider',
+          debugGetCreateSourceHash:
+              const bool.fromEnvironment('dart.vm.product')
+                  ? null
+                  : _$counterpartyStoreCashLocationsHash,
+          dependencies: CounterpartyStoreCashLocationsFamily._dependencies,
+          allTransitiveDependencies:
+              CounterpartyStoreCashLocationsFamily._allTransitiveDependencies,
+          params: params,
+        );
+
+  CounterpartyStoreCashLocationsProvider._internal(
+    super._createNotifier, {
+    required super.name,
+    required super.dependencies,
+    required super.allTransitiveDependencies,
+    required super.debugGetCreateSourceHash,
+    required super.from,
+    required this.params,
+  }) : super.internal();
+
+  final ({String companyId, String storeId}) params;
+
+  @override
+  Override overrideWith(
+    FutureOr<List<CashLocationData>> Function(
+            CounterpartyStoreCashLocationsRef provider)
+        create,
+  ) {
+    return ProviderOverride(
+      origin: this,
+      override: CounterpartyStoreCashLocationsProvider._internal(
+        (ref) => create(ref as CounterpartyStoreCashLocationsRef),
+        from: from,
+        name: null,
+        dependencies: null,
+        allTransitiveDependencies: null,
+        debugGetCreateSourceHash: null,
+        params: params,
+      ),
+    );
+  }
+
+  @override
+  AutoDisposeFutureProviderElement<List<CashLocationData>> createElement() {
+    return _CounterpartyStoreCashLocationsProviderElement(this);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is CounterpartyStoreCashLocationsProvider &&
+        other.params == params;
+  }
+
+  @override
+  int get hashCode {
+    var hash = _SystemHash.combine(0, runtimeType.hashCode);
+    hash = _SystemHash.combine(hash, params.hashCode);
+
+    return _SystemHash.finish(hash);
+  }
+}
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+mixin CounterpartyStoreCashLocationsRef
+    on AutoDisposeFutureProviderRef<List<CashLocationData>> {
+  /// The parameter `params` of this provider.
+  ({String companyId, String storeId}) get params;
+}
+
+class _CounterpartyStoreCashLocationsProviderElement
+    extends AutoDisposeFutureProviderElement<List<CashLocationData>>
+    with CounterpartyStoreCashLocationsRef {
+  _CounterpartyStoreCashLocationsProviderElement(super.provider);
+
+  @override
+  ({String companyId, String storeId}) get params =>
+      (origin as CounterpartyStoreCashLocationsProvider).params;
+}
+
 String _$cashLocationListHash() => r'e999684ef41acc1df651687487f0c754269d6c22';
 
 abstract class _$CashLocationList

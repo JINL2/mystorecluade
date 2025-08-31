@@ -17,6 +17,7 @@ import 'widgets/modern_bottom_drawer.dart';
 import '../notifications/notifications_page.dart';
 import '../../../data/services/click_tracking_service.dart';
 import '../../widgets/common/toss_scaffold.dart';
+import '../../widgets/common/toss_loading_view.dart';
 import '../../../core/navigation/safe_navigation.dart';
 
 class HomePageRedesigned extends ConsumerStatefulWidget {
@@ -193,7 +194,7 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
               ),
             ),
             loading: () => Center(
-              child: CircularProgressIndicator(color: TossColors.primary),
+              child: TossLoadingView(),
             ),
             error: (error, stack) => Center(
               child: Column(
@@ -251,7 +252,7 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
                   isLabelVisible: unreadCount > 0,
                   label: unreadCount > 99 ? const Text('99+') : Text('$unreadCount'),
                   backgroundColor: TossColors.primary,
-                  textColor: Colors.white,
+                  textColor: TossColors.white,
                   child: Icon(
                     Icons.notifications_none_rounded,
                     color: TossColors.textSecondary,
@@ -1297,7 +1298,7 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
                 ),
                 SizedBox(height: TossSpacing.space6),
                 Center(
-                  child: CircularProgressIndicator(color: TossColors.primary),
+                  child: TossLoadingView(),
                 ),
               ],
             ),

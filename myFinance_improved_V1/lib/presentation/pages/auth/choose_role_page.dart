@@ -48,7 +48,7 @@ class _ChooseRolePageState extends ConsumerState<ChooseRolePage> {
                     ),
                     child: const Icon(
                       Icons.store,
-                      color: Colors.white,
+                      color: TossColors.white,
                       size: 24,
                     ),
                   ),
@@ -225,14 +225,14 @@ class _ChooseRolePageState extends ConsumerState<ChooseRolePage> {
     required VoidCallback onTap,
   }) {
     return Material(
-      color: Colors.transparent,
+      color: TossColors.transparent,
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(16),
         child: Container(
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: TossColors.white,
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
               color: TossColors.gray200,
@@ -240,7 +240,7 @@ class _ChooseRolePageState extends ConsumerState<ChooseRolePage> {
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.05),
+                color: TossColors.black.withOpacity(0.05),
                 blurRadius: 10,
                 offset: const Offset(0, 4),
               ),

@@ -103,7 +103,7 @@ class _JournalInputPageState extends ConsumerState<JournalInputPage>
     final result = await showModalBottomSheet<TransactionLine>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      backgroundColor: TossColors.transparent,
       useRootNavigator: true,
       builder: (context) => Padding(
         padding: EdgeInsets.only(
@@ -128,7 +128,7 @@ class _JournalInputPageState extends ConsumerState<JournalInputPage>
     final result = await showModalBottomSheet<TransactionLine>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      backgroundColor: TossColors.transparent,
       useRootNavigator: true,
       builder: (context) => Padding(
         padding: EdgeInsets.only(
@@ -263,10 +263,11 @@ class _JournalInputPageState extends ConsumerState<JournalInputPage>
     final selectedStore = ref.watch(selectedStoreProvider);
     
     return TossScaffold(
-      backgroundColor: TossColors.gray50,
+      backgroundColor: TossColors.gray100,
       resizeToAvoidBottomInset: false,
       appBar: TossAppBar(
         title: 'Journal Entry',
+        backgroundColor: TossColors.gray100,
         leading: IconButton(
           icon: Icon(Icons.arrow_back_ios, color: TossColors.gray700, size: 20),
           onPressed: () => NavigationHelper.safeGoBack(context),
@@ -449,10 +450,10 @@ class _JournalInputPageState extends ConsumerState<JournalInputPage>
             // Bottom Actions - Keep this outside the scroll view
             Container(
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: TossColors.white,
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.06),
+                    color: TossColors.black.withValues(alpha: 0.06),
                     blurRadius: 12,
                     offset: Offset(0, -2),
                   ),

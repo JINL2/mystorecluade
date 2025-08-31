@@ -125,16 +125,6 @@ class TossAppBar extends StatelessWidget implements PreferredSizeWidget {
       iconTheme: IconThemeData(
         color: TossColors.textPrimary,
       ),
-      bottom: PreferredSize(
-        preferredSize: const Size.fromHeight(1),
-        child: Container(
-          height: 1,
-          decoration: BoxDecoration(
-            color: TossColors.borderLight,
-            boxShadow: elevation > 0 ? TossShadows.elevation1 : null,
-          ),
-        ),
-      ),
     );
   }
 }

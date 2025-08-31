@@ -7,6 +7,8 @@ import '../../../core/notifications/models/notification_db_model.dart';
 import '../../../core/notifications/services/notification_service.dart';
 import '../../providers/notification_provider.dart';
 import '../../widgets/common/toss_scaffold.dart';
+import '../../widgets/common/toss_loading_view.dart';
+import '../../widgets/toss/toss_card.dart';
 
 /// Main notifications page for the app
 class NotificationsPage extends ConsumerStatefulWidget {
@@ -83,7 +85,7 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage> {
                 child: Text(
                   '$_unreadCount',
                   style: const TextStyle(
-                    color: Colors.white,
+                    color: TossColors.white,
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
                   ),
@@ -107,7 +109,7 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage> {
         onRefresh: _loadNotificationData,
         color: TossColors.primary,
         child: _isLoading
-            ? const Center(child: CircularProgressIndicator())
+            ? const TossLoadingView()
             : CustomScrollView(
                 slivers: [
                   // Database Stats Section
@@ -132,12 +134,9 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage> {
   }
   
   Widget _buildDatabaseStatsCard() {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: Padding(
-        padding: EdgeInsets.all(TossSpacing.space4),
-        child: Column(
+    return TossCard(
+      padding: EdgeInsets.all(TossSpacing.space4),
+      child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
@@ -168,16 +167,15 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage> {
                   child: _buildStatItem('Total', _stats['total']?.toString() ?? '0', TossColors.primary),
                 ),
                 Expanded(
-                  child: _buildStatItem('Unread', _stats['unread']?.toString() ?? '0', Colors.red),
+                  child: _buildStatItem('Unread', _stats['unread']?.toString() ?? '0', TossColors.error),
                 ),
                 Expanded(
-                  child: _buildStatItem('Today', _stats['today']?.toString() ?? '0', Colors.green),
+                  child: _buildStatItem('Today', _stats['today']?.toString() ?? '0', TossColors.success),
                 ),
               ],
             ),
           ],
         ),
-      ),
     );
   }
   
@@ -202,12 +200,9 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage> {
   }
   
   Widget _buildNotificationsList() {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: Padding(
-        padding: EdgeInsets.all(TossSpacing.space4),
-        child: Column(
+    return TossCard(
+      padding: EdgeInsets.all(TossSpacing.space4),
+      child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
@@ -258,7 +253,6 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage> {
               ),
           ],
         ),
-      ),
     );
   }
   
@@ -273,7 +267,7 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage> {
         ),
       ),
       child: Material(
-        color: Colors.transparent,
+        color: TossColors.transparent,
         child: InkWell(
           onTap: notification.isRead ? null : () => _markAsRead(notification.id ?? ''),
           borderRadius: BorderRadius.circular(12),
@@ -368,7 +362,7 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: const Text('📖 Notification marked as read'),
-          backgroundColor: Colors.green,
+          backgroundColor: TossColors.success,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
@@ -380,7 +374,7 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: const Text('❌ Failed to mark as read'),
-          backgroundColor: Colors.red,
+          backgroundColor: TossColors.error,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),

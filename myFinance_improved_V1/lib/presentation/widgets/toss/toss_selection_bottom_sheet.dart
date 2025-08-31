@@ -13,6 +13,7 @@ class TossSelectionItem {
   final String? subtitle;
   final IconData? icon;
   final Map<String, dynamic>? data;
+  final bool isSelected;
 
   const TossSelectionItem({
     required this.id,
@@ -20,6 +21,7 @@ class TossSelectionItem {
     this.subtitle,
     this.icon,
     this.data,
+    this.isSelected = false,
   });
 
   /// Factory constructor for store items

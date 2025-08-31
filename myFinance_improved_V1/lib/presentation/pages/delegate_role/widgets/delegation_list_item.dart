@@ -34,7 +34,7 @@ class DelegationListItem extends StatelessWidget {
         vertical: TossSpacing.space2,
       ),
       child: Material(
-        color: Colors.transparent,
+        color: TossColors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(TossBorderRadius.md),
           onTap: onEdit,
@@ -53,7 +53,7 @@ class DelegationListItem extends StatelessWidget {
                       child: Text(
                         delegation.delegateUserInitial,
                         style: TossTextStyles.label.copyWith(
-                          color: Colors.white,
+                          color: TossColors.white,
                           fontWeight: FontWeight.w600,
                         ),
                       ),

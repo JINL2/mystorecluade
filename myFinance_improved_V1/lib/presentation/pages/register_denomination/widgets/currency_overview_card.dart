@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../widgets/toss/toss_card.dart';
+import '../../../widgets/common/toss_loading_view.dart';
 import '../../../../core/themes/toss_colors.dart';
 import '../../../../core/themes/toss_text_styles.dart';
 import '../../../../core/themes/toss_spacing.dart';
@@ -65,7 +66,7 @@ class CurrencyOverviewCard extends ConsumerWidget {
               loading: () => const Padding(
                 padding: EdgeInsets.all(TossSpacing.space5),
                 child: Center(
-                  child: CircularProgressIndicator(color: TossColors.primary),
+                  child: TossLoadingView(),
                 ),
               ),
               error: (error, _) => Padding(
@@ -332,7 +333,7 @@ class CurrencyOverviewCard extends ConsumerWidget {
   void _showAddDenominationSheet(BuildContext context) {
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.transparent,
+      backgroundColor: TossColors.transparent,
       isScrollControlled: true,
       builder: (context) => AddDenominationBottomSheet(currency: currency),
     );
@@ -479,10 +480,7 @@ class CurrencyOverviewCard extends ConsumerWidget {
                         const SizedBox(
                           width: 16,
                           height: 16,
-                          child: const CircularProgressIndicator(
-                            strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation(TossColors.error),
-                          ),
+                          child: TossLoadingView(),
                         ),
                         const SizedBox(width: 8),
                         const Text('Removing...'),
@@ -557,7 +555,7 @@ class CurrencyOverviewCard extends ConsumerWidget {
   void _showEditExchangeRateSheet(BuildContext context) {
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.transparent,
+      backgroundColor: TossColors.transparent,
       isScrollControlled: true,
       builder: (context) => EditExchangeRateBottomSheet(currency: currency),
     );

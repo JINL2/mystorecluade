@@ -8,6 +8,7 @@ import '../../../core/themes/toss_shadows.dart';
 import '../../../core/themes/toss_colors.dart';
 import '../../widgets/common/toss_scaffold.dart';
 import '../../widgets/common/toss_app_bar.dart';
+import '../../widgets/common/toss_loading_view.dart';
 import '../../../data/services/cash_journal_service.dart';
 import '../../providers/app_state_provider.dart';
 import 'utils/string_extensions.dart';
@@ -192,7 +193,7 @@ class _TotalJournalPageState extends ConsumerState<TotalJournalPage> {
                     return _buildTransactionList(transactions);
                   },
                   loading: () => const Center(
-                    child: CircularProgressIndicator(),
+                    child: TossLoadingView(),
                   ),
                   error: (error, stack) => Center(
                     child: Column(
@@ -371,12 +372,7 @@ class _TotalJournalPageState extends ConsumerState<TotalJournalPage> {
     return Container(
       padding: EdgeInsets.symmetric(vertical: TossSpacing.space4),
       child: Center(
-        child: CircularProgressIndicator(
-          strokeWidth: 2,
-          valueColor: AlwaysStoppedAnimation<Color>(
-            Theme.of(context).colorScheme.primary,
-          ),
-        ),
+        child: const TossLoadingView(),
       ),
     );
   }
@@ -622,7 +618,7 @@ class _TotalJournalPageState extends ConsumerState<TotalJournalPage> {
   void _showTransactionDetailBottomSheet(TransactionDisplay transaction) {
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.transparent,
+      backgroundColor: TossColors.transparent,
       isScrollControlled: true,
       builder: (BuildContext context) {
         return _TransactionDetailBottomSheet(
@@ -778,7 +774,7 @@ class _TransactionDetailBottomSheet extends StatelessWidget {
     
     return Container(
       decoration: const BoxDecoration(
-        color: Colors.white,
+        color: TossColors.white,
         borderRadius: BorderRadius.only(
           topLeft: Radius.circular(20),
           topRight: Radius.circular(20),
@@ -834,7 +830,7 @@ class _TransactionDetailBottomSheet extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: transaction.isIncome 
                         ? Theme.of(context).colorScheme.primary.withOpacity(0.1)
-                        : Colors.red.withOpacity(0.1),
+                        : TossColors.error.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Row(
@@ -857,7 +853,7 @@ class _TransactionDetailBottomSheet extends StatelessWidget {
                               fontWeight: FontWeight.w700,
                               color: transaction.isIncome 
                                   ? Theme.of(context).colorScheme.primary
-                                  : Colors.red,
+                                  : TossColors.error,
                             ),
                           ),
                         ],
@@ -866,7 +862,7 @@ class _TransactionDetailBottomSheet extends StatelessWidget {
                         transaction.isIncome ? Icons.trending_up : Icons.trending_down,
                         color: transaction.isIncome 
                             ? Theme.of(context).colorScheme.primary
-                            : Colors.red,
+                            : TossColors.error,
                         size: 32,
                       ),
                     ],
@@ -1001,9 +997,9 @@ class _TransactionDetailBottomSheet extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.grey[50],
+        color: TossColors.gray50,
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.grey[200]!),
+        border: Border.all(color: TossColors.gray200),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1024,7 +1020,7 @@ class _TransactionDetailBottomSheet extends StatelessWidget {
                 '${isDebit ? '+' : '-'}${_formatCurrency(amount)}',
                 style: TossTextStyles.body.copyWith(
                   fontWeight: FontWeight.w600,
-                  color: isDebit ? Colors.green : Colors.red,
+                  color: isDebit ? TossColors.success : TossColors.error,
                   fontSize: 14,
                 ),
               ),

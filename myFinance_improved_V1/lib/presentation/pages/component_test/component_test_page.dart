@@ -8,6 +8,8 @@ import '../../../core/notifications/models/notification_db_model.dart';
 import '../../../core/notifications/services/notification_service.dart';
 import '../../providers/notification_provider.dart';
 import '../../widgets/common/toss_scaffold.dart';
+import '../../widgets/common/toss_loading_view.dart';
+import '../../widgets/toss/toss_card.dart';
 
 /// Debug page for testing and monitoring the notification system
 class ComponentTestPage extends ConsumerStatefulWidget {
@@ -76,7 +78,7 @@ class _ComponentTestPageState extends ConsumerState<ComponentTestPage> {
         elevation: 0,
       ),
       body: notificationState.isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(child: TossLoadingView())
           : SingleChildScrollView(
               padding: EdgeInsets.all(TossSpacing.space4),
               child: Column(
@@ -100,11 +102,8 @@ class _ComponentTestPageState extends ConsumerState<ComponentTestPage> {
   }
   
   Widget _buildStatusCard(NotificationState state) {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: EdgeInsets.all(TossSpacing.space4),
+    return TossCard(
+      padding: EdgeInsets.all(TossSpacing.space4),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -112,7 +111,7 @@ class _ComponentTestPageState extends ConsumerState<ComponentTestPage> {
               children: [
                 Icon(
                   state.isInitialized ? Icons.check_circle : Icons.error,
-                  color: state.isInitialized ? Colors.green : Colors.red,
+                  color: state.isInitialized ? TossColors.success : TossColors.error,
                 ),
                 SizedBox(width: TossSpacing.space2),
                 Text(
@@ -128,7 +127,6 @@ class _ComponentTestPageState extends ConsumerState<ComponentTestPage> {
             _buildStatusRow('Permissions Granted', state.isInitialized),
           ],
         ),
-      ),
     );
   }
   
@@ -145,13 +143,13 @@ class _ComponentTestPageState extends ConsumerState<ComponentTestPage> {
               vertical: TossSpacing.space1,
             ),
             decoration: BoxDecoration(
-              color: status ? Colors.green.withOpacity(0.1) : Colors.red.withOpacity(0.1),
+              color: status ? TossColors.success.withOpacity(0.1) : TossColors.error.withOpacity(0.1),
               borderRadius: BorderRadius.circular(6),
             ),
             child: Text(
               status ? 'Active' : 'Inactive',
               style: TossTextStyles.caption.copyWith(
-                color: status ? Colors.green : Colors.red,
+                color: status ? TossColors.success : TossColors.error,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -162,11 +160,8 @@ class _ComponentTestPageState extends ConsumerState<ComponentTestPage> {
   }
   
   Widget _buildTokensCard(NotificationState state) {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: EdgeInsets.all(TossSpacing.space4),
+    return TossCard(
+      padding: EdgeInsets.all(TossSpacing.space4),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -217,17 +212,17 @@ class _ComponentTestPageState extends ConsumerState<ComponentTestPage> {
               Container(
                 padding: EdgeInsets.all(TossSpacing.space3),
                 decoration: BoxDecoration(
-                  color: Colors.orange.withOpacity(0.1),
+                  color: TossColors.warning.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(
                   children: [
-                    Icon(Icons.warning, color: Colors.orange),
+                    Icon(Icons.warning, color: TossColors.warning),
                     SizedBox(width: TossSpacing.space2),
                     Expanded(
                       child: Text(
                         'No FCM token available. This is normal on iOS simulator.',
-                        style: TossTextStyles.body.copyWith(color: Colors.orange[700]),
+                        style: TossTextStyles.body.copyWith(color: TossColors.warning),
                       ),
                     ),
                   ],
@@ -236,22 +231,18 @@ class _ComponentTestPageState extends ConsumerState<ComponentTestPage> {
             ],
           ],
         ),
-      ),
     );
   }
   
   Widget _buildTestActionsCard(NotificationNotifier notifier) {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: EdgeInsets.all(TossSpacing.space4),
+    return TossCard(
+      padding: EdgeInsets.all(TossSpacing.space4),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
-                Icon(Icons.play_arrow, color: Colors.blue),
+                Icon(Icons.play_arrow, color: TossColors.primary),
                 SizedBox(width: TossSpacing.space2),
                 Text(
                   'Test Actions',
@@ -268,7 +259,7 @@ class _ComponentTestPageState extends ConsumerState<ComponentTestPage> {
                 label: const Text('Send Test Notification'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: TossColors.primary,
-                  foregroundColor: Colors.white,
+                  foregroundColor: TossColors.white,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                 ),
               ),
@@ -281,8 +272,8 @@ class _ComponentTestPageState extends ConsumerState<ComponentTestPage> {
                 icon: const Icon(Icons.schedule),
                 label: const Text('Schedule Notification (5s)'),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.orange,
-                  foregroundColor: Colors.white,
+                  backgroundColor: TossColors.warning,
+                  foregroundColor: TossColors.white,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                 ),
               ),
@@ -295,8 +286,8 @@ class _ComponentTestPageState extends ConsumerState<ComponentTestPage> {
                 icon: const Icon(Icons.security),
                 label: const Text('Test Permissions'),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green,
-                  foregroundColor: Colors.white,
+                  backgroundColor: TossColors.success,
+                  foregroundColor: TossColors.white,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                 ),
               ),
@@ -309,30 +300,26 @@ class _ComponentTestPageState extends ConsumerState<ComponentTestPage> {
                 icon: const Icon(Icons.refresh),
                 label: const Text('Refresh Database'),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.purple,
-                  foregroundColor: Colors.white,
+                  backgroundColor: TossColors.primary,
+                  foregroundColor: TossColors.white,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                 ),
               ),
             ),
           ],
         ),
-      ),
     );
   }
   
   Widget _buildNotificationHistoryCard(NotificationState state) {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: EdgeInsets.all(TossSpacing.space4),
+    return TossCard(
+      padding: EdgeInsets.all(TossSpacing.space4),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
-                Icon(Icons.history, color: Colors.purple),
+                Icon(Icons.history, color: TossColors.primary),
                 SizedBox(width: TossSpacing.space2),
                 Text(
                   'Recent Notifications',
@@ -346,12 +333,12 @@ class _ComponentTestPageState extends ConsumerState<ComponentTestPage> {
                       vertical: TossSpacing.space1,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.red,
+                      color: TossColors.error,
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
                       '$_unreadCount',
-                      style: TossTextStyles.caption.copyWith(color: Colors.white),
+                      style: TossTextStyles.caption.copyWith(color: TossColors.white),
                     ),
                   ),
                 SizedBox(width: TossSpacing.space2),
@@ -364,7 +351,7 @@ class _ComponentTestPageState extends ConsumerState<ComponentTestPage> {
             ),
             SizedBox(height: TossSpacing.space3),
             if (_isLoadingHistory)
-              const Center(child: CircularProgressIndicator())
+              const Center(child: TossLoadingView())
             else if (_notifications.isEmpty)
               Container(
                 padding: EdgeInsets.all(TossSpacing.space3),
@@ -391,7 +378,6 @@ class _ComponentTestPageState extends ConsumerState<ComponentTestPage> {
               ),
           ],
         ),
-      ),
     );
   }
   
@@ -456,12 +442,12 @@ class _ComponentTestPageState extends ConsumerState<ComponentTestPage> {
                     vertical: TossSpacing.space1,
                   ),
                   decoration: BoxDecoration(
-                    color: Colors.blue.withOpacity(0.1),
+                    color: TossColors.primary.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(
                     notification.category!,
-                    style: TossTextStyles.small.copyWith(color: Colors.blue),
+                    style: TossTextStyles.small.copyWith(color: TossColors.primary),
                   ),
                 ),
                 SizedBox(width: TossSpacing.space2),
@@ -482,17 +468,14 @@ class _ComponentTestPageState extends ConsumerState<ComponentTestPage> {
   Widget _buildDebugInfoCard(NotificationState state) {
     final debugInfo = _notificationService.getDebugInfo();
     
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: EdgeInsets.all(TossSpacing.space4),
+    return TossCard(
+      padding: EdgeInsets.all(TossSpacing.space4),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
-                Icon(Icons.bug_report, color: Colors.red),
+                Icon(Icons.bug_report, color: TossColors.error),
                 SizedBox(width: TossSpacing.space2),
                 Text(
                   'Debug Information',
@@ -518,7 +501,6 @@ class _ComponentTestPageState extends ConsumerState<ComponentTestPage> {
             _buildDebugRow('Error Message', state.error ?? 'None'),
           ],
         ),
-      ),
     );
   }
   
@@ -553,7 +535,7 @@ class _ComponentTestPageState extends ConsumerState<ComponentTestPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('✅ Test notification sent and stored in database!'),
-          backgroundColor: Colors.green,
+          backgroundColor: TossColors.success,
         ),
       );
       
@@ -567,7 +549,7 @@ class _ComponentTestPageState extends ConsumerState<ComponentTestPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('❌ Failed to send notification: $e'),
-          backgroundColor: Colors.red,
+          backgroundColor: TossColors.error,
         ),
       );
     }
@@ -581,14 +563,14 @@ class _ComponentTestPageState extends ConsumerState<ComponentTestPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('⏰ Test notification sent! (Scheduling feature can be added)'),
-          backgroundColor: Colors.orange,
+          backgroundColor: TossColors.warning,
         ),
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('❌ Failed to send notification: $e'),
-          backgroundColor: Colors.red,
+          backgroundColor: TossColors.error,
         ),
       );
     }
@@ -601,31 +583,28 @@ class _ComponentTestPageState extends ConsumerState<ComponentTestPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('🔐 Permission check completed!'),
-          backgroundColor: Colors.green,
+          backgroundColor: TossColors.success,
         ),
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('❌ Permission test failed: $e'),
-          backgroundColor: Colors.red,
+          backgroundColor: TossColors.error,
         ),
       );
     }
   }
   
   Widget _buildDatabaseStatsCard() {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: EdgeInsets.all(TossSpacing.space4),
+    return TossCard(
+      padding: EdgeInsets.all(TossSpacing.space4),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
-                Icon(Icons.storage, color: Colors.indigo),
+                Icon(Icons.storage, color: TossColors.primary),
                 SizedBox(width: TossSpacing.space2),
                 Text(
                   'Database Statistics',
@@ -637,19 +616,18 @@ class _ComponentTestPageState extends ConsumerState<ComponentTestPage> {
             Row(
               children: [
                 Expanded(
-                  child: _buildStatItem('Total', _stats['total']?.toString() ?? '0', Colors.blue),
+                  child: _buildStatItem('Total', _stats['total']?.toString() ?? '0', TossColors.primary),
                 ),
                 Expanded(
-                  child: _buildStatItem('Unread', _stats['unread']?.toString() ?? '0', Colors.red),
+                  child: _buildStatItem('Unread', _stats['unread']?.toString() ?? '0', TossColors.error),
                 ),
                 Expanded(
-                  child: _buildStatItem('Today', _stats['today']?.toString() ?? '0', Colors.green),
+                  child: _buildStatItem('Today', _stats['today']?.toString() ?? '0', TossColors.success),
                 ),
               ],
             ),
           ],
         ),
-      ),
     );
   }
   
@@ -680,7 +658,7 @@ class _ComponentTestPageState extends ConsumerState<ComponentTestPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('📖 Notification marked as read'),
-          backgroundColor: Colors.green,
+          backgroundColor: TossColors.success,
         ),
       );
       _loadNotificationData(); // Refresh the list
@@ -690,7 +668,7 @@ class _ComponentTestPageState extends ConsumerState<ComponentTestPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('❌ Failed to mark as read'),
-          backgroundColor: Colors.red,
+          backgroundColor: TossColors.error,
         ),
       );
     }

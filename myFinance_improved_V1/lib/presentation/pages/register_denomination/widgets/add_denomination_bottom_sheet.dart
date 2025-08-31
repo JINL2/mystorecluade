@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/themes/toss_colors.dart';
 import '../../../../core/themes/toss_text_styles.dart';
 import '../../../../core/themes/toss_animations.dart';
+import '../../../widgets/common/toss_loading_view.dart';
 import '../../../../domain/entities/currency.dart';
 import '../../../../domain/entities/denomination.dart';
 import '../providers/denomination_providers.dart';
@@ -227,10 +228,7 @@ class _AddDenominationBottomSheetState extends ConsumerState<AddDenominationBott
                           ? const SizedBox(
                               width: 20,
                               height: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                valueColor: AlwaysStoppedAnimation<Color>(TossColors.white),
-                              ),
+                              child: TossLoadingView(),
                             )
                           : Text(
                               'Add Denomination',
@@ -364,7 +362,7 @@ class _TypeSelectionButton extends StatelessWidget {
             Text(
               label,
               style: TossTextStyles.button.copyWith(
-                color: isSelected ? Colors.white : TossColors.gray700,
+                color: isSelected ? TossColors.white : TossColors.gray700,
               ),
             ),
           ],

@@ -4,6 +4,7 @@ import '../../../widgets/toss/toss_primary_button.dart';
 import '../../../widgets/toss/toss_secondary_button.dart';
 import '../../../widgets/toss/toss_search_field.dart';
 import '../../../widgets/toss/toss_checkbox.dart';
+import '../../../widgets/common/toss_loading_view.dart';
 import '../../../../core/themes/toss_colors.dart';
 import '../../../../core/themes/toss_text_styles.dart';
 import '../../../../core/themes/toss_spacing.dart';
@@ -407,9 +408,7 @@ class _AddCurrencyBottomSheetState extends ConsumerState<AddCurrencyBottomSheet>
               loading: () => const Center(
                 child: Padding(
                   padding: EdgeInsets.symmetric(vertical: TossSpacing.space8),
-                  child: CircularProgressIndicator(
-                    color: TossColors.primary,
-                  ),
+                  child: TossLoadingView(),
                 ),
               ),
               error: (error, _) => Padding(
@@ -654,10 +653,7 @@ class _AddCurrencyBottomSheetState extends ConsumerState<AddCurrencyBottomSheet>
                           const SizedBox(
                             width: 12,
                             height: 12,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: TossColors.primary,
-                            ),
+                            child: const TossLoadingView(),
                           ),
                           const SizedBox(width: TossSpacing.space2),
                           Text(

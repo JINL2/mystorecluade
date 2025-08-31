@@ -8,6 +8,7 @@ import '../../../../core/themes/toss_border_radius.dart';
 import '../../../providers/app_state_provider.dart';
 import '../../../widgets/toss/toss_primary_button.dart';
 import '../../../widgets/toss/toss_dropdown.dart';
+import '../../../widgets/common/toss_loading_view.dart';
 import '../../../../data/services/company_service.dart';
 import '../providers/homepage_providers.dart';
 import '../../../../data/services/store_service.dart';
@@ -1469,9 +1470,7 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              CircularProgressIndicator(
-                color: Theme.of(context).colorScheme.primary,
-              ),
+              TossLoadingView(),
               SizedBox(height: TossSpacing.space3),
               Text(
                 'Creating company...',
@@ -1594,9 +1593,7 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              CircularProgressIndicator(
-                color: Theme.of(context).colorScheme.primary,
-              ),
+              TossLoadingView(),
               SizedBox(height: TossSpacing.space3),
               Text(
                 'Creating store...',

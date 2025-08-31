@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_core/firebase_core.dart';
+import '../../widgets/common/toss_loading_view.dart';
+import '../../widgets/toss/toss_card.dart';
+import '../../../core/themes/toss_colors.dart';
 
 class PushNotificationDiagnostic extends StatefulWidget {
   const PushNotificationDiagnostic({Key? key}) : super(key: key);
@@ -176,7 +179,7 @@ class _PushNotificationDiagnosticState extends State<PushNotificationDiagnostic>
             const Center(
               child: Padding(
                 padding: EdgeInsets.all(20),
-                child: CircularProgressIndicator(),
+                child: TossLoadingView(),
               ),
             ),
           
@@ -185,12 +188,13 @@ class _PushNotificationDiagnosticState extends State<PushNotificationDiagnostic>
               child: Text('No diagnostic results yet'),
             ),
           
-          ..._results.map((result) => Card(
-            margin: const EdgeInsets.only(bottom: 12),
-            child: ListTile(
+          ..._results.map((result) => Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: TossCard(
+              child: ListTile(
               leading: Icon(
                 result.success ? Icons.check_circle : Icons.error,
-                color: result.success ? Colors.green : Colors.red,
+                color: result.success ? TossColors.success : TossColors.error,
                 size: 32,
               ),
               title: Text(
@@ -202,11 +206,11 @@ class _PushNotificationDiagnosticState extends State<PushNotificationDiagnostic>
                 ? _copyToken
                 : null,
             ),
+            ),
           )).toList(),
           
           if (_fcmToken != null)
-            Card(
-              color: Colors.blue.shade50,
+            TossCard(
               child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: Column(
@@ -234,8 +238,7 @@ class _PushNotificationDiagnosticState extends State<PushNotificationDiagnostic>
           
           const SizedBox(height: 20),
           
-          Card(
-            color: Colors.amber.shade50,
+          TossCard(
             child: const Padding(
               padding: EdgeInsets.all(16),
               child: Column(
@@ -298,7 +301,7 @@ class _PushNotificationDiagnosticState extends State<PushNotificationDiagnostic>
             const SizedBox(height: 10),
             Container(
               padding: const EdgeInsets.all(8),
-              color: Colors.grey.shade200,
+              color: TossColors.gray200,
               child: SelectableText(
                 _fcmToken!,
                 style: const TextStyle(fontSize: 12),

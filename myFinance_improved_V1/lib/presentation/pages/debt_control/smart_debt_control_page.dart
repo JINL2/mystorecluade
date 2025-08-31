@@ -128,8 +128,9 @@ class _SmartDebtControlPageState extends ConsumerState<SmartDebtControlPage>
     return TossScaffold(
       appBar: TossAppBar(
         title: 'Debt Control',
+        backgroundColor: TossColors.background,
       ),
-      backgroundColor: const Color(0xFFF7F8FA),
+      backgroundColor: TossColors.background,
       body: SafeArea(
         child: Column(
           children: [
@@ -399,7 +400,7 @@ class _SmartDebtControlPageState extends ConsumerState<SmartDebtControlPage>
           borderRadius: BorderRadius.circular(25),
           boxShadow: isSelected ? [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.08),
+              color: TossColors.black.withValues(alpha: 0.08),
               blurRadius: 4,
               offset: const Offset(0, 2),
             ),

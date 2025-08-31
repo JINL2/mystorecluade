@@ -11,6 +11,7 @@ import '../../providers/app_state_provider.dart';
 import 'qr_scanner_page.dart';
 import '../../widgets/common/toss_scaffold.dart';
 import '../../widgets/common/toss_app_bar.dart';
+import '../../widgets/common/toss_loading_view.dart';
 
 class AttendanceMainPage extends StatefulWidget {
   const AttendanceMainPage({super.key});
@@ -45,6 +46,7 @@ class _AttendanceMainPageState extends State<AttendanceMainPage> with SingleTick
       backgroundColor: TossColors.background,
       appBar: const TossAppBar(
         title: 'Attendance',
+        backgroundColor: TossColors.background,
       ),
       body: SafeArea(
         child: Column(
@@ -75,7 +77,7 @@ class _AttendanceMainPageState extends State<AttendanceMainPage> with SingleTick
                             borderRadius: BorderRadius.circular(22),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withOpacity(0.08),
+                                color: TossColors.black.withOpacity(0.08),
                                 blurRadius: 4,
                                 offset: const Offset(0, 2),
                               ),
@@ -83,7 +85,7 @@ class _AttendanceMainPageState extends State<AttendanceMainPage> with SingleTick
                           ),
                           indicatorSize: TabBarIndicatorSize.tab,
                           indicatorPadding: const EdgeInsets.all(2),
-                          dividerColor: Colors.transparent,
+                          dividerColor: TossColors.transparent,
                           labelColor: TossColors.gray900,
                           unselectedLabelColor: TossColors.gray500,
                           labelStyle: TossTextStyles.labelLarge.copyWith(
@@ -388,7 +390,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
   void _showStoreSelector(List<dynamic> stores) {
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.transparent,
+      backgroundColor: TossColors.transparent,
       isScrollControlled: true,
       builder: (context) => Container(
         decoration: const BoxDecoration(
@@ -461,7 +463,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
                         vertical: TossSpacing.space4,
                       ),
                       decoration: BoxDecoration(
-                        color: isSelected ? TossColors.gray50 : Colors.transparent,
+                        color: isSelected ? TossColors.gray50 : TossColors.transparent,
                         border: Border(
                           bottom: BorderSide(
                             color: TossColors.gray100,
@@ -606,14 +608,14 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
       barrierDismissible: true,
       builder: (BuildContext context) {
         return Dialog(
-          backgroundColor: Colors.transparent,
+          backgroundColor: TossColors.transparent,
           child: Container(
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: TossColors.white,
               borderRadius: BorderRadius.circular(20),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
+                  color: TossColors.black.withOpacity(0.1),
                   blurRadius: 20,
                   offset: const Offset(0, 10),
                 ),
@@ -763,14 +765,14 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
                                   barrierDismissible: true,
                                   builder: (BuildContext context) {
                                     return Dialog(
-                                      backgroundColor: Colors.transparent,
+                                      backgroundColor: TossColors.transparent,
                                       child: Container(
                                         decoration: BoxDecoration(
-                                          color: Colors.white,
+                                          color: TossColors.white,
                                           borderRadius: BorderRadius.circular(20),
                                           boxShadow: [
                                             BoxShadow(
-                                              color: Colors.black.withOpacity(0.1),
+                                              color: TossColors.black.withOpacity(0.1),
                                               blurRadius: 20,
                                               offset: const Offset(0, 10),
                                             ),
@@ -888,14 +890,14 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
       barrierDismissible: true,
       builder: (BuildContext context) {
         return Dialog(
-          backgroundColor: Colors.transparent,
+          backgroundColor: TossColors.transparent,
           child: Container(
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: TossColors.white,
               borderRadius: BorderRadius.circular(20),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
+                  color: TossColors.black.withOpacity(0.1),
                   blurRadius: 20,
                   offset: const Offset(0, 10),
                 ),
@@ -1046,14 +1048,14 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
       barrierDismissible: true,
       builder: (BuildContext context) {
         return Dialog(
-          backgroundColor: Colors.transparent,
+          backgroundColor: TossColors.transparent,
           child: Container(
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: TossColors.white,
               borderRadius: BorderRadius.circular(20),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
+                  color: TossColors.black.withOpacity(0.1),
                   blurRadius: 20,
                   offset: const Offset(0, 10),
                 ),
@@ -1149,14 +1151,14 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
       barrierDismissible: true,
       builder: (BuildContext context) {
         return Dialog(
-          backgroundColor: Colors.transparent,
+          backgroundColor: TossColors.transparent,
           child: Container(
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: TossColors.white,
               borderRadius: BorderRadius.circular(20),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
+                  color: TossColors.black.withOpacity(0.1),
                   blurRadius: 20,
                   offset: const Offset(0, 10),
                 ),
@@ -1288,9 +1290,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
         context: context,
         barrierDismissible: true, // Allow dismissing loading dialogs
         builder: (BuildContext context) {
-          return const Center(
-            child: CircularProgressIndicator(),
-          );
+          return const TossLoadingView();
         },
       );
       
@@ -1321,14 +1321,14 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
           barrierDismissible: true,
           builder: (BuildContext context) {
             return Dialog(
-              backgroundColor: Colors.transparent,
+              backgroundColor: TossColors.transparent,
               child: Container(
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: TossColors.white,
                   borderRadius: BorderRadius.circular(20),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
+                      color: TossColors.black.withOpacity(0.1),
                       blurRadius: 20,
                       offset: const Offset(0, 10),
                     ),
@@ -1647,10 +1647,10 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
               top: TossSpacing.space4,
             ),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: TossColors.white,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
+                  color: TossColors.black.withOpacity(0.05),
                   blurRadius: 10,
                   offset: const Offset(0, -2),
                 ),
@@ -1688,7 +1688,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
                         : 'Select a Shift',
                       style: TossTextStyles.bodyLarge.copyWith(
                         color: selectedShift != null
-                          ? Colors.white
+                          ? TossColors.white
                           : TossColors.gray500,
                         fontWeight: FontWeight.w600,
                       ),
@@ -1765,7 +1765,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
                   ? TossColors.primary
                   : isToday
                       ? TossColors.gray100
-                      : Colors.transparent,
+                      : TossColors.transparent,
               borderRadius: BorderRadius.circular(12),
             ),
             child: Stack(
@@ -1778,7 +1778,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
                       day.toString(),
                       style: TossTextStyles.body.copyWith(
                         color: isSelected
-                            ? Colors.white
+                            ? TossColors.white
                             : isPast
                                 ? TossColors.gray300
                                 : isWeekend
@@ -1796,7 +1796,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
                         height: 6,
                         decoration: BoxDecoration(
                           color: isSelected
-                              ? Colors.white
+                              ? TossColors.white
                               : isApproved
                                   ? TossColors.success
                                   : TossColors.warning,
@@ -2089,10 +2089,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
                   const Center(
                     child: Padding(
                       padding: EdgeInsets.symmetric(vertical: TossSpacing.space4),
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: TossColors.primary,
-                      ),
+                      child: TossLoadingView(),
                     ),
                   ),
                 ] else if (allStoreShifts.isNotEmpty) ...[
@@ -2271,7 +2268,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
                                 child: Text(
                                   isApproved ? 'Approved' : 'Pending',
                                   style: TossTextStyles.caption.copyWith(
-                                    color: Colors.white,
+                                    color: TossColors.white,
                                     fontWeight: FontWeight.w600,
                                     fontSize: 10,
                                   ),
@@ -2418,7 +2415,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      backgroundColor: TossColors.transparent,
       builder: (context) => Container(
         height: MediaQuery.of(context).size.height * 0.6,
         decoration: BoxDecoration(
@@ -2518,7 +2515,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
                             child: Text(
                               'Save',
                               style: TossTextStyles.body.copyWith(
-                                color: Colors.white,
+                                color: TossColors.white,
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
@@ -3011,9 +3008,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
             ),
             borderRadius: BorderRadius.circular(16),
           ),
-          child: const Center(
-            child: CircularProgressIndicator(),
-          ),
+          child: const TossLoadingView(),
         ),
       );
     }
@@ -3647,14 +3642,14 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                       children: [
                         const Icon(
                           Icons.qr_code_scanner,
-                          color: Colors.white,
+                          color: TossColors.white,
                           size: 24,
                         ),
                         const SizedBox(width: TossSpacing.space2),
                         Text(
                           'Scan QR',
                           style: TossTextStyles.labelLarge.copyWith(
-                            color: Colors.white,
+                            color: TossColors.white,
                             fontWeight: FontWeight.w700,
                           ),
                         ),
@@ -3797,7 +3792,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
               ),
               // View Calendar Button
               Material(
-                color: Colors.transparent,
+                color: TossColors.transparent,
                 child: InkWell(
                   onTap: () {
                     HapticFeedback.selectionClick();
@@ -3890,7 +3885,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                           ? TossColors.primary 
                           : isToday 
                             ? TossColors.surface
-                            : Colors.transparent,
+                            : TossColors.transparent,
                         borderRadius: BorderRadius.circular(16),
                         border: isToday && !isSelected
                           ? Border.all(
@@ -4237,7 +4232,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                 return Column(
                   children: [
                     Material(
-                      color: Colors.transparent,
+                      color: TossColors.transparent,
                       child: InkWell(
                         onTap: () {
                           _showActivityDetails(activity);
@@ -4392,7 +4387,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      backgroundColor: TossColors.transparent,
       builder: (context) => Container(
         height: MediaQuery.of(context).size.height * 0.8,
         decoration: BoxDecoration(
@@ -4594,7 +4589,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                           ),
                         ),
                         child: Material(
-                          color: Colors.transparent,
+                          color: TossColors.transparent,
                           child: InkWell(
                             onTap: () {
                               // Create activity object and show details
@@ -4810,7 +4805,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      backgroundColor: TossColors.transparent,
       builder: (context) => Container(
         height: MediaQuery.of(context).size.height * 0.8,
         decoration: BoxDecoration(
@@ -4850,7 +4845,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
               child: Container(
                 margin: const EdgeInsets.all(TossSpacing.space5),
                 decoration: BoxDecoration(
-                  color: Colors.black,
+                  color: TossColors.black,
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: Center(
@@ -4859,14 +4854,14 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                     children: [
                       const Icon(
                         Icons.qr_code_scanner,
-                        color: Colors.white,
+                        color: TossColors.white,
                         size: 80,
                       ),
                       const SizedBox(height: TossSpacing.space4),
                       Text(
                         'Point at store QR code',
                         style: TossTextStyles.body.copyWith(
-                          color: Colors.white,
+                          color: TossColors.white,
                         ),
                       ),
                     ],
@@ -4932,7 +4927,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      backgroundColor: TossColors.transparent,
       builder: (modalContext) {
         // Use StatefulBuilder to ensure the modal rebuilds when parent state changes
         return StatefulBuilder(
@@ -5053,12 +5048,12 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                   ? TossColors.primary
                   : isToday
                       ? TossColors.primary.withOpacity(0.1)
-                      : Colors.transparent,
+                      : TossColors.transparent,
               borderRadius: BorderRadius.circular(8),
               border: Border.all(
                 color: isToday && !isSelected
                     ? TossColors.primary
-                    : Colors.transparent,
+                    : TossColors.transparent,
                 width: 1,
               ),
             ),
@@ -5070,7 +5065,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                     day.toString(),
                     style: TossTextStyles.body.copyWith(
                       color: isSelected
-                          ? Colors.white
+                          ? TossColors.white
                           : TossColors.gray900,
                       fontWeight: isSelected || isToday
                           ? FontWeight.w600
@@ -5091,7 +5086,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                             height: 4,
                             decoration: BoxDecoration(
                               color: isSelected
-                                  ? Colors.white
+                                  ? TossColors.white
                                   : TossColors.success,
                               shape: BoxShape.circle,
                             ),
@@ -5106,7 +5101,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                             height: 4,
                             decoration: BoxDecoration(
                               color: isSelected
-                                  ? Colors.white
+                                  ? TossColors.white
                                   : TossColors.warning,
                               shape: BoxShape.circle,
                             ),
@@ -5268,7 +5263,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
     
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.transparent,
+      backgroundColor: TossColors.transparent,
       isScrollControlled: true,
       builder: (context) => Container(
         constraints: BoxConstraints(
@@ -5556,7 +5551,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                         ),
                       ),
                       child: Material(
-                        color: Colors.transparent,
+                        color: TossColors.transparent,
                         child: InkWell(
                           onTap: (cardData['is_reported'] ?? false) || !(cardData['is_approved'] ?? false)
                               ? null  // Disable if already reported OR not approved
@@ -5586,7 +5581,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                                   color: TossColors.surface,
                                   borderRadius: BorderRadius.circular(12),
                                 ),
-                                child: const CircularProgressIndicator(),
+                                child: const TossLoadingView(),
                               ),
                             ),
                           );
@@ -5955,7 +5950,7 @@ class _CalendarBottomSheetState extends State<_CalendarBottomSheet> {
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.01),
+                    color: TossColors.black.withOpacity(0.01),
                     blurRadius: 4,
                     offset: const Offset(0, 1),
                   ),

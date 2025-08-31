@@ -8,6 +8,7 @@ import '../../../../core/themes/toss_spacing.dart';
 import '../../../widgets/toss/toss_dropdown.dart';
 import '../../../widgets/toss/toss_primary_button.dart';
 import '../../../widgets/toss/toss_secondary_button.dart';
+import '../../../widgets/common/toss_loading_view.dart';
 import '../models/employee_salary.dart';
 import '../models/currency_type.dart';
 import '../models/salary_update_request.dart';
@@ -198,7 +199,7 @@ class _SalaryEditModalState extends ConsumerState<SalaryEditModal> {
                         },
                         hint: 'Select currency',
                       ),
-                      loading: () => CircularProgressIndicator(),
+                      loading: () => TossLoadingView(),
                       error: (_, __) => Text('Failed to load currencies'),
                     ),
                     
@@ -356,7 +357,7 @@ class _SalaryEditModalState extends ConsumerState<SalaryEditModal> {
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: TossColors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: Offset(0, -2),
           ),
@@ -438,7 +439,7 @@ class _SalaryEditModalState extends ConsumerState<SalaryEditModal> {
         context: context,
         barrierDismissible: true, // Allow dismissing loading dialogs
         builder: (context) => Center(
-          child: CircularProgressIndicator(color: TossColors.primary),
+          child: TossLoadingView(),
         ),
       );
       

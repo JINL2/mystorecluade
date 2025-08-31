@@ -402,7 +402,7 @@ class _RolePermissionPageState extends ConsumerState<RolePermissionPage> {
                                                       children: [
                                                         CustomSlidableAction(
                                                           onPressed: (_) => _deleteRole(role),
-                                                          backgroundColor: Colors.transparent,
+                                                          backgroundColor: TossColors.transparent,
                                                           child: Container(
                                                             alignment: Alignment.center,
                                                             child: Container(
@@ -545,7 +545,7 @@ class _RolePermissionPageState extends ConsumerState<RolePermissionPage> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      backgroundColor: TossColors.transparent,
       builder: (context) => _CreateRoleBottomSheet(),
     );
   }
@@ -836,7 +836,7 @@ class _CreateRoleBottomSheetState extends ConsumerState<_CreateRoleBottomSheet> 
         children: [
           // Collapsible header
           Material(
-            color: Colors.transparent,
+            color: TossColors.transparent,
             borderRadius: BorderRadius.vertical(
               top: Radius.circular(TossBorderRadius.lg),
               bottom: Radius.circular(isExpanded ? 0 : TossBorderRadius.lg),

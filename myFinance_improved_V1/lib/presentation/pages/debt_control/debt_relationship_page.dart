@@ -9,6 +9,7 @@ import '../../../core/utils/number_formatter.dart';
 import '../../widgets/common/toss_scaffold.dart';
 import '../../widgets/common/toss_white_card.dart';
 import '../../widgets/common/toss_app_bar.dart';
+import '../../widgets/common/toss_loading_view.dart';
 import '../../providers/app_state_provider.dart';
 import 'providers/debt_control_providers.dart';
 import '../../../data/models/transaction_history_model.dart';
@@ -487,7 +488,7 @@ class _DebtRelationshipPageState extends ConsumerState<DebtRelationshipPage> {
             const Center(
               child: Padding(
                 padding: EdgeInsets.symmetric(vertical: 32),
-                child: CircularProgressIndicator(),
+                child: TossLoadingView(),
               ),
             )
           else if (_recentTransactions != null && _recentTransactions!.isNotEmpty)
@@ -664,7 +665,7 @@ class _DebtRelationshipPageState extends ConsumerState<DebtRelationshipPage> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      backgroundColor: TossColors.transparent,
       builder: (context) => Container(
         decoration: BoxDecoration(
           color: TossColors.surface,
@@ -762,7 +763,7 @@ class _DebtRelationshipPageState extends ConsumerState<DebtRelationshipPage> {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
                             content: Text('Counterparty updated successfully'),
-                            backgroundColor: Colors.green,
+                            backgroundColor: TossColors.success,
                           ),
                         );
                       },
@@ -786,7 +787,7 @@ class _DebtRelationshipPageState extends ConsumerState<DebtRelationshipPage> {
     required VoidCallback onTap,
   }) {
     return Material(
-      color: Colors.transparent,
+      color: TossColors.transparent,
       child: InkWell(
         borderRadius: BorderRadius.circular(TossBorderRadius.lg),
         onTap: onTap,

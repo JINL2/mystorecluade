@@ -239,3 +239,33 @@ Future<List<CounterpartyData>> searchCounterparties(
            (cp.email?.toLowerCase().contains(queryLower) ?? false);
   }).toList();
 }
+
+// =====================================================
+// COUNTERPARTY STORES PROVIDER
+// Get stores for a specific counterparty company
+// =====================================================
+
+/// Get stores for a counterparty company
+@riverpod
+Future<List<Map<String, dynamic>>> counterpartyStores(
+  CounterpartyStoresRef ref,
+  String companyId,
+) async {
+  final supabase = ref.read(supabaseServiceProvider);
+  
+  try {
+    final response = await supabase.client
+        .from('stores')
+        .select('store_id, store_name, store_address')
+        .eq('company_id', companyId)
+        .eq('is_active', true)
+        .order('store_name');
+    
+    if (response == null) return [];
+    
+    return List<Map<String, dynamic>>.from(response as List);
+  } catch (e) {
+    // Return empty list on error
+    return [];
+  }
+}

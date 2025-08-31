@@ -10,6 +10,7 @@ import '../../../core/themes/toss_spacing.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/attendance_provider.dart';
 import '../../widgets/common/toss_scaffold.dart';
+import '../../widgets/common/toss_loading_view.dart';
 
 class QRScannerPage extends ConsumerStatefulWidget {
   const QRScannerPage({super.key});
@@ -85,7 +86,7 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
     showDialog(
       context: context,
       barrierDismissible: false,
-      barrierColor: Colors.black.withOpacity(0.7),
+      barrierColor: TossColors.black.withOpacity(0.7),
       builder: (context) => Center(
         child: Container(
           margin: const EdgeInsets.symmetric(horizontal: 40),
@@ -95,7 +96,7 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
             borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.1),
+                color: TossColors.black.withOpacity(0.1),
                 blurRadius: 20,
                 offset: const Offset(0, 10),
               ),
@@ -290,7 +291,7 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
           // Scanner overlay
           Container(
             decoration: BoxDecoration(
-              color: Colors.black.withOpacity(0.5),
+              color: TossColors.black.withOpacity(0.5),
             ),
             child: Stack(
               children: [
@@ -316,9 +317,7 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
                   child: Column(
                     children: [
                       if (isProcessing)
-                        const CircularProgressIndicator(
-                          color: TossColors.white,
-                        )
+                        const TossLoadingView()
                       else
                         Text(
                           'Scan QR Code',
@@ -348,7 +347,7 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
           ClipPath(
             clipper: _ScannerOverlayClipper(),
             child: Container(
-              color: Colors.black.withOpacity(0.5),
+              color: TossColors.black.withOpacity(0.5),
             ),
           ),
         ],

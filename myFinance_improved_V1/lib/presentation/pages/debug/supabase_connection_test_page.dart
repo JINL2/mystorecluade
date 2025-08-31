@@ -8,6 +8,8 @@ import '../../../core/themes/toss_animations.dart';
 import '../../../data/services/user_profile_service.dart';
 import '../../providers/auth_provider.dart';
 import '../../widgets/common/toss_scaffold.dart';
+import '../../widgets/common/toss_loading_view.dart';
+import '../../widgets/toss/toss_card.dart';
 
 class SupabaseConnectionTestPage extends ConsumerStatefulWidget {
   const SupabaseConnectionTestPage({super.key});
@@ -335,8 +337,7 @@ class _SupabaseConnectionTestPageState extends ConsumerState<SupabaseConnectionT
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Status Card
-            Card(
-              color: currentUser != null ? Colors.green[50] : Colors.red[50],
+            TossCard(
               child: Padding(
                 padding: const EdgeInsets.all(TossSpacing.space4),
                 child: Column(
@@ -344,10 +345,9 @@ class _SupabaseConnectionTestPageState extends ConsumerState<SupabaseConnectionT
                   children: [
                     Text(
                       currentUser != null ? '✅ Authenticated' : '❌ Not Authenticated',
-                      style: TextStyle(
-                        fontSize: TossTextStyles.h4.fontSize!,
+                      style: TossTextStyles.h4.copyWith(
                         fontWeight: FontWeight.bold,
-                        color: currentUser != null ? Colors.green[800] : Colors.red[800],
+                        color: currentUser != null ? TossColors.success : TossColors.error,
                       ),
                     ),
                     if (currentUser != null) ...[
@@ -411,7 +411,7 @@ class _SupabaseConnectionTestPageState extends ConsumerState<SupabaseConnectionT
             
             // Debug Logs
             Expanded(
-              child: Card(
+              child: TossCard(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -419,7 +419,7 @@ class _SupabaseConnectionTestPageState extends ConsumerState<SupabaseConnectionT
                       width: double.infinity,
                       padding: const EdgeInsets.all(TossSpacing.space4),
                       decoration: BoxDecoration(
-                        color: Colors.grey[800],
+                        color: TossColors.gray800,
                         borderRadius: const BorderRadius.only(
                           topLeft: Radius.circular(12),
                           topRight: Radius.circular(12),
@@ -427,13 +427,12 @@ class _SupabaseConnectionTestPageState extends ConsumerState<SupabaseConnectionT
                       ),
                       child: Row(
                         children: [
-                          const Icon(Icons.terminal, color: Colors.white),
+                          const Icon(Icons.terminal, color: TossColors.white),
                           const SizedBox(width: TossSpacing.space2),
                           Text(
                             'Debug Logs',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: TossTextStyles.bodyLarge.fontSize!,
+                            style: TossTextStyles.bodyLarge.copyWith(
+                              color: TossColors.white,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -442,10 +441,7 @@ class _SupabaseConnectionTestPageState extends ConsumerState<SupabaseConnectionT
                             const SizedBox(
                               width: 16,
                               height: 16,
-                              child: CircularProgressIndicator(
-                                color: Colors.white,
-                                strokeWidth: 2,
-                              ),
+                              child: const TossLoadingView(),
                             ),
                         ],
                       ),
@@ -457,9 +453,8 @@ class _SupabaseConnectionTestPageState extends ConsumerState<SupabaseConnectionT
                         child: SingleChildScrollView(
                           child: SelectableText(
                             _debugLogs.join('\n'),
-                            style: TextStyle(
+                            style: TossTextStyles.caption.copyWith(
                               fontFamily: 'monospace',
-                              fontSize: TossTextStyles.caption.fontSize!,
                             ),
                           ),
                         ),

@@ -8,6 +8,7 @@ import '../../../core/themes/toss_shadows.dart';
 import '../../../core/themes/toss_colors.dart';
 import '../../widgets/common/toss_scaffold.dart';
 import '../../widgets/common/toss_app_bar.dart';
+import '../../widgets/common/toss_loading_view.dart';
 import '../../../data/services/bank_real_service.dart';
 import '../../providers/app_state_provider.dart';
 
@@ -173,7 +174,7 @@ class _BankRealPageState extends ConsumerState<BankRealPage> {
                     return _buildRealList(displayItems);
                   },
                   loading: () => const Center(
-                    child: CircularProgressIndicator(),
+                    child: TossLoadingView(),
                   ),
                   error: (error, stack) => Center(
                     child: Column(
@@ -347,12 +348,7 @@ class _BankRealPageState extends ConsumerState<BankRealPage> {
     return Container(
       padding: EdgeInsets.symmetric(vertical: TossSpacing.space4),
       child: Center(
-        child: CircularProgressIndicator(
-          strokeWidth: 2,
-          valueColor: AlwaysStoppedAnimation<Color>(
-            Theme.of(context).colorScheme.primary,
-          ),
-        ),
+        child: const TossLoadingView(),
       ),
     );
   }
@@ -515,7 +511,7 @@ class _BankRealPageState extends ConsumerState<BankRealPage> {
   void _showBankDetailBottomSheet(BankRealDisplay item) {
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.transparent,
+      backgroundColor: TossColors.transparent,
       isScrollControlled: true,
       builder: (BuildContext context) {
         return _BankDetailBottomSheet(
@@ -668,7 +664,7 @@ class _BankDetailBottomSheet extends StatelessWidget {
     
     return Container(
       decoration: const BoxDecoration(
-        color: Colors.white,
+        color: TossColors.white,
         borderRadius: BorderRadius.only(
           topLeft: Radius.circular(20),
           topRight: Radius.circular(20),

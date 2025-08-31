@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../widgets/toss/toss_bottom_sheet.dart';
 import '../../../widgets/toss/toss_primary_button.dart';
+import '../../../widgets/common/toss_loading_view.dart';
 import '../../../../core/themes/toss_colors.dart';
 import '../../../../core/themes/toss_text_styles.dart';
 import '../../../../core/themes/toss_spacing.dart';
@@ -470,10 +471,7 @@ class _EditExchangeRateBottomSheetState extends ConsumerState<EditExchangeRateBo
                     ? const SizedBox(
                         width: 20,
                         height: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation(TossColors.primary),
-                        ),
+                        child: TossLoadingView(),
                       )
                     : Row(
                         mainAxisAlignment: MainAxisAlignment.center,

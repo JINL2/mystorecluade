@@ -12,6 +12,7 @@ import 'widgets/account_mapping_form.dart';
 import 'widgets/account_mapping_list_item.dart';
 import '../../widgets/common/toss_scaffold.dart';
 import '../../widgets/common/toss_app_bar.dart';
+import '../../widgets/common/toss_loading_view.dart';
 import '../../../core/navigation/safe_navigation.dart';
 
 class DebtAccountSettingsPage extends ConsumerStatefulWidget {
@@ -434,9 +435,7 @@ class _DebtAccountSettingsPageState extends ConsumerState<DebtAccountSettingsPag
       loading: () => Container(
         margin: EdgeInsets.all(TossSpacing.space4),
         child: Center(
-          child: CircularProgressIndicator(
-            color: TossColors.primary,
-          ),
+          child: TossLoadingView(),
         ),
       ),
       error: (error, _) => Container(

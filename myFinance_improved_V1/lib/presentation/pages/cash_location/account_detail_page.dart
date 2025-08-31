@@ -9,6 +9,7 @@ import '../../../core/themes/toss_colors.dart';
 import 'account_settings_page.dart';
 import '../../widgets/common/toss_scaffold.dart';
 import '../../widgets/common/toss_app_bar.dart';
+import '../../widgets/common/toss_loading_view.dart';
 import '../../../data/services/stock_flow_service.dart';
 import '../../../data/services/cash_journal_service.dart';
 import '../../../data/services/cash_location_service.dart';
@@ -318,7 +319,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
                         ? 'Location ID is missing'
                         : 'Please select a company and store',
                     style: TossTextStyles.body.copyWith(
-                      color: Colors.grey[500],
+                      color: TossColors.gray500,
                     ),
                   ),
                 ),
@@ -419,13 +420,13 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
                         if (_isLoadingMore)
                           Padding(
                             padding: EdgeInsets.all(TossSpacing.space4),
-                            child: CircularProgressIndicator(),
+                            child: TossLoadingView(),
                           ),
                       ],
                     ),
                   );
                 },
-                loading: () => const Center(child: CircularProgressIndicator()),
+                loading: () => const Center(child: TossLoadingView()),
                 error: (error, stack) => Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -433,7 +434,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
                       Text(
                         'Error loading data',
                         style: TossTextStyles.body.copyWith(
-                          color: Colors.grey[500],
+                          color: TossColors.gray500,
                         ),
                       ),
                       SizedBox(height: TossSpacing.space2),
@@ -464,7 +465,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
     return Container(
       padding: EdgeInsets.all(TossSpacing.space5),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: TossColors.white,
         borderRadius: BorderRadius.circular(TossBorderRadius.lg),
         boxShadow: TossShadows.card,
       ),
@@ -587,13 +588,13 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
             child: Container(
               padding: EdgeInsets.all(TossSpacing.space5),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: TossColors.white,
                 borderRadius: BorderRadius.circular(TossBorderRadius.lg),
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  CircularProgressIndicator(),
+                  TossLoadingView(),
                   SizedBox(height: TossSpacing.space4),
                   Text(
                     'Processing...',
@@ -675,13 +676,13 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
             child: Container(
               padding: EdgeInsets.all(TossSpacing.space5),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: TossColors.white,
                 borderRadius: BorderRadius.circular(TossBorderRadius.lg),
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  CircularProgressIndicator(),
+                  TossLoadingView(),
                   SizedBox(height: TossSpacing.space4),
                   Text(
                     'Processing...',
@@ -763,7 +764,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
           child: Container(
             padding: EdgeInsets.all(TossSpacing.space5),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: TossColors.white,
               borderRadius: BorderRadius.circular(TossBorderRadius.lg),
             ),
             child: Column(
@@ -774,13 +775,13 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
                   width: 64,
                   height: 64,
                   decoration: BoxDecoration(
-                    color: Colors.green[50],
+                    color: TossColors.success.withOpacity(0.1),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
                     Icons.check_circle,
                     size: 40,
-                    color: Colors.green[600],
+                    color: TossColors.success,
                   ),
                 ),
                 
@@ -802,7 +803,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
                       : 'Foreign currency translation\nhas been recorded successfully.',
                   style: TossTextStyles.body.copyWith(
                     fontSize: 14,
-                    color: Colors.grey[600],
+                    color: TossColors.gray600,
                     height: 1.5,
                   ),
                   textAlign: TextAlign.center,
@@ -819,7 +820,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Theme.of(context).colorScheme.primary,
-                      foregroundColor: Colors.white,
+                      foregroundColor: TossColors.white,
                       padding: EdgeInsets.symmetric(vertical: TossSpacing.space3),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(TossBorderRadius.md),
@@ -829,7 +830,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
                     child: Text(
                       'OK',
                       style: TossTextStyles.body.copyWith(
-                        color: Colors.white,
+                        color: TossColors.white,
                         fontWeight: FontWeight.w500,
                         fontSize: 15,
                       ),
@@ -856,7 +857,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
           child: Container(
             padding: EdgeInsets.all(TossSpacing.space5),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: TossColors.white,
               borderRadius: BorderRadius.circular(TossBorderRadius.lg),
             ),
             child: Column(
@@ -867,13 +868,13 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
                   width: 64,
                   height: 64,
                   decoration: BoxDecoration(
-                    color: Colors.red[50],
+                    color: TossColors.error.withOpacity(0.1),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
                     Icons.error_outline,
                     size: 40,
-                    color: Colors.red[600],
+                    color: TossColors.error,
                   ),
                 ),
                 
@@ -893,7 +894,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
                   message,
                   style: TossTextStyles.body.copyWith(
                     fontSize: 14,
-                    color: Colors.grey[600],
+                    color: TossColors.gray600,
                     height: 1.5,
                   ),
                   textAlign: TextAlign.center,
@@ -910,7 +911,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Theme.of(context).colorScheme.primary,
-                      foregroundColor: Colors.white,
+                      foregroundColor: TossColors.white,
                       padding: EdgeInsets.symmetric(vertical: TossSpacing.space3),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(TossBorderRadius.md),
@@ -920,7 +921,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
                     child: Text(
                       'OK',
                       style: TossTextStyles.body.copyWith(
-                        color: Colors.white,
+                        color: TossColors.white,
                         fontWeight: FontWeight.w500,
                         fontSize: 15,
                       ),
@@ -953,7 +954,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
           child: Container(
             padding: EdgeInsets.all(TossSpacing.space5),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: TossColors.white,
               borderRadius: BorderRadius.circular(TossBorderRadius.lg),
             ),
             child: Column(
@@ -987,7 +988,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
                 Text(
                   'Difference Amount',
                   style: TossTextStyles.body.copyWith(
-                    color: Colors.grey[600],
+                    color: TossColors.gray600,
                     fontSize: 14,
                   ),
                 ),
@@ -1020,7 +1021,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(TossBorderRadius.md),
                             side: BorderSide(
-                              color: Colors.grey[300]!,
+                              color: TossColors.gray300,
                               width: 1,
                             ),
                           ),
@@ -1028,7 +1029,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
                         child: Text(
                           'Cancel',
                           style: TossTextStyles.body.copyWith(
-                            color: Colors.grey[700],
+                            color: TossColors.gray700,
                             fontWeight: FontWeight.w500,
                             fontSize: 15,
                           ),
@@ -1053,7 +1054,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Theme.of(context).colorScheme.primary,
-                          foregroundColor: Colors.white,
+                          foregroundColor: TossColors.white,
                           padding: EdgeInsets.symmetric(vertical: TossSpacing.space3),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(TossBorderRadius.md),
@@ -1063,7 +1064,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
                         child: Text(
                           'OK',
                           style: TossTextStyles.body.copyWith(
-                            color: Colors.white,
+                            color: TossColors.white,
                             fontWeight: FontWeight.w500,
                             fontSize: 15,
                           ),
@@ -1093,12 +1094,12 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
     
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.transparent,
+      backgroundColor: TossColors.transparent,
       isScrollControlled: true,
       builder: (BuildContext context) {
         return Container(
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: TossColors.white,
             borderRadius: BorderRadius.only(
               topLeft: Radius.circular(20),
               topRight: Radius.circular(20),
@@ -1113,7 +1114,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: Colors.grey[300],
+                  color: TossColors.gray300,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -1190,12 +1191,12 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
   void _showAutoMappingBottomSheet() {
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.transparent,
+      backgroundColor: TossColors.transparent,
       isScrollControlled: true,
       builder: (BuildContext context) {
         return Container(
           decoration: const BoxDecoration(
-            color: Colors.white,
+            color: TossColors.white,
             borderRadius: BorderRadius.only(
               topLeft: Radius.circular(20),
               topRight: Radius.circular(20),
@@ -1210,7 +1211,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: Colors.grey[300],
+                  color: TossColors.gray300,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -1279,7 +1280,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
             ),
             Icon(
               Icons.chevron_right,
-              color: Colors.grey[400],
+              color: TossColors.gray400,
               size: 24,
             ),
           ],
@@ -1295,7 +1296,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
         Container(
           margin: EdgeInsets.symmetric(horizontal: TossSpacing.space4),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: TossColors.white,
             borderRadius: BorderRadius.circular(TossBorderRadius.lg),
             boxShadow: TossShadows.card,
           ),
@@ -1314,8 +1315,8 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
                 ),
                 child: Theme(
                   data: ThemeData(
-                    splashColor: Colors.transparent,
-                    highlightColor: Colors.transparent,
+                    splashColor: TossColors.transparent,
+                    highlightColor: TossColors.transparent,
                   ),
                   child: TabBar(
                     controller: _tabController,
@@ -1329,7 +1330,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
                     ),
                     indicatorColor: Colors.black87,
                     labelColor: Colors.black87,
-                    unselectedLabelColor: Colors.grey[400],
+                    unselectedLabelColor: TossColors.gray400,
                     labelStyle: TossTextStyles.body.copyWith(
                       fontWeight: FontWeight.w600,
                       fontSize: 17,
@@ -1337,7 +1338,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
                     unselectedLabelStyle: TossTextStyles.body.copyWith(
                       fontSize: 17,
                     ),
-                    overlayColor: WidgetStateProperty.all(Colors.transparent),
+                    overlayColor: WidgetStateProperty.all(TossColors.transparent),
                     tabs: const [
                       Tab(text: 'Journal'),
                       Tab(text: 'Real'),
@@ -1361,7 +1362,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
                       Text(
                         _selectedFilter,
                         style: TossTextStyles.body.copyWith(
-                          color: Colors.grey[600],
+                          color: TossColors.gray600,
                           fontWeight: FontWeight.w600,
                           fontSize: 14,
                         ),
@@ -1369,7 +1370,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
                       Icon(
                         Icons.keyboard_arrow_down,
                         size: 18,
-                        color: Colors.grey[600],
+                        color: TossColors.gray600,
                       ),
                     ],
                   ),
@@ -1417,12 +1418,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
                 Container(
                   padding: EdgeInsets.symmetric(vertical: TossSpacing.space4),
                   child: Center(
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      valueColor: AlwaysStoppedAnimation<Color>(
-                        Theme.of(context).colorScheme.primary,
-                      ),
-                    ),
+                    child: const TossLoadingView(),
                   ),
                 ),
             ],
@@ -1509,7 +1505,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
             child: Text(
               'No journal entries found',
               style: TossTextStyles.body.copyWith(
-                color: Colors.grey[500],
+                color: TossColors.gray500,
               ),
             ),
           ),
@@ -1600,7 +1596,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
             child: Text(
               'No real entries found',
               style: TossTextStyles.body.copyWith(
-                color: Colors.grey[500],
+                color: TossColors.gray500,
               ),
             ),
           ),
@@ -1635,7 +1631,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
                 ? Text(
                     flow.getFormattedDate(),
                     style: TossTextStyles.caption.copyWith(
-                      color: Colors.grey[600],
+                      color: TossColors.gray600,
                       fontWeight: FontWeight.w600,
                       fontSize: 14,
                       height: 1.2,
@@ -1669,7 +1665,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
                       child: Text(
                         flow.createdBy.fullName,
                         style: TossTextStyles.caption.copyWith(
-                          color: Colors.grey[500],
+                          color: TossColors.gray500,
                           fontSize: 13,
                           height: 1.2,
                         ),
@@ -1680,7 +1676,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
                       Text(
                         ' • ',
                         style: TossTextStyles.caption.copyWith(
-                          color: Colors.grey[500],
+                          color: TossColors.gray500,
                           fontSize: 13,
                           height: 1.2,
                         ),
@@ -1688,7 +1684,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
                       Text(
                         flow.getFormattedTime(),
                         style: TossTextStyles.caption.copyWith(
-                          color: Colors.grey[500],
+                          color: TossColors.gray500,
                           fontSize: 13,
                           height: 1.2,
                         ),
@@ -1721,7 +1717,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
               Text(
                 _formatBalance(flow.balanceAfter, currencySymbol),
                 style: TossTextStyles.caption.copyWith(
-                  color: Colors.grey[500],
+                  color: TossColors.gray500,
                   fontSize: 13,
                   height: 1.2,
                 ),
@@ -1757,7 +1753,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
                 ? Text(
                     flow.getFormattedDate(),
                     style: TossTextStyles.caption.copyWith(
-                      color: Colors.grey[600],
+                      color: TossColors.gray600,
                       fontWeight: FontWeight.w600,
                       fontSize: 14,
                       height: 1.2,
@@ -1789,7 +1785,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
                       child: Text(
                         flow.createdBy.fullName,
                         style: TossTextStyles.caption.copyWith(
-                          color: Colors.grey[500],
+                          color: TossColors.gray500,
                           fontSize: 13,
                           height: 1.2,
                         ),
@@ -1800,7 +1796,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
                       Text(
                         ' • ',
                         style: TossTextStyles.caption.copyWith(
-                          color: Colors.grey[500],
+                          color: TossColors.gray500,
                           fontSize: 13,
                           height: 1.2,
                         ),
@@ -1808,7 +1804,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
                       Text(
                         flow.getFormattedTime(),
                         style: TossTextStyles.caption.copyWith(
-                          color: Colors.grey[500],
+                          color: TossColors.gray500,
                           fontSize: 13,
                           height: 1.2,
                         ),
@@ -1843,7 +1839,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
               Text(
                 _formatBalance(flow.balanceAfter, currencySymbol),
                 style: TossTextStyles.caption.copyWith(
-                  color: Colors.grey[600],
+                  color: TossColors.gray600,
                   fontSize: 13,
                   height: 1.2,
                 ),
@@ -1861,12 +1857,12 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
     
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.transparent,
+      backgroundColor: TossColors.transparent,
       isScrollControlled: true,
       builder: (BuildContext context) {
         return Container(
           decoration: const BoxDecoration(
-            color: Colors.white,
+            color: TossColors.white,
             borderRadius: BorderRadius.only(
               topLeft: Radius.circular(20),
               topRight: Radius.circular(20),
@@ -1884,7 +1880,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: Colors.grey[300],
+                  color: TossColors.gray300,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -1924,7 +1920,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
                       Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: Colors.grey[50],
+                          color: TossColors.gray50,
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Column(
@@ -1933,7 +1929,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
                             Text(
                               'Description',
                               style: TossTextStyles.caption.copyWith(
-                                color: Colors.grey[600],
+                                color: TossColors.gray600,
                                 fontSize: 12,
                               ),
                             ),
@@ -1957,7 +1953,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
                         decoration: BoxDecoration(
                           color: flow.flowAmount > 0 
                               ? Theme.of(context).colorScheme.primary.withOpacity(0.1)
-                              : Colors.red.withOpacity(0.1),
+                              : TossColors.error.withOpacity(0.1),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Column(
@@ -2004,12 +2000,12 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
     
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.transparent,
+      backgroundColor: TossColors.transparent,
       isScrollControlled: true,
       builder: (BuildContext context) {
         return Container(
           decoration: const BoxDecoration(
-            color: Colors.white,
+            color: TossColors.white,
             borderRadius: BorderRadius.only(
               topLeft: Radius.circular(20),
               topRight: Radius.circular(20),
@@ -2027,7 +2023,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: Colors.grey[300],
+                  color: TossColors.gray300,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -2081,7 +2077,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
                                     Text(
                                       'Total Balance',
                                       style: TossTextStyles.caption.copyWith(
-                                        color: Colors.grey[600],
+                                        color: TossColors.gray600,
                                         fontSize: 12,
                                       ),
                                     ),
@@ -2112,7 +2108,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
                                       Text(
                                         'Previous Balance',
                                         style: TossTextStyles.caption.copyWith(
-                                          color: Colors.grey[600],
+                                          color: TossColors.gray600,
                                           fontSize: 11,
                                         ),
                                       ),
@@ -2133,7 +2129,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
                                       Text(
                                         'Change',
                                         style: TossTextStyles.caption.copyWith(
-                                          color: Colors.grey[600],
+                                          color: TossColors.gray600,
                                           fontSize: 11,
                                         ),
                                       ),
@@ -2142,7 +2138,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
                                         style: TossTextStyles.body.copyWith(
                                           fontWeight: FontWeight.w500,
                                           fontSize: 14,
-                                          color: flow.flowAmount >= 0 ? Colors.green : Colors.red,
+                                          color: flow.flowAmount >= 0 ? TossColors.success : TossColors.error,
                                         ),
                                       ),
                                     ],
@@ -2172,9 +2168,9 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
                             margin: const EdgeInsets.only(bottom: 8),
                             padding: const EdgeInsets.all(12),
                             decoration: BoxDecoration(
-                              color: Colors.grey[50],
+                              color: TossColors.gray50,
                               borderRadius: BorderRadius.circular(8),
-                              border: Border.all(color: Colors.grey[200]!),
+                              border: Border.all(color: TossColors.gray200),
                             ),
                             child: Column(
                               children: [
@@ -2185,14 +2181,14 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
                                     Container(
                                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                       decoration: BoxDecoration(
-                                        color: Colors.blue.withOpacity(0.1),
+                                        color: TossColors.primary.withOpacity(0.1),
                                         borderRadius: BorderRadius.circular(4),
                                       ),
                                       child: Text(
                                         _formatCurrency(denomination.denominationValue, currencySymbol),
                                         style: TossTextStyles.body.copyWith(
                                           fontWeight: FontWeight.w600,
-                                          color: Colors.blue[700],
+                                          color: TossColors.primary,
                                           fontSize: 14,
                                         ),
                                       ),
@@ -2202,7 +2198,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
                                     Container(
                                       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                       decoration: BoxDecoration(
-                                        color: Colors.grey[200],
+                                        color: TossColors.gray200,
                                         borderRadius: BorderRadius.circular(4),
                                       ),
                                       child: Text(
@@ -2227,7 +2223,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
                                           Text(
                                             'Previous Qty',
                                             style: TossTextStyles.caption.copyWith(
-                                              color: Colors.grey[600],
+                                              color: TossColors.gray600,
                                               fontSize: 11,
                                             ),
                                           ),
@@ -2248,7 +2244,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
                                           Text(
                                             'Change',
                                             style: TossTextStyles.caption.copyWith(
-                                              color: Colors.grey[600],
+                                              color: TossColors.gray600,
                                               fontSize: 11,
                                             ),
                                           ),
@@ -2258,10 +2254,10 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
                                               fontWeight: FontWeight.w600,
                                               fontSize: 14,
                                               color: denomination.quantityChange > 0 
-                                                  ? Colors.green 
+                                                  ? TossColors.success 
                                                   : denomination.quantityChange < 0 
-                                                      ? Colors.red 
-                                                      : Colors.black,
+                                                      ? TossColors.error 
+                                                      : TossColors.black,
                                             ),
                                           ),
                                         ],
@@ -2274,7 +2270,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
                                           Text(
                                             'Current Qty',
                                             style: TossTextStyles.caption.copyWith(
-                                              color: Colors.grey[600],
+                                              color: TossColors.gray600,
                                               fontSize: 11,
                                             ),
                                           ),
@@ -2297,7 +2293,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
                                 Container(
                                   padding: const EdgeInsets.all(8),
                                   decoration: BoxDecoration(
-                                    color: Colors.white,
+                                    color: TossColors.white,
                                     borderRadius: BorderRadius.circular(4),
                                   ),
                                   child: Row(
@@ -2306,7 +2302,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
                                       Text(
                                         'Subtotal',
                                         style: TossTextStyles.caption.copyWith(
-                                          color: Colors.grey[600],
+                                          color: TossColors.gray600,
                                           fontSize: 12,
                                         ),
                                       ),
@@ -2359,7 +2355,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
             child: Text(
               label,
               style: TossTextStyles.body.copyWith(
-                color: Colors.grey[600],
+                color: TossColors.gray600,
                 fontSize: 14,
               ),
             ),

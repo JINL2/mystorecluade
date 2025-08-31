@@ -128,26 +128,38 @@ class _TossEnhancedModalState extends State<TossEnhancedModal> {
     // Don't wrap with GestureDetector - let the modal barrier handle dismissal
     // The TossModal already handles focus management appropriately
 
-    return Column(
-      children: [
-        Expanded(child: modalContent),
-        
-        // Keyboard toolbar
-        AnimatedContainer(
-          duration: const Duration(milliseconds: 250),
-          curve: Curves.easeOut,
-          height: _showKeyboardToolbar ? 44 : 0,
-          child: _showKeyboardToolbar
-              ? TossKeyboardToolbar(
-                  onDone: widget.onKeyboardDone ?? () {
-                    FocusScope.of(context).unfocus();
-                  },
-                  doneText: widget.keyboardDoneText,
-                  showNavigation: false,
-                )
-              : null,
-        ),
-      ],
+    // Calculate the actual modal height including keyboard toolbar
+    final modalHeight = widget.height ?? MediaQuery.of(context).size.height * 0.8;
+    final toolbarHeight = _showKeyboardToolbar ? 44.0 : 0.0;
+    final totalHeight = modalHeight + toolbarHeight;
+
+    return Container(
+      height: totalHeight,  // Fixed height container to prevent expansion
+      child: Column(
+        children: [
+          // Modal content with fixed height (not Expanded!)
+          SizedBox(
+            height: modalHeight,
+            child: modalContent,
+          ),
+          
+          // Keyboard toolbar
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 250),
+            curve: Curves.easeOut,
+            height: toolbarHeight,
+            child: _showKeyboardToolbar
+                ? TossKeyboardToolbar(
+                    onDone: widget.onKeyboardDone ?? () {
+                      FocusScope.of(context).unfocus();
+                    },
+                    doneText: widget.keyboardDoneText,
+                    showNavigation: false,
+                  )
+                : null,
+          ),
+        ],
+      ),
     );
   }
 }

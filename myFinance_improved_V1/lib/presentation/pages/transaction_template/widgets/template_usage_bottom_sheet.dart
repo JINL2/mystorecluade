@@ -9,6 +9,7 @@ import '../../../widgets/toss/toss_primary_button.dart';
 import '../../../widgets/toss/toss_secondary_button.dart';
 import '../../../widgets/toss/toss_text_field.dart';
 import '../../../widgets/toss/toss_dropdown.dart';
+import '../../../widgets/common/toss_loading_view.dart';
 import '../../../../core/themes/toss_design_system.dart';
 import '../../../../core/themes/toss_shadows.dart';
 // Removed unused import: cash_location_selector.dart
@@ -717,7 +718,7 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
   
   Widget _buildCollapsibleDetailsSection(bool isCollapsed) {
     return Theme(
-      data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+      data: Theme.of(context).copyWith(dividerColor: TossColors.transparent),
       child: ExpansionTile(
         title: Row(
           children: [
@@ -1352,7 +1353,7 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
               });
             },
           ),
-          loading: () => CircularProgressIndicator(strokeWidth: 2),
+          loading: () => const TossLoadingView(),
           error: (_, __) => Text('Error loading cash locations', 
             style: TossTextStyles.caption.copyWith(color: TossColors.error)),
         );
@@ -1564,7 +1565,7 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
               ],
             );
           },
-          loading: () => CircularProgressIndicator(strokeWidth: 2),
+          loading: () => const TossLoadingView(),
           error: (_, __) => Text(
             'Error loading counterparty',
             style: TossTextStyles.caption.copyWith(color: TossColors.error),
@@ -1852,9 +1853,7 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
                 );
               },
               loading: () => Center(
-                child: CircularProgressIndicator(
-                  color: TossColors.primary,
-                ),
+                child: TossLoadingView(),
               ),
               error: (error, stack) => Text(
                 'Error loading stores',
@@ -1863,9 +1862,7 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
             );
           },
           loading: () => Center(
-            child: CircularProgressIndicator(
-              color: TossColors.primary,
-            ),
+            child: TossLoadingView(),
           ),
           error: (error, stack) => Text(
             'Error loading counterparty details',
@@ -1939,9 +1936,7 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
             children: [
               SizedBox(height: TossSpacing.space3),
               Center(
-                child: CircularProgressIndicator(
-                  color: TossColors.primary,
-                ),
+                child: TossLoadingView(),
               ),
             ],
           ),
@@ -2594,9 +2589,9 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
         padding: EdgeInsets.all(TossSpacing.space3),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-          color: Colors.white,
+          color: TossColors.white,
           border: Border.all(
-            color: date != null ? TossColors.primary : TossColors.gray200,
+            color: TossColors.border,
             width: 1,
           ),
         ),

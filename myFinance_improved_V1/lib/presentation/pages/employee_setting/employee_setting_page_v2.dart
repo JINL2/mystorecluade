@@ -368,7 +368,7 @@ class _EmployeeSettingPageV2State extends ConsumerState<EmployeeSettingPageV2>
             borderRadius: BorderRadius.circular(TossBorderRadius.md),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.02),
+                color: TossColors.black.withValues(alpha: 0.02),
                 blurRadius: 2,
                 offset: const Offset(0, 1),
               ),
@@ -608,7 +608,7 @@ class _EmployeeSettingPageV2State extends ConsumerState<EmployeeSettingPageV2>
 
   Widget _buildEmployeeCard(EmployeeSalary employee, int index) {
     return Material(
-      color: Colors.transparent,
+      color: TossColors.transparent,
       child: InkWell(
         onTap: () => _showEmployeeDetails(employee),
         borderRadius: index == 0 
@@ -847,7 +847,7 @@ class _EmployeeSettingPageV2State extends ConsumerState<EmployeeSettingPageV2>
           ...sortOptions.map((option) {
             final isSelected = option['value'] == currentSort;
             return Material(
-              color: Colors.transparent,
+              color: TossColors.transparent,
               child: InkWell(
                 onTap: () {
                   HapticFeedback.selectionClick();
@@ -1191,7 +1191,7 @@ class _EmployeeSettingPageV2State extends ConsumerState<EmployeeSettingPageV2>
     final isSelected = value == selectedValue;
     
     return Material(
-      color: Colors.transparent,
+      color: TossColors.transparent,
       child: InkWell(
         onTap: () => onChanged(value),
         child: Container(

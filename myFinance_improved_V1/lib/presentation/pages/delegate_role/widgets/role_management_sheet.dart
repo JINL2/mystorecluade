@@ -10,6 +10,7 @@ import '../providers/delegate_role_providers.dart';
 import '../../../../core/utils/tag_validator.dart';
 import '../../../widgets/toss/toss_enhanced_text_field.dart';
 import '../../../widgets/toss/toss_enhanced_modal.dart';
+import '../../../widgets/common/toss_loading_view.dart';
 
 class RoleManagementSheet extends ConsumerStatefulWidget {
   final String roleId;
@@ -206,7 +207,7 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
                     onPressed: _isLoading ? null : _saveChanges,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: TossColors.primary,
-                      foregroundColor: Colors.white,
+                      foregroundColor: TossColors.white,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(TossBorderRadius.md),
                       ),
@@ -216,15 +217,12 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
                         ? SizedBox(
                             width: 20,
                             height: 20,
-                            child: CircularProgressIndicator(
-                              color: Colors.white,
-                              strokeWidth: 2,
-                            ),
+                            child: const TossLoadingView(),
                           )
                         : Text(
                             'Save Changes',
                             style: TossTextStyles.bodyLarge.copyWith(
-                              color: Colors.white,
+                              color: TossColors.white,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -486,7 +484,7 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      backgroundColor: TossColors.transparent,
       useRootNavigator: true, // Use root navigator to show modal on top
       enableDrag: true,
       builder: (context) => Padding(
@@ -632,7 +630,7 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
       loading: () => Center(
         child: Padding(
           padding: EdgeInsets.all(TossSpacing.space10),
-          child: CircularProgressIndicator(color: TossColors.primary),
+          child: TossLoadingView(),
         ),
       ),
       error: (error, stack) => Center(
@@ -714,7 +712,7 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return Center(
-                  child: CircularProgressIndicator(color: TossColors.primary),
+                  child: TossLoadingView(),
                 );
               }
               
@@ -814,7 +812,7 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
         children: [
           // Collapsible header with select all
           Material(
-            color: Colors.transparent,
+            color: TossColors.transparent,
             borderRadius: BorderRadius.vertical(
               top: Radius.circular(TossBorderRadius.md),
               bottom: Radius.circular(isExpanded ? 0 : TossBorderRadius.md),
@@ -839,7 +837,7 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
                   children: [
                     // Select all checkbox - wrapped in its own InkWell to prevent event bubbling
                     Material(
-                      color: Colors.transparent,
+                      color: TossColors.transparent,
                       child: InkWell(
                         onTap: widget.canEdit
                             ? () {
@@ -871,14 +869,14 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
                                 ? Icon(
                                     Icons.check,
                                     size: 14,
-                                    color: Colors.white,
+                                    color: TossColors.white,
                                   )
                                 : someSelected
                                     ? Center(
                                         child: Container(
                                           width: 8,
                                           height: 2,
-                                          color: Colors.white,
+                                          color: TossColors.white,
                                         ),
                                       )
                                     : null,
@@ -940,7 +938,7 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
                   final isSelected = _selectedPermissions.contains(featureId);
                   
                   return Material(
-                    color: Colors.transparent,
+                    color: TossColors.transparent,
                     child: InkWell(
                       onTap: widget.canEdit ? () => _togglePermission(featureId) : null,
                       child: Container(
@@ -980,7 +978,7 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
                                   ? Icon(
                                       Icons.check,
                                       size: 14,
-                                      color: Colors.white,
+                                      color: TossColors.white,
                                     )
                                   : null,
                             ),
@@ -1237,7 +1235,7 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      backgroundColor: TossColors.transparent,
       barrierColor: Colors.black54, // Standard dark barrier
       useRootNavigator: true, // Use root navigator to show modal on top
       enableDrag: true,
@@ -1293,7 +1291,7 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
                   bottom: BorderSide(
                     color: isSelected 
                         ? TossColors.gray900
-                        : Colors.transparent,
+                        : TossColors.transparent,
                     width: 2,
                   ),
                 ),
@@ -1516,7 +1514,7 @@ class _AddMemberBottomSheetState extends ConsumerState<_AddMemberBottomSheet> {
                     final isDisabled = isOwner || hasTargetRole;
 
                     return Material(
-                      color: Colors.transparent,
+                      color: TossColors.transparent,
                       child: InkWell(
                         onTap: isDisabled ? null : () {
                           setState(() {
@@ -1529,7 +1527,7 @@ class _AddMemberBottomSheetState extends ConsumerState<_AddMemberBottomSheet> {
                           decoration: BoxDecoration(
                             color: isSelected 
                                 ? TossColors.primary.withValues(alpha: 0.1)
-                                : Colors.transparent,
+                                : TossColors.transparent,
                           ),
                           child: Row(
                             children: [
@@ -1609,7 +1607,7 @@ class _AddMemberBottomSheetState extends ConsumerState<_AddMemberBottomSheet> {
                 );
               },
               loading: () => Center(
-                child: CircularProgressIndicator(color: TossColors.primary),
+                child: TossLoadingView(),
               ),
               error: (error, stack) => Center(
                 child: Column(
@@ -1645,7 +1643,7 @@ class _AddMemberBottomSheetState extends ConsumerState<_AddMemberBottomSheet> {
                       : _assignUserToRole,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: TossColors.primary,
-                    foregroundColor: Colors.white,
+                    foregroundColor: TossColors.white,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(TossBorderRadius.md),
                     ),
@@ -1655,15 +1653,12 @@ class _AddMemberBottomSheetState extends ConsumerState<_AddMemberBottomSheet> {
                       ? SizedBox(
                           width: 20,
                           height: 20,
-                          child: CircularProgressIndicator(
-                            color: Colors.white,
-                            strokeWidth: 2,
-                          ),
+                          child: const TossLoadingView(),
                         )
                       : Text(
                           'Add Member',
                           style: TossTextStyles.bodyLarge.copyWith(
-                            color: Colors.white,
+                            color: TossColors.white,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -2093,7 +2088,7 @@ class _TagSelectionBottomSheetState extends State<_TagSelectionBottomSheet> {
                       children: _suggestedTags
                           .where((tag) => !_selectedTags.contains(tag))
                           .map((tag) => Material(
-                        color: Colors.transparent,
+                        color: TossColors.transparent,
                         child: InkWell(
                           onTap: () => _toggleTag(tag),
                           borderRadius: BorderRadius.circular(TossBorderRadius.sm),
@@ -2159,7 +2154,7 @@ class _TagSelectionBottomSheetState extends State<_TagSelectionBottomSheet> {
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: TossColors.primary,
-                    foregroundColor: Colors.white,
+                    foregroundColor: TossColors.white,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(TossBorderRadius.md),
                     ),
@@ -2168,7 +2163,7 @@ class _TagSelectionBottomSheetState extends State<_TagSelectionBottomSheet> {
                   child: Text(
                     'Save Tags',
                     style: TossTextStyles.bodyLarge.copyWith(
-                      color: Colors.white,
+                      color: TossColors.white,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
