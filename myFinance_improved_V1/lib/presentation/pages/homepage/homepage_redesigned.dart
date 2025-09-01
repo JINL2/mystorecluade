@@ -8,6 +8,8 @@ import 'package:myfinance_improved/core/themes/toss_shadows.dart';
 import 'package:myfinance_improved/core/themes/toss_animations.dart';
 import 'package:myfinance_improved/core/constants/icon_mapper.dart';
 import 'providers/homepage_providers.dart';
+import 'providers/revenue_provider.dart';
+import 'widgets/revenue_card.dart';
 import '../../widgets/common/safe_popup_menu.dart';
 import '../../providers/app_state_provider.dart';
 import '../../providers/enhanced_auth_provider.dart';
@@ -181,7 +183,13 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
                   // Pinned Hello Section
                   _buildPinnedHelloSection(context, userData, selectedCompany, selectedStore),
                   
-                  // Add spacing after Hello section
+                  // Revenue Card Section (only show if store is selected)
+                  if (ref.watch(appStateProvider).storeChoosen.isNotEmpty)
+                    SliverToBoxAdapter(
+                      child: const RevenueCard(),
+                    ),
+                  
+                  // Add spacing after Revenue card or Hello section
                   SliverToBoxAdapter(
                     child: SizedBox(height: TossSpacing.space4),
                   ),
@@ -1567,6 +1575,11 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
       // Use the enhanced auth service for smart refresh
       final enhancedAuth = ref.read(enhancedAuthProvider);
       await enhancedAuth.forceRefreshData();
+      
+      // Refresh revenue data if store is selected
+      if (ref.read(appStateProvider).storeChoosen.isNotEmpty) {
+        await ref.read(revenueProvider.notifier).fetchRevenue(forceRefresh: true);
+      }
       
       // Wait for providers to update
       await Future.delayed(Duration(milliseconds: 500));
