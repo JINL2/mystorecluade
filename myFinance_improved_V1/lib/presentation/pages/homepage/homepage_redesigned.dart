@@ -19,6 +19,7 @@ import '../../../data/services/click_tracking_service.dart';
 import '../../widgets/common/toss_scaffold.dart';
 import '../../widgets/common/toss_loading_view.dart';
 import '../../../core/navigation/safe_navigation.dart';
+import '../../widgets/notifications/animated_notification_badge.dart';
 
 class HomePageRedesigned extends ConsumerStatefulWidget {
   const HomePageRedesigned({super.key});
@@ -248,29 +249,27 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
             
             return IconButton(
               icon: unreadCountAsync.when(
-                data: (unreadCount) => Badge(
-                  isLabelVisible: unreadCount > 0,
-                  label: unreadCount > 99 ? const Text('99+') : Text('$unreadCount'),
-                  backgroundColor: TossColors.primary,
-                  textColor: TossColors.white,
+                data: (unreadCount) => AnimatedNotificationBadge(
+                  count: unreadCount,
+                  animate: true,
                   child: Icon(
                     Icons.notifications_none_rounded,
                     color: TossColors.textSecondary,
                     size: 24,
                   ),
                 ),
-                loading: () => Badge(
-                  isLabelVisible: false,
-                  backgroundColor: TossColors.primary,
+                loading: () => AnimatedNotificationBadge(
+                  count: 0,
+                  animate: false,
                   child: Icon(
                     Icons.notifications_none_rounded,
                     color: TossColors.textSecondary,
                     size: 24,
                   ),
                 ),
-                error: (_, __) => Badge(
-                  isLabelVisible: false,
-                  backgroundColor: TossColors.primary,
+                error: (_, __) => AnimatedNotificationBadge(
+                  count: 0,
+                  animate: false,
                   child: Icon(
                     Icons.notifications_none_rounded,
                     color: TossColors.textSecondary,

@@ -23,7 +23,6 @@ class _NotificationsSettingsPageState extends ConsumerState<NotificationsSetting
   bool _cashEndingReminders = true;
   bool _employeeUpdates = false;
   bool _systemMaintenanceAlerts = true;
-  bool _marketingUpdates = false;
   
   // Email notifications
   bool _emailNotifications = true;
@@ -149,33 +148,29 @@ class _NotificationsSettingsPageState extends ConsumerState<NotificationsSetting
               ),
             ),
             
+            // Note about in-app notifications
             SizedBox(height: TossSpacing.space8),
-            
-            // Marketing & Updates
-            Text(
-              'Marketing & Updates',
-              style: TossTextStyles.h3.copyWith(
-                fontWeight: FontWeight.w600,
-                color: TossColors.gray900,
+            Container(
+              padding: EdgeInsets.all(TossSpacing.space4),
+              decoration: BoxDecoration(
+                color: TossColors.gray100,
+                borderRadius: BorderRadius.circular(12),
               ),
-            ),
-            SizedBox(height: TossSpacing.space4),
-            
-            TossCard(
-              padding: EdgeInsets.zero,
-              child: Column(
+              child: Row(
                 children: [
-                  _buildNotificationToggle(
-                    'Marketing Updates',
-                    'New features, tips, and promotional offers',
-                    _marketingUpdates,
-                    (value) => setState(() => _marketingUpdates = value),
+                  Icon(Icons.info_outline, color: TossColors.gray600, size: 20),
+                  SizedBox(width: TossSpacing.space2),
+                  Expanded(
+                    child: Text(
+                      'In-app notifications have been disabled. You can view all notifications in the notification center.',
+                      style: TossTextStyles.caption.copyWith(
+                        color: TossColors.gray600,
+                      ),
+                    ),
                   ),
                 ],
               ),
             ),
-            
-            SizedBox(height: TossSpacing.space8),
           ],
         ),
       ),

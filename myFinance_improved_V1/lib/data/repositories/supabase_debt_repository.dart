@@ -364,7 +364,7 @@ class SupabaseDebtRepository {
           counterpartyId: record['counterparty_id'] as String? ?? '',
           counterpartyName: record['counterparty_name'] as String? ?? 'Unknown',
           counterpartyType: isInternal ? 'internal' : 'external',
-          amount: netAmount.abs(),
+          amount: netAmount,  // Keep original sign - don't use abs()
           currency: '₫',
           dueDate: DateTime.now().subtract(Duration(days: daysOutstanding)),
           daysOverdue: daysOutstanding,

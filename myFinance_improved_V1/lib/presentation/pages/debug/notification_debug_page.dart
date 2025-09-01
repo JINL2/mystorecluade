@@ -10,6 +10,10 @@ import '../../widgets/common/toss_scaffold.dart';
 import '../../widgets/common/toss_loading_view.dart';
 import '../../widgets/toss/toss_card.dart';
 import '../../../core/themes/toss_colors.dart';
+import '../../../core/themes/toss_text_styles.dart';
+import '../../../core/themes/toss_spacing.dart';
+import '../../../core/themes/toss_shadows.dart';
+import '../../../core/themes/toss_border_radius.dart';
 
 class NotificationDebugPage extends ConsumerStatefulWidget {
   const NotificationDebugPage({Key? key}) : super(key: key);
@@ -213,6 +217,44 @@ class _NotificationDebugPageState extends ConsumerState<NotificationDebugPage> {
     }
   }
   
+  Future<void> _markAllNotificationsAsRead() async {
+    setState(() {
+      _statusMessage = 'Marking all notifications as read...';
+    });
+    
+    try {
+      final userId = _supabase.auth.currentUser?.id;
+      if (userId == null) {
+        setState(() {
+          _statusMessage = '❌ User not authenticated';
+        });
+        return;
+      }
+      
+      // Update all unread notifications for this user
+      final now = DateTime.now().toUtc();
+      await _supabase
+          .from('notifications')
+          .update({
+            'is_read': true,
+            'read_at': now.toIso8601String(),
+            'updated_at': now.toIso8601String(),
+          })
+          .eq('user_id', userId)
+          .eq('is_read', false);
+      
+      setState(() {
+        _statusMessage = '✅ All notifications marked as read';
+      });
+      
+      await _loadDebugInfo();
+    } catch (e) {
+      setState(() {
+        _statusMessage = '❌ Error marking notifications as read: $e';
+      });
+    }
+  }
+  
   Future<void> _forceTokenRefresh() async {
     setState(() {
       _statusMessage = 'Forcing FCM token refresh...';
@@ -284,7 +326,7 @@ class _NotificationDebugPageState extends ConsumerState<NotificationDebugPage> {
       body: _isLoading
           ? const Center(child: TossLoadingView())
           : SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
+              padding: EdgeInsets.all(TossSpacing.paddingMD),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -292,15 +334,16 @@ class _NotificationDebugPageState extends ConsumerState<NotificationDebugPage> {
                   if (_statusMessage.isNotEmpty)
                     Container(
                       width: double.infinity,
-                      padding: const EdgeInsets.all(12),
-                      margin: const EdgeInsets.only(bottom: 16),
+                      padding: EdgeInsets.all(TossSpacing.paddingSM),
+                      margin: EdgeInsets.only(bottom: TossSpacing.marginMD),
                       decoration: BoxDecoration(
                         color: _statusMessage.startsWith('✅')
-                            ? TossColors.success.withOpacity(0.1)
+                            ? TossColors.success.withValues(alpha: 0.1)
                             : _statusMessage.startsWith('❌')
-                                ? TossColors.error.withOpacity(0.1)
-                                : TossColors.primary.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(8),
+                                ? TossColors.error.withValues(alpha: 0.1)
+                                : TossColors.primary.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                        boxShadow: TossShadows.elevation1,
                         border: Border.all(
                           color: _statusMessage.startsWith('✅')
                               ? TossColors.success
@@ -311,21 +354,20 @@ class _NotificationDebugPageState extends ConsumerState<NotificationDebugPage> {
                       ),
                       child: Text(
                         _statusMessage,
-                        style: TextStyle(
+                        style: TossTextStyles.labelLarge.copyWith(
                           color: _statusMessage.startsWith('✅')
                               ? TossColors.success
                               : _statusMessage.startsWith('❌')
                                   ? TossColors.error
                                   : TossColors.primary,
-                          fontWeight: FontWeight.w500,
                         ),
                       ),
                     ),
                   
                   // Action Buttons
                   Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
+                    spacing: TossSpacing.gapSM,
+                    runSpacing: TossSpacing.gapSM,
                     children: [
                       ElevatedButton.icon(
                         onPressed: _initializeNotifications,
@@ -360,10 +402,18 @@ class _NotificationDebugPageState extends ConsumerState<NotificationDebugPage> {
                         icon: const Icon(Icons.cleaning_services),
                         label: const Text('Cleanup Tokens'),
                       ),
+                      ElevatedButton.icon(
+                        onPressed: _markAllNotificationsAsRead,
+                        icon: const Icon(Icons.mark_email_read),
+                        label: const Text('Mark All Read'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: TossColors.success,
+                        ),
+                      ),
                     ],
                   ),
                   
-                  const SizedBox(height: 24),
+                  SizedBox(height: TossSpacing.space6),
                   
                   // Debug Information
                   _buildSection(
@@ -375,7 +425,7 @@ class _NotificationDebugPageState extends ConsumerState<NotificationDebugPage> {
                     )).toList(),
                   ),
                   
-                  const SizedBox(height: 16),
+                  SizedBox(height: TossSpacing.space4),
                   
                   // Saved Tokens
                   _buildSection(
@@ -385,7 +435,7 @@ class _NotificationDebugPageState extends ConsumerState<NotificationDebugPage> {
                         : _savedTokens.map((token) => _buildTokenCard(token)).toList(),
                   ),
                   
-                  const SizedBox(height: 16),
+                  SizedBox(height: TossSpacing.space4),
                   
                   // User Information
                   _buildSection(
@@ -406,16 +456,13 @@ class _NotificationDebugPageState extends ConsumerState<NotificationDebugPage> {
   Widget _buildSection(String title, List<Widget> children) {
     return TossCard(
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.all(TossSpacing.paddingMD),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               title,
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TossTextStyles.h4,
             ),
             const Divider(),
             ...children,
@@ -427,7 +474,7 @@ class _NotificationDebugPageState extends ConsumerState<NotificationDebugPage> {
   
   Widget _buildInfoRow(String label, String value, {bool canCopy = false}) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: EdgeInsets.symmetric(vertical: TossSpacing.marginXS),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -435,7 +482,7 @@ class _NotificationDebugPageState extends ConsumerState<NotificationDebugPage> {
             flex: 2,
             child: Text(
               label,
-              style: const TextStyle(fontWeight: FontWeight.w500),
+              style: TossTextStyles.labelLarge,
             ),
           ),
           Expanded(
@@ -475,10 +522,10 @@ class _NotificationDebugPageState extends ConsumerState<NotificationDebugPage> {
     final tokenValue = token['token'] ?? '';
     
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
+      padding: EdgeInsets.only(bottom: TossSpacing.space2),
       child: TossCard(
         child: Padding(
-          padding: const EdgeInsets.all(12),
+          padding: EdgeInsets.all(TossSpacing.paddingSM),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -487,17 +534,17 @@ class _NotificationDebugPageState extends ConsumerState<NotificationDebugPage> {
               children: [
                 Chip(
                   label: Text(platform.toUpperCase()),
-                  backgroundColor: TossColors.primary.withOpacity(0.2),
+                  backgroundColor: TossColors.primary.withValues(alpha: 0.2),
                 ),
                 Chip(
                   label: Text(isActive ? 'ACTIVE' : 'INACTIVE'),
                   backgroundColor: isActive 
-                      ? TossColors.success.withOpacity(0.2)
-                      : TossColors.gray500.withOpacity(0.2),
+                      ? TossColors.success.withValues(alpha: 0.2)
+                      : TossColors.gray500.withValues(alpha: 0.2),
                 ),
               ],
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: TossSpacing.space2),
             _buildInfoRow('Token', '${tokenValue.substring(0, 20)}...', canCopy: true),
             _buildInfoRow('Device ID', token['device_id'] ?? 'N/A'),
             _buildInfoRow('Device Model', token['device_model'] ?? 'N/A'),

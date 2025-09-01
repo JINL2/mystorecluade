@@ -61,15 +61,21 @@ class _SalaryEditModalState extends ConsumerState<SalaryEditModal> {
   Widget build(BuildContext context) {
     final currencies = ref.watch(currencyTypesProvider);
     
-    return Container(
-      height: MediaQuery.of(context).size.height * 0.8,
-      decoration: BoxDecoration(
-        color: TossColors.background,
-        borderRadius: BorderRadius.vertical(
-          top: Radius.circular(16),
+    return GestureDetector(
+      onTap: () {
+        // Dismiss keyboard when tapping outside of text fields
+        FocusScope.of(context).unfocus();
+      },
+      behavior: HitTestBehavior.opaque,
+      child: Container(
+        height: MediaQuery.of(context).size.height * 0.8,
+        decoration: BoxDecoration(
+          color: TossColors.background,
+          borderRadius: BorderRadius.vertical(
+            top: Radius.circular(16),
+          ),
         ),
-      ),
-      child: Column(
+        child: Column(
         children: [
           // Header
           _buildHeader(),
@@ -249,6 +255,7 @@ class _SalaryEditModalState extends ConsumerState<SalaryEditModal> {
           // Bottom Actions
           _buildBottomActions(currencies.valueOrNull ?? []),
         ],
+      ),
       ),
     );
   }

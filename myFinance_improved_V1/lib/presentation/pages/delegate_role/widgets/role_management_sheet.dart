@@ -146,11 +146,9 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
     
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 300),
+    return Container(
       constraints: BoxConstraints(
         maxHeight: screenHeight * 0.8,
-        minHeight: screenHeight * 0.3,
       ),
       decoration: BoxDecoration(
         color: TossColors.background,
@@ -159,6 +157,7 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
         ),
       ),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
           // Top spacing only (no duplicate header - TossEnhancedModal handles header)
           SizedBox(height: TossSpacing.space4),
@@ -193,39 +192,46 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
           // Hide save button when user is actively editing text
           if (widget.canEdit && !_isEditingText) ...[
             Container(
-              padding: EdgeInsets.all(TossSpacing.space5),
               decoration: BoxDecoration(
                 color: TossColors.background,
                 border: Border(top: BorderSide(color: TossColors.gray200)),
               ),
               child: SafeArea(
                 top: false,
-                child: SizedBox(
-                  width: double.infinity,
-                  height: 56,
-                  child: ElevatedButton(
-                    onPressed: _isLoading ? null : _saveChanges,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: TossColors.primary,
-                      foregroundColor: TossColors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                child: Padding(
+                  padding: EdgeInsets.fromLTRB(
+                    TossSpacing.space5,
+                    TossSpacing.space4,
+                    TossSpacing.space5,
+                    TossSpacing.space4,
+                  ),
+                  child: SizedBox(
+                    width: double.infinity,
+                    height: 56,
+                    child: ElevatedButton(
+                      onPressed: _isLoading ? null : _saveChanges,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: TossColors.primary,
+                        foregroundColor: TossColors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                        ),
+                        elevation: 0,
                       ),
-                      elevation: 0,
-                    ),
-                    child: _isLoading
-                        ? SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: const TossLoadingView(),
-                          )
-                        : Text(
-                            'Save Changes',
-                            style: TossTextStyles.bodyLarge.copyWith(
-                              color: TossColors.white,
-                              fontWeight: FontWeight.w600,
+                      child: _isLoading
+                          ? SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: const TossLoadingView(),
+                            )
+                          : Text(
+                              'Save Changes',
+                              style: TossTextStyles.bodyLarge.copyWith(
+                                color: TossColors.white,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
-                          ),
+                    ),
                   ),
                 ),
               ),
@@ -1417,7 +1423,6 @@ class _AddMemberBottomSheetState extends ConsumerState<_AddMemberBottomSheet> {
         ),
       ),
       child: Column(
-        mainAxisSize: MainAxisSize.min,
         children: [
           // Handle bar
           Container(
@@ -1627,41 +1632,48 @@ class _AddMemberBottomSheetState extends ConsumerState<_AddMemberBottomSheet> {
 
           // Bottom action
           Container(
-            padding: EdgeInsets.all(TossSpacing.space5),
             decoration: BoxDecoration(
               color: TossColors.background,
               border: Border(top: BorderSide(color: TossColors.gray200)),
             ),
             child: SafeArea(
               top: false,
-              child: SizedBox(
-                width: double.infinity,
-                height: 56,
-                child: ElevatedButton(
-                  onPressed: _selectedUserId == null || _isAssigning 
-                      ? null 
-                      : _assignUserToRole,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: TossColors.primary,
-                    foregroundColor: TossColors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(TossBorderRadius.md),
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(
+                  TossSpacing.space5,
+                  TossSpacing.space4,
+                  TossSpacing.space5,
+                  TossSpacing.space4,
+                ),
+                child: SizedBox(
+                  width: double.infinity,
+                  height: 56,
+                  child: ElevatedButton(
+                    onPressed: _selectedUserId == null || _isAssigning 
+                        ? null 
+                        : _assignUserToRole,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: TossColors.primary,
+                      foregroundColor: TossColors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                      ),
+                      elevation: 0,
                     ),
-                    elevation: 0,
-                  ),
-                  child: _isAssigning
-                      ? SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: const TossLoadingView(),
-                        )
-                      : Text(
-                          'Add Member',
-                          style: TossTextStyles.bodyLarge.copyWith(
-                            color: TossColors.white,
-                            fontWeight: FontWeight.w600,
+                    child: _isAssigning
+                        ? SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: const TossLoadingView(),
+                          )
+                        : Text(
+                            'Add Member',
+                            style: TossTextStyles.bodyLarge.copyWith(
+                              color: TossColors.white,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
-                        ),
+                  ),
                 ),
               ),
             ),
@@ -2137,34 +2149,41 @@ class _TagSelectionBottomSheetState extends State<_TagSelectionBottomSheet> {
 
           // Bottom action
           Container(
-            padding: EdgeInsets.all(TossSpacing.space5),
             decoration: BoxDecoration(
               color: TossColors.background,
               border: Border(top: BorderSide(color: TossColors.gray200)),
             ),
             child: SafeArea(
               top: false,
-              child: SizedBox(
-                width: double.infinity,
-                height: 56,
-                child: ElevatedButton(
-                  onPressed: () {
-                    widget.onTagsSelected(_selectedTags);
-                    Navigator.pop(context);
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: TossColors.primary,
-                    foregroundColor: TossColors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(TossBorderRadius.md),
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(
+                  TossSpacing.space5,
+                  TossSpacing.space4,
+                  TossSpacing.space5,
+                  TossSpacing.space4,
+                ),
+                child: SizedBox(
+                  width: double.infinity,
+                  height: 56,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      widget.onTagsSelected(_selectedTags);
+                      Navigator.pop(context);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: TossColors.primary,
+                      foregroundColor: TossColors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                      ),
+                      elevation: 0,
                     ),
-                    elevation: 0,
-                  ),
-                  child: Text(
-                    'Save Tags',
-                    style: TossTextStyles.bodyLarge.copyWith(
-                      color: TossColors.white,
-                      fontWeight: FontWeight.w600,
+                    child: Text(
+                      'Save Tags',
+                      style: TossTextStyles.bodyLarge.copyWith(
+                        color: TossColors.white,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                 ),

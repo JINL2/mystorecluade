@@ -55,6 +55,14 @@ Future<void> main() async {
           firebaseEnabled = true;
           // Firebase initialized successfully
           
+          // CRITICAL: Configure iOS to NOT show notifications when app is in foreground
+          // This prevents the annoying notification banner from appearing
+          await FirebaseMessaging.instance.setForegroundNotificationPresentationOptions(
+            alert: false,  // Don't show the notification banner
+            badge: true,   // Still update the badge counter
+            sound: false,  // Don't play sound
+          );
+          
           // Set up background message handler
           FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
         } else {

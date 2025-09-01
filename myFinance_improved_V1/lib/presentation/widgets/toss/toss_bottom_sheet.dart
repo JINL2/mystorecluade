@@ -58,40 +58,47 @@ class TossBottomSheet extends StatelessWidget {
         ),
         boxShadow: TossShadows.bottomSheet,
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (showHandle) ...[
-            const SizedBox(height: TossSpacing.space3),
-            Container(
-              width: TossSpacing.space9,
-              height: 4,
-              decoration: BoxDecoration(
-                color: TossColors.gray300,
-                borderRadius: BorderRadius.circular(2),
+      child: GestureDetector(
+        onTap: () {
+          // Dismiss keyboard when tapping outside of text fields
+          FocusScope.of(context).unfocus();
+        },
+        behavior: HitTestBehavior.opaque,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (showHandle) ...[
+              const SizedBox(height: TossSpacing.space3),
+              Container(
+                width: TossSpacing.space9,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: TossColors.gray300,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ],
+            if (title != null) ...[
+              const SizedBox(height: TossSpacing.space5),
+              Text(
+                title!,
+                style: TossTextStyles.h3,
+                textAlign: TextAlign.center,
+              ),
+            ],
+            Flexible(
+              child: Padding(
+                padding: const EdgeInsets.all(TossSpacing.space5),
+                child: content,
               ),
             ),
+            if (actions != null) ...[
+              const Divider(color: TossColors.gray200, height: 1),
+              ...actions!.map((action) => _buildActionItem(context, action)),
+            ],
+            SizedBox(height: MediaQuery.of(context).padding.bottom),
           ],
-          if (title != null) ...[
-            const SizedBox(height: TossSpacing.space5),
-            Text(
-              title!,
-              style: TossTextStyles.h3,
-              textAlign: TextAlign.center,
-            ),
-          ],
-          Flexible(
-            child: Padding(
-              padding: const EdgeInsets.all(TossSpacing.space5),
-              child: content,
-            ),
-          ),
-          if (actions != null) ...[
-            const Divider(color: TossColors.gray200, height: 1),
-            ...actions!.map((action) => _buildActionItem(context, action)),
-          ],
-          SizedBox(height: MediaQuery.of(context).padding.bottom),
-        ],
+        ),
       ),
     );
   }

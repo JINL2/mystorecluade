@@ -177,6 +177,13 @@ class FcmService {
   
   /// Configure message handlers
   Future<void> _configureMessageHandlers() async {
+    // CRITICAL: Configure iOS to NOT show notifications when app is in foreground
+    // This prevents the annoying notification banner from appearing
+    await FirebaseMessaging.instance.setForegroundNotificationPresentationOptions(
+      alert: false,  // Don't show the notification banner
+      badge: true,   // Update the badge counter
+      sound: false,  // Don't play sound
+    );
     // Foreground messages
     FirebaseMessaging.onMessage.listen(_handleForegroundMessage);
     

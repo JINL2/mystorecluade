@@ -81,7 +81,7 @@ class LocalNotificationService {
     // iOS permissions granted: $granted
   }
   
-  /// Show a local notification
+  /// Show a local notification - DISABLED to prevent in-app notifications
   Future<void> showNotification({
     required int id,
     required String title,
@@ -90,6 +90,12 @@ class LocalNotificationService {
     String? category,
     NotificationDetails? details,
   }) async {
+    // COMPLETELY DISABLED - We don't want ANY local notifications
+    // Only badge counter updates through the database
+    return;
+    
+    // Original code commented out to prevent any notifications
+    /*
     if (!_isInitialized) {
       // Local notifications not initialized
       return;
@@ -111,10 +117,16 @@ class LocalNotificationService {
     } catch (e) {
       // Failed to show notification: $e
     }
+    */
   }
   
-  /// Show notification from payload
+  /// Show notification from payload - DISABLED
   Future<void> showNotificationFromPayload(NotificationPayload payload) async {
+    // COMPLETELY DISABLED - We don't want ANY local notifications
+    return;
+    
+    // Original code commented out
+    /*
     // Use a safe ID by taking only the last 6 digits of hashCode to ensure it fits in 32-bit range
     final safeId = payload.id.hashCode.abs() % 999999;
     
@@ -125,6 +137,7 @@ class LocalNotificationService {
       payload: jsonEncode(payload.toJson()),
       category: payload.category,
     );
+    */
   }
   
   /// Schedule a notification

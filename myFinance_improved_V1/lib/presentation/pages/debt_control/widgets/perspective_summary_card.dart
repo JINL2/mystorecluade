@@ -5,6 +5,7 @@ import '../../../../core/themes/toss_text_styles.dart';
 import '../../../../core/themes/toss_border_radius.dart';
 import '../../../../core/utils/number_formatter.dart';
 import '../models/internal_counterparty_models.dart';
+import '../providers/currency_provider.dart';
 
 /// Enhanced summary card showing perspective-aware debt positions
 class PerspectiveSummaryCard extends ConsumerWidget {
@@ -19,6 +20,7 @@ class PerspectiveSummaryCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final currency = ref.watch(debtCurrencyProvider);
     final netPositive = summary.netPosition >= 0;
     final internalPositive = summary.internalNetPosition >= 0;
     final externalPositive = summary.externalNetPosition >= 0;
@@ -117,7 +119,7 @@ class PerspectiveSummaryCard extends ConsumerWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    NumberFormatter.formatCurrency(summary.netPosition.abs(), '₫'),
+                    NumberFormatter.formatCurrency(summary.netPosition.abs(), currency),
                     style: TossTextStyles.display.copyWith(
                       color: TossColors.textInverse,
                     ),
@@ -142,6 +144,7 @@ class PerspectiveSummaryCard extends ConsumerWidget {
                           isPositive: internalPositive,
                           receivable: summary.internalReceivable,
                           payable: summary.internalPayable,
+                          currency: currency,
                         ),
                       ),
                       const SizedBox(width: 12),
@@ -153,6 +156,7 @@ class PerspectiveSummaryCard extends ConsumerWidget {
                           isPositive: externalPositive,
                           receivable: summary.externalReceivable,
                           payable: summary.externalPayable,
+                          currency: currency,
                         ),
                       ),
                     ],
@@ -263,6 +267,7 @@ class PerspectiveSummaryCard extends ConsumerWidget {
     required bool isPositive,
     required double receivable,
     required double payable,
+    required String currency,
   }) {
     return Container(
       padding: const EdgeInsets.all(12),
@@ -295,7 +300,7 @@ class PerspectiveSummaryCard extends ConsumerWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            NumberFormatter.formatCurrency(amount.abs(), '₫'),
+            NumberFormatter.formatCurrency(amount.abs(), currency),
             style: TossTextStyles.body.copyWith(
               color: TossColors.textInverse,
               fontWeight: FontWeight.bold,

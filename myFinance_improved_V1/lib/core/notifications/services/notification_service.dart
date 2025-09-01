@@ -6,6 +6,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 // import 'package:logger/logger.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../config/notification_config.dart';
+import '../config/notification_display_config.dart';
 import '../models/notification_payload.dart';
 import '../models/notification_db_model.dart';
 import '../repositories/notification_repository.dart';
@@ -13,6 +14,7 @@ import '../utils/notification_logger.dart';
 import 'fcm_service.dart';
 import 'local_notification_service.dart';
 import 'token_manager.dart';
+import 'notification_display_manager.dart';
 
 /// Main notification service that coordinates all notification functionality
 class NotificationService {
@@ -25,6 +27,7 @@ class NotificationService {
   final NotificationLogger _notificationLogger = NotificationLogger();
   final NotificationRepository _repository = NotificationRepository();
   final TokenManager _tokenManager = TokenManager();
+  final NotificationDisplayManager _displayManager = NotificationDisplayManager();
   // final Logger _logger = Logger();
   final SupabaseClient _supabase = Supabase.instance.client;
   
@@ -67,6 +70,9 @@ class NotificationService {
       // Initialize token manager for automatic token management
       await _tokenManager.initialize();
       
+      // Initialize display manager to handle notification display intelligently
+      await _displayManager.initialize();
+      
       // Subscribe to database notifications
       await _subscribeToSupabaseNotifications();
       
@@ -88,11 +94,24 @@ class NotificationService {
       // Foreground message received
       _notificationLogger.logNotification(message);
       
-      // Show local notification for foreground messages
-      await _showNotificationFromRemoteMessage(message);
+      // IMPORTANT: We're NOT showing in-app notifications anymore
+      // Only update the badge counter through the database
+      // The user can see notifications in the notification center when they want
       
-      // Handle data payload
+      // Store in database to update badge counter
+      await _storeNotificationInDatabase(
+        title: message.notification?.title ?? 'MyFinance',
+        body: message.notification?.body ?? '',
+        category: message.data['category'],
+        data: message.data,
+        imageUrl: message.notification?.android?.imageUrl ?? message.notification?.apple?.imageUrl,
+      );
+      
+      // Handle data payload silently
       _handleDataPayload(message.data);
+      
+      // We're intentionally NOT calling _showNotificationFromRemoteMessage
+      // to prevent any in-app display of notifications
     });
     
     // Handle notification tap when app is in background
@@ -105,31 +124,16 @@ class NotificationService {
     });
   }
   
-  /// Show notification from remote message
+  /// DEPRECATED - We no longer show in-app notifications
+  /// This method is kept for reference but should not be called
   Future<void> _showNotificationFromRemoteMessage(RemoteMessage message) async {
-    final notification = message.notification;
+    // COMPLETE REMOVAL OF IN-APP NOTIFICATIONS
+    // This method is intentionally empty
+    // We only store notifications in the database for badge counter
+    // Users can view notifications in the notification center when they choose
     
-    if (notification != null) {
-      // Use a safe ID by taking modulo to ensure it fits in 32-bit range
-      final safeId = message.hashCode.abs() % 999999;
-      
-      // Store notification in database
-      await _storeNotificationInDatabase(
-        title: notification.title ?? 'MyFinance',
-        body: notification.body ?? '',
-        category: message.data['category'],
-        data: message.data,
-        imageUrl: notification.android?.imageUrl ?? notification.apple?.imageUrl,
-      );
-      
-      await _localNotificationService.showNotification(
-        id: safeId,
-        title: notification.title ?? 'MyFinance',
-        body: notification.body ?? '',
-        payload: jsonEncode(message.data),
-        category: message.data['category'],
-      );
-    }
+    // DO NOT SHOW ANY IN-APP NOTIFICATIONS
+    return;
   }
   
   /// Handle notification response (tap)
@@ -392,7 +396,7 @@ class NotificationService {
   }
   
   /// Store notification in database
-  Future<void> _storeNotificationInDatabase({
+  Future<NotificationDbModel?> _storeNotificationInDatabase({
     required String title,
     required String body,
     String? category,
@@ -405,7 +409,7 @@ class NotificationService {
       final userId = _supabase.auth.currentUser?.id;
       if (userId == null) {
         // Cannot store notification: user not authenticated
-        return;
+        return null;
       }
       
       final result = await _repository.storeNotification(
@@ -421,12 +425,15 @@ class NotificationService {
       
       if (result != null) {
         // Notification stored in database
+        return result;
       } else {
         // Failed to store notification in database
+        return null;
       }
       
     } catch (e) {
       // Failed to store notification in database
+      return null;
     }
   }
   

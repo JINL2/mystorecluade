@@ -14,6 +14,7 @@ import '../../widgets/toss/toss_tab_bar.dart';
 import '../../providers/app_state_provider.dart';
 import 'providers/debt_control_providers.dart';
 import 'providers/perspective_providers.dart';
+import 'providers/currency_provider.dart';
 import 'widgets/simple_company_card.dart';
 import 'widgets/perspective_summary_card.dart';
 
@@ -124,6 +125,7 @@ class _SmartDebtControlPageState extends ConsumerState<SmartDebtControlPage>
     final smartOverview = ref.watch(smartDebtOverviewProvider);
     final prioritizedDebts = ref.watch(prioritizedDebtsProvider);
     final perspectiveSummary = ref.watch(perspectiveDebtSummaryProvider);
+    final currency = ref.watch(debtCurrencyProvider);
 
     return TossScaffold(
       appBar: TossAppBar(
@@ -203,7 +205,7 @@ class _SmartDebtControlPageState extends ConsumerState<SmartDebtControlPage>
                           Text(
                             NumberFormatter.formatCurrency(
                               smartOverview.value?.kpiMetrics.netPosition ?? 0.0,
-                              '₫',
+                              currency,
                             ),
                             style: TossTextStyles.display.copyWith(
                               color: TossColors.textInverse,
@@ -238,7 +240,7 @@ class _SmartDebtControlPageState extends ConsumerState<SmartDebtControlPage>
                                       Text(
                                         NumberFormatter.formatCurrency(
                                           smartOverview.value?.kpiMetrics.totalReceivable ?? 0.0,
-                                          '₫',
+                                          currency,
                                         ),
                                         style: TossTextStyles.body.copyWith(
                                           color: TossColors.textInverse,
@@ -270,7 +272,7 @@ class _SmartDebtControlPageState extends ConsumerState<SmartDebtControlPage>
                                       Text(
                                         NumberFormatter.formatCurrency(
                                           smartOverview.value?.kpiMetrics.totalPayable ?? 0.0,
-                                          '₫',
+                                          currency,
                                         ),
                                         style: TossTextStyles.body.copyWith(
                                           color: TossColors.textInverse,

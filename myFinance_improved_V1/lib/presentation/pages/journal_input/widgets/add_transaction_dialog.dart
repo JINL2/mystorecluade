@@ -511,22 +511,28 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.only(
-        bottom: MediaQuery.of(context).viewInsets.bottom,
-      ),
-      decoration: BoxDecoration(
-        color: TossColors.white,
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(TossBorderRadius.xl),
-          topRight: Radius.circular(TossBorderRadius.xl),
+    return GestureDetector(
+      onTap: () {
+        // Dismiss keyboard when tapping outside of text fields
+        FocusScope.of(context).unfocus();
+      },
+      behavior: HitTestBehavior.opaque,
+      child: Container(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
         ),
-      ),
-      child: ConstrainedBox(
-        constraints: BoxConstraints(
-          maxHeight: MediaQuery.of(context).size.height * 0.8,
+        decoration: BoxDecoration(
+          color: TossColors.white,
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(TossBorderRadius.xl),
+            topRight: Radius.circular(TossBorderRadius.xl),
+          ),
         ),
-        child: Column(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(context).size.height * 0.8,
+          ),
+          child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           // Drag Handle
@@ -1146,6 +1152,7 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
             ),
           ],
         ),
+      ),
       ),
     );
   }

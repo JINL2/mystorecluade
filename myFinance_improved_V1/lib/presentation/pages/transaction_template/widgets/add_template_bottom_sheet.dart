@@ -461,21 +461,27 @@ class _AddTemplateBottomSheetState extends ConsumerState<AddTemplateBottomSheet>
     final screenHeight = MediaQuery.of(context).size.height;
     final maxHeight = screenHeight * 0.8; // Use 80% of screen height max
     
-    return AnimatedPadding(
-      padding: EdgeInsets.only(bottom: bottomPadding),
-      duration: const Duration(milliseconds: 200),
-      child: Container(
-        constraints: BoxConstraints(
-          maxHeight: maxHeight,
-        ),
-        decoration: const BoxDecoration(
-          color: TossColors.surface,
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(TossBorderRadius.xxl),
-            topRight: Radius.circular(TossBorderRadius.xxl),
+    return GestureDetector(
+      onTap: () {
+        // Dismiss keyboard when tapping outside of text fields
+        FocusScope.of(context).unfocus();
+      },
+      behavior: HitTestBehavior.opaque,
+      child: AnimatedPadding(
+        padding: EdgeInsets.only(bottom: bottomPadding),
+        duration: const Duration(milliseconds: 200),
+        child: Container(
+          constraints: BoxConstraints(
+            maxHeight: maxHeight,
           ),
-        ),
-        child: Column(
+          decoration: const BoxDecoration(
+            color: TossColors.surface,
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(TossBorderRadius.xxl),
+              topRight: Radius.circular(TossBorderRadius.xxl),
+            ),
+          ),
+          child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             // Handle bar
@@ -543,6 +549,7 @@ class _AddTemplateBottomSheetState extends ConsumerState<AddTemplateBottomSheet>
             SizedBox(height: MediaQuery.of(context).padding.bottom),
           ],
         ),
+      ),
       ),
     );
   }

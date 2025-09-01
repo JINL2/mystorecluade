@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/themes/toss_colors.dart';
 import '../../../../core/themes/toss_text_styles.dart';
 import '../../../../core/utils/number_formatter.dart';
 import '../../../../core/navigation/safe_navigation.dart';
+import '../providers/currency_provider.dart';
 
 /// Simplified company card for debt control
-class SimpleCompanyCard extends StatelessWidget {
+class SimpleCompanyCard extends ConsumerWidget {
   final String counterpartyId;
   final String counterpartyName;
   final double netBalance;
@@ -24,17 +26,29 @@ class SimpleCompanyCard extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
-    final isPositive = netBalance >= 0;
-    final isGroup = counterpartyType == 'internal';
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Get currency from provider
+    final currency = ref.watch(debtCurrencyProvider);
+    
+    // Determine debt relationship based on sign
+    final isReceivable = netBalance > 0;  // Positive = They owe us
+    final isPayable = netBalance < 0;     // Negative = We owe them
+    final isInternal = counterpartyType == 'internal';
+    
+    // Color scheme based on debt direction
+    final Color amountColor = isReceivable 
+      ? TossColors.success    // Green for receivable
+      : isPayable 
+        ? TossColors.error     // Red for payable
+        : TossColors.gray500;  // Gray for settled
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       decoration: BoxDecoration(
         color: TossColors.white,
         borderRadius: BorderRadius.circular(16),
-        // Subtle left border for group companies
-        border: isGroup ? Border(
+        // Subtle left border for internal companies
+        border: isInternal ? Border(
           left: BorderSide(
             color: TossColors.primary,
             width: 3,
@@ -94,24 +108,36 @@ class SimpleCompanyCard extends StatelessWidget {
                 ),
               ),
               
-              // Balance
+              // Balance with proper sign and colors
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Text(
-                    NumberFormatter.formatCurrency(netBalance.abs(), '₫'),
+                    NumberFormatter.formatCurrency(netBalance.abs(), currency),
                     style: TossTextStyles.body.copyWith(
-                      color: isPositive ? TossColors.success : TossColors.error,
+                      color: amountColor,
                       fontWeight: FontWeight.w700,
                       fontSize: 15,
                     ),
                   ),
                   const SizedBox(height: 2),
-                  Text(
-                    isPositive ? 'They owe us' : 'We owe them',
-                    style: TossTextStyles.caption.copyWith(
-                      color: TossColors.textTertiary,
-                      fontSize: 10,
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: amountColor.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      isReceivable 
+                        ? 'They owe us' 
+                        : isPayable 
+                          ? 'We owe them'
+                          : 'Settled',
+                      style: TossTextStyles.caption.copyWith(
+                        color: amountColor,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                 ],
