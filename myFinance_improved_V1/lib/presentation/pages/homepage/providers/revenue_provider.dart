@@ -97,7 +97,6 @@ class RevenueNotifier extends StateNotifier<AsyncValue<RevenueData>> {
     final amounts = {
       RevenuePeriod.today: 2543.67,
       RevenuePeriod.yesterday: 2301.45,
-      RevenuePeriod.thisWeek: 16789.23,
       RevenuePeriod.thisMonth: 73456.89,
       RevenuePeriod.thisYear: 890123.45,
     };
@@ -126,12 +125,12 @@ final formattedRevenueProvider = Provider<String>((ref) {
     data: (revenue) {
       final formatter = NumberFormat.currency(
         symbol: revenue.currencySymbol == 'USD' ? '\$' : revenue.currencySymbol,
-        decimalDigits: 2,
+        decimalDigits: 0,
       );
       return formatter.format(revenue.amount);
     },
     loading: () => '---',
-    error: (_, __) => '\$0.00',
+    error: (_, __) => '\$0',
   );
 });
 

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:myfinance_improved/core/themes/toss_colors.dart';
 import 'package:myfinance_improved/core/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/core/themes/toss_spacing.dart';
@@ -183,10 +184,18 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
                   // Pinned Hello Section
                   _buildPinnedHelloSection(context, userData, selectedCompany, selectedStore),
                   
-                  // Revenue Card Section (only show if store is selected)
-                  if (ref.watch(appStateProvider).storeChoosen.isNotEmpty)
+                  // Revenue Card Section (only show if store is selected AND user has revenue feature)
+                  if (ref.watch(appStateProvider).storeChoosen.isNotEmpty && 
+                      _hasRevenueFeature(ref))
                     SliverToBoxAdapter(
                       child: const RevenueCard(),
+                    ),
+                  
+                  // Shift Overview Card Section (show if store selected but NO revenue feature)
+                  if (ref.watch(appStateProvider).storeChoosen.isNotEmpty && 
+                      !_hasRevenueFeature(ref))
+                    SliverToBoxAdapter(
+                      child: _buildShiftOverviewCard(ref),
                     ),
                   
                   // Add spacing after Revenue card or Hello section
@@ -219,6 +228,228 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  /// Check if user has the revenue feature permission
+  bool _hasRevenueFeature(WidgetRef ref) {
+    const revenueFeatureId = 'aef426a2-c50a-4ce2-aee9-c6509cfbd571';
+    
+    try {
+      // Get user data from userCompaniesProvider
+      final userDataAsync = ref.watch(userCompaniesProvider);
+      
+      return userDataAsync.maybeWhen(
+        data: (userData) {
+          if (userData == null) return false;
+          
+          final companies = userData['companies'] as List<dynamic>? ?? [];
+          
+          // Search through all companies and their permissions
+          for (final company in companies) {
+            final role = company['role'] as Map<String, dynamic>?;
+            if (role != null) {
+              final permissions = role['permissions'] as List<dynamic>? ?? [];
+              
+              // Check if the revenue feature ID is in the permissions
+              if (permissions.contains(revenueFeatureId)) {
+                return true;
+              }
+            }
+          }
+          
+          return false;
+        },
+        orElse: () => false,
+      );
+    } catch (e) {
+      print('Error checking revenue feature: $e');
+      return false;
+    }
+  }
+  
+  /// Build shift overview card for users without revenue feature
+  Widget _buildShiftOverviewCard(WidgetRef ref) {
+    final shiftOverviewAsync = ref.watch(userShiftOverviewProvider);
+    
+    return Container(
+      margin: const EdgeInsets.all(TossSpacing.space4),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            TossColors.primary,
+            TossColors.primary.withOpacity(0.8),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: TossShadows.elevation3,
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(TossSpacing.space6),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header - changed from Revenue to Estimated Salary
+            Text(
+              'Estimated Salary',
+              style: TossTextStyles.h3.copyWith(
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            
+            const SizedBox(height: TossSpacing.space4),
+            
+            // Salary amount
+            shiftOverviewAsync.when(
+              data: (shiftData) {
+                if (shiftData == null) {
+                  return _buildNoDataState();
+                }
+                
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Format salary amount
+                    Text(
+                      '${shiftData.currencySymbol}${_formatCurrency(shiftData.estimatedSalary.toInt())}',
+                      style: TossTextStyles.display.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 36,
+                      ),
+                    ),
+                        const SizedBox(height: TossSpacing.space3),
+                        
+                        // Quick stats row
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            _buildShiftStat(
+                              'Work Days',
+                              '${shiftData.actualWorkDays}',
+                              Icons.calendar_today,
+                            ),
+                            _buildShiftStat(
+                              'Work Hours',
+                              '${shiftData.actualWorkHours.toStringAsFixed(1)}',
+                              Icons.access_time,
+                            ),
+                            _buildShiftStat(
+                              'Overtime',
+                              '${shiftData.overtimeTotal.toInt()}',
+                              Icons.trending_up,
+                            ),
+                          ],
+                        ),
+                      ],
+                    );
+                  },
+                  loading: () => _buildLoadingSalary(),
+                  error: (error, _) => _buildErrorSalary(),
+                ),
+              ],
+            ),
+      ),
+    );
+  }
+  
+  Widget _buildShiftStat(String label, String value, IconData icon) {
+    return Container(
+      padding: const EdgeInsets.all(TossSpacing.space2),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.15),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            icon,
+            color: Colors.white.withOpacity(0.9),
+            size: 20,
+          ),
+          const SizedBox(height: 4),
+          Text(
+            value,
+            style: TossTextStyles.body.copyWith(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          Text(
+            label,
+            style: TossTextStyles.caption.copyWith(
+              color: Colors.white.withOpacity(0.8),
+              fontSize: 11,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+  
+  Widget _buildLoadingSalary() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          width: 200,
+          height: 36,
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.2),
+            borderRadius: BorderRadius.circular(8),
+          ),
+        ),
+        const SizedBox(height: TossSpacing.space2),
+        Container(
+          width: 150,
+          height: 20,
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.15),
+            borderRadius: BorderRadius.circular(4),
+          ),
+        ),
+      ],
+    );
+  }
+  
+  Widget _buildErrorSalary() {
+    return Container(
+      padding: const EdgeInsets.all(TossSpacing.space3),
+      decoration: BoxDecoration(
+        color: Colors.red.withOpacity(0.2),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          const Icon(
+            Icons.error_outline,
+            color: Colors.white,
+            size: 20,
+          ),
+          const SizedBox(width: TossSpacing.space2),
+          Expanded(
+            child: Text(
+              'Unable to load salary data',
+              style: TossTextStyles.body.copyWith(
+                color: Colors.white,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+  
+  Widget _buildNoDataState() {
+    return Text(
+      'No salary data available',
+      style: TossTextStyles.body.copyWith(
+        color: Colors.white.withOpacity(0.8),
       ),
     );
   }
@@ -1610,6 +1841,12 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
         );
       }
     }
+  }
+
+  // Helper method to format currency without decimals
+  String _formatCurrency(int amount) {
+    final formatter = NumberFormat('#,###', 'en_US');
+    return formatter.format(amount);
   }
 
   // Removed - no longer needed since drawer is integrated in scaffold

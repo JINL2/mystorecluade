@@ -496,6 +496,62 @@ final featureRepositoryProvider = Provider<FeatureRepository>((ref) {
   return data_repo.SupabaseFeatureRepository(Supabase.instance.client, ref);
 });
 
+/// Provider for user shift overview data (salary estimation)
+final userShiftOverviewProvider = FutureProvider.autoDispose<UserShiftOverview?>((ref) async {
+  try {
+    final user = ref.watch(authStateProvider);
+    final appState = ref.watch(appStateProvider);
+    final companyId = appState.companyChoosen;
+    final storeId = appState.storeChoosen;
+    
+    if (user == null || companyId.isEmpty) {
+      return null;
+    }
+    
+    // Get current date in yyyy-MM-dd format
+    final now = DateTime.now();
+    final requestDate = '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
+    
+    // Call the RPC function
+    final supabase = Supabase.instance.client;
+    
+    print('Calling user_shift_overview with params:');
+    print('  p_request_date: $requestDate');
+    print('  p_user_id: ${user.id}');
+    print('  p_company_id: $companyId');
+    print('  p_store_id: ${storeId.isEmpty ? null : storeId}');
+    
+    final response = await supabase.rpc(
+      'user_shift_overview',
+      params: {
+        'p_request_date': requestDate,
+        'p_user_id': user.id,
+        'p_company_id': companyId,
+        'p_store_id': storeId.isEmpty ? null : storeId,
+      },
+    ).timeout(
+      const Duration(seconds: 10),
+      onTimeout: () {
+        print('user_shift_overview RPC timed out');
+        return null;
+      },
+    );
+    
+    print('user_shift_overview response: $response');
+    
+    if (response == null) {
+      print('Response is null');
+      return null;
+    }
+    
+    // Parse response into UserShiftOverview model
+    return UserShiftOverview.fromJson(response as Map<String, dynamic>);
+  } catch (e) {
+    print('Error fetching user shift overview: $e');
+    return null;
+  }
+});
+
 /// Exception classes
 class UnauthorizedException implements Exception {
   final String message;

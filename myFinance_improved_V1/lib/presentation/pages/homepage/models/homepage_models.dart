@@ -229,3 +229,68 @@ class StoreSelected extends CompanySelectionEvent {
   const StoreSelected(this.store);
   final Store store;
 }
+
+/// User shift overview data for salary estimation
+class UserShiftOverview {
+  const UserShiftOverview({
+    required this.requestMonth,
+    required this.actualWorkDays,
+    required this.actualWorkHours,
+    required this.estimatedSalary,
+    required this.currencySymbol,
+    required this.salaryAmount,
+    required this.salaryType,
+    required this.lateDeductionTotal,
+    required this.overtimeTotal,
+  });
+
+  final String requestMonth;
+  final int actualWorkDays;
+  final double actualWorkHours;
+  final double estimatedSalary;
+  final String currencySymbol;
+  final double salaryAmount;
+  final String salaryType;
+  final double lateDeductionTotal;
+  final double overtimeTotal;
+
+  factory UserShiftOverview.fromJson(Map<String, dynamic> json) {
+    // Parse estimated_salary which comes as a string with commas
+    double parsedEstimatedSalary = 0.0;
+    final estimatedSalaryValue = json['estimated_salary'];
+    if (estimatedSalaryValue != null) {
+      if (estimatedSalaryValue is String) {
+        // Remove commas and parse as double
+        parsedEstimatedSalary = double.tryParse(estimatedSalaryValue.replaceAll(',', '')) ?? 0.0;
+      } else if (estimatedSalaryValue is num) {
+        parsedEstimatedSalary = estimatedSalaryValue.toDouble();
+      }
+    }
+    
+    return UserShiftOverview(
+      requestMonth: json['request_month'] as String? ?? '',
+      actualWorkDays: json['actual_work_days'] as int? ?? 0,
+      actualWorkHours: (json['actual_work_hours'] as num?)?.toDouble() ?? 0.0,
+      estimatedSalary: parsedEstimatedSalary,
+      currencySymbol: json['currency_symbol'] as String? ?? '₩',
+      salaryAmount: (json['salary_amount'] as num?)?.toDouble() ?? 0.0,
+      salaryType: json['salary_type'] as String? ?? '',
+      lateDeductionTotal: (json['late_deduction_total'] as num?)?.toDouble() ?? 0.0,
+      overtimeTotal: (json['overtime_total'] as num?)?.toDouble() ?? 0.0,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'request_month': requestMonth,
+      'actual_work_days': actualWorkDays,
+      'actual_work_hours': actualWorkHours,
+      'estimated_salary': estimatedSalary,
+      'currency_symbol': currencySymbol,
+      'salary_amount': salaryAmount,
+      'salary_type': salaryType,
+      'late_deduction_total': lateDeductionTotal,
+      'overtime_total': overtimeTotal,
+    };
+  }
+}

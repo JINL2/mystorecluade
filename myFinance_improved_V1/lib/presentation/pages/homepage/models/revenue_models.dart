@@ -44,7 +44,6 @@ class RevenueResponse with _$RevenueResponse {
 enum RevenuePeriod {
   today('Today', 'vs Yesterday'),
   yesterday('Yesterday', 'vs Day Before'),
-  thisWeek('This Week', 'vs Last Week'),
   thisMonth('This Month', 'vs Last Month'),
   thisYear('This Year', 'vs Last Year');
 
