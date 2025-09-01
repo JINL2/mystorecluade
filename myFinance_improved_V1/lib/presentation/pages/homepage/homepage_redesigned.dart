@@ -292,9 +292,9 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header - changed from Revenue to Estimated Salary
+            // Header - This Month Estimated Salary
             Text(
-              'Estimated Salary',
+              'This Month Estimated Salary',
               style: TossTextStyles.h3.copyWith(
                 color: Colors.white,
                 fontWeight: FontWeight.w600,
@@ -329,7 +329,7 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             _buildShiftStat(
-                              'Work Days',
+                              'Work Shifts',
                               '${shiftData.actualWorkDays}',
                               Icons.calendar_today,
                             ),

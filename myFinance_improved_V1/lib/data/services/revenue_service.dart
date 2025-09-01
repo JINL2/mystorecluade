@@ -5,6 +5,9 @@ import '../../presentation/pages/homepage/models/revenue_models.dart';
 class RevenueService {
   final SupabaseClient _client = Supabase.instance.client;
   final Random _random = Random();
+  
+  // Cache the full response to access store-specific data
+  Map<String, dynamic>? _lastResponse;
 
   /// Fetch revenue data from Supabase with mock fallback
   Future<RevenueData> fetchRevenue({
@@ -45,11 +48,12 @@ class RevenueService {
       final currentDate = '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
       
       // Call the actual get_dashboard_revenue RPC function
+      // Always pass null for store_id to get all company data with all stores
       final response = await _client.rpc(
         'get_dashboard_revenue',
         params: {
           'p_company_id': companyId,
-          'p_store_id': storeId.isEmpty ? null : storeId,
+          'p_store_id': null,  // Always null to get full company data
           'p_date': currentDate,
         },
       ).timeout(
@@ -58,6 +62,9 @@ class RevenueService {
       );
 
       if (response != null && response is Map<String, dynamic>) {
+        // Store the full response for store-specific data access
+        _lastResponse = response;
+        
         // Extract the appropriate amount based on the selected period
         double amount = 0.0;
         switch (period) {
@@ -242,6 +249,31 @@ class RevenueService {
     }
     
     return summaries;
+  }
+
+  /// Get store-specific revenue from cached response
+  double getStoreRevenue(String storeId, RevenuePeriod period) {
+    if (_lastResponse == null) return 0.0;
+    
+    final stores = _lastResponse!['stores'] as List<dynamic>? ?? [];
+    
+    // Find the specific store
+    for (final store in stores) {
+      if (store['store_id'] == storeId) {
+        switch (period) {
+          case RevenuePeriod.today:
+            return (store['sales_today'] ?? 0).toDouble();
+          case RevenuePeriod.yesterday:
+            return (store['sales_yesterday'] ?? 0).toDouble();
+          case RevenuePeriod.thisMonth:
+            return (store['sales_this_month'] ?? 0).toDouble();
+          case RevenuePeriod.thisYear:
+            return (store['sales_this_year'] ?? 0).toDouble();
+        }
+      }
+    }
+    
+    return 0.0;
   }
 
   /// Generate mock category breakdown

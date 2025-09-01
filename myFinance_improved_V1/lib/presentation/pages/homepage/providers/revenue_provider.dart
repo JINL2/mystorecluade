@@ -15,6 +15,13 @@ final selectedRevenuePeriodProvider = StateProvider<RevenuePeriod>((ref) {
   return RevenuePeriod.today;
 });
 
+/// Selected revenue view tab (Company or Store)
+enum RevenueViewTab { company, store }
+
+final selectedRevenueTabProvider = StateProvider<RevenueViewTab>((ref) {
+  return RevenueViewTab.company;
+});
+
 /// Revenue data cache for preventing unnecessary fetches
 final _revenueCache = <String, (RevenueData, DateTime)>{};
 const _cacheDuration = Duration(minutes: 5);
@@ -32,8 +39,8 @@ class RevenueNotifier extends StateNotifier<AsyncValue<RevenueData>> {
   }
   
   void _initialize() {
-    // Watch for changes in store selection or period
-    _ref.listen<String>(appStateProvider.select((state) => state.storeChoosen), (previous, next) {
+    // Watch for changes in company selection or period (not store)
+    _ref.listen<String>(appStateProvider.select((state) => state.companyChoosen), (previous, next) {
       if (next.isNotEmpty && previous != next) {
         fetchRevenue();
       }
@@ -45,6 +52,17 @@ class RevenueNotifier extends StateNotifier<AsyncValue<RevenueData>> {
       }
     });
     
+    // Watch for store changes to trigger UI updates (but not fetch)
+    // This ensures the Store tab updates when switching stores
+    _ref.listen<String>(appStateProvider.select((state) => state.storeChoosen), (previous, next) {
+      // Just trigger a state rebuild without fetching new data
+      // The store revenue will be extracted from the cached company data
+      if (state.hasValue && next.isNotEmpty && previous != next) {
+        // Force a rebuild by setting the same state
+        state = AsyncValue.data(state.value!);
+      }
+    });
+    
     // Initial fetch
     fetchRevenue();
   }
@@ -53,12 +71,14 @@ class RevenueNotifier extends StateNotifier<AsyncValue<RevenueData>> {
     final appState = _ref.read(appStateProvider);
     final period = _ref.read(selectedRevenuePeriodProvider);
     
-    if (appState.storeChoosen.isEmpty || appState.companyChoosen.isEmpty) {
+    // Only need company to be selected, not store
+    if (appState.companyChoosen.isEmpty) {
       state = const AsyncValue.data(RevenueData());
       return;
     }
     
-    final cacheKey = '${appState.storeChoosen}_${appState.companyChoosen}_${period.name}';
+    // Cache key should only include company and period, not store
+    final cacheKey = '${appState.companyChoosen}_${period.name}';
     
     // Check cache if not forcing refresh
     if (!forceRefresh && _revenueCache.containsKey(cacheKey)) {
@@ -131,6 +151,27 @@ final formattedRevenueProvider = Provider<String>((ref) {
     },
     loading: () => '---',
     error: (_, __) => '\$0',
+  );
+});
+
+/// Provider for store-specific revenue
+final storeRevenueProvider = Provider.family<String, String>((ref, storeId) {
+  final revenueAsync = ref.watch(revenueProvider);
+  final selectedPeriod = ref.watch(selectedRevenuePeriodProvider);
+  
+  return revenueAsync.maybeWhen(
+    data: (revenue) {
+      // Get the store revenue from the service's cached response
+      final service = ref.read(revenueServiceProvider);
+      final storeRevenue = service.getStoreRevenue(storeId, selectedPeriod);
+      
+      final formatter = NumberFormat.currency(
+        symbol: revenue.currencySymbol == 'USD' ? '\$' : revenue.currencySymbol,
+        decimalDigits: 0,
+      );
+      return formatter.format(storeRevenue);
+    },
+    orElse: () => '---',
   );
 });
 

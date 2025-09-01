@@ -6,6 +6,7 @@ import '../../../../core/themes/toss_spacing.dart';
 import '../../../../core/themes/toss_shadows.dart';
 import '../providers/revenue_provider.dart';
 import '../models/revenue_models.dart';
+import '../../../providers/app_state_provider.dart';
 
 class RevenueCard extends ConsumerWidget {
   const RevenueCard({super.key});
@@ -15,6 +16,7 @@ class RevenueCard extends ConsumerWidget {
     final revenueAsync = ref.watch(revenueProvider);
     final formattedRevenue = ref.watch(formattedRevenueProvider);
     final selectedPeriod = ref.watch(selectedRevenuePeriodProvider);
+    final selectedTab = ref.watch(selectedRevenueTabProvider);
 
     return Container(
       margin: const EdgeInsets.all(TossSpacing.space4),
@@ -55,15 +57,27 @@ class RevenueCard extends ConsumerWidget {
                   ],
                 ),
                 
+                const SizedBox(height: TossSpacing.space3),
+                
+                // Company/Store tabs
+                _TabSelector(
+                  selectedTab: selectedTab,
+                  onTabChanged: (tab) {
+                    ref.read(selectedRevenueTabProvider.notifier).state = tab;
+                  },
+                ),
+                
                 const SizedBox(height: TossSpacing.space4),
                 
-                // Revenue amount
+                // Revenue amount based on selected tab
                 revenueAsync.when(
                   data: (revenue) => Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          formattedRevenue,
+                          selectedTab == RevenueViewTab.company 
+                            ? formattedRevenue
+                            : _getStoreRevenue(ref),
                           style: TossTextStyles.display.copyWith(
                             color: Colors.white,
                             fontWeight: FontWeight.bold,
@@ -93,6 +107,22 @@ class RevenueCard extends ConsumerWidget {
     );
   }
 
+  String _getStoreRevenue(WidgetRef ref) {
+    final revenueAsync = ref.watch(revenueProvider);
+    final selectedPeriod = ref.watch(selectedRevenuePeriodProvider);
+    final appState = ref.watch(appStateProvider);
+    final storeId = appState.storeChoosen;
+    
+    return revenueAsync.maybeWhen(
+      data: (revenue) {
+        // Get store-specific revenue from the data
+        final storeRevenue = ref.watch(storeRevenueProvider(storeId));
+        return storeRevenue;
+      },
+      orElse: () => '₫0',
+    );
+  }
+
   String _formatLastUpdated(DateTime? lastUpdated) {
     if (lastUpdated == null) return 'Just now';
     
@@ -101,6 +131,65 @@ class RevenueCard extends ConsumerWidget {
     if (difference.inMinutes < 60) return '${difference.inMinutes}m ago';
     if (difference.inHours < 24) return '${difference.inHours}h ago';
     return '${difference.inDays}d ago';
+  }
+}
+
+class _TabSelector extends StatelessWidget {
+  final RevenueViewTab selectedTab;
+  final ValueChanged<RevenueViewTab> onTabChanged;
+
+  const _TabSelector({
+    required this.selectedTab,
+    required this.onTabChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.15),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      padding: const EdgeInsets.all(2),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _buildTab(
+            'Company',
+            RevenueViewTab.company,
+            selectedTab == RevenueViewTab.company,
+          ),
+          _buildTab(
+            'Store',
+            RevenueViewTab.store,
+            selectedTab == RevenueViewTab.store,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTab(String label, RevenueViewTab tab, bool isSelected) {
+    return GestureDetector(
+      onTap: () => onTabChanged(tab),
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: TossSpacing.space3,
+          vertical: TossSpacing.space1,
+        ),
+        decoration: BoxDecoration(
+          color: isSelected ? Colors.white.withOpacity(0.25) : Colors.transparent,
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Text(
+          label,
+          style: TossTextStyles.bodySmall.copyWith(
+            color: Colors.white,
+            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+          ),
+        ),
+      ),
+    );
   }
 }
 
