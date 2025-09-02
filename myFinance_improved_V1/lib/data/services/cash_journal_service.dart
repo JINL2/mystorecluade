@@ -112,7 +112,6 @@ class CashJournalService {
     
     // Get current date
     final now = DateTime.now().toLocal();
-    final dateStr = DateFormat('yyyy-MM-dd').format(now);
     final entryDate = DateFormat('yyyy-MM-ddTHH:mm:ss').format(now);
     
     // Calculate absolute amount
@@ -166,7 +165,6 @@ class CashJournalService {
     
     // Get current date
     final now = DateTime.now().toLocal();
-    final dateStr = DateFormat('yyyy-MM-dd').format(now);
     final entryDate = DateFormat('yyyy-MM-ddTHH:mm:ss').format(now);
     
     // Calculate absolute amount

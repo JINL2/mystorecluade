@@ -132,16 +132,13 @@ class FcmService {
     const bool isProduction = bool.fromEnvironment('dart.vm.product');
     const bool isProfileMode = bool.fromEnvironment('dart.vm.profile');
     
-    String environment = 'unknown';
     if (isProduction) {
-      environment = 'production';
+      // production
     } else if (isProfileMode) {
-      environment = 'profile';
+      // profile
     } else if (kDebugMode) {
-      environment = 'debug';
+      // debug
     }
-    
-    // Environment: $environment, Mode: ${kReleaseMode ? "Release" : "Debug"}
     
     // Check for TestFlight/App Store
     if (Platform.isIOS) {
@@ -221,12 +218,6 @@ class FcmService {
     // Handle initial navigation - implementation pending
   }
   
-  /// Log message details for debugging
-  void _logMessage(RemoteMessage message) {
-    if (NotificationConfig.debugMode) {
-      // Notification received: ${message.notification?.title}
-    }
-  }
   
   /// Update token in backend (Supabase)
   Future<void> _updateTokenInBackend(String token) async {

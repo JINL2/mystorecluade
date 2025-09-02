@@ -319,7 +319,10 @@ class _DelegateRolePageState extends ConsumerState<DelegateRolePage> {
         width: 44,
         height: 44,
         decoration: BoxDecoration(
-          color: _getRoleColor(role['roleName']).withValues(alpha: 0.1),
+          color: Color.alphaBlend(
+            _getRoleColor(role['roleName']).withOpacity(0.1),
+            TossColors.background,
+          ),
           borderRadius: BorderRadius.circular(10),
         ),
         child: Icon(
@@ -666,13 +669,19 @@ class _CreateRoleBottomSheetState extends ConsumerState<_CreateRoleBottomSheet> 
                     Container(
                       width: 30,
                       height: 2,
-                      color: _currentStep >= 1 ? TossColors.primary.withValues(alpha: 0.3) : TossColors.borderLight,
+                      color: _currentStep >= 1 ? Color.alphaBlend(
+                        TossColors.primary.withOpacity(0.3),
+                        TossColors.background,
+                      ) : TossColors.borderLight,
                     ),
                     _buildStepIndicator(1, _currentStep == 1),
                     Container(
                       width: 30,
                       height: 2,
-                      color: _currentStep >= 2 ? TossColors.primary.withValues(alpha: 0.3) : TossColors.borderLight,
+                      color: _currentStep >= 2 ? Color.alphaBlend(
+                        TossColors.primary.withOpacity(0.3),
+                        TossColors.background,
+                      ) : TossColors.borderLight,
                     ),
                     _buildStepIndicator(2, _currentStep == 2),
                   ],
@@ -927,10 +936,16 @@ class _CreateRoleBottomSheetState extends ConsumerState<_CreateRoleBottomSheet> 
                       vertical: TossSpacing.space1,
                     ),
               decoration: BoxDecoration(
-                color: _getTagColor(tag).withValues(alpha: 0.1),
+                color: Color.alphaBlend(
+                  _getTagColor(tag).withOpacity(0.1),
+                  TossColors.background,
+                ),
                 borderRadius: BorderRadius.circular(TossBorderRadius.sm),
                 border: Border.all(
-                  color: _getTagColor(tag).withValues(alpha: 0.3),
+                  color: Color.alphaBlend(
+                    _getTagColor(tag).withOpacity(0.3),
+                    TossColors.background,
+                  ),
                   width: 1,
                 ),
               ),
@@ -1015,7 +1030,7 @@ class _CreateRoleBottomSheetState extends ConsumerState<_CreateRoleBottomSheet> 
                         borderRadius: BorderRadius.circular(TossBorderRadius.md),
                         border: Border.all(
                           color: TossColors.gray300,
-                          width: 1.5,
+                          width: 1.0, // Use whole pixels for pixel-perfect rendering
                         ),
                       ),
                       child: Row(
@@ -1253,7 +1268,10 @@ class _CreateRoleBottomSheetState extends ConsumerState<_CreateRoleBottomSheet> 
                               color: allSelected
                                   ? TossColors.primary
                                   : someSelected
-                                      ? TossColors.primary.withValues(alpha: 0.3)
+                                      ? Color.alphaBlend(
+                                          TossColors.primary.withOpacity(0.3),
+                                          TossColors.surface,
+                                        )
                                       : TossColors.surface,
                               border: Border.all(
                                 color: allSelected || someSelected

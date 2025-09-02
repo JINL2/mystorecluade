@@ -25,16 +25,15 @@ class TossPageStyles {
   static BoxDecoration cardDecoration = BoxDecoration(
     color: cardBackground,
     borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-    boxShadow: [TossShadows.card],
+    boxShadow: TossShadows.card,
   );
   
   static const EdgeInsets cardPadding = EdgeInsets.all(TossSpacing.space5);
   static const EdgeInsets pagePadding = EdgeInsets.all(TossSpacing.paddingMD);
   
   // ==================== SECTION STYLES ====================
-  static TextStyle sectionTitleStyle = TossTextStyles.bodyLarge.copyWith(
+  static TextStyle sectionTitleStyle = TossTextStyles.body.copyWith(
     color: TossColors.gray900,
-    fontWeight: FontWeight.w700,
   );
   
   static TextStyle sectionSubtitleStyle = TossTextStyles.caption.copyWith(

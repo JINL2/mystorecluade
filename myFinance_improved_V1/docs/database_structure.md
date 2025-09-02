@@ -4,13 +4,14 @@
 ```yaml
 project_id: atkekzwgukdvucqntryo
 database_type: PostgreSQL (Supabase)
-total_tables: 52  # Updated with notification tables
-last_updated: 2025-01-14
+total_tables: 69  # Updated with inventory tables
+last_updated: 2025-01-31
 primary_key_type: UUID (gen_random_uuid())
 changelog:
+  - 2025-01-31: Added comprehensive inventory management system documentation
+  - 2025-01-31: Added 17 inventory-related tables for complete warehouse management
   - 2025-01-14: Added detailed notification system documentation
-  - 2025-01-14: Added 5 notification-related tables (notifications, user_notification_settings, user_fcm_tokens, fcm_cleanup_logs, sent_shift_notifications)
-  - 2025-01-14: Added notification workflow, FCM token management, and notification triggers
+  - 2025-01-14: Added 5 notification-related tables
   - 2025-01-13: Initial comprehensive documentation
 ```
 
@@ -59,13 +60,30 @@ HR_PAYROLL
 ├── store_shifts (shift definitions)
 └── shift_edit_logs (shift modification history)
 
-ASSET_INVENTORY
+FIXED_ASSETS
 ├── fixed_assets (capital assets)
 ├── depreciation_methods (depreciation rules)
 ├── depreciation_process_log (depreciation history)
-├── asset_impairments (asset write-downs)
-├── inventory_transactions (stock movements)
-└── products (product master)
+└── asset_impairments (asset write-downs)
+
+INVENTORY_MANAGEMENT
+├── inventory_product_categories (product classification)
+├── inventory_brands (brand management)
+├── inventory_products (product master data)
+├── inventory_current_stock (real-time stock levels)
+├── inventory_purchase_orders (procurement orders)
+├── inventory_purchase_order_items (order details)
+├── inventory_shipments (inbound shipments)
+├── inventory_shipment_items (shipment details)
+├── inventory_receipts (goods receiving)
+├── inventory_receipt_items (receipt details)
+├── inventory_order_fulfillment (order-to-receipt linking)
+├── inventory_sales (sales transactions)
+├── inventory_sale_items (sales details)
+├── inventory_counts (stock taking)
+├── inventory_count_items (count details)
+├── inventory_flow (stock movement tracking)
+└── inventory_fifo_layers (FIFO cost tracking)
 
 DEBT_MANAGEMENT
 ├── debts_receivable (AR/AP records)
@@ -1124,6 +1142,19 @@ CREATE TRIGGER manage_token_activation
   EXECUTE FUNCTION deactivate_old_tokens();
 ```
 
+## Inventory Management System
+
+**Note:** The complete inventory system documentation with 17 tables has been separated for better organization.
+See: [inventory_tables.md](./inventory_tables.md)
+
+### Inventory System Overview
+- **Product Management:** Categories, Brands, Products
+- **Procurement:** Purchase Orders, Shipments, Receipts
+- **Sales:** Sales Transactions, Invoicing
+- **Stock Control:** Current Stock, Physical Counts, Adjustments
+- **Tracking:** Complete Flow Audit, FIFO Costing
+- **Integration:** Links with counterparties, stores, users
+
 ## Migration Dependencies Order
 ```yaml
 1. First Wave (No dependencies):
@@ -1132,12 +1163,13 @@ CREATE TRIGGER manage_token_activation
    - categories
    - depreciation_methods
    - spatial_ref_sys
+   - inventory_product_categories
+   - inventory_brands
 
 2. Second Wave (Basic dependencies):
    - users
    - companies (needs: company_types, users, currency_types)
    - accounts
-   - products
 
 3. Third Wave:
    - stores (needs: companies)
@@ -1145,6 +1177,7 @@ CREATE TRIGGER manage_token_activation
    - counterparties (needs: companies, users)
    - fiscal_years (needs: companies)
    - features (needs: categories)
+   - inventory_products (needs: companies, inventory_product_categories, inventory_brands)
 
 4. Fourth Wave:
    - user_companies (needs: users, companies)
@@ -1153,10 +1186,19 @@ CREATE TRIGGER manage_token_activation
    - fiscal_periods (needs: fiscal_years)
    - role_permissions (needs: roles, features)
    - cash_locations (needs: companies, stores, currency_types)
+   - inventory_current_stock (needs: companies, stores, inventory_products)
+   - inventory_purchase_orders (needs: companies, counterparties, users)
 
 5. Fifth Wave (Complex dependencies):
    - journal_entries (needs: companies, stores, users, counterparties, currency_types, fiscal_periods)
    - journal_lines (needs: journal_entries, accounts, stores, counterparties)
    - shift_requests (needs: users, stores, store_shifts)
+   - inventory_purchase_order_items (needs: inventory_purchase_orders, inventory_products)
+   - inventory_shipments (needs: inventory_purchase_orders, counterparties)
+   - inventory_receipts (needs: inventory_shipments, users)
+   - inventory_sales (needs: companies, stores, counterparties, users)
+   - inventory_counts (needs: companies, stores, users)
+   - inventory_flow (needs: companies, stores, inventory_products, users)
+   - inventory_fifo_layers (needs: inventory_products, inventory_receipts)
    - All remaining tables
 ```

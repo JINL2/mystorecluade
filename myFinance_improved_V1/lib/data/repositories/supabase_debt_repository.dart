@@ -705,28 +705,6 @@ class SupabaseDebtRepository {
     }
   }
 
-  List<StoreAggregate> _getMockStoreAggregates() {
-    return const [
-      StoreAggregate(
-        storeId: 'store_1',
-        storeName: 'Main Store',
-        receivable: 12000000.0,
-        payable: 4500000.0,
-        netPosition: 7500000.0,
-        counterpartyCount: 25,
-        isHeadquarters: true,
-      ),
-      StoreAggregate(
-        storeId: 'store_2',
-        storeName: 'Branch A',
-        receivable: 8000000.0,
-        payable: 3000000.0,
-        netPosition: 5000000.0,
-        counterpartyCount: 15,
-        isHeadquarters: false,
-      ),
-    ];
-  }
 
   /// Get recent activities for a specific counterparty
   Future<List<Map<String, dynamic>>> getCounterpartyRecentActivities({

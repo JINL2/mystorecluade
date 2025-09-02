@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'toss_colors.dart';
 
 /// Toss Animation System - Smooth & Professional
 /// Based on Toss's actual animation timings
@@ -196,7 +197,7 @@ class TossAnimations {
       transitionDuration: duration,
       reverseTransitionDuration: normal,
       barrierDismissible: true,
-      barrierColor: Colors.black54,
+      barrierColor: TossColors.overlay,
       opaque: false,
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
         return slideFromBottom(
@@ -297,9 +298,9 @@ class TossAnimations {
   /// Toss-style shimmer effect for loading states
   static LinearGradient shimmerGradient = LinearGradient(
     colors: [
-      Colors.grey[300]!,
-      Colors.grey[100]!,
-      Colors.grey[300]!,
+      TossColors.gray300,
+      TossColors.gray100,
+      TossColors.gray300,
     ],
     stops: const [0.0, 0.5, 1.0],
     begin: const Alignment(-1.0, -0.3),

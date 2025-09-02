@@ -219,16 +219,6 @@ class NotificationDisplayManager {
   void _showBatchedNotifications() {
     if (_notificationQueue.isEmpty) return;
     
-    // Create summary notification
-    final count = _notificationQueue.length;
-    final summary = count == 1
-        ? _notificationQueue.first.title
-        : 'You have $count new notifications';
-    
-    final body = count == 1
-        ? _notificationQueue.first.body
-        : 'Tap to view all notifications';
-    
     // Show summary toast
     // Note: Context would need to be passed here in real implementation
     

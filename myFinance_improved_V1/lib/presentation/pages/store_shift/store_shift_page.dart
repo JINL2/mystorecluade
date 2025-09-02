@@ -1203,7 +1203,7 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
                                   ),
                                 ),
                                 const SizedBox(height: TossSpacing.space2),
-                                TossSimpleTimePicker(
+                                TossTimePicker(
                                   time: selectedStartTime,
                                   placeholder: 'Select start time',
                                   onTimeChanged: (TimeOfDay time) {
@@ -1230,7 +1230,7 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
                                   ),
                                 ),
                                 const SizedBox(height: TossSpacing.space2),
-                                TossSimpleTimePicker(
+                                TossTimePicker(
                                   time: selectedEndTime,
                                   placeholder: 'Select end time',
                                   onTimeChanged: (TimeOfDay time) {
@@ -1588,7 +1588,7 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
                                   ),
                                 ),
                                 const SizedBox(height: TossSpacing.space2),
-                                TossSimpleTimePicker(
+                                TossTimePicker(
                                   time: selectedStartTime,
                                   placeholder: 'Select start time',
                                   onTimeChanged: (TimeOfDay time) {
@@ -1615,7 +1615,7 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
                                   ),
                                 ),
                                 const SizedBox(height: TossSpacing.space2),
-                                TossSimpleTimePicker(
+                                TossTimePicker(
                                   time: selectedEndTime,
                                   placeholder: 'Select end time',
                                   onTimeChanged: (TimeOfDay time) {

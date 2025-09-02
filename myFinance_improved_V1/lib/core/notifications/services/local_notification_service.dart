@@ -72,13 +72,13 @@ class LocalNotificationService {
     final iOS = _notifications
         .resolvePlatformSpecificImplementation<IOSFlutterLocalNotificationsPlugin>();
     
-    final granted = await iOS?.requestPermissions(
+    await iOS?.requestPermissions(
       alert: true,
       badge: true,
       sound: true,
     );
     
-    // iOS permissions granted: $granted
+    // iOS permissions requested
   }
   
   /// Show a local notification - DISABLED to prevent in-app notifications

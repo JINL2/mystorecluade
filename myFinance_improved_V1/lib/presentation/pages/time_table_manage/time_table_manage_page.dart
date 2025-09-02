@@ -9,6 +9,7 @@ import 'package:myfinance_improved/presentation/providers/app_state_provider.dar
 import '../../widgets/common/toss_scaffold.dart';
 import '../../widgets/common/toss_app_bar.dart';
 import '../../widgets/common/toss_loading_view.dart';
+import '../../widgets/toss/toss_time_picker.dart';
 
 class TimeTableManagePage extends ConsumerStatefulWidget {
   const TimeTableManagePage({super.key});
@@ -2872,55 +2873,6 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<_ShiftDetailsBottomShe
     super.dispose();
   }
   
-  Future<void> _selectTime(BuildContext context, bool isStartTime) async {
-    // Get current time or use default
-    String? currentTimeStr = isStartTime ? editedStartTime : editedEndTime;
-    TimeOfDay initialTime;
-    
-    if (currentTimeStr != null && currentTimeStr != '--:--') {
-      final parts = currentTimeStr.split(':');
-      initialTime = TimeOfDay(
-        hour: int.parse(parts[0]),
-        minute: int.parse(parts[1]),
-      );
-    } else {
-      initialTime = TimeOfDay.now();
-    }
-    
-    final TimeOfDay? picked = await showTimePicker(
-      context: context,
-      initialTime: initialTime,
-      builder: (BuildContext context, Widget? child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: ColorScheme.light(
-              primary: TossColors.primary,
-              onPrimary: TossColors.white,
-              onSurface: TossColors.gray900,
-            ),
-            textButtonTheme: TextButtonThemeData(
-              style: TextButton.styleFrom(
-                foregroundColor: TossColors.primary,
-              ),
-            ),
-          ),
-          child: child!,
-        );
-      },
-    );
-    
-    if (picked != null) {
-      setState(() {
-        final formattedTime = '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
-        if (isStartTime) {
-          editedStartTime = formattedTime;
-        } else {
-          editedEndTime = formattedTime;
-        }
-      });
-    }
-  }
-  
   Future<void> _showDeleteTagDialog(BuildContext context, String tagId, String content) async {
     final result = await showDialog<bool>(
       context: context,
@@ -3843,10 +3795,56 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<_ShiftDetailsBottomShe
                       ),
                       const SizedBox(height: TossSpacing.space4),
                       // Start Time Editor
-                      _buildTimeEditor('Start Time', editedStartTime, true),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Start Time',
+                            style: TossTextStyles.body.copyWith(
+                              color: TossColors.gray600,
+                            ),
+                          ),
+                          SizedBox(
+                            width: 120,
+                            child: TossTimePicker(
+                              time: _parseTimeString(editedStartTime),
+                              placeholder: '--:--',
+                              use24HourFormat: false,
+                              onTimeChanged: (TimeOfDay time) {
+                                setState(() {
+                                  editedStartTime = _formatTimeOfDay(time);
+                                });
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
                       const SizedBox(height: TossSpacing.space3),
                       // End Time Editor
-                      _buildTimeEditor('End Time', editedEndTime, false),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'End Time',
+                            style: TossTextStyles.body.copyWith(
+                              color: TossColors.gray600,
+                            ),
+                          ),
+                          SizedBox(
+                            width: 120,
+                            child: TossTimePicker(
+                              time: _parseTimeString(editedEndTime),
+                              placeholder: '--:--',
+                              use24HourFormat: false,
+                              onTimeChanged: (TimeOfDay time) {
+                                setState(() {
+                                  editedEndTime = _formatTimeOfDay(time);
+                                });
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
                     ],
                   ),
                 ),
@@ -4418,57 +4416,6 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<_ShiftDetailsBottomShe
     );
   }
   
-  Widget _buildTimeEditor(String label, String? currentTime, bool isStartTime) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          label,
-          style: TossTextStyles.body.copyWith(
-            color: TossColors.gray600,
-          ),
-        ),
-        InkWell(
-          onTap: () => _selectTime(context, isStartTime),
-          borderRadius: BorderRadius.circular(12),
-          child: Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: TossSpacing.space3,
-              vertical: TossSpacing.space2,
-            ),
-            decoration: BoxDecoration(
-              color: TossColors.background,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: TossColors.gray200,
-                width: 1,
-              ),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  currentTime ?? '--:--',
-                  style: TossTextStyles.body.copyWith(
-                    color: currentTime != null ? TossColors.gray900 : TossColors.gray400,
-                    fontWeight: FontWeight.w600,
-                    fontFamily: 'JetBrains Mono',
-                  ),
-                ),
-                const SizedBox(width: TossSpacing.space2),
-                const Icon(
-                  Icons.access_time,
-                  size: 16,
-                  color: TossColors.gray500,
-                ),
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-  
   // Helper widget for detail rows
   Widget _buildDetailRow(String label, String value, {Color? valueColor}) {
     return Padding(
@@ -4550,6 +4497,20 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<_ShiftDetailsBottomShe
         ),
       ),
     );
+  }
+
+  TimeOfDay? _parseTimeString(String? timeStr) {
+    if (timeStr == null || timeStr == '--:--') return null;
+    final parts = timeStr.split(':');
+    if (parts.length != 2) return null;
+    return TimeOfDay(
+      hour: int.parse(parts[0]),
+      minute: int.parse(parts[1]),
+    );
+  }
+
+  String _formatTimeOfDay(TimeOfDay time) {
+    return '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
   }
   
   // Build stat card widget

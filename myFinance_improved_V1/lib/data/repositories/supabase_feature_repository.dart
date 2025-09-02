@@ -17,7 +17,6 @@ class SupabaseFeatureRepository implements FeatureRepository {
   // Cache now includes company_id in the key
   static final Map<String, List<TopFeature>> _userFeaturesCache = {};
   static final Map<String, DateTime> _userFeaturesCacheTime = {};
-  static const Duration _userFeaturesCacheTTL = Duration(hours: 2);
 
   SupabaseFeatureRepository(this._client, [this._ref]);
 
@@ -125,6 +124,8 @@ class SupabaseFeatureRepository implements FeatureRepository {
             }
             
           } catch (e) {
+            // Log parsing error for debugging (keep this for production monitoring)
+            print('Error parsing feature ${feature['feature_name']}: $e');
           }
         }
         

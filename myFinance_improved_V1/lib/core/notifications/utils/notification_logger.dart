@@ -131,8 +131,7 @@ class NotificationLogger {
   /// Print log to console (only in debug mode)
   void _printLog(NotificationLog log) {
     if (kDebugMode) {
-      final emoji = _getEmoji(log.type);
-      // $emoji ${log.type} notification: ${log.title ?? "N/A"}
+      // ${log.type} notification: ${log.title ?? "N/A"}
     }
   }
   
@@ -157,21 +156,6 @@ class NotificationLogger {
     return buffer.toString();
   }
   
-  /// Get emoji for log type
-  String _getEmoji(String type) {
-    switch (type) {
-      case 'FCM':
-        return '📬';
-      case 'LOCAL':
-        return '🔔';
-      case 'TEST':
-        return '🧪';
-      case 'ERROR':
-        return '❌';
-      default:
-        return '📝';
-    }
-  }
   
   /// Get all logs
   List<NotificationLog> getLogs() => List.unmodifiable(_logs);

@@ -157,7 +157,6 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
         ),
       ),
       child: Column(
-        mainAxisSize: MainAxisSize.min,
         children: [
           // Top spacing only (no duplicate header - TossEnhancedModal handles header)
           SizedBox(height: TossSpacing.space4),
@@ -175,8 +174,8 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
           ),
           SizedBox(height: TossSpacing.space4),
 
-          // Tab content - Remove AnimatedBuilder wrapping TabBarView to prevent double rendering
-          Expanded(
+          // Tab content - Use Flexible instead of Expanded to prevent overflow
+          Flexible(
             child: TabBarView(
               controller: _tabController,
               physics: const NeverScrollableScrollPhysics(), // Disable swipe to prevent conflicts
@@ -190,7 +189,7 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
 
           // TOSS-style bottom action with proper safe area
           // Hide save button when user is actively editing text
-          if (widget.canEdit && !_isEditingText) ...[
+          if (widget.canEdit && !_isEditingText)
             Container(
               decoration: BoxDecoration(
                 color: TossColors.background,
@@ -208,21 +207,24 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
                   child: SizedBox(
                     width: double.infinity,
                     height: 56,
-                    child: ElevatedButton(
-                      onPressed: _isLoading ? null : _saveChanges,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: TossColors.primary,
-                        foregroundColor: TossColors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                        ),
-                        elevation: 0,
-                      ),
+                    child: Material(
+                      color: _isLoading ? TossColors.gray400 : TossColors.primary,
+                      borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                      child: InkWell(
+                        onTap: _isLoading ? null : _saveChanges,
+                        borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                        splashColor: TossColors.white.withOpacity(0.1),
+                        highlightColor: TossColors.white.withOpacity(0.05),
+                        child: Container(
+                          alignment: Alignment.center,
                       child: _isLoading
                           ? SizedBox(
                               width: 20,
                               height: 20,
-                              child: const TossLoadingView(),
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2.0,
+                                valueColor: AlwaysStoppedAnimation<Color>(TossColors.white),
+                              ),
                             )
                           : Text(
                               'Save Changes',
@@ -231,12 +233,13 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
+                        ),
+                      ),
                     ),
                   ),
                 ),
               ),
             ),
-          ],
         ],
       ),
     );
@@ -449,7 +452,10 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
             color: _getTagColor(tag).withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(TossBorderRadius.sm),
             border: Border.all(
-              color: _getTagColor(tag).withValues(alpha: 0.3),
+              color: Color.alphaBlend(
+                _getTagColor(tag).withOpacity(0.3),
+                TossColors.background,
+              ),
               width: 1,
             ),
           ),
@@ -824,6 +830,7 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
               bottom: Radius.circular(isExpanded ? 0 : TossBorderRadius.md),
             ),
             child: InkWell(
+              splashFactory: InkRipple.splashFactory, // Better ripple effect
               onTap: () {
                 setState(() {
                   if (isExpanded) {
@@ -841,7 +848,7 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
                 padding: EdgeInsets.all(TossSpacing.space4),
                 child: Row(
                   children: [
-                    // Select all checkbox - wrapped in its own InkWell to prevent event bubbling
+                    // Select all checkbox - improved touch target and pixel alignment
                     Material(
                       color: TossColors.transparent,
                       child: InkWell(
@@ -850,9 +857,11 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
                                 _toggleCategoryPermissions(featureIds, !allSelected);
                               }
                             : null,
-                        borderRadius: BorderRadius.circular(6),
-                        child: Padding(
-                          padding: EdgeInsets.all(4), // Add padding for better touch target
+                        borderRadius: BorderRadius.circular(TossBorderRadius.sm),
+                        child: Container(
+                          width: 32, // Increased touch target from 28 to 32 (8x4px grid)
+                          height: 32, // Match width for square touch target
+                          alignment: Alignment.center,
                           child: AnimatedContainer(
                             duration: const Duration(milliseconds: 200),
                             width: 20,
@@ -861,13 +870,16 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
                               color: allSelected
                                   ? TossColors.primary
                                   : someSelected
-                                      ? TossColors.primary.withValues(alpha: 0.3)
+                                      ? Color.alphaBlend(
+                                          TossColors.primary.withOpacity(0.3),
+                                          TossColors.background,
+                                        )
                                       : TossColors.background,
                               border: Border.all(
                                 color: allSelected || someSelected
                                     ? TossColors.primary
                                     : TossColors.gray300,
-                                width: allSelected || someSelected ? 2 : 1.5,
+                                width: allSelected || someSelected ? 2.0 : 1.0, // Use whole pixels only
                               ),
                               borderRadius: BorderRadius.circular(6),
                             ),
@@ -882,7 +894,10 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
                                         child: Container(
                                           width: 8,
                                           height: 2,
-                                          color: TossColors.white,
+                                          decoration: BoxDecoration(
+                                            color: TossColors.white,
+                                            borderRadius: BorderRadius.circular(1),
+                                          ),
                                         ),
                                       )
                                     : null,
@@ -913,14 +928,19 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
                         ],
                       ),
                     ),
-                    // Expand/collapse icon
-                    AnimatedRotation(
-                      turns: isExpanded ? 0.5 : 0,
-                      duration: const Duration(milliseconds: 200),
-                      child: Icon(
-                        Icons.expand_more,
-                        color: TossColors.gray600,
-                        size: 24,
+                    // Expand/collapse icon - pixel-perfect alignment
+                    Container(
+                      width: 24,
+                      height: 24,
+                      alignment: Alignment.center,
+                      child: AnimatedRotation(
+                        turns: isExpanded ? 0.5 : 0,
+                        duration: const Duration(milliseconds: 200),
+                        child: Icon(
+                          Icons.expand_more,
+                          color: TossColors.gray600,
+                          size: 24,
+                        ),
                       ),
                     ),
                   ],
@@ -962,31 +982,36 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
                         ),
                         child: Row(
                           children: [
-                            SizedBox(width: TossSpacing.space6), // Indent for hierarchy
-                            // Individual checkbox
-                            AnimatedContainer(
-                              duration: const Duration(milliseconds: 200),
-                              width: 20,
-                              height: 20,
-                              decoration: BoxDecoration(
-                                color: isSelected
-                                    ? TossColors.primary
-                                    : TossColors.background,
-                                border: Border.all(
+                            SizedBox(width: TossSpacing.space8), // Use 32px (8x4) for better alignment
+                            // Individual checkbox - pixel-perfect rendering
+                            Container(
+                              width: 32, // Increased touch target
+                              height: 32,
+                              alignment: Alignment.center,
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 200),
+                                width: 20,
+                                height: 20,
+                                decoration: BoxDecoration(
                                   color: isSelected
                                       ? TossColors.primary
-                                      : TossColors.gray300,
-                                  width: isSelected ? 2 : 1.5,
+                                      : TossColors.background,
+                                  border: Border.all(
+                                    color: isSelected
+                                        ? TossColors.primary
+                                        : TossColors.gray300,
+                                    width: isSelected ? 2.0 : 1.0, // Use whole pixels
+                                  ),
+                                  borderRadius: BorderRadius.circular(6),
                                 ),
-                                borderRadius: BorderRadius.circular(6),
+                                child: isSelected
+                                    ? Icon(
+                                        Icons.check,
+                                        size: 14,
+                                        color: TossColors.white,
+                                      )
+                                    : null,
                               ),
-                              child: isSelected
-                                  ? Icon(
-                                      Icons.check,
-                                      size: 14,
-                                      color: TossColors.white,
-                                    )
-                                  : null,
                             ),
                             SizedBox(width: TossSpacing.space3),
                             Expanded(
@@ -1531,7 +1556,10 @@ class _AddMemberBottomSheetState extends ConsumerState<_AddMemberBottomSheet> {
                           padding: EdgeInsets.symmetric(vertical: TossSpacing.space3),
                           decoration: BoxDecoration(
                             color: isSelected 
-                                ? TossColors.primary.withValues(alpha: 0.1)
+                                ? Color.alphaBlend(
+                                    TossColors.primary.withOpacity(0.1),
+                                    TossColors.background,
+                                  )
                                 : TossColors.transparent,
                           ),
                           child: Row(
@@ -1541,7 +1569,10 @@ class _AddMemberBottomSheetState extends ConsumerState<_AddMemberBottomSheet> {
                                 height: 44,
                                 decoration: BoxDecoration(
                                   color: isOwner 
-                                      ? TossColors.primary.withValues(alpha: 0.1)
+                                      ? Color.alphaBlend(
+                                    TossColors.primary.withOpacity(0.1),
+                                    TossColors.background,
+                                  )
                                       : isDisabled
                                           ? TossColors.gray100
                                           : TossColors.gray200,
@@ -1664,7 +1695,10 @@ class _AddMemberBottomSheetState extends ConsumerState<_AddMemberBottomSheet> {
                         ? SizedBox(
                             width: 20,
                             height: 20,
-                            child: const TossLoadingView(),
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2.0,
+                              valueColor: AlwaysStoppedAnimation<Color>(TossColors.white),
+                            ),
                           )
                         : Text(
                             'Add Member',
@@ -2047,10 +2081,16 @@ class _TagSelectionBottomSheetState extends State<_TagSelectionBottomSheet> {
                                 vertical: TossSpacing.space1,
                               ),
                               decoration: BoxDecoration(
-                                color: _getTagColor(tag).withValues(alpha: 0.1),
+                                color: Color.alphaBlend(
+                _getTagColor(tag).withOpacity(0.1),
+                TossColors.background,
+              ),
                                 borderRadius: BorderRadius.circular(TossBorderRadius.sm),
                                 border: Border.all(
-                                  color: _getTagColor(tag).withValues(alpha: 0.3),
+                                  color: Color.alphaBlend(
+                _getTagColor(tag).withOpacity(0.3),
+                TossColors.background,
+              ),
                                   width: 1,
                                 ),
                               ),
@@ -2165,24 +2205,26 @@ class _TagSelectionBottomSheetState extends State<_TagSelectionBottomSheet> {
                 child: SizedBox(
                   width: double.infinity,
                   height: 56,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      widget.onTagsSelected(_selectedTags);
-                      Navigator.pop(context);
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: TossColors.primary,
-                      foregroundColor: TossColors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                      ),
-                      elevation: 0,
-                    ),
-                    child: Text(
-                      'Save Tags',
-                      style: TossTextStyles.bodyLarge.copyWith(
-                        color: TossColors.white,
-                        fontWeight: FontWeight.w600,
+                  child: Material(
+                    color: TossColors.primary,
+                    borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                    child: InkWell(
+                      onTap: () {
+                        widget.onTagsSelected(_selectedTags);
+                        Navigator.pop(context);
+                      },
+                      borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                      splashColor: TossColors.white.withOpacity(0.1),
+                      highlightColor: TossColors.white.withOpacity(0.05),
+                      child: Container(
+                        alignment: Alignment.center,
+                        child: Text(
+                          'Save Tags',
+                          style: TossTextStyles.bodyLarge.copyWith(
+                            color: TossColors.white,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                       ),
                     ),
                   ),

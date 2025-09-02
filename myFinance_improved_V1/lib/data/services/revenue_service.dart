@@ -157,37 +157,6 @@ class RevenueService {
     }
   }
 
-  /// Get date range for the specified period
-  DateRange _getDateRange(RevenuePeriod period) {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    
-    switch (period) {
-      case RevenuePeriod.today:
-        return DateRange(
-          start: today,
-          end: today.add(const Duration(days: 1)).subtract(const Duration(seconds: 1)),
-        );
-      case RevenuePeriod.yesterday:
-        final yesterday = today.subtract(const Duration(days: 1));
-        return DateRange(
-          start: yesterday,
-          end: today.subtract(const Duration(seconds: 1)),
-        );
-      case RevenuePeriod.thisMonth:
-        final monthStart = DateTime(today.year, today.month, 1);
-        return DateRange(
-          start: monthStart,
-          end: today.add(const Duration(days: 1)).subtract(const Duration(seconds: 1)),
-        );
-      case RevenuePeriod.thisYear:
-        final yearStart = DateTime(today.year, 1, 1);
-        return DateRange(
-          start: yearStart,
-          end: today.add(const Duration(days: 1)).subtract(const Duration(seconds: 1)),
-        );
-    }
-  }
 
   /// Fetch daily revenue summaries for a date range
   Future<List<DailyRevenueSummary>> fetchDailyRevenueSummaries({

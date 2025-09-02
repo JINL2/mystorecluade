@@ -31,6 +31,13 @@ import '../pages/cash_location/cash_location_page.dart';
 import '../pages/cash_location/account_detail_page.dart';
 import '../pages/transactions/transaction_history_page.dart';
 import '../pages/transaction_template/transaction_template_page.dart';
+import '../pages/inventory_management/inventory_management.dart';
+import '../pages/inventory_analysis/supply_chain_dashboard.dart';
+import '../pages/sales_invoice/sales_invoice_page.dart';
+import '../pages/sales_invoice/create_invoice_page.dart';
+import '../pages/sale_product/sale_product_page.dart';
+import '../pages/sale_product/sale_invoice_page.dart';
+import '../pages/sale_product/sale_payment_page.dart';
 import '../pages/my_page/my_page_redesigned.dart';
 import '../pages/my_page/edit_profile/edit_profile_page.dart';
 import '../pages/my_page/notifications_settings/notifications_settings_page.dart';
@@ -517,6 +524,79 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: 'transactionTemplate',
             builder: (context, state) => const TransactionTemplatePage(),
+          ),
+          // Sales Invoice
+          GoRoute(
+            path: 'salesInvoice',
+            builder: (context, state) => const SalesInvoicePage(),
+            routes: [
+              GoRoute(
+                path: 'create',
+                builder: (context, state) => const CreateInvoicePage(),
+              ),
+            ],
+          ),
+          // Sale Product Flow
+          GoRoute(
+            path: 'saleProduct',
+            builder: (context, state) => const SaleProductPage(),
+            routes: [
+              GoRoute(
+                path: 'invoice',
+                builder: (context, state) => const SaleInvoicePage(),
+              ),
+              GoRoute(
+                path: 'payment',
+                builder: (context, state) => const SalePaymentPage(),
+              ),
+            ],
+          ),
+          // Inventory Management
+          GoRoute(
+            path: 'inventoryManagement',
+            builder: (context, state) => const InventoryManagementPage(),
+            routes: [
+              GoRoute(
+                path: 'addProduct',
+                builder: (context, state) => const AddProductPage(),
+              ),
+              GoRoute(
+                path: 'editProduct',
+                builder: (context, state) {
+                  final extra = state.extra as Map<String, dynamic>?;
+                  final product = extra?['product'] as Product?;
+                  return EditProductPage(product: product!);
+                },
+              ),
+              GoRoute(
+                path: 'product/:productId',
+                builder: (context, state) {
+                  // final productId = state.pathParameters['productId'] ?? '';
+                  // Could use productId to fetch from database in the future
+                  final extra = state.extra as Map<String, dynamic>?;
+                  final product = extra?['product'] as Product?;
+                  if (product != null) {
+                    return ProductDetailPage(product: product);
+                  }
+                  // If no product passed, could fetch from database using productId
+                  // For now, return to inventory management
+                  return const InventoryManagementPage();
+                },
+              ),
+              GoRoute(
+                path: 'count',
+                builder: (context, state) {
+                  final extra = state.extra as Map<String, dynamic>?;
+                  final products = extra?['products'] as List<Product>?;
+                  return InventoryCountPage(products: products);
+                },
+              ),
+            ],
+          ),
+          // Inventory Analysis - Supply Chain Analytics Dashboard
+          GoRoute(
+            path: 'inventoryAnalysis',
+            builder: (context, state) => const SupplyChainDashboard(),
           ),
           // My Page
           GoRoute(

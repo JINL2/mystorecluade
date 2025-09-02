@@ -6,7 +6,6 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 // import 'package:logger/logger.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../config/notification_config.dart';
-import '../config/notification_display_config.dart';
 import '../models/notification_payload.dart';
 import '../models/notification_db_model.dart';
 import '../repositories/notification_repository.dart';
@@ -124,17 +123,6 @@ class NotificationService {
     });
   }
   
-  /// DEPRECATED - We no longer show in-app notifications
-  /// This method is kept for reference but should not be called
-  Future<void> _showNotificationFromRemoteMessage(RemoteMessage message) async {
-    // COMPLETE REMOVAL OF IN-APP NOTIFICATIONS
-    // This method is intentionally empty
-    // We only store notifications in the database for badge counter
-    // Users can view notifications in the notification center when they choose
-    
-    // DO NOT SHOW ANY IN-APP NOTIFICATIONS
-    return;
-  }
   
   /// Handle notification response (tap)
   void _handleNotificationResponse(NotificationResponse response) {
@@ -157,7 +145,6 @@ class NotificationService {
     // Handling navigation with payload
     
     // Extract navigation data
-    final id = payload['id'] as String?;
     final type = payload['type'] as String?;
     
     // Navigation logic based on app's routing - implementation pending
@@ -202,40 +189,6 @@ class NotificationService {
     }
   }
   
-  /// Store FCM token in database
-  Future<void> _storeFcmToken() async {
-    try {
-      final token = _fcmService.fcmToken;
-      final userId = _supabase.auth.currentUser?.id;
-      if (userId == null) {
-        // Cannot store FCM token: user not authenticated
-        return;
-      }
-      
-      if (token == null) {
-        // Cannot store FCM token: no token available
-        return;
-      }
-      
-      final result = await _repository.storeOrUpdateFcmToken(
-        userId: userId,
-        token: token,
-        platform: Platform.operatingSystem,
-        deviceId: await _getDeviceId(),
-        deviceModel: await _getDeviceModel(),
-        appVersion: await _getAppVersion(),
-      );
-      
-      if (result != null) {
-        // FCM token stored in database
-      } else {
-        // Failed to store FCM token in database
-      }
-      
-    } catch (e) {
-      // Failed to store FCM token
-    }
-  }
   
   /// Subscribe to database notification events
   Future<void> _subscribeToSupabaseNotifications() async {
@@ -364,36 +317,7 @@ class NotificationService {
     _notificationLogger.logTestNotification();
   }
   
-  /// Show debug notification
-  Future<void> _showDebugNotification(String title, String body) async {
-    // Use a safe ID by taking modulo to ensure it fits in 32-bit range
-    final safeId = DateTime.now().millisecondsSinceEpoch % 999999;
-    
-    await _localNotificationService.showNotification(
-      id: safeId,
-      title: '🔧 Debug: $title',
-      body: body,
-      category: 'update',
-    );
-  }
   
-  /// Get device ID (DEPRECATED - handled by TokenManager)
-  Future<String> _getDeviceId() async {
-    // Now handled internally by enhanced TokenManager
-    return 'device_${DateTime.now().millisecondsSinceEpoch}';
-  }
-  
-  /// Get device model (DEPRECATED - handled by TokenManager)
-  Future<String> _getDeviceModel() async {
-    // Now handled internally by enhanced TokenManager
-    return Platform.operatingSystem;
-  }
-  
-  /// Get app version (DEPRECATED - handled by TokenManager)
-  Future<String> _getAppVersion() async {
-    // Now handled internally by enhanced TokenManager
-    return '1.0.0';
-  }
   
   /// Store notification in database
   Future<NotificationDbModel?> _storeNotificationInDatabase({
