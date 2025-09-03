@@ -23,6 +23,16 @@
     
     <!-- Page Specific Styles -->
     <style>
+        :root {
+            /* Define missing color variables if not present */
+            --toss-success: #00B377;
+            --toss-success-light: #E6F9F3;
+            --toss-error: #F04438;
+            --toss-error-light: #FEECEB;
+            --toss-warning: #F79009;
+            --toss-warning-light: #FEF3E6;
+        }
+        
         body {
             margin: 0;
             padding: 0;
@@ -45,8 +55,18 @@
             width: 100%;
         }
         
+        /* Page Header with Action Button */
         .page-header {
             margin-bottom: var(--space-8);
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            gap: var(--space-4);
+        }
+        
+        .page-header-content {
+            flex: 1;
         }
         
         .page-title {
@@ -62,7 +82,8 @@
             margin: 0;
         }
         
-        .content-card {
+        /* Stats Overview Card */
+        .stats-card {
             background: var(--toss-white);
             border-radius: var(--radius-lg);
             padding: var(--space-6);
@@ -70,34 +91,976 @@
             margin-bottom: var(--space-6);
         }
         
-        .coming-soon {
-            text-align: center;
-            padding: var(--space-16) var(--space-6);
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: var(--space-6);
         }
         
-        .coming-soon-icon {
-            width: 120px;
-            height: 120px;
-            margin: 0 auto var(--space-6);
+        .stat-item {
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: var(--font-h2);
+            font-weight: 700;
+            color: var(--toss-primary);
+            margin: 0 0 var(--space-1) 0;
+        }
+        
+        .stat-label {
+            font-size: var(--font-small);
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        /* Section Header */
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--space-5);
+        }
+        
+        .section-title {
+            font-size: var(--font-h3);
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0;
+        }
+        
+        .section-actions {
+            display: flex;
+            gap: var(--space-2);
+        }
+        
+        /* Currency Cards Grid */
+        .currency-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: var(--space-4);
+            margin-bottom: var(--space-6);
+        }
+        
+        /* Individual Currency Card */
+        .currency-card {
+            background: var(--toss-white);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-sm);
+            transition: all 0.2s ease;
+            overflow: hidden;
+            border: 1px solid var(--toss-border-light);
+        }
+        
+        .currency-card:hover {
+            box-shadow: var(--shadow-md);
+            transform: translateY(-2px);
+        }
+        
+        .currency-card-header {
+            padding: var(--space-5);
+            border-bottom: 1px solid var(--toss-border-light);
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+        }
+        
+        .currency-icon-wrapper {
+            width: 48px;
+            height: 48px;
             background: var(--toss-primary-surface);
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        
+        .currency-symbol {
+            font-size: var(--font-h3);
+            font-weight: 700;
+            color: var(--toss-primary);
+        }
+        
+        .currency-header-info {
+            flex: 1;
+        }
+        
+        .currency-code {
+            font-size: var(--font-large);
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0 0 var(--space-1) 0;
+        }
+        
+        .currency-name {
+            font-size: var(--font-small);
+            color: var(--text-secondary);
+            margin: 0;
+        }
+        
+        .currency-badge {
+            padding: var(--space-1) var(--space-2);
+            background: var(--toss-success-light);
+            color: var(--toss-success);
+            border-radius: var(--radius-sm);
+            font-size: var(--font-small);
+            font-weight: 600;
+        }
+        
+        .currency-badge.primary {
+            background: var(--toss-primary-surface);
+            color: var(--toss-primary);
+        }
+        
+        .currency-badge.inactive {
+            background: var(--toss-gray-100);
+            color: var(--text-secondary);
+        }
+        
+        .currency-card-body {
+            padding: var(--space-5);
+        }
+        
+        .currency-details {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-3);
+        }
+        
+        .currency-detail-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .currency-detail-label {
+            font-size: var(--font-small);
+            color: var(--text-secondary);
+        }
+        
+        .currency-detail-value {
+            font-size: var(--font-medium);
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+        
+        .currency-id {
+            font-family: monospace;
+            font-size: var(--font-xsmall);
+            color: var(--text-tertiary);
+        }
+        
+        .currency-card-footer {
+            padding: var(--space-4) var(--space-5);
+            border-top: 1px solid var(--toss-border-light);
+            background: var(--toss-gray-50);
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+        }
+        
+        .currency-actions {
+            display: flex;
+            gap: var(--space-2);
+            width: 100%;
+            justify-content: flex-end;
+        }
+        
+        .currency-action-btn {
+            padding: var(--space-2) var(--space-3);
+            background: transparent;
+            border: 1px solid var(--toss-border);
+            border-radius: var(--radius-md);
+            color: var(--text-secondary);
+            font-size: var(--font-small);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .currency-action-btn:hover {
+            background: var(--toss-white);
+            color: var(--toss-primary);
+            border-color: var(--toss-primary);
+        }
+        
+        /* Loading State */
+        .loading-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: var(--space-16) var(--space-6);
+            background: var(--toss-white);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .spinner {
+            width: 48px;
+            height: 48px;
+            border: 4px solid var(--toss-gray-200);
+            border-top-color: var(--toss-primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .loading-text {
+            margin-top: var(--space-4);
+            font-size: var(--font-medium);
+            color: var(--text-secondary);
+        }
+        
+        /* Error State */
+        .error-container {
+            text-align: center;
+            padding: var(--space-16) var(--space-6);
+            background: var(--toss-white);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .error-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto var(--space-6);
+            background: var(--toss-error-light);
             border-radius: var(--radius-full);
             display: flex;
             align-items: center;
             justify-content: center;
-            color: var(--toss-primary);
+            color: var(--toss-error);
         }
         
-        .coming-soon-title {
-            font-size: var(--font-h2);
-            font-weight: 700;
+        .error-title {
+            font-size: var(--font-h3);
+            font-weight: 600;
             color: var(--text-primary);
             margin: 0 0 var(--space-3) 0;
         }
         
-        .coming-soon-text {
-            font-size: var(--font-large);
+        .error-text {
+            font-size: var(--font-medium);
             color: var(--text-secondary);
+            margin: 0 0 var(--space-6) 0;
+        }
+        
+        /* Empty State */
+        .empty-container {
+            text-align: center;
+            padding: var(--space-16) var(--space-6);
+            background: var(--toss-white);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .empty-icon {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto var(--space-6);
+            background: var(--toss-gray-100);
+            border-radius: var(--radius-full);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--toss-gray-400);
+        }
+        
+        .empty-title {
+            font-size: var(--font-h3);
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0 0 var(--space-3) 0;
+        }
+        
+        .empty-text {
+            font-size: var(--font-medium);
+            color: var(--text-secondary);
+            margin: 0 0 var(--space-6) 0;
+        }
+        
+        /* Add Currency Button */
+        .add-currency-btn {
+            padding: var(--space-3) var(--space-5);
+            background: var(--toss-primary);
+            color: var(--toss-white);
+            border: none;
+            border-radius: var(--radius-md);
+            font-size: var(--font-medium);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-2);
+        }
+        
+        .add-currency-btn:hover {
+            background: var(--toss-primary-dark);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .add-currency-btn svg {
+            width: 20px;
+            height: 20px;
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .page-content {
+                padding: var(--space-4);
+            }
+            
+            .currency-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+                gap: var(--space-4);
+            }
+            
+            .page-header {
+                flex-direction: column;
+            }
+        }
+        
+        /* Modal Styles */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: var(--space-4);
+        }
+        
+        .modal-overlay.show {
+            display: flex;
+        }
+        
+        /* Custom Dropdown Styles */
+        .custom-select-wrapper {
+            position: relative;
+            width: 100%;
+        }
+        
+        .custom-select-trigger {
+            width: 100%;
+            padding: var(--space-3) var(--space-4);
+            border: 1px solid var(--toss-border);
+            border-radius: var(--radius-lg);
+            font-size: var(--font-medium);
+            color: var(--text-primary);
+            background: var(--toss-white);
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.2s ease;
+            min-height: 48px;
+        }
+        
+        .custom-select-trigger:hover {
+            border-color: var(--toss-primary);
+            background: var(--toss-gray-50);
+        }
+        
+        .custom-select-trigger.active {
+            border-color: var(--toss-primary);
+            box-shadow: 0 0 0 3px rgba(0, 100, 255, 0.1);
+        }
+        
+        .custom-select-value {
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            color: var(--text-secondary);
+        }
+        
+        .custom-select-value.has-value {
+            color: var(--text-primary);
+        }
+        
+        .custom-select-arrow {
+            width: 20px;
+            height: 20px;
+            color: var(--text-tertiary);
+            transition: transform 0.2s ease;
+            flex-shrink: 0;
+        }
+        
+        .custom-select-trigger.active .custom-select-arrow {
+            transform: rotate(180deg);
+        }
+        
+        .custom-select-dropdown {
+            position: absolute;
+            top: calc(100% + 8px);
+            left: 0;
+            right: 0;
+            background: var(--toss-white);
+            border: 1px solid var(--toss-border);
+            border-radius: var(--radius-lg);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+            z-index: 1001;
+            display: none;
+            max-height: 400px;
+            overflow: hidden;
+        }
+        
+        .custom-select-dropdown.show {
+            display: block;
+            animation: dropdownSlideIn 0.2s ease;
+        }
+        
+        @keyframes dropdownSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .custom-select-search {
+            padding: var(--space-3);
+            border-bottom: 1px solid var(--toss-border-light);
+            background: var(--toss-gray-50);
+        }
+        
+        .custom-select-search-input {
+            width: 100%;
+            padding: var(--space-2) var(--space-3);
+            border: 1px solid var(--toss-border);
+            border-radius: var(--radius-md);
+            font-size: var(--font-medium);
+            color: var(--text-primary);
+            background: var(--toss-white);
+            transition: all 0.2s ease;
+        }
+        
+        .custom-select-search-input:focus {
+            outline: none;
+            border-color: var(--toss-primary);
+            box-shadow: 0 0 0 3px rgba(0, 100, 255, 0.1);
+        }
+        
+        .custom-select-search-input::placeholder {
+            color: var(--text-tertiary);
+        }
+        
+        .custom-select-options {
+            max-height: 320px;
+            overflow-y: auto;
+            padding: var(--space-2) 0;
+        }
+        
+        .custom-select-option {
+            padding: var(--space-3) var(--space-4);
+            cursor: pointer;
+            transition: background 0.15s ease;
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+            font-size: var(--font-medium);
+            color: var(--text-primary);
+        }
+        
+        .custom-select-option:hover {
+            background: var(--toss-gray-50);
+        }
+        
+        .custom-select-option.selected {
+            background: var(--toss-primary-surface);
+            color: var(--toss-primary);
+        }
+        
+        .custom-select-option-code {
+            font-weight: 600;
+            min-width: 48px;
+        }
+        
+        .custom-select-option-name {
+            flex: 1;
+            color: var(--text-secondary);
+        }
+        
+        .custom-select-option.selected .custom-select-option-name {
+            color: var(--toss-primary);
+        }
+        
+        .custom-select-no-results {
+            padding: var(--space-6) var(--space-4);
+            text-align: center;
+            color: var(--text-tertiary);
+            font-size: var(--font-medium);
+        }
+        
+        .modal-content {
+            background: var(--toss-white);
+            border-radius: var(--radius-xl);
+            max-width: 500px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: var(--shadow-xl);
+            animation: modalSlideIn 0.3s ease;
+        }
+        
+        /* Make Add Currency Modal Larger */
+        #addCurrencyModal .modal-content {
+            max-width: 800px;
+            width: 95%;
+            max-height: 95vh;
+            height: 700px;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        #addCurrencyModal .modal-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: var(--space-6) var(--space-8);
+        }
+        
+        #addCurrencyModal .modal-header {
+            padding: var(--space-6) var(--space-8);
+        }
+        
+        #addCurrencyModal .modal-footer {
+            padding: var(--space-6) var(--space-8);
+        }
+        
+        /* Make dropdown taller in Add Currency Modal */
+        #addCurrencyModal .custom-select-dropdown {
+            max-height: 500px;
+        }
+        
+        #addCurrencyModal .custom-select-options {
+            max-height: 450px;
+        }
+        
+        /* Larger form elements in Add Currency Modal */
+        #addCurrencyModal .modal-form-group {
+            margin-bottom: var(--space-6);
+        }
+        
+        #addCurrencyModal .modal-label {
+            font-size: var(--font-medium);
+            margin-bottom: var(--space-3);
+        }
+        
+        #addCurrencyModal .modal-input {
+            padding: var(--space-4);
+            font-size: 16px;
+            min-height: 52px;
+        }
+        
+        #addCurrencyModal .custom-select-trigger {
+            min-height: 52px;
+            padding: var(--space-4);
+            font-size: 16px;
+        }
+        
+        #addCurrencyModal .modal-btn {
+            padding: var(--space-4) var(--space-6);
+            font-size: 16px;
+            min-height: 52px;
+        }
+        
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .modal-header {
+            padding: var(--space-6);
+            border-bottom: 1px solid var(--toss-border-light);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .modal-title {
+            font-size: var(--font-h3);
+            font-weight: 600;
+            color: var(--text-primary);
             margin: 0;
+        }
+        
+        .modal-close-btn {
+            width: 32px;
+            height: 32px;
+            border: none;
+            background: transparent;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+            transition: all 0.2s ease;
+        }
+        
+        .modal-close-btn:hover {
+            background: var(--toss-gray-100);
+            color: var(--text-primary);
+        }
+        
+        .modal-body {
+            padding: var(--space-6);
+        }
+        
+        .modal-form-group {
+            margin-bottom: var(--space-5);
+        }
+        
+        .modal-label {
+            display: block;
+            font-size: var(--font-small);
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: var(--space-2);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .modal-input {
+            width: 100%;
+            padding: var(--space-3);
+            border: 1px solid var(--toss-border);
+            border-radius: var(--radius-md);
+            font-size: var(--font-medium);
+            color: var(--text-primary);
+            background: var(--toss-white);
+            transition: all 0.2s ease;
+        }
+        
+        .modal-input:focus {
+            outline: none;
+            border-color: var(--toss-primary);
+            box-shadow: 0 0 0 3px rgba(0, 100, 255, 0.1);
+        }
+        
+        .modal-input:disabled {
+            background: var(--toss-gray-50);
+            color: var(--text-tertiary);
+            cursor: not-allowed;
+        }
+        
+        /* Remove spinner arrows from number input */
+        .modal-input[type="number"]::-webkit-inner-spin-button,
+        .modal-input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        
+        .modal-input[type="number"] {
+            -moz-appearance: textfield; /* Firefox */
+        }
+        
+        .modal-info-group {
+            background: var(--toss-gray-50);
+            border-radius: var(--radius-md);
+            padding: var(--space-4);
+            margin-bottom: var(--space-5);
+        }
+        
+        .modal-info-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--space-3);
+        }
+        
+        .modal-info-item:last-child {
+            margin-bottom: 0;
+        }
+        
+        .modal-info-label {
+            font-size: var(--font-small);
+            color: var(--text-secondary);
+        }
+        
+        .modal-info-value {
+            font-size: var(--font-medium);
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+        
+        .modal-footer {
+            padding: var(--space-5) var(--space-6);
+            border-top: 1px solid var(--toss-border-light);
+            display: flex;
+            justify-content: flex-end;
+            gap: var(--space-3);
+        }
+        
+        .modal-btn {
+            padding: var(--space-3) var(--space-5);
+            border-radius: var(--radius-md);
+            font-size: var(--font-medium);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: none;
+        }
+        
+        .modal-btn-cancel {
+            background: var(--toss-gray-100);
+            color: var(--text-secondary);
+        }
+        
+        .modal-btn-cancel:hover {
+            background: var(--toss-gray-200);
+        }
+        
+        .modal-btn-save {
+            background: var(--toss-primary);
+            color: var(--toss-white);
+        }
+        
+        .modal-btn-save:hover {
+            background: var(--toss-primary-dark);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+        
+        /* Exchange Rate Info Styles */
+        .exchange-rate-info {
+            margin-top: var(--space-3);
+            padding: var(--space-3);
+            background: var(--toss-gray-50);
+            border-radius: var(--radius-md);
+            font-size: var(--font-small);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: var(--space-3);
+        }
+        
+        .live-rate-text {
+            color: var(--text-secondary);
+            flex: 1;
+        }
+        
+        .live-rate-text .rate-value {
+            color: var(--toss-primary);
+            font-weight: 600;
+            font-size: var(--font-medium);
+        }
+        
+        .live-rate-text .base-currency {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+        
+        .loading-rate {
+            color: var(--text-tertiary);
+            font-style: italic;
+        }
+        
+        .use-live-rate-btn {
+            padding: var(--space-2) var(--space-3);
+            background: var(--toss-primary);
+            color: var(--toss-white);
+            border: none;
+            border-radius: var(--radius-sm);
+            font-size: var(--font-small);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+        }
+        
+        .use-live-rate-btn:hover {
+            background: var(--toss-primary-dark);
+            transform: translateY(-1px);
+        }
+        
+        .rate-error {
+            color: var(--toss-error);
+            font-size: var(--font-small);
+        }
+        
+        /* Small spinner for buttons */
+        .spinner-small {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+        
+        /* Notification Toast Styles */
+        .notification-container {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10000;
+            pointer-events: none;
+        }
+        
+        .notification-toast {
+            background: var(--toss-white);
+            border-radius: var(--radius-xl);
+            padding: var(--space-5) var(--space-6);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+            min-width: 320px;
+            max-width: 500px;
+            animation: slideInScale 0.3s ease;
+            pointer-events: auto;
+        }
+        
+        @keyframes slideInScale {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+        
+        .notification-toast.success {
+            border-left: 4px solid var(--toss-success);
+        }
+        
+        .notification-toast.error {
+            border-left: 4px solid var(--toss-error);
+        }
+        
+        .notification-toast.warning {
+            border-left: 4px solid var(--toss-warning);
+        }
+        
+        .notification-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: var(--radius-full);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        
+        .notification-icon.success {
+            background: var(--toss-success-light);
+            color: var(--toss-success);
+        }
+        
+        .notification-icon.error {
+            background: var(--toss-error-light);
+            color: var(--toss-error);
+        }
+        
+        .notification-icon.warning {
+            background: var(--toss-warning-light);
+            color: var(--toss-warning);
+        }
+        
+        .notification-content {
+            flex: 1;
+        }
+        
+        .notification-title {
+            font-size: var(--font-medium);
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0;
+        }
+        
+        .notification-message {
+            font-size: var(--font-small);
+            color: var(--text-secondary);
+            margin: var(--space-1) 0 0 0;
+        }
+        
+        .notification-close {
+            width: 24px;
+            height: 24px;
+            border: none;
+            background: transparent;
+            color: var(--text-tertiary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: var(--radius-sm);
+            transition: all 0.2s ease;
+        }
+        
+        .notification-close:hover {
+            background: var(--toss-gray-100);
+            color: var(--text-primary);
+        }
+        
+        /* Loading overlay for modal */
+        .modal-loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.9);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            border-radius: var(--radius-xl);
+        }
+        
+        .modal-loading-overlay.show {
+            display: flex;
+        }
+        
+        .modal-loading-content {
+            text-align: center;
+        }
+        
+        .modal-loading-spinner {
+            width: 48px;
+            height: 48px;
+            border: 4px solid var(--toss-gray-200);
+            border-top-color: var(--toss-primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto var(--space-3);
+        }
+        
+        .modal-loading-text {
+            font-size: var(--font-medium);
+            color: var(--text-secondary);
         }
     </style>
 </head>
@@ -109,22 +1072,216 @@
         <!-- Page Content -->
         <main class="page-content">
             <div class="page-header">
-                <h1 class="page-title">Currency Settings</h1>
-                <p class="page-subtitle">Configure currency and exchange rates</p>
+                <div class="page-header-content">
+                    <h1 class="page-title">Currency Settings</h1>
+                    <p class="page-subtitle">Manage your company's currencies and exchange rates</p>
+                </div>
+                <button class="add-currency-btn" onclick="handleAddCurrency()">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+                    </svg>
+                    Add Currency
+                </button>
             </div>
             
-            <div class="content-card">
-                <div class="coming-soon">
-                    <div class="coming-soon-icon">
-                        <svg width="64" height="64" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M7,15H9C9,16.08 10.37,17 12,17C13.63,17 15,16.08 15,15C15,13.9 13.96,13.5 11.76,12.97C9.64,12.44 7,11.78 7,9C7,7.21 8.47,5.69 10.5,5.18V3H13.5V5.18C15.53,5.69 17,7.21 17,9H15C15,7.92 13.63,7 12,7C10.37,7 9,7.92 9,9C9,10.1 10.04,10.5 12.24,11.03C14.36,11.56 17,12.22 17,15C17,16.79 15.53,18.31 13.5,18.82V21H10.5V18.82C8.47,18.31 7,16.79 7,15Z"/>
-                        </svg>
+            <!-- Statistics Overview -->
+            <div id="stats-container" class="stats-card" style="display: none;">
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <p class="stat-value" id="total-currencies">0</p>
+                        <p class="stat-label">Total Currencies</p>
                     </div>
-                    <h2 class="coming-soon-title">Currency Settings Coming Soon</h2>
-                    <p class="coming-soon-text">The currency settings feature is currently under development.</p>
+                    <div class="stat-item">
+                        <p class="stat-value" id="active-currencies">0</p>
+                        <p class="stat-label">Active Currencies</p>
+                    </div>
+                    <div class="stat-item">
+                        <p class="stat-value" id="primary-currency">-</p>
+                        <p class="stat-label">Primary Currency</p>
+                    </div>
                 </div>
             </div>
+            
+            <!-- Currency List Section -->
+            <div id="currency-section" style="display: none;">
+                <div class="section-header">
+                    <h2 class="section-title">Configured Currencies</h2>
+                    <div class="section-actions">
+                        <!-- Additional actions can be added here -->
+                    </div>
+                </div>
+                
+                <div id="currency-grid" class="currency-grid">
+                    <!-- Currency cards will be dynamically inserted here -->
+                </div>
+            </div>
+            
+            <!-- Loading State -->
+            <div id="loading-state" class="loading-container" style="display: none;">
+                <div class="spinner"></div>
+                <p class="loading-text">Loading currency settings...</p>
+                <!-- CRITICAL FIX: Manual recovery button for stuck loading -->
+                <div id="loading-recovery" style="display: none; margin-top: var(--space-6);">
+                    <p style="color: var(--text-secondary); font-size: var(--font-small); margin-bottom: var(--space-4);">
+                        Taking longer than expected?
+                    </p>
+                    <button class="add-currency-btn" onclick="forceRecovery()" style="font-size: var(--font-small);">
+                        Refresh Page
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Error State -->
+            <div id="error-state" class="error-container" style="display: none;">
+                <div class="error-icon">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+                    </svg>
+                </div>
+                <h2 class="error-title">Unable to Load Currency Settings</h2>
+                <p class="error-text" id="error-message">Please try again later.</p>
+                <button class="add-currency-btn" onclick="retryLoading()">Retry</button>
+            </div>
+            
+            <!-- Empty State -->
+            <div id="empty-state" class="empty-container" style="display: none;">
+                <div class="empty-icon">
+                    <svg width="80" height="80" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M7,15H9C9,16.08 10.37,17 12,17C13.63,17 15,16.08 15,15C15,13.9 13.96,13.5 11.76,12.97C9.64,12.44 7,11.78 7,9C7,7.21 8.47,5.69 10.5,5.18V3H13.5V5.18C15.53,5.69 17,7.21 17,9H15C15,7.92 13.63,7 12,7C10.37,7 9,7.92 9,9C9,10.1 10.04,10.5 12.24,11.03C14.36,11.56 17,12.22 17,15C17,16.79 15.53,18.31 13.5,18.82V21H10.5V18.82C8.47,18.31 7,16.79 7,15Z"/>
+                    </svg>
+                </div>
+                <h2 class="empty-title">No Currencies Configured</h2>
+                <p class="empty-text">Get started by adding your first currency</p>
+                <button class="add-currency-btn" onclick="handleAddCurrency()">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+                    </svg>
+                    Add Your First Currency
+                </button>
+            </div>
         </main>
+    </div>
+    
+    <!-- Notification Container -->
+    <div id="notificationContainer" class="notification-container"></div>
+    
+    <!-- Add Currency Modal -->
+    <div id="addCurrencyModal" class="modal-overlay" onclick="closeAddModalOnOverlay(event)">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h2 class="modal-title">Add New Currency</h2>
+                <button class="modal-close-btn" onclick="closeAddModal()">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <!-- Currency Selection -->
+                <div class="modal-form-group">
+                    <label class="modal-label">Select Currency</label>
+                    <div class="custom-select-wrapper">
+                        <div class="custom-select-trigger" id="add-currency-trigger" onclick="toggleCurrencyDropdown()">
+                            <span class="custom-select-value" id="add-currency-display">Select currency</span>
+                            <svg class="custom-select-arrow" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M7 10l5 5 5-5z"/>
+                            </svg>
+                        </div>
+                        <div class="custom-select-dropdown" id="add-currency-dropdown">
+                            <div class="custom-select-search">
+                                <input type="text" class="custom-select-search-input" id="add-currency-search" placeholder="Search currencies..." oninput="filterCurrencies(this.value)">
+                            </div>
+                            <div class="custom-select-options" id="add-currency-options">
+                                <!-- Options will be populated dynamically -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Selected Currency Info -->
+                <div id="add-currency-info" class="modal-info-group" style="display: none;">
+                    <div class="modal-info-item">
+                        <span class="modal-info-label">Currency Code</span>
+                        <span class="modal-info-value" id="add-modal-currency-code">-</span>
+                    </div>
+                    <div class="modal-info-item">
+                        <span class="modal-info-label">Currency Name</span>
+                        <span class="modal-info-value" id="add-modal-currency-name">-</span>
+                    </div>
+                    <div class="modal-info-item">
+                        <span class="modal-info-label">Symbol</span>
+                        <span class="modal-info-value" id="add-modal-currency-symbol">-</span>
+                    </div>
+                </div>
+                
+                <!-- Exchange Rate Input -->
+                <div id="add-exchange-rate-group" class="modal-form-group" style="display: none;">
+                    <label class="modal-label">Exchange Rate</label>
+                    <input type="number" id="add-modal-exchange-rate" class="modal-input" step="0.0001" min="0" placeholder="1.0000">
+                    <div class="exchange-rate-info">
+                        <div id="add-live-rate-display" class="live-rate-text">
+                            <span class="loading-rate">Select a currency to see live rate...</span>
+                        </div>
+                        <button type="button" class="use-live-rate-btn" onclick="useAddLiveRate()" style="display: none;">
+                            Use Live Rate
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn modal-btn-cancel" onclick="closeAddModal()">Cancel</button>
+                <button class="modal-btn modal-btn-save" onclick="saveNewCurrency()" disabled>Add Currency</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Edit Currency Modal -->
+    <div id="editCurrencyModal" class="modal-overlay" onclick="closeModalOnOverlay(event)">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h2 class="modal-title">Edit Currency Details</h2>
+                <button class="modal-close-btn" onclick="closeEditModal()">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <!-- Currency Information Display -->
+                <div class="modal-info-group">
+                    <div class="modal-info-item">
+                        <span class="modal-info-label">Currency Code</span>
+                        <span class="modal-info-value" id="modal-currency-code">-</span>
+                    </div>
+                    <div class="modal-info-item">
+                        <span class="modal-info-label">Currency Name</span>
+                        <span class="modal-info-value" id="modal-currency-name">-</span>
+                    </div>
+                    <div class="modal-info-item">
+                        <span class="modal-info-label">Symbol</span>
+                        <span class="modal-info-value" id="modal-currency-symbol">-</span>
+                    </div>
+                </div>
+                
+                <!-- Editable Fields -->
+                <div class="modal-form-group">
+                    <label class="modal-label">Exchange Rate</label>
+                    <input type="number" id="modal-exchange-rate" class="modal-input" step="0.0001" min="0" placeholder="1.0000">
+                    <div class="exchange-rate-info">
+                        <div id="live-rate-display" class="live-rate-text">
+                            <span class="loading-rate">Loading live rate...</span>
+                        </div>
+                        <button type="button" class="use-live-rate-btn" onclick="useLiveRate()" style="display: none;">
+                            Use Live Rate
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn modal-btn-cancel" onclick="closeEditModal()">Cancel</button>
+                <button class="modal-btn modal-btn-save" onclick="saveCurrencyChanges()">Save Changes</button>
+            </div>
+        </div>
     </div>
     
     <!-- Component JavaScript -->
@@ -151,27 +1308,1448 @@
         // Set flag immediately to prevent navbar auto-init
         window.skipNavbarAutoInit = true;
         
+        // Store current company ID and base currency globally
+        let currentCompanyId = null;
+        let currenciesData = [];
+        let baseCurrencyId = null;
+        let allCurrencyTypes = []; // Store all available currency types
+        let addedCurrencyIds = []; // Store IDs of currencies already added
+        
+        // Notification system
+        function showNotification(message, type = 'info', duration = 3000) {
+            const container = document.getElementById('notificationContainer');
+            
+            // Create notification element
+            const notification = document.createElement('div');
+            notification.className = `notification-toast ${type}`;
+            
+            // Icon based on type
+            let iconSvg = '';
+            if (type === 'success') {
+                iconSvg = '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>';
+            } else if (type === 'error') {
+                iconSvg = '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>';
+            } else if (type === 'warning') {
+                iconSvg = '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg>';
+            } else {
+                iconSvg = '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>';
+            }
+            
+            notification.innerHTML = `
+                <div class="notification-icon ${type}">
+                    ${iconSvg}
+                </div>
+                <div class="notification-content">
+                    <p class="notification-title">${message}</p>
+                </div>
+                <button class="notification-close" onclick="this.parentElement.remove()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+                    </svg>
+                </button>
+            `;
+            
+            // Clear existing notifications
+            container.innerHTML = '';
+            
+            // Add notification to container
+            container.appendChild(notification);
+            
+            // Auto remove after duration
+            setTimeout(() => {
+                notification.style.animation = 'slideInScale 0.3s ease reverse';
+                setTimeout(() => {
+                    notification.remove();
+                }, 300);
+            }, duration);
+        }
+        
         // Initialize page using standardized pattern
-        window.initializePage('setting', (companyId, company) => {
-            console.log('Company changed in currency settings:', companyId);
-            loadCurrencySettingsData(companyId);
-        });
+        let initializationCompleted = false;
+        let initializationTimeout = null;
+        
+        // CRITICAL FIX: Add timeout safety mechanism for stuck loading states
+        function setupInitializationTimeout() {
+            // Clear any existing timeout
+            if (initializationTimeout) {
+                clearTimeout(initializationTimeout);
+            }
+            
+            // Set a 20-second timeout to give window.initializePage adequate time
+            initializationTimeout = setTimeout(() => {
+                if (!initializationCompleted) {
+                    console.warn('TIMEOUT: Page initialization taking longer than expected (20s)');
+                    console.warn('This usually indicates a problem with window.initializePage or navbar loading');
+                    
+                    // Try to recover by checking if we have any stored company data
+                    const storedCompanyId = localStorage.getItem('selectedCompanyId') || sessionStorage.getItem('currentCompanyId');
+                    
+                    if (storedCompanyId && storedCompanyId !== 'null' && storedCompanyId !== 'undefined') {
+                        console.log('RECOVERY: Found stored company ID, attempting to load:', storedCompanyId);
+                        currentCompanyId = storedCompanyId;
+                        loadCurrencyData(storedCompanyId);
+                    } else {
+                        console.log('RECOVERY: No stored company ID found, showing error state');
+                        showErrorState('Unable to load currency settings - please check your connection and try again');
+                    }
+                }
+            }, 20000);
+        }
+        
+        // CRITICAL FIX: Enhanced error handling for window.initializePage
+        try {
+            if (typeof window.initializePage === 'function') {
+                window.initializePage('setting', (companyId, company) => {
+                    console.log('Company changed in currency settings:', companyId, company?.company_name);
+                    
+                    // Mark initialization as completed IMMEDIATELY
+                    initializationCompleted = true;
+                    
+                    // Clear ALL timeouts immediately since initialization is working
+                    if (initializationTimeout) {
+                        clearTimeout(initializationTimeout);
+                        initializationTimeout = null;
+                    }
+                    
+                    // CRITICAL FIX: Ensure we have a valid company ID before proceeding
+                    if (!companyId) {
+                        console.warn('No company ID provided to currency settings');
+                        showEmptyState();
+                        return;
+                    }
+                    
+                    currentCompanyId = companyId;
+                    console.log('Currency page: Calling loadCurrencyData with companyId:', companyId);
+                    loadCurrencyData(companyId);
+                });
+            } else {
+                throw new Error('window.initializePage is not available');
+            }
+        } catch (error) {
+            console.error('CRITICAL ERROR: Failed to set up window.initializePage callback:', error);
+            
+            // Fallback initialization after adequate delay for window.initializePage
+            setTimeout(() => {
+                if (!initializationCompleted) {
+                    console.log('FALLBACK: Attempting fallback initialization after 8 seconds');
+                    const storedCompanyId = localStorage.getItem('selectedCompanyId') || sessionStorage.getItem('currentCompanyId');
+                    
+                    if (storedCompanyId && storedCompanyId !== 'null' && storedCompanyId !== 'undefined') {
+                        console.log('FALLBACK: Using stored company ID:', storedCompanyId);
+                        initializationCompleted = true;
+                        currentCompanyId = storedCompanyId;
+                        loadCurrencyData(storedCompanyId);
+                    } else {
+                        console.log('FALLBACK: No valid company data found');
+                        showErrorState('Unable to load currency settings - please refresh and try again');
+                    }
+                }
+            }, 8000);
+        }
         
         // Additional page initialization after navbar is ready
         document.addEventListener('DOMContentLoaded', () => {
-            // Wait for page initialization to complete, then initialize page-specific content
-            setTimeout(() => {
-                const companyId = appState.getSelectedCompanyId();
-                if (companyId) {
-                    loadCurrencySettingsData(companyId);
-                }
-            }, 100);
+            // CRITICAL FIX: Only initialize UI components here, don't load data
+            // Data loading will be handled by window.initializePage callback to prevent race conditions
+            console.log('Currency page DOM loaded - waiting for company initialization');
+            
+            // Show loading state initially while waiting for company initialization
+            showLoadingState();
+            
+            // CRITICAL FIX: Start the initialization timeout safety mechanism
+            setupInitializationTimeout();
+            
+            // Initialize any UI components that don't depend on company data
+            // The window.initializePage callback will handle all data loading
         });
         
-        // Load currency settings data for company
-        function loadCurrencySettingsData(companyId) {
-            console.log('Loading currency settings for company:', companyId);
-            // Future implementation: Load actual currency settings data
+        // Load all currency data for the company
+        async function loadCurrencyData(companyId) {
+            console.log('Loading currencies for company:', companyId);
+            
+            // CRITICAL FIX: Add timeout safety for data loading
+            let loadingTimeout = null;
+            
+            try {
+                // Set a generous timeout to prevent false positive errors
+                loadingTimeout = setTimeout(() => {
+                    console.warn('TIMEOUT: Data loading is taking longer than expected (25s)');
+                    if (!initializationCompleted) {
+                        console.error('Data loading timeout - showing error state');
+                        showErrorState('Loading timeout - please check your connection and try again');
+                    }
+                }, 25000); // 25 second timeout for data loading
+                
+                // CRITICAL FIX: Validate company ID before proceeding
+                if (!companyId) {
+                    console.error('Cannot load currency data: No company ID provided');
+                    clearTimeout(loadingTimeout);
+                    showEmptyState();
+                    return;
+                }
+                
+                // CRITICAL FIX: Clear all global data when switching companies to prevent data pollution
+                currenciesData = [];
+                baseCurrencyId = null;
+                addedCurrencyIds = [];
+                allCurrencyTypes = [];
+                
+                // Clear UI elements to prevent showing stale data
+                const currencyGrid = document.getElementById('currency-grid');
+                if (currencyGrid) {
+                    currencyGrid.innerHTML = '';
+                }
+                
+                // Show loading state
+                showLoadingState();
+                // Check if supabase is initialized
+                if (!supabase) {
+                    throw new Error('Supabase is not initialized');
+                }
+                
+                // First, query the companies table to get the base_currency_id
+                const { data: companyData, error: companyError } = await supabase
+                    .from('companies')
+                    .select('base_currency_id')
+                    .eq('company_id', companyId)
+                    .single();
+                
+                if (companyError) {
+                    console.error('Error fetching company data:', companyError);
+                    // Continue without base currency if error
+                    baseCurrencyId = null;
+                } else {
+                    baseCurrencyId = companyData?.base_currency_id || null;
+                    console.log('Base currency ID:', baseCurrencyId);
+                }
+                
+                // Query company_currency table for ALL currencies
+                const { data: companyCurrencies, error: companyCurrencyError } = await supabase
+                    .from('company_currency')
+                    .select('*')
+                    .eq('company_id', companyId)
+                    .eq('is_deleted', false)
+                    .order('created_at', { ascending: true });
+                
+                if (companyCurrencyError) {
+                    console.error('Error fetching company currencies:', companyCurrencyError);
+                    throw companyCurrencyError;
+                }
+                
+                if (!companyCurrencies || companyCurrencies.length === 0) {
+                    console.log('No currencies found for company, showing empty state');
+                    // Clear all timeouts since we found no data (valid state)
+                    if (loadingTimeout) {
+                        clearTimeout(loadingTimeout);
+                        loadingTimeout = null;
+                    }
+                    if (initializationTimeout) {
+                        clearTimeout(initializationTimeout);
+                        initializationTimeout = null;
+                    }
+                    
+                    // Mark initialization as complete for empty state
+                    initializationCompleted = true;
+                    showEmptyState();
+                    return;
+                }
+                
+                // Get all unique currency IDs that are already added
+                const currencyIds = [...new Set(companyCurrencies.map(cc => cc.currency_id))];
+                console.log('Found currency IDs:', currencyIds);
+                addedCurrencyIds = currencyIds; // Store for filtering in Add Currency modal
+                
+                // Query ALL currency_types for the Add Currency feature
+                const { data: allTypes, error: allTypesError } = await supabase
+                    .from('currency_types')
+                    .select('*')
+                    .order('currency_code', { ascending: true });
+                
+                if (allTypesError) {
+                    console.error('Error fetching all currency types:', allTypesError);
+                } else {
+                    allCurrencyTypes = allTypes || [];
+                    console.log('Loaded all currency types:', allCurrencyTypes.length);
+                }
+                
+                // Query currency_types table for currencies that are already added
+                const { data: currencyTypes, error: currencyTypeError } = await supabase
+                    .from('currency_types')
+                    .select('*')
+                    .in('currency_id', currencyIds);
+                
+                if (currencyTypeError) {
+                    console.error('Error fetching currency types:', currencyTypeError);
+                    throw currencyTypeError;
+                }
+                
+                // Fetch exchange rates from book_exchange_rates table
+                const { data: exchangeRates, error: exchangeRateError } = await supabase
+                    .from('book_exchange_rates')
+                    .select('*')
+                    .eq('company_id', companyId)
+                    .in('from_currency_id', currencyIds);
+                
+                if (exchangeRateError) {
+                    console.warn('Warning: Could not fetch exchange rates from book_exchange_rates:', exchangeRateError);
+                }
+                
+                // Combine the data
+                currenciesData = companyCurrencies.map(cc => {
+                    const currencyType = currencyTypes.find(ct => ct.currency_id === cc.currency_id);
+                    // Find exchange rate from book_exchange_rates, fallback to company_currency rate
+                    const bookExchangeRate = exchangeRates?.find(er => er.from_currency_id === cc.currency_id);
+                    const exchangeRate = bookExchangeRate?.rate || cc.exchange_rate;
+                    
+                    return {
+                        ...cc,
+                        currency_code: currencyType?.currency_code || 'Unknown',
+                        currency_name: currencyType?.currency_name || 'Unknown Currency',
+                        symbol: currencyType?.symbol || '¤',
+                        country: currencyType?.country || '-',
+                        exchange_rate: exchangeRate,
+                        rate_date: bookExchangeRate?.rate_date || null
+                    };
+                });
+                
+                // Sort currencies to put base currency first
+                currenciesData.sort((a, b) => {
+                    if (a.currency_id === baseCurrencyId) return -1;
+                    if (b.currency_id === baseCurrencyId) return 1;
+                    return 0;
+                });
+                
+                // Clear all timeouts since we're completing successfully
+                if (loadingTimeout) {
+                    clearTimeout(loadingTimeout);
+                    loadingTimeout = null;
+                }
+                if (initializationTimeout) {
+                    clearTimeout(initializationTimeout);
+                    initializationTimeout = null;
+                }
+                
+                // Mark initialization as complete BEFORE displaying
+                initializationCompleted = true;
+                
+                // Display the currencies
+                console.log('About to display currencies, data length:', currenciesData.length);
+                displayCurrencies(currenciesData);
+                console.log('displayCurrencies called successfully - page fully loaded');
+                
+            } catch (error) {
+                console.error('Error loading currency data:', error);
+                
+                // Clear all timeouts since we're handling the error
+                if (loadingTimeout) {
+                    clearTimeout(loadingTimeout);
+                    loadingTimeout = null;
+                }
+                if (initializationTimeout) {
+                    clearTimeout(initializationTimeout);
+                    initializationTimeout = null;
+                }
+                
+                // Mark initialization as complete even in error state
+                initializationCompleted = true;
+                
+                // CRITICAL: Ensure loading is hidden before showing error
+                hideAllStates();
+                showErrorState(error.message || 'Unable to load currency settings');
+            } finally {
+                // CRITICAL FIX: Always mark as completed and ensure loading is hidden
+                console.log('Currency page: loadCurrencyData finally block');
+                initializationCompleted = true;
+                
+                // Extra safety: force hide loading state
+                const loadingState = document.getElementById('loading-state');
+                if (loadingState && loadingState.style.display !== 'none') {
+                    console.warn('Currency page: Loading still visible in finally, forcing hide');
+                    loadingState.style.display = 'none';
+                }
+            }
+        }
+        
+        // Display all currencies in cards
+        function displayCurrencies(currencies) {
+            console.log('displayCurrencies function called with currencies:', currencies);
+            console.log('Current company ID:', currentCompanyId);
+            
+            // SAFETY CHECK: Ensure we have a valid currentCompanyId
+            if (!currentCompanyId) {
+                console.warn('No current company ID - cannot display currencies');
+                showErrorState('Company not selected');
+                return;
+            }
+            
+            // SAFETY CHECK: Verify currencies belong to current company
+            const invalidCurrencies = currencies.filter(c => c.company_id && c.company_id !== currentCompanyId);
+            if (invalidCurrencies.length > 0) {
+                console.error('CRITICAL: Attempted to display currencies from wrong company!', {
+                    currentCompanyId,
+                    invalidCurrencies: invalidCurrencies.map(c => ({ company_id: c.company_id, currency_id: c.currency_id }))
+                });
+                // Clear the invalid data and show error
+                currenciesData = [];
+                showErrorState('Data integrity error - please refresh the page');
+                return;
+            }
+            
+            // Hide all states first
+            console.log('Hiding all states including loading');
+            hideAllStates();
+            console.log('All states hidden, loading should be gone');
+            
+            // Update statistics (with all currencies including base)
+            updateStatistics(currencies);
+            
+            // Filter out the base currency from the display
+            const currenciesToDisplay = currencies.filter(c => c.currency_id !== baseCurrencyId);
+            
+            // Create currency cards (excluding base currency)
+            const currencyGrid = document.getElementById('currency-grid');
+            currencyGrid.innerHTML = '';
+            
+            if (currenciesToDisplay.length === 0) {
+                // If only base currency exists, show a message
+                currencyGrid.innerHTML = `
+                    <div style="grid-column: 1 / -1; text-align: center; padding: var(--space-8); color: var(--text-secondary);">
+                        <p>No additional currencies configured. Only the base currency (${currencies.find(c => c.currency_id === baseCurrencyId)?.currency_code || 'Primary'}) is set.</p>
+                    </div>
+                `;
+            } else {
+                currenciesToDisplay.forEach((currency, index) => {
+                    const card = createCurrencyCard(currency, index);
+                    currencyGrid.appendChild(card);
+                });
+            }
+            
+            // Show the currency section and stats
+            document.getElementById('currency-section').style.display = 'block';
+            document.getElementById('stats-container').style.display = 'block';
+        }
+        
+        // Create individual currency card
+        function createCurrencyCard(currency, index) {
+            const card = document.createElement('div');
+            card.className = 'currency-card';
+            
+            // Check if this currency is the base currency
+            const isPrimary = currency.currency_id === baseCurrencyId;
+            
+            // Store currency data in a data attribute for later use
+            card.dataset.currencyData = JSON.stringify(currency);
+            
+            card.innerHTML = `
+                <div class="currency-card-header">
+                    <div class="currency-icon-wrapper">
+                        <span class="currency-symbol">${currency.symbol}</span>
+                    </div>
+                    <div class="currency-header-info">
+                        <h3 class="currency-code">${currency.currency_code}</h3>
+                        <p class="currency-name">${currency.currency_name}</p>
+                    </div>
+                    ${isPrimary ? '<span class="currency-badge primary">Primary</span>' : ''}
+                </div>
+                <div class="currency-card-body">
+                    <div class="currency-details">
+                        <div class="currency-detail-item">
+                            <span class="currency-detail-label">Exchange Rate</span>
+                            <span class="currency-detail-value">${currency.exchange_rate || '1.00'}</span>
+                        </div>
+                        ${currency.rate_date ? `
+                        <div class="currency-detail-item">
+                            <span class="currency-detail-label">Last Updated</span>
+                            <span class="currency-detail-value">${new Date(currency.rate_date).toLocaleDateString()}</span>
+                        </div>
+                        ` : ''}
+                    </div>
+                </div>
+                <div class="currency-card-footer">
+                    <div class="currency-actions">
+                        <button class="currency-action-btn" onclick="editCurrency('${currency.currency_id}')">Edit</button>
+                        ${!isPrimary ? `<button class="currency-action-btn" onclick="removeCurrency('${currency.currency_id}')">Remove</button>` : ''}
+                    </div>
+                </div>
+            `;
+            
+            return card;
+        }
+        
+        // Update statistics
+        function updateStatistics(currencies) {
+            // Count only non-base currencies
+            const nonBaseCurrencies = currencies.filter(c => c.currency_id !== baseCurrencyId);
+            const totalCurrencies = nonBaseCurrencies.length;
+            // All currencies are considered active since we don't have is_active column
+            const activeCurrencies = totalCurrencies;
+            // Find the currency that matches the base_currency_id
+            const primaryCurrency = currencies.find(c => c.currency_id === baseCurrencyId);
+            
+            document.getElementById('total-currencies').textContent = totalCurrencies;
+            document.getElementById('active-currencies').textContent = activeCurrencies;
+            document.getElementById('primary-currency').textContent = primaryCurrency ? primaryCurrency.currency_code : '-';
+        }
+        
+        // Show loading state
+        function showLoadingState() {
+            hideAllStates();
+            document.getElementById('loading-state').style.display = 'flex';
+            
+            // Show manual recovery button after reasonable delay (15 seconds)
+            setTimeout(() => {
+                const loadingState = document.getElementById('loading-state');
+                const recoveryButton = document.getElementById('loading-recovery');
+                if (loadingState && loadingState.style.display === 'flex' && recoveryButton && !initializationCompleted) {
+                    console.log('Showing recovery button after 15 seconds');
+                    recoveryButton.style.display = 'block';
+                }
+            }, 15000);
+        }
+        
+        // CRITICAL FIX: Force recovery function for manual intervention
+        function forceRecovery() {
+            console.log('MANUAL RECOVERY: User initiated page refresh');
+            window.location.reload();
+        }
+        
+        // Show error state
+        function showErrorState(message) {
+            hideAllStates();
+            document.getElementById('error-message').textContent = message;
+            document.getElementById('error-state').style.display = 'block';
+        }
+        
+        // Show empty state
+        function showEmptyState() {
+            hideAllStates();
+            document.getElementById('empty-state').style.display = 'block';
+        }
+        
+        // Hide all states
+        function hideAllStates() {
+            console.log('hideAllStates called - clearing all UI states');
+            
+            const loadingState = document.getElementById('loading-state');
+            const errorState = document.getElementById('error-state');
+            const emptyState = document.getElementById('empty-state');
+            const currencySection = document.getElementById('currency-section');
+            const statsContainer = document.getElementById('stats-container');
+            
+            if (loadingState) {
+                loadingState.style.display = 'none';
+                console.log('Loading state hidden');
+            }
+            if (errorState) errorState.style.display = 'none';
+            if (emptyState) emptyState.style.display = 'none';
+            if (currencySection) currencySection.style.display = 'none';
+            if (statsContainer) statsContainer.style.display = 'none';
+            
+            // CRITICAL FIX: Hide the recovery button when clearing loading state
+            const recoveryButton = document.getElementById('loading-recovery');
+            if (recoveryButton) {
+                recoveryButton.style.display = 'none';
+            }
+        }
+        
+        // Handle add currency button click
+        function handleAddCurrency() {
+            console.log('Add currency clicked');
+            
+            // Filter out currencies that are already added
+            const availableCurrencies = allCurrencyTypes.filter(ct => 
+                !addedCurrencyIds.includes(ct.currency_id)
+            );
+            
+            if (availableCurrencies.length === 0) {
+                showNotification('All available currencies have been added', 'info');
+                return;
+            }
+            
+            // Store available currencies for filtering
+            window.availableCurrenciesForAdd = availableCurrencies;
+            
+            // Populate the custom dropdown
+            populateCurrencyDropdown(availableCurrencies);
+            
+            // Reset modal state
+            document.getElementById('add-currency-display').textContent = 'Select currency';
+            document.getElementById('add-currency-display').classList.remove('has-value');
+            document.getElementById('add-currency-info').style.display = 'none';
+            document.getElementById('add-exchange-rate-group').style.display = 'none';
+            document.getElementById('add-modal-exchange-rate').value = '';
+            document.querySelector('#addCurrencyModal .modal-btn-save').disabled = true;
+            document.getElementById('add-currency-search').value = '';
+            
+            // Show the modal
+            showAddModal();
+        }
+        
+        // Populate custom dropdown with currencies
+        function populateCurrencyDropdown(currencies) {
+            const optionsContainer = document.getElementById('add-currency-options');
+            optionsContainer.innerHTML = '';
+            
+            if (currencies.length === 0) {
+                optionsContainer.innerHTML = '<div class="custom-select-no-results">No currencies found</div>';
+                return;
+            }
+            
+            currencies.forEach(currency => {
+                const option = document.createElement('div');
+                option.className = 'custom-select-option';
+                option.dataset.currencyId = currency.currency_id;
+                option.innerHTML = `
+                    <span class="custom-select-option-code">${currency.currency_code}</span>
+                    <span class="custom-select-option-name">${currency.currency_name}</span>
+                `;
+                option.onclick = () => selectCurrency(currency);
+                optionsContainer.appendChild(option);
+            });
+        }
+        
+        // Toggle currency dropdown
+        function toggleCurrencyDropdown() {
+            const trigger = document.getElementById('add-currency-trigger');
+            const dropdown = document.getElementById('add-currency-dropdown');
+            const searchInput = document.getElementById('add-currency-search');
+            
+            if (dropdown.classList.contains('show')) {
+                // Close dropdown
+                dropdown.classList.remove('show');
+                trigger.classList.remove('active');
+            } else {
+                // Open dropdown
+                dropdown.classList.add('show');
+                trigger.classList.add('active');
+                // Focus search input and highlight selected option
+                setTimeout(() => {
+                    searchInput.focus();
+                    highlightSelectedOption();
+                }, 100);
+            }
+        }
+        
+        // Highlight the currently selected option in the dropdown
+        function highlightSelectedOption() {
+            if (!currentAddingCurrency) return;
+            
+            const options = document.querySelectorAll('#add-currency-options .custom-select-option');
+            options.forEach(option => {
+                if (option.dataset.currencyId === currentAddingCurrency.currency_id) {
+                    option.classList.add('selected');
+                } else {
+                    option.classList.remove('selected');
+                }
+            });
+        }
+        
+        // Filter currencies based on search input
+        function filterCurrencies(searchTerm) {
+            const filtered = window.availableCurrenciesForAdd.filter(currency => {
+                const term = searchTerm.toLowerCase();
+                return currency.currency_code.toLowerCase().includes(term) ||
+                       currency.currency_name.toLowerCase().includes(term);
+            });
+            
+            populateCurrencyDropdown(filtered);
+        }
+        
+        // Store current adding currency data and live rate
+        let currentAddingCurrency = null;
+        let currentAddLiveRate = null;
+        
+        // Select a currency from the dropdown
+        function selectCurrency(currency) {
+            currentAddingCurrency = currency;
+            
+            // Update display
+            const displayElement = document.getElementById('add-currency-display');
+            displayElement.textContent = `${currency.currency_code} - ${currency.currency_name}`;
+            displayElement.classList.add('has-value');
+            
+            // Highlight selected option
+            const options = document.querySelectorAll('#add-currency-options .custom-select-option');
+            options.forEach(option => {
+                if (option.dataset.currencyId === currency.currency_id) {
+                    option.classList.add('selected');
+                } else {
+                    option.classList.remove('selected');
+                }
+            });
+            
+            // Close dropdown
+            document.getElementById('add-currency-dropdown').classList.remove('show');
+            document.getElementById('add-currency-trigger').classList.remove('active');
+            
+            // Populate currency info
+            document.getElementById('add-modal-currency-code').textContent = currency.currency_code || '-';
+            document.getElementById('add-modal-currency-name').textContent = currency.currency_name || '-';
+            document.getElementById('add-modal-currency-symbol').textContent = currency.symbol || '-';
+            
+            // Show info sections
+            document.getElementById('add-currency-info').style.display = 'block';
+            document.getElementById('add-exchange-rate-group').style.display = 'block';
+            
+            // Enable save button
+            document.querySelector('#addCurrencyModal .modal-btn-save').disabled = false;
+            
+            // Fetch live exchange rate
+            fetchAddLiveExchangeRate(currency.currency_code);
+        }
+        
+        // Fetch live exchange rate for Add Currency modal
+        async function fetchAddLiveExchangeRate(fromCurrency) {
+            const liveRateDisplay = document.getElementById('add-live-rate-display');
+            const useRateBtn = document.querySelector('#addCurrencyModal .use-live-rate-btn');
+            
+            // Reset display
+            liveRateDisplay.innerHTML = '<span class="loading-rate">Loading live rate...</span>';
+            useRateBtn.style.display = 'none';
+            currentAddLiveRate = null;
+            
+            // Find base currency code
+            let baseCurrencyCode = null;
+            const baseCurrency = currenciesData.find(c => c.currency_id === baseCurrencyId);
+            if (baseCurrency && baseCurrency.currency_code) {
+                baseCurrencyCode = baseCurrency.currency_code;
+            } else {
+                // If no base currency found, try to get it from allCurrencyTypes
+                const baseCurrencyType = allCurrencyTypes.find(ct => ct.currency_id === baseCurrencyId);
+                if (!baseCurrencyType) {
+                    liveRateDisplay.innerHTML = '<span class="rate-error">Base currency not found</span>';
+                    return;
+                }
+                baseCurrencyCode = baseCurrencyType.currency_code;
+            }
+            
+            const toCurrency = baseCurrencyCode;
+            
+            // Skip if same currency
+            if (fromCurrency === toCurrency) {
+                liveRateDisplay.innerHTML = '<span class="live-rate-text">Exchange rate to base currency: <span class="rate-value">1.0000</span></span>';
+                document.getElementById('add-modal-exchange-rate').value = '1.0000';
+                return;
+            }
+            
+            try {
+                // Using ExchangeRate-API (free tier)
+                const response = await fetch(`https://api.exchangerate-api.com/v4/latest/${fromCurrency}`);
+                
+                if (!response.ok) {
+                    throw new Error('Failed to fetch exchange rate');
+                }
+                
+                const data = await response.json();
+                const rate = data.rates[toCurrency];
+                
+                if (rate) {
+                    currentAddLiveRate = rate;
+                    
+                    // Display the conversion
+                    liveRateDisplay.innerHTML = `
+                        <span class="live-rate-text">
+                            <strong>Live Rate:</strong> 1 ${fromCurrency} = <span class="rate-value">${rate.toFixed(4)}</span> <span class="base-currency">${toCurrency}</span>
+                        </span>
+                    `;
+                    
+                    // Auto-fill the rate input
+                    document.getElementById('add-modal-exchange-rate').value = rate.toFixed(4);
+                    
+                    // Show use rate button
+                    useRateBtn.style.display = 'inline-block';
+                } else {
+                    throw new Error('Exchange rate not available');
+                }
+                
+            } catch (error) {
+                console.error('Error fetching exchange rate:', error);
+                
+                // Try alternative API or calculation
+                try {
+                    // Alternative: use reciprocal if reverse rate is available
+                    const reverseResponse = await fetch(`https://api.exchangerate-api.com/v4/latest/${toCurrency}`);
+                    const reverseData = await reverseResponse.json();
+                    
+                    if (reverseData.rates[fromCurrency]) {
+                        const reverseRate = 1 / reverseData.rates[fromCurrency];
+                        currentAddLiveRate = reverseRate;
+                        
+                        liveRateDisplay.innerHTML = `
+                            <span class="live-rate-text">
+                                <strong>Live Rate:</strong> 1 ${fromCurrency} = <span class="rate-value">${reverseRate.toFixed(4)}</span> <span class="base-currency">${toCurrency}</span>
+                            </span>
+                        `;
+                        
+                        document.getElementById('add-modal-exchange-rate').value = reverseRate.toFixed(4);
+                        useRateBtn.style.display = 'inline-block';
+                    } else {
+                        liveRateDisplay.innerHTML = '<span class="rate-error">Exchange rate currently unavailable</span>';
+                    }
+                } catch (altError) {
+                    liveRateDisplay.innerHTML = '<span class="rate-error">Unable to fetch live rate</span>';
+                }
+            }
+        }
+        
+        // Use the live exchange rate in Add modal
+        function useAddLiveRate() {
+            if (currentAddLiveRate) {
+                document.getElementById('add-modal-exchange-rate').value = currentAddLiveRate.toFixed(4);
+            }
+        }
+        
+        // Show add modal
+        function showAddModal() {
+            const modal = document.getElementById('addCurrencyModal');
+            modal.classList.add('show');
+            document.body.style.overflow = 'hidden';
+        }
+        
+        // Close add modal
+        function closeAddModal() {
+            const modal = document.getElementById('addCurrencyModal');
+            modal.classList.remove('show');
+            document.body.style.overflow = '';
+            currentAddingCurrency = null;
+            currentAddLiveRate = null;
+        }
+        
+        // Close add modal when clicking on overlay
+        function closeAddModalOnOverlay(event) {
+            if (event.target === event.currentTarget) {
+                closeAddModal();
+            }
+        }
+        
+        // Save new currency
+        async function saveNewCurrency() {
+            if (!currentAddingCurrency) {
+                console.error('No currency selected');
+                return;
+            }
+            
+            const exchangeRate = document.getElementById('add-modal-exchange-rate').value;
+            
+            // Validate exchange rate
+            if (!exchangeRate || parseFloat(exchangeRate) <= 0 || isNaN(parseFloat(exchangeRate))) {
+                showNotification('Please enter a valid exchange rate', 'error');
+                return;
+            }
+            
+            // Show loading state
+            const saveButton = document.querySelector('#addCurrencyModal .modal-btn-save');
+            const originalButtonText = saveButton.textContent;
+            saveButton.disabled = true;
+            saveButton.innerHTML = '<span class="spinner-small"></span> Adding...';
+            
+            try {
+                // Get user data
+                let userId = null;
+                const userData = appState.getUserData();
+                if (userData && userData.user_id) {
+                    userId = userData.user_id;
+                } else {
+                    const storedUser = sessionStorage.getItem('userData') || localStorage.getItem('userData');
+                    if (storedUser) {
+                        const parsedUser = JSON.parse(storedUser);
+                        userId = parsedUser.user_id;
+                    }
+                }
+                
+                if (!userId) {
+                    const { data: { user } } = await supabase.auth.getUser();
+                    if (user) {
+                        userId = user.id;
+                    }
+                }
+                
+                if (!userId) {
+                    throw new Error('Unable to identify user. Please log in again.');
+                }
+                
+                // Get current date
+                const currentDate = new Date();
+                const rateDate = currentDate.toISOString().split('T')[0];
+                
+                // First, add to company_currency table
+                const { error: compCurrError } = await supabase
+                    .from('company_currency')
+                    .insert({
+                        company_id: currentCompanyId,
+                        currency_id: currentAddingCurrency.currency_id,
+                        exchange_rate: parseFloat(exchangeRate),
+                        is_deleted: false
+                    });
+                
+                if (compCurrError) {
+                    console.error('Error adding to company_currency:', compCurrError);
+                    throw compCurrError;
+                }
+                
+                // Then add to book_exchange_rates table
+                const { error: bookRateError } = await supabase
+                    .from('book_exchange_rates')
+                    .insert({
+                        company_id: currentCompanyId,
+                        from_currency_id: currentAddingCurrency.currency_id,
+                        to_currency_id: baseCurrencyId,
+                        rate: parseFloat(exchangeRate),
+                        rate_date: rateDate,
+                        created_by: userId
+                    });
+                
+                if (bookRateError) {
+                    console.error('Error adding to book_exchange_rates:', bookRateError);
+                    // Don't throw as the main operation succeeded
+                }
+                
+                // Close modal and reload data
+                closeAddModal();
+                
+                // Show success notification
+                showNotification(`${currentAddingCurrency.currency_code} added successfully!`, 'success');
+                
+                // Reload data after a short delay
+                setTimeout(() => {
+                    loadCurrencyData(currentCompanyId);
+                }, 500);
+                
+            } catch (error) {
+                console.error('Error adding currency:', error);
+                
+                let errorMessage = 'Failed to add currency';
+                if (error.message) {
+                    errorMessage = error.message;
+                } else if (error.details) {
+                    errorMessage = error.details;
+                }
+                
+                showNotification(errorMessage, 'error');
+                
+                // Restore button state
+                saveButton.disabled = false;
+                saveButton.textContent = originalButtonText;
+            }
+        }
+        
+        // Store current editing currency data and live rate
+        let currentEditingCurrency = null;
+        let currentLiveRate = null;
+        
+        // Handle edit currency
+        async function editCurrency(currencyId) {
+            console.log('Edit currency:', currencyId);
+            
+            // Find the currency data from the stored data
+            const currency = currenciesData.find(c => c.currency_id === currencyId);
+            if (!currency) {
+                console.error('Currency not found:', currencyId);
+                return;
+            }
+            
+            // Store for later use
+            currentEditingCurrency = currency;
+            
+            // Try to fetch the latest exchange rate from book_exchange_rates
+            try {
+                const { data: latestRate, error } = await supabase
+                    .from('book_exchange_rates')
+                    .select('rate, rate_date')
+                    .eq('company_id', currentCompanyId)
+                    .eq('from_currency_id', currencyId)
+                    .order('rate_date', { ascending: false })
+                    .limit(1)
+                    .maybeSingle(); // Use maybeSingle() instead of single() to avoid error when no data exists
+                
+                if (!error && latestRate) {
+                    currency.exchange_rate = latestRate.rate;
+                    currency.rate_date = latestRate.rate_date;
+                    console.log('Fetched latest rate from book_exchange_rates:', latestRate);
+                } else if (error) {
+                    console.warn('Error fetching rate:', error);
+                }
+            } catch (error) {
+                console.warn('Could not fetch latest rate from book_exchange_rates:', error);
+            }
+            
+            // Populate modal with currency data
+            document.getElementById('modal-currency-code').textContent = currency.currency_code || '-';
+            document.getElementById('modal-currency-name').textContent = currency.currency_name || '-';
+            document.getElementById('modal-currency-symbol').textContent = currency.symbol || '-';
+            document.getElementById('modal-exchange-rate').value = currency.exchange_rate || '1.0000';
+            
+            // Fetch and display live exchange rate
+            fetchLiveExchangeRate(currency.currency_code);
+            
+            // Show the modal
+            showEditModal();
+        }
+        
+        // Fetch live exchange rate from API
+        async function fetchLiveExchangeRate(fromCurrency) {
+            const liveRateDisplay = document.getElementById('live-rate-display');
+            const useRateBtn = document.querySelector('.use-live-rate-btn');
+            
+            // Reset display
+            liveRateDisplay.innerHTML = '<span class="loading-rate">Loading live rate...</span>';
+            useRateBtn.style.display = 'none';
+            currentLiveRate = null;
+            
+            // Find base currency code
+            const baseCurrency = currenciesData.find(c => c.currency_id === baseCurrencyId);
+            if (!baseCurrency || !baseCurrency.currency_code) {
+                liveRateDisplay.innerHTML = '<span class="rate-error">Base currency not found</span>';
+                return;
+            }
+            
+            const toCurrency = baseCurrency.currency_code;
+            
+            // Skip if same currency
+            if (fromCurrency === toCurrency) {
+                liveRateDisplay.innerHTML = '<span class="live-rate-text">Exchange rate to base currency: <span class="rate-value">1.0000</span></span>';
+                return;
+            }
+            
+            try {
+                // Using ExchangeRate-API (free tier)
+                const response = await fetch(`https://api.exchangerate-api.com/v4/latest/${fromCurrency}`);
+                
+                if (!response.ok) {
+                    throw new Error('Failed to fetch exchange rate');
+                }
+                
+                const data = await response.json();
+                const rate = data.rates[toCurrency];
+                
+                if (rate) {
+                    currentLiveRate = rate;
+                    
+                    // Display the conversion
+                    liveRateDisplay.innerHTML = `
+                        <span class="live-rate-text">
+                            <strong>Live Rate:</strong> 1 ${fromCurrency} = <span class="rate-value">${rate.toFixed(4)}</span> <span class="base-currency">${toCurrency}</span>
+                        </span>
+                    `;
+                    
+                    // Show use rate button if rate is different from current
+                    const currentRate = parseFloat(document.getElementById('modal-exchange-rate').value);
+                    if (Math.abs(currentRate - rate) > 0.0001) {
+                        useRateBtn.style.display = 'inline-block';
+                    }
+                } else {
+                    throw new Error('Exchange rate not available');
+                }
+                
+            } catch (error) {
+                console.error('Error fetching exchange rate:', error);
+                
+                // Try alternative API or calculation
+                try {
+                    // Alternative: use reciprocal if reverse rate is available
+                    const reverseResponse = await fetch(`https://api.exchangerate-api.com/v4/latest/${toCurrency}`);
+                    const reverseData = await reverseResponse.json();
+                    
+                    if (reverseData.rates[fromCurrency]) {
+                        const reverseRate = 1 / reverseData.rates[fromCurrency];
+                        currentLiveRate = reverseRate;
+                        
+                        liveRateDisplay.innerHTML = `
+                            <span class="live-rate-text">
+                                <strong>Live Rate:</strong> 1 ${fromCurrency} = <span class="rate-value">${reverseRate.toFixed(4)}</span> <span class="base-currency">${toCurrency}</span>
+                            </span>
+                        `;
+                        
+                        const currentRate = parseFloat(document.getElementById('modal-exchange-rate').value);
+                        if (Math.abs(currentRate - reverseRate) > 0.0001) {
+                            useRateBtn.style.display = 'inline-block';
+                        }
+                    } else {
+                        liveRateDisplay.innerHTML = '<span class="rate-error">Exchange rate currently unavailable</span>';
+                    }
+                } catch (altError) {
+                    liveRateDisplay.innerHTML = '<span class="rate-error">Unable to fetch live rate</span>';
+                }
+            }
+        }
+        
+        // Use the live exchange rate
+        function useLiveRate() {
+            if (currentLiveRate) {
+                document.getElementById('modal-exchange-rate').value = currentLiveRate.toFixed(4);
+                document.querySelector('.use-live-rate-btn').style.display = 'none';
+            }
+        }
+        
+        // Show edit modal
+        function showEditModal() {
+            const modal = document.getElementById('editCurrencyModal');
+            modal.classList.add('show');
+            document.body.style.overflow = 'hidden'; // Prevent background scrolling
+        }
+        
+        // Close edit modal
+        function closeEditModal() {
+            const modal = document.getElementById('editCurrencyModal');
+            modal.classList.remove('show');
+            document.body.style.overflow = ''; // Restore scrolling
+            currentEditingCurrency = null;
+            currentLiveRate = null;
+            
+            // Clear live rate display
+            document.getElementById('live-rate-display').innerHTML = '<span class="loading-rate">Loading live rate...</span>';
+            document.querySelector('.use-live-rate-btn').style.display = 'none';
+        }
+        
+        // Close modal when clicking on overlay
+        function closeModalOnOverlay(event) {
+            if (event.target === event.currentTarget) {
+                closeEditModal();
+            }
+        }
+        
+        // Save currency changes
+        async function saveCurrencyChanges() {
+            if (!currentEditingCurrency) {
+                console.error('No currency being edited');
+                return;
+            }
+            
+            const newExchangeRate = document.getElementById('modal-exchange-rate').value;
+            
+            // Validate exchange rate
+            if (!newExchangeRate || parseFloat(newExchangeRate) <= 0 || isNaN(parseFloat(newExchangeRate))) {
+                showNotification('Please enter a valid exchange rate', 'error');
+                return;
+            }
+            
+            // Show loading state
+            const saveButton = document.querySelector('.modal-btn-save');
+            const originalButtonText = saveButton.textContent;
+            saveButton.disabled = true;
+            saveButton.innerHTML = '<span class="spinner-small"></span> Saving...';
+            
+            // Set a timeout to restore button state in case of unexpected errors
+            const buttonTimeout = setTimeout(() => {
+                saveButton.disabled = false;
+                saveButton.textContent = originalButtonText;
+                showNotification('Operation timed out. Please try again.', 'error');
+            }, 30000); // 30 second timeout
+            
+            try {
+                // Get user data from appState or auth
+                let userId = null;
+                
+                // Try different methods to get user ID
+                const userData = appState.getUserData();
+                if (userData && userData.user_id) {
+                    userId = userData.user_id;
+                } else {
+                    // Try to get from sessionStorage or localStorage
+                    const storedUser = sessionStorage.getItem('userData') || localStorage.getItem('userData');
+                    if (storedUser) {
+                        const parsedUser = JSON.parse(storedUser);
+                        userId = parsedUser.user_id;
+                    }
+                }
+                
+                // If still no user ID, try to get from Supabase auth
+                if (!userId) {
+                    const { data: { user } } = await supabase.auth.getUser();
+                    if (user) {
+                        userId = user.id;
+                    }
+                }
+                
+                if (!userId) {
+                    throw new Error('Unable to identify user. Please log in again.');
+                }
+                
+                // Get current date in yyyy-MM-dd format
+                const currentDate = new Date();
+                const rateDate = currentDate.toISOString().split('T')[0];
+                const currentTimestamp = currentDate.toISOString();
+                
+                // Use the base_currency_id that was already fetched from the companies table
+                if (!baseCurrencyId) {
+                    console.log('baseCurrencyId not found in memory, fetching from database...');
+                    // Try to fetch it again if not available
+                    const { data: companyData, error: companyError } = await supabase
+                        .from('companies')
+                        .select('base_currency_id')
+                        .eq('company_id', currentCompanyId)
+                        .single();
+                    
+                    if (companyError || !companyData?.base_currency_id) {
+                        console.error('Failed to fetch base_currency_id:', companyError, companyData);
+                        throw new Error('Base currency not found for the company. Please set a base currency in company settings.');
+                    }
+                    
+                    baseCurrencyId = companyData.base_currency_id;
+                    console.log('Fetched base_currency_id:', baseCurrencyId);
+                }
+                
+                console.log('Saving exchange rate with:', {
+                    company_id: currentCompanyId,
+                    from_currency_id: currentEditingCurrency.currency_id,
+                    to_currency_id: baseCurrencyId,
+                    rate: parseFloat(newExchangeRate),
+                    rate_date: rateDate
+                });
+                
+                // First, check if a record exists in book_exchange_rates
+                let existingRates = null;
+                let selectError = null;
+                
+                try {
+                    const result = await supabase
+                        .from('book_exchange_rates')
+                        .select('*')
+                        .eq('company_id', currentCompanyId)
+                        .eq('from_currency_id', currentEditingCurrency.currency_id);
+                    
+                    existingRates = result.data;
+                    selectError = result.error;
+                } catch (fetchError) {
+                    console.warn('Error fetching existing rates, will try to insert new:', fetchError);
+                    // Treat as no existing rates
+                    existingRates = null;
+                }
+                
+                if (selectError && selectError.code !== 'PGRST116') { // PGRST116 is "no rows found" which is OK
+                    console.error('Error checking existing rates:', selectError);
+                    // For 406 errors or other issues, try to insert as new
+                    if (selectError.code === '406' || selectError.message?.includes('Not Acceptable')) {
+                        console.log('Treating as new record due to 406 error');
+                        existingRates = null;
+                    } else {
+                        throw selectError;
+                    }
+                }
+                
+                if (existingRates && existingRates.length > 0) {
+                    // Update existing record - only update rate and rate_date
+                    const { error: updateError } = await supabase
+                        .from('book_exchange_rates')
+                        .update({
+                            rate: parseFloat(newExchangeRate),
+                            rate_date: rateDate
+                        })
+                        .eq('company_id', currentCompanyId)
+                        .eq('from_currency_id', currentEditingCurrency.currency_id);
+                    
+                    if (updateError) {
+                        console.error('Error updating exchange rate:', updateError);
+                        throw updateError;
+                    }
+                    
+                    console.log('Exchange rate updated successfully');
+                } else {
+                    // Create new record - include created_by and created_at fields if they're required
+                    const insertData = {
+                        company_id: currentCompanyId,
+                        from_currency_id: currentEditingCurrency.currency_id,
+                        to_currency_id: baseCurrencyId,
+                        rate: parseFloat(newExchangeRate),
+                        rate_date: rateDate,
+                        created_by: userId  // Add this field as it's NOT NULL in the database
+                    };
+                    
+                    // Add created_at if needed (some databases require it)
+                    // insertData.created_at = currentTimestamp;
+                    
+                    console.log('Inserting new exchange rate:', insertData);
+                    
+                    const { error: insertError } = await supabase
+                        .from('book_exchange_rates')
+                        .insert(insertData);
+                    
+                    if (insertError) {
+                        console.error('Error creating exchange rate:', insertError);
+                        throw insertError;
+                    }
+                    
+                    console.log('Exchange rate created successfully');
+                }
+                
+                // Also update the company_currency table to keep it in sync
+                const { error: syncError } = await supabase
+                    .from('company_currency')
+                    .update({ exchange_rate: parseFloat(newExchangeRate) })
+                    .eq('company_id', currentCompanyId)
+                    .eq('currency_id', currentEditingCurrency.currency_id);
+                
+                if (syncError) {
+                    console.warn('Warning: Could not sync with company_currency table:', syncError);
+                    // Don't throw error as the main operation succeeded
+                }
+                
+                // Clear the timeout since operation completed successfully
+                clearTimeout(buttonTimeout);
+                
+                // Close modal and reload data
+                closeEditModal();
+                
+                // Show success notification
+                showNotification('Exchange rate updated successfully!', 'success');
+                
+                // Reload data after a short delay
+                setTimeout(() => {
+                    loadCurrencyData(currentCompanyId);
+                }, 500);
+                
+            } catch (error) {
+                console.error('Error saving currency changes:', error);
+                
+                // Clear the timeout
+                clearTimeout(buttonTimeout);
+                
+                let errorMessage = 'Failed to save currency changes';
+                
+                if (error.message) {
+                    errorMessage = error.message;
+                } else if (error.details) {
+                    errorMessage = error.details;
+                } else if (error.hint) {
+                    errorMessage = error.hint;
+                }
+                
+                showNotification(errorMessage, 'error');
+                
+                // Restore button state
+                saveButton.disabled = false;
+                saveButton.textContent = originalButtonText;
+            } finally {
+                // Ensure timeout is cleared in all cases
+                if (typeof buttonTimeout !== 'undefined') {
+                    clearTimeout(buttonTimeout);
+                }
+            }
+        }
+        
+        // Close modal on Escape key
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                const editModal = document.getElementById('editCurrencyModal');
+                const addModal = document.getElementById('addCurrencyModal');
+                const dropdown = document.getElementById('add-currency-dropdown');
+                
+                // Close dropdown if open
+                if (dropdown && dropdown.classList.contains('show')) {
+                    dropdown.classList.remove('show');
+                    document.getElementById('add-currency-trigger').classList.remove('active');
+                    return;
+                }
+                
+                // Close modals
+                if (editModal && editModal.classList.contains('show')) {
+                    closeEditModal();
+                } else if (addModal && addModal.classList.contains('show')) {
+                    closeAddModal();
+                }
+            }
+        });
+        
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            const dropdown = document.getElementById('add-currency-dropdown');
+            const trigger = document.getElementById('add-currency-trigger');
+            const wrapper = document.querySelector('.custom-select-wrapper');
+            
+            if (dropdown && trigger && wrapper) {
+                // Check if click is outside the select wrapper
+                if (!wrapper.contains(event.target) && dropdown.classList.contains('show')) {
+                    dropdown.classList.remove('show');
+                    trigger.classList.remove('active');
+                }
+            }
+        });
+        
+        // Update conversion display when exchange rate changes
+        document.addEventListener('DOMContentLoaded', function() {
+            const exchangeRateInput = document.getElementById('modal-exchange-rate');
+            if (exchangeRateInput) {
+                exchangeRateInput.addEventListener('input', function() {
+                    updateConversionDisplay();
+                });
+            }
+        });
+        
+        // Update the conversion display based on user input
+        function updateConversionDisplay() {
+            if (!currentEditingCurrency) return;
+            
+            const userRate = parseFloat(document.getElementById('modal-exchange-rate').value);
+            if (isNaN(userRate) || userRate <= 0) return;
+            
+            const liveRateDisplay = document.getElementById('live-rate-display');
+            const baseCurrency = currenciesData.find(c => c.currency_id === baseCurrencyId);
+            
+            if (baseCurrency && currentEditingCurrency.currency_code !== baseCurrency.currency_code) {
+                // Keep showing live rate if available, and show user's conversion
+                if (currentLiveRate) {
+                    liveRateDisplay.innerHTML = `
+                        <span class="live-rate-text">
+                            <strong>Live Rate:</strong> 1 ${currentEditingCurrency.currency_code} = <span class="rate-value">${currentLiveRate.toFixed(4)}</span> <span class="base-currency">${baseCurrency.currency_code}</span>
+                            <br>
+                            <strong>Your Rate:</strong> 1 ${currentEditingCurrency.currency_code} = <span class="rate-value">${userRate.toFixed(4)}</span> <span class="base-currency">${baseCurrency.currency_code}</span>
+                        </span>
+                    `;
+                    
+                    // Show/hide use rate button
+                    const useRateBtn = document.querySelector('.use-live-rate-btn');
+                    if (Math.abs(userRate - currentLiveRate) > 0.0001) {
+                        useRateBtn.style.display = 'inline-block';
+                    } else {
+                        useRateBtn.style.display = 'none';
+                    }
+                }
+            }
+        }
+        
+        // Handle remove currency
+        async function removeCurrency(currencyId) {
+            console.log('Remove currency:', currencyId);
+            
+            // Prevent removing base currency
+            if (currencyId === baseCurrencyId) {
+                showNotification('Cannot remove the base currency. Please change the base currency in company settings first.', 'warning');
+                return;
+            }
+            
+            if (!confirm('Are you sure you want to remove this currency?')) {
+                return;
+            }
+            
+            try {
+                // Soft delete by setting is_deleted to true
+                const { error } = await supabase
+                    .from('company_currency')
+                    .update({ is_deleted: true })
+                    .eq('company_id', currentCompanyId)
+                    .eq('currency_id', currencyId);
+                
+                if (error) throw error;
+                
+                // Show success message
+                showNotification('Currency removed successfully!', 'success');
+                
+                // Reload the data after a short delay
+                setTimeout(() => {
+                    loadCurrencyData(currentCompanyId);
+                }, 500);
+                
+            } catch (error) {
+                console.error('Error removing currency:', error);
+                showNotification('Failed to remove currency: ' + error.message, 'error');
+            }
+        }
+        
+        // Retry loading
+        function retryLoading() {
+            if (currentCompanyId) {
+                loadCurrencyData(currentCompanyId);
+            }
         }
     </script>
 </body>
