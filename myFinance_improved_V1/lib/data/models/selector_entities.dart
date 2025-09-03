@@ -74,6 +74,7 @@ class CashLocationData with _$CashLocationData {
     required String type,
     String? storeId,
     @Default(false) bool isCompanyWide,
+    @Default(false) bool isDeleted,
     String? currencyCode,
     String? bankAccount,
     String? bankName,
@@ -286,10 +287,14 @@ extension CashLocationDataExtensions on List<CashLocationData> {
   List<CashLocationData> filterByStore(String storeId) =>
       where((location) => location.storeId == storeId).toList();
       
+  List<CashLocationData> filterActive() =>
+      where((location) => !location.isDeleted).toList();
+      
   List<CashLocationData> get companyWide => filterByScope(true);
   List<CashLocationData> get storeSpecific => filterByScope(false);
   List<CashLocationData> get cashLocations => filterByType('cash');
   List<CashLocationData> get bankAccounts => filterByType('bank');
+  List<CashLocationData> get active => filterActive();
 }
 
 extension CounterpartyDataExtensions on List<CounterpartyData> {

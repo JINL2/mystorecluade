@@ -166,7 +166,7 @@ class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
   Widget build(BuildContext context) {
     return TossScaffold(
       backgroundColor: TossColors.background,
-      resizeToAvoidBottomInset: true, // Ensure keyboard handling
+      resizeToAvoidBottomInset: true,
       body: SafeArea(
         child: Column(
           children: [
@@ -335,19 +335,15 @@ class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
                 text: 'Go to Dashboard',
                 onPressed: () async {
                   try {
-                    // Stop animations for smoother transition
                     _animationController.stop();
                     _successController.stop();
                     
-                    // Call API to get updated user companies, stores, and categories
                     final supabase = Supabase.instance.client;
                     final userId = supabase.auth.currentUser?.id;
                     
                     if (userId != null) {
-                      // Small delay to ensure database has updated
                       await Future.delayed(const Duration(milliseconds: AuthConstants.apiDelayMs));
                       
-                      // Fetch user data and categories in parallel
                       final results = await Future.wait([
                         supabase.rpc(
                           'get_user_companies_and_stores',
@@ -359,7 +355,6 @@ class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
                       final userResponse = results[0];
                       final categoriesResponse = results[1];
                       
-                      // Store both in app state
                       await ref.read(appStateProvider.notifier).setUser(userResponse);
                       await ref.read(appStateProvider.notifier).setCategoryFeatures(categoriesResponse);
                       
@@ -372,7 +367,6 @@ class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
                       }
                     }
                   } catch (e) {
-                    // Still navigate to homepage on error
                     if (mounted) {
                       context.safeGo('/');
                     }
@@ -684,7 +678,6 @@ class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
           ),
           TextButton(
             onPressed: () {
-              // Stop animations for smoother transition
               _animationController.stop();
               _successController.stop();
               
@@ -756,7 +749,6 @@ class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
         
         // Navigate to Create Store page
         if (mounted) {
-          // Stop animations for smoother transition
           _animationController.stop();
           _successController.stop();
           

@@ -91,7 +91,7 @@ class _JoinBusinessPageState extends ConsumerState<JoinBusinessPage>
   Widget build(BuildContext context) {
     return TossScaffold(
       backgroundColor: TossColors.background,
-      resizeToAvoidBottomInset: true, // Ensure keyboard handling
+      resizeToAvoidBottomInset: true,
       body: SafeArea(
         child: Column(
           children: [
@@ -292,16 +292,13 @@ class _JoinBusinessPageState extends ConsumerState<JoinBusinessPage>
             text: 'Go to Dashboard',
             onPressed: () async {
               try {
-                // Stop animations for smoother transition
                 _animationController.stop();
                 _successController.stop();
                 
-                // Call API to get updated user companies and stores
                 final supabase = Supabase.instance.client;
                 final userId = supabase.auth.currentUser?.id;
                 
                 if (userId != null) {
-                  // Small delay to ensure database has updated
                   await Future.delayed(const Duration(milliseconds: 500));
                   
                   final response = await supabase.rpc(
@@ -309,10 +306,8 @@ class _JoinBusinessPageState extends ConsumerState<JoinBusinessPage>
                     params: {'p_user_id': userId},
                   );
                   
-                  // Store in app state
                   await ref.read(appStateProvider.notifier).setUser(response);
                   
-                  // Navigate to homepage
                   if (mounted) {
                     context.safeGo('/');
                   }
@@ -369,7 +364,6 @@ class _JoinBusinessPageState extends ConsumerState<JoinBusinessPage>
         
         TextButton(
           onPressed: () {
-            // Stop animations for smoother transition
             _animationController.stop();
             _successController.stop();
             

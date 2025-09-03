@@ -16,6 +16,7 @@ class TransactionLine {
   String? cashLocationName;
   String? cashLocationType;
   String? linkedCompanyId; // The linked_company_id from counterparty
+  String? counterpartyCashLocationId; // Cash location for counterparty
   
   // Debt related fields
   String? debtCategory;
@@ -48,6 +49,7 @@ class TransactionLine {
     this.cashLocationName,
     this.cashLocationType,
     this.linkedCompanyId,
+    this.counterpartyCashLocationId,
     this.debtCategory,
     this.interestRate,
     this.issueDate,
@@ -75,6 +77,7 @@ class TransactionLine {
     String? cashLocationName,
     String? cashLocationType,
     String? linkedCompanyId,
+    String? counterpartyCashLocationId,
     String? debtCategory,
     double? interestRate,
     DateTime? issueDate,
@@ -101,6 +104,7 @@ class TransactionLine {
       cashLocationName: cashLocationName ?? this.cashLocationName,
       cashLocationType: cashLocationType ?? this.cashLocationType,
       linkedCompanyId: linkedCompanyId ?? this.linkedCompanyId,
+      counterpartyCashLocationId: counterpartyCashLocationId ?? this.counterpartyCashLocationId,
       debtCategory: debtCategory ?? this.debtCategory,
       interestRate: interestRate ?? this.interestRate,
       issueDate: issueDate ?? this.issueDate,

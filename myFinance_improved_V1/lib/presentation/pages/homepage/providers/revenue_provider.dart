@@ -107,8 +107,7 @@ class RevenueNotifier extends StateNotifier<AsyncValue<RevenueData>> {
       // On error, use mock data as fallback
       final fallbackData = _getFallbackData(period);
       state = AsyncValue.data(fallbackData);
-      
-      print('Revenue fetch error: $error');
+      // Silently handle error and use fallback data
     }
   }
   

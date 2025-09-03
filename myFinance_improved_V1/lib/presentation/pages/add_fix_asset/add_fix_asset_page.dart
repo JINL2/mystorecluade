@@ -373,7 +373,7 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
                     }
                   },
                   itemBuilder: (context) => [
-                    const SafePopupMenuItem(
+                    const PopupMenuItem(
                       value: 'edit',
                       child: Row(
                         children: [
@@ -383,7 +383,7 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
                         ],
                       ),
                     ),
-                    const SafePopupMenuItem(
+                    const PopupMenuItem(
                       value: 'delete',
                       child: Row(
                         children: [

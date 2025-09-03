@@ -83,7 +83,7 @@ class TokenManager {
         'pending_updates': _pendingUpdates.length,
       });
       
-      debugPrint('✅ Enhanced Token Manager initialized');
+      // Token manager initialized (reduced logging)
     } catch (e, stack) {
       _monitor.logError('initialization_failed', e, stack);
       debugPrint('❌ Token Manager init failed: $e');
@@ -235,7 +235,9 @@ class TokenManager {
         'success': _currentToken != null,
       });
       
-      debugPrint('⚡ Token registered in ${stopwatch.elapsedMilliseconds}ms');
+      if (kDebugMode && stopwatch.elapsedMilliseconds > 1000) {
+        debugPrint('⚡ Token registered in ${stopwatch.elapsedMilliseconds}ms');
+      }
     } catch (e, stack) {
       stopwatch.stop();
       _monitor.logError('immediate_registration_failed', e, stack);
@@ -364,7 +366,10 @@ class TokenManager {
           'token_id': result.id,
         });
         
-        debugPrint('✅ Token updated successfully (ID: ${result.id})');
+        // Reduced logging - only log in debug mode
+        if (kDebugMode) {
+          debugPrint('✅ Token updated (${result.id})');
+        }
       } else {
         throw Exception('Token update returned null - check if user_fcm_tokens table exists in Supabase');
       }
@@ -681,8 +686,17 @@ class _TokenMonitor {
       _events.removeAt(0);
     }
     
-    if (kDebugMode) {
-      debugPrint('📊 Token Event: $event ${data ?? ''}');
+    // Only log significant events to reduce console spam
+    final significantEvents = [
+      'initialization_completed',
+      'token_update_success',
+      'auth_signed_in',
+      'auth_signed_out',
+      'immediate_registration'
+    ];
+    
+    if (kDebugMode && significantEvents.contains(event)) {
+      debugPrint('📊 $event ${data ?? ''}');
     }
   }
   

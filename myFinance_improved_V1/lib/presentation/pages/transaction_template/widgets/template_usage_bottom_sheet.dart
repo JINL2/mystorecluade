@@ -15,7 +15,7 @@ import '../../../../core/themes/toss_shadows.dart';
 // Removed unused import: cash_location_selector.dart
 import './store_selector.dart';
 // Removed unused import: selector_entities.dart
-// Removed unused import: autonomous_cash_location_selector.dart
+import '../../../widgets/specific/selectors/autonomous_cash_location_selector.dart';
 // Removed unused import: transaction_history_model.dart
 import '../../../../core/themes/toss_colors.dart';
 import '../../../../core/themes/toss_text_styles.dart';
@@ -23,7 +23,6 @@ import '../../../../core/themes/toss_spacing.dart';
 import '../../../../core/themes/toss_border_radius.dart';
 import '../../../providers/app_state_provider.dart';
 import '../../../providers/auth_provider.dart';
-import '../../journal_input/providers/journal_input_providers.dart';
 import '../providers/counterparty_providers.dart';
 import '../providers/transaction_template_providers.dart';
 import '../../../../data/services/supabase_service.dart';
@@ -324,7 +323,6 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
     if (templateCounterpartyId != null && templateCounterpartyId != '') {
       _selectedCounterpartyId = templateCounterpartyId;
       if (kDebugMode) {
-        print('🔧 Initialized counterparty from template level: $templateCounterpartyId');
       }
     }
     
@@ -338,7 +336,6 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
         if (entryCounterpartyId != null && entryCounterpartyId != '') {
           _selectedCounterpartyId = entryCounterpartyId;
           if (kDebugMode) {
-            print('🔧 Initialized counterparty from line data: $entryCounterpartyId');
           }
         }
       }
@@ -350,7 +347,6 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
           counterpartyCashLocationId != 'none') {
         _selectedCounterpartyCashLocationId = counterpartyCashLocationId;
         if (kDebugMode) {
-          print('🔧 Initialized counterparty cash location from template: $counterpartyCashLocationId');
         }
       }
       
@@ -766,221 +762,6 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
     );
   }
   
-  // Removed unused methods - using new UI structure instead
-  /*
-  Widget _buildTemplateInfoCard() {
-    final categories = (widget.template['tags']?['categories'] as List?) ?? [];
-    final description = widget.template['template_description'];
-    
-    return Container(
-      padding: EdgeInsets.all(TossSpacing.space4),
-      decoration: BoxDecoration(
-        color: TossColors.gray50,
-        borderRadius: BorderRadius.circular(TossBorderRadius.md),
-        border: Border.all(color: TossColors.gray200),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: TossColors.primarySurface,
-              borderRadius: BorderRadius.circular(TossBorderRadius.sm),
-            ),
-            child: Icon(
-              Icons.receipt_outlined,
-              color: TossColors.primary,
-              size: 20,
-            ),
-          ),
-          SizedBox(width: TossSpacing.space3),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  widget.template['name'] ?? 'Template',
-                  style: TossTextStyles.bodyLarge.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                if (categories.isNotEmpty) ...[
-                  SizedBox(height: TossSpacing.space1),
-                  Text(
-                    'Type: ${categories.join(' → ')}',
-                    style: TossTextStyles.caption.copyWith(
-                      color: TossColors.gray600,
-                    ),
-                  ),
-                ],
-                if (description != null && description.toString().isNotEmpty) ...[
-                  SizedBox(height: TossSpacing.space1),
-                  Text(
-                    description.toString(),
-                    style: TossTextStyles.caption.copyWith(
-                      color: TossColors.gray500,
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-  
-  Widget _buildDescriptionInput() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Text(
-              'Description',
-              style: TossTextStyles.caption.copyWith(
-                color: TossColors.gray700,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            SizedBox(width: TossSpacing.space2),
-            Text(
-              '(Optional)',
-              style: TossTextStyles.caption.copyWith(
-                color: TossColors.gray500,
-                fontSize: 12,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: TossSpacing.space2),
-        Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-            color: TossColors.white,
-            border: Border.all(
-              color: _descriptionController.text.isNotEmpty 
-                ? TossColors.primary
-                : TossColors.gray200,
-              width: 1,
-            ),
-          ),
-          child: TextFormField(
-            controller: _descriptionController,
-            keyboardType: TextInputType.text,
-            textCapitalization: TextCapitalization.sentences,
-            maxLines: 2,
-            minLines: 1,
-            style: TossTextStyles.body.copyWith(
-              color: TossColors.gray900,
-              fontWeight: _descriptionController.text.isNotEmpty ? FontWeight.w600 : FontWeight.w400,
-              fontSize: 16,
-            ),
-            cursorColor: TossColors.primary,
-            decoration: InputDecoration(
-              hintText: 'Enter transaction description (optional)',
-              hintStyle: TossTextStyles.body.copyWith(
-                color: TossColors.gray400,
-                fontSize: 16,
-              ),
-              border: InputBorder.none,
-              enabledBorder: InputBorder.none,
-              focusedBorder: InputBorder.none,
-              errorBorder: InputBorder.none,
-              focusedErrorBorder: InputBorder.none,
-              contentPadding: EdgeInsets.all(TossSpacing.space3),
-            ),
-            // No validator needed - description is optional
-          ),
-        ),
-      ],
-    );
-  }
-  
-  Widget _buildAmountInput() {
-    // Using native TextFormField with TossDropdown-like styling for consistency
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Transaction Amount',
-          style: TossTextStyles.caption.copyWith(
-            color: TossColors.gray700,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        const SizedBox(height: TossSpacing.space2),
-        Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-            color: TossColors.white,
-            border: Border.all(
-              color: _amountController.text.isNotEmpty 
-                ? TossColors.primary
-                : TossColors.gray200,
-              width: 1,
-            ),
-          ),
-          child: TextFormField(
-            controller: _amountController,
-            keyboardType: TextInputType.number,
-            inputFormatters: [
-              FilteringTextInputFormatter.allow(RegExp(r'[0-9,]')),
-              LengthLimitingTextInputFormatter(15),
-            ],
-            validator: _validateAmount,
-            style: TossTextStyles.body.copyWith(
-              color: TossColors.gray900,
-              fontWeight: _amountController.text.isNotEmpty ? FontWeight.w600 : FontWeight.w400,
-              fontSize: 16,
-            ),
-            cursorColor: TossColors.primary,
-            decoration: InputDecoration(
-              hintText: 'Enter amount (e.g., 123,456)',
-              hintStyle: TossTextStyles.body.copyWith(
-                color: TossColors.gray400,
-                fontSize: 16,
-              ),
-              border: InputBorder.none,
-              enabledBorder: InputBorder.none,
-              focusedBorder: InputBorder.none,
-              errorBorder: InputBorder.none,
-              focusedErrorBorder: InputBorder.none,
-              contentPadding: EdgeInsets.all(TossSpacing.space3),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-  
-  String? _validateAmount(String? value) {
-    if (value == null || value.isEmpty) {
-      return 'Please enter an amount';
-    }
-    
-    // Remove commas and validate
-    final cleanValue = value.replaceAll(',', '');
-    final number = int.tryParse(cleanValue);
-    
-    if (number == null) {
-      return 'Please enter a valid number';
-    }
-    
-    if (number <= 0) {
-      return 'Amount must be greater than 0';
-    }
-    
-    if (number > 999999999999) {
-      return 'Amount is too large';
-    }
-    
-    return null;
-  }
-  */
   
   // New method to build debit and credit sections with their specific requirements
   Widget _buildTransactionEntrySections() {
@@ -1267,43 +1048,6 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
       default:
         return Icons.account_balance;
     }
-  }
-  
-  // Keep the original detailed requirements builder for when needed
-  Widget _buildEntryRequirements(Map<String, dynamic> entry) {
-    final accountName = entry['account_name'] ?? 'Unknown Account';
-    final categoryTag = entry['category_tag'] as String?;
-    final accountId = entry['account_id'] as String?;
-    
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        // Account name
-        Text(
-          accountName,
-          style: TossTextStyles.bodyLarge.copyWith(
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        SizedBox(height: TossSpacing.space2),
-        
-        // Requirements based on account type
-        if (categoryTag == 'cash') ...[
-          _buildCashLocationSelector(entry),
-        ] else if (categoryTag == 'receivable' || categoryTag == 'payable') ...[
-          // For receivable/payable, check if we need counterparty cash location
-          if (requirements.needsCounterpartyCashLocation) ...[
-            _buildCounterpartyCashLocationSection(),
-            SizedBox(height: TossSpacing.space3),
-          ],
-          // Then show debt configuration if needed
-          if (accountId != null && categoryTag != null && _debtConfigurations.containsKey(accountId)) ...[
-            _buildDebtConfigurationForAccount(accountId, categoryTag),
-          ],
-        ],
-        // Other account types don't need special configuration
-      ],
-    );
   }
   
   Widget _buildCashLocationSelector(Map<String, dynamic> entry) {
@@ -1879,78 +1623,27 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
     final storedCounterpartyStoreId = tags['counterparty_store_id'] as String?;
     final storeIdToUse = _selectedCounterpartyStoreId ?? storedCounterpartyStoreId;
     
-    if (storeIdToUse == null) return SizedBox.shrink();
+    if (_linkedCompanyId == null) return SizedBox.shrink();
     
-    return Consumer(
-      builder: (context, ref, child) {
-        // Fetch cash locations for the COUNTERPARTY's selected store
-        final cashLocationsAsync = ref.watch(
-          journalCounterpartyStoreCashLocationsProvider(storeIdToUse)
-        );
-        
-        return cashLocationsAsync.when(
-          data: (locations) {
-            if (locations.isEmpty) {
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  SizedBox(height: TossSpacing.space3),
-                  Text(
-                    'No cash locations available for selected store',
-                    style: TossTextStyles.caption.copyWith(
-                      color: TossColors.gray500,
-                    ),
-                  ),
-                ],
-              );
-            }
-            
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                // Use TossDropdown for consistent styling
-                TossDropdown<String>(
-                  label: '',  // Empty label since we have it above
-                  hint: 'Select cash location',
-                  value: _selectedCounterpartyCashLocationId,
-                  items: locations.map((location) {
-                    final locationName = location['location_name'] as String? ?? 'Unknown';
-                    final locationType = location['location_type'] as String? ?? '';
-                    return TossDropdownItem<String>(
-                      value: location['cash_location_id'] as String,
-                      label: locationName,
-                      subtitle: locationType.isNotEmpty ? locationType : null,
-                    );
-                  }).toList(),
-                  onChanged: (value) {
-                    setState(() {
-                      _selectedCounterpartyCashLocationId = value;
-                      // Button state will update automatically
-                    });
-                  },
-                ),
-              ],
-            );
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        AutonomousCashLocationSelector(
+          companyId: _linkedCompanyId, // Use the counterparty's company ID
+          storeId: storeIdToUse, // Use the counterparty's store ID if available
+          selectedLocationId: _selectedCounterpartyCashLocationId,
+          onChanged: (cashLocationId) {
+            setState(() {
+              _selectedCounterpartyCashLocationId = cashLocationId;
+            });
           },
-          loading: () => Column(
-            children: [
-              SizedBox(height: TossSpacing.space3),
-              Center(
-                child: TossLoadingView(),
-              ),
-            ],
-          ),
-          error: (error, stack) => Column(
-            children: [
-              SizedBox(height: TossSpacing.space3),
-              Text(
-                'Error loading cash locations',
-                style: TossTextStyles.caption.copyWith(color: TossColors.error),
-              ),
-            ],
-          ),
-        );
-      },
+          label: 'Counterparty Cash Location',
+          hint: 'Select counterparty cash location',
+          showSearch: false, // Simplified for template usage
+          showTransactionCount: false,
+          showScopeTabs: false, // No need for tabs in template usage
+        ),
+      ],
     );
   }
   
@@ -2234,20 +1927,6 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
         'p_store_id': appState.storeChoosen.isNotEmpty ? appState.storeChoosen : null,
       };
       
-      // Debug logging
-      if (kDebugMode) {
-        print('=== RPC Parameters ===');
-        print('p_base_amount: ${rpcParams['p_base_amount']}');
-        print('p_company_id: ${rpcParams['p_company_id']}');
-        print('p_created_by: ${rpcParams['p_created_by']}');
-        print('p_description: ${rpcParams['p_description']}');
-        print('p_entry_date: ${rpcParams['p_entry_date']}');
-        print('p_counterparty_id: ${rpcParams['p_counterparty_id']}');
-        print('p_if_cash_location_id: ${rpcParams['p_if_cash_location_id']}');
-        print('p_store_id: ${rpcParams['p_store_id']}');
-        print('p_lines: ${rpcParams['p_lines']}');
-        print('===================');
-      }
       
       // Track template usage BEFORE creating transaction (so it tracks even if transaction fails)
       await _trackTemplateUsage();
@@ -2270,9 +1949,6 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
       }
     } on PostgrestException catch (e) {
       // Handle database-specific errors
-      print('PostgrestException: ${e.message}');
-      print('Error code: ${e.code}');
-      print('Error details: ${e.details}');
       
       if (e.code == '23505') {
         _showError('Duplicate transaction detected');
@@ -2282,8 +1958,6 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
         _showError('Database error: ${e.message}');
       }
     } catch (e, stackTrace) {
-      print('Error creating transaction: $e');
-      print('Stack trace: $stackTrace');
       _showError('Failed to create transaction: $e');
     } finally {
       if (mounted) {
@@ -2306,7 +1980,6 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
     try {
       final appState = ref.read(appStateProvider);
       if (appState.companyChoosen.isEmpty) {
-        print('❌ Template usage tracking failed: No company selected');
         return;
       }
 
@@ -2316,17 +1989,9 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
       final templateType = widget.template['template_type'] as String? ?? 'transaction';
 
       if (templateId == null) {
-        print('❌ Template usage tracking failed: No template ID');
-        print('  Template keys: ${widget.template.keys.toList()}');
-        print('  Looking for template_id in: ${widget.template}');
         return;
       }
 
-      print('📊 Tracking template usage:');
-      print('  Template ID: $templateId');
-      print('  Template Name: $templateName');
-      print('  Company ID: ${appState.companyChoosen}');
-      print('  Amount: ${_amountController.text}');
 
       // Use correct log_template_usage RPC parameters for transaction_templates_preferences table
       final response = await supabase.client.rpc('log_template_usage', params: {
@@ -2342,211 +2007,11 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
         },
       });
       
-      print('✅ Template usage tracked successfully');
-      print('  Response: $response');
     } catch (e) {
-      print('❌ Template usage tracking error: $e');
-      print('  Stack trace: ${StackTrace.current}');
       // Don't interrupt user experience, but log the error
     }
   }
   
-  // Build debt configuration widgets for payable/receivable accounts
-  /* Not used in new UI - integrated into entry sections
-  Widget _buildDebtConfigurations() {
-    final data = widget.template['data'] as List? ?? [];
-    final List<Widget> debtWidgets = [];
-    
-    for (var entry in data) {
-      final categoryTag = entry['category_tag'] as String?;
-      final accountId = entry['account_id'] as String?;
-      final accountName = entry['account_name'] as String? ?? 'Account';
-      
-      if (accountId != null && _debtConfigurations.containsKey(accountId)) {
-        debtWidgets.add(_buildSingleDebtConfiguration(
-          accountId: accountId,
-          accountName: accountName,
-          categoryTag: categoryTag ?? '',
-        ));
-      }
-    }
-    
-    if (debtWidgets.isEmpty) return SizedBox.shrink();
-    
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Section divider with label
-        Container(
-          margin: EdgeInsets.symmetric(vertical: TossSpacing.space3),
-          child: Row(
-            children: [
-              Expanded(
-                child: Container(
-                  height: 1,
-                  color: TossColors.gray200,
-                ),
-              ),
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: TossSpacing.space3),
-                child: Text(
-                  'Debt Configuration',
-                  style: TossTextStyles.caption.copyWith(
-                    color: TossColors.gray500,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
-              Expanded(
-                child: Container(
-                  height: 1,
-                  color: TossColors.gray200,
-                ),
-              ),
-            ],
-          ),
-        ),
-        ...debtWidgets,
-      ],
-    );
-  }
-  
-  // Build single debt configuration for one account
-  Widget _buildSingleDebtConfiguration({
-    required String accountId,
-    required String accountName,
-    required String categoryTag,
-  }) {
-    final config = _debtConfigurations[accountId]!;
-    
-    return Container(
-      margin: EdgeInsets.only(bottom: TossSpacing.space4),
-      padding: EdgeInsets.all(TossSpacing.space3),
-      decoration: BoxDecoration(
-        color: TossColors.gray50,
-        borderRadius: BorderRadius.circular(TossBorderRadius.md),
-        border: Border.all(color: TossColors.gray200),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Account info header
-          Text(
-            '$accountName (${categoryTag.toUpperCase()})',
-            style: TossTextStyles.bodyLarge.copyWith(
-              fontWeight: FontWeight.w600,
-              color: TossColors.gray900,
-            ),
-          ),
-          SizedBox(height: TossSpacing.space3),
-          
-          // Debt category dropdown
-          TossDropdown<String>(
-            label: 'Debt Category',
-            hint: 'Select category',
-            value: config.category,
-            items: [
-              TossDropdownItem(value: 'note', label: 'Note'),
-              TossDropdownItem(value: 'account', label: 'Account'),
-              TossDropdownItem(value: 'loan', label: 'Loan'),
-              TossDropdownItem(value: 'other', label: 'Other'),
-            ],
-            onChanged: (value) {
-              setState(() {
-                config.category = value ?? 'note';
-              });
-            },
-          ),
-          
-          SizedBox(height: TossSpacing.space3),
-          
-          // Date pickers row
-          Row(
-            children: [
-              Expanded(
-                child: _buildDatePicker(
-                  label: 'Issue Date',
-                  date: config.issueDate,
-                  onChanged: (date) {
-                    setState(() {
-                      config.issueDate = date;
-                    });
-                  },
-                ),
-              ),
-              SizedBox(width: TossSpacing.space3),
-              Expanded(
-                child: _buildDatePicker(
-                  label: 'Due Date',
-                  date: config.dueDate,
-                  isOptional: true,
-                  onChanged: (date) {
-                    setState(() {
-                      config.dueDate = date;
-                    });
-                  },
-                ),
-              ),
-            ],
-          ),
-          
-          SizedBox(height: TossSpacing.space3),
-          
-          // Interest rate input
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Interest Rate (%)',
-                style: TossTextStyles.caption.copyWith(
-                  color: TossColors.gray700,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              SizedBox(height: TossSpacing.space2),
-              Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-                  color: TossColors.white,
-                  border: Border.all(
-                    color: config.interestRateController.text.isNotEmpty 
-                      ? TossColors.primary
-                      : TossColors.gray200,
-                    width: 1,
-                  ),
-                ),
-                child: TextFormField(
-                  controller: config.interestRateController,
-                  keyboardType: TextInputType.numberWithOptions(decimal: true),
-                  inputFormatters: [
-                    FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
-                  ],
-                  style: TossTextStyles.body.copyWith(
-                    color: TossColors.gray900,
-                    fontSize: 16,
-                  ),
-                  cursorColor: TossColors.primary,
-                  decoration: InputDecoration(
-                    hintText: '0',
-                    hintStyle: TossTextStyles.body.copyWith(
-                      color: TossColors.gray400,
-                      fontSize: 16,
-                    ),
-                    border: InputBorder.none,
-                    contentPadding: EdgeInsets.all(TossSpacing.space3),
-                  ),
-                  onChanged: (value) {
-                    config.interestRate = double.tryParse(value) ?? 0.0;
-                  },
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-  */
   
   // Helper method to format category tags
   String _formatCategoryTag(String tag) {

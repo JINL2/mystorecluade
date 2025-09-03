@@ -13,6 +13,9 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/constants/auth_constants.dart';
 import '../../widgets/common/toss_scaffold.dart';
 import '../../../core/navigation/safe_navigation.dart';
+import '../../../data/services/auth_data_cache.dart';
+import '../../providers/smart_selection_provider.dart';
+import '../../providers/state_synchronizer.dart';
 
 class CreateStorePage extends ConsumerStatefulWidget {
   final String companyId;
@@ -64,8 +67,8 @@ class _CreateStorePageState extends ConsumerState<CreateStorePage>
   
   // Validation states
   bool _isStoreNameValid = false;
-  bool _isStoreAddressValid = true;  // Optional field - empty is valid
-  bool _isStorePhoneValid = true;     // Optional field - empty is valid
+  bool _isStoreAddressValid = true;
+  bool _isStorePhoneValid = true;
   
   // Advanced settings visibility
   bool _showAdvancedSettings = false;
@@ -178,7 +181,7 @@ class _CreateStorePageState extends ConsumerState<CreateStorePage>
   Widget build(BuildContext context) {
     return TossScaffold(
       backgroundColor: TossColors.background,
-      resizeToAvoidBottomInset: true, // Ensure keyboard handling
+      resizeToAvoidBottomInset: true,
       body: SafeArea(
         child: _showSuccess ? _buildSuccessView() : _buildFormView(),
       ),
@@ -1042,50 +1045,43 @@ class _CreateStorePageState extends ConsumerState<CreateStorePage>
       final userId = supabase.auth.currentUser?.id;
       
       if (userId != null) {
-        // Small delay to ensure database has updated
         await Future.delayed(const Duration(milliseconds: 500));
         
-        // Fetch user data and categories in parallel
+        final cache = AuthDataCache.instance;
         final results = await Future.wait([
-          supabase.rpc(
-            'get_user_companies_and_stores',
-            params: {'p_user_id': userId},
+          cache.deduplicate(
+            'user_data_$userId',
+            () => supabase.rpc(
+              'get_user_companies_and_stores',
+              params: {'p_user_id': userId},
+            ),
           ),
-          supabase.rpc('get_categories_with_features'),
+          cache.deduplicate(
+            'categories_features',
+            () => supabase.rpc('get_categories_with_features'),
+          ),
         ]);
         
         final userResponse = results[0];
         final categoriesResponse = results[1];
         
-        // Store both in app state
-        await ref.read(appStateProvider.notifier).setUser(userResponse);
-        await ref.read(appStateProvider.notifier).setCategoryFeatures(categoriesResponse);
+        await StateSynchronizer.instance.synchronized('store_creation_state', () async {
+          await ref.read(appStateProvider.notifier).setUser(userResponse);
+          await ref.read(appStateProvider.notifier).setCategoryFeatures(categoriesResponse);
+        });
         
-        // AUTO-SELECT first company and first store for consistent UX
-        // When user creates a store, they should immediately have something selected
-        final companies = userResponse['companies'] as List<dynamic>? ?? [];
-        if (companies.isNotEmpty) {
-          final firstCompany = companies.first;
-          final companyId = firstCompany['company_id'] as String;
-          
-          await ref.read(appStateProvider.notifier).setCompanyChoosen(companyId);
-          
-          // Auto-select first store from this company
-          final stores = firstCompany['stores'] as List<dynamic>? ?? [];
-          if (stores.isNotEmpty) {
-            final firstStore = stores.first;
-            final storeId = firstStore['store_id'] as String;
-            
-            await ref.read(appStateProvider.notifier).setStoreChoosen(storeId);
-          }
-        }
+        // Use SmartSelectionProvider for intelligent selection
+        final appState = ref.read(appStateProvider.notifier);
+        await SmartSelectionProvider.autoSelectIfNeeded(
+          appState: appState,
+          forceSelection: false,
+        );
         
         if (mounted) {
           context.safeGo('/');
         }
       }
     } catch (e) {
-      // Fallback to homepage on error
       if (mounted) {
         context.safeGo('/');
       }

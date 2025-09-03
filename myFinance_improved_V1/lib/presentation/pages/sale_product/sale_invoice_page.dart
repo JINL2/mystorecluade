@@ -62,9 +62,7 @@ class _SaleInvoicePageState extends ConsumerState<SaleInvoicePage> {
         ),
         title: Text(
           'Invoice Review',
-          style: TossTextStyles.h3.copyWith(
-            fontWeight: FontWeight.bold,
-          ),
+          style: TossTextStyles.h3,
         ),
         centerTitle: true,
         elevation: 0,
@@ -396,8 +394,7 @@ class _SaleInvoicePageState extends ConsumerState<SaleInvoicePage> {
                         'Continue to Payment',
                         style: TossTextStyles.body.copyWith(
                           color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                     ),

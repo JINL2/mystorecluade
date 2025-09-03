@@ -36,6 +36,10 @@ class _TransactionTemplatePageState extends ConsumerState<TransactionTemplatePag
   static const String adminPermissionId = 'c6bc2fc2-e4fc-4893-a7ed-a1afb4202d14';
   bool? _lastHasAdminPermission;
   
+  // Local state for immediate UI updates
+  List<Map<String, dynamic>> _optimisticTemplates = [];
+  bool _hasOptimisticUpdates = false;
+  
   @override
   void initState() {
     super.initState();
@@ -121,6 +125,10 @@ class _TransactionTemplatePageState extends ConsumerState<TransactionTemplatePag
       ),
       body: templatesAsync.when(
         data: (templates) {
+          // Combine provider data with optimistic updates
+          final displayTemplates = _hasOptimisticUpdates ? _optimisticTemplates : templates;
+          
+          
           if (companyChoosen.isEmpty || storeChoosen.isEmpty) {
             return Center(
               child: Container(
@@ -155,12 +163,12 @@ class _TransactionTemplatePageState extends ConsumerState<TransactionTemplatePag
           }
 
           // Filter templates based on permission
-          final generalTemplates = templates.where((template) {
+          final generalTemplates = displayTemplates.where((template) {
             final permission = template['permission']?.toString() ?? '';
             return permission != adminPermissionId;
           }).toList();
           
-          final adminTemplates = templates.where((template) {
+          final adminTemplates = displayTemplates.where((template) {
             final permission = template['permission']?.toString() ?? '';
             return permission == adminPermissionId;
           }).toList();
@@ -216,7 +224,7 @@ class _TransactionTemplatePageState extends ConsumerState<TransactionTemplatePag
           title: 'Failed to load templates',
           error: error,
           onRetry: () {
-            ref.invalidate(sortedTransactionTemplatesProvider);
+            ref.invalidate(filteredTransactionTemplatesProvider);
           },
         ),
       ),
@@ -239,8 +247,8 @@ class _TransactionTemplatePageState extends ConsumerState<TransactionTemplatePag
 
     return TossRefreshIndicator(
       onRefresh: () async {
-        // Refresh the provider
-        ref.invalidate(sortedTransactionTemplatesProvider);
+        // Refresh the provider that the UI actually watches
+        ref.invalidate(filteredTransactionTemplatesProvider);
       },
       child: ListView.builder(
         padding: EdgeInsets.all(TossSpacing.space4),
@@ -891,34 +899,39 @@ class _TransactionTemplatePageState extends ConsumerState<TransactionTemplatePag
     final supabaseService = ref.read(supabaseServiceProvider);
     final templateId = template['template_id'];
     
+    
     if (templateId == null) {
-      // Show error if template_id is missing
       _showErrorSnackBar(context, 'Unable to delete template: Invalid template ID');
       return;
     }
     
-    try {
-      // Update the template to set is_active to false
-      await supabaseService.client
-          .from('transaction_templates')
-          .update({
-            'is_active': false,
-            'updated_at': DateTime.now().toIso8601String(),
-          })
-          .eq('template_id', templateId);
+    // 1. IMMEDIATE UI UPDATE - Remove from display using local state
+    setState(() {
+      // Get current displayed templates
+      final currentTemplates = _hasOptimisticUpdates ? _optimisticTemplates : 
+        ref.read(filteredTransactionTemplatesProvider).value ?? [];
       
-      // Refresh the template list
-      ref.invalidate(transactionTemplatesProvider);
+      // Remove deleted template and keep local state active
+      _hasOptimisticUpdates = true;
+      _optimisticTemplates = currentTemplates
+        .where((t) => t['template_id'] != templateId)
+        .toList();
       
-      // Show success message
-      if (context.mounted) {
-        _showSuccessSnackBar(context, 'Template deleted successfully');
-      }
-    } catch (e) {
-      // Show error message
-      if (context.mounted) {
-        _showErrorSnackBar(context, 'Failed to delete template: ${e.toString()}');
-      }
+    });
+    
+    // 2. BACKGROUND DATABASE UPDATE (don't wait for it)
+    supabaseService.client
+        .from('transaction_templates')
+        .update({
+          'is_active': false,
+          'updated_at': DateTime.now().toIso8601String(),
+        })
+        .eq('template_id', templateId)
+        .catchError((e) => print('❌ Database update failed: $e'));
+    
+    // 3. Show success immediately
+    if (context.mounted) {
+      _showSuccessSnackBar(context, 'Template deleted');
     }
   }
 
@@ -954,6 +967,22 @@ class _TransactionTemplatePageState extends ConsumerState<TransactionTemplatePag
     } catch (e) {
       // Don't interrupt user experience, but silently handle error
     }
+  }
+
+
+  // Add new template to optimistic state
+  void _addTemplateOptimistic(Map<String, dynamic> newTemplate) {
+    
+    setState(() {
+      // Get current displayed templates
+      final currentTemplates = _hasOptimisticUpdates ? _optimisticTemplates : 
+        ref.read(filteredTransactionTemplatesProvider).value ?? [];
+      
+      // Add new template and keep local state active
+      _hasOptimisticUpdates = true;
+      _optimisticTemplates = [newTemplate, ...currentTemplates];
+      
+    });
   }
 
   void _showSuccessSnackBar(BuildContext context, String message) {

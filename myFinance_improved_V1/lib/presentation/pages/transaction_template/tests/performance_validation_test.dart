@@ -162,7 +162,6 @@ class PerformanceValidationTests {
     
     try {
       // Test circuit breaker
-      final circuitBreaker = errorRecovery.getCircuitBreaker('test_service');
       
       var attemptCount = 0;
       try {
@@ -243,7 +242,6 @@ class PerformanceValidationTests {
       // Test automatic cleanup
       await cache.cleanup();
       
-      final statsAfterCleanup = cache.getStats();
       results.add('✅ Cache cleanup completed');
       
       // Test performance monitor cleanup

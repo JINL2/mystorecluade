@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/themes/toss_colors.dart';
 import '../../../core/themes/toss_text_styles.dart';
@@ -13,7 +14,13 @@ import '../../providers/app_state_provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/constants/auth_constants.dart';
 import '../../../core/navigation/safe_navigation.dart';
-import '../../../core/notifications/services/token_manager.dart';
+import '../../../core/navigation/auth_navigator.dart';
+import '../../../core/notifications/services/production_token_service.dart';
+import '../../../data/services/auth_data_cache.dart';
+import '../../providers/smart_selection_provider.dart';
+import '../../providers/state_synchronizer.dart';
+import 'auth_signup_page.dart'; // Direct navigation
+import 'forgot_password_page.dart'; // Direct navigation
 
 class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
@@ -97,6 +104,9 @@ class _LoginPageState extends ConsumerState<LoginPage>
     
     _emailController.addListener(_onEmailChanged);
     
+    // Clear any stale auth navigation locks on page init
+    SafeNavigation.instance.clearAuthLocks();
+    
     _animationController.forward();
     
     _buttonPulseController.repeat(reverse: true);
@@ -108,19 +118,18 @@ class _LoginPageState extends ConsumerState<LoginPage>
     final email = _emailController.text.trim();
     final isValidEmail = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email);
     
-    if (isValidEmail != _isEmailValid) {
+    // Update both email validity and password field visibility in single setState
+    if (isValidEmail != _isEmailValid || (isValidEmail && !_showPasswordField)) {
       if (mounted) {
         setState(() {
           _isEmailValid = isValidEmail;
-        });
-      }
-      
-      // Progressive disclosure: Show password field when email is valid
-      if (isValidEmail && !_showPasswordField) {
-        if (mounted) {
-          setState(() {
+          if (isValidEmail && !_showPasswordField) {
             _showPasswordField = true;
-          });
+          }
+        });
+        
+        // Handle password field animation and focus after state is set
+        if (isValidEmail && _showPasswordField) {
           _passwordRevealController.forward().then((_) {
             // Auto-focus password field with slight delay
             if (mounted) {
@@ -135,6 +144,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
       }
     }
   }
+  
   
   @override
   void dispose() {
@@ -152,7 +162,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
   Widget build(BuildContext context) {
     return TossScaffold(
       backgroundColor: TossColors.background,
-      resizeToAvoidBottomInset: true, // Ensure keyboard handling
+      resizeToAvoidBottomInset: true,
       body: SafeArea(
         child: Column(
           children: [
@@ -474,7 +484,13 @@ class _LoginPageState extends ConsumerState<LoginPage>
             _passwordRevealController.stop();
             _buttonPulseController.stop();
             
-            context.safeGo('/auth/forgot-password');
+            // Direct navigation - bypasses router issues
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => const ForgotPasswordPage(),
+                settings: const RouteSettings(name: '/auth/forgot-password'),
+              ),
+            );
           },
           style: TextButton.styleFrom(
             padding: EdgeInsets.zero,
@@ -544,14 +560,15 @@ class _LoginPageState extends ConsumerState<LoginPage>
         ),
         TextButton(
           onPressed: () {
-            
-            // Ensure animations are cancelled before navigation
-            _animationController.stop();
-            _passwordRevealController.stop();
-            _buttonPulseController.stop();
-            
-            // Use router navigation for consistency
-            context.safePush('/auth/signup');
+            if (context.mounted) {
+              // Direct navigation - bypasses router issues completely
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => const AuthSignupPage(),
+                  settings: const RouteSettings(name: '/auth/signup'),
+                ),
+              );
+            }
           },
           style: TextButton.styleFrom(
             padding: EdgeInsets.zero,
@@ -559,7 +576,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
             tapTargetSize: MaterialTapTargetSize.shrinkWrap,
           ),
           child: Text(
-            AuthConstants.buttonCreateAccount,
+            'Create account',
             style: TossTextStyles.body.copyWith(
               color: TossColors.primary,
               fontWeight: FontWeight.w700,
@@ -629,15 +646,12 @@ class _LoginPageState extends ConsumerState<LoginPage>
     });
 
     try {
-      // STEP 1: Sign in and get user ID
       final enhancedAuth = ref.read(enhancedAuthProvider);
       await enhancedAuth.signIn(
         email: _emailController.text.trim(),
         password: _passwordController.text,
       );
       
-      // STEP 2: IMMEDIATELY fetch user data BEFORE router can react
-      // This is critical - we need the data BEFORE any navigation happens
       final supabase = Supabase.instance.client;
       final userId = supabase.auth.currentUser?.id;
       
@@ -645,33 +659,31 @@ class _LoginPageState extends ConsumerState<LoginPage>
         throw Exception('Sign-in succeeded but no user ID found');
       }
       
-      // STEP 2.5: IMMEDIATELY register FCM token (Best Practice: < 100ms)
-      // This ensures push notifications work right after login
-      try {
-        final tokenManager = TokenManager();
-        final tokenRegistered = await tokenManager.ensureTokenRegistered();
-        if (!tokenRegistered && mounted) {
-          debugPrint('⚠️ FCM token registration pending');
-        } else if (mounted) {
-          debugPrint('✅ FCM token registered immediately');
-        }
-      } catch (e) {
-        // Don't fail login if token registration fails
-        debugPrint('❌ FCM token registration failed: $e');
+      // Register FCM token reliably - handles race conditions and timing issues
+      final productionTokenService = ProductionTokenService();
+      final tokenRegistered = await productionTokenService.registerTokenForLogin();
+      
+      // Log result for production monitoring (silent)
+      if (!tokenRegistered && kDebugMode) {
+        debugPrint('⚠️ FCM token registration failed during login');
       }
       
-      // STEP 3: Fetch user data and categories immediately after sign-in
+      final cache = AuthDataCache.instance;
       
-      // STEP 3: Fetch companies and categories in parallel
-      // Do this BEFORE showing success message to ensure data is ready
       List<dynamic> results;
       try {
         results = await Future.wait([
-          supabase.rpc(
-            'get_user_companies_and_stores',
-            params: {'p_user_id': userId},
+          cache.deduplicate(
+            'user_data_$userId',
+            () => supabase.rpc(
+              'get_user_companies_and_stores',
+              params: {'p_user_id': userId},
+            ),
           ),
-          supabase.rpc('get_categories_with_features'),
+          cache.deduplicate(
+            'categories_features',
+            () => supabase.rpc('get_categories_with_features'),
+          ),
         ]);
       } catch (apiError) {
         rethrow;
@@ -680,25 +692,18 @@ class _LoginPageState extends ConsumerState<LoginPage>
       final userResponse = results[0];
       final categoriesResponse = results[1];
       
-      // Validate API response
       if (userResponse == null) {
         throw Exception('API returned null response');
       }
       
-      // STEP 4: Save to app state IMMEDIATELY
-      // Critical: Save data before any navigation or UI updates
       if (!mounted) return;
       
-      await ref.read(appStateProvider.notifier).setUser(userResponse);
-      await ref.read(appStateProvider.notifier).setCategoryFeatures(categoriesResponse);
+      await StateSynchronizer.instance.synchronized('login_state_update', () async {
+        await ref.read(appStateProvider.notifier).setUser(userResponse);
+        await ref.read(appStateProvider.notifier).setCategoryFeatures(categoriesResponse);
+      });
       
-      // Get company count for navigation decision
       final companyCount = userResponse is Map ? (userResponse['company_count'] ?? 0) : 0;
-      
-      // Note: Do NOT auto-select company/store for returning users
-      // Let them keep their previous selections (persistence)
-      
-      // STEP 5: NOW show success message (data is already saved)
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -717,8 +722,6 @@ class _LoginPageState extends ConsumerState<LoginPage>
           ),
         );
         
-        // STEP 6: Navigate based on complete data
-        // Data is already in app state, so router will see correct company count
         if (companyCount > 0) {
           context.safeGo('/');
         } else {

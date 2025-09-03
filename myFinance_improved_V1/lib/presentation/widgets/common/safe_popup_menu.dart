@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 /// A safe wrapper for PopupMenuButton that handles widget lifecycle properly
 /// Prevents "disposed widget trying to access inherited widgets" errors
-class SafePopupMenuButton<T> extends StatelessWidget {
+class SafePopupMenuButton<T> extends StatefulWidget {
   const SafePopupMenuButton({
     super.key,
     required this.onSelected,
@@ -27,68 +27,53 @@ class SafePopupMenuButton<T> extends StatelessWidget {
   final Widget? child;
 
   @override
-  Widget build(BuildContext context) {
-    return PopupMenuButton<T>(
-      enabled: enabled,
-      icon: icon,
-      offset: offset,
-      shape: shape,
-      color: color,
-      elevation: elevation,
-      child: child,
-      onSelected: (T value) {
-        // Add lifecycle safety check
-        if (context.mounted) {
-          onSelected(value);
-        }
-      },
-      itemBuilder: (BuildContext context) {
-        // Only build menu items if context is still mounted
-        if (!context.mounted) {
-          return <PopupMenuEntry<T>>[];
-        }
-        return itemBuilder(context);
-      },
-    );
-  }
+  State<SafePopupMenuButton<T>> createState() => _SafePopupMenuButtonState<T>();
 }
 
-/// Safe PopupMenuItem that checks context before executing callbacks
-class SafePopupMenuItem<T> extends PopupMenuItem<T> {
-  const SafePopupMenuItem({
-    super.key,
-    super.value,
-    super.onTap,
-    super.enabled,
-    super.height,
-    super.padding,
-    super.textStyle,
-    super.mouseCursor,
-    required super.child,
-  });
-
+class _SafePopupMenuButtonState<T> extends State<SafePopupMenuButton<T>> {
   @override
   Widget build(BuildContext context) {
-    return PopupMenuItem<T>(
-      key: key,
-      value: value,
-      enabled: enabled,
-      height: height,
-      padding: padding,
-      textStyle: textStyle,
-      mouseCursor: mouseCursor,
-      onTap: onTap != null 
-          ? () {
-              // Add lifecycle safety check
-              if (context.mounted) {
-                onTap!();
-              }
-            }
-          : null,
-      child: child,
+    return PopupMenuButton<T>(
+      enabled: widget.enabled,
+      icon: widget.icon,
+      offset: widget.offset,
+      shape: widget.shape,
+      color: widget.color,
+      elevation: widget.elevation,
+      child: widget.child,
+      onSelected: (T value) async {
+        
+        // Close the popup menu first if it's still open
+        if (Navigator.of(context).canPop()) {
+          Navigator.of(context).pop();
+        }
+        
+        // Use a small delay to ensure the popup is fully closed
+        await Future.delayed(const Duration(milliseconds: 50));
+        
+        // Check if widget is still mounted before calling onSelected
+        if (mounted) {
+          widget.onSelected(value);
+        }
+      },
+      itemBuilder: (BuildContext popupContext) {
+        // Check if the widget is still mounted
+        if (!mounted) {
+          return <PopupMenuEntry<T>>[];
+        }
+        
+        // Build the menu items
+        try {
+          return widget.itemBuilder(popupContext);
+        } catch (e) {
+          // If there's an error building menu items, return empty list
+          return <PopupMenuEntry<T>>[];
+        }
+      },
     );
   }
 }
+
 
 /// Extension method to make PopupMenuButton calls safer
 extension SafePopupMenuExtension on BuildContext {

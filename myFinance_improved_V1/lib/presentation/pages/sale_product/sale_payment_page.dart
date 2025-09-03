@@ -9,51 +9,12 @@ import '../../../core/themes/toss_spacing.dart';
 import '../../../core/themes/toss_border_radius.dart';
 import '../../widgets/common/toss_scaffold.dart';
 import '../../widgets/common/toss_white_card.dart';
-import '../../widgets/common/toss_section_header.dart';
-import '../../widgets/common/toss_toggle_button.dart';
-import '../../widgets/common/toss_number_input.dart';
 import '../../widgets/toss/toss_primary_button.dart';
-import '../../widgets/toss/toss_chip.dart';
 import '../../helpers/navigation_helper.dart';
 import 'models/sale_product_models.dart';
 import 'sale_product_page.dart';
 import 'widgets/delivery_toggle.dart';
 
-// Currency enum
-enum Currency {
-  KRW,
-  USD,
-  EUR,
-  JPY,
-  CNY,
-  VND,
-  THB,
-  SGD,
-}
-
-// Mock exchange rates (UI only - would come from API in production)
-final Map<Currency, double> mockExchangeRates = {
-  Currency.KRW: 1.0,
-  Currency.USD: 0.00075,  // 1 KRW = 0.00075 USD
-  Currency.EUR: 0.00068,  // 1 KRW = 0.00068 EUR
-  Currency.JPY: 0.11,     // 1 KRW = 0.11 JPY
-  Currency.CNY: 0.0054,   // 1 KRW = 0.0054 CNY
-  Currency.VND: 18.5,     // 1 KRW = 18.5 VND
-  Currency.THB: 0.027,    // 1 KRW = 0.027 THB
-  Currency.SGD: 0.001,    // 1 KRW = 0.001 SGD
-};
-
-// Currency display info
-Map<Currency, Map<String, dynamic>> currencyInfo = {
-  Currency.KRW: {'symbol': '₩', 'code': 'KRW', 'name': 'Korean Won', 'flag': '🇰🇷'},
-  Currency.USD: {'symbol': '\$', 'code': 'USD', 'name': 'US Dollar', 'flag': '🇺🇸'},
-  Currency.EUR: {'symbol': '€', 'code': 'EUR', 'name': 'Euro', 'flag': '🇪🇺'},
-  Currency.JPY: {'symbol': '¥', 'code': 'JPY', 'name': 'Japanese Yen', 'flag': '🇯🇵'},
-  Currency.CNY: {'symbol': '¥', 'code': 'CNY', 'name': 'Chinese Yuan', 'flag': '🇨🇳'},
-  Currency.VND: {'symbol': '₫', 'code': 'VND', 'name': 'Vietnamese Dong', 'flag': '🇻🇳'},
-  Currency.THB: {'symbol': '฿', 'code': 'THB', 'name': 'Thai Baht', 'flag': '🇹🇭'},
-  Currency.SGD: {'symbol': 'S\$', 'code': 'SGD', 'name': 'Singapore Dollar', 'flag': '🇸🇬'},
-};
 
 // Payment State Provider
 final paymentStateProvider = StateNotifierProvider<PaymentStateNotifier, PaymentState>((ref) {
@@ -68,7 +29,6 @@ class PaymentState {
   final double discountPercent;
   final double discountAmount;
   final bool isPercentageDiscount;
-  final Currency receivedCurrency;
   final double receivedAmount;
 
   PaymentState({
@@ -79,7 +39,6 @@ class PaymentState {
     this.discountPercent = 0,
     this.discountAmount = 0,
     this.isPercentageDiscount = true,
-    this.receivedCurrency = Currency.KRW,
     this.receivedAmount = 0,
   });
 
@@ -91,7 +50,6 @@ class PaymentState {
     double? discountPercent,
     double? discountAmount,
     bool? isPercentageDiscount,
-    Currency? receivedCurrency,
     double? receivedAmount,
   }) {
     return PaymentState(
@@ -102,7 +60,6 @@ class PaymentState {
       discountPercent: discountPercent ?? this.discountPercent,
       discountAmount: discountAmount ?? this.discountAmount,
       isPercentageDiscount: isPercentageDiscount ?? this.isPercentageDiscount,
-      receivedCurrency: receivedCurrency ?? this.receivedCurrency,
       receivedAmount: receivedAmount ?? this.receivedAmount,
     );
   }
@@ -152,10 +109,6 @@ class PaymentStateNotifier extends StateNotifier<PaymentState> {
     state = state.copyWith(isPercentageDiscount: !state.isPercentageDiscount);
   }
 
-  void setReceivedCurrency(Currency currency) {
-    state = state.copyWith(receivedCurrency: currency);
-  }
-
   void setReceivedAmount(double amount) {
     state = state.copyWith(receivedAmount: amount);
   }
@@ -203,7 +156,7 @@ class _SalePaymentPageState extends ConsumerState<SalePaymentPage> {
       return const SizedBox.shrink();
     }
 
-    // Calculate discount
+    // Calculate discount with cap to prevent negative total
     double discountValue = 0;
     if (paymentState.isPercentageDiscount) {
       discountValue = subtotal * (paymentState.discountPercent / 100);
@@ -211,16 +164,13 @@ class _SalePaymentPageState extends ConsumerState<SalePaymentPage> {
       discountValue = paymentState.discountAmount;
     }
     
+    // Cap discount so total never goes negative
+    discountValue = discountValue > subtotal ? subtotal : discountValue;
+    
     final total = subtotal - discountValue;
     
-    // Calculate received amount in KRW
-    double receivedInKRW = paymentState.receivedAmount;
-    if (paymentState.receivedCurrency != Currency.KRW) {
-      // Convert to KRW
-      double rate = mockExchangeRates[paymentState.receivedCurrency] ?? 1.0;
-      receivedInKRW = paymentState.receivedAmount / rate;
-    }
-    
+    // Calculate change (simplified - only KRW)
+    final receivedInKRW = paymentState.receivedAmount;
     final change = receivedInKRW - total;
 
     return TossScaffold(
@@ -235,9 +185,7 @@ class _SalePaymentPageState extends ConsumerState<SalePaymentPage> {
         ),
         title: Text(
           'Payment',
-          style: TossTextStyles.h3.copyWith(
-            fontWeight: FontWeight.bold,
-          ),
+          style: TossTextStyles.h3,
         ),
         centerTitle: true,
         elevation: 0,
@@ -261,207 +209,298 @@ class _SalePaymentPageState extends ConsumerState<SalePaymentPage> {
             // Order Summary - Simple and Clean
             Container(
               margin: EdgeInsets.symmetric(horizontal: TossSpacing.space4),
-              child: Column(
-                children: [
-                  TossSectionHeader(
-                    title: 'Order Summary',
-                    icon: Icons.receipt_long_outlined,
-                    trailing: Container(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: TossSpacing.space2,
-                        vertical: TossSpacing.space1,
-                      ),
-                      decoration: BoxDecoration(
-                        color: TossColors.primary.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(TossBorderRadius.full),
-                      ),
-                      child: Text(
-                        '$totalItems items',
-                        style: TossTextStyles.caption.copyWith(
-                          color: TossColors.primary,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ),
-                  
-                  SizedBox(height: TossSpacing.space2),
-                  
-                  TossWhiteCard(
-                    padding: EdgeInsets.all(TossSpacing.space4),
-                    child: Column(
+              child: TossWhiteCard(
+                padding: EdgeInsets.all(TossSpacing.space4),
+                child: Column(
+                  children: [
+                    Row(
                       children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              'Subtotal',
-                              style: TossTextStyles.body.copyWith(
-                                color: TossColors.gray600,
-                              ),
-                            ),
-                            Text(
-                              '₩${formatter.format(subtotal.round())}',
-                              style: TossTextStyles.body.copyWith(
-                                fontWeight: FontWeight.w600,
-                                color: TossColors.gray900,
-                              ),
-                            ),
-                          ],
+                        Icon(
+                          Icons.receipt_long_outlined,
+                          color: TossColors.primary,
+                          size: 20,
                         ),
-                        
-                        if (discountValue > 0) ...[
-                          SizedBox(height: TossSpacing.space2),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                'Discount',
-                                style: TossTextStyles.body.copyWith(
-                                  color: TossColors.success,
-                                ),
-                              ),
-                              Text(
-                                '-₩${formatter.format(discountValue.round())}',
-                                style: TossTextStyles.body.copyWith(
-                                  fontWeight: FontWeight.w600,
-                                  color: TossColors.success,
-                                ),
-                              ),
-                            ],
+                        SizedBox(width: TossSpacing.space2),
+                        Text(
+                          'Order Summary',
+                          style: TossTextStyles.bodyLarge.copyWith(
+                            fontWeight: FontWeight.w700,
+                            color: TossColors.gray900,
                           ),
-                          SizedBox(height: TossSpacing.space2),
-                          Divider(color: TossColors.gray100),
-                        ],
-                        
-                        SizedBox(height: TossSpacing.space2),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              'Total',
-                              style: TossTextStyles.h4.copyWith(
-                                fontWeight: FontWeight.bold,
-                                color: TossColors.gray900,
-                              ),
-                            ),
-                            Text(
-                              '₩${formatter.format(total.round())}',
-                              style: TossTextStyles.h4.copyWith(
-                                fontWeight: FontWeight.bold,
-                                color: TossColors.primary,
-                              ),
-                            ),
-                          ],
                         ),
-                        
-                        SizedBox(height: TossSpacing.space3),
-                        InkWell(
-                          onTap: () {
-                            HapticFeedback.lightImpact();
-                            _showOrderDetails(context, cart, formatter);
-                          },
+                        Spacer(),
+                        Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: TossSpacing.space2,
+                            vertical: TossSpacing.space1,
+                          ),
+                          decoration: BoxDecoration(
+                            color: TossColors.primary.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(TossBorderRadius.full),
+                          ),
                           child: Text(
-                            'View order details ▼',
-                            style: TossTextStyles.body.copyWith(
+                            '$totalItems items',
+                            style: TossTextStyles.caption.copyWith(
                               color: TossColors.primary,
-                              fontWeight: FontWeight.w500,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
                         ),
                       ],
                     ),
-                  ),
-                ],
+                    
+                    SizedBox(height: TossSpacing.space3),
+                    Divider(color: TossColors.gray100),
+                    SizedBox(height: TossSpacing.space3),
+                    
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Subtotal',
+                          style: TossTextStyles.body.copyWith(
+                            color: TossColors.gray600,
+                          ),
+                        ),
+                        Text(
+                          '₩${formatter.format(subtotal.round())}',
+                          style: TossTextStyles.body.copyWith(
+                            fontWeight: FontWeight.w600,
+                            color: TossColors.gray900,
+                          ),
+                        ),
+                      ],
+                    ),
+                    
+                    if (discountValue > 0) ...[
+                      SizedBox(height: TossSpacing.space2),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Discount',
+                            style: TossTextStyles.body.copyWith(
+                              color: TossColors.success,
+                            ),
+                          ),
+                          Text(
+                            '-₩${formatter.format(discountValue.round())}',
+                            style: TossTextStyles.body.copyWith(
+                              fontWeight: FontWeight.w600,
+                              color: TossColors.success,
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: TossSpacing.space2),
+                      Divider(color: TossColors.gray100),
+                    ],
+                    
+                    SizedBox(height: TossSpacing.space2),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Total',
+                          style: TossTextStyles.h4.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: TossColors.gray900,
+                          ),
+                        ),
+                        Text(
+                          '₩${formatter.format(total.round())}',
+                          style: TossTextStyles.h4.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: TossColors.primary,
+                          ),
+                        ),
+                      ],
+                    ),
+                    
+                    SizedBox(height: TossSpacing.space3),
+                    InkWell(
+                      onTap: () {
+                        HapticFeedback.lightImpact();
+                        _showOrderDetails(context, cart, formatter);
+                      },
+                      child: Text(
+                        'View order details ▼',
+                        style: TossTextStyles.body.copyWith(
+                          color: TossColors.primary,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
             
             SizedBox(height: TossSpacing.space4),
             
-            // Discount Calculator - Cleaner Design
+            // Discount Calculator - Simple Design  
             Container(
               margin: EdgeInsets.symmetric(horizontal: TossSpacing.space4),
-              child: Column(
-                children: [
-                  TossSectionHeader(
-                    title: 'Discount Calculator',
-                    icon: Icons.calculate_outlined,
-                    iconColor: TossColors.success,
-                  ),
-                  
-                  SizedBox(height: TossSpacing.space2),
-                  
-                  TossWhiteCard(
-                    padding: EdgeInsets.all(TossSpacing.space4),
-                    child: Column(
+              child: TossWhiteCard(
+                padding: EdgeInsets.all(TossSpacing.space4),
+                child: Column(
+                  children: [
+                    Row(
                       children: [
-                        // Discount Type Toggle using TossToggleButtonGroup
-                        TossToggleButtonGroup(
-                          buttons: [
-                            TossToggleButtonData(
-                              label: 'Percentage (%)',
-                              value: 'percentage',
-                              icon: Icons.percent,
-                              activeColor: TossColors.success,
-                            ),
-                            TossToggleButtonData(
-                              label: 'Amount (₩)',
-                              value: 'amount',
-                              icon: Icons.money,
-                              activeColor: TossColors.success,
-                            ),
-                          ],
-                          selectedValue: paymentState.isPercentageDiscount ? 'percentage' : 'amount',
-                          onPressed: (value) {
-                            if ((value == 'percentage') != paymentState.isPercentageDiscount) {
-                              ref.read(paymentStateProvider.notifier).toggleDiscountType();
-                            }
-                          },
+                        Icon(
+                          Icons.local_offer_outlined,
+                          color: TossColors.success,
+                          size: 20,
                         ),
-                        
-                        SizedBox(height: TossSpacing.space3),
-                        
-                        // Discount Input using TossNumberInput
-                        TossNumberInput(
-                          controller: _discountController,
-                          focusNode: _discountFocusNode,
-                          hintText: '0',
-                          prefix: paymentState.isPercentageDiscount ? '' : '₩',
-                          suffix: paymentState.isPercentageDiscount ? '%' : '',
-                          onChanged: (value) {
-                            final amount = double.tryParse(value) ?? 0;
-                            if (paymentState.isPercentageDiscount) {
-                              ref.read(paymentStateProvider.notifier).setDiscountPercent(amount);
-                            } else {
-                              ref.read(paymentStateProvider.notifier).setDiscountAmount(amount);
-                            }
-                          },
-                        ),
-                        
-                        // Quick Discount Buttons using TossChipGroup
-                        if (paymentState.isPercentageDiscount) ...[
-                          SizedBox(height: TossSpacing.space3),
-                          TossChipGroup(
-                            items: [5, 10, 15, 20].map((percent) => TossChipItem(
-                              value: percent.toString(),
-                              label: '$percent%',
-                            )).toList(),
-                            selectedValue: paymentState.discountPercent > 0 
-                                ? paymentState.discountPercent.toString() 
-                                : null,
-                            onChanged: (value) {
-                              if (value != null) {
-                                final percent = double.parse(value);
-                                _discountController.text = percent.toString();
-                                ref.read(paymentStateProvider.notifier).setDiscountPercent(percent);
-                              }
-                            },
+                        SizedBox(width: TossSpacing.space2),
+                        Text(
+                          'Discount Calculator',
+                          style: TossTextStyles.bodyLarge.copyWith(
+                            fontWeight: FontWeight.w700,
+                            color: TossColors.gray900,
                           ),
-                        ],
+                        ),
                       ],
                     ),
-                  ),
-                ],
+                    
+                    SizedBox(height: TossSpacing.space3),
+                    Divider(color: TossColors.gray100),
+                    SizedBox(height: TossSpacing.space3),
+                    
+                    // Discount Type Toggle - Clean Two Buttons
+                    Row(
+                      children: [
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () {
+                              if (!paymentState.isPercentageDiscount) {
+                                ref.read(paymentStateProvider.notifier).toggleDiscountType();
+                              }
+                            },
+                            child: Container(
+                              padding: EdgeInsets.symmetric(vertical: TossSpacing.space3),
+                              decoration: BoxDecoration(
+                                color: paymentState.isPercentageDiscount 
+                                    ? TossColors.success 
+                                    : TossColors.gray100,
+                                borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+                              ),
+                              child: Text(
+                                'Percentage (%)',
+                                textAlign: TextAlign.center,
+                                style: TossTextStyles.body.copyWith(
+                                  color: paymentState.isPercentageDiscount 
+                                      ? TossColors.white 
+                                      : TossColors.gray700,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        SizedBox(width: TossSpacing.space2),
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () {
+                              if (paymentState.isPercentageDiscount) {
+                                ref.read(paymentStateProvider.notifier).toggleDiscountType();
+                              }
+                            },
+                            child: Container(
+                              padding: EdgeInsets.symmetric(vertical: TossSpacing.space3),
+                              decoration: BoxDecoration(
+                                color: !paymentState.isPercentageDiscount 
+                                    ? TossColors.success 
+                                    : TossColors.gray100,
+                                borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+                              ),
+                              child: Text(
+                                'Amount (₩)',
+                                textAlign: TextAlign.center,
+                                style: TossTextStyles.body.copyWith(
+                                  color: !paymentState.isPercentageDiscount 
+                                      ? TossColors.white 
+                                      : TossColors.gray700,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    
+                    SizedBox(height: TossSpacing.space4),
+                    
+                    // Simple Discount Input
+                    TextField(
+                      controller: _discountController,
+                      focusNode: _discountFocusNode,
+                      keyboardType: TextInputType.number,
+                      textAlign: TextAlign.center,
+                      style: TossTextStyles.h2.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: TossColors.gray900,
+                      ),
+                      decoration: InputDecoration(
+                        hintText: paymentState.isPercentageDiscount ? '0%' : '₩0',
+                        hintStyle: TossTextStyles.h2.copyWith(
+                          color: TossColors.gray300,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        border: InputBorder.none,
+                        enabledBorder: InputBorder.none,
+                        focusedBorder: InputBorder.none,
+                        contentPadding: EdgeInsets.symmetric(vertical: TossSpacing.space2),
+                      ),
+                      onChanged: (value) {
+                        final amount = double.tryParse(value) ?? 0;
+                        if (paymentState.isPercentageDiscount) {
+                          // Cap percentage at 100%
+                          final cappedPercent = amount > 100 ? 100.0 : amount;
+                          ref.read(paymentStateProvider.notifier).setDiscountPercent(cappedPercent);
+                        } else {
+                          ref.read(paymentStateProvider.notifier).setDiscountAmount(amount);
+                        }
+                      },
+                    ),
+                    
+                    // Quick Percentage Buttons - Only show for percentage mode
+                    if (paymentState.isPercentageDiscount) ...[
+                      SizedBox(height: TossSpacing.space3),
+                      Row(
+                        children: [5, 10, 15, 20].map((percent) {
+                          return Expanded(
+                            child: Padding(
+                              padding: EdgeInsets.symmetric(horizontal: TossSpacing.space1),
+                              child: GestureDetector(
+                                onTap: () {
+                                  _discountController.text = percent.toString();
+                                  ref.read(paymentStateProvider.notifier).setDiscountPercent(percent.toDouble());
+                                },
+                                child: Container(
+                                  padding: EdgeInsets.symmetric(vertical: TossSpacing.space2),
+                                  decoration: BoxDecoration(
+                                    color: TossColors.gray100,
+                                    borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                                  ),
+                                  child: Text(
+                                    '$percent%',
+                                    textAlign: TextAlign.center,
+                                    style: TossTextStyles.caption.copyWith(
+                                      color: TossColors.gray700,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ],
+                  ],
+                ),
               ),
             ),
             
@@ -470,152 +509,224 @@ class _SalePaymentPageState extends ConsumerState<SalePaymentPage> {
             // Payment Method Section - Clean Design
             Container(
               margin: EdgeInsets.symmetric(horizontal: TossSpacing.space4),
-              child: Column(
-                children: [
-                  TossSectionHeader(
-                    title: 'Payment Method',
-                    icon: Icons.payment,
-                  ),
-                  
-                  SizedBox(height: TossSpacing.space2),
-                  
-                  TossWhiteCard(
-                    padding: EdgeInsets.all(TossSpacing.space4),
-                    child: _buildPaymentMethodGrid(paymentState.selectedMethod),
-                  ),
-                ],
+              child: TossWhiteCard(
+                padding: EdgeInsets.all(TossSpacing.space4),
+                child: Column(
+                  children: [
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.payment,
+                          color: TossColors.primary,
+                          size: 20,
+                        ),
+                        SizedBox(width: TossSpacing.space2),
+                        Text(
+                          'Payment Method',
+                          style: TossTextStyles.bodyLarge.copyWith(
+                            fontWeight: FontWeight.w700,
+                            color: TossColors.gray900,
+                          ),
+                        ),
+                      ],
+                    ),
+                    
+                    SizedBox(height: TossSpacing.space3),
+                    Divider(color: TossColors.gray100),
+                    SizedBox(height: TossSpacing.space3),
+                    
+                    Row(
+                      children: [
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () {
+                              HapticFeedback.lightImpact();
+                              ref.read(paymentStateProvider.notifier).setPaymentMethod(PaymentMethod.cash);
+                            },
+                            child: Container(
+                              padding: EdgeInsets.all(TossSpacing.space4),
+                              decoration: BoxDecoration(
+                                color: paymentState.selectedMethod == PaymentMethod.cash
+                                    ? TossColors.primary.withValues(alpha: 0.1)
+                                    : TossColors.gray50,
+                                borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+                                border: Border.all(
+                                  color: paymentState.selectedMethod == PaymentMethod.cash
+                                      ? TossColors.primary
+                                      : TossColors.gray200,
+                                ),
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.money,
+                                    color: paymentState.selectedMethod == PaymentMethod.cash
+                                        ? TossColors.primary
+                                        : TossColors.gray600,
+                                    size: 20,
+                                  ),
+                                  SizedBox(width: TossSpacing.space2),
+                                  Text(
+                                    'Cash',
+                                    style: TossTextStyles.body.copyWith(
+                                      color: paymentState.selectedMethod == PaymentMethod.cash
+                                          ? TossColors.primary
+                                          : TossColors.gray700,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                        SizedBox(width: TossSpacing.space3),
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () {
+                              HapticFeedback.lightImpact();
+                              ref.read(paymentStateProvider.notifier).setPaymentMethod(PaymentMethod.card);
+                            },
+                            child: Container(
+                              padding: EdgeInsets.all(TossSpacing.space4),
+                              decoration: BoxDecoration(
+                                color: paymentState.selectedMethod == PaymentMethod.card
+                                    ? TossColors.primary.withValues(alpha: 0.1)
+                                    : TossColors.gray50,
+                                borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+                                border: Border.all(
+                                  color: paymentState.selectedMethod == PaymentMethod.card
+                                      ? TossColors.primary
+                                      : TossColors.gray200,
+                                ),
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.credit_card,
+                                    color: paymentState.selectedMethod == PaymentMethod.card
+                                        ? TossColors.primary
+                                        : TossColors.gray600,
+                                    size: 20,
+                                  ),
+                                  SizedBox(width: TossSpacing.space2),
+                                  Text(
+                                    'Card',
+                                    style: TossTextStyles.body.copyWith(
+                                      color: paymentState.selectedMethod == PaymentMethod.card
+                                          ? TossColors.primary
+                                          : TossColors.gray700,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
             
             SizedBox(height: TossSpacing.space4),
             
-            // Amount Received Section - Cleaner Design
+            // Amount Received - Simple Design  
             Container(
               margin: EdgeInsets.symmetric(horizontal: TossSpacing.space4),
-              child: Column(
-                children: [
-                  TossSectionHeader(
-                    title: 'Amount Received',
-                    icon: Icons.payments_outlined,
-                    iconColor: TossColors.info,
-                    trailing: InkWell(
-                      onTap: () {
-                        HapticFeedback.lightImpact();
-                        _receivedAmountController.text = total.toStringAsFixed(0);
-                        ref.read(paymentStateProvider.notifier).setReceivedAmount(total);
-                      },
-                      child: Container(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: TossSpacing.space3,
-                          vertical: TossSpacing.space1,
-                        ),
-                        decoration: BoxDecoration(
-                          color: TossColors.info.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(TossBorderRadius.full),
-                        ),
-                        child: Text(
-                          'Exact',
-                          style: TossTextStyles.caption.copyWith(
-                            color: TossColors.info,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  
-                  SizedBox(height: TossSpacing.space2),
-                  
-                  TossWhiteCard(
-                    padding: EdgeInsets.all(TossSpacing.space4),
-                    child: Column(
+              child: TossWhiteCard(
+                padding: EdgeInsets.all(TossSpacing.space4),
+                child: Column(
+                  children: [
+                    Row(
                       children: [
-                        // Currency Selector using TossChipGroup
-                        TossChipGroup(
-                          items: Currency.values.map((currency) => TossChipItem(
-                            value: currency.toString(),
-                            label: '${currencyInfo[currency]!['flag']} ${currencyInfo[currency]!['code']}',
-                          )).toList(),
-                          selectedValue: paymentState.receivedCurrency.toString(),
-                          onChanged: (value) {
-                            if (value != null) {
-                              final currency = Currency.values.firstWhere(
-                                (c) => c.toString() == value,
-                              );
-                              ref.read(paymentStateProvider.notifier).setReceivedCurrency(currency);
-                            }
-                          },
+                        Icon(
+                          Icons.payments_outlined,
+                          color: TossColors.info,
+                          size: 20,
                         ),
-                        
-                        SizedBox(height: TossSpacing.space4),
-                        
-                        // Amount Input using TossNumberInput
-                        TossNumberInput(
-                          controller: _receivedAmountController,
-                          focusNode: _receivedFocusNode,
-                          hintText: '0',
-                          prefix: currencyInfo[paymentState.receivedCurrency]!['symbol'],
-                          onChanged: (value) {
-                            final amount = double.tryParse(value.replaceAll(',', '')) ?? 0;
-                            ref.read(paymentStateProvider.notifier).setReceivedAmount(amount);
-                          },
-                        ),
-                        
-                        // Exchange Rate Display
-                        if (paymentState.receivedCurrency != Currency.KRW && paymentState.receivedAmount > 0) ...[
-                          SizedBox(height: TossSpacing.space3),
-                          Container(
-                            padding: EdgeInsets.all(TossSpacing.space3),
-                            decoration: BoxDecoration(
-                              color: TossColors.info.withValues(alpha: 0.05),
-                              borderRadius: BorderRadius.circular(TossBorderRadius.sm),
-                            ),
-                            child: Row(
-                              children: [
-                                Icon(
-                                  Icons.currency_exchange,
-                                  size: 16,
-                                  color: TossColors.info,
-                                ),
-                                SizedBox(width: TossSpacing.space2),
-                                Expanded(
-                                  child: Text(
-                                    '${currencyInfo[paymentState.receivedCurrency]!['symbol']}${_formatCurrency(paymentState.receivedAmount)} = ₩${formatter.format(receivedInKRW.round())}',
-                                    style: TossTextStyles.body.copyWith(
-                                      color: TossColors.info,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
+                        SizedBox(width: TossSpacing.space2),
+                        Text(
+                          'Amount Received',
+                          style: TossTextStyles.bodyLarge.copyWith(
+                            fontWeight: FontWeight.w700,
+                            color: TossColors.gray900,
                           ),
-                        ],
-                        
-                        // Quick Add Buttons using TossChipGroup
-                        SizedBox(height: TossSpacing.space3),
-                        TossChipGroup(
-                          items: _getQuickAmounts(paymentState.receivedCurrency).map((amount) => TossChipItem(
-                            value: amount.toString(),
-                            label: '+${currencyInfo[paymentState.receivedCurrency]!['symbol']}${_formatQuickAmount(amount, paymentState.receivedCurrency)}',
-                          )).toList(),
-                          selectedValue: null, // Quick buttons don't stay selected
-                          onChanged: (value) {
-                            if (value != null) {
-                              final amount = double.parse(value);
-                              final currentAmount = double.tryParse(
-                                _receivedAmountController.text.replaceAll(',', '')
-                              ) ?? 0;
-                              final newAmount = currentAmount + amount;
-                              _receivedAmountController.text = _formatCurrencyForInput(newAmount, paymentState.receivedCurrency);
-                              ref.read(paymentStateProvider.notifier).setReceivedAmount(newAmount);
-                            }
-                          },
                         ),
                       ],
                     ),
-                  ),
-                ],
+                    
+                    SizedBox(height: TossSpacing.space3),
+                    Divider(color: TossColors.gray100),
+                    SizedBox(height: TossSpacing.space3),
+                    
+                    // Simple Amount Input  
+                    TextField(
+                      controller: _receivedAmountController,
+                      focusNode: _receivedFocusNode,
+                      keyboardType: TextInputType.number,
+                      textAlign: TextAlign.center,
+                      style: TossTextStyles.h2.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: TossColors.gray900,
+                      ),
+                      decoration: InputDecoration(
+                        hintText: '₩0',
+                        hintStyle: TossTextStyles.h2.copyWith(
+                          color: TossColors.gray300,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        border: InputBorder.none,
+                        enabledBorder: InputBorder.none,
+                        focusedBorder: InputBorder.none,
+                        contentPadding: EdgeInsets.symmetric(vertical: TossSpacing.space2),
+                      ),
+                      onChanged: (value) {
+                        final amount = double.tryParse(value.replaceAll(',', '')) ?? 0;
+                        ref.read(paymentStateProvider.notifier).setReceivedAmount(amount);
+                      },
+                    ),
+                    
+                    // Quick Amount Buttons - Only for cash
+                    if (paymentState.selectedMethod == PaymentMethod.cash) ...[
+                      SizedBox(height: TossSpacing.space3),
+                      Row(
+                        children: [total.toInt(), 50000, 100000].map((amount) {
+                          return Expanded(
+                            child: Padding(
+                              padding: EdgeInsets.symmetric(horizontal: TossSpacing.space1),
+                              child: GestureDetector(
+                                onTap: () {
+                                  _receivedAmountController.text = formatter.format(amount);
+                                  ref.read(paymentStateProvider.notifier).setReceivedAmount(amount.toDouble());
+                                },
+                                child: Container(
+                                  padding: EdgeInsets.symmetric(vertical: TossSpacing.space2),
+                                  decoration: BoxDecoration(
+                                    color: amount == total.toInt() ? TossColors.info.withValues(alpha: 0.1) : TossColors.gray100,
+                                    borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                                  ),
+                                  child: Text(
+                                    amount == total.toInt() ? 'Exact' : '₩${formatter.format(amount)}',
+                                    textAlign: TextAlign.center,
+                                    style: TossTextStyles.caption.copyWith(
+                                      color: amount == total.toInt() ? TossColors.info : TossColors.gray700,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ],
+                  ],
+                ),
               ),
             ),
             
@@ -734,76 +845,6 @@ class _SalePaymentPageState extends ConsumerState<SalePaymentPage> {
     );
   }
 
-  Widget _buildPaymentMethodGrid(PaymentMethod selectedMethod) {
-    final methods = [
-      {'method': PaymentMethod.cash, 'icon': Icons.money, 'label': 'Cash'},
-      {'method': PaymentMethod.card, 'icon': Icons.credit_card, 'label': 'Card'},
-      {'method': PaymentMethod.bankTransfer, 'icon': Icons.swap_horiz, 'label': 'Transfer'},
-      {'method': PaymentMethod.digitalWallet, 'icon': Icons.qr_code, 'label': 'QR Code'},
-    ];
-    
-    return GridView.count(
-      shrinkWrap: true,
-      physics: NeverScrollableScrollPhysics(),
-      crossAxisCount: 2,
-      mainAxisSpacing: TossSpacing.space3,
-      crossAxisSpacing: TossSpacing.space3,
-      childAspectRatio: 2.5,
-      children: methods.map((item) {
-        final method = item['method'] as PaymentMethod;
-        final icon = item['icon'] as IconData;
-        final label = item['label'] as String;
-        final isSelected = selectedMethod == method;
-        
-        return InkWell(
-          onTap: () {
-            HapticFeedback.lightImpact();
-            ref.read(paymentStateProvider.notifier).setPaymentMethod(method);
-          },
-          borderRadius: BorderRadius.circular(TossBorderRadius.md),
-          child: AnimatedContainer(
-            duration: Duration(milliseconds: 200),
-            decoration: BoxDecoration(
-              color: isSelected 
-                  ? TossColors.primary.withValues(alpha: 0.1)
-                  : TossColors.gray50,
-              borderRadius: BorderRadius.circular(TossBorderRadius.md),
-              border: Border.all(
-                color: isSelected 
-                    ? TossColors.primary
-                    : TossColors.gray200,
-                width: isSelected ? 2 : 1,
-              ),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  icon,
-                  color: isSelected 
-                      ? TossColors.primary
-                      : TossColors.gray600,
-                  size: TossSpacing.iconSM,
-                ),
-                SizedBox(width: TossSpacing.space2),
-                Text(
-                  label,
-                  style: TossTextStyles.body.copyWith(
-                    color: isSelected 
-                        ? TossColors.primary
-                        : TossColors.gray700,
-                    fontWeight: isSelected 
-                        ? FontWeight.bold
-                        : FontWeight.w500,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      }).toList(),
-    );
-  }
 
   void _showOrderDetails(BuildContext context, List<CartItem> cart, NumberFormat formatter) {
     showModalBottomSheet(
@@ -1086,51 +1127,4 @@ class _SalePaymentPageState extends ConsumerState<SalePaymentPage> {
     return '${value.toStringAsFixed(0)}';
   }
 
-  List<double> _getQuickAmounts(Currency currency) {
-    switch (currency) {
-      case Currency.USD:
-        return [10, 20, 50, 100];
-      case Currency.EUR:
-        return [10, 20, 50, 100];
-      case Currency.JPY:
-        return [1000, 5000, 10000, 50000];
-      case Currency.CNY:
-        return [50, 100, 500, 1000];
-      case Currency.VND:
-        return [100000, 500000, 1000000, 5000000];
-      case Currency.THB:
-        return [100, 500, 1000, 5000];
-      case Currency.SGD:
-        return [10, 20, 50, 100];
-      case Currency.KRW:
-        return [50000, 100000, 500000, 1000000];
-    }
-  }
-
-  String _formatCurrencyForInput(double value, Currency currency) {
-    if (currency == Currency.JPY || currency == Currency.VND || currency == Currency.KRW) {
-      return value.toStringAsFixed(0);
-    }
-    return value.toStringAsFixed(2);
-  }
-
-  String _formatQuickAmount(double value, Currency currency) {
-    switch (currency) {
-      case Currency.VND:
-        if (value >= 1000000) {
-          return '${(value / 1000000).toStringAsFixed(0)}M';
-        } else if (value >= 1000) {
-          return '${(value / 1000).toStringAsFixed(0)}K';
-        }
-        return value.toStringAsFixed(0);
-      case Currency.KRW:
-      case Currency.JPY:
-        if (value >= 10000) {
-          return '${(value / 1000).toStringAsFixed(0)}K';
-        }
-        return value.toStringAsFixed(0);
-      default:
-        return value.toStringAsFixed(0);
-    }
-  }
 }

@@ -573,6 +573,7 @@ mixin _$CashLocationData {
   String get type => throw _privateConstructorUsedError;
   String? get storeId => throw _privateConstructorUsedError;
   bool get isCompanyWide => throw _privateConstructorUsedError;
+  bool get isDeleted => throw _privateConstructorUsedError;
   String? get currencyCode => throw _privateConstructorUsedError;
   String? get bankAccount => throw _privateConstructorUsedError;
   String? get bankName => throw _privateConstructorUsedError;
@@ -603,6 +604,7 @@ abstract class $CashLocationDataCopyWith<$Res> {
       String type,
       String? storeId,
       bool isCompanyWide,
+      bool isDeleted,
       String? currencyCode,
       String? bankAccount,
       String? bankName,
@@ -631,6 +633,7 @@ class _$CashLocationDataCopyWithImpl<$Res, $Val extends CashLocationData>
     Object? type = null,
     Object? storeId = freezed,
     Object? isCompanyWide = null,
+    Object? isDeleted = null,
     Object? currencyCode = freezed,
     Object? bankAccount = freezed,
     Object? bankName = freezed,
@@ -658,6 +661,10 @@ class _$CashLocationDataCopyWithImpl<$Res, $Val extends CashLocationData>
       isCompanyWide: null == isCompanyWide
           ? _value.isCompanyWide
           : isCompanyWide // ignore: cast_nullable_to_non_nullable
+              as bool,
+      isDeleted: null == isDeleted
+          ? _value.isDeleted
+          : isDeleted // ignore: cast_nullable_to_non_nullable
               as bool,
       currencyCode: freezed == currencyCode
           ? _value.currencyCode
@@ -701,6 +708,7 @@ abstract class _$$CashLocationDataImplCopyWith<$Res>
       String type,
       String? storeId,
       bool isCompanyWide,
+      bool isDeleted,
       String? currencyCode,
       String? bankAccount,
       String? bankName,
@@ -727,6 +735,7 @@ class __$$CashLocationDataImplCopyWithImpl<$Res>
     Object? type = null,
     Object? storeId = freezed,
     Object? isCompanyWide = null,
+    Object? isDeleted = null,
     Object? currencyCode = freezed,
     Object? bankAccount = freezed,
     Object? bankName = freezed,
@@ -754,6 +763,10 @@ class __$$CashLocationDataImplCopyWithImpl<$Res>
       isCompanyWide: null == isCompanyWide
           ? _value.isCompanyWide
           : isCompanyWide // ignore: cast_nullable_to_non_nullable
+              as bool,
+      isDeleted: null == isDeleted
+          ? _value.isDeleted
+          : isDeleted // ignore: cast_nullable_to_non_nullable
               as bool,
       currencyCode: freezed == currencyCode
           ? _value.currencyCode
@@ -792,6 +805,7 @@ class _$CashLocationDataImpl extends _CashLocationData {
       required this.type,
       this.storeId,
       this.isCompanyWide = false,
+      this.isDeleted = false,
       this.currencyCode,
       this.bankAccount,
       this.bankName,
@@ -816,6 +830,9 @@ class _$CashLocationDataImpl extends _CashLocationData {
   @JsonKey()
   final bool isCompanyWide;
   @override
+  @JsonKey()
+  final bool isDeleted;
+  @override
   final String? currencyCode;
   @override
   final String? bankAccount;
@@ -838,7 +855,7 @@ class _$CashLocationDataImpl extends _CashLocationData {
 
   @override
   String toString() {
-    return 'CashLocationData(id: $id, name: $name, type: $type, storeId: $storeId, isCompanyWide: $isCompanyWide, currencyCode: $currencyCode, bankAccount: $bankAccount, bankName: $bankName, locationInfo: $locationInfo, transactionCount: $transactionCount, additionalData: $additionalData)';
+    return 'CashLocationData(id: $id, name: $name, type: $type, storeId: $storeId, isCompanyWide: $isCompanyWide, isDeleted: $isDeleted, currencyCode: $currencyCode, bankAccount: $bankAccount, bankName: $bankName, locationInfo: $locationInfo, transactionCount: $transactionCount, additionalData: $additionalData)';
   }
 
   @override
@@ -852,6 +869,8 @@ class _$CashLocationDataImpl extends _CashLocationData {
             (identical(other.storeId, storeId) || other.storeId == storeId) &&
             (identical(other.isCompanyWide, isCompanyWide) ||
                 other.isCompanyWide == isCompanyWide) &&
+            (identical(other.isDeleted, isDeleted) ||
+                other.isDeleted == isDeleted) &&
             (identical(other.currencyCode, currencyCode) ||
                 other.currencyCode == currencyCode) &&
             (identical(other.bankAccount, bankAccount) ||
@@ -875,6 +894,7 @@ class _$CashLocationDataImpl extends _CashLocationData {
       type,
       storeId,
       isCompanyWide,
+      isDeleted,
       currencyCode,
       bankAccount,
       bankName,
@@ -906,6 +926,7 @@ abstract class _CashLocationData extends CashLocationData {
       required final String type,
       final String? storeId,
       final bool isCompanyWide,
+      final bool isDeleted,
       final String? currencyCode,
       final String? bankAccount,
       final String? bankName,
@@ -927,6 +948,8 @@ abstract class _CashLocationData extends CashLocationData {
   String? get storeId;
   @override
   bool get isCompanyWide;
+  @override
+  bool get isDeleted;
   @override
   String? get currencyCode;
   @override

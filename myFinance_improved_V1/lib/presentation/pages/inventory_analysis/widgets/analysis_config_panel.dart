@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/themes/index.dart';
 import '../models/supply_chain_models.dart';
+import '../../../widgets/toss/toss_dropdown.dart';
+import '../../../widgets/common/toss_date_picker.dart';
 
 // Analysis Configuration State
 class AnalysisConfig {
@@ -233,46 +235,16 @@ class _AnalysisConfigPanelState extends ConsumerState<AnalysisConfigPanel> {
     SupplyChainStage selectedStage,
     Function(SupplyChainStage?) onChanged,
   ) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: TossTextStyles.caption.copyWith(
-            color: TossColors.gray600,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        SizedBox(height: TossSpacing.space1),
-        
-        Container(
-          width: double.infinity,
-          padding: EdgeInsets.symmetric(
-            horizontal: TossSpacing.space3,
-            vertical: TossSpacing.space2,
-          ),
-          decoration: BoxDecoration(
-            border: Border.all(color: TossColors.gray300),
-            borderRadius: BorderRadius.circular(TossBorderRadius.md),
-          ),
-          child: DropdownButtonHideUnderline(
-            child: DropdownButton<SupplyChainStage>(
-              value: selectedStage,
-              isExpanded: true,
-              onChanged: onChanged,
-              items: SupplyChainStage.values.map((stage) {
-                return DropdownMenuItem<SupplyChainStage>(
-                  value: stage,
-                  child: Text(
-                    stage.englishLabel,
-                    style: TossTextStyles.body,
-                  ),
-                );
-              }).toList(),
-            ),
-          ),
-        ),
-      ],
+    return TossDropdown<SupplyChainStage>(
+      label: label,
+      value: selectedStage,
+      items: SupplyChainStage.values.map((stage) {
+        return TossDropdownItem<SupplyChainStage>(
+          value: stage,
+          label: stage.englishLabel,
+        );
+      }).toList(),
+      onChanged: onChanged,
     );
   }
 
@@ -355,41 +327,12 @@ class _AnalysisConfigPanelState extends ConsumerState<AnalysisConfigPanel> {
         ),
         SizedBox(height: TossSpacing.space1),
         
-        GestureDetector(
-          onTap: () async {
-            final picked = await showDatePicker(
-              context: context,
-              initialDate: selectedDate,
-              firstDate: DateTime.now().subtract(const Duration(days: 365)),
-              lastDate: DateTime.now(),
-            );
-            onChanged(picked);
-          },
-          child: Container(
-            width: double.infinity,
-            padding: EdgeInsets.symmetric(
-              horizontal: TossSpacing.space3,
-              vertical: TossSpacing.space3,
-            ),
-            decoration: BoxDecoration(
-              border: Border.all(color: TossColors.gray300),
-              borderRadius: BorderRadius.circular(TossBorderRadius.md),
-            ),
-            child: Row(
-              children: [
-                Icon(
-                  TossIcons.calendar,
-                  color: TossColors.gray600,
-                  size: 16,
-                ),
-                SizedBox(width: TossSpacing.space2),
-                Text(
-                  '${selectedDate.month}/${selectedDate.day}/${selectedDate.year}',
-                  style: TossTextStyles.body,
-                ),
-              ],
-            ),
-          ),
+        TossDatePicker(
+          date: selectedDate,
+          placeholder: 'Select date',
+          onDateChanged: (DateTime date) => onChanged(date),
+          firstDate: DateTime.now().subtract(const Duration(days: 365)),
+          lastDate: DateTime.now(),
         ),
       ],
     );

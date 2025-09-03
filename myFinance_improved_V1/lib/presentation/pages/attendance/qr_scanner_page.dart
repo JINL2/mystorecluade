@@ -246,8 +246,11 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
                 // Force refresh the attendance provider to update the activity list
                 await ref.read(shiftOverviewProvider.notifier).refresh();
                 
+                // Invalidate any cached data to ensure fresh fetch
+                ref.invalidate(currentShiftProvider);
+                
                 // Add a small delay to ensure data is refreshed
-                await Future.delayed(const Duration(milliseconds: 200));
+                await Future.delayed(const Duration(milliseconds: 300));
                 
                 // Show success popup
                 if (mounted) {

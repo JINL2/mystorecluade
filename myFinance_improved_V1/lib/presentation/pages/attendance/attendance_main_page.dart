@@ -2687,7 +2687,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
     }
   }
   
-  Future<void> _fetchMonthData(DateTime targetDate) async {
+  Future<void> _fetchMonthData(DateTime targetDate, {bool forceRefresh = false}) async {
     // Create month key for tracking (yyyy-MM format)
     final monthKey = '${targetDate.year}-${targetDate.month.toString().padLeft(2, '0')}';
     
@@ -2697,8 +2697,8 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
     bool hasCards = _monthlyCardsCache.containsKey(monthKey);
     
     
-    // If we already have data for this month, just update the display from cache
-    if (hasOverview && hasCards) {
+    // If we already have data for this month and not force refreshing, just update the display from cache
+    if (hasOverview && hasCards && !forceRefresh) {
       setState(() {
         shiftOverviewData = _monthlyOverviewCache[monthKey];
         currentDisplayedMonth = monthKey;
@@ -3620,16 +3620,27 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                         isLoading = true;
                       });
                       
-                      // Refresh all data in parallel
+                      // Clear cache for current month to force fresh data fetch
+                      final monthKey = '${selectedDate.year}-${selectedDate.month.toString().padLeft(2, '0')}';
+                      _monthlyOverviewCache.remove(monthKey);
+                      _monthlyCardsCache.remove(monthKey);
+                      _loadedMonths.remove(monthKey);
+                      
+                      // Refresh all data in parallel with force refresh
                       await Future.wait([
-                        _fetchMonthData(selectedDate),
+                        _fetchMonthData(selectedDate, forceRefresh: true),
                         ref.read(shiftOverviewProvider.notifier).refresh(),
                       ]);
+                      
+                      // Add small delay to ensure data is fully loaded
+                      await Future.delayed(const Duration(milliseconds: 300));
                       
                       // Force UI update
                       if (mounted) {
                         setState(() {
                           isLoading = false;
+                          // Force rebuild of activity section
+                          allShiftCardsData = List.from(allShiftCardsData);
                         });
                       }
                     }

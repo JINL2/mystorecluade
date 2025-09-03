@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import '../../../core/navigation/safe_navigation.dart';
 import '../../../core/themes/toss_colors.dart';
 import '../../../core/themes/toss_text_styles.dart';
 import '../../../core/themes/toss_spacing.dart';
@@ -39,7 +40,6 @@ class CashEndingPage extends ConsumerStatefulWidget {
 class _CashEndingPageState extends ConsumerState<CashEndingPage>
     with TickerProviderStateMixin {
   late TabController _tabController;
-  late TabController _journalTabController; // For Journal/Real tabs
   String? selectedStoreId;
   String? selectedLocationId;
   
@@ -123,7 +123,17 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
-    _journalTabController = TabController(length: 2, vsync: this);
+    
+    // Clear any existing navigation locks when page loads successfully
+    // This helps recover from any previous navigation issues
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      try {
+        SafeNavigation.instance.clearLockForRoute('/cashEnding');
+        SafeNavigation.instance.clearLockForRoute('cashEnding');
+      } catch (e) {
+        // Silently handle navigation lock clearing errors
+      }
+    });
     
     // Add listener to update UI when tab changes
     _tabController.addListener(() {
@@ -135,13 +145,14 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
     });
     
     // Add listener for journal/real tab changes
-    _journalTabController.addListener(() {
-      if (mounted) {
-        setState(() {
-          // Update UI when switching between Real and Journal tabs
-        });
-      }
-    });
+    // TODO: Fix - _journalTabController is not defined
+    // _journalTabController.addListener(() {
+    //   if (mounted) {
+    //     setState(() {
+    //       // Update UI when switching between Real and Journal tabs
+    //     });
+    //   }
+    // });
     
     // Initialize selectedStoreId from app state
     final appState = ref.read(appStateProvider);
@@ -172,8 +183,15 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
   
   @override
   void dispose() {
+    // Clear navigation locks for this page to prevent lock issues
+    try {
+      SafeNavigation.instance.clearLockForRoute('/cashEnding');
+      SafeNavigation.instance.clearLockForRoute('cashEnding');
+    } catch (e) {
+      // Silently handle navigation lock clearing errors
+    }
+    
     _tabController.dispose();
-    _journalTabController.dispose();
     bankAmountController.dispose();
     denominationControllers.forEach((currencyId, controllers) {
       controllers.forEach((denomValue, controller) {
@@ -194,10 +212,12 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
       }
       
       // Step 1: Query company_currency table to get currency_ids for this company
+      // Filter out soft-deleted currencies with is_deleted = false
       final companyCurrencyResponse = await Supabase.instance.client
           .from('company_currency')
           .select('currency_id, company_currency_id')
-          .eq('company_id', companyId);
+          .eq('company_id', companyId)
+          .eq('is_deleted', false);
       
       if (companyCurrencyResponse.isEmpty) {
         setState(() {
@@ -275,17 +295,25 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
       
       // Group denominations by currency_id
       Map<String, List<Map<String, dynamic>>> grouped = {};
-      Map<String, Map<String, TextEditingController>> controllers = {};
+      
+      // Only create new controllers if they don't exist (preserve existing data)
+      Map<String, Map<String, TextEditingController>> controllers = Map.from(denominationControllers);
       
       for (var denom in response) {
         final currencyId = denom['currency_id'].toString();
         if (!grouped.containsKey(currencyId)) {
           grouped[currencyId] = [];
-          controllers[currencyId] = {};
         }
         grouped[currencyId]!.add(denom);
-        // Create controller for each denomination
-        controllers[currencyId]![denom['value'].toString()] = TextEditingController();
+        
+        // Only create controller if it doesn't exist (preserve existing values)
+        if (!controllers.containsKey(currencyId)) {
+          controllers[currencyId] = {};
+        }
+        final denomValue = denom['value'].toString();
+        if (!controllers[currencyId]!.containsKey(denomValue)) {
+          controllers[currencyId]![denomValue] = TextEditingController();
+        }
       }
       
       
@@ -654,7 +682,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
             ),
           ),
           
-          // Show Journal/Real tabs only when location is selected
+          // Show Real section only when location is selected
           _buildRealJournalSection(
             showSection: selectedLocationId != null && selectedLocationId!.isNotEmpty,
           ),
@@ -1681,11 +1709,15 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
             final currencyCode = currency['currency_code'] ?? 'N/A';
             final isSelected = selectedCurrencyId == currencyId;
             
+            // Check if this currency has data (only for cash tab)
+            final hasData = tabType == 'cash' ? _currencyHasData(currencyId) : false;
+            
             return TossCurrencyChip(
               currencyId: currencyId,
               symbol: symbol,
               currencyCode: currencyCode,
               isSelected: isSelected,
+              hasData: hasData,
               onTap: () {
                 setState(() {
                   // Store the previously selected currency ID
@@ -1701,9 +1733,9 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
                     selectedVaultCurrencyId = currencyId;
                   }
                   
-                  // Clear denomination data if currency changed
-                  if (previousCurrencyId != currencyId && previousCurrencyId != null) {
-                    // Clear controllers for the previous currency
+                  // Clear denomination data if currency changed (but not for cash tab)
+                  if (tabType != 'cash' && previousCurrencyId != currencyId && previousCurrencyId != null) {
+                    // Clear controllers for the previous currency (only for bank and vault tabs)
                     if (denominationControllers.containsKey(previousCurrencyId)) {
                       denominationControllers[previousCurrencyId]!.forEach((key, controller) {
                         controller.clear();
@@ -1734,8 +1766,8 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
       child: Row(
         children: [
           // Denomination label
-          SizedBox(
-            width: 100, // Fixed width for cash count button
+          Flexible(
+            flex: 3,
             child: Row(
               children: [
                 Container(
@@ -1747,11 +1779,16 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
                   ),
                 ),
                 const SizedBox(width: TossSpacing.space3),
-                Text(
-                  '$currencySymbol$formattedAmount',
-                  style: TossTextStyles.body.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: TossColors.gray700,
+                Flexible(
+                  child: Text(
+                    '$currencySymbol$formattedAmount',
+                    style: TossTextStyles.body.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: TossColors.gray700,
+                      fontSize: formattedAmount.length > 10 ? 12 : null, // Responsive font
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
                   ),
                 ),
               ],
@@ -1759,7 +1796,8 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
           ),
           const SizedBox(width: TossSpacing.space4),
           // Quantity input
-          Expanded(
+          Flexible(
+            flex: 4,
             child: Row(
               children: [
                 Expanded(
@@ -1822,16 +1860,19 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
           ),
           const SizedBox(width: TossSpacing.space3),
           // Subtotal
-          SizedBox(
-            width: 100, // Fixed width for cash count button
+          Flexible(
+            flex: 3,
             child: Text(
               _calculateSubtotal(denomination['value'].toString(), controller.text, currencySymbol),
               style: TossTextStyles.body.copyWith(
                 fontWeight: FontWeight.w600,
                 color: TossColors.gray900,
                 fontFamily: 'JetBrains Mono',
+                fontSize: controller.text.length > 3 ? 12 : null, // Responsive font for large quantities
               ),
               textAlign: TextAlign.right,
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
             ),
           ),
         ],
@@ -1856,15 +1897,21 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
                     color: TossColors.gray600,
                   ),
                 ),
-                AnimatedSwitcher(
-                  duration: TossAnimations.slow,
-                  child: Text(
-                    total,
-                    key: ValueKey(total),
-                    style: TossTextStyles.h2.copyWith(
-                      color: TossColors.primary,
-                      fontWeight: FontWeight.w700,
-                      fontFamily: 'JetBrains Mono',
+                Expanded(
+                  child: AnimatedSwitcher(
+                    duration: TossAnimations.slow,
+                    child: Text(
+                      total,
+                      key: ValueKey(total),
+                      style: TossTextStyles.h2.copyWith(
+                        color: TossColors.primary,
+                        fontWeight: FontWeight.w700,
+                        fontFamily: 'JetBrains Mono',
+                        fontSize: total.length > 15 ? 18 : null, // Responsive font size
+                      ),
+                      textAlign: TextAlign.right,
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
                     ),
                   ),
                 ),
@@ -1953,7 +2000,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
             ),
           ),
           
-          // Show Journal/Real tabs when bank location is selected
+          // Show Real section when bank location is selected
           const SizedBox(height: TossSpacing.space5),
           _buildRealJournalSection(
             showSection: selectedBankLocationId != null && selectedBankLocationId!.isNotEmpty,
@@ -3460,7 +3507,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
               ],
             ),
           ),
-          // Real/Journal Section for vault locations
+          // Real Section for vault locations
           const SizedBox(height: TossSpacing.space5),
           _buildRealJournalSection(
             showSection: selectedVaultLocationId != null && selectedVaultLocationId!.isNotEmpty,
@@ -3475,6 +3522,21 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
     final qty = int.tryParse(quantity) ?? 0;
     final subtotal = denom * qty;
     return '$currencySymbol${NumberFormat('#,###').format(subtotal)}';
+  }
+  
+  // Helper function to check if a currency has any data entered
+  bool _currencyHasData(String currencyId) {
+    if (!denominationControllers.containsKey(currencyId)) {
+      return false;
+    }
+    
+    final controllers = denominationControllers[currencyId]!;
+    for (var controller in controllers.values) {
+      if (controller.text.isNotEmpty && controller.text != '0') {
+        return true;
+      }
+    }
+    return false;
   }
   
   String _calculateTotal({String tabType = 'cash'}) {
@@ -3517,35 +3579,56 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
   }
   
   int _calculateTotalAmount({String tabType = 'cash'}) {
-    // Get selected currency ID based on tab
-    final String? selectedCurrencyId;
+    // For cash tab, calculate total across ALL currencies that have data
     if (tabType == 'cash') {
-      selectedCurrencyId = selectedCashCurrencyId;
-    } else if (tabType == 'bank') {
-      selectedCurrencyId = selectedBankCurrencyId;
-    } else {
-      selectedCurrencyId = selectedVaultCurrencyId;
-    }
-    
-    if (selectedCurrencyId == null || !denominationControllers.containsKey(selectedCurrencyId)) {
-      return 0;
-    }
-    
-    int total = 0;
-    final controllers = denominationControllers[selectedCurrencyId] ?? {};
-    final denominations = currencyDenominations[selectedCurrencyId] ?? [];
-    
-    for (var denom in denominations) {
-      final denomValue = denom['value'].toString();
-      final controller = controllers[denomValue];
-      if (controller != null) {
-        final value = ((denom['value'] ?? 0) as num).toInt();
-        final qty = int.tryParse(controller.text) ?? 0;
-        total += value * qty;
+      int total = 0;
+      for (var currency in companyCurrencies) {
+        final currencyId = currency['currency_id']?.toString();
+        if (currencyId != null && _currencyHasData(currencyId)) {
+          final controllers = denominationControllers[currencyId] ?? {};
+          final denominations = currencyDenominations[currencyId] ?? [];
+          
+          for (var denom in denominations) {
+            final denomValue = denom['value'].toString();
+            final controller = controllers[denomValue];
+            if (controller != null) {
+              final value = ((denom['value'] ?? 0) as num).toInt();
+              final qty = int.tryParse(controller.text) ?? 0;
+              total += value * qty;
+            }
+          }
+        }
       }
+      return total;
+    } else {
+      // For bank and vault tabs, use the existing single currency logic
+      final String? selectedCurrencyId;
+      if (tabType == 'bank') {
+        selectedCurrencyId = selectedBankCurrencyId;
+      } else {
+        selectedCurrencyId = selectedVaultCurrencyId;
+      }
+      
+      if (selectedCurrencyId == null || !denominationControllers.containsKey(selectedCurrencyId)) {
+        return 0;
+      }
+      
+      int total = 0;
+      final controllers = denominationControllers[selectedCurrencyId] ?? {};
+      final denominations = currencyDenominations[selectedCurrencyId] ?? [];
+      
+      for (var denom in denominations) {
+        final denomValue = denom['value'].toString();
+        final controller = controllers[denomValue];
+        if (controller != null) {
+          final value = ((denom['value'] ?? 0) as num).toInt();
+          final qty = int.tryParse(controller.text) ?? 0;
+          total += value * qty;
+        }
+      }
+      
+      return total;
     }
-    
-    return total;
   }
   
   Future<void> _saveVaultBalance() async {
@@ -3697,55 +3780,95 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
       // Build currencies JSON structure
       List<Map<String, dynamic>> currencies = [];
       
-      // Determine which currency ID to use based on the current tab
-      String? currentCurrencyId;
+      // For cash tab (index 0), collect data from ALL currencies that have data
       if (_tabController.index == 0) {
-        currentCurrencyId = selectedCashCurrencyId;
-      } else if (_tabController.index == 1) {
-        currentCurrencyId = selectedBankCurrencyId;
-      } else if (_tabController.index == 2) {
-        currentCurrencyId = selectedVaultCurrencyId;
-      }
-      
-      if (currentCurrencyId != null) {
-        List<Map<String, dynamic>> denominationsList = [];
-        
-        // Get the controllers for the selected currency
-        final controllers = denominationControllers[currentCurrencyId] ?? {};
-        
-        // Get denominations for the current currency
-        final denominationsForCurrency = currencyDenominations[currentCurrencyId] ?? [];
-        
-        // Iterate through denominations and add ONLY those with quantity > 0
-        // Users can enter just one denomination or multiple - it's flexible
-        for (var denomination in denominationsForCurrency) {
-          final denominationId = denomination['denomination_id']?.toString();
-          final denominationValue = denomination['value']?.toString(); // Controllers are keyed by value
+        // Iterate through all company currencies
+        for (var currency in companyCurrencies) {
+          final currencyId = currency['currency_id']?.toString();
           
-          // Controllers are keyed by the denomination value, not the ID
-          if (denominationValue != null && controllers.containsKey(denominationValue)) {
-            final controller = controllers[denominationValue];
-            final quantityText = controller?.text.trim() ?? '';
+          if (currencyId != null && _currencyHasData(currencyId)) {
+            List<Map<String, dynamic>> denominationsList = [];
             
-            // Only add if user actually entered a value
-            if (quantityText.isNotEmpty && quantityText != '0') {
-              final quantity = int.tryParse(quantityText) ?? 0;
-              if (quantity > 0) {
-                denominationsList.add({
-                  'denomination_id': denominationId,
-                  'quantity': quantity,
-                });
+            // Get the controllers for this currency
+            final controllers = denominationControllers[currencyId] ?? {};
+            
+            // Get denominations for this currency
+            final denominationsForCurrency = currencyDenominations[currencyId] ?? [];
+            
+            // Iterate through denominations and add ONLY those with quantity > 0
+            for (var denomination in denominationsForCurrency) {
+              final denominationId = denomination['denomination_id']?.toString();
+              final denominationValue = denomination['value']?.toString();
+              
+              if (denominationValue != null && controllers.containsKey(denominationValue)) {
+                final controller = controllers[denominationValue];
+                final quantityText = controller?.text.trim() ?? '';
+                
+                if (quantityText.isNotEmpty && quantityText != '0') {
+                  final quantity = int.tryParse(quantityText) ?? 0;
+                  if (quantity > 0) {
+                    denominationsList.add({
+                      'denomination_id': denominationId,
+                      'quantity': quantity,
+                    });
+                  }
+                }
               }
+            }
+            
+            if (denominationsList.isNotEmpty) {
+              currencies.add({
+                'currency_id': currencyId,
+                'denominations': denominationsList,
+              });
             }
           }
         }
+      } else {
+        // For bank and vault tabs, use only the selected currency (existing behavior)
+        String? currentCurrencyId;
+        if (_tabController.index == 1) {
+          currentCurrencyId = selectedBankCurrencyId;
+        } else if (_tabController.index == 2) {
+          currentCurrencyId = selectedVaultCurrencyId;
+        }
         
-        // Only require at least one denomination to be entered
-        if (denominationsList.isNotEmpty) {
-          currencies.add({
-            'currency_id': currentCurrencyId,
-            'denominations': denominationsList,
-          });
+        if (currentCurrencyId != null) {
+          List<Map<String, dynamic>> denominationsList = [];
+          
+          // Get the controllers for the selected currency
+          final controllers = denominationControllers[currentCurrencyId] ?? {};
+          
+          // Get denominations for the current currency
+          final denominationsForCurrency = currencyDenominations[currentCurrencyId] ?? [];
+          
+          // Iterate through denominations and add ONLY those with quantity > 0
+          for (var denomination in denominationsForCurrency) {
+            final denominationId = denomination['denomination_id']?.toString();
+            final denominationValue = denomination['value']?.toString();
+            
+            if (denominationValue != null && controllers.containsKey(denominationValue)) {
+              final controller = controllers[denominationValue];
+              final quantityText = controller?.text.trim() ?? '';
+              
+              if (quantityText.isNotEmpty && quantityText != '0') {
+                final quantity = int.tryParse(quantityText) ?? 0;
+                if (quantity > 0) {
+                  denominationsList.add({
+                    'denomination_id': denominationId,
+                    'quantity': quantity,
+                  });
+                }
+              }
+            }
+          }
+          
+          if (denominationsList.isNotEmpty) {
+            currencies.add({
+              'currency_id': currentCurrencyId,
+              'denominations': denominationsList,
+            });
+          }
         }
       }
       
@@ -3770,7 +3893,6 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
         'p_store_id': (selectedStoreId == 'headquarter') ? null : selectedStoreId,
       };
       
-      
       // Call the RPC function
       final response = await Supabase.instance.client
           .rpc('insert_cashier_amount_lines', params: params);
@@ -3792,22 +3914,31 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
           await _loadRecentCashEndings(selectedLocationId!);
         }
         
-        // Clear the form after success
-        denominationControllers.forEach((currencyId, controllers) {
-          controllers.forEach((denominationId, controller) {
-            controller.clear();
+        // Clear the form after success (only clear for cash tab if needed)
+        if (_tabController.index == 0) {
+          // For cash tab, optionally clear all currency data after successful save
+          denominationControllers.forEach((currencyId, controllers) {
+            controllers.forEach((denominationId, controller) {
+              controller.clear();
+            });
           });
-        });
+        } else {
+          // For bank and vault tabs, clear only the selected currency
+          denominationControllers.forEach((currencyId, controllers) {
+            controllers.forEach((denominationId, controller) {
+              controller.clear();
+            });
+          });
+        }
         
-        // Optionally reset the selected location
+        // Optionally reset the selected location (removed for cash tab to maintain flow)
         setState(() {
-          if (_tabController.index == 0) {
-            selectedLocationId = null;
-          } else if (_tabController.index == 1) {
+          if (_tabController.index == 1) {
             selectedBankLocationId = null;
           } else if (_tabController.index == 2) {
             selectedVaultLocationId = null;
           }
+          // Do not reset selectedLocationId for cash tab to maintain the Real flow display
         });
       }
       
@@ -3821,33 +3952,43 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
   }
   
   void _showSuccessBottomSheet(double savedTotal) {
-    // Get the currency symbol from the selected currency
-    String currencySymbol = '₫';
-    if (_tabController.index == 0 && selectedCashCurrencyId != null) {
-      final currency = companyCurrencies.firstWhere(
-        (c) => c['currency_id'].toString() == selectedCashCurrencyId,
-        orElse: () => {'symbol': '₫'},
-      );
-      currencySymbol = currency['symbol'] ?? '₫';
-    } else if (_tabController.index == 1 && selectedBankCurrencyType != null) {
-      final currency = companyCurrencies.firstWhere(
-        (c) => c['currency_id'].toString() == selectedBankCurrencyType,
-        orElse: () => {'symbol': '₫'},
-      );
-      currencySymbol = currency['symbol'] ?? '₫';
-    } else if (_tabController.index == 2 && selectedVaultCurrencyId != null) {
-      final currency = companyCurrencies.firstWhere(
-        (c) => c['currency_id'].toString() == selectedVaultCurrencyId,
-        orElse: () => {'symbol': '₫'},
-      );
-      currencySymbol = currency['symbol'] ?? '₫';
-    }
+    // For cash tab with multiple currencies, show a generic success message
+    String displayMessage = '';
     
-    // Format the total amount with currency
-    final formattedTotal = NumberFormat.currency(
-      symbol: currencySymbol,
-      decimalDigits: 0,
-    ).format(savedTotal);
+    if (_tabController.index == 0) {
+      // Cash tab - show count of currencies saved
+      int currencyCount = 0;
+      for (var currency in companyCurrencies) {
+        final currencyId = currency['currency_id']?.toString();
+        if (currencyId != null && _currencyHasData(currencyId)) {
+          currencyCount++;
+        }
+      }
+      displayMessage = currencyCount > 1 
+          ? 'Saved cash ending for $currencyCount currencies' 
+          : 'Cash ending saved successfully';
+    } else {
+      // For bank and vault tabs, show the currency symbol
+      final baseCurrency = getBaseCurrency();
+      String currencySymbol = baseCurrency['symbol'] ?? '';
+      if (_tabController.index == 1 && selectedBankCurrencyType != null) {
+        final currency = companyCurrencies.firstWhere(
+          (c) => c['currency_id'].toString() == selectedBankCurrencyType,
+          orElse: () => baseCurrency,
+        );
+        currencySymbol = currency['symbol'] ?? baseCurrency['symbol'] ?? '';
+      } else if (_tabController.index == 2 && selectedVaultCurrencyId != null) {
+        final currency = companyCurrencies.firstWhere(
+          (c) => c['currency_id'].toString() == selectedVaultCurrencyId,
+          orElse: () => baseCurrency,
+        );
+        currencySymbol = currency['symbol'] ?? baseCurrency['symbol'] ?? '';
+      }
+      displayMessage = NumberFormat.currency(
+        symbol: currencySymbol,
+        decimalDigits: 0,
+      ).format(savedTotal);
+    }
     
     // Show dialog in center of screen instead of bottom sheet
     showDialog(
@@ -3888,7 +4029,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
               ),
               const SizedBox(height: TossSpacing.space2),
               Text(
-                formattedTotal,
+                displayMessage,
                 style: TossTextStyles.h2.copyWith(
                   color: TossColors.primary,
                   fontWeight: FontWeight.w700,
@@ -3902,17 +4043,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
                   text: 'Done',
                   onPressed: () {
                     Navigator.pop(context);
-                    // Reset form only for cash tab
-                    if (_tabController.index == 0) {
-                      setState(() {
-                        selectedLocationId = null;
-                        if (selectedCashCurrencyId != null && denominationControllers.containsKey(selectedCashCurrencyId)) {
-                          denominationControllers[selectedCashCurrencyId]!.forEach((key, controller) {
-                            controller.clear();
-                          });
-                        }
-                      });
-                    }
+                    // Form is already cleared in the save process
                   },
                   isLoading: false,
                 ),
@@ -4172,22 +4303,61 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
     );
   }
   
+  // Get the actual base currency from vault data or company settings
+  Map<String, dynamic> getBaseCurrency() {
+    // First try to get from vault balance data
+    if (vaultBalanceData != null && vaultBalanceData!['summary'] != null) {
+      final baseCurrencyCode = vaultBalanceData!['summary']['base_currency_code'];
+      if (baseCurrencyCode != null) {
+        // Find the currency in currencyTypes
+        final currency = currencyTypes.firstWhere(
+          (c) => c['currency_code'] == baseCurrencyCode,
+          orElse: () => {},
+        );
+        if (currency.isNotEmpty) {
+          return currency;
+        }
+      }
+    }
+    
+    // If no vault data, check if we have a base currency in company currencies
+    if (companyCurrencies.isNotEmpty) {
+      // Look for a currency marked as base
+      final baseCurrency = companyCurrencies.firstWhere(
+        (c) => c['is_base'] == true,
+        orElse: () => companyCurrencies.first, // Fall back to first currency
+      );
+      return baseCurrency;
+    }
+    
+    // Fall back to default if nothing else works
+    return getDefaultCurrency();
+  }
+  
   // Helper method to format currency
   String formatCurrency(double amount) {
-    final defaultCurrency = getDefaultCurrency();
-    final currencySymbol = defaultCurrency['symbol'] ?? '₩';
-    final currencyCode = defaultCurrency['currency_code'] ?? 'KRW';
+    final baseCurrency = getBaseCurrency();
+    final currencySymbol = baseCurrency['symbol'] ?? '₩';
+    final currencyCode = baseCurrency['currency_code'] ?? 'KRW';
     
     // Use different locale based on currency
     String locale = 'ko_KR'; // Default for KRW
     if (currencyCode == 'USD') locale = 'en_US';
     else if (currencyCode == 'EUR') locale = 'de_DE';
     else if (currencyCode == 'VND') locale = 'vi_VN';
+    else if (currencyCode == 'JPY') locale = 'ja_JP';
+    else if (currencyCode == 'GBP') locale = 'en_GB';
+    else if (currencyCode == 'CNY') locale = 'zh_CN';
+    else if (currencyCode == 'THB') locale = 'th_TH';
+    else if (currencyCode == 'SGD') locale = 'en_SG';
+    else if (currencyCode == 'PHP') locale = 'en_PH';
+    else if (currencyCode == 'IDR') locale = 'id_ID';
+    else if (currencyCode == 'MYR') locale = 'ms_MY';
     
     final format = NumberFormat.currency(
       locale: locale,
       symbol: currencySymbol,
-      decimalDigits: currencyCode == 'VND' || currencyCode == 'KRW' ? 0 : 2,
+      decimalDigits: currencyCode == 'VND' || currencyCode == 'KRW' || currencyCode == 'JPY' || currencyCode == 'IDR' ? 0 : 2,
     );
     
     return format.format(amount);
@@ -4466,15 +4636,8 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
   }
   
   void _showFilterBottomSheet() {
-    // Different filters based on tab
-    List<String> filterOptions;
-    if (_journalTabController.index == 1) {
-      // Journal tab filters
-      filterOptions = ['All', 'Money In', 'Money Out', 'Today', 'Yesterday', 'Last Week'];
-    } else {
-      // Real tab filters
-      filterOptions = ['All', 'Today', 'Yesterday', 'Last Week', 'Last Month'];
-    }
+    // Filters for Real tab only (Journal removed)
+    List<String> filterOptions = ['All', 'Today', 'Yesterday', 'Last Week', 'Last Month'];
     
     showModalBottomSheet(
       context: context,
@@ -4837,7 +5000,11 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
   }
   
   Widget _buildRealItem(ActualFlow flow, bool showDate) {
-    final currencySymbol = flow.currency.symbol;
+    // Use base currency symbol from location summary for consistency
+    // Note: Amounts are still in original currency values, not converted
+    final currencySymbol = locationSummary?.baseCurrencySymbol ?? 
+                          getBaseCurrency()['symbol'] ?? 
+                          flow.currency.symbol;
     
     return GestureDetector(
       onTap: () {
@@ -4970,8 +5137,15 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
   
   Widget _buildJournalItem(JournalFlow flow, bool showDate) {
     final isIncome = flow.flowAmount > 0;
-    final currencySymbol = locationSummary?.currencyCode == 'VND' ? '₫' : 
-                          locationSummary?.currencyCode == 'USD' ? '\$' : '';
+    // Get the currency symbol from currencyTypes based on the currency code
+    String currencySymbol = '';
+    if (locationSummary?.currencyCode != null) {
+      final currency = currencyTypes.firstWhere(
+        (c) => c['currency_code'] == locationSummary!.currencyCode,
+        orElse: () => getBaseCurrency(),
+      );
+      currencySymbol = currency['symbol'] ?? '';
+    }
     
     return GestureDetector(
       onTap: () => _showJournalDetailBottomSheet(flow),
@@ -5093,14 +5267,29 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
   }
   
   void _showRealDetailBottomSheet(ActualFlow flow, {String locationType = 'cash'}) {
-    final currencySymbol = flow.currency.symbol;
+    // Use base currency symbol from location summary for consistency
+    // Note: Amounts are still in original currency values, not converted
+    final currencySymbol = locationSummary?.baseCurrencySymbol ?? 
+                          getBaseCurrency()['symbol'] ?? 
+                          flow.currency.symbol;
     
     showModalBottomSheet(
       context: context,
       backgroundColor: TossColors.transparent,
       isScrollControlled: true,
       builder: (BuildContext context) {
-        return Container(
+        // Get screen dimensions and determine if it's a small device
+        final screenHeight = MediaQuery.of(context).size.height;
+        final screenWidth = MediaQuery.of(context).size.width;
+        final isSmallDevice = screenHeight < 700 || screenWidth < 380; // iPhone SE, iPhone 8, etc.
+        final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+        final safeAreaBottom = MediaQuery.of(context).padding.bottom;
+        
+        // Calculate responsive max height based on device size
+        final maxHeightRatio = isSmallDevice ? 0.80 : 0.90; // Reduced for small devices
+        
+        return AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
           decoration: const BoxDecoration(
             color: TossColors.white,
             borderRadius: BorderRadius.only(
@@ -5109,10 +5298,10 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
             ),
           ),
           constraints: BoxConstraints(
-            maxHeight: MediaQuery.of(context).size.height * 0.9,
+            maxHeight: (screenHeight * maxHeightRatio) - bottomInset,
           ),
           child: Column(
-            mainAxisSize: MainAxisSize.min,
+            mainAxisSize: MainAxisSize.max, // Changed to max for proper scrolling
             children: [
               // Handle bar
               Container(
@@ -5127,15 +5316,22 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
               
               // Header
               Padding(
-                padding: const EdgeInsets.fromLTRB(24, 20, 16, 16),
+                padding: EdgeInsets.fromLTRB(
+                  isSmallDevice ? 20 : 24,
+                  isSmallDevice ? 16 : 20,
+                  16,
+                  isSmallDevice ? 12 : 16,
+                ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      'Cash Count Details',
-                      style: TossTextStyles.h2.copyWith(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 20,
+                    Flexible(
+                      child: Text(
+                        isSmallDevice ? 'Cash Details' : 'Cash Count Details',
+                        style: TossTextStyles.h2.copyWith(
+                          fontWeight: FontWeight.w700,
+                          fontSize: isSmallDevice ? 18 : 20,
+                        ),
                       ),
                     ),
                     IconButton(
@@ -5151,13 +5347,16 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
               // Content
               Expanded(
                 child: SingleChildScrollView(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  physics: const BouncingScrollPhysics(),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: isSmallDevice ? 16 : 20,
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // Total Balance Section
                       Container(
-                        padding: const EdgeInsets.all(20),
+                        padding: EdgeInsets.all(isSmallDevice ? 16 : 20),
                         decoration: BoxDecoration(
                           color: const Color(0xFFE8F0FF),
                           borderRadius: BorderRadius.circular(16),
@@ -5177,16 +5376,22 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Text(
-                                  _formatBalance(flow.balanceAfter, currencySymbol),
-                                  style: TossTextStyles.h1.copyWith(
-                                    fontWeight: FontWeight.w700,
-                                    color: TossColors.primary,
-                                    fontSize: 32,
+                                Flexible(
+                                  child: FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    alignment: Alignment.centerLeft,
+                                    child: Text(
+                                      _formatBalance(flow.balanceAfter, currencySymbol),
+                                      style: TossTextStyles.h1.copyWith(
+                                        fontWeight: FontWeight.w700,
+                                        color: TossColors.primary,
+                                        fontSize: isSmallDevice ? 24 : 32,
+                                      ),
+                                    ),
                                   ),
                                 ),
                                 Container(
-                                  padding: const EdgeInsets.all(8),
+                                  padding: EdgeInsets.all(isSmallDevice ? 6 : 8),
                                   decoration: BoxDecoration(
                                     color: TossColors.white,
                                     borderRadius: BorderRadius.circular(8),
@@ -5194,7 +5399,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
                                   child: Icon(
                                     Icons.account_balance_wallet_outlined,
                                     color: TossColors.primary,
-                                    size: 24,
+                                    size: isSmallDevice ? 20 : 24,
                                   ),
                                 ),
                               ],
@@ -5255,25 +5460,27 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
                         ),
                       ),
                       
-                      const SizedBox(height: 24),
+                      SizedBox(height: isSmallDevice ? 16 : 24),
                       
                       // Denomination Breakdown Section (only show for cash and vault, not for bank)
                       if (flow.currentDenominations.isNotEmpty && locationType != 'bank') ...[
                         Text(
-                          'Denomination Breakdown',
+                          isSmallDevice ? 'Denominations' : 'Denomination Breakdown',
                           style: TossTextStyles.body.copyWith(
                             fontWeight: FontWeight.w700,
-                            fontSize: 17,
+                            fontSize: isSmallDevice ? 15 : 17,
                             color: Colors.black87,
                           ),
                         ),
-                        const SizedBox(height: 16),
+                        SizedBox(height: isSmallDevice ? 12 : 16),
                         
                         // Denomination cards
                         ...flow.currentDenominations.map((denomination) {
                           final subtotal = denomination.denominationValue * denomination.currentQuantity;
+                          // Use denomination's own currency symbol if available, otherwise use flow's currency
+                          final denomCurrencySymbol = denomination.currencySymbol ?? currencySymbol;
                           return Container(
-                            margin: const EdgeInsets.only(bottom: 16),
+                            margin: EdgeInsets.only(bottom: isSmallDevice ? 12 : 16),
                             decoration: BoxDecoration(
                               color: TossColors.white,
                               borderRadius: BorderRadius.circular(12),
@@ -5290,7 +5497,10 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
                               children: [
                                 // Denomination header
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: isSmallDevice ? 12 : 16,
+                                    vertical: isSmallDevice ? 10 : 12,
+                                  ),
                                   decoration: BoxDecoration(
                                     color: TossColors.gray50,
                                     borderRadius: const BorderRadius.only(
@@ -5302,11 +5512,11 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
                                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                     children: [
                                       Text(
-                                        _formatCurrency(denomination.denominationValue, currencySymbol),
+                                        _formatCurrency(denomination.denominationValue, denomCurrencySymbol),
                                         style: TossTextStyles.body.copyWith(
                                           fontWeight: FontWeight.w700,
                                           color: TossColors.primary,
-                                          fontSize: 16,
+                                          fontSize: isSmallDevice ? 14 : 16,
                                         ),
                                       ),
                                       Container(
@@ -5330,7 +5540,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
                                 
                                 // Quantity details
                                 Padding(
-                                  padding: const EdgeInsets.all(16),
+                                  padding: EdgeInsets.all(isSmallDevice ? 12 : 16),
                                   child: Column(
                                     children: [
                                       Row(
@@ -5426,7 +5636,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
                                             ),
                                           ),
                                           Text(
-                                            _formatBalance(subtotal, currencySymbol),
+                                            _formatBalance(subtotal, denomCurrencySymbol),
                                             style: TossTextStyles.body.copyWith(
                                               fontWeight: FontWeight.w700,
                                               fontSize: 16,
@@ -5444,11 +5654,11 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
                         }),
                       ],
                       
-                      const SizedBox(height: 24),
+                      SizedBox(height: isSmallDevice ? 16 : 24),
                       
                       // Footer information
                       Container(
-                        padding: const EdgeInsets.all(16),
+                        padding: EdgeInsets.all(isSmallDevice ? 12 : 16),
                         decoration: BoxDecoration(
                           color: TossColors.gray50,
                           borderRadius: BorderRadius.circular(12),
@@ -5464,14 +5674,16 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
                         ),
                       ),
                       
-                      const SizedBox(height: 20),
+                      SizedBox(height: isSmallDevice ? 16 : 20),
                     ],
                   ),
                 ),
               ),
               
-              // Bottom safe area
-              SizedBox(height: MediaQuery.of(context).padding.bottom),
+              // Bottom safe area with keyboard consideration
+              SizedBox(
+                height: safeAreaBottom + (bottomInset > 0 ? 16 : 0),
+              ),
             ],
           ),
         );
@@ -5480,8 +5692,15 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
   }
   
   void _showJournalDetailBottomSheet(JournalFlow flow) {
-    final currencySymbol = locationSummary?.currencyCode == 'VND' ? '₫' : 
-                          locationSummary?.currencyCode == 'USD' ? '\$' : '';
+    // Get the currency symbol from currencyTypes based on the currency code
+    String currencySymbol = '';
+    if (locationSummary?.currencyCode != null) {
+      final currency = currencyTypes.firstWhere(
+        (c) => c['currency_code'] == locationSummary!.currencyCode,
+        orElse: () => getBaseCurrency(),
+      );
+      currencySymbol = currency['symbol'] ?? '';
+    }
     
     showModalBottomSheet(
       context: context,
@@ -5745,7 +5964,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
     );
   }
   
-  // Shared method to build Real/Journal tabs section for all tabs
+  // Shared method to build Real section for all tabs (removed Journal)
   Widget _buildRealJournalSection({required bool showSection}) {
     if (!showSection || selectedCashLocationIdForFlow == null || selectedCashLocationIdForFlow!.isEmpty) {
       return const SizedBox.shrink();
@@ -5755,7 +5974,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
       children: [
         const SizedBox(height: TossSpacing.space5),
         
-        // Journal/Real Section - wrapped in white card
+        // Real Section - wrapped in white card
         Container(
           height: 400, // Fixed height for the container
           decoration: BoxDecoration(
@@ -5765,9 +5984,10 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
           ),
           child: Column(
             children: [
-              // Tab bar for Journal/Real
+              // Header for Real
               Container(
                 height: 48,
+                padding: EdgeInsets.symmetric(horizontal: TossSpacing.space5),
                 decoration: BoxDecoration(
                   border: Border(
                     bottom: BorderSide(
@@ -5776,36 +5996,14 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
                     ),
                   ),
                 ),
-                child: Theme(
-                  data: ThemeData(
-                    splashColor: TossColors.transparent,
-                    highlightColor: TossColors.transparent,
-                  ),
-                  child: TabBar(
-                    controller: _journalTabController,
-                    indicatorSize: TabBarIndicatorSize.tab,
-                    indicator: UnderlineTabIndicator(
-                      borderSide: BorderSide(
-                        width: 2.0,
-                        color: Colors.black87,
-                      ),
-                      insets: EdgeInsets.zero,
-                    ),
-                    indicatorColor: Colors.black87,
-                    labelColor: Colors.black87,
-                    unselectedLabelColor: TossColors.gray400,
-                    labelStyle: TossTextStyles.body.copyWith(
-                      fontWeight: FontWeight.w600,
+                child: Center(
+                  child: Text(
+                    'Real',
+                    style: TossTextStyles.body.copyWith(
+                      fontWeight: FontWeight.w700,
                       fontSize: 17,
+                      color: Colors.black87,
                     ),
-                    unselectedLabelStyle: TossTextStyles.body.copyWith(
-                      fontSize: 17,
-                    ),
-                    overlayColor: WidgetStateProperty.all(TossColors.transparent),
-                    tabs: const [
-                      Tab(text: 'Real'),
-                      Tab(text: 'Journal'),
-                    ],
                   ),
                 ),
               ),
@@ -5840,17 +6038,9 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
                 ),
               ),
               
-              // Content area with tab-specific content
+              // Content area with Real content only
               Expanded(
-                child: TabBarView(
-                  controller: _journalTabController,
-                  children: [
-                    // Real tab content
-                    _buildRealTabContent(),
-                    // Journal tab content
-                    _buildJournalTabContent(),
-                  ],
-                ),
+                child: _buildRealTabContent(),
               ),
             ],
           ),

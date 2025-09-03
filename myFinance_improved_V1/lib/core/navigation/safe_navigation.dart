@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -35,6 +36,16 @@ class SafeNavigation {
   /// Lock navigation for a specific route
   void _lockNavigation(String route) {
     _navigationLocks[route] = true;
+    
+    // Auto-unlock after 5 seconds to prevent persistent locks
+    Timer(const Duration(seconds: 5), () {
+      if (_navigationLocks[route] == true) {
+        _unlockNavigation(route);
+        if (kDebugMode) {
+          debugPrint('[SafeNavigation] Auto-unlocked stale lock: $route');
+        }
+      }
+    });
   }
   
   /// Unlock navigation for a specific route
@@ -81,7 +92,9 @@ class SafeNavigation {
   }) async {
     // Validate context is mounted
     if (!context.mounted) {
-      debugPrint('[SafeNavigation] Context not mounted for push to: $route');
+      if (kDebugMode) {
+        debugPrint('[SafeNavigation] Context not mounted for push to: $route');
+      }
       return null;
     }
     
@@ -90,25 +103,34 @@ class SafeNavigation {
     
     // Check for existing navigation lock
     if (isNavigationLocked(lockKey)) {
-      debugPrint('[SafeNavigation] Navigation locked for: $lockKey');
+      if (kDebugMode) {
+        debugPrint('[SafeNavigation] Navigation locked: $lockKey');
+      }
       return null;
     }
     
     // Check for redirect loops
     if (_hasRedirectLoop()) {
-      debugPrint('[SafeNavigation] Redirect loop detected, aborting navigation to: $route');
+      if (kDebugMode) {
+        debugPrint('[SafeNavigation] Redirect loop detected: $route');
+      }
       _navigationHistory.clear();
       return null;
     }
     
-    // Debounce rapid navigation attempts
+    // Debounce rapid navigation attempts (reduced time for auth pages)
+    final isAuthPage = route.startsWith('/auth/');
+    final debounceTime = isAuthPage ? const Duration(milliseconds: 150) : debounceDuration;
+    
     if (_debounceTimers[lockKey]?.isActive == true) {
-      debugPrint('[SafeNavigation] Debouncing navigation to: $route');
+      if (kDebugMode) {
+        debugPrint('[SafeNavigation] Debounce active: $route');
+      }
       return null;
     }
     
     // Set debounce timer
-    _debounceTimers[lockKey] = Timer(debounceDuration, () {
+    _debounceTimers[lockKey] = Timer(debounceTime, () {
       _debounceTimers.remove(lockKey);
     });
     
@@ -272,7 +294,10 @@ class SafeNavigation {
     
     // Check for existing navigation lock
     if (isNavigationLocked(lockKey)) {
-      debugPrint('[SafeNavigation] Navigation locked for: $lockKey');
+      // Reduced logging - only in debug mode
+      if (kDebugMode) {
+        debugPrint('[SafeNavigation] Locked: $lockKey');
+      }
       return null;
     }
     
@@ -332,7 +357,9 @@ class SafeNavigation {
     
     // Check for existing navigation lock
     if (isNavigationLocked(name)) {
-      debugPrint('[SafeNavigation] Navigation locked for: $name');
+      if (kDebugMode) {
+        debugPrint('[SafeNavigation] Locked: $name');
+      }
       return null;
     }
     
@@ -428,7 +455,30 @@ class SafeNavigation {
     _navigationLocks.remove(route);
     _debounceTimers[route]?.cancel();
     _debounceTimers.remove(route);
-    debugPrint('[SafeNavigation] Cleared lock for route: $route');
+    if (kDebugMode) {
+      debugPrint('[SafeNavigation] Cleared lock for route: $route');
+    }
+  }
+  
+  /// Clear all auth navigation locks (useful for auth page issues)
+  void clearAuthLocks() {
+    final authRoutes = _navigationLocks.keys.where((route) => route.startsWith('/auth')).toList();
+    for (final route in authRoutes) {
+      clearLockForRoute(route);
+    }
+    if (kDebugMode) {
+      debugPrint('[SafeNavigation] Cleared ${authRoutes.length} auth locks: $authRoutes');
+    }
+    
+    // Also clear any debounce timers for auth routes
+    final authTimers = _debounceTimers.keys.where((route) => route.startsWith('/auth')).toList();
+    for (final route in authTimers) {
+      _debounceTimers[route]?.cancel();
+      _debounceTimers.remove(route);
+    }
+    if (kDebugMode && authTimers.isNotEmpty) {
+      debugPrint('[SafeNavigation] Cleared ${authTimers.length} auth timers: $authTimers');
+    }
   }
   
   /// Update navigation state safely if possible

@@ -301,25 +301,34 @@ class TransactionListItem extends ConsumerWidget {
         ),
         
         // Amount
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            Text(
-              '${isDebit ? '+' : '-'}${_formatCurrency(amount)}',
-              style: TossTextStyles.body.copyWith(
-                color: color,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            if (line.accountType.isNotEmpty)
+        Flexible(
+          flex: 1,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
               Text(
-                _getAccountTypeLabel(line.accountType),
-                style: TossTextStyles.caption.copyWith(
-                  color: TossColors.gray400,
-                  fontSize: 10,
+                '${isDebit ? '+' : '-'}${_formatCurrency(amount)}',
+                style: TossTextStyles.body.copyWith(
+                  color: color,
+                  fontWeight: FontWeight.bold,
                 ),
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
+                textAlign: TextAlign.right,
               ),
-          ],
+              if (line.accountType.isNotEmpty)
+                Text(
+                  _getAccountTypeLabel(line.accountType),
+                  style: TossTextStyles.caption.copyWith(
+                    color: TossColors.gray400,
+                    fontSize: 10,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                  textAlign: TextAlign.right,
+                ),
+            ],
+          ),
         ),
       ],
     );

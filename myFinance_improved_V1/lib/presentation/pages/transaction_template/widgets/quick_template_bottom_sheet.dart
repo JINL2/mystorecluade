@@ -646,7 +646,6 @@ class _QuickTemplateBottomSheetState extends ConsumerState<QuickTemplateBottomSh
     Map<String, dynamic>? myCashLocationData;
     if (_selectedMyCashLocationId != null || _analysis.missingItems.contains('cash_location')) {
       final supabase = Supabase.instance.client;
-      final appState = ref.read(appStateProvider);
       
       final cashLocationId = _selectedMyCashLocationId ?? 
           (tags['cash_locations'] as List?)?.first;

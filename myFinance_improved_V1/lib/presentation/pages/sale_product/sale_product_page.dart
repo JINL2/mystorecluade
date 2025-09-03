@@ -476,9 +476,7 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage> {
         ),
         title: Text(
           'Sales',
-          style: TossTextStyles.h3.copyWith(
-            fontWeight: FontWeight.bold,
-          ),
+          style: TossTextStyles.h3,
         ),
         centerTitle: true,
         elevation: 0,
@@ -551,9 +549,8 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage> {
                                       child: Center(
                                         child: Text(
                                           '${_getActiveFilterCount()}',
-                                          style: TextStyle(
+                                          style: TossTextStyles.small.copyWith(
                                             color: TossColors.white,
-                                            fontSize: 10,
                                             fontWeight: FontWeight.w700,
                                           ),
                                         ),
@@ -714,8 +711,7 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage> {
                             SizedBox(width: TossSpacing.space2),
                             Text(
                               'Select Products',
-                              style: TossTextStyles.bodyLarge.copyWith(
-                                fontWeight: FontWeight.w700,
+                              style: TossTextStyles.h4.copyWith(
                                 color: TossColors.gray900,
                               ),
                             ),

@@ -3,7 +3,6 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:intl/intl.dart';
 import '../../../providers/app_state_provider.dart';
 import '../../../providers/auth_provider.dart';
-import '../../../../data/services/supabase_service.dart';
 import '../../../../data/services/template_cache_service.dart';
 
 // Provider to watch user data from app state with authentication and caching
@@ -107,7 +106,6 @@ final templateStoreChoosenProvider = Provider<String>((ref) {
 
 // Provider for fetching transaction templates from Supabase with visibility filtering
 final transactionTemplatesProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
-  final supabaseService = ref.read(supabaseServiceProvider);
   final appState = ref.watch(appStateProvider);
   final companyId = appState.companyChoosen;
   final storeId = appState.storeChoosen;
@@ -123,36 +121,28 @@ final transactionTemplatesProvider = FutureProvider<List<Map<String, dynamic>>>(
   try {
     final supabase = Supabase.instance.client;
     
-    // Query transaction_templates table with all needed fields
-    final query = supabase
-        .from('transaction_templates')
-        .select('''
-          template_id, 
-          name, 
-          template_description,
-          data, 
-          permission, 
-          tags, 
-          visibility_level, 
-          is_active, 
-          updated_by, 
-          company_id, 
-          store_id, 
-          counterparty_id, 
-          counterparty_cash_location_id,
-          created_at
-        ''')
-        .eq('company_id', companyId)
-        .eq('is_active', true)
-        .order('created_at', ascending: false);
-    
-    // Add store filter if store is selected
+    // Build query with store filtering
     List<dynamic> response;
     if (storeId.isNotEmpty) {
       // Get templates that are either for this specific store OR company-wide (null store_id)
       response = await supabase
           .from('transaction_templates')
-          .select()
+          .select('''
+            template_id, 
+            name, 
+            template_description,
+            data, 
+            permission, 
+            tags, 
+            visibility_level, 
+            is_active, 
+            updated_by, 
+            company_id, 
+            store_id, 
+            counterparty_id, 
+            counterparty_cash_location_id,
+            created_at
+          ''')
           .eq('company_id', companyId)
           .eq('is_active', true)
           .or('store_id.eq.$storeId,store_id.is.null')
@@ -162,27 +152,29 @@ final transactionTemplatesProvider = FutureProvider<List<Map<String, dynamic>>>(
       response = await supabase
           .from('transaction_templates')
           .select('''
-          template_id, 
-          template_name, 
-          template_type, 
-          amount, 
-          journal_type, 
-          notes, 
-          visibility_level, 
-          company_id, 
-          store_id, 
-          counterparty_id, 
-          counterparty_cash_location_id,
-          created_at
-        ''')
+            template_id, 
+            name, 
+            template_description,
+            data, 
+            permission, 
+            tags, 
+            visibility_level, 
+            is_active, 
+            updated_by, 
+            company_id, 
+            store_id, 
+            counterparty_id, 
+            counterparty_cash_location_id,
+            created_at
+          ''')
           .eq('company_id', companyId)
           .eq('is_active', true)
           .isFilter('store_id', null)
           .order('created_at', ascending: false);
     }
     
-    // Ensure response is a List
-    final responseList = response is List ? response : [response];
+    // Response is always a List from Supabase
+    final responseList = response;
     
     // Filter templates based on visibility level
     final filteredTemplates = responseList.where((item) {
@@ -416,8 +408,8 @@ final sortedTransactionTemplatesProvider = FutureProvider<List<Map<String, dynam
     final bId = b['template_id'] as String?;
     
     // First priority: templates from top_templates_by_user view
-    final aIsTop = aId != null && topTemplateIds.contains(aId);
-    final bIsTop = bId != null && topTemplateIds.contains(bId);
+    final aIsTop = topTemplateIds.contains(aId);
+    final bIsTop = topTemplateIds.contains(bId);
     
     if (aIsTop && !bIsTop) return -1;
     if (!aIsTop && bIsTop) return 1;
@@ -712,7 +704,7 @@ Future<void> executeTransactionTemplate({
     }
     
     // Call the journal RPC with properly formatted parameters
-    final response = await supabase.rpc(
+    await supabase.rpc(
       'insert_journal_with_everything',
       params: {
         'p_base_amount': amount,

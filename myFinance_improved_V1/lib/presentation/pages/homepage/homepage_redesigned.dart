@@ -44,6 +44,41 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
     SchedulerBinding.instance.addPostFrameCallback((_) {
       _ensureCompanyAndStoreSelected();
     });
+    
+    // Listen for store join events to refresh UI
+    _setupStoreJoinListener();
+  }
+  
+  void _setupStoreJoinListener() {
+    // This will be called from build method to properly listen
+    // The actual listening is done in the build method using ref.listen
+  }
+  
+  bool _shouldRefreshStores(dynamic previousData, dynamic currentData) {
+    if (previousData == null || currentData == null) return false;
+    
+    // Check if store count changed in any company
+    final previousCompanies = previousData['companies'] as List? ?? [];
+    final currentCompanies = currentData['companies'] as List? ?? [];
+    
+    for (final currentCompany in currentCompanies) {
+      final companyId = currentCompany['company_id'];
+      final previousCompany = previousCompanies.firstWhere(
+        (c) => c['company_id'] == companyId,
+        orElse: () => null,
+      );
+      
+      if (previousCompany != null) {
+        final previousStores = previousCompany['stores'] as List? ?? [];
+        final currentStores = currentCompany['stores'] as List? ?? [];
+        
+        if (currentStores.length > previousStores.length) {
+          return true; // New store added
+        }
+      }
+    }
+    
+    return false;
   }
 
   /// Ensures first company and first store are always selected on homepage entry
@@ -139,7 +174,6 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
       
     } catch (e) {
       // Silent error handling - don't crash the homepage
-      print('Error ensuring company/store selection: $e');
     }
   }
 
@@ -165,6 +199,33 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
     // Watch the selections so they update when changed
     final selectedCompany = ref.watch(selectedCompanyProvider);
     final selectedStore = ref.watch(selectedStoreProvider);
+    
+    // Listen for changes to user companies to detect new store joins
+    ref.listen(userCompaniesProvider, (previous, next) {
+      next.whenData((data) {
+        // Check if store count changed
+        if (previous != null && previous.hasValue) {
+          final previousData = previous.valueOrNull;
+          if (_shouldRefreshStores(previousData, data)) {
+            // Show a snackbar to indicate refresh
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Row(
+                  children: [
+                    Icon(Icons.refresh, color: Colors.white, size: 20),
+                    SizedBox(width: 12),
+                    Text('Store list updated'),
+                  ],
+                ),
+                backgroundColor: TossColors.primary,
+                behavior: SnackBarBehavior.floating,
+                duration: Duration(seconds: 2),
+              ),
+            );
+          }
+        }
+      });
+    });
 
     return TossScaffold(
       scaffoldKey: _scaffoldKey,
@@ -264,7 +325,6 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
         orElse: () => false,
       );
     } catch (e) {
-      print('Error checking revenue feature: $e');
       return false;
     }
   }
@@ -566,26 +626,18 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
                   context.safePush('/debug/fcm-token');
                 }
               } else if (value == 'logout') {
-                // 🔧 SAFE LOGOUT: Close popup menu first, then execute logout
-                // This prevents popup menu context disposal issues
-                if (mounted && Navigator.of(context).canPop()) {
-                  Navigator.of(context).pop(); // Close popup menu immediately
+                // 🔧 SAFE LOGOUT: The SafePopupMenuButton now handles menu closing
+                // and mounted checks internally, so we can directly execute logout
+                try {
+                  final enhancedAuth = ref.read(enhancedAuthProvider);
+                  await enhancedAuth.signOut();
+                } catch (e) {
+                  // Handle logout error silently
                 }
-                
-                // Execute logout after popup is safely closed
-                SchedulerBinding.instance.addPostFrameCallback((_) async {
-                  if (mounted) {
-                    try {
-                      final enhancedAuth = ref.read(enhancedAuthProvider);
-                      await enhancedAuth.signOut();
-                    } catch (e) {
-                    }
-                  }
-                });
               }
             },
             itemBuilder: (BuildContext context) => [
-              SafePopupMenuItem<String>(
+              PopupMenuItem<String>(
                 value: 'settings',
                 child: Row(
                   children: [
@@ -604,7 +656,7 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
                   ],
                 ),
               ),
-              SafePopupMenuItem<String>(
+              PopupMenuItem<String>(
                 value: 'debug',
                 child: Row(
                   children: [
@@ -623,7 +675,7 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
                   ],
                 ),
               ),
-              SafePopupMenuItem<String>(
+              PopupMenuItem<String>(
                 value: 'notifications',
                 child: Row(
                   children: [
@@ -642,7 +694,7 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
                   ],
                 ),
               ),
-              SafePopupMenuItem<String>(
+              PopupMenuItem<String>(
                 value: 'fcm_debug',
                 child: Row(
                   children: [
@@ -662,7 +714,7 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
                 ),
               ),
               const PopupMenuDivider(),
-              SafePopupMenuItem<String>(
+              PopupMenuItem<String>(
                 value: 'logout',
                 child: Row(
                   children: [

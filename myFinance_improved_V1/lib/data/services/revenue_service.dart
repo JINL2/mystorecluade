@@ -30,7 +30,6 @@ class RevenueService {
       // Fallback to mock data if Supabase fetch fails
       return _generateMockRevenue(period);
     } catch (e) {
-      print('Revenue fetch error: $e');
       // Return mock data on any error
       return _generateMockRevenue(period);
     }
@@ -116,7 +115,6 @@ class RevenueService {
 
       return null;
     } catch (e) {
-      print('Supabase revenue fetch error: $e');
       return null;
     }
   }
@@ -187,7 +185,6 @@ class RevenueService {
       // Return mock data if no data from Supabase
       return _generateMockDailySummaries(startDate, endDate);
     } catch (e) {
-      print('Error fetching daily summaries: $e');
       return _generateMockDailySummaries(startDate, endDate);
     }
   }

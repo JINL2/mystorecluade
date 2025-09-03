@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -66,15 +67,36 @@ class RouterNotifier extends ChangeNotifier {
   static const Duration _redirectTimeWindow = Duration(seconds: 5);
   final List<DateTime> _redirectTimestamps = [];
   
+  // Navigation lock to prevent redirect interference during navigation
+  bool _isNavigationInProgress = false;
+  DateTime? _lastAuthNavigationTime;
 
   RouterNotifier(this._ref) {
     // Listen to authentication state
     _authListener = _ref.listen<bool>(
       isAuthenticatedProvider,
       (previous, next) {
+        // Skip notifications during active auth navigation
+        if (_lastAuthNavigationTime != null &&
+            DateTime.now().difference(_lastAuthNavigationTime!) < Duration(seconds: 2)) {
+          debugPrint('🔥 [RouterNotifier] SKIPPING auth listener notification - auth navigation active');
+          return;
+        }
+        
+        // Skip all notifications during auth navigation window
+        // This prevents RouterNotifier from triggering redirect evaluation
+        if (_lastAuthNavigationTime != null &&
+            DateTime.now().difference(_lastAuthNavigationTime!) < Duration(seconds: 3)) {
+          debugPrint('🔥 [RouterNotifier] SKIPPING notification - auth navigation window active');
+          return;
+        }
+        
         // Add delay to prevent rapid redirects
         Future.delayed(const Duration(milliseconds: 100), () {
-          notifyListeners();
+          if (_lastAuthNavigationTime == null ||
+              DateTime.now().difference(_lastAuthNavigationTime!) >= Duration(seconds: 3)) {
+            notifyListeners();
+          }
         });
       },
     );
@@ -83,9 +105,27 @@ class RouterNotifier extends ChangeNotifier {
     _appStateListener = _ref.listen<AppState>(
       appStateProvider,
       (previous, next) {
+        // Skip notifications during active auth navigation
+        if (_lastAuthNavigationTime != null &&
+            DateTime.now().difference(_lastAuthNavigationTime!) < Duration(seconds: 2)) {
+          debugPrint('🔥 [RouterNotifier] SKIPPING app state listener notification - auth navigation active');
+          return;
+        }
+        
+        // Skip all notifications during auth navigation window
+        // This prevents RouterNotifier from triggering redirect evaluation
+        if (_lastAuthNavigationTime != null &&
+            DateTime.now().difference(_lastAuthNavigationTime!) < Duration(seconds: 3)) {
+          debugPrint('🔥 [RouterNotifier] SKIPPING notification - auth navigation window active');
+          return;
+        }
+        
         // Add delay to prevent rapid redirects
         Future.delayed(const Duration(milliseconds: 100), () {
-          notifyListeners();
+          if (_lastAuthNavigationTime == null ||
+              DateTime.now().difference(_lastAuthNavigationTime!) >= Duration(seconds: 3)) {
+            notifyListeners();
+          }
         });
       },
     );
@@ -146,20 +186,46 @@ class RouterNotifier extends ChangeNotifier {
   void clearRedirectHistory() {
     _clearRedirectHistory();
   }
+  
+  // Navigation lock methods to prevent redirect interference
+  void lockNavigation() {
+    _isNavigationInProgress = true;
+  }
+  
+  void unlockNavigation() {
+    _isNavigationInProgress = false;
+  }
+  
+  bool get isNavigationLocked => _isNavigationInProgress;
 
 }
 
 final appRouterProvider = Provider<GoRouter>((ref) {
-  // Create router with refresh listenable
+  // Create router with conditional refresh listenable
   final routerNotifier = RouterNotifier(ref);
   
   final router = GoRouter(
     initialLocation: '/', // Start at home page instead of login page
-    refreshListenable: routerNotifier,
+    // TEMPORARILY DISABLED: refreshListenable causes redirect loops for auth pages
+    // refreshListenable: routerNotifier,
     restorationScopeId: 'app_router',
     redirect: (context, state) {
       try {
         final currentPath = state.matchedLocation;
+        debugPrint('🔥 [AppRouter] REDIRECT called: $currentPath → ${state.uri.path}');
+        
+        // NUCLEAR OPTION: NEVER process redirects for any auth routes
+        // This completely bypasses all redirect logic for auth pages
+        if (currentPath.startsWith('/auth')) {
+          debugPrint('🚀 [AppRouter] AUTH ROUTE BYPASSED COMPLETELY: $currentPath');
+          return null;
+        }
+        
+        // Skip redirects during active navigation to prevent ping-pong
+        if (routerNotifier.isNavigationLocked) {
+          debugPrint('🔥 [AppRouter] SKIPPING REDIRECT: Navigation lock active');
+          return null;
+        }
         
         // Helper function to safely return a redirect with loop detection
         String? safeRedirect(String targetPath, String reason) {
@@ -172,7 +238,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           }
           
           // Only track as redirect if we're actually redirecting
-          debugPrint('[AppRouter] $reason');
+          if (kDebugMode) {
+            debugPrint('[AppRouter] → $targetPath');
+          }
           routerNotifier._trackRedirect(targetPath);
           return targetPath;
         }
@@ -212,59 +280,31 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           }
         });
         
+        // Since auth routes are exempted above, we only handle non-auth routes here
         final isAuth = ref.read(isAuthenticatedProvider);
         final appState = ref.read(appStateProvider);
-        final isAuthRoute = state.matchedLocation.startsWith('/auth');
-        final isOnboardingRoute = state.matchedLocation.startsWith('/onboarding');
+        final isOnboardingRoute = currentPath.startsWith('/onboarding');
         
         // Get company count from app state
         final userData = appState.user;
         final hasUserData = userData is Map && userData.isNotEmpty;
         final companyCount = userData is Map ? (userData['company_count'] ?? 0) : 0;
         
-        // Log navigation attempt for debugging
-        debugPrint('[AppRouter] Redirect check - Path: $currentPath, Auth: $isAuth, Companies: $companyCount');
-        
         // Priority 1: If not authenticated and not on auth route, go to login
-        if (!isAuth && !isAuthRoute) {
+        if (!isAuth) {
+          debugPrint('🔥 [AppRouter] REDIRECTING: Unauthenticated user → /auth/login');
           return safeRedirect('/auth/login', 'Not authenticated, redirecting to login');
         }
         
-        // Priority 2: If authenticated, redirect away from auth pages to appropriate destination
-        if (isAuth && isAuthRoute) {
-          // If user has companies, go to main page
-          if (hasUserData && companyCount > 0) {
-            routerNotifier.clearRedirectHistory(); // Clear history on successful auth redirect
-            return safeRedirect('/', 'Authenticated with companies, redirecting to home');
-          }
-          // If user has no companies but has data, go to onboarding
-          else if (hasUserData && companyCount == 0) {
-            return safeRedirect('/onboarding/choose-role', 'Authenticated without companies, redirecting to onboarding');
-          }
-          // If no user data yet, stay to let auth page load data
-          else {
-            debugPrint('[AppRouter] Authenticated but waiting for user data');
-            return null;
-          }
-        }
-        
-        // Priority 3: If authenticated, on main pages, but no companies
+        // Priority 2: If authenticated, on main pages, but no companies
         // Only redirect if we have loaded user data
-        if (isAuth && !isAuthRoute && !isOnboardingRoute && 
-            hasUserData && companyCount == 0) {
+        if (isAuth && !isOnboardingRoute && hasUserData && companyCount == 0) {
+          debugPrint('🔥 [AppRouter] REDIRECTING: No companies → /onboarding/choose-role');
           return safeRedirect('/onboarding/choose-role', 'Authenticated on main page without companies, redirecting to onboarding');
         }
         
-        // No redirect needed - clear history periodically
-        // This prevents false positives from accumulating over time
-        if (routerNotifier._redirectHistory.isNotEmpty) {
-          final now = DateTime.now();
-          if (routerNotifier._redirectTimestamps.isNotEmpty &&
-              now.difference(routerNotifier._redirectTimestamps.first) > Duration(seconds: 10)) {
-            routerNotifier._clearRedirectHistory();
-          }
-        }
-        
+        // No redirect needed
+        debugPrint('🔥 [AppRouter] NO REDIRECT: Allowing navigation to $currentPath');
         return null;
       } catch (error, stackTrace) {
         debugPrint('[AppRouter] Error in redirect: $error');
@@ -356,7 +396,16 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       // Auth Routes
       GoRoute(
         path: '/auth',
-        redirect: (context, state) => '/auth/login',
+        // Smart redirect: only redirect exact /auth to /auth/login
+        // Allow /auth/signup, /auth/forgot-password to pass through
+        redirect: (context, state) {
+          // Only redirect if the path is exactly /auth
+          if (state.matchedLocation == '/auth') {
+            return '/auth/login';
+          }
+          // For all other auth routes (/auth/signup, /auth/forgot-password), no redirect
+          return null;
+        },
         routes: [
           GoRoute(
             path: 'login',
@@ -365,6 +414,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: 'signup',
             builder: (context, state) {
+              debugPrint('🔥 [AppRouter] Route builder called for /auth/signup');
               return const AuthSignupPage();
             },
           ),

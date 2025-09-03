@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:myfinance_improved/domain/repositories/user_repository.dart';
@@ -44,12 +43,6 @@ class _HomepageUtils {
         
         // STEP 2: Filter by user permissions (existing logic)
         final hasPermission = permissionSet.contains(feature['feature_id']);
-        if (!hasPermission && kDebugMode) {
-        }
-        
-        if (kDebugMode) {
-        }
-        
         return hasPermission;
       }).toList();
       
@@ -408,7 +401,6 @@ final topFeaturesByUserProvider = FutureProvider<List<TopFeature>>((ref) async {
     if (selectedCompany != null) {
       final role = selectedCompany['role'] as Map<String, dynamic>?;
       userPermissions = role?['permissions'] as List<dynamic>? ?? [];
-    } else {
     }
     
     // STEP 3: Fetch user's top features from database with company_id
@@ -418,10 +410,6 @@ final topFeaturesByUserProvider = FutureProvider<List<TopFeature>>((ref) async {
       userId: user.id,
       companyId: companyId,
     );
-    if (kDebugMode) {
-      if (allTopFeatures.isNotEmpty) {
-      }
-    }
     
     // STEP 4: Apply permission filtering with safety measures
     if (userPermissions.isEmpty) {
@@ -439,8 +427,6 @@ final topFeaturesByUserProvider = FutureProvider<List<TopFeature>>((ref) async {
       
       // STEP 2: Filter by user permissions (existing logic)
       final hasPermission = permissionSet.contains(feature.featureId);
-      if (kDebugMode && !hasPermission) {
-      }
       return hasPermission;
     }).toList();
     
@@ -515,12 +501,6 @@ final userShiftOverviewProvider = FutureProvider.autoDispose<UserShiftOverview?>
     // Call the RPC function
     final supabase = Supabase.instance.client;
     
-    print('Calling user_shift_overview with params:');
-    print('  p_request_date: $requestDate');
-    print('  p_user_id: ${user.id}');
-    print('  p_company_id: $companyId');
-    print('  p_store_id: ${storeId.isEmpty ? null : storeId}');
-    
     final response = await supabase.rpc(
       'user_shift_overview',
       params: {
@@ -532,22 +512,17 @@ final userShiftOverviewProvider = FutureProvider.autoDispose<UserShiftOverview?>
     ).timeout(
       const Duration(seconds: 10),
       onTimeout: () {
-        print('user_shift_overview RPC timed out');
         return null;
       },
     );
     
-    print('user_shift_overview response: $response');
-    
     if (response == null) {
-      print('Response is null');
       return null;
     }
     
     // Parse response into UserShiftOverview model
     return UserShiftOverview.fromJson(response as Map<String, dynamic>);
   } catch (e) {
-    print('Error fetching user shift overview: $e');
     return null;
   }
 });

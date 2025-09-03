@@ -18,9 +18,7 @@ final mappedCounterpartiesProvider = FutureProvider.family<List<Map<String, dyna
         .select('counterparty_id, my_account_id')
         .eq('my_company_id', companyId);
     
-    if (response == null) return [];
-    
-    final List<dynamic> data = response as List<dynamic>;
+    final List<dynamic> data = response;
     // Filter to get mappings where my_account_id matches the selected account
     return data
         .where((item) => item['my_account_id'] == accountId)
@@ -56,9 +54,7 @@ final counterpartiesForSelectionProvider = FutureProvider.family<List<Map<String
         .eq('is_deleted', false)
         .order('name');
     
-    if (response == null) return [];
-    
-    final List<dynamic> data = response as List<dynamic>;
+    final List<dynamic> data = response;
     
     // Filter based on requirements
     return data.where((counterparty) {
@@ -95,9 +91,7 @@ final counterpartyByIdProvider = FutureProvider.family<Map<String, dynamic>?, St
         .eq('counterparty_id', counterpartyId)
         .single();
     
-    if (response == null) return null;
-    
-    return response as Map<String, dynamic>;
+    return response;
   } catch (e) {
     print('Error fetching counterparty by ID: $e');
     return null;
@@ -117,10 +111,7 @@ final storesForLinkedCompanyProvider = FutureProvider.family<List<Map<String, dy
         .eq('company_id', linkedCompanyId)
         .order('store_name');
     
-    if (response == null) return [];
-    
-    final List<dynamic> data = response as List<dynamic>;
-    return data.cast<Map<String, dynamic>>();
+    return response.cast<Map<String, dynamic>>();
   } catch (e) {
     print('Error fetching stores for linked company: $e');
     return [];

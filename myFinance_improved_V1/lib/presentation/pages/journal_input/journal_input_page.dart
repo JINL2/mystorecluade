@@ -117,7 +117,13 @@ class _JournalInputPageState extends ConsumerState<JournalInputPage>
     );
     
     if (result != null) {
-      ref.read(journalEntryProvider).addTransactionLine(result);
+      final journalEntry = ref.read(journalEntryProvider);
+      journalEntry.addTransactionLine(result);
+      
+      // If the transaction line has a counterparty cash location, set it on the journal
+      if (result.counterpartyCashLocationId != null) {
+        journalEntry.setCounterpartyCashLocation(result.counterpartyCashLocationId);
+      }
     }
   }
   
@@ -142,6 +148,11 @@ class _JournalInputPageState extends ConsumerState<JournalInputPage>
     
     if (result != null) {
       journalEntry.updateTransactionLine(index, result);
+      
+      // If the transaction line has a counterparty cash location, update it on the journal
+      if (result.counterpartyCashLocationId != null) {
+        journalEntry.setCounterpartyCashLocation(result.counterpartyCashLocationId);
+      }
     }
   }
   
@@ -403,13 +414,8 @@ class _JournalInputPageState extends ConsumerState<JournalInputPage>
                             label: 'Description (Optional)',
                             hintText: 'Enter journal description...',
                             maxLines: 2,
-                            textInputAction: TextInputAction.done,
-                            onFieldSubmitted: (_) {
-                              FocusScope.of(context).unfocus();
-                            },
-                            showKeyboardToolbar: true,
-                            keyboardDoneText: 'Done',
-                            onKeyboardDone: () => FocusScope.of(context).unfocus(),
+                            textInputAction: TextInputAction.newline,
+                            showKeyboardToolbar: false,
                           ),
                         ],
                       ),

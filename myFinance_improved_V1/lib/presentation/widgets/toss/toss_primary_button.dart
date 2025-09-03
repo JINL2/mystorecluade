@@ -103,8 +103,7 @@ class _TossPrimaryButtonState extends State<TossPrimaryButton>
                         Flexible(
                           child: Text(
                             widget.text,
-                            style: TossTextStyles.labelLarge.copyWith(
-                              fontWeight: FontWeight.w600,
+                            style: TossTextStyles.button.copyWith(
                               color: _isDisabled 
                                   ? TossColors.gray400 
                                   : TossColors.textInverse,

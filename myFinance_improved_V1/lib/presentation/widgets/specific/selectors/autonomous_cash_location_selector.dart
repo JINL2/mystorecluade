@@ -19,7 +19,10 @@ import '../../../../core/themes/toss_border_radius.dart';
 
 /// Autonomous cash location selector with scope awareness
 /// Uses dedicated RPC function and entity providers
+/// Can fetch from current app state OR from provided company/store IDs
 class AutonomousCashLocationSelector extends ConsumerStatefulWidget {
+  final String? companyId; // Optional: Use specific company (e.g., for counterparty)
+  final String? storeId; // Optional: Use specific store (e.g., for counterparty)
   final String? selectedLocationId;
   final SingleSelectionCallback? onChanged;
   final String? label;
@@ -33,6 +36,8 @@ class AutonomousCashLocationSelector extends ConsumerStatefulWidget {
 
   const AutonomousCashLocationSelector({
     super.key,
+    this.companyId, // Optional company ID
+    this.storeId, // Optional store ID
     this.selectedLocationId,
     this.onChanged,
     this.label,
@@ -103,12 +108,26 @@ class _AutonomousCashLocationSelectorState extends ConsumerState<AutonomousCashL
 
   @override
   Widget build(BuildContext context) {
-    // Get current store ID from app state
-    final appStateNotifier = ref.read(appStateProvider.notifier);
-    final currentStoreId = appStateNotifier.selectedStore?['store_id'] as String?;
+    // Determine which company/store to use
+    String? effectiveCompanyId = widget.companyId;
+    String? effectiveStoreId = widget.storeId;
     
-    // Always fetch ALL company locations (no store filtering at RPC level)
-    final allLocationsAsync = ref.watch(companyCashLocationsProvider);
+    // If not provided, fall back to app state
+    if (effectiveCompanyId == null) {
+      final appStateNotifier = ref.read(appStateProvider.notifier);
+      effectiveCompanyId = appStateNotifier.selectedCompany?['company_id'] as String?;
+      effectiveStoreId = appStateNotifier.selectedStore?['store_id'] as String?;
+    }
+    
+    // If we still don't have a company ID, show empty state
+    if (effectiveCompanyId == null) {
+      return _buildEmptySelector();
+    }
+    
+    // Fetch cash locations for the specified or current company
+    final allLocationsAsync = widget.companyId != null
+        ? ref.watch(cashLocationListProvider(effectiveCompanyId, null, widget.locationType))
+        : ref.watch(companyCashLocationsProvider);
 
     // Find selected location
     CashLocationData? selectedLocation;
@@ -127,10 +146,10 @@ class _AutonomousCashLocationSelectorState extends ConsumerState<AutonomousCashL
       // Company tab: Show ALL locations
       _companyItems = allLocations;
       
-      // Store tab: Filter to show only current store's locations (exclude company-wide)
-      if (currentStoreId != null) {
+      // Store tab: Filter to show only specified/current store's locations
+      if (effectiveStoreId != null) {
         _storeItems = allLocations.where((location) => 
-          location.storeId == currentStoreId // Only locations for current store
+          location.storeId == effectiveStoreId // Only locations for specified store
         ).toList();
       } else {
         // If no store selected, show empty list
@@ -294,22 +313,33 @@ class _AutonomousCashLocationSelectorState extends ConsumerState<AutonomousCashL
   }
 
   void _showScopedSelectionBottomSheet(BuildContext context) {
-    // Get current store ID from app state
-    final appStateNotifier = ref.read(appStateProvider.notifier);
-    final currentStoreId = appStateNotifier.selectedStore?['store_id'] as String?;
+    // Determine which company/store to use
+    String? effectiveCompanyId = widget.companyId;
+    String? effectiveStoreId = widget.storeId;
     
-    // Always fetch ALL company locations (no store filtering at RPC level)
-    final allLocationsAsync = ref.watch(companyCashLocationsProvider);
+    // If not provided, fall back to app state
+    if (effectiveCompanyId == null) {
+      final appStateNotifier = ref.read(appStateProvider.notifier);
+      effectiveCompanyId = appStateNotifier.selectedCompany?['company_id'] as String?;
+      effectiveStoreId = appStateNotifier.selectedStore?['store_id'] as String?;
+    }
+    
+    if (effectiveCompanyId == null) return;
+    
+    // Fetch cash locations for the specified or current company
+    final allLocationsAsync = widget.companyId != null
+        ? ref.watch(cashLocationListProvider(effectiveCompanyId, null, widget.locationType))
+        : ref.watch(companyCashLocationsProvider);
     
     // Update data organization when locations change
     allLocationsAsync.whenData((allLocations) {
       // Company tab: Show ALL locations
       _companyItems = allLocations;
       
-      // Store tab: Filter to show only current store's locations
-      if (currentStoreId != null) {
+      // Store tab: Filter to show only specified/current store's locations
+      if (effectiveStoreId != null) {
         _storeItems = allLocations.where((location) => 
-          location.storeId == currentStoreId
+          location.storeId == effectiveStoreId
         ).toList();
       } else {
         _storeItems = [];
@@ -612,6 +642,74 @@ class _AutonomousCashLocationSelectorState extends ConsumerState<AutonomousCashL
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildEmptySelector() {
+    final hasError = widget.errorText != null && widget.errorText!.isNotEmpty;
+    
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Label
+        if (widget.label != null) ...[
+          Text(
+            widget.label!,
+            style: TossTextStyles.caption.copyWith(
+              color: hasError ? TossColors.error : TossColors.gray600,
+              fontWeight: FontWeight.w600,
+            ),
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: TossSpacing.space2),
+        ],
+        
+        // Empty state container
+        Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+            color: TossColors.gray50,
+            border: Border.all(
+              color: hasError ? TossColors.error : TossColors.gray200,
+              width: 1,
+            ),
+          ),
+          padding: const EdgeInsets.all(TossSpacing.space3),
+          child: Row(
+            children: [
+              Icon(
+                Icons.info_outline,
+                size: TossSpacing.iconSM,
+                color: TossColors.gray400,
+              ),
+              const SizedBox(width: TossSpacing.space2),
+              Expanded(
+                child: Text(
+                  widget.companyId != null 
+                    ? 'No cash locations available'
+                    : 'No company selected',
+                  style: TossTextStyles.body.copyWith(
+                    color: TossColors.gray400,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        
+        // Error text
+        if (hasError) ...[ 
+          const SizedBox(height: TossSpacing.space2),
+          Text(
+            widget.errorText!,
+            style: TossTextStyles.caption.copyWith(
+              color: TossColors.error,
+            ),
+            overflow: TextOverflow.ellipsis,
+            maxLines: 2,
+          ),
+        ],
+      ],
     );
   }
 

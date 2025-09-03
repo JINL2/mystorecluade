@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/notifications/models/notification_payload.dart';
 import '../../core/notifications/models/notification_db_model.dart';
 import '../../core/notifications/services/notification_service.dart';
-import '../../core/notifications/services/token_manager.dart';
+import '../../core/notifications/services/production_token_service.dart';
 import '../../core/notifications/utils/notification_logger.dart';
 
 /// Provider for notification service
@@ -35,6 +35,13 @@ class NotificationNotifier extends StateNotifier<NotificationState> {
     state = state.copyWith(isLoading: true);
     
     try {
+      // Initialize production token service first for reliable token management
+      final productionTokenService = ProductionTokenService();
+      await productionTokenService.initialize();
+      
+      // Start auto-recovery system for production monitoring
+      productionTokenService.startAutoRecoverySystem();
+      
       await _notificationService.initialize();
       
       // Get notification settings
@@ -204,9 +211,9 @@ class NotificationNotifier extends StateNotifier<NotificationState> {
   /// Handle app resume - check and update token if needed
   Future<void> handleAppResume() async {
     try {
-      // Token manager will check if token needs update
-      final tokenManager = TokenManager();
-      tokenManager.handleAppLifecycleState(AppLifecycleState.resumed);
+      // Use production token service for reliable token management
+      final productionTokenService = ProductionTokenService();
+      await productionTokenService.verifyTokenSaved();
       
       // Refresh debug info
       final debugInfo = _notificationService.getDebugInfo();
@@ -218,6 +225,30 @@ class NotificationNotifier extends StateNotifier<NotificationState> {
       // Silent fail - don't interrupt user experience
       print('Token check on resume failed: $e');
     }
+  }
+  
+  /// Get production token health for monitoring
+  Future<Map<String, dynamic>> getTokenHealthStatus() async {
+    final productionTokenService = ProductionTokenService();
+    return await productionTokenService.performHealthCheck();
+  }
+  
+  /// Get production statistics for debugging
+  Map<String, dynamic> getProductionStats() {
+    final productionTokenService = ProductionTokenService();
+    return productionTokenService.getProductionStats();
+  }
+  
+  /// Emergency token refresh for production issues
+  Future<bool> emergencyTokenRefresh() async {
+    final productionTokenService = ProductionTokenService();
+    return await productionTokenService.emergencyTokenRefresh();
+  }
+  
+  /// Production-safe token registration
+  Future<bool> ensureTokenRegisteredProduction() async {
+    final productionTokenService = ProductionTokenService();
+    return await productionTokenService.productionSafeRegister();
   }
 }
 

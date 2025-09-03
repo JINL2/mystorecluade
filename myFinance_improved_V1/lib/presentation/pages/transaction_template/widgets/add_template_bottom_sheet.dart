@@ -16,7 +16,7 @@ import 'package:myfinance_improved/presentation/providers/entities/cash_location
 import 'package:myfinance_improved/presentation/providers/app_state_provider.dart';
 import 'package:myfinance_improved/data/services/transaction_template_service.dart';
 import 'package:myfinance_improved/data/services/supabase_service.dart';
-import '../providers/transaction_template_providers.dart';
+import '../providers/template_filter_provider.dart';
 import '../providers/counterparty_providers.dart';
 import 'store_selector.dart';
 
@@ -56,10 +56,8 @@ class _AddTemplateBottomSheetState extends ConsumerState<AddTemplateBottomSheet>
   
   // Selected store and cash location for internal counterparties
   String? _selectedDebitStoreId;
-  String? _selectedDebitStoreName;
   String? _selectedDebitCashLocationId;
   String? _selectedCreditStoreId;
-  String? _selectedCreditStoreName;
   String? _selectedCreditCashLocationId;
   
   // Cash locations for cash accounts (my company's cash)
@@ -248,8 +246,40 @@ class _AddTemplateBottomSheetState extends ConsumerState<AddTemplateBottomSheet>
         counterpartyCashLocationId: templateCounterpartyCashLocationId,
       );
       
-      // Refresh the template list
-      ref.invalidate(transactionTemplatesProvider);
+      // Create optimistic template data for immediate UI update
+      final newTemplate = {
+        'template_id': 'temp_${DateTime.now().millisecondsSinceEpoch}', // temporary ID
+        'name': _nameController.text,
+        'template_description': _descriptionController.text.isNotEmpty ? _descriptionController.text : null,
+        'data': dataArray,
+        'permission': _selectedPermission,
+        'tags': tags,
+        'visibility_level': _selectedVisibility,
+        'is_active': true,
+        'company_id': appState.companyChoosen,
+        'store_id': appState.storeChoosen,
+        'counterparty_id': templateCounterpartyId,
+        'counterparty_cash_location_id': templateCounterpartyCashLocationId,
+        'created_at': DateTime.now().toIso8601String(),
+        'updated_at': DateTime.now().toIso8601String(),
+      };
+      
+      // Add to parent page's optimistic state (if accessible)
+      if (context.mounted) {
+        try {
+          final parentState = context.findAncestorStateOfType<State>();
+          
+          if (parentState != null && parentState.runtimeType.toString().contains('TransactionTemplatePage')) {
+            // Use dynamic call since we can't access private state class
+            (parentState as dynamic)._addTemplateOptimistic?.call(newTemplate);
+          }
+        } catch (e) {
+          // Fallback: just rely on provider refresh
+        }
+      }
+      
+      // Refresh provider in background
+      ref.invalidate(filteredTransactionTemplatesProvider);
       
       // Show success dialog
       if (mounted) {
@@ -313,6 +343,22 @@ class _AddTemplateBottomSheetState extends ConsumerState<AddTemplateBottomSheet>
         );
       }
     } catch (e) {
+      // Remove optimistic template on error
+      if (context.mounted) {
+        try {
+          final parentState = context.findAncestorStateOfType<State>();
+          if (parentState != null && parentState.runtimeType.toString().contains('TransactionTemplatePage')) {
+            // Reset optimistic state to remove failed template
+            (parentState as dynamic).setState?.call(() {
+              (parentState as dynamic)._hasOptimisticUpdates = false;
+              (parentState as dynamic)._optimisticTemplates = [];
+            });
+          }
+        } catch (_) {
+          // Ignore if can't access parent state
+        }
+      }
+      
       // Show error dialog
       if (mounted) {
         await showDialog(
@@ -758,7 +804,6 @@ class _AddTemplateBottomSheetState extends ConsumerState<AddTemplateBottomSheet>
                                 _selectedDebitCounterpartyData = null; // Will be loaded from provider
                                 // Reset store and cash location when counterparty changes
                                 _selectedDebitStoreId = null;
-                                _selectedDebitStoreName = null;
                                 _selectedDebitCashLocationId = null;
                               });
                             },
@@ -798,7 +843,6 @@ class _AddTemplateBottomSheetState extends ConsumerState<AddTemplateBottomSheet>
                                       onChanged: (storeId, storeName) {
                                         setState(() {
                                           _selectedDebitStoreId = storeId;
-                                          _selectedDebitStoreName = storeName;
                                           // Reset cash location when store changes
                                           _selectedDebitCashLocationId = null;
                                         });
@@ -845,98 +889,21 @@ class _AddTemplateBottomSheetState extends ConsumerState<AddTemplateBottomSheet>
                                           ),
                                         ),
                                       ],
-                                      // Custom UI for counterparty cash location selection
-                                      Consumer(
-                                        builder: (context, ref, child) {
-                                          final linkedCompanyId = _selectedDebitCounterpartyData?['linked_company_id'] as String?;
-                                          if (linkedCompanyId == null) return SizedBox.shrink();
-                                          
-                                          final cashLocationsAsync = ref.watch(counterpartyCashLocationsProvider(linkedCompanyId));
-                                          
-                                          return Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                            children: [
-                                              Text(
-                                                'Counterparty Cash Location',
-                                                style: TossTextStyles.caption.copyWith(
-                                                  color: TossColors.gray700,
-                                                  fontWeight: FontWeight.w600,
-                                                ),
-                                              ),
-                                              SizedBox(height: TossSpacing.space2),
-                                              cashLocationsAsync.when(
-                                                data: (locations) {
-                                                  final selectedLocation = locations.firstWhere(
-                                                    (loc) => loc['cash_location_id'] == _selectedDebitCashLocationId,
-                                                    orElse: () => {'location_name': 'Select cash location'},
-                                                  );
-                                                  
-                                                  return GestureDetector(
-                                                    onTap: () => _showCounterpartyCashLocationSheet(
-                                                      context, locations, (locationId) {
-                                                        setState(() {
-                                                          _selectedDebitCashLocationId = locationId;
-                                                        });
-                                                      }
-                                                    ),
-                                                    child: Container(
-                                                      decoration: BoxDecoration(
-                                                        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-                                                        color: TossColors.white,
-                                                        border: Border.all(color: TossColors.gray200),
-                                                      ),
-                                                      padding: EdgeInsets.all(TossSpacing.space3),
-                                                      child: Row(
-                                                        children: [
-                                                          Icon(Icons.location_on, size: 20, color: TossColors.gray400),
-                                                          SizedBox(width: TossSpacing.space2),
-                                                          Expanded(
-                                                            child: Text(
-                                                              selectedLocation['location_name'] ?? 'Select cash location',
-                                                              style: TossTextStyles.body.copyWith(
-                                                                color: _selectedDebitCashLocationId != null ? TossColors.gray900 : TossColors.gray400,
-                                                                fontWeight: _selectedDebitCashLocationId != null ? FontWeight.w600 : FontWeight.w400,
-                                                              ),
-                                                            ),
-                                                          ),
-                                                          Icon(Icons.arrow_drop_down, color: TossColors.gray400),
-                                                        ],
-                                                      ),
-                                                    ),
-                                                  );
-                                                },
-                                                loading: () => Container(
-                                                  decoration: BoxDecoration(
-                                                    borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-                                                    color: TossColors.white,
-                                                    border: Border.all(color: TossColors.gray200),
-                                                  ),
-                                                  padding: EdgeInsets.all(TossSpacing.space3),
-                                                  child: Row(
-                                                    children: [
-                                                      SizedBox(
-                                                        width: 20,
-                                                        height: 20,
-                                                        child: CircularProgressIndicator(strokeWidth: 2, color: TossColors.primary),
-                                                      ),
-                                                      SizedBox(width: TossSpacing.space2),
-                                                      Text('Loading...', style: TossTextStyles.body),
-                                                    ],
-                                                  ),
-                                                ),
-                                                error: (error, stack) => Container(
-                                                  decoration: BoxDecoration(
-                                                    borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-                                                    color: TossColors.white,
-                                                    border: Border.all(color: TossColors.error),
-                                                  ),
-                                                  padding: EdgeInsets.all(TossSpacing.space3),
-                                                  child: Text('Error loading locations', style: TossTextStyles.body.copyWith(color: TossColors.error)),
-                                                ),
-                                              ),
-                                            ],
-                                          );
+                                      // Counterparty Cash Location - Using AutonomousCashLocationSelector
+                                      AutonomousCashLocationSelector(
+                                        companyId: _selectedDebitCounterpartyData?['linked_company_id'] as String?, // Use counterparty's company
+                                        storeId: _selectedDebitStoreId, // Use counterparty's store
+                                        selectedLocationId: _selectedDebitCashLocationId,
+                                        onChanged: (locationId) {
+                                          setState(() {
+                                            _selectedDebitCashLocationId = locationId;
+                                          });
                                         },
+                                        label: 'Counterparty Cash Location',
+                                        hint: 'Select counterparty cash location',
+                                        showSearch: true,
+                                        showTransactionCount: false,
+                                        showScopeTabs: _selectedDebitStoreId != null, // Show tabs only if store is available
                                       ),
                                     ],
                                   ],
@@ -1045,7 +1012,6 @@ class _AddTemplateBottomSheetState extends ConsumerState<AddTemplateBottomSheet>
                                 _selectedCreditCounterpartyData = null; // Will be loaded from provider
                                 // Reset store and cash location when counterparty changes
                                 _selectedCreditStoreId = null;
-                                _selectedCreditStoreName = null;
                                 _selectedCreditCashLocationId = null;
                               });
                             },
@@ -1085,7 +1051,6 @@ class _AddTemplateBottomSheetState extends ConsumerState<AddTemplateBottomSheet>
                                       onChanged: (storeId, storeName) {
                                         setState(() {
                                           _selectedCreditStoreId = storeId;
-                                          _selectedCreditStoreName = storeName;
                                           // Reset cash location when store changes
                                           _selectedCreditCashLocationId = null;
                                         });
@@ -1132,98 +1097,21 @@ class _AddTemplateBottomSheetState extends ConsumerState<AddTemplateBottomSheet>
                                           ),
                                         ),
                                       ],
-                                      // Custom UI for counterparty cash location selection
-                                      Consumer(
-                                        builder: (context, ref, child) {
-                                          final linkedCompanyId = _selectedCreditCounterpartyData?['linked_company_id'] as String?;
-                                          if (linkedCompanyId == null) return SizedBox.shrink();
-                                          
-                                          final cashLocationsAsync = ref.watch(counterpartyCashLocationsProvider(linkedCompanyId));
-                                          
-                                          return Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                            children: [
-                                              Text(
-                                                'Counterparty Cash Location',
-                                                style: TossTextStyles.caption.copyWith(
-                                                  color: TossColors.gray700,
-                                                  fontWeight: FontWeight.w600,
-                                                ),
-                                              ),
-                                              SizedBox(height: TossSpacing.space2),
-                                              cashLocationsAsync.when(
-                                                data: (locations) {
-                                                  final selectedLocation = locations.firstWhere(
-                                                    (loc) => loc['cash_location_id'] == _selectedCreditCashLocationId,
-                                                    orElse: () => {'location_name': 'Select cash location'},
-                                                  );
-                                                  
-                                                  return GestureDetector(
-                                                    onTap: () => _showCounterpartyCashLocationSheet(
-                                                      context, locations, (locationId) {
-                                                        setState(() {
-                                                          _selectedCreditCashLocationId = locationId;
-                                                        });
-                                                      }
-                                                    ),
-                                                    child: Container(
-                                                      decoration: BoxDecoration(
-                                                        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-                                                        color: TossColors.white,
-                                                        border: Border.all(color: TossColors.gray200),
-                                                      ),
-                                                      padding: EdgeInsets.all(TossSpacing.space3),
-                                                      child: Row(
-                                                        children: [
-                                                          Icon(Icons.location_on, size: 20, color: TossColors.gray400),
-                                                          SizedBox(width: TossSpacing.space2),
-                                                          Expanded(
-                                                            child: Text(
-                                                              selectedLocation['location_name'] ?? 'Select cash location',
-                                                              style: TossTextStyles.body.copyWith(
-                                                                color: _selectedCreditCashLocationId != null ? TossColors.gray900 : TossColors.gray400,
-                                                                fontWeight: _selectedCreditCashLocationId != null ? FontWeight.w600 : FontWeight.w400,
-                                                              ),
-                                                            ),
-                                                          ),
-                                                          Icon(Icons.arrow_drop_down, color: TossColors.gray400),
-                                                        ],
-                                                      ),
-                                                    ),
-                                                  );
-                                                },
-                                                loading: () => Container(
-                                                  decoration: BoxDecoration(
-                                                    borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-                                                    color: TossColors.white,
-                                                    border: Border.all(color: TossColors.gray200),
-                                                  ),
-                                                  padding: EdgeInsets.all(TossSpacing.space3),
-                                                  child: Row(
-                                                    children: [
-                                                      SizedBox(
-                                                        width: 20,
-                                                        height: 20,
-                                                        child: CircularProgressIndicator(strokeWidth: 2, color: TossColors.primary),
-                                                      ),
-                                                      SizedBox(width: TossSpacing.space2),
-                                                      Text('Loading...', style: TossTextStyles.body),
-                                                    ],
-                                                  ),
-                                                ),
-                                                error: (error, stack) => Container(
-                                                  decoration: BoxDecoration(
-                                                    borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-                                                    color: TossColors.white,
-                                                    border: Border.all(color: TossColors.error),
-                                                  ),
-                                                  padding: EdgeInsets.all(TossSpacing.space3),
-                                                  child: Text('Error loading locations', style: TossTextStyles.body.copyWith(color: TossColors.error)),
-                                                ),
-                                              ),
-                                            ],
-                                          );
+                                      // Counterparty Cash Location - Using AutonomousCashLocationSelector
+                                      AutonomousCashLocationSelector(
+                                        companyId: _selectedCreditCounterpartyData?['linked_company_id'] as String?, // Use counterparty's company
+                                        storeId: _selectedCreditStoreId, // Use counterparty's store
+                                        selectedLocationId: _selectedCreditCashLocationId,
+                                        onChanged: (locationId) {
+                                          setState(() {
+                                            _selectedCreditCashLocationId = locationId;
+                                          });
                                         },
+                                        label: 'Counterparty Cash Location',
+                                        hint: 'Select counterparty cash location',
+                                        showSearch: true,
+                                        showTransactionCount: false,
+                                        showScopeTabs: _selectedCreditStoreId != null, // Show tabs only if store is available
                                       ),
                                     ],
                                   ],
@@ -1447,121 +1335,4 @@ class _AddTemplateBottomSheetState extends ConsumerState<AddTemplateBottomSheet>
     );
   }
 
-  void _showCounterpartyCashLocationSheet(
-    BuildContext context,
-    List<Map<String, dynamic>> locations,
-    Function(String?) onSelected,
-  ) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: TossColors.transparent,
-      builder: (context) => Container(
-        decoration: BoxDecoration(
-          color: TossColors.surface,
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(TossBorderRadius.xxl),
-            topRight: Radius.circular(TossBorderRadius.xxl),
-          ),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Handle bar
-            Container(
-              margin: EdgeInsets.only(top: TossSpacing.space3),
-              width: 36,
-              height: 4,
-              decoration: BoxDecoration(
-                color: TossColors.gray300,
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-            
-            // Header
-            Padding(
-              padding: EdgeInsets.all(TossSpacing.space4),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Select Cash Location',
-                    style: TossTextStyles.h3.copyWith(fontWeight: FontWeight.w600),
-                  ),
-                  IconButton(
-                    icon: Icon(Icons.close, color: TossColors.gray500),
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                ],
-              ),
-            ),
-            
-            // Locations list
-            Flexible(
-              child: ListView.separated(
-                shrinkWrap: true,
-                padding: EdgeInsets.symmetric(horizontal: TossSpacing.space4),
-                itemCount: locations.length,
-                separatorBuilder: (context, index) => Container(
-                  height: 1,
-                  color: TossColors.gray100,
-                ),
-                itemBuilder: (context, index) {
-                  final location = locations[index];
-                  final locationId = location['cash_location_id'] as String?;
-                  final locationName = location['location_name'] as String? ?? 'Unknown Location';
-                  final locationType = location['location_type'] as String? ?? '';
-                  
-                  return InkWell(
-                    onTap: () {
-                      onSelected(locationId);
-                      Navigator.pop(context);
-                    },
-                    child: Container(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: TossSpacing.space4,
-                        vertical: TossSpacing.space3,
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.location_on,
-                            size: 20,
-                            color: TossColors.gray500,
-                          ),
-                          SizedBox(width: TossSpacing.space3),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  locationName,
-                                  style: TossTextStyles.body.copyWith(
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                                if (locationType.isNotEmpty && locationType != 'none')
-                                  Text(
-                                    locationType,
-                                    style: TossTextStyles.caption.copyWith(
-                                      color: TossColors.gray500,
-                                    ),
-                                  ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
-            
-            // Bottom padding
-            SizedBox(height: MediaQuery.of(context).padding.bottom + TossSpacing.space4),
-          ],
-        ),
-      ),
-    );
-  }
 }

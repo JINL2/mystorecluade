@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import '../../../core/themes/toss_colors.dart';
 import '../../../core/themes/toss_text_styles.dart';
 import '../../../core/themes/toss_spacing.dart';
@@ -12,6 +11,7 @@ import '../../widgets/common/toss_scaffold.dart';
 import '../../providers/auth_provider.dart';
 import '../../../core/constants/auth_constants.dart';
 import '../../../core/navigation/safe_navigation.dart';
+import '../../../core/navigation/auth_navigator.dart';
 
 class AuthSignupPage extends ConsumerStatefulWidget {
   const AuthSignupPage({super.key});
@@ -82,6 +82,9 @@ class _AuthSignupPageState extends ConsumerState<AuthSignupPage>
     _confirmPasswordController.addListener(_validatePasswordMatch);
     _firstNameController.addListener(_validateFirstName);
     _lastNameController.addListener(_validateLastName);
+    
+    // Clear any stale auth navigation locks on page init
+    SafeNavigation.instance.clearAuthLocks();
     
     _animationController.forward();
   }
@@ -170,7 +173,7 @@ class _AuthSignupPageState extends ConsumerState<AuthSignupPage>
   Widget build(BuildContext context) {
     return TossScaffold(
       backgroundColor: TossColors.background,
-      resizeToAvoidBottomInset: true, // Ensure keyboard handling
+      resizeToAvoidBottomInset: true,
       body: SafeArea(
         child: Column(
           children: [
@@ -681,18 +684,14 @@ class _AuthSignupPageState extends ConsumerState<AuthSignupPage>
           ),
         ),
         TextButton(
-          onPressed: () async {
-            // Stop animation for smooth transition
-            _animationController.stop();
-            
-            await Future.delayed(Duration.zero);
-            
+          onPressed: () {
             if (!mounted) return;
             
-            if (context.canPop()) {
-              context.safePop();
-            } else {
-              context.safeGo('/auth/login');
+            _animationController.stop();
+            
+            // Direct navigation back - bypasses router issues
+            if (mounted) {
+              Navigator.of(context).pop();
             }
           },
           style: TextButton.styleFrom(
@@ -805,7 +804,8 @@ class _AuthSignupPageState extends ConsumerState<AuthSignupPage>
             // Stop animation for smooth transition
             _animationController.stop();
             
-            context.safeGo('/onboarding/choose-role');
+            // Navigate to choose role after successful signup
+            AuthNavigator.toChooseRole(context);
           }
         }
       }

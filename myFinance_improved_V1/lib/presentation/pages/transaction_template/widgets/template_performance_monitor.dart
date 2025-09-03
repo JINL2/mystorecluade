@@ -12,9 +12,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/themes/toss_colors.dart';
-import '../../../../core/themes/toss_text_styles.dart';
-import '../../../../core/themes/toss_spacing.dart';
-import '../../../../core/themes/toss_border_radius.dart';
 import '../services/template_performance_service.dart';
 import '../services/monitored_template_service.dart';
 

@@ -1770,7 +1770,9 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
   
   Widget _buildJournalItem(JournalFlow flow, bool showDate) {
     final isIncome = flow.flowAmount > 0;
-    final currencySymbol = _locationSummary?.currencyCode == 'VND' ? '₫' : widget.currencySymbol ?? '';
+    // Use base currency symbol from location summary for consistent display
+    final currencySymbol = _locationSummary?.baseCurrencySymbol ?? 
+                           (_locationSummary?.currencyCode == 'VND' ? '₫' : widget.currencySymbol ?? '');
     
     return GestureDetector(
       onTap: () => _showJournalDetailBottomSheet(flow),
@@ -1892,7 +1894,8 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
   }
   
   Widget _buildRealItem(ActualFlow flow, bool showDate) {
-    final currencySymbol = flow.currency.symbol;
+    // Use base currency symbol from location summary for consistent display
+    final currencySymbol = _locationSummary?.baseCurrencySymbol ?? flow.currency.symbol;
     
     return GestureDetector(
       onTap: () => _showRealDetailBottomSheet(flow),
@@ -2014,7 +2017,9 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
   }
   
   void _showJournalDetailBottomSheet(JournalFlow flow) {
-    final currencySymbol = _locationSummary?.currencyCode == 'VND' ? '₫' : widget.currencySymbol ?? '';
+    // Use base currency symbol from location summary for consistent display
+    final currencySymbol = _locationSummary?.baseCurrencySymbol ?? 
+                           (_locationSummary?.currencyCode == 'VND' ? '₫' : widget.currencySymbol ?? '');
     
     showModalBottomSheet(
       context: context,
@@ -2157,7 +2162,8 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
   }
   
   void _showRealDetailBottomSheet(ActualFlow flow) {
-    final currencySymbol = flow.currency.symbol;
+    // Use base currency symbol for total amounts (flow amounts are in base currency)
+    final baseCurrencySymbol = _locationSummary?.baseCurrencySymbol ?? flow.currency.symbol;
     
     showModalBottomSheet(
       context: context,
@@ -2244,7 +2250,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
                                     ),
                                     const SizedBox(height: 4),
                                     Text(
-                                      _formatBalance(flow.balanceAfter, currencySymbol),
+                                      _formatBalance(flow.balanceAfter, baseCurrencySymbol),
                                       style: TossTextStyles.h1.copyWith(
                                         fontWeight: FontWeight.w700,
                                         color: Theme.of(context).colorScheme.primary,
@@ -2274,7 +2280,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
                                         ),
                                       ),
                                       Text(
-                                        _formatBalance(flow.balanceBefore, currencySymbol),
+                                        _formatBalance(flow.balanceBefore, baseCurrencySymbol),
                                         style: TossTextStyles.body.copyWith(
                                           fontWeight: FontWeight.w500,
                                           fontSize: 14,
@@ -2295,7 +2301,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
                                         ),
                                       ),
                                       Text(
-                                        _formatTransactionAmount(flow.flowAmount, currencySymbol),
+                                        _formatTransactionAmount(flow.flowAmount, baseCurrencySymbol),
                                         style: TossTextStyles.body.copyWith(
                                           fontWeight: FontWeight.w500,
                                           fontSize: 14,
@@ -2346,7 +2352,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
                                         borderRadius: BorderRadius.circular(4),
                                       ),
                                       child: Text(
-                                        _formatCurrency(denomination.denominationValue, currencySymbol),
+                                        _formatCurrency(denomination.denominationValue, denomination.currencySymbol),
                                         style: TossTextStyles.body.copyWith(
                                           fontWeight: FontWeight.w600,
                                           color: TossColors.primary,
@@ -2468,7 +2474,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
                                         ),
                                       ),
                                       Text(
-                                        _formatBalance(denomination.subtotal, currencySymbol),
+                                        _formatBalance(denomination.subtotal, denomination.currencySymbol),
                                         style: TossTextStyles.body.copyWith(
                                           fontWeight: FontWeight.w600,
                                           fontSize: 14,

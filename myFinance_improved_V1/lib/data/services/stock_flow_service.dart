@@ -154,6 +154,7 @@ class LocationSummary {
   final String? bankAccount;
   final String currencyCode;
   final String currencyId;
+  final String? baseCurrencySymbol;
 
   LocationSummary({
     required this.cashLocationId,
@@ -163,6 +164,7 @@ class LocationSummary {
     this.bankAccount,
     required this.currencyCode,
     required this.currencyId,
+    this.baseCurrencySymbol,
   });
 
   factory LocationSummary.fromJson(Map<String, dynamic> json) {
@@ -174,6 +176,7 @@ class LocationSummary {
       bankAccount: json['bank_account'],
       currencyCode: json['currency_code'] ?? '',
       currencyId: json['currency_id'] ?? '',
+      baseCurrencySymbol: json['base_currency_symbol'] ?? json['currency_symbol'],
     );
   }
 }
@@ -349,6 +352,7 @@ class DenominationDetail {
   final int currentQuantity;
   final int quantityChange;
   final double subtotal;
+  final String? currencySymbol;
 
   DenominationDetail({
     required this.denominationId,
@@ -358,6 +362,7 @@ class DenominationDetail {
     required this.currentQuantity,
     required this.quantityChange,
     required this.subtotal,
+    this.currencySymbol,
   });
 
   factory DenominationDetail.fromJson(Map<String, dynamic> json) {
@@ -369,6 +374,7 @@ class DenominationDetail {
       currentQuantity: json['current_quantity'] ?? 0,
       quantityChange: json['quantity_change'] ?? 0,
       subtotal: (json['subtotal'] ?? 0).toDouble(),
+      currencySymbol: json['currency_symbol'],
     );
   }
 }

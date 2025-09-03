@@ -295,11 +295,7 @@ class MonitoredTemplateService {
       _warmupIfNeeded('templates', () => _loadTemplatesDirect(companyId, storeId, '')),
       _warmupIfNeeded('cash_locations', () => _loadCashLocationsDirect(companyId, storeId)),
       _warmupIfNeeded('counterparties', () => _loadCounterpartiesDirect(companyId)),
-    ]).catchError((e) {
-      if (kDebugMode) {
-        print('Background warmup completed with some errors: $e');
-      }
-    });
+    ]).ignore();
   }
 
   Future<void> _warmupIfNeeded<T>(String dataType, Future<T> Function() loader) async {

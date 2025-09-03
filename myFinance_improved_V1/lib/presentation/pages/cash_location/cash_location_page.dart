@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../../core/themes/toss_text_styles.dart';
 import '../../../core/themes/toss_spacing.dart';
@@ -28,13 +27,14 @@ class CashLocationPage extends ConsumerStatefulWidget {
 }
 
 class _CashLocationPageState extends ConsumerState<CashLocationPage>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   late TabController _tabController;
   int _selectedTab = 0;
   
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _tabController = TabController(length: 3, vsync: this);
     _tabController.addListener(() {
       if (_selectedTab != _tabController.index) {
@@ -44,15 +44,37 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
         // Data will be filtered client-side, no need to refresh
       }
     });
+    // Schedule data refresh after the first frame
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _refreshData();
+    });
+  }
+  
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // Refresh data when app returns to foreground
+    if (state == AppLifecycleState.resumed) {
+      _refreshData();
+    }
+  }
+  
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Schedule refresh after build to avoid showSnackBar during build error
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _refreshData();
+    });
   }
   
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _tabController.dispose();
     super.dispose();
   }
   
-  Future<void> _refreshData() async {
+  Future<void> _refreshData({bool showFeedback = false}) async {
     try {
       final appState = ref.read(appStateProvider);
       final companyId = appState.companyChoosen;
@@ -60,18 +82,15 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
       
       if (companyId.isNotEmpty && storeId.isNotEmpty) {
         // Invalidate the provider to force a refresh
-        ref.invalidate(allCashLocationsProvider(
-          CashLocationQueryParams(
-            companyId: companyId, 
-            storeId: storeId,
-          ),
-        ));
+        ref.invalidate(allCashLocationsProvider);
         
-        // Wait for the refresh to complete
-        await Future.delayed(const Duration(milliseconds: 500));
-        
-        // Show success feedback
+        // Force rebuild to show loading state
         if (mounted) {
+          setState(() {});
+        }
+        
+        // Only show success feedback if explicitly requested (manual refresh)
+        if (showFeedback && mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: const Text('Data refreshed successfully'),
@@ -86,8 +105,8 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
         }
       }
     } catch (e) {
-      // Show error feedback
-      if (mounted) {
+      // Only show error feedback if explicitly requested or if it's a real error
+      if (showFeedback && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Failed to refresh: ${e.toString()}'),
@@ -184,7 +203,7 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
                       .toList();
                   
                   return RefreshIndicator(
-                    onRefresh: _refreshData,
+                    onRefresh: () => _refreshData(showFeedback: true),
                     color: TossColors.primary,
                     child: SingleChildScrollView(
                       physics: const AlwaysScrollableScrollPhysics(),
@@ -206,7 +225,7 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
                 },
                 loading: () => const Center(child: TossLoadingView()),
                 error: (error, stack) => RefreshIndicator(
-                  onRefresh: _refreshData,
+                  onRefresh: () => _refreshData(showFeedback: true),
                   color: TossColors.primary,
                   child: SingleChildScrollView(
                     physics: const AlwaysScrollableScrollPhysics(),

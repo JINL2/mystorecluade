@@ -378,7 +378,7 @@ class _SupplyChainDashboardState extends ConsumerState<SupplyChainDashboard> {
               ),
               
               ListTile(
-                leading: Icon(TossIcons.refresh, color: TossColors.success),
+                leading: const Icon(Icons.refresh, color: TossColors.success),
                 title: Text('Refresh Data', style: TossTextStyles.bodyLarge),
                 subtitle: Text(
                   'Update all analytics',

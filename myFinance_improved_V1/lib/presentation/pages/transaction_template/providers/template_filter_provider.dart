@@ -117,7 +117,7 @@ final filteredTransactionTemplatesProvider = FutureProvider.autoDispose<List<Map
   }
 
   try {
-    // Build base query
+    // Build base query with strict store filtering
     var query = supabase.client
         .from('transaction_templates')
         .select('''
@@ -139,6 +139,14 @@ final filteredTransactionTemplatesProvider = FutureProvider.autoDispose<List<Map
         ''')
         .eq('company_id', appState.companyChoosen)
         .eq('is_active', true);
+    
+    // Apply strict store filtering - show ONLY current store templates
+    if (appState.storeChoosen.isNotEmpty) {
+      query = query.eq('store_id', appState.storeChoosen);
+    } else {
+      // If no store selected, return empty list (no templates available)
+      return [];
+    }
 
     // Apply account filter - filter templates that contain specified accounts in their data
     // We'll handle this in post-processing since it requires analyzing the template data

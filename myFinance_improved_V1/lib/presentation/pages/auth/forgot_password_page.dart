@@ -10,6 +10,7 @@ import '../../widgets/common/toss_empty_state_card.dart';
 import '../../widgets/toss/toss_bottom_sheet.dart';
 import '../../providers/auth_provider.dart';
 import '../../../core/navigation/safe_navigation.dart';
+import '../../../core/navigation/auth_navigator.dart';
 
 class ForgotPasswordPage extends ConsumerStatefulWidget {
   const ForgotPasswordPage({super.key});
@@ -35,13 +36,13 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
   Widget build(BuildContext context) {
     return TossScaffold(
       backgroundColor: TossColors.background,
-      resizeToAvoidBottomInset: true, // Ensure keyboard handling
+      resizeToAvoidBottomInset: true,
       appBar: AppBar(
         backgroundColor: TossColors.background,
         elevation: 0,
         leading: IconButton(
           icon: Icon(Icons.arrow_back_ios, color: TossColors.gray900),
-          onPressed: () => context.safePop(),
+          onPressed: () => Navigator.of(context).pop(), // Direct navigation
         ),
       ),
       body: SafeArea(
@@ -192,8 +193,8 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
               TossPrimaryButton(
                 text: 'Back to Sign In',
                 onPressed: () {
-                  // Navigate with smooth transition
-                  context.safeGo('/auth/login');
+                  // Direct navigation back - bypasses router issues
+                  Navigator.of(context).pop();
                 },
               ),
               const SizedBox(height: TossSpacing.space5),
@@ -233,11 +234,9 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
     });
 
     try {
-      
       await ref.read(authStateProvider.notifier).resetPassword(
         _emailController.text.trim(),
       );
-      
       
       setState(() {
         _emailSent = true;

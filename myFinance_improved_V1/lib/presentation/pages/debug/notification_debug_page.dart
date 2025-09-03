@@ -14,6 +14,7 @@ import '../../../core/themes/toss_text_styles.dart';
 import '../../../core/themes/toss_spacing.dart';
 import '../../../core/themes/toss_shadows.dart';
 import '../../../core/themes/toss_border_radius.dart';
+import '../../../core/notifications/services/production_token_service.dart';
 
 class NotificationDebugPage extends ConsumerStatefulWidget {
   const NotificationDebugPage({Key? key}) : super(key: key);
@@ -30,6 +31,8 @@ class _NotificationDebugPageState extends ConsumerState<NotificationDebugPage> {
   
   Map<String, dynamic> _debugInfo = {};
   List<Map<String, dynamic>> _savedTokens = [];
+  Map<String, dynamic> _productionStats = {};
+  Map<String, dynamic> _tokenHealth = {};
   bool _isLoading = true;
   String _statusMessage = '';
   
@@ -49,6 +52,11 @@ class _NotificationDebugPageState extends ConsumerState<NotificationDebugPage> {
       // Get debug info from notification service
       final debugInfo = _notificationService.getDebugInfo();
       
+      // Get production token service stats and health
+      final productionTokenService = ProductionTokenService();
+      final productionStats = productionTokenService.getProductionStats();
+      final tokenHealth = await productionTokenService.performHealthCheck();
+      
       // Load saved tokens from Supabase
       final userId = _supabase.auth.currentUser?.id;
       List<Map<String, dynamic>> savedTokens = [];
@@ -66,6 +74,8 @@ class _NotificationDebugPageState extends ConsumerState<NotificationDebugPage> {
       setState(() {
         _debugInfo = debugInfo;
         _savedTokens = savedTokens;
+        _productionStats = productionStats;
+        _tokenHealth = tokenHealth;
         _isLoading = false;
         _statusMessage = 'Debug information loaded successfully';
       });
@@ -304,6 +314,33 @@ class _NotificationDebugPageState extends ConsumerState<NotificationDebugPage> {
     }
   }
   
+  Future<void> _testProductionTokenRegistration() async {
+    setState(() {
+      _statusMessage = 'Testing production token registration...';
+    });
+    
+    try {
+      final productionTokenService = ProductionTokenService();
+      final success = await productionTokenService.productionSafeRegister();
+      
+      if (success) {
+        setState(() {
+          _statusMessage = '✅ Production token registration successful';
+        });
+      } else {
+        setState(() {
+          _statusMessage = '❌ Production token registration failed';
+        });
+      }
+      
+      await _loadDebugInfo();
+    } catch (e) {
+      setState(() {
+        _statusMessage = '❌ Error testing production token: $e';
+      });
+    }
+  }
+  
   void _copyToClipboard(String text) {
     Clipboard.setData(ClipboardData(text: text));
     ScaffoldMessenger.of(context).showSnackBar(
@@ -410,6 +447,14 @@ class _NotificationDebugPageState extends ConsumerState<NotificationDebugPage> {
                           backgroundColor: TossColors.success,
                         ),
                       ),
+                      ElevatedButton.icon(
+                        onPressed: _testProductionTokenRegistration,
+                        icon: const Icon(Icons.security),
+                        label: const Text('Test Production Token'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: TossColors.primary,
+                        ),
+                      ),
                     ],
                   ),
                   
@@ -433,6 +478,30 @@ class _NotificationDebugPageState extends ConsumerState<NotificationDebugPage> {
                     _savedTokens.isEmpty
                         ? [const Text('No tokens found in database')]
                         : _savedTokens.map((token) => _buildTokenCard(token)).toList(),
+                  ),
+                  
+                  SizedBox(height: TossSpacing.space4),
+                  
+                  // Production Token Service Stats
+                  _buildSection(
+                    'Production Token Service',
+                    _productionStats.entries.map((e) => _buildInfoRow(
+                      e.key.replaceAll('_', ' ').toUpperCase(),
+                      e.value?.toString() ?? 'null',
+                      canCopy: e.key.contains('token'),
+                    )).toList(),
+                  ),
+                  
+                  SizedBox(height: TossSpacing.space4),
+                  
+                  // Token Health Status
+                  _buildSection(
+                    'Token Health Status',
+                    _tokenHealth.entries.map((e) => _buildInfoRow(
+                      e.key.replaceAll('_', ' ').toUpperCase(),
+                      e.value?.toString() ?? 'null',
+                      canCopy: false,
+                    )).toList(),
                   ),
                   
                   SizedBox(height: TossSpacing.space4),

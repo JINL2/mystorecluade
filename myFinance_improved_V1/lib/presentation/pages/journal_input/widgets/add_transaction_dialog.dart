@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../models/journal_entry_model.dart';
 import '../providers/journal_input_providers.dart';
-import '../../../../data/models/transaction_history_model.dart' as history_models;
 import '../../../providers/app_state_provider.dart';
 import '../../../../core/themes/toss_colors.dart';
 import '../../../../core/themes/toss_text_styles.dart';
@@ -169,6 +168,7 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
       _selectedCounterpartyStoreId = line.counterpartyStoreId;
       _selectedCounterpartyStoreName = line.counterpartyStoreName;
       _selectedCashLocationId = line.cashLocationId;
+      _selectedCounterpartyCashLocationId = line.counterpartyCashLocationId; // Load existing counterparty cash location
       // Format amount with thousand separators
       final formatter = NumberFormat('#,##0.##', 'en_US');
       _amountController.text = formatter.format(line.amount);
@@ -422,6 +422,7 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
       cashLocationName: null, // Managed by AutonomousCashLocationSelector
       cashLocationType: null, // Managed by AutonomousCashLocationSelector
       linkedCompanyId: _linkedCompanyId,
+      counterpartyCashLocationId: _selectedCounterpartyCashLocationId, // Add counterparty cash location
       debtCategory: _debtCategory,
       interestRate: double.tryParse(_interestRateController.text),
       issueDate: _issueDate,
@@ -927,10 +928,12 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
                         ),
                       ],
                       
-                      // Counterparty Cash Location Selection - Using AutonomousCashLocationSelector
+                      // Counterparty Cash Location Selection - Using AutonomousCashLocationSelector with counterparty's company/store
                       if (_linkedCompanyId != null) ...[
                         SizedBox(height: 20),
                         AutonomousCashLocationSelector(
+                          companyId: _linkedCompanyId, // Use the counterparty's company ID
+                          storeId: _selectedCounterpartyStoreId, // Use the counterparty's store ID if available
                           selectedLocationId: _selectedCounterpartyCashLocationId,
                           onChanged: (locationId) {
                             setState(() {
@@ -941,10 +944,7 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
                           hint: 'Select counterparty cash location',
                           showSearch: true,
                           showTransactionCount: false,
-                          showScopeTabs: false, // Don't show scope tabs for counterparty (they're from different company)
-                          initialScope: _selectedCounterpartyStoreId != null 
-                              ? history_models.TransactionScope.store 
-                              : history_models.TransactionScope.company,
+                          showScopeTabs: _selectedCounterpartyStoreId != null, // Show tabs only if store is available
                         ),
                       ],
                       

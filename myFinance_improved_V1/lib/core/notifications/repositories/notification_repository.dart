@@ -156,104 +156,64 @@ class NotificationRepository {
         'last_used_at': now.toIso8601String(),
       };
 
-      debugPrint('🔍 Attempting to store FCM token for user: $userId, platform: $platform');
-      debugPrint('📊 Token data: ${tokenData.toString()}');
-
-      // First try to update existing token for this user/platform
-      Map<String, dynamic>? existingToken;
-      try {
-        existingToken = await _supabase
-            .from(_fcmTokensTable)
-            .select()
-            .eq('user_id', userId)
-            .eq('platform', platform)
-            .maybeSingle();
-        
-        debugPrint('🔍 Existing token check: ${existingToken != null ? "Found" : "Not found"}');
-      } catch (selectError) {
-        debugPrint('⚠️ Error checking existing token: $selectError');
-        // Continue with insert if select fails
+      // Reduced logging - only log significant events
+      if (kDebugMode) {
+        debugPrint('🔍 Storing FCM token for user: $userId');
       }
+
+      // Use proper upsert approach to handle duplicates gracefully
+      tokenData['created_at'] = now.toIso8601String();
+      tokenData['updated_at'] = now.toIso8601String();
       
       Map<String, dynamic>? response;
       
-      if (existingToken != null) {
-        // Update existing token
-        debugPrint('📝 Updating existing FCM token for user: $userId');
+      try {
+        // Try upsert using PostgreSQL's conflict resolution
+        response = await _supabase
+            .from(_fcmTokensTable)
+            .upsert(tokenData, onConflict: 'user_id,platform')
+            .select()
+            .single();
         
-        try {
-          response = await _supabase
-              .from(_fcmTokensTable)
-              .update({
-                'token': token,
-                'device_id': deviceId ?? existingToken['device_id'],
-                'device_model': deviceModel ?? existingToken['device_model'],
-                'app_version': appVersion ?? existingToken['app_version'],
-                'is_active': true,
-                'updated_at': now.toIso8601String(),
-                'last_used_at': now.toIso8601String(),
-              })
-              .eq('user_id', userId)
-              .eq('platform', platform)
-              .select()
-              .single();
-          
-          debugPrint('✅ FCM token updated successfully');
-          debugPrint('📊 Update response: ${response.toString()}');
-        } catch (updateError) {
-          debugPrint('❌ Update failed: $updateError');
-          // Try insert as fallback
-          existingToken = null;
+        if (kDebugMode) {
+          debugPrint('✅ FCM token upserted successfully');
         }
-      }
-      
-      if (existingToken == null && response == null) {
-        // Insert new token
-        debugPrint('➕ Inserting new FCM token for user: $userId');
-        
-        try {
-          // First deactivate any other tokens for this user/platform
-          await _supabase
-              .from(_fcmTokensTable)
-              .update({
-                'is_active': false,
-                'updated_at': now.toIso8601String(),
-              })
-              .eq('user_id', userId)
-              .eq('platform', platform);
-          
-          debugPrint('✅ Deactivated old tokens');
-        } catch (deactivateError) {
-          debugPrint('⚠️ Could not deactivate old tokens: $deactivateError');
-          // Continue with insert anyway
+      } catch (upsertError) {
+        if (kDebugMode) {
+          debugPrint('❌ Upsert failed, trying fallback: $upsertError');
         }
         
-        // Insert the new token
-        tokenData['created_at'] = now.toIso8601String();
-        tokenData['updated_at'] = now.toIso8601String();
-        
-        try {
-          response = await _supabase
-              .from(_fcmTokensTable)
-              .insert(tokenData)
-              .select()
-              .single();
-          
-          debugPrint('✅ FCM token inserted successfully');
-          debugPrint('📊 Insert response: ${response?.toString()}');
-        } catch (insertError) {
-          debugPrint('❌ Insert failed: $insertError');
-          
-          // Check if it's a table/column issue
-          if (insertError.toString().contains('relation') || 
-              insertError.toString().contains('column')) {
-            debugPrint('🚨 Table or column issue detected. Please verify:');
-            debugPrint('   1. Table "user_fcm_tokens" exists in Supabase');
-            debugPrint('   2. All required columns are present');
-            debugPrint('   3. RLS policies allow insert/update for authenticated users');
+        // Fallback: Handle constraint violations gracefully
+        if (upsertError.toString().contains('unique_fcm_token')) {
+          try {
+            // If token exists, update by token instead of user/platform
+            response = await _supabase
+                .from(_fcmTokensTable)
+                .update({
+                  'user_id': userId,
+                  'platform': platform,
+                  'device_id': deviceId ?? tokenData['device_id'],
+                  'device_model': deviceModel ?? tokenData['device_model'],
+                  'app_version': appVersion ?? tokenData['app_version'],
+                  'is_active': true,
+                  'updated_at': now.toIso8601String(),
+                  'last_used_at': now.toIso8601String(),
+                })
+                .eq('token', token)
+                .select()
+                .single();
+                
+            if (kDebugMode) {
+              debugPrint('✅ FCM token updated by token');
+            }
+          } catch (finalError) {
+            if (kDebugMode) {
+              debugPrint('❌ Final update failed: $finalError');
+            }
+            throw finalError;
           }
-          
-          throw insertError;
+        } else {
+          throw upsertError;
         }
       }
       
@@ -266,19 +226,19 @@ class NotificationRepository {
       }
       
     } catch (e, stack) {
-      debugPrint('❌ FCM token storage error: $e');
-      debugPrint('📍 Error type: ${e.runtimeType}');
-      
-      // Check for specific Supabase errors
-      if (e.toString().contains('JWT')) {
-        debugPrint('🔐 Authentication issue detected. User may not be properly authenticated.');
-      } else if (e.toString().contains('permission') || e.toString().contains('denied')) {
-        debugPrint('🔒 Permission issue detected. Check RLS policies on user_fcm_tokens table.');
-      } else if (e.toString().contains('violates')) {
-        debugPrint('⚠️ Constraint violation. Check table constraints and data types.');
+      // Only log errors in debug mode to reduce console spam
+      if (kDebugMode) {
+        debugPrint('❌ FCM token error: ${e.runtimeType}');
+        
+        // Log specific error types only in debug
+        if (e.toString().contains('JWT')) {
+          debugPrint('🔐 Authentication issue detected');
+        } else if (e.toString().contains('permission')) {
+          debugPrint('🔒 Permission issue detected');
+        } else if (e.toString().contains('violates')) {
+          debugPrint('⚠️ Constraint violation');
+        }
       }
-      
-      debugPrint('Stack trace: $stack');
       
       // Return a minimal model to prevent crashes
       return UserFcmTokenModel(

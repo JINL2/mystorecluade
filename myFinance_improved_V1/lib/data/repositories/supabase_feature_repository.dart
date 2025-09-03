@@ -17,6 +17,7 @@ class SupabaseFeatureRepository implements FeatureRepository {
   // Cache now includes company_id in the key
   static final Map<String, List<TopFeature>> _userFeaturesCache = {};
   static final Map<String, DateTime> _userFeaturesCacheTime = {};
+  static const Duration _userFeaturesCacheTTL = Duration(hours: 2);
 
   SupabaseFeatureRepository(this._client, [this._ref]);
 
@@ -77,14 +78,13 @@ class SupabaseFeatureRepository implements FeatureRepository {
       // Create cache key including company_id
       final cacheKey = '${userId}_${effectiveCompanyId ?? 'default'}';
       
-      // TEMP: Skip cache for testing - remove this in production
       // Check user-specific cache first
-      // if (_userFeaturesCache.containsKey(cacheKey) && _userFeaturesCacheTime.containsKey(cacheKey)) {
-      //   final cacheAge = DateTime.now().difference(_userFeaturesCacheTime[cacheKey]!);
-      //   if (cacheAge < _userFeaturesCacheTTL) {
-      //     return _userFeaturesCache[cacheKey]!;
-      //   }
-      // }
+      if (_userFeaturesCache.containsKey(cacheKey) && _userFeaturesCacheTime.containsKey(cacheKey)) {
+        final cacheAge = DateTime.now().difference(_userFeaturesCacheTime[cacheKey]!);
+        if (cacheAge < _userFeaturesCacheTTL) {
+          return _userFeaturesCache[cacheKey]!;
+        }
+      }
       
       
       // Use the updated RPC function with company_id parameter

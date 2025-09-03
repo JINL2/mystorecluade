@@ -38,7 +38,10 @@ class CashLocationList extends _$CashLocationList {
       if (response == null) return [];
 
       final List<dynamic> data = response as List<dynamic>;
-      return data.map((json) => CashLocationData.fromJson(json as Map<String, dynamic>)).toList();
+      final locations = data.map((json) => CashLocationData.fromJson(json as Map<String, dynamic>)).toList();
+      
+      // Filter out deleted cash locations
+      return locations.where((location) => !location.isDeleted).toList();
     } catch (e) {
       // Log error but don't throw to prevent UI crashes
       print('Error fetching cash locations: $e');

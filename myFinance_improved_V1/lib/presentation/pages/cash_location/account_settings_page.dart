@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:go_router/go_router.dart';
 import 'dart:convert';
 import '../../../core/themes/toss_text_styles.dart';
 import '../../../core/themes/toss_spacing.dart';
@@ -11,6 +12,7 @@ import '../../providers/app_state_provider.dart';
 import '../../../data/services/cash_location_service.dart';
 import '../../widgets/common/toss_scaffold.dart';
 import '../../widgets/common/toss_app_bar.dart';
+import '../../widgets/common/toss_loading_view.dart';
 
 class AccountSettingsPage extends ConsumerStatefulWidget {
   final String accountName;
@@ -28,7 +30,8 @@ class AccountSettingsPage extends ConsumerStatefulWidget {
   ConsumerState<AccountSettingsPage> createState() => _AccountSettingsPageState();
 }
 
-class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage> {
+class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage> 
+    with WidgetsBindingObserver {
   bool _isMainAccount = false;
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _noteController = TextEditingController();
@@ -41,12 +44,37 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _currentAccountName = widget.accountName;
     _nameController.text = widget.accountName;
+    // Schedule data refresh after the first frame
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _refreshData();
+    });
+  }
+  
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // Refresh data when app returns to foreground
+    if (state == AppLifecycleState.resumed) {
+      _refreshData();
+    }
+  }
+  
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Schedule refresh after build to avoid showSnackBar during build error
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _refreshData();
+    });
+  }
+  
+  Future<void> _refreshData() async {
     if (widget.locationId.isNotEmpty) {
-      _loadCashLocationData();
+      await _loadCashLocationData();
     } else {
-      _loadCashLocationDataByName();
+      await _loadCashLocationDataByName();
     }
   }
   
@@ -128,6 +156,7 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage> {
   
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _nameController.dispose();
     _noteController.dispose();
     _descriptionController.dispose();
@@ -557,9 +586,12 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage> {
   }
   
   void _showDeleteConfirmation() {
+    // Save the main widget's context before showing any dialogs
+    final rootContext = context;
+    
     showDialog(
-      context: context,
-      builder: (BuildContext context) {
+      context: rootContext,
+      builder: (BuildContext dialogContext) {
         return AlertDialog(
           title: Text(
             'Delete Account',
@@ -573,7 +605,7 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage> {
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.of(context).pop(),
+              onPressed: () => Navigator.of(dialogContext).pop(),
               child: Text(
                 'Cancel',
                 style: TossTextStyles.body.copyWith(
@@ -583,16 +615,98 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage> {
             ),
             TextButton(
               onPressed: () async {
-                Navigator.of(context).pop(); // Close the dialog
-                await _deleteCashLocation();
-                if (mounted) {
+                // Close the confirmation dialog first
+                Navigator.of(dialogContext).pop();
+                
+                // Check if the widget is still mounted before proceeding
+                if (!mounted) return;
+                
+                // Show loading indicator using the root context
+                showDialog(
+                  context: rootContext,
+                  barrierDismissible: false,
+                  builder: (BuildContext loadingContext) {
+                    return PopScope(
+                      canPop: false,
+                      child: Center(
+                        child: Container(
+                          padding: EdgeInsets.all(TossSpacing.space5),
+                          decoration: BoxDecoration(
+                            color: TossColors.white,
+                            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+                          ),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              TossLoadingView(),
+                              SizedBox(height: TossSpacing.space4),
+                              Text(
+                                'Deleting...',
+                                style: TossTextStyles.body.copyWith(
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                );
+                
+                // Delete the cash location
+                final success = await _deleteCashLocation();
+                
+                // Check if still mounted before any navigation
+                if (!mounted) return;
+                
+                // Close the loading dialog using the root navigator
+                Navigator.of(rootContext).pop();
+                
+                if (success) {
                   // Invalidate cache to refresh the list
                   ref.invalidate(allCashLocationsProvider);
-                  // Pop twice to go back through Navigator stack
-                  // First pop: Account Settings -> Account Detail
-                  Navigator.of(context).pop();
-                  // Second pop: Account Detail -> Cash Control
-                  Navigator.of(context).pop();
+                  
+                  // Show success message
+                  if (mounted) {
+                    ScaffoldMessenger.of(rootContext).showSnackBar(
+                      SnackBar(
+                        content: Text('Account deleted successfully'),
+                        backgroundColor: TossColors.success,
+                        behavior: SnackBarBehavior.floating,
+                        duration: const Duration(seconds: 2),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    );
+                  }
+                  
+                  // Add a small delay for the success message to show
+                  await Future.delayed(const Duration(milliseconds: 300));
+                  
+                  // Navigate back to Cash Location list page
+                  // Check if still mounted after the delay
+                  if (mounted) {
+                    // Use GoRouter for safer navigation back to cash location page
+                    // This will replace the current navigation stack
+                    context.go('/cashLocation');
+                  }
+                } else {
+                  // Show error message if deletion failed
+                  if (mounted) {
+                    ScaffoldMessenger.of(rootContext).showSnackBar(
+                      SnackBar(
+                        content: Text('Failed to delete account'),
+                        backgroundColor: TossColors.error,
+                        behavior: SnackBarBehavior.floating,
+                        duration: const Duration(seconds: 2),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    );
+                  }
                 }
               },
               child: Text(
@@ -842,7 +956,7 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage> {
     }
   }
   
-  Future<void> _deleteCashLocation() async {
+  Future<bool> _deleteCashLocation() async {
     try {
       // Soft delete by setting is_deleted = true
       if (widget.locationId.isNotEmpty) {
@@ -862,26 +976,24 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage> {
             .eq('store_id', appState.storeChoosen);
       }
       
-      // Invalidate cache to refresh the list
-      ref.invalidate(allCashLocationsProvider);
-      
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Account deleted successfully'),
-            backgroundColor: TossColors.success,
-          ),
-        );
-      }
+      // Don't show success message here, it will be shown after dialog closes
+      return true; // Return success
     } catch (e) {
+      // Show error message only on failure
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Failed to delete account: ${e.toString()}'),
             backgroundColor: TossColors.error,
+            behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 3),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
           ),
         );
       }
+      return false; // Return failure
     }
   }
 }

@@ -14,6 +14,7 @@ class TossCurrencyChip extends StatelessWidget {
   final bool isSelected;
   final VoidCallback onTap;
   final bool enableHaptic;
+  final bool hasData;
 
   const TossCurrencyChip({
     super.key,
@@ -23,6 +24,7 @@ class TossCurrencyChip extends StatelessWidget {
     required this.isSelected,
     required this.onTap,
     this.enableHaptic = true,
+    this.hasData = false,
   });
 
   @override
@@ -41,11 +43,19 @@ class TossCurrencyChip extends StatelessWidget {
           vertical: TossSpacing.space2,
         ),
         decoration: BoxDecoration(
-          color: isSelected ? TossColors.primary : TossColors.white,
+          color: isSelected 
+              ? TossColors.primary 
+              : hasData 
+                  ? TossColors.primary.withOpacity(0.1)
+                  : TossColors.white,
           borderRadius: BorderRadius.circular(TossBorderRadius.md),
           border: Border.all(
-            color: isSelected ? TossColors.primary : TossColors.gray300,
-            width: 1.5,
+            color: isSelected 
+                ? TossColors.primary 
+                : hasData 
+                    ? TossColors.primary
+                    : TossColors.gray300,
+            width: hasData && !isSelected ? 2.0 : 1.5,
           ),
         ),
         child: Row(
@@ -54,8 +64,12 @@ class TossCurrencyChip extends StatelessWidget {
             Text(
               symbol,
               style: TossTextStyles.body.copyWith(
-                color: isSelected ? TossColors.white : TossColors.gray700,
-                fontWeight: FontWeight.w600,
+                color: isSelected 
+                    ? TossColors.white 
+                    : hasData 
+                        ? TossColors.primary
+                        : TossColors.gray700,
+                fontWeight: hasData ? FontWeight.w700 : FontWeight.w600,
               ),
             ),
             const SizedBox(width: TossSpacing.space1),
@@ -64,8 +78,10 @@ class TossCurrencyChip extends StatelessWidget {
               style: TossTextStyles.caption.copyWith(
                 color: isSelected
                     ? TossColors.white.withOpacity(0.9)
-                    : TossColors.gray500,
-                fontWeight: FontWeight.w500,
+                    : hasData
+                        ? TossColors.primary.withOpacity(0.8)
+                        : TossColors.gray500,
+                fontWeight: hasData ? FontWeight.w600 : FontWeight.w500,
               ),
             ),
           ],

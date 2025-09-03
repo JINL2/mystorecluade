@@ -15,7 +15,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/performance/performance_monitor.dart';
 import '../../../../core/cache/smart_cache_manager.dart';
 import '../../../../core/error_handling/error_recovery_system.dart';
-import '../../../../core/optimistic/optimistic_operations_manager.dart';
 
 /// Template operation types for performance tracking
 enum TemplateOperation {
@@ -98,7 +97,6 @@ class TemplatePerformanceService {
   final PerformanceMonitor _performanceMonitor = PerformanceMonitor();
   final SmartCacheManager _cacheManager = SmartCacheManager();
   final ErrorRecoverySystem _errorRecovery = ErrorRecoverySystem();
-  final OptimisticOperationsManager _optimisticOps = OptimisticOperationsManager();
   
   // Memoized operation cache
   final Map<String, dynamic> _memoizedOperations = {};
@@ -201,12 +199,7 @@ class TemplatePerformanceService {
     Future.wait([
       _warmupCashLocations(companyId, storeId),
       _warmupCounterparties(companyId),
-    ]).catchError((e) {
-      // Silent fail for background operations
-      if (kDebugMode) {
-        print('Background warmup failed: $e');
-      }
-    });
+    ]).ignore();
   }
 
   Future<void> _warmupCashLocations(String companyId, String storeId) async {
@@ -242,7 +235,6 @@ class TemplatePerformanceService {
   /// Get comprehensive performance statistics
   TemplatePerformanceStats getTemplatePerformanceStats(TemplateOperation operation) {
     final stats = _performanceMonitor.getStats(operation.operationName);
-    final cacheStats = _cacheManager.getStats();
     
     if (stats == null) {
       return TemplatePerformanceStats(
@@ -404,7 +396,6 @@ class TemplatePerformanceService {
 
     // Overall system metrics
     final overallStats = _performanceMonitor.getPerformanceSummary();
-    final cacheStats = _cacheManager.getStats();
 
     return {
       'timestamp': DateTime.now().toIso8601String(),
@@ -414,7 +405,6 @@ class TemplatePerformanceService {
       'uniqueRecommendations': recommendations.toSet().toList(),
       'operationStats': operationStats,
       'overallPerformance': overallStats,
-      'cachePerformance': cacheStats,
       'memoizationEfficiency': _getMemoizationEfficiency(),
     };
   }
