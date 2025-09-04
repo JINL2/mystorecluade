@@ -191,11 +191,8 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
   @override
   Widget build(BuildContext context) {
     final userCompaniesAsync = ref.watch(userCompaniesProvider);
-    // Get categories from app state (saved during login)
-    final categoriesFromState = ref.watch(categoryFeaturesProvider);
-    final categoriesAsync = categoriesFromState.isEmpty 
-        ? const AsyncValue.loading() 
-        : AsyncValue.data(categoriesFromState);
+    // Use filtered categories to ensure is_show_main filtering is applied
+    final categoriesAsync = ref.watch(categoriesWithFeaturesProvider);
     // Watch the selections so they update when changed
     final selectedCompany = ref.watch(selectedCompanyProvider);
     final selectedStore = ref.watch(selectedStoreProvider);
