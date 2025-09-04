@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/themes/toss_colors.dart';
 import '../../../../core/themes/toss_text_styles.dart';
+import '../../../widgets/common/enhanced_quantity_selector.dart';
 import '../models/sale_product_models.dart';
 
 class CartItemTile extends StatelessWidget {
@@ -91,51 +92,22 @@ class CartItemTile extends StatelessWidget {
             ),
           ),
           
-          // Quantity Controls
-          Row(
-            children: [
-              IconButton(
-                onPressed: () {
-                  if (item.quantity > 1) {
-                    onQuantityChanged(item.quantity - 1);
-                  } else {
-                    onRemove();
-                  }
-                },
-                icon: Icon(
-                  Icons.remove_circle_outline,
-                  color: TossColors.primary,
-                  size: 28,
-                ),
-              ),
-              Container(
-                width: 40,
-                height: 32,
-                decoration: BoxDecoration(
-                  color: TossColors.primary.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Center(
-                  child: Text(
-                    '${item.quantity}',
-                    style: TossTextStyles.body.copyWith(
-                      color: TossColors.primary,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ),
-              IconButton(
-                onPressed: () {
-                  onQuantityChanged(item.quantity + 1);
-                },
-                icon: Icon(
-                  Icons.add_circle_outline,
-                  color: TossColors.primary,
-                  size: 28,
-                ),
-              ),
-            ],
+          // Enhanced Quantity Controls
+          EnhancedQuantitySelector(
+            quantity: item.quantity,
+            maxQuantity: item.available,
+            compactMode: false,
+            width: 160,
+            onQuantityChanged: (newQuantity) {
+              if (newQuantity <= 0) {
+                onRemove();
+              } else {
+                onQuantityChanged(newQuantity);
+              }
+            },
+            semanticLabel: 'Quantity for ${item.name}',
+            decrementSemanticLabel: 'Decrease ${item.name} quantity',
+            incrementSemanticLabel: 'Increase ${item.name} quantity',
           ),
         ],
       ),

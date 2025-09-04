@@ -7,22 +7,24 @@ import '../../../core/themes/toss_animations.dart';
 import '../../widgets/toss/toss_primary_button.dart';
 import '../../widgets/toss/toss_text_field.dart';
 import '../../widgets/auth/storebase_auth_header.dart';
-import '../../../data/services/enhanced_company_service.dart';
-import '../../../data/services/company_service.dart';
 import '../../providers/app_state_provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/constants/auth_constants.dart';
 import '../../widgets/common/toss_scaffold.dart';
 import '../../../core/navigation/safe_navigation.dart';
+import '../../../data/services/enhanced_company_service.dart';
+import '../../../data/services/company_service.dart';
+import '../../widgets/common/toss_success_dialog.dart';
+import '../../widgets/common/toss_error_dialog.dart';
 
-class CreateBusinessPage extends ConsumerStatefulWidget {
-  const CreateBusinessPage({super.key});
+class EnhancedCreateBusinessPage extends ConsumerStatefulWidget {
+  const EnhancedCreateBusinessPage({super.key});
 
   @override
-  ConsumerState<CreateBusinessPage> createState() => _CreateBusinessPageState();
+  ConsumerState<EnhancedCreateBusinessPage> createState() => _EnhancedCreateBusinessPageState();
 }
 
-class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
+class _EnhancedCreateBusinessPageState extends ConsumerState<EnhancedCreateBusinessPage>
     with TickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
   
@@ -37,16 +39,12 @@ class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
   final _businessAddressFocusNode = FocusNode();
   
   late AnimationController _animationController;
-  late AnimationController _successController;
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
-  late Animation<double> _successScaleAnimation;
   
   bool _isLoading = false;
-  bool _showSuccess = false;
   String? _businessType;
   String? _selectedCurrencyId;
-  String? _companyCode;
   List<CompanyType> _companyTypes = [];
   List<Currency> _currencies = [];
   
@@ -64,11 +62,6 @@ class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
       vsync: this,
     );
     
-    _successController = AnimationController(
-      duration: const Duration(milliseconds: 600),
-      vsync: this,
-    );
-    
     _fadeAnimation = Tween<double>(
       begin: 0.0,
       end: 1.0,
@@ -83,14 +76,6 @@ class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
     ).animate(CurvedAnimation(
       parent: _animationController,
       curve: TossAnimations.standard,
-    ));
-    
-    _successScaleAnimation = Tween<double>(
-      begin: 0.8,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _successController,
-      curve: Curves.elasticOut,
     ));
     
     _businessNameController.addListener(_validateBusinessName);
@@ -118,7 +103,7 @@ class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
     if (mounted) {
       setState(() {
         _currencies = currencies;
-            final usd = currencies.firstWhere(
+        final usd = currencies.firstWhere(
           (c) => c.currencyCode == 'USD',
           orElse: () => currencies.first,
         );
@@ -151,7 +136,6 @@ class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
   @override
   void dispose() {
     _animationController.dispose();
-    _successController.dispose();
     _businessNameController.dispose();
     _businessEmailController.dispose();
     _businessPhoneController.dispose();
@@ -174,214 +158,70 @@ class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
             const StorebaseAuthHeader(showBackButton: true),
             
             Expanded(
-              child: _showSuccess 
-                  ? _buildSuccessView()
-                  : _buildFormView(),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildFormView() {
-    return SingleChildScrollView(
-      padding: EdgeInsets.all(TossSpacing.space5),
-      child: Form(
-        key: _formKey,
-        child: SlideTransition(
-          position: _slideAnimation,
-          child: FadeTransition(
-            opacity: _fadeAnimation,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildTitleSection(),
-                
-                const SizedBox(height: TossSpacing.space8),
-                
-                _buildSectionTitle('Business Information'),
-                
-                const SizedBox(height: TossSpacing.space4),
-                
-                _buildBusinessNameField(),
-                
-                const SizedBox(height: TossSpacing.space4),
-                
-                _buildBusinessTypeDropdown(),
-                
-                const SizedBox(height: TossSpacing.space4),
-                
-                _buildBusinessEmailField(),
-                
-                const SizedBox(height: TossSpacing.space4),
-                
-                _buildBusinessPhoneField(),
-                
-                const SizedBox(height: TossSpacing.space6),
-                
-                _buildSectionTitle('Business Location'),
-                
-                const SizedBox(height: TossSpacing.space4),
-                
-                _buildAddressField(),
-                
-                const SizedBox(height: TossSpacing.space4),
-                
-                _buildCurrencyDropdown(),
-                
-                const SizedBox(height: TossSpacing.space8),
-                
-                _buildCreateButton(),
-                
-                const SizedBox(height: TossSpacing.space4),
-                
-                _buildTermsText(),
-                
-                const SizedBox(height: TossSpacing.space4),
-                
-                _buildJoinBusinessOption(),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSuccessView() {
-    return Center(
-      child: ScaleTransition(
-        scale: _successScaleAnimation,
-        child: Padding(
-          padding: EdgeInsets.all(TossSpacing.space5),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                width: 100,
-                height: 100,
-                decoration: BoxDecoration(
-                  color: TossColors.success.withOpacity(0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  Icons.check_circle,
-                  size: 60,
-                  color: TossColors.success,
-                ),
-              ),
-              
-              const SizedBox(height: TossSpacing.space6),
-              
-              Text(
-                AuthConstants.successBusinessCreated,
-                style: TossTextStyles.h2.copyWith(
-                  color: TossColors.textPrimary,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              
-              const SizedBox(height: TossSpacing.space3),
-              
-              Text(
-                _businessNameController.text,
-                style: TossTextStyles.h3.copyWith(
-                  color: TossColors.primary,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              
-              if (_companyCode != null) ...[
-                const SizedBox(height: TossSpacing.space2),
-                Container(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: TossSpacing.space3,
-                    vertical: TossSpacing.space2,
-                  ),
-                  decoration: BoxDecoration(
-                    color: TossColors.primary.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    'Company Code: $_companyCode',
-                    style: TossTextStyles.bodyLarge.copyWith(
-                      color: TossColors.primary,
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: 1.2,
+              child: SingleChildScrollView(
+                padding: EdgeInsets.all(TossSpacing.space5),
+                child: Form(
+                  key: _formKey,
+                  child: SlideTransition(
+                    position: _slideAnimation,
+                    child: FadeTransition(
+                      opacity: _fadeAnimation,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildTitleSection(),
+                          
+                          const SizedBox(height: TossSpacing.space8),
+                          
+                          _buildSectionTitle('Business Information'),
+                          
+                          const SizedBox(height: TossSpacing.space4),
+                          
+                          _buildBusinessNameField(),
+                          
+                          const SizedBox(height: TossSpacing.space4),
+                          
+                          _buildBusinessTypeDropdown(),
+                          
+                          const SizedBox(height: TossSpacing.space4),
+                          
+                          _buildBusinessEmailField(),
+                          
+                          const SizedBox(height: TossSpacing.space4),
+                          
+                          _buildBusinessPhoneField(),
+                          
+                          const SizedBox(height: TossSpacing.space6),
+                          
+                          _buildSectionTitle('Business Location'),
+                          
+                          const SizedBox(height: TossSpacing.space4),
+                          
+                          _buildAddressField(),
+                          
+                          const SizedBox(height: TossSpacing.space4),
+                          
+                          _buildCurrencyDropdown(),
+                          
+                          const SizedBox(height: TossSpacing.space8),
+                          
+                          _buildCreateButton(),
+                          
+                          const SizedBox(height: TossSpacing.space4),
+                          
+                          _buildTermsText(),
+                          
+                          const SizedBox(height: TossSpacing.space4),
+                          
+                          _buildJoinBusinessOption(),
+                        ],
+                      ),
                     ),
                   ),
                 ),
-                const SizedBox(height: TossSpacing.space1),
-                Text(
-                  'Share this code with employees to join',
-                  style: TossTextStyles.caption.copyWith(
-                    color: TossColors.textSecondary,
-                  ),
-                ),
-              ],
-              
-              const SizedBox(height: TossSpacing.space2),
-              
-              Text(
-                'Your business is ready to go!',
-                style: TossTextStyles.body.copyWith(
-                  color: TossColors.textSecondary,
-                ),
               ),
-              
-              const SizedBox(height: TossSpacing.space8),
-              
-              TossPrimaryButton(
-                text: 'Go to Dashboard',
-                onPressed: () async {
-                  try {
-                    _animationController.stop();
-                    _successController.stop();
-                    
-                    final supabase = Supabase.instance.client;
-                    final userId = supabase.auth.currentUser?.id;
-                    
-                    if (userId != null) {
-                      await Future.delayed(const Duration(milliseconds: AuthConstants.apiDelayMs));
-                      
-                      final results = await Future.wait([
-                        supabase.rpc(
-                          'get_user_companies_and_stores',
-                          params: {'p_user_id': userId},
-                        ),
-                        supabase.rpc('get_categories_with_features'),
-                      ]);
-                      
-                      final userResponse = results[0];
-                      final categoriesResponse = results[1];
-                      
-                      await ref.read(appStateProvider.notifier).setUser(userResponse);
-                      await ref.read(appStateProvider.notifier).setCategoryFeatures(categoriesResponse);
-                      
-                      // Note: Do NOT auto-select company here
-                      // User will go to create store page, then auto-select when they go to dashboard
-                      
-                      // Navigate to homepage
-                      if (mounted) {
-                        context.safeGo('/');
-                      }
-                    }
-                  } catch (e) {
-                    if (mounted) {
-                      context.safeGo('/');
-                    }
-                  }
-                },
-                fullWidth: true,
-                leadingIcon: Icon(
-                  Icons.dashboard,
-                  size: 18,
-                  color: TossColors.white,
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -680,8 +520,6 @@ class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
           TextButton(
             onPressed: () {
               _animationController.stop();
-              _successController.stop();
-              
               context.safePushReplacement('/onboarding/join-business');
             },
             style: TextButton.styleFrom(
@@ -713,17 +551,16 @@ class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
     );
   }
 
+  /// Enhanced business creation handler with comprehensive error handling
   Future<void> _handleCreateBusiness() async {
     if (!_formKey.currentState!.validate()) {
       return;
     }
 
     if (_businessType == null || _selectedCurrencyId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Please select business type and currency'),
-          backgroundColor: TossColors.error,
-        ),
+      await TossErrorDialogs.showValidationError(
+        context: context,
+        message: 'Please select business type and currency',
       );
       return;
     }
@@ -735,61 +572,99 @@ class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
     try {
       final service = ref.read(enhancedCompanyServiceProvider);
       
-      final companyDetails = await service.createCompany(
+      final result = await service.createCompanyEnhanced(
         companyName: _businessNameController.text.trim(),
         companyTypeId: _businessType!,
         baseCurrencyId: _selectedCurrencyId!,
       );
       
-      if (companyDetails != null) {
-        _companyCode = companyDetails['company_code'] ?? 'N/A';
-        final companyId = companyDetails['company_id'];
-        final companyName = _businessNameController.text.trim();
-        
+      if (result.isSuccess) {
         ref.invalidate(appStateProvider);
         
-        // Navigate to Create Store page
+        // Show success dialog with option to continue to store creation
+        final shouldContinue = await TossSuccessDialogs.showCompanyCreated(
+          context: context,
+          companyName: result.companyName!,
+          companyCode: result.companyCode,
+          onContinue: () => Navigator.of(context).pop(true),
+        );
+
         if (mounted) {
           _animationController.stop();
-          _successController.stop();
           
-          context.safeGo('/onboarding/create-store', extra: {
-            'companyId': companyId,
-            'companyName': companyName,
-          });
+          if (shouldContinue == true) {
+            // Navigate to Create Store page
+            context.safeGo('/onboarding/create-store', extra: {
+              'companyId': result.companyId!,
+              'companyName': result.companyName!,
+            });
+          } else {
+            // Go directly to dashboard
+            await _navigateToDashboard();
+          }
         }
       } else {
-        throw Exception('Failed to create company');
+        // Show error dialog with retry option
+        final shouldRetry = await TossErrorDialogs.showBusinessCreationFailed(
+          context: context,
+          error: result.error!,
+          onRetry: () => Navigator.of(context).pop(true),
+        );
+
+        if (shouldRetry == true && mounted) {
+          // Retry the creation
+          _handleCreateBusiness();
+        }
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                Icon(Icons.error_outline, color: TossColors.white, size: 20),
-                const SizedBox(width: TossSpacing.space2),
-                Expanded(
-                  child: Text(
-                    'Failed to create business: ${e.toString()}',
-                    style: TextStyle(fontWeight: FontWeight.w500),
-                  ),
-                ),
-              ],
-            ),
-            backgroundColor: TossColors.error,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-          ),
+        await TossErrorDialogs.showBusinessCreationFailed(
+          context: context,
+          error: e.toString(),
+          onRetry: () {
+            Navigator.of(context).pop(true);
+            _handleCreateBusiness();
+          },
         );
       }
     } finally {
-      if (mounted && !_showSuccess) {
+      if (mounted) {
         setState(() {
           _isLoading = false;
         });
+      }
+    }
+  }
+
+  Future<void> _navigateToDashboard() async {
+    try {
+      final supabase = Supabase.instance.client;
+      final userId = supabase.auth.currentUser?.id;
+      
+      if (userId != null) {
+        await Future.delayed(const Duration(milliseconds: AuthConstants.apiDelayMs));
+        
+        final results = await Future.wait([
+          supabase.rpc(
+            'get_user_companies_and_stores',
+            params: {'p_user_id': userId},
+          ),
+          supabase.rpc('get_categories_with_features'),
+        ]);
+        
+        final userResponse = results[0];
+        final categoriesResponse = results[1];
+        
+        await ref.read(appStateProvider.notifier).setUser(userResponse);
+        await ref.read(appStateProvider.notifier).setCategoryFeatures(categoriesResponse);
+        
+        if (mounted) {
+          context.safeGo('/');
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        context.safeGo('/');
       }
     }
   }

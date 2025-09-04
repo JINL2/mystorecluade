@@ -92,7 +92,7 @@ class _PerformanceMonitorPanelState extends ConsumerState<_PerformanceMonitorPan
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
           gradient: LinearGradient(
-            colors: [TossColors.primary[600]!, TossColors.primary[800]!],
+            colors: [TossColors.primary, TossColors.primary.withOpacity(0.8)],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
@@ -160,7 +160,7 @@ class _PerformanceMonitorPanelState extends ConsumerState<_PerformanceMonitorPan
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: BoxDecoration(
-                  color: TossColors.error[600],
+                  color: TossColors.error,
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Text(
@@ -297,9 +297,9 @@ class _PerformanceMonitorPanelState extends ConsumerState<_PerformanceMonitorPan
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
         decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.2),
+          color: color.withOpacity(0.2),
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: color.withValues(alpha: 0.5)),
+          border: Border.all(color: color.withOpacity(0.5)),
         ),
         child: Column(
           children: [
@@ -329,7 +329,7 @@ class _PerformanceMonitorPanelState extends ConsumerState<_PerformanceMonitorPan
       margin: const EdgeInsets.only(bottom: 4),
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: TossColors.white.withValues(alpha: 0.05),
+        color: TossColors.white.withOpacity(0.05),
         borderRadius: BorderRadius.circular(6),
       ),
       child: Row(
@@ -381,7 +381,7 @@ class _PerformanceMonitorPanelState extends ConsumerState<_PerformanceMonitorPan
     return Container(
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
-        color: TossColors.white.withValues(alpha: 0.05),
+        color: TossColors.white.withOpacity(0.05),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Column(
@@ -409,9 +409,9 @@ class _PerformanceMonitorPanelState extends ConsumerState<_PerformanceMonitorPan
       margin: const EdgeInsets.only(bottom: 4),
       padding: const EdgeInsets.all(6),
       decoration: BoxDecoration(
-        color: TossColors.warning.withValues(alpha: 0.1),
+        color: TossColors.warning.withOpacity(0.1),
         borderRadius: BorderRadius.circular(4),
-        border: Border.all(color: TossColors.warning.withValues(alpha: 0.3)),
+        border: Border.all(color: TossColors.warning.withOpacity(0.3)),
       ),
       child: Text(
         recommendation,
@@ -428,7 +428,7 @@ class _PerformanceMonitorPanelState extends ConsumerState<_PerformanceMonitorPan
       margin: const EdgeInsets.only(bottom: 6),
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
-        color: TossColors.white.withValues(alpha: 0.03),
+        color: TossColors.white.withOpacity(0.03),
         borderRadius: BorderRadius.circular(6),
       ),
       child: Column(
@@ -565,19 +565,19 @@ class PerformanceAlert extends ConsumerWidget {
       margin: const EdgeInsets.all(16),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: TossColors.error.withValues(alpha: 0.1),
+        color: TossColors.error.withOpacity(0.1),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: TossColors.error.withValues(alpha: 0.3)),
+        border: Border.all(color: TossColors.error.withOpacity(0.3)),
       ),
       child: Row(
         children: [
-          Icon(Icons.warning, color: TossColors.error[600], size: 20),
+          Icon(Icons.warning, color: TossColors.error, size: 20),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
               '${criticalIssues.length} performance issue(s) detected',
               style: TextStyle(
-                color: TossColors.error[700],
+                color: TossColors.error,
                 fontWeight: FontWeight.bold,
                 fontSize: 12,
               ),

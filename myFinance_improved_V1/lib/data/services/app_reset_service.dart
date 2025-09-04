@@ -10,6 +10,13 @@ import '../../core/notifications/services/token_manager.dart';
 import '../../presentation/providers/state_synchronizer.dart';
 import 'auth_data_cache.dart';
 
+/// Cleanup levels
+enum CleanupLevel {
+  minimal,    // Just auth state
+  standard,   // Auth + app state
+  complete,   // Everything including cache
+}
+
 /// AppResetService - Unified cleanup service for the entire application
 /// Ensures consistent state clearing across all systems
 /// 
@@ -29,13 +36,6 @@ class AppResetService {
   bool _isResetting = false;
   final List<String> _failedSteps = [];
   final Map<String, Duration> _stepDurations = {};
-  
-  /// Cleanup levels
-  enum CleanupLevel {
-    minimal,    // Just auth state
-    standard,   // Auth + app state
-    complete,   // Everything including cache
-  }
   
   /// Clear all application state with proper ordering
   /// Returns true if all cleanup steps succeeded
@@ -110,7 +110,8 @@ class AppResetService {
         () async {
           try {
             final tokenManager = TokenManager();
-            await tokenManager.clearToken();
+            // TokenManager cleanup is handled automatically during auth changes
+            tokenManager.dispose();
           } catch (_) {}
         },
       ),
@@ -124,7 +125,7 @@ class AppResetService {
       ),
       _CleanupStep(
         'Navigation Locks',
-        () {
+        () async {
           SafeNavigation.instance.clearAuthLocks();
         },
       ),
@@ -153,7 +154,7 @@ class AppResetService {
         ),
         _CleanupStep(
           'Navigation History',
-          () {
+          () async {
             AuthNavigator.reset();
           },
         ),
@@ -165,13 +166,13 @@ class AppResetService {
       steps.addAll([
         _CleanupStep(
           'Auth Data Cache',
-          () {
+          () async {
             AuthDataCache.instance.clearAll();
           },
         ),
         _CleanupStep(
           'State Synchronizer',
-          () {
+          () async {
             StateSynchronizer.instance.reset();
           },
         ),
@@ -198,7 +199,7 @@ class AppResetService {
         ),
         _CleanupStep(
           'Memory Caches',
-          () {
+          () async {
             // Clear any other in-memory caches
             // This is where you'd clear other singleton instances
           },
@@ -297,7 +298,7 @@ class _CleanupStep {
 extension AppResetExtension on Object {
   /// Quick access to app reset service
   Future<bool> resetApp({
-    AppResetService.CleanupLevel level = AppResetService.CleanupLevel.complete,
+    CleanupLevel level = CleanupLevel.complete,
   }) {
     return AppResetService.clearAll(level: level);
   }

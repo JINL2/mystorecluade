@@ -736,13 +736,15 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
             ],
             child: CircleAvatar(
               radius: 20, // Slightly larger for better visual weight
-              backgroundImage: (userData['profile_image'] ?? '').isNotEmpty
+              backgroundImage: userData != null && (userData['profile_image'] ?? '').isNotEmpty
                   ? NetworkImage(userData['profile_image'])
                   : null,
               backgroundColor: TossColors.primary.withValues(alpha: 0.1),
-              child: (userData['profile_image'] ?? '').isEmpty
+              child: userData == null || (userData['profile_image'] ?? '').isEmpty
                   ? Text(
-                      (userData['user_first_name'] ?? '').isNotEmpty ? userData['user_first_name'][0] : 'U',
+                      userData != null && (userData['user_first_name'] ?? '').isNotEmpty 
+                          ? userData['user_first_name'][0] 
+                          : 'U',
                       style: TossTextStyles.bodyLarge.copyWith(
                         color: TossColors.primary,
                         fontWeight: FontWeight.w600,
@@ -758,7 +760,7 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
 
   Widget _buildPinnedHelloSection(BuildContext context, dynamic userData, dynamic selectedCompany, dynamic selectedStore) {
     // Check if user has any companies
-    final companies = userData['companies'] as List<dynamic>? ?? [];
+    final companies = userData != null ? (userData['companies'] as List<dynamic>? ?? []) : [];
     final hasNoCompanies = companies.isEmpty;
     
     // If no companies, show enhanced onboarding experience
@@ -1943,7 +1945,7 @@ class _PinnedHelloDelegate extends SliverPersistentHeaderDelegate {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
-              'Hello, ${userData['user_first_name'] ?? 'User'}!',
+              'Hello, ${userData != null ? (userData['user_first_name'] ?? 'User') : 'User'}!',
               style: TossTextStyles.h2.copyWith(
                 color: TossColors.textPrimary,
                 fontWeight: FontWeight.w700,

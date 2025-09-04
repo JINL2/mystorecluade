@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import '../../../core/themes/toss_colors.dart';
 import '../../../core/themes/toss_text_styles.dart';
 import '../../../core/themes/toss_spacing.dart';
 import '../../../core/themes/toss_border_radius.dart';
+import '../../../core/themes/toss_icons.dart';
 import '../../widgets/common/toss_scaffold.dart';
 import '../../helpers/navigation_helper.dart';
 import 'widgets/dashboard_canvas.dart';
@@ -762,8 +762,7 @@ class _InventoryAnalysisPageState extends ConsumerState<InventoryAnalysisPage> {
           padding: EdgeInsets.symmetric(vertical: TossSpacing.space2),
           child: Text(
             title,
-            style: TextStyle(
-              style: TossTextStyles.labelLarge,
+            style: TossTextStyles.labelLarge.copyWith(
               color: Theme.of(context).primaryColor,
             ),
           ),

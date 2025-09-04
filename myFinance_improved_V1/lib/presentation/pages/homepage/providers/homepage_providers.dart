@@ -64,7 +64,8 @@ final userCompaniesProvider = FutureProvider.autoDispose<dynamic>((ref) async {
   final user = ref.watch(authStateProvider);
   
   if (user == null) {
-    throw UnauthorizedException();
+    // Return null instead of throwing exception when user is not authenticated
+    return null;
   }
   
   final appStateNotifier = ref.read(appStateProvider.notifier);
@@ -162,7 +163,8 @@ final forceRefreshUserCompaniesProvider = FutureProvider<dynamic>((ref) async {
   final appStateNotifier = ref.read(appStateProvider.notifier);
   
   if (user == null) {
-    throw UnauthorizedException();
+    // Return null instead of throwing exception when user is not authenticated
+    return null;
   }
   
   // ALWAYS fetch fresh data from API - no cache check
@@ -244,6 +246,11 @@ final forceRefreshUserCompaniesProvider = FutureProvider<dynamic>((ref) async {
 final categoriesWithFeaturesProvider = FutureProvider.autoDispose<dynamic>((ref) async {
   // Wait for user data to be loaded first (dependency)
   final userData = await ref.watch(userCompaniesProvider.future);
+  
+  // Return empty list if user is not authenticated
+  if (userData == null) {
+    return [];
+  }
   
   final appStateNotifier = ref.read(appStateProvider.notifier);
   final sessionManager = ref.read(sessionManagerProvider.notifier);

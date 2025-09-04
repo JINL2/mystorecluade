@@ -26,9 +26,6 @@ class CashLocationService {
     try {
       // Get cash locations for the specific store and company
       // Filter out soft-deleted records
-      // Debug logging (uncomment for debugging)
-      // print('Fetching cash locations for companyId: $companyId, storeId: $storeId');
-      
       final response = await _supabase
           .from('v_cash_location')
           .select('*')
@@ -38,18 +35,10 @@ class CashLocationService {
           .order('location_type')
           .order('location_name');
       
-      // Debug logging (uncomment for debugging)
-      // print('Response from v_cash_location: ${response.length} records');
-      // if (response.isNotEmpty) {
-      //   print('First record keys: ${response[0].keys.toList()}');
-      //   print('First record: ${response[0]}');
-      // }
-      
       return (response as List)
           .map((json) => CashLocation.fromJson(json))
           .toList();
     } catch (e) {
-      // Debug: print('Error fetching cash locations: $e');
       // Re-throw the error so it can be handled by the UI
       throw Exception('Failed to load cash locations: ${e.toString()}');
     }
@@ -87,10 +76,6 @@ class CashLocation {
     final locationId = json['cash_location_id'] as String? ?? 
                       json['location_id'] as String? ?? '';
     
-    // Debug logging (uncomment for debugging)
-    // if (locationId.isEmpty) {
-    //   print('Warning: Empty location ID in CashLocation.fromJson. JSON keys: ${json.keys.toList()}');
-    // }
     
     return CashLocation(
       locationId: locationId,

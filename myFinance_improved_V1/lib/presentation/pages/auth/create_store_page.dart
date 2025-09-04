@@ -7,7 +7,7 @@ import '../../../core/themes/toss_animations.dart';
 import '../../widgets/toss/toss_primary_button.dart';
 import '../../widgets/toss/toss_text_field.dart';
 import '../../widgets/auth/storebase_auth_header.dart';
-import '../../../data/services/store_service.dart';
+import '../../../data/services/enhanced_store_service.dart';
 import '../../providers/app_state_provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/constants/auth_constants.dart';
@@ -966,7 +966,7 @@ class _CreateStorePageState extends ConsumerState<CreateStorePage>
     });
 
     try {
-      final service = ref.read(storeServiceProvider);
+      final service = ref.read(enhancedStoreServiceProvider);
       
       // Parse operational settings
       final huddleTime = _huddleTimeController.text.isNotEmpty 

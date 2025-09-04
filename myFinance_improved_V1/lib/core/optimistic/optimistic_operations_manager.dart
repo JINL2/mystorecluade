@@ -94,6 +94,7 @@ class OptimisticOperationsManager {
   final Map<String, OptimisticOperationResult> _operationResults = {};
   final StreamController<OptimisticOperationResult> _resultController = 
       StreamController<OptimisticOperationResult>.broadcast();
+  final Map<String, StreamController<OptimisticOperationProgress>> _progressControllers = {};
   
   /// Stream of operation results
   Stream<OptimisticOperationResult> get operationResults => _resultController.stream;
@@ -304,6 +305,35 @@ class OptimisticOperationsManager {
     results.sort((a, b) => b.timestamp.compareTo(a.timestamp));
     return results.take(limit).toList();
   }
+  
+  /// Get progress stream for an operation
+  Stream<OptimisticOperationProgress>? getProgressStream(String operationId) {
+    return _progressControllers[operationId]?.stream;
+  }
+  
+  /// Update operation progress
+  void updateProgress(String operationId, String message, double progress) {
+    final controller = _progressControllers[operationId];
+    if (controller != null) {
+      controller.add(OptimisticOperationProgress(
+        operationId: operationId,
+        message: message,
+        progress: progress.clamp(0.0, 1.0),
+        timestamp: DateTime.now(),
+      ));
+    }
+  }
+  
+  /// Start tracking progress for an operation
+  void startProgressTracking(String operationId) {
+    _progressControllers[operationId] = StreamController<OptimisticOperationProgress>.broadcast();
+  }
+  
+  /// Stop tracking progress for an operation
+  void stopProgressTracking(String operationId) {
+    _progressControllers[operationId]?.close();
+    _progressControllers.remove(operationId);
+  }
 }
 
 /// Optimistic operation builders for common use cases
@@ -388,36 +418,3 @@ class OptimisticOperationProgress {
   bool get isComplete => progress >= 1.0;
 }
 
-/// Enhanced optimistic operations manager with progress tracking
-extension OptimisticOperationsManagerExtension on OptimisticOperationsManager {
-  final Map<String, StreamController<OptimisticOperationProgress>> _progressControllers = {};
-  
-  /// Get progress stream for an operation
-  Stream<OptimisticOperationProgress>? getProgressStream(String operationId) {
-    return _progressControllers[operationId]?.stream;
-  }
-  
-  /// Update operation progress
-  void updateProgress(String operationId, String message, double progress) {
-    final controller = _progressControllers[operationId];
-    if (controller != null) {
-      controller.add(OptimisticOperationProgress(
-        operationId: operationId,
-        message: message,
-        progress: progress.clamp(0.0, 1.0),
-        timestamp: DateTime.now(),
-      ));
-    }
-  }
-  
-  /// Start tracking progress for an operation
-  void startProgressTracking(String operationId) {
-    _progressControllers[operationId] = StreamController<OptimisticOperationProgress>.broadcast();
-  }
-  
-  /// Stop tracking progress for an operation
-  void stopProgressTracking(String operationId) {
-    _progressControllers[operationId]?.close();
-    _progressControllers.remove(operationId);
-  }
-}

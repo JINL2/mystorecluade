@@ -7,7 +7,7 @@ import '../../../core/themes/toss_animations.dart';
 import '../../widgets/toss/toss_primary_button.dart';
 import '../../widgets/toss/toss_text_field.dart';
 import '../../widgets/auth/storebase_auth_header.dart';
-import '../../../data/services/company_service.dart';
+import '../../../data/services/enhanced_company_service.dart';
 import '../../providers/app_state_provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/constants/auth_constants.dart';
@@ -454,7 +454,7 @@ class _JoinBusinessPageState extends ConsumerState<JoinBusinessPage>
     });
 
     try {
-      final service = ref.read(companyServiceProvider);
+      final service = ref.read(enhancedCompanyServiceProvider);
       
       final result = await service.joinCompany(
         companyCode: _codeController.text.trim(),

@@ -8,6 +8,7 @@ import '../../../core/themes/toss_spacing.dart';
 import '../../../core/themes/toss_border_radius.dart';
 import '../../widgets/common/toss_scaffold.dart';
 import '../../widgets/common/toss_white_card.dart';
+import '../../widgets/common/enhanced_quantity_selector.dart';
 import '../../widgets/toss/toss_list_tile.dart';
 import '../../widgets/toss/toss_search_field.dart';
 import '../../helpers/navigation_helper.dart';
@@ -866,7 +867,7 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage> {
         ],
       ),
       trailing: Container(
-        width: 110,  // Slightly wider for better layout
+        width: 150,  // Wider to accommodate enhanced selector
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.end,
           mainAxisSize: MainAxisSize.min,
@@ -879,76 +880,71 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage> {
                 color: TossColors.gray900,
               ),
             ),
-            SizedBox(height: TossSpacing.space1),  // 4px using core spacing
-            // Show chosen quantity or stock
+            SizedBox(height: TossSpacing.space1),
+            // Clean state or quantity selector with smooth animations
             AnimatedSwitcher(
-              duration: Duration(milliseconds: 200),
+              duration: Duration(milliseconds: 300),
+              transitionBuilder: (child, animation) {
+                return SlideTransition(
+                  position: Tween<Offset>(
+                    begin: Offset(1.0, 0.0), // Slide from right
+                    end: Offset.zero,
+                  ).animate(CurvedAnimation(
+                    parent: animation,
+                    curve: Curves.easeOutCubic,
+                  )),
+                  child: FadeTransition(
+                    opacity: animation,
+                    child: child,
+                  ),
+                );
+              },
               child: cartItem.quantity > 0
-                  ? Row(
-                      key: ValueKey('chosen'),
+                  ? EnhancedQuantitySelector(
+                      key: ValueKey('selector-${product.id}'),
+                      quantity: cartItem.quantity,
+                      maxQuantity: product.available,
+                      compactMode: true,
+                      onQuantityChanged: (newQuantity) {
+                        if (newQuantity <= 0) {
+                          ref.read(cartProvider.notifier).removeItem(cartItem.id);
+                        } else {
+                          ref.read(cartProvider.notifier).updateQuantity(
+                            cartItem.id,
+                            newQuantity,
+                          );
+                        }
+                      },
+                      semanticLabel: 'Quantity for ${product.name}',
+                      decrementSemanticLabel: 'Decrease ${product.name} quantity',
+                      incrementSemanticLabel: 'Increase ${product.name} quantity',
+                    )
+                  : Row(
+                      key: ValueKey('clean-${product.id}'),
                       mainAxisSize: MainAxisSize.min,
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
-                        Container(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: TossSpacing.space2,
-                            vertical: 2,
-                          ),
-                          decoration: BoxDecoration(
-                            color: TossColors.primary.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(TossBorderRadius.sm),
-                          ),
-                          child: Text(
-                            'chosen: ${cartItem.quantity}',
-                            style: TossTextStyles.caption.copyWith(
-                              color: TossColors.primary,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                        // Subtle remove button
-                        Padding(
-                          padding: EdgeInsets.only(left: TossSpacing.space1),
-                          child: InkWell(
-                            onTap: () {
-                              HapticFeedback.lightImpact();
-                              ref.read(cartProvider.notifier).updateQuantity(
-                                cartItem.id,
-                                cartItem.quantity - 1,
-                              );
-                            },
-                            borderRadius: BorderRadius.circular(TossBorderRadius.full),
-                            child: Container(
-                              width: TossSpacing.space4,  // 16px
-                              height: TossSpacing.space4, // 16px
-                              decoration: BoxDecoration(
-                                color: TossColors.gray200,
-                                shape: BoxShape.circle,
-                              ),
-                              child: Icon(
-                                Icons.remove,
-                                size: TossSpacing.space3,  // 12px icon
-                                color: TossColors.gray700,
-                              ),
-                            ),
+                        // Only show stock info in clean state - no buttons
+                        Text(
+                          'Stock: ${product.onHand}',
+                          style: TossTextStyles.caption.copyWith(
+                            color: _getStockColor(product),
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                       ],
-                    )
-                  : Text(
-                      key: ValueKey('stock'),
-                      'Stock: ${product.onHand}',
-                      style: TossTextStyles.caption.copyWith(
-                        color: _getStockColor(product),
-                        fontWeight: FontWeight.w600,
-                      ),
                     ),
             ),
           ],
         ),
       ),
+      // Always enable tap to reveal quantity selector
       onTap: () {
-        ref.read(cartProvider.notifier).addItem(product);
+        HapticFeedback.lightImpact();
+        if (cartItem.quantity == 0) {
+          // Add first item to reveal selector
+          ref.read(cartProvider.notifier).addItem(product);
+        }
       },
     );
   }

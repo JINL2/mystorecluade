@@ -1,8 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../data/services/user_profile_service.dart';
-import 'session_manager_provider.dart';
-import 'app_state_provider.dart';
 
 // Auth state notifier
 class AuthStateNotifier extends StateNotifier<User?> {

@@ -9,8 +9,6 @@ import '../../widgets/common/toss_scaffold.dart';
 import '../../widgets/common/toss_empty_state_card.dart';
 import '../../widgets/toss/toss_bottom_sheet.dart';
 import '../../providers/auth_provider.dart';
-import '../../../core/navigation/safe_navigation.dart';
-import '../../../core/navigation/auth_navigator.dart';
 
 class ForgotPasswordPage extends ConsumerStatefulWidget {
   const ForgotPasswordPage({super.key});

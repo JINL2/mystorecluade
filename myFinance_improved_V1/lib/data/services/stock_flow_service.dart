@@ -56,25 +56,14 @@ class StockFlowService {
     try {
       // Validate parameters
       if (params.cashLocationId.isEmpty) {
-        // print('Error: cashLocationId is empty');
         throw Exception('Cash location ID is required');
       }
       if (params.companyId.isEmpty) {
-        // print('Error: companyId is empty');
         throw Exception('Company ID is required');
       }
       if (params.storeId.isEmpty) {
-        // print('Error: storeId is empty');
         throw Exception('Store ID is required');
       }
-      
-      // Debug logging (uncomment for debugging)
-      // print('Calling get_location_stock_flow with:');
-      // print('  p_company_id: ${params.companyId}');
-      // print('  p_store_id: ${params.storeId}');
-      // print('  p_cash_location_id: ${params.cashLocationId}');
-      // print('  p_offset: ${params.offset}');
-      // print('  p_limit: ${params.limit}');
       
       final response = await _supabase.rpc(
         'get_location_stock_flow',
@@ -93,7 +82,6 @@ class StockFlowService {
 
       return StockFlowResponse.fromJson(response as Map<String, dynamic>);
     } catch (e) {
-      // print('Error fetching stock flow: $e');
       throw Exception('Failed to fetch stock flow data: $e');
     }
   }

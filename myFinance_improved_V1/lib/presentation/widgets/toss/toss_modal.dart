@@ -122,6 +122,8 @@ class _TossModalState extends State<TossModal> with SingleTickerProviderStateMix
   @override
   Widget build(BuildContext context) {
     final modalHeight = widget.height ?? MediaQuery.of(context).size.height * 0.8;
+    // Get keyboard height for dynamic adjustment
+    final keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
     
     return AnimatedBuilder(
       animation: _animationController,
@@ -131,7 +133,10 @@ class _TossModalState extends State<TossModal> with SingleTickerProviderStateMix
           child: SlideTransition(
             position: _slideAnimation,
             child: Container(
-              height: modalHeight,
+              constraints: BoxConstraints(
+                maxHeight: modalHeight,
+                minHeight: 0,
+              ),
               decoration: BoxDecoration(
                 color: widget.backgroundColor ?? TossColors.background,
                 borderRadius: BorderRadius.vertical(
@@ -140,6 +145,7 @@ class _TossModalState extends State<TossModal> with SingleTickerProviderStateMix
                 boxShadow: TossShadows.bottomSheet,
               ),
               child: Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   // Handle bar
                   if (widget.showHandleBar)
@@ -156,9 +162,15 @@ class _TossModalState extends State<TossModal> with SingleTickerProviderStateMix
                   // Header
                   _buildHeader(),
 
-                  // Content
-                  Expanded(
-                    child: widget.child,
+                  // Content - Now with flexible sizing and scroll capability
+                  Flexible(
+                    child: SingleChildScrollView(
+                      physics: const BouncingScrollPhysics(),
+                      padding: EdgeInsets.only(
+                        bottom: keyboardHeight > 0 ? 20 : 0, // Extra padding when keyboard shown
+                      ),
+                      child: widget.child,
+                    ),
                   ),
 
                   // Actions

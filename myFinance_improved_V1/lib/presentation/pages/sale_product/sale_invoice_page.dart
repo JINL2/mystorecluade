@@ -9,6 +9,7 @@ import '../../../core/themes/toss_spacing.dart';
 import '../../../core/themes/toss_border_radius.dart';
 import '../../widgets/common/toss_scaffold.dart';
 import '../../widgets/common/toss_white_card.dart';
+import '../../widgets/common/enhanced_quantity_selector.dart';
 import '../../widgets/toss/toss_list_tile.dart';
 import '../../widgets/toss/toss_search_field.dart';
 import '../../helpers/navigation_helper.dart';
@@ -409,16 +410,12 @@ class _SaleInvoicePageState extends ConsumerState<SaleInvoicePage> {
   }
 
   Widget _buildInvoiceItem(CartItem item, int index) {
-    final avatarColor = _avatarColors[index % _avatarColors.length];
+    // Keep avatar color for future use
+    // final avatarColor = _avatarColors[index % _avatarColors.length];
     
     return InkWell(
       onTap: () {
-        // Tap to add item
-        HapticFeedback.lightImpact();
-        ref.read(cartProvider.notifier).updateQuantity(
-          item.id,
-          item.quantity + 1,
-        );
+        // Tap functionality now handled by enhanced quantity selector
       },
       child: Padding(
         padding: EdgeInsets.symmetric(
@@ -535,60 +532,24 @@ class _SaleInvoicePageState extends ConsumerState<SaleInvoicePage> {
                     ),
                   ),
                   SizedBox(height: TossSpacing.space1),
-                  // Chosen quantity with minus button - same as product page
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      Container(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: TossSpacing.space2,
-                          vertical: 2,
-                        ),
-                        decoration: BoxDecoration(
-                          color: TossColors.primary.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(TossBorderRadius.sm),
-                        ),
-                        child: Text(
-                          'chosen: ${item.quantity}',
-                          style: TossTextStyles.caption.copyWith(
-                            color: TossColors.primary,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                      // Subtle minus button
-                      Padding(
-                        padding: EdgeInsets.only(left: TossSpacing.space1),
-                        child: InkWell(
-                          onTap: () {
-                            HapticFeedback.lightImpact();
-                            if (item.quantity > 1) {
-                              ref.read(cartProvider.notifier).updateQuantity(
-                                item.id,
-                                item.quantity - 1,
-                              );
-                            } else {
-                              ref.read(cartProvider.notifier).removeItem(item.id);
-                            }
-                          },
-                          borderRadius: BorderRadius.circular(TossBorderRadius.full),
-                          child: Container(
-                            width: TossSpacing.space4,
-                            height: TossSpacing.space4,
-                            decoration: BoxDecoration(
-                              color: TossColors.gray200,
-                              shape: BoxShape.circle,
-                            ),
-                            child: Icon(
-                              Icons.remove,
-                              size: TossSpacing.space3,
-                              color: TossColors.gray700,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
+                  // Enhanced quantity selector
+                  EnhancedQuantitySelector(
+                    quantity: item.quantity,
+                    maxQuantity: item.available,
+                    compactMode: true,
+                    onQuantityChanged: (newQuantity) {
+                      if (newQuantity <= 0) {
+                        ref.read(cartProvider.notifier).removeItem(item.id);
+                      } else {
+                        ref.read(cartProvider.notifier).updateQuantity(
+                          item.id,
+                          newQuantity,
+                        );
+                      }
+                    },
+                    semanticLabel: 'Quantity for ${item.name}',
+                    decrementSemanticLabel: 'Decrease ${item.name} quantity',
+                    incrementSemanticLabel: 'Increase ${item.name} quantity',
                   ),
                 ],
               ),

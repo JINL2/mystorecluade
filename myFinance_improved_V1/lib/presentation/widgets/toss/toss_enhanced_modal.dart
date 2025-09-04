@@ -129,17 +129,23 @@ class _TossEnhancedModalState extends State<TossEnhancedModal> {
     // The TossModal already handles focus management appropriately
 
     // Calculate the actual modal height including keyboard toolbar
-    final modalHeight = widget.height ?? MediaQuery.of(context).size.height * 0.8;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final modalHeight = widget.height ?? screenHeight * 0.8;
     final toolbarHeight = _showKeyboardToolbar ? 44.0 : 0.0;
-    final totalHeight = modalHeight + toolbarHeight;
-
-    return Container(
-      height: totalHeight,  // Fixed height container to prevent expansion
+    
+    // Use flexible constraints to prevent overflow
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
+      curve: Curves.easeOut,
+      constraints: BoxConstraints(
+        maxHeight: modalHeight + toolbarHeight,
+        minHeight: 0,
+      ),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          // Modal content with fixed height (not Expanded!)
-          SizedBox(
-            height: modalHeight,
+          // Modal content with flexible height
+          Flexible(
             child: modalContent,
           ),
           

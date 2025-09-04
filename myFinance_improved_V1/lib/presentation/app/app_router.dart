@@ -7,7 +7,7 @@ import '../../core/navigation/safe_navigation.dart';
 import '../../core/navigation/navigation_state_provider.dart';
 import '../pages/auth/login_page.dart';
 import '../pages/auth/auth_signup_page.dart';
-import '../pages/auth/create_business_page.dart';
+import '../pages/auth/enhanced_create_business_page.dart';
 import '../pages/auth/create_store_page.dart';
 import '../pages/auth/choose_role_page.dart';
 import '../pages/auth/join_business_page.dart';
@@ -442,7 +442,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           ),
           GoRoute(
             path: 'create-business',
-            builder: (context, state) => const CreateBusinessPage(),
+            builder: (context, state) => const EnhancedCreateBusinessPage(),
           ),
           GoRoute(
             path: 'create-store',
