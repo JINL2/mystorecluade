@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/themes/toss_colors.dart';
+import 'package:myfinance_improved/core/themes/index.dart';
 
 /// Toss-style refresh indicator wrapper
 class TossRefreshIndicator extends StatelessWidget {
@@ -21,7 +22,7 @@ class TossRefreshIndicator extends StatelessWidget {
     return RefreshIndicator(
       onRefresh: onRefresh,
       color: color ?? TossColors.primary,
-      backgroundColor: backgroundColor ?? Colors.white,
+      backgroundColor: backgroundColor ?? TossColors.white,
       strokeWidth: 2.5,
       child: child,
     );

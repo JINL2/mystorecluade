@@ -18,6 +18,7 @@ import '../../widgets/common/toss_scaffold.dart';
 import '../../widgets/common/toss_app_bar.dart';
 import '../../widgets/common/toss_loading_view.dart';
 import '../../../core/navigation/safe_navigation.dart';
+import 'package:myfinance_improved/core/themes/index.dart';
 
 class CashLocationPage extends ConsumerStatefulWidget {
   const CashLocationPage({super.key});
@@ -98,7 +99,7 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
               behavior: SnackBarBehavior.floating,
               duration: const Duration(seconds: 2),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(TossBorderRadius.lg),
               ),
             ),
           );
@@ -114,7 +115,7 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
             behavior: SnackBarBehavior.floating,
             duration: const Duration(seconds: 3),
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
             ),
           ),
         );
@@ -376,7 +377,7 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
           Container(
             margin: EdgeInsets.symmetric(vertical: TossSpacing.space4),
             height: 1,
-            color: const Color(0xFFE5E8EB),
+            color: TossColors.gray300,
           ),
           
           // Error
@@ -392,7 +393,7 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
               Text(
                 _formatCurrency(totalError, currencySymbol),
                 style: TossTextStyles.h3.copyWith(
-                  color: const Color(0xFFE53935),
+                  color: TossColors.error,
                   fontWeight: FontWeight.w700,
                 ),
               ),
@@ -553,7 +554,7 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
                     height: 44,
                     decoration: BoxDecoration(
                       color: TossColors.gray100,
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(TossBorderRadius.md),
                     ),
                     child: Icon(
                       Icons.add,
@@ -631,7 +632,7 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
                 height: 44,
                 decoration: BoxDecoration(
                   color: Theme.of(context).colorScheme.primary.withOpacity(0.08),
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.md),
                 ),
                 child: Icon(
                   _getLocationIcon(_currentLocationType),
@@ -652,7 +653,7 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
                       style: TossTextStyles.body.copyWith(
                         fontWeight: FontWeight.w700,
                         fontSize: 16,
-                        color: Colors.black87,
+                        color: TossColors.black87,
                       ),
                     ),
                     SizedBox(height: TossSpacing.space1),
@@ -685,7 +686,7 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
                       Text(
                         _formatCurrency(location.cashDifference.abs(), ''),
                         style: TossTextStyles.caption.copyWith(
-                          color: const Color(0xFFE53935),
+                          color: TossColors.error,
                           fontSize: 12,
                           fontWeight: FontWeight.w500,
                         ),

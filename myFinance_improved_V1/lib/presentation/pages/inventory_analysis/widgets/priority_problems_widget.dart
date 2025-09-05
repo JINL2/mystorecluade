@@ -5,6 +5,7 @@ import '../../../../core/themes/toss_text_styles.dart';
 import '../../../../core/themes/toss_spacing.dart';
 import '../../../../core/themes/toss_border_radius.dart';
 import '../models/supply_chain_models.dart';
+import 'package:myfinance_improved/core/themes/index.dart';
 
 class PriorityProblemsWidget extends StatelessWidget {
   final List<SupplyChainProblem> problems;
@@ -31,7 +32,7 @@ class PriorityProblemsWidget extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: TossColors.surface,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(TossBorderRadius.xl),
         boxShadow: [
           BoxShadow(
             color: TossColors.black.withValues(alpha: 0.05),
@@ -261,7 +262,7 @@ class PriorityProblemsWidget extends StatelessWidget {
           ),
           Text(
             '$severityEmoji',
-            style: TextStyle(fontSize: 16),
+            style: TossTextStyles.bodyLarge,
           ),
           Text(
             '${priorityScore.toInt()}pts',
@@ -292,7 +293,7 @@ class PriorityProblemsWidget extends StatelessWidget {
                 child: Text(
                   _getProductInitial(problem.product.name),
                   style: TossTextStyles.caption.copyWith(
-                    color: Colors.white,
+                    color: TossColors.white,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -440,12 +441,12 @@ class PriorityProblemsWidget extends StatelessWidget {
               icon: Icon(
                 action.icon,
                 size: 16,
-                color: Colors.white,
+                color: TossColors.white,
               ),
               label: Text(
                 action.englishLabel,
                 style: TossTextStyles.caption.copyWith(
-                  color: Colors.white,
+                  color: TossColors.white,
                   fontWeight: FontWeight.w600,
                 ),
                 maxLines: 1,
@@ -498,13 +499,13 @@ class PriorityProblemsWidget extends StatelessWidget {
                     Icon(
                       action.icon,
                       size: 16,
-                      color: Colors.white,
+                      color: TossColors.white,
                     ),
                     SizedBox(height: 2),
                     Text(
                       action.englishLabel,
                       style: TossTextStyles.small.copyWith(
-                        color: Colors.white,
+                        color: TossColors.white,
                         fontWeight: FontWeight.w600,
                       ),
                       maxLines: 1,
@@ -571,7 +572,7 @@ class PriorityProblemsWidget extends StatelessWidget {
       padding: EdgeInsets.all(TossSpacing.space6),
       decoration: BoxDecoration(
         color: TossColors.surface,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(TossBorderRadius.xl),
         border: Border.all(
           color: TossColors.gray200,
           width: 1,

@@ -16,7 +16,8 @@ import '../../../providers/app_state_provider.dart';
 import '../../../services/profile_image_service.dart';
 import '../../../../core/navigation/safe_navigation.dart';
 import '../../../../domain/entities/user_profile.dart';
-
+import 'package:myfinance_improved/core/themes/index.dart';
+import 'package:myfinance_improved/core/themes/toss_border_radius.dart';
 class EditProfilePage extends ConsumerStatefulWidget {
   const EditProfilePage({super.key});
 
@@ -326,10 +327,10 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                 child: Column(
                   children: [
                     Material(
-                      color: Colors.transparent,
+                      color: TossColors.transparent,
                       child: InkWell(
                         onTap: _handleAvatarTap,
-                        borderRadius: BorderRadius.circular(50),
+                        borderRadius: BorderRadius.circular(TossBorderRadius.full),
                         customBorder: CircleBorder(),
                         child: Stack(
                         children: [
@@ -596,7 +597,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
           ),
           decoration: BoxDecoration(
             color: TossColors.gray50,
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(TossBorderRadius.md),
             border: Border.all(color: TossColors.gray100),
           ),
           child: Text(
@@ -634,7 +635,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                 margin: EdgeInsets.symmetric(vertical: TossSpacing.space3),
                 decoration: BoxDecoration(
                   color: TossColors.gray300,
-                  borderRadius: BorderRadius.circular(2),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                 ),
               ),
               Padding(
@@ -689,7 +690,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
   }) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(TossBorderRadius.lg),
       child: Container(
         padding: EdgeInsets.symmetric(
           horizontal: TossSpacing.space4,
@@ -697,7 +698,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
         ),
         decoration: BoxDecoration(
           color: TossColors.gray50,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
         ),
         child: Row(
           children: [

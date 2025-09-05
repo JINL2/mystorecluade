@@ -16,7 +16,8 @@ import '../../providers/user_profile_provider.dart';
 import '../../../domain/entities/user_profile.dart';
 import '../../services/profile_image_service.dart';
 import '../../../core/navigation/safe_navigation.dart';
-
+import 'package:myfinance_improved/core/themes/index.dart';
+import 'package:myfinance_improved/core/themes/toss_border_radius.dart';
 /// Modern finance app-inspired My Page with comprehensive analytics
 class MyPageRedesigned extends ConsumerStatefulWidget {
   const MyPageRedesigned({super.key});
@@ -243,7 +244,7 @@ class _MyPageRedesignedState extends ConsumerState<MyPageRedesigned>
                 ),
                 decoration: BoxDecoration(
                   color: TossColors.primary.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.xxl),
                 ),
                 child: Text(
                   businessData?.userRole ?? profile.displayRole,
@@ -380,7 +381,7 @@ class _MyPageRedesignedState extends ConsumerState<MyPageRedesigned>
               height: 40,
               decoration: BoxDecoration(
                 color: (isDestructive ? TossColors.error : TossColors.gray500).withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(TossBorderRadius.md),
               ),
               child: Icon(
                 icon,
@@ -450,7 +451,7 @@ class _MyPageRedesignedState extends ConsumerState<MyPageRedesigned>
                 margin: EdgeInsets.symmetric(vertical: TossSpacing.space3),
                 decoration: BoxDecoration(
                   color: TossColors.gray300,
-                  borderRadius: BorderRadius.circular(2),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                 ),
               ),
               Padding(
@@ -540,7 +541,7 @@ class _MyPageRedesignedState extends ConsumerState<MyPageRedesigned>
   }) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(TossBorderRadius.lg),
       child: Container(
         padding: EdgeInsets.symmetric(
           horizontal: TossSpacing.space4,
@@ -548,7 +549,7 @@ class _MyPageRedesignedState extends ConsumerState<MyPageRedesigned>
         ),
         decoration: BoxDecoration(
           color: TossColors.gray50,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
         ),
         child: Row(
           children: [
@@ -590,7 +591,7 @@ class _MyPageRedesignedState extends ConsumerState<MyPageRedesigned>
           padding: EdgeInsets.all(TossSpacing.space6),
           decoration: BoxDecoration(
             color: TossColors.surface,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
           ),
           child: TossLoadingView(),
         ),
@@ -632,7 +633,7 @@ class _MyPageRedesignedState extends ConsumerState<MyPageRedesigned>
           padding: EdgeInsets.all(TossSpacing.space6),
           decoration: BoxDecoration(
             color: TossColors.surface,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
           ),
           child: TossLoadingView(),
         ),

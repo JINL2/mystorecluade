@@ -14,7 +14,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/themes/toss_colors.dart';
 import '../services/template_performance_service.dart';
 import '../services/monitored_template_service.dart';
-
+import 'package:myfinance_improved/core/themes/index.dart';
+import 'package:myfinance_improved/core/themes/toss_border_radius.dart';
 /// Performance Monitor Widget - Shows in debug mode only
 class TemplatePerformanceMonitor extends ConsumerWidget {
   final bool showInProduction;
@@ -70,8 +71,8 @@ class _PerformanceMonitorPanelState extends ConsumerState<_PerformanceMonitorPan
       right: 16,
       child: Material(
         elevation: 8,
-        borderRadius: BorderRadius.circular(12),
-        color: Colors.black87,
+        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+        color: TossColors.black87,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 300),
           width: _isExpanded ? 320 : 48,
@@ -85,12 +86,12 @@ class _PerformanceMonitorPanelState extends ConsumerState<_PerformanceMonitorPan
   Widget _buildCollapsedPanel() {
     return InkWell(
       onTap: () => setState(() => _isExpanded = true),
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(TossBorderRadius.lg),
       child: Container(
         width: 48,
         height: 48,
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
           gradient: LinearGradient(
             colors: [TossColors.primary, TossColors.primary.withOpacity(0.8)],
             begin: Alignment.topLeft,
@@ -111,12 +112,12 @@ class _PerformanceMonitorPanelState extends ConsumerState<_PerformanceMonitorPan
     Map<String, dynamic> systemSummary,
   ) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(TossSpacing.space4),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildHeader(systemSummary),
-          const SizedBox(height: 12),
+          const SizedBox(height: TossSpacing.space3),
           Expanded(
             child: _showDetails 
               ? _buildDetailedView(performanceStats, systemSummary)
@@ -139,7 +140,7 @@ class _PerformanceMonitorPanelState extends ConsumerState<_PerformanceMonitorPan
           children: [
             const Text(
               'Performance Monitor',
-              style: TextStyle(
+              style: TossTextStyles.body.copyWith(
                 color: TossColors.white,
                 fontSize: 14,
                 fontWeight: FontWeight.bold,
@@ -147,7 +148,7 @@ class _PerformanceMonitorPanelState extends ConsumerState<_PerformanceMonitorPan
             ),
             Text(
               'Health: ${systemHealth.toUpperCase()}',
-              style: TextStyle(
+              style: TossTextStyles.body.copyWith(
                 color: _getHealthColor(systemHealth),
                 fontSize: 10,
               ),
@@ -161,32 +162,32 @@ class _PerformanceMonitorPanelState extends ConsumerState<_PerformanceMonitorPan
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: BoxDecoration(
                   color: TossColors.error,
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.md),
                 ),
                 child: Text(
                   '$criticalIssues',
-                  style: const TextStyle(
+                  style: TossTextStyles.body.copyWith(
                     color: TossColors.white,
                     fontSize: 10,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
               ),
-            const SizedBox(width: 8),
+            const SizedBox(width: TossSpacing.space2),
             InkWell(
               onTap: () => setState(() => _showDetails = !_showDetails),
               child: Icon(
                 _showDetails ? Icons.visibility_off : Icons.visibility,
-                color: Colors.white70,
+                color: TossColors.white70,
                 size: 18,
               ),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: TossSpacing.space2),
             InkWell(
               onTap: () => setState(() => _isExpanded = false),
               child: const Icon(
                 Icons.close,
-                color: Colors.white70,
+                color: TossColors.white70,
                 size: 18,
               ),
             ),
@@ -211,11 +212,11 @@ class _PerformanceMonitorPanelState extends ConsumerState<_PerformanceMonitorPan
         Row(
           children: [
             _buildMetricCard('Avg Load', _getAverageLoadTime(performanceStats), TossColors.primary),
-            const SizedBox(width: 8),
+            const SizedBox(width: TossSpacing.space2),
             _buildMetricCard('Cache Hit', _getAverageCacheHit(performanceStats), TossColors.success),
           ],
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: TossSpacing.space3),
         
         // Top operations
         Expanded(
@@ -224,13 +225,13 @@ class _PerformanceMonitorPanelState extends ConsumerState<_PerformanceMonitorPan
             children: [
               const Text(
                 'Key Operations',
-                style: TextStyle(
-                  color: Colors.white70,
+                style: TossTextStyles.body.copyWith(
+                  color: TossColors.white70,
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: TossSpacing.space2),
               Expanded(
                 child: ListView.builder(
                   itemCount: userFacingOps.length,
@@ -259,33 +260,33 @@ class _PerformanceMonitorPanelState extends ConsumerState<_PerformanceMonitorPan
         children: [
           // System overview
           _buildSystemOverview(systemSummary),
-          const SizedBox(height: 16),
+          const SizedBox(height: TossSpacing.space4),
           
           // Recommendations
           if (recommendations.isNotEmpty) ...[
             const Text(
               'Optimization Recommendations',
-              style: TextStyle(
-                color: Colors.white70,
+              style: TossTextStyles.body.copyWith(
+                color: TossColors.white70,
                 fontSize: 12,
                 fontWeight: FontWeight.bold,
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: TossSpacing.space2),
             ...recommendations.take(3).map((rec) => _buildRecommendation(rec.toString())),
-            const SizedBox(height: 16),
+            const SizedBox(height: TossSpacing.space4),
           ],
           
           // Detailed operations
           const Text(
             'Operation Details',
-            style: TextStyle(
-              color: Colors.white70,
+            style: TossTextStyles.body.copyWith(
+              color: TossColors.white70,
               fontSize: 12,
               fontWeight: FontWeight.bold,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: TossSpacing.space2),
           ...performanceStats.entries.map((entry) => _buildOperationDetail(entry.key, entry.value)),
         ],
       ),
@@ -298,14 +299,14 @@ class _PerformanceMonitorPanelState extends ConsumerState<_PerformanceMonitorPan
         padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
         decoration: BoxDecoration(
           color: color.withOpacity(0.2),
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(TossBorderRadius.md),
           border: Border.all(color: color.withOpacity(0.5)),
         ),
         child: Column(
           children: [
             Text(
               value,
-              style: TextStyle(
+              style: TossTextStyles.body.copyWith(
                 color: color,
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
@@ -313,8 +314,8 @@ class _PerformanceMonitorPanelState extends ConsumerState<_PerformanceMonitorPan
             ),
             Text(
               label,
-              style: const TextStyle(
-                color: Colors.white70,
+              style: TossTextStyles.body.copyWith(
+                color: TossColors.white70,
                 fontSize: 10,
               ),
             ),
@@ -330,7 +331,7 @@ class _PerformanceMonitorPanelState extends ConsumerState<_PerformanceMonitorPan
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
         color: TossColors.white.withOpacity(0.05),
-        borderRadius: BorderRadius.circular(6),
+        borderRadius: BorderRadius.circular(TossBorderRadius.sm),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -338,7 +339,7 @@ class _PerformanceMonitorPanelState extends ConsumerState<_PerformanceMonitorPan
           Expanded(
             child: Text(
               _getDisplayName(operationName),
-              style: const TextStyle(
+              style: TossTextStyles.body.copyWith(
                 color: TossColors.white,
                 fontSize: 11,
               ),
@@ -346,22 +347,22 @@ class _PerformanceMonitorPanelState extends ConsumerState<_PerformanceMonitorPan
           ),
           Text(
             '${stats.averageLoadTime.inMilliseconds}ms',
-            style: TextStyle(
+            style: TossTextStyles.body.copyWith(
               color: _getPerformanceColor(stats.averageLoadTime.inMilliseconds),
               fontSize: 11,
               fontWeight: FontWeight.bold,
             ),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: TossSpacing.space2),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
             decoration: BoxDecoration(
               color: _getGradeColor(stats.performanceGrade),
-              borderRadius: BorderRadius.circular(4),
+              borderRadius: BorderRadius.circular(TossBorderRadius.xs),
             ),
             child: Text(
               stats.performanceGrade,
-              style: const TextStyle(
+              style: TossTextStyles.body.copyWith(
                 color: TossColors.white,
                 fontSize: 8,
                 fontWeight: FontWeight.bold,
@@ -379,10 +380,10 @@ class _PerformanceMonitorPanelState extends ConsumerState<_PerformanceMonitorPan
     final totalExecutions = overallPerformance['totalExecutions'] ?? 0;
 
     return Container(
-      padding: const EdgeInsets.all(8),
+      padding: const EdgeInsets.all(TossSpacing.space2),
       decoration: BoxDecoration(
         color: TossColors.white.withOpacity(0.05),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(TossBorderRadius.md),
       ),
       child: Column(
         children: [
@@ -391,11 +392,11 @@ class _PerformanceMonitorPanelState extends ConsumerState<_PerformanceMonitorPan
             children: [
               Text(
                 'System Score: ${avgScore.toStringAsFixed(1)}',
-                style: const TextStyle(color: TossColors.white, fontSize: 11),
+                style: TossTextStyles.body.copyWith(color: TossColors.white, fontSize: 11),
               ),
               Text(
                 'Total Ops: $totalExecutions',
-                style: const TextStyle(color: Colors.white70, fontSize: 10),
+                style: TossTextStyles.body.copyWith(color: TossColors.white70, fontSize: 10),
               ),
             ],
           ),
@@ -407,15 +408,15 @@ class _PerformanceMonitorPanelState extends ConsumerState<_PerformanceMonitorPan
   Widget _buildRecommendation(String recommendation) {
     return Container(
       margin: const EdgeInsets.only(bottom: 4),
-      padding: const EdgeInsets.all(6),
+      padding: EdgeInsets.all(TossSpacing.space2 * 0.75),
       decoration: BoxDecoration(
         color: TossColors.warning.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(4),
+        borderRadius: BorderRadius.circular(TossBorderRadius.xs),
         border: Border.all(color: TossColors.warning.withOpacity(0.3)),
       ),
       child: Text(
         recommendation,
-        style: const TextStyle(
+        style: TossTextStyles.body.copyWith(
           color: TossColors.warning,
           fontSize: 9,
         ),
@@ -426,10 +427,10 @@ class _PerformanceMonitorPanelState extends ConsumerState<_PerformanceMonitorPan
   Widget _buildOperationDetail(String operationName, TemplatePerformanceStats stats) {
     return Container(
       margin: const EdgeInsets.only(bottom: 6),
-      padding: const EdgeInsets.all(8),
+      padding: const EdgeInsets.all(TossSpacing.space2),
       decoration: BoxDecoration(
         color: TossColors.white.withOpacity(0.03),
-        borderRadius: BorderRadius.circular(6),
+        borderRadius: BorderRadius.circular(TossBorderRadius.sm),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -439,7 +440,7 @@ class _PerformanceMonitorPanelState extends ConsumerState<_PerformanceMonitorPan
             children: [
               Text(
                 _getDisplayName(operationName),
-                style: const TextStyle(
+                style: TossTextStyles.body.copyWith(
                   color: TossColors.white,
                   fontSize: 11,
                   fontWeight: FontWeight.bold,
@@ -447,7 +448,7 @@ class _PerformanceMonitorPanelState extends ConsumerState<_PerformanceMonitorPan
               ),
               Text(
                 stats.performanceGrade,
-                style: TextStyle(
+                style: TossTextStyles.body.copyWith(
                   color: _getGradeColor(stats.performanceGrade),
                   fontSize: 10,
                   fontWeight: FontWeight.bold,
@@ -461,15 +462,15 @@ class _PerformanceMonitorPanelState extends ConsumerState<_PerformanceMonitorPan
             children: [
               Text(
                 'Avg: ${stats.averageLoadTime.inMilliseconds}ms',
-                style: const TextStyle(color: Colors.white70, fontSize: 9),
+                style: TossTextStyles.body.copyWith(color: TossColors.white70, fontSize: 9),
               ),
               Text(
                 'Cache: ${(stats.cacheHitRate * 100).toStringAsFixed(0)}%',
-                style: const TextStyle(color: Colors.white70, fontSize: 9),
+                style: TossTextStyles.body.copyWith(color: TossColors.white70, fontSize: 9),
               ),
               Text(
                 'Exec: ${stats.totalExecutions}',
-                style: const TextStyle(color: Colors.white70, fontSize: 9),
+                style: TossTextStyles.body.copyWith(color: TossColors.white70, fontSize: 9),
               ),
             ],
           ),
@@ -562,21 +563,21 @@ class PerformanceAlert extends ConsumerWidget {
     if (criticalIssues.isEmpty) return const SizedBox.shrink();
 
     return Container(
-      margin: const EdgeInsets.all(16),
-      padding: const EdgeInsets.all(12),
+      margin: const EdgeInsets.all(TossSpacing.space4),
+      padding: const EdgeInsets.all(TossSpacing.space3),
       decoration: BoxDecoration(
         color: TossColors.error.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(TossBorderRadius.md),
         border: Border.all(color: TossColors.error.withOpacity(0.3)),
       ),
       child: Row(
         children: [
           Icon(Icons.warning, color: TossColors.error, size: 20),
-          const SizedBox(width: 8),
+          const SizedBox(width: TossSpacing.space2),
           Expanded(
             child: Text(
               '${criticalIssues.length} performance issue(s) detected',
-              style: TextStyle(
+              style: TossTextStyles.body.copyWith(
                 color: TossColors.error,
                 fontWeight: FontWeight.bold,
                 fontSize: 12,
@@ -599,7 +600,7 @@ class PerformanceTestWidget extends ConsumerWidget {
 
     return FloatingActionButton.small(
       onPressed: () => _runPerformanceTest(ref),
-      backgroundColor: Colors.purple,
+      backgroundColor: TossColors.primary,
       child: const Icon(Icons.speed, color: TossColors.white),
     );
   }

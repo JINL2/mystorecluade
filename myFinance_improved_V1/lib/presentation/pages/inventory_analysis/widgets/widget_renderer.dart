@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import '../models/dashboard_model.dart';
 import '../../../../core/themes/index.dart';
-
+import 'package:myfinance_improved/core/themes/toss_border_radius.dart';
 class WidgetRenderer extends StatelessWidget {
   final DashboardWidget widget;
   final bool isMobile;
@@ -543,7 +543,7 @@ class _TextNoteWidget extends StatelessWidget {
           widget.title,
           style: Theme.of(context).textTheme.titleSmall,
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: TossSpacing.space2),
         Text(
           widget.customSettings['text'] ?? 'Add your notes here...',
           style: Theme.of(context).textTheme.bodyMedium,

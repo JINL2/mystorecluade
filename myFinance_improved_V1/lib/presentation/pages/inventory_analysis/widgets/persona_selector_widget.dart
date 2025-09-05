@@ -6,6 +6,7 @@ import '../../../../core/themes/toss_spacing.dart';
 import '../../../../core/themes/toss_border_radius.dart';
 import '../models/supply_chain_models.dart';
 import '../providers/persona_provider.dart';
+import 'package:myfinance_improved/core/themes/index.dart';
 
 class PersonaSelectorWidget extends ConsumerWidget {
   final bool isCompact;
@@ -122,7 +123,7 @@ class PersonaSelectorWidget extends ConsumerWidget {
     return Container(
       decoration: BoxDecoration(
         color: TossColors.surface,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(TossBorderRadius.xl),
         boxShadow: [
           BoxShadow(
             color: TossColors.black.withValues(alpha: 0.05),

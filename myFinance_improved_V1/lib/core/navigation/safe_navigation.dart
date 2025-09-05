@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'navigation_state_provider.dart';
+import 'package:myfinance_improved/core/themes/index.dart';
 
 /// SafeNavigation provides thread-safe navigation with race condition protection,
 /// debouncing, and comprehensive error handling for Flutter navigation
@@ -508,11 +509,11 @@ class SafeNavigation {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Navigation failed. Please try again.'),
-          backgroundColor: Colors.red.shade700,
+          backgroundColor: TossColors.error,
           behavior: SnackBarBehavior.floating,
           action: SnackBarAction(
             label: 'OK',
-            textColor: Colors.white,
+            textColor: TossColors.white,
             onPressed: () {},
           ),
         ),

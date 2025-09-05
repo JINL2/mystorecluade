@@ -51,8 +51,11 @@ import '../pages/debug/supabase_connection_test_page.dart';
 import '../pages/debug/notification_debug_page.dart';
 import '../pages/debug/push_notification_diagnostic.dart';
 import '../pages/debug/fcm_token_debug_page.dart';
+import '../pages/debug/theme_monitor_page.dart';
+import '../pages/debug/widget_consistency_analyzer_page.dart';
 import '../../core/themes/toss_text_styles.dart';
 import '../../core/themes/toss_colors.dart';
+import '../../core/themes/toss_spacing.dart';
 import '../widgets/common/toss_scaffold.dart';
 
 
@@ -352,14 +355,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 size: 64,
                 color: TossColors.error,
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: TossSpacing.space4),
               Text(
                 'Page Not Found',
                 style: TossTextStyles.h2.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: TossSpacing.space2),
               Text(
                 error?.toString() ?? 'The page you are looking for does not exist.',
                 style: TossTextStyles.bodyLarge.copyWith(
@@ -375,7 +378,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 },
                 child: const Text('Go to Home'),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: TossSpacing.space3),
               TextButton(
                 onPressed: () {
                   // Try to go back safely
@@ -715,6 +718,16 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: 'debug/fcm-token',
             builder: (context, state) => const FcmTokenDebugPage(),
+          ),
+          // Debug Page (Theme Monitor)
+          GoRoute(
+            path: 'debug/theme-monitor',
+            builder: (context, state) => const ThemeMonitorPage(),
+          ),
+          // Debug Page (Widget Consistency Analyzer)
+          GoRoute(
+            path: 'debug/widget-analyzer',
+            builder: (context, state) => const WidgetConsistencyAnalyzerPage(),
           ),
         ],
       ),

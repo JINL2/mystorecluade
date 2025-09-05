@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../core/themes/index.dart';
 import '../models/dashboard_model.dart';
-
+import 'package:myfinance_improved/core/themes/toss_border_radius.dart';
 class DashboardToolbar extends StatelessWidget {
   final UserDashboard dashboard;
   final bool isEditMode;
@@ -106,7 +106,7 @@ class DashboardToolbar extends StatelessWidget {
               child: Row(
                 children: const [
                   Icon(Icons.calendar_today, size: 16),
-                  SizedBox(width: 8),
+                  SizedBox(width: TossSpacing.space2),
                   Text('Last 30 days'),
                   SizedBox(width: 4),
                   Icon(Icons.arrow_drop_down, size: 16),

@@ -8,6 +8,7 @@ import '../../../widgets/toss/toss_bottom_sheet.dart';
 import '../../../widgets/toss/toss_primary_button.dart';
 import '../../../widgets/toss/toss_secondary_button.dart';
 import '../../../widgets/toss/toss_text_field.dart';
+import '../../../widgets/toss/modal_keyboard_patterns.dart';
 import '../../../widgets/toss/toss_dropdown.dart';
 import '../../../widgets/common/toss_loading_view.dart';
 import '../../../../core/themes/toss_design_system.dart';
@@ -26,6 +27,7 @@ import '../../../providers/auth_provider.dart';
 import '../providers/counterparty_providers.dart';
 import '../providers/transaction_template_providers.dart';
 import '../../../../data/services/supabase_service.dart';
+import 'package:myfinance_improved/core/themes/index.dart';
 
 // Form complexity levels
 enum FormComplexity {
@@ -410,57 +412,32 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
     // Check if template has all requirements filled
     final bool isTemplateComplete = _checkTemplateCompleteness();
     
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        // Main scrollable content
-        Flexible(
-          child: Form(
-            key: _formKey,
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  // Template Info Card - Compact
-                  _buildCompactTemplateHeader(),
-                  
-                  SizedBox(height: TossSpacing.space3),
-                  
-                  // Primary Input Section - What user needs to do
-                  _buildPrimaryInputSection(),
-                  
-                  SizedBox(height: TossSpacing.space3),
-                  
-                  // Collapsible Details Section
-                  _buildCollapsibleDetailsSection(isTemplateComplete),
-                  
-                  SizedBox(height: TossSpacing.space4),
-                ],
-              ),
-            ),
-          ),
+    return FixedBottomModalWrapper(
+      scrollableContent: Form(
+        key: _formKey,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Template Info Card - Compact
+            _buildCompactTemplateHeader(),
+            
+            SizedBox(height: TossSpacing.space3),
+            
+            // Primary Input Section - What user needs to do
+            _buildPrimaryInputSection(),
+            
+            SizedBox(height: TossSpacing.space3),
+            
+            // Collapsible Details Section
+            _buildCollapsibleDetailsSection(isTemplateComplete),
+            
+            SizedBox(height: TossSpacing.space4),
+          ],
         ),
-        
-        // Sticky bottom buttons - ALWAYS visible
-        Container(
-          padding: EdgeInsets.all(TossSpacing.space4),
-          decoration: BoxDecoration(
-            color: TossColors.white,
-            border: Border(
-              top: BorderSide(
-                color: TossColors.gray200,
-                width: 0.5,
-              ),
-            ),
-            boxShadow: TossShadows.bottomSheet,
-          ),
-          child: SafeArea(
-            top: false,
-            child: _buildActionButtons(),
-          ),
-        ),
-      ],
+      ),
+      fixedBottom: _buildActionButtons(),
+      addKeyboardPadding: true,
     );
   }
   

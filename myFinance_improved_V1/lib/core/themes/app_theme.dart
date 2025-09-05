@@ -4,6 +4,7 @@ import 'toss_colors.dart';
 import 'toss_text_styles.dart';
 import 'toss_border_radius.dart';
 import 'toss_spacing.dart';
+import 'package:myfinance_improved/core/themes/index.dart';
 
 /// MyFinance Theme - Powered by Toss Design System
 /// Clean, modern, and professional financial app design
@@ -21,7 +22,7 @@ class AppTheme {
     brightness: Brightness.light,
     
     // Color scheme
-    colorScheme: const ColorScheme.light(
+    colorScheme: ColorScheme.light(
       primary: TossColors.primary,
       onPrimary: TossColors.white,
       primaryContainer: TossColors.primarySurface,

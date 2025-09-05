@@ -7,7 +7,8 @@ import '../../../core/themes/toss_shadows.dart';
 import '../../../core/notifications/config/notification_display_config.dart';
 import '../../../core/notifications/models/notification_payload.dart';
 import '../../providers/notification_provider.dart';
-
+import 'package:myfinance_improved/core/themes/index.dart';
+import 'package:myfinance_improved/core/themes/toss_border_radius.dart';
 /// Smart toast notification widget that provides non-intrusive notifications
 /// Auto-dismisses, swipeable, and respects user preferences
 class SmartToastNotification extends ConsumerStatefulWidget {
@@ -73,7 +74,7 @@ class SmartToastNotification extends ConsumerStatefulWidget {
         ),
         duration: toastDuration,
         behavior: SnackBarBehavior.floating,
-        backgroundColor: Colors.transparent,
+        backgroundColor: TossColors.transparent,
         elevation: 0,
         margin: EdgeInsets.only(
           bottom: MediaQuery.of(context).size.height - 150,
@@ -211,18 +212,18 @@ class _SmartToastNotificationState extends ConsumerState<SmartToastNotification>
           direction: DismissDirection.horizontal,
           onDismissed: (_) => _handleDismiss(),
           child: Material(
-            color: Colors.transparent,
+            color: TossColors.transparent,
             child: InkWell(
               onTap: () {
                 widget.onTap?.call();
                 _handleDismiss();
               },
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
               child: Container(
                 padding: EdgeInsets.all(TossSpacing.space3),
                 decoration: BoxDecoration(
                   color: backgroundColor,
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                   boxShadow: TossShadows.elevation2,
                   border: Border.all(
                     color: TossColors.gray200.withOpacity(0.3),
@@ -237,7 +238,7 @@ class _SmartToastNotificationState extends ConsumerState<SmartToastNotification>
                         height: 40,
                         decoration: BoxDecoration(
                           color: TossColors.primary.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(TossBorderRadius.md),
                         ),
                         child: Icon(
                           widget.icon ?? Icons.notifications_none_rounded,

@@ -5,7 +5,8 @@ import '../../../../core/themes/toss_text_styles.dart';
 import '../../../../core/utils/number_formatter.dart';
 import '../../../../core/navigation/safe_navigation.dart';
 import '../providers/currency_provider.dart';
-
+import 'package:myfinance_improved/core/themes/index.dart';
+import 'package:myfinance_improved/core/themes/toss_border_radius.dart';
 /// Simplified company card for debt control
 class SimpleCompanyCard extends ConsumerWidget {
   final String counterpartyId;
@@ -46,7 +47,7 @@ class SimpleCompanyCard extends ConsumerWidget {
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       decoration: BoxDecoration(
         color: TossColors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(TossBorderRadius.xl),
         // Subtle left border for internal companies
         border: isInternal ? Border(
           left: BorderSide(
@@ -73,9 +74,9 @@ class SimpleCompanyCard extends ConsumerWidget {
             },
           );
         },
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(TossBorderRadius.xl),
         child: Padding(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(TossSpacing.space5),
           child: Row(
             children: [
               // Company Info - No avatar for maximum space
@@ -125,7 +126,7 @@ class SimpleCompanyCard extends ConsumerWidget {
                     padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                     decoration: BoxDecoration(
                       color: amountColor.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(TossBorderRadius.md),
                     ),
                     child: Text(
                       isReceivable 

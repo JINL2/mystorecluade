@@ -18,6 +18,7 @@ import '../../../providers/app_state_provider.dart';
 import '../../../providers/auth_provider.dart';
 import 'quick_template_analyzer.dart';
 import 'template_usage_bottom_sheet.dart';
+import 'package:myfinance_improved/core/themes/index.dart';
 
 /// Quick template interface optimized for speed and user intuition
 class QuickTemplateBottomSheet extends ConsumerStatefulWidget {

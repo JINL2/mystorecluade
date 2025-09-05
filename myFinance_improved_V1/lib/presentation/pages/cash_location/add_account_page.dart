@@ -12,6 +12,7 @@ import '../../widgets/common/toss_scaffold.dart';
 import '../../widgets/common/toss_app_bar.dart';
 import '../../widgets/common/toss_loading_view.dart';
 import '../../../data/services/currency_service.dart';
+import 'package:myfinance_improved/core/themes/index.dart';
 
 class AddAccountPage extends ConsumerStatefulWidget {
   final String locationType; // 'cash', 'bank', 'vault'
@@ -131,9 +132,9 @@ class _AddAccountPageState extends ConsumerState<AddAccountPage> {
     return TossScaffold(
       appBar: TossAppBar(
         title: _pageTitle,
-        backgroundColor: const Color(0xFFF7F8FA),
+        backgroundColor: TossColors.gray50,
       ),
-      backgroundColor: const Color(0xFFF7F8FA),
+      backgroundColor: TossColors.gray50,
       body: SafeArea(
         child: Column(
           children: [
@@ -216,7 +217,7 @@ class _AddAccountPageState extends ConsumerState<AddAccountPage> {
       style: TossTextStyles.body.copyWith(
         fontSize: 16,
         fontWeight: FontWeight.w600,
-        color: showError ? const Color(0xFFEF4444) : Colors.black87,
+        color: showError ? TossColors.error : TossColors.black87,
       ),
     );
   }
@@ -232,10 +233,10 @@ class _AddAccountPageState extends ConsumerState<AddAccountPage> {
     
     return Container(
       decoration: BoxDecoration(
-        color: showError ? const Color(0xFFFEF2F2) : TossColors.white,
+        color: showError ? TossColors.errorLight : TossColors.white,
         borderRadius: BorderRadius.circular(TossBorderRadius.md),
         border: Border.all(
-          color: showError ? const Color(0xFFEF4444) : TossColors.gray300,
+          color: showError ? TossColors.error : TossColors.gray300,
           width: 1.0,
         ),
       ),
@@ -263,7 +264,7 @@ class _AddAccountPageState extends ConsumerState<AddAccountPage> {
           hintText: hintText,
           hintStyle: TossTextStyles.body.copyWith(
             fontSize: 16,
-            color: showError ? const Color(0xFFEF4444).withOpacity(0.7) : TossColors.gray400,
+            color: showError ? TossColors.error.withOpacity(0.7) : TossColors.gray400,
           ),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(TossBorderRadius.md),
@@ -333,10 +334,10 @@ class _AddAccountPageState extends ConsumerState<AddAccountPage> {
       data: (currencies) {
         return Container(
           decoration: BoxDecoration(
-            color: showError ? const Color(0xFFFEF2F2) : TossColors.white,
+            color: showError ? TossColors.errorLight : TossColors.white,
             borderRadius: BorderRadius.circular(TossBorderRadius.md),
             border: Border.all(
-              color: showError ? const Color(0xFFEF4444) : TossColors.gray300,
+              color: showError ? TossColors.error : TossColors.gray300,
               width: 1.0,
             ),
           ),
@@ -360,7 +361,7 @@ class _AddAccountPageState extends ConsumerState<AddAccountPage> {
               hintText: 'Select currency',
               hintStyle: TossTextStyles.body.copyWith(
                 fontSize: 16,
-                color: showError ? const Color(0xFFEF4444).withOpacity(0.7) : TossColors.gray400,
+                color: showError ? TossColors.error.withOpacity(0.7) : TossColors.gray400,
               ),
               border: InputBorder.none,
               contentPadding: EdgeInsets.symmetric(
@@ -377,7 +378,7 @@ class _AddAccountPageState extends ConsumerState<AddAccountPage> {
             style: TossTextStyles.body.copyWith(
               fontSize: 16,
               fontWeight: FontWeight.w500,
-              color: Colors.black87,
+              color: TossColors.black87,
             ),
             items: currencies.map<DropdownMenuItem<String>>((CurrencyType currency) {
               return DropdownMenuItem<String>(
@@ -436,15 +437,15 @@ class _AddAccountPageState extends ConsumerState<AddAccountPage> {
       ),
       error: (error, stack) => Container(
         decoration: BoxDecoration(
-          color: const Color(0xFFFEF2F2),
+          color: TossColors.errorLight,
           borderRadius: BorderRadius.circular(TossBorderRadius.md),
-          border: Border.all(color: const Color(0xFFEF4444)),
+          border: Border.all(color: TossColors.error),
         ),
         padding: EdgeInsets.all(TossSpacing.space4),
         child: Text(
           'Failed to load currencies',
           style: TossTextStyles.body.copyWith(
-            color: const Color(0xFFEF4444),
+            color: TossColors.error,
             fontSize: 16,
           ),
         ),

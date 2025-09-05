@@ -4,6 +4,7 @@ import '../../../../core/themes/toss_text_styles.dart';
 import '../../../../core/themes/toss_spacing.dart';
 import '../../../../core/themes/toss_border_radius.dart';
 import '../models/supply_chain_models.dart';
+import 'package:myfinance_improved/core/themes/index.dart';
 
 class StageBottleneckWidget extends StatelessWidget {
   final List<StagePerformance> stagePerformance;
@@ -24,7 +25,7 @@ class StageBottleneckWidget extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: TossColors.surface,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(TossBorderRadius.xl),
         boxShadow: [
           BoxShadow(
             color: TossColors.black.withValues(alpha: 0.05),
@@ -455,7 +456,7 @@ class StageBottleneckWidget extends StatelessWidget {
                   child: Text(
                     'View ${stage.totalProblems} Issues',
                     style: TossTextStyles.caption.copyWith(
-                      color: Colors.white,
+                      color: TossColors.white,
                       fontWeight: FontWeight.w600,
                     ),
                   ),

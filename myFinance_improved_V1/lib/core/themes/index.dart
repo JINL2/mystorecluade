@@ -1,10 +1,19 @@
 /// Toss Theme System - Barrel Export
 /// 
 /// Single import for all theme components:
+/// ```dart
 /// import 'package:myfinance_improved/core/themes/index.dart';
+/// ```
 /// 
-/// This replaces multiple individual theme imports and improves
-/// code consistency and maintainability across the project.
+/// 📚 DOCUMENTATION:
+/// • Complete Guide: lib/core/themes/THEME_SYSTEM_GUIDE.md
+/// • Quick Reference: lib/core/themes/QUICK_REFERENCE.md
+/// • Theme Monitor: dart bin/improved_theme_monitor.dart
+/// 
+/// 🎯 CORE RULE: Always use design tokens, never hardcoded values!
+/// 
+/// ✅ Good: TossColors.primary, TossSpacing.space4, TossTextStyles.body
+/// ❌ Bad:  Color(0xFF0064FF), EdgeInsets.all(16), TextStyle(fontSize: 14)
 
 // Core theme components
 export 'toss_colors.dart';

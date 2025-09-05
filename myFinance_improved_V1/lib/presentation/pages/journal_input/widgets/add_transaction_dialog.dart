@@ -18,6 +18,7 @@ import '../../../widgets/specific/selectors/autonomous_counterparty_selector.dar
 import '../../../widgets/specific/selectors/autonomous_cash_location_selector.dart';
 import '../../../widgets/common/toss_loading_view.dart';
 import '../../../providers/entities/counterparty_provider.dart';
+import 'package:myfinance_improved/core/themes/index.dart';
 
 
 // Custom formatter for thousand separators
@@ -292,13 +293,13 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
       builder: (BuildContext dialogContext) {
         return Dialog(
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(TossBorderRadius.xl),
           ),
           child: Container(
-            padding: EdgeInsets.all(24),
+            padding: EdgeInsets.all(TossSpacing.space6),
             decoration: BoxDecoration(
               color: TossColors.white,
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(TossBorderRadius.xl),
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -319,17 +320,16 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
                 SizedBox(height: 20),
                 Text(
                   'Account Mapping Required',
-                  style: TextStyle(
-                    fontSize: 20,
+                  style: TossTextStyles.h3.copyWith(
                     fontWeight: FontWeight.w700,
                     color: TossColors.gray900,
                   ),
                   textAlign: TextAlign.center,
                 ),
-                SizedBox(height: 12),
+                SizedBox(height: TossSpacing.space3),
                 Text(
                   'This internal counterparty requires an account mapping to be set up first.',
-                  style: TextStyle(
+                  style: TossTextStyles.body.copyWith(
                     fontSize: 15,
                     color: TossColors.gray600,
                     height: 1.5,
@@ -357,14 +357,13 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
                       foregroundColor: TossColors.white,
                       padding: EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                       ),
                       elevation: 0,
                     ),
                     child: Text(
                       'OK',
-                      style: TextStyle(
-                        fontSize: 16,
+                      style: TossTextStyles.bodyLarge.copyWith(
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -449,9 +448,9 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
             fontWeight: FontWeight.w600,
           ),
         ),
-        SizedBox(height: 8),
+        SizedBox(height: TossSpacing.space2),
         Container(
-          padding: EdgeInsets.all(16),
+          padding: EdgeInsets.all(TossSpacing.space4),
           decoration: BoxDecoration(
             color: TossColors.gray50,
             borderRadius: BorderRadius.circular(TossBorderRadius.lg),
@@ -463,7 +462,7 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
           child: Row(
             children: [
               Icon(Icons.info_outline, size: 20, color: TossColors.gray500),
-              SizedBox(width: 12),
+              SizedBox(width: TossSpacing.space3),
               Expanded(
                 child: Text(
                   'This counterparty has no stores configured',
@@ -543,13 +542,13 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
             height: 4,
             decoration: BoxDecoration(
               color: TossColors.gray300,
-              borderRadius: BorderRadius.circular(2),
+              borderRadius: BorderRadius.circular(TossBorderRadius.xs),
             ),
           ),
           
           // Header
           Container(
-            padding: EdgeInsets.all(20),
+            padding: EdgeInsets.all(TossSpacing.space5),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -575,20 +574,20 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
           // Content
           Expanded(
             child: SingleChildScrollView(
-              padding: EdgeInsets.all(20),
+              padding: EdgeInsets.all(TossSpacing.space5),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Transaction Type Toggle
                     _buildSectionTitle('Transaction Type'),
-                    SizedBox(height: 8),
+                    SizedBox(height: TossSpacing.space2),
                     Container(
                       height: 48,
                       decoration: BoxDecoration(
                         color: TossColors.gray50,
                         borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                       ),
-                      padding: EdgeInsets.all(4),
+                      padding: EdgeInsets.all(TossSpacing.space1),
                       child: Stack(
                         children: [
                           // Animated selection indicator
@@ -716,7 +715,7 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
                           fontWeight: FontWeight.w600,
                         ),
                       ),
-                      SizedBox(height: 8),
+                      SizedBox(height: TossSpacing.space2),
                       Consumer(
                         builder: (context, ref, child) {
                           return AutonomousCounterpartySelector(
@@ -791,9 +790,9 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
                                           fontWeight: FontWeight.w600,
                                         ),
                                       ),
-                                      SizedBox(height: 8),
+                                      SizedBox(height: TossSpacing.space2),
                                       Container(
-                                        padding: EdgeInsets.all(16),
+                                        padding: EdgeInsets.all(TossSpacing.space4),
                                         decoration: BoxDecoration(
                                           color: TossColors.gray50,
                                           borderRadius: BorderRadius.circular(TossBorderRadius.lg),
@@ -805,7 +804,7 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
                                         child: Row(
                                           children: [
                                             Icon(Icons.info_outline, size: 20, color: TossColors.gray500),
-                                            SizedBox(width: 12),
+                                            SizedBox(width: TossSpacing.space3),
                                             Expanded(
                                               child: Text(
                                                 'This counterparty has no stores configured',
@@ -831,7 +830,7 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
                                         fontWeight: FontWeight.w600,
                                       ),
                                     ),
-                                    SizedBox(height: 8),
+                                    SizedBox(height: TossSpacing.space2),
                                     GestureDetector(
                                       onTap: () {
                                         _showStoreSelectionBottomSheet(context, stores);
@@ -855,7 +854,7 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
                                                 ? TossColors.primary
                                                 : TossColors.gray400,
                                             ),
-                                            SizedBox(width: 12),
+                                            SizedBox(width: TossSpacing.space3),
                                             Expanded(
                                               child: _selectedCounterpartyStoreName != null
                                                 ? Text(
@@ -895,7 +894,7 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
                                       fontWeight: FontWeight.w600,
                                     ),
                                   ),
-                                  SizedBox(height: 8),
+                                  SizedBox(height: TossSpacing.space2),
                                   Container(
                                     padding: EdgeInsets.symmetric(vertical: 20),
                                     child: Center(
@@ -914,7 +913,7 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
                                       fontWeight: FontWeight.w600,
                                     ),
                                   ),
-                                  SizedBox(height: 8),
+                                  SizedBox(height: TossSpacing.space2),
                                   Text(
                                     'Error loading stores',
                                     style: TossTextStyles.body.copyWith(
@@ -950,9 +949,9 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
                       
                       // Account Mapping Status
                       if (_isInternal && _accountMapping != null) ...[
-                        SizedBox(height: 16),
+                        SizedBox(height: TossSpacing.space4),
                         Container(
-                          padding: EdgeInsets.all(12),
+                          padding: EdgeInsets.all(TossSpacing.space3),
                           decoration: BoxDecoration(
                             color: TossColors.success.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(TossBorderRadius.md),
@@ -964,7 +963,7 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
                           child: Row(
                             children: [
                               Icon(Icons.check_circle, color: TossColors.success, size: 20),
-                              SizedBox(width: 8),
+                              SizedBox(width: TossSpacing.space2),
                               Text(
                                 'Account mapping verified',
                                 style: TossTextStyles.bodySmall.copyWith(
@@ -978,9 +977,9 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
                       ],
                       
                       if (_mappingError != null) ...[
-                        SizedBox(height: 16),
+                        SizedBox(height: TossSpacing.space4),
                         Container(
-                          padding: EdgeInsets.all(12),
+                          padding: EdgeInsets.all(TossSpacing.space3),
                           decoration: BoxDecoration(
                             color: TossColors.error.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(TossBorderRadius.md),
@@ -992,7 +991,7 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
                           child: Row(
                             children: [
                               Icon(Icons.warning, color: TossColors.error, size: 20),
-                              SizedBox(width: 8),
+                              SizedBox(width: TossSpacing.space2),
                               Expanded(
                                 child: Text(
                                   _mappingError!,
@@ -1023,9 +1022,9 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
                         },
                       ),
                       
-                      SizedBox(height: 16),
+                      SizedBox(height: TossSpacing.space4),
                       _buildSectionTitle('Interest Rate'),
-                      SizedBox(height: 8),
+                      SizedBox(height: TossSpacing.space2),
                       _buildTextField(
                         controller: _interestRateController,
                         hint: 'Enter interest rate',
@@ -1037,7 +1036,7 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
                         },
                       ),
                       
-                      SizedBox(height: 16),
+                      SizedBox(height: TossSpacing.space4),
                       Row(
                         children: [
                           Expanded(
@@ -1045,7 +1044,7 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 _buildSectionTitle('Issue Date'),
-                                SizedBox(height: 8),
+                                SizedBox(height: TossSpacing.space2),
                                 _buildDatePicker(
                                   date: _issueDate,
                                   onChanged: (date) {
@@ -1057,13 +1056,13 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
                               ],
                             ),
                           ),
-                          SizedBox(width: 16),
+                          SizedBox(width: TossSpacing.space4),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 _buildSectionTitle('Due Date'),
-                                SizedBox(height: 8),
+                                SizedBox(height: TossSpacing.space2),
                                 _buildDatePicker(
                                   date: _dueDate,
                                   onChanged: (date) {
@@ -1082,7 +1081,7 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
                     // Amount
                     SizedBox(height: 20),
                     _buildSectionTitle('Amount *'),
-                    SizedBox(height: 8),
+                    SizedBox(height: TossSpacing.space2),
                     _buildTextField(
                       controller: _amountController,
                       hint: 'Enter amount',
@@ -1100,7 +1099,7 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
                     // Description
                     SizedBox(height: 20),
                     _buildSectionTitle('Description (Optional)'),
-                    SizedBox(height: 8),
+                    SizedBox(height: TossSpacing.space2),
                     _buildTextField(
                       controller: _descriptionController,
                       hint: 'Enter description',
@@ -1127,7 +1126,7 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
               child: SafeArea(
                 top: false,
                 child: Padding(
-                  padding: EdgeInsets.all(20),
+                  padding: EdgeInsets.all(TossSpacing.space5),
                   child: Row(
                     children: [
                       Expanded(
@@ -1137,7 +1136,7 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
                           fullWidth: true,
                         ),
                       ),
-                      SizedBox(width: 12),
+                      SizedBox(width: TossSpacing.space3),
                       Expanded(
                         child: TossPrimaryButton(
                           text: widget.existingLine != null ? 'Update' : 'Add',
@@ -1182,7 +1181,8 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
       child: Container(
         color: TossColors.transparent,
         child: Center(
-          child: AnimatedDefaultTextStyle(
+          child: // TODO: Review AnimatedDefaultTextStyle for TossTextStyles usage
+AnimatedDefaultTextStyle(
             duration: Duration(milliseconds: 200),
             style: TossTextStyles.body.copyWith(
               color: isSelected ? TossColors.white : TossColors.gray600,
@@ -1253,7 +1253,7 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
         child: Row(
           children: [
             Icon(Icons.calendar_today, size: 18, color: TossColors.gray600),
-            SizedBox(width: 8),
+            SizedBox(width: TossSpacing.space2),
             Text(
               date != null ? DateFormat('yyyy-MM-dd').format(date) : 'Select date',
               style: TossTextStyles.body.copyWith(
@@ -1287,7 +1287,7 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
               height: 4,
               decoration: BoxDecoration(
                 color: TossColors.gray300,
-                borderRadius: BorderRadius.circular(2),
+                borderRadius: BorderRadius.circular(TossBorderRadius.xs),
               ),
             ),
             Padding(

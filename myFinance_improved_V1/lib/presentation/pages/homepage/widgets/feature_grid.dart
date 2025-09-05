@@ -4,7 +4,7 @@ import 'package:myfinance_improved/core/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/domain/entities/feature.dart';
 import '../models/homepage_models.dart';
 import 'feature_card.dart';
-
+import 'package:myfinance_improved/core/themes/toss_border_radius.dart';
 class FeatureGrid extends StatelessWidget {
   const FeatureGrid({
     super.key,
@@ -38,10 +38,10 @@ class FeatureGrid extends StatelessWidget {
                       height: 20,
                       decoration: BoxDecoration(
                         color: TossColors.primary,
-                        borderRadius: BorderRadius.circular(2),
+                        borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: TossSpacing.space3),
                     Text(
                       category.categoryName,
                       style: TossTextStyles.h3.copyWith(

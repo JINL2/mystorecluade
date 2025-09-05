@@ -12,7 +12,8 @@ import '../../providers/auth_provider.dart';
 import '../../../core/constants/auth_constants.dart';
 import '../../../core/navigation/safe_navigation.dart';
 import '../../../core/navigation/auth_navigator.dart';
-
+import 'package:myfinance_improved/core/themes/index.dart';
+import 'package:myfinance_improved/core/themes/toss_border_radius.dart';
 class AuthSignupPage extends ConsumerStatefulWidget {
   const AuthSignupPage({super.key});
 
@@ -574,7 +575,7 @@ class _AuthSignupPageState extends ConsumerState<AuthSignupPage>
         Container(
           height: 4,
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(2),
+            borderRadius: BorderRadius.circular(TossBorderRadius.xs),
             color: TossColors.gray200,
           ),
           child: FractionallySizedBox(
@@ -582,7 +583,7 @@ class _AuthSignupPageState extends ConsumerState<AuthSignupPage>
             widthFactor: strengthProgress,
             child: Container(
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(2),
+                borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                 color: strengthColor,
               ),
             ),
@@ -607,7 +608,7 @@ class _AuthSignupPageState extends ConsumerState<AuthSignupPage>
             },
             activeColor: TossColors.primary,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(4),
+              borderRadius: BorderRadius.circular(TossBorderRadius.xs),
             ),
           ),
         ),
@@ -628,7 +629,7 @@ class _AuthSignupPageState extends ConsumerState<AuthSignupPage>
                   const TextSpan(text: 'I agree to the '),
                   TextSpan(
                     text: 'Terms of Service',
-                    style: TextStyle(
+                    style: TossTextStyles.body.copyWith(
                       color: TossColors.primary,
                       fontWeight: FontWeight.w600,
                     ),
@@ -636,7 +637,7 @@ class _AuthSignupPageState extends ConsumerState<AuthSignupPage>
                   const TextSpan(text: ' and '),
                   TextSpan(
                     text: 'Privacy Policy',
-                    style: TextStyle(
+                    style: TossTextStyles.body.copyWith(
                       color: TossColors.primary,
                       fontWeight: FontWeight.w600,
                     ),
@@ -732,9 +733,9 @@ class _AuthSignupPageState extends ConsumerState<AuthSignupPage>
       ),
       decoration: BoxDecoration(
         color: TossColors.gray50,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(TossBorderRadius.xl),
         border: Border.all(
-          color: TossColors.borderLight,
+          color: TossColors.border,
           width: 0.5,
         ),
       ),
@@ -752,7 +753,6 @@ class _AuthSignupPageState extends ConsumerState<AuthSignupPage>
             style: TossTextStyles.caption.copyWith(
               color: TossColors.textSecondary,
               fontWeight: FontWeight.w500,
-              fontSize: 10,
             ),
           ),
         ],
@@ -790,7 +790,7 @@ class _AuthSignupPageState extends ConsumerState<AuthSignupPage>
             backgroundColor: TossColors.success,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
             ),
           ),
         );
@@ -820,7 +820,7 @@ class _AuthSignupPageState extends ConsumerState<AuthSignupPage>
                 Expanded(
                   child: Text(
                     _getErrorMessage(e.toString()),
-                    style: const TextStyle(fontWeight: FontWeight.w500),
+                    style: TossTextStyles.body.copyWith(fontWeight: FontWeight.w500),
                   ),
                 ),
               ],
@@ -828,7 +828,7 @@ class _AuthSignupPageState extends ConsumerState<AuthSignupPage>
             backgroundColor: TossColors.error,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
             ),
             duration: const Duration(seconds: 4),
           ),

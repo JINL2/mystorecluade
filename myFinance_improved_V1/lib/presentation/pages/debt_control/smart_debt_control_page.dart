@@ -17,6 +17,7 @@ import 'providers/perspective_providers.dart';
 import 'providers/currency_provider.dart';
 import 'widgets/simple_company_card.dart';
 import 'widgets/perspective_summary_card.dart';
+import 'package:myfinance_improved/core/themes/index.dart';
 
 class SmartDebtControlPage extends ConsumerStatefulWidget {
   static const String routeName = 'smart-debt-control';
@@ -162,7 +163,7 @@ class _SmartDebtControlPageState extends ConsumerState<SmartDebtControlPage>
                 // Fallback to basic summary if perspective summary not loaded
                 SliverToBoxAdapter(
                   child: Container(
-                    margin: const EdgeInsets.all(16),
+                    margin: const EdgeInsets.all(TossSpacing.space4),
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         colors: [TossColors.primary, TossColors.primary.withValues(alpha: 0.8)],
@@ -179,7 +180,7 @@ class _SmartDebtControlPageState extends ConsumerState<SmartDebtControlPage>
                       ],
                     ),
                     child: Padding(
-                      padding: const EdgeInsets.all(20),
+                      padding: const EdgeInsets.all(TossSpacing.space5),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -192,7 +193,7 @@ class _SmartDebtControlPageState extends ConsumerState<SmartDebtControlPage>
                                 color: TossColors.textInverse.withValues(alpha: 0.9),
                                 size: 16,
                               ),
-                              const SizedBox(width: 8),
+                              const SizedBox(width: TossSpacing.space2),
                               Text(
                                 '${_getViewpointName()}\'s viewpoint',
                                 style: TossTextStyles.body.copyWith(
@@ -201,7 +202,7 @@ class _SmartDebtControlPageState extends ConsumerState<SmartDebtControlPage>
                               ),
                             ],
                           ),
-                          const SizedBox(height: 12),
+                          const SizedBox(height: TossSpacing.space3),
                           Text(
                             NumberFormatter.formatCurrency(
                               smartOverview.value?.kpiMetrics.netPosition ?? 0.0,
@@ -217,12 +218,12 @@ class _SmartDebtControlPageState extends ConsumerState<SmartDebtControlPage>
                               color: TossColors.textInverse.withValues(alpha: 0.8),
                             ),
                           ),
-                          const SizedBox(height: 16),
+                          const SizedBox(height: TossSpacing.space4),
                           Row(
                             children: [
                               Expanded(
                                 child: Container(
-                                  padding: const EdgeInsets.all(12),
+                                  padding: const EdgeInsets.all(TossSpacing.space3),
                                   decoration: BoxDecoration(
                                     color: TossColors.white.withValues(alpha: 0.15),
                                     borderRadius: BorderRadius.circular(TossBorderRadius.lg),
@@ -251,10 +252,10 @@ class _SmartDebtControlPageState extends ConsumerState<SmartDebtControlPage>
                                   ),
                                 ),
                               ),
-                              const SizedBox(width: 12),
+                              const SizedBox(width: TossSpacing.space3),
                               Expanded(
                                 child: Container(
-                                  padding: const EdgeInsets.all(12),
+                                  padding: const EdgeInsets.all(TossSpacing.space3),
                                   decoration: BoxDecoration(
                                     color: TossColors.white.withValues(alpha: 0.15),
                                     borderRadius: BorderRadius.circular(TossBorderRadius.lg),
@@ -294,7 +295,7 @@ class _SmartDebtControlPageState extends ConsumerState<SmartDebtControlPage>
               // Filter Section
               SliverToBoxAdapter(
                 child: Container(
-                  padding: const EdgeInsets.fromLTRB(16, 24, 16, 16),
+                  padding: const EdgeInsets.all(TossSpacing.space4),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -305,13 +306,13 @@ class _SmartDebtControlPageState extends ConsumerState<SmartDebtControlPage>
                           color: TossColors.textPrimary,
                         ),
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: TossSpacing.space4),
                       Row(
                         children: [
                           _buildFilterChip('All', 'all'),
-                          const SizedBox(width: 12),
+                          const SizedBox(width: TossSpacing.space3),
                           _buildFilterChip('My Group', 'internal'),
-                          const SizedBox(width: 12),
+                          const SizedBox(width: TossSpacing.space3),
                           _buildFilterChip('External', 'external'),
                         ],
                       ),
@@ -344,7 +345,7 @@ class _SmartDebtControlPageState extends ConsumerState<SmartDebtControlPage>
               else
                 SliverToBoxAdapter(
                   child: Container(
-                    margin: const EdgeInsets.fromLTRB(16, 40, 16, 40),
+                    margin: const EdgeInsets.symmetric(horizontal: TossSpacing.space4, vertical: TossSpacing.space8),
                     child: TossEmptyView(
                       icon: Icon(
                         Icons.handshake_outlined,
@@ -381,7 +382,7 @@ class _SmartDebtControlPageState extends ConsumerState<SmartDebtControlPage>
       ],
       controller: _tabController,
       indicatorHeight: 2.5,
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
     );
   }
 
@@ -399,7 +400,7 @@ class _SmartDebtControlPageState extends ConsumerState<SmartDebtControlPage>
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
         decoration: BoxDecoration(
           color: isSelected ? TossColors.background : TossColors.gray100,
-          borderRadius: BorderRadius.circular(25),
+          borderRadius: BorderRadius.circular(TossBorderRadius.xxl),
           boxShadow: isSelected ? [
             BoxShadow(
               color: TossColors.black.withValues(alpha: 0.08),

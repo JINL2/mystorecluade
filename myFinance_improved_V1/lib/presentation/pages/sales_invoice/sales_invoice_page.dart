@@ -11,6 +11,7 @@ import '../../widgets/common/toss_scaffold.dart';
 import '../../widgets/common/toss_white_card.dart';
 import '../../widgets/toss/toss_search_field.dart';
 import '../../helpers/navigation_helper.dart';
+import 'package:myfinance_improved/core/themes/index.dart';
 
 class SalesInvoicePage extends ConsumerStatefulWidget {
   const SalesInvoicePage({Key? key}) : super(key: key);
@@ -532,7 +533,7 @@ class _SalesInvoicePageState extends ConsumerState<SalesInvoicePage> {
               margin: EdgeInsets.only(top: TossSpacing.space3),
               decoration: BoxDecoration(
                 color: TossColors.gray300,
-                borderRadius: BorderRadius.circular(2),
+                borderRadius: BorderRadius.circular(TossBorderRadius.xs),
               ),
             ),
             
@@ -583,7 +584,7 @@ class _SalesInvoicePageState extends ConsumerState<SalesInvoicePage> {
               margin: EdgeInsets.only(top: TossSpacing.space3),
               decoration: BoxDecoration(
                 color: TossColors.gray300,
-                borderRadius: BorderRadius.circular(2),
+                borderRadius: BorderRadius.circular(TossBorderRadius.xs),
               ),
             ),
             

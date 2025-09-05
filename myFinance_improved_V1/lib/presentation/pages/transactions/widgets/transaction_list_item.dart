@@ -11,6 +11,7 @@ import '../../../../data/models/transaction_history_model.dart';
 import '../../../widgets/toss/toss_badge.dart';
 import '../../../widgets/toss/toss_card.dart';
 import 'transaction_detail_sheet.dart';
+import 'package:myfinance_improved/core/themes/index.dart';
 
 class TransactionListItem extends ConsumerWidget {
   final TransactionData transaction;
@@ -226,7 +227,7 @@ class TransactionListItem extends ConsumerWidget {
                         ),
                         decoration: BoxDecoration(
                           color: TossColors.gray50,
-                          borderRadius: BorderRadius.circular(4),
+                          borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,

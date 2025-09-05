@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../../../core/themes/toss_colors.dart';
 import '../../../../core/themes/toss_text_styles.dart';
-
+import 'package:myfinance_improved/core/themes/index.dart';
+import 'package:myfinance_improved/core/themes/toss_border_radius.dart';
 class ProductSearchBar extends StatelessWidget {
   final Function(String) onChanged;
   final VoidCallback onBarcodePressed;
@@ -18,17 +19,17 @@ class ProductSearchBar extends StatelessWidget {
       height: 48,
       decoration: BoxDecoration(
         color: TossColors.gray50,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
       ),
       child: Row(
         children: [
-          const SizedBox(width: 16),
+          const SizedBox(width: TossSpacing.space4),
           Icon(
             Icons.search,
             color: TossColors.gray400,
             size: 20,
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: TossSpacing.space3),
           Expanded(
             child: TextField(
               onChanged: onChanged,
@@ -52,7 +53,7 @@ class ProductSearchBar extends StatelessWidget {
               size: 24,
             ),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: TossSpacing.space2),
           IconButton(
             onPressed: () {
               // Add product action
@@ -63,7 +64,7 @@ class ProductSearchBar extends StatelessWidget {
               size: 24,
             ),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: TossSpacing.space2),
         ],
       ),
     );

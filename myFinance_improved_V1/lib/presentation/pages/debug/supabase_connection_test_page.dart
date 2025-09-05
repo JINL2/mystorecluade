@@ -10,6 +10,7 @@ import '../../providers/auth_provider.dart';
 import '../../widgets/common/toss_scaffold.dart';
 import '../../widgets/common/toss_loading_view.dart';
 import '../../widgets/toss/toss_card.dart';
+import 'package:myfinance_improved/core/themes/index.dart';
 
 class SupabaseConnectionTestPage extends ConsumerStatefulWidget {
   const SupabaseConnectionTestPage({super.key});

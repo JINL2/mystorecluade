@@ -6,6 +6,7 @@ import '../../../../core/themes/toss_border_radius.dart';
 import '../../../../core/utils/number_formatter.dart';
 import '../models/internal_counterparty_models.dart';
 import '../providers/currency_provider.dart';
+import 'package:myfinance_improved/core/themes/index.dart';
 
 /// Enhanced summary card showing perspective-aware debt positions
 class PerspectiveSummaryCard extends ConsumerWidget {
@@ -28,7 +29,7 @@ class PerspectiveSummaryCard extends ConsumerWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        margin: const EdgeInsets.all(16),
+        margin: const EdgeInsets.all(TossSpacing.space4),
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: netPositive
@@ -48,7 +49,7 @@ class PerspectiveSummaryCard extends ConsumerWidget {
           ],
         ),
         child: Padding(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(TossSpacing.space5),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -60,7 +61,7 @@ class PerspectiveSummaryCard extends ConsumerWidget {
                         color: TossColors.textInverse.withValues(alpha: 0.9),
                         size: 20,
                       ),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: TossSpacing.space2),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -147,7 +148,7 @@ class PerspectiveSummaryCard extends ConsumerWidget {
                           currency: currency,
                         ),
                       ),
-                      const SizedBox(width: 12),
+                      const SizedBox(width: TossSpacing.space3),
                       Expanded(
                         child: _buildBreakdownBox(
                           title: 'External',
@@ -164,19 +165,19 @@ class PerspectiveSummaryCard extends ConsumerWidget {
                   
                   // Store aggregates (for company view)
                   if (summary.perspectiveType == 'company' && summary.storeAggregates.isNotEmpty) ...[
-                    const SizedBox(height: 16),
+                    const SizedBox(height: TossSpacing.space4),
                     Container(
                       height: 1,
                       color: TossColors.white.withValues(alpha: 0.2),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: TossSpacing.space4),
                     Text(
                       'Debt by Store',
                       style: TossTextStyles.caption.copyWith(
                         color: TossColors.textInverse.withValues(alpha: 0.8),
                       ),
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: TossSpacing.space2),
                     SizedBox(
                       height: 70, // Increased height to prevent overflow
                       child: ListView.builder(
@@ -208,7 +209,7 @@ class PerspectiveSummaryCard extends ConsumerWidget {
                                       Icon(
                                         Icons.star,
                                         size: 10,
-                                        color: Colors.amber,
+                                        color: TossColors.warning,
                                       ),
                                       const SizedBox(width: 2),
                                     ],
@@ -270,7 +271,7 @@ class PerspectiveSummaryCard extends ConsumerWidget {
     required String currency,
   }) {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(TossSpacing.space3),
       decoration: BoxDecoration(
         color: TossColors.white.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(TossBorderRadius.lg),
@@ -298,7 +299,7 @@ class PerspectiveSummaryCard extends ConsumerWidget {
               ),
             ],
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: TossSpacing.space2),
           Text(
             NumberFormatter.formatCurrency(amount.abs(), currency),
             style: TossTextStyles.body.copyWith(
@@ -316,11 +317,11 @@ class PerspectiveSummaryCard extends ConsumerWidget {
                     children: [
                       TextSpan(
                         text: 'R: ',
-                        style: TextStyle(color: TossColors.textInverse.withValues(alpha: 0.6)),
+                        style: TossTextStyles.body.copyWith(color: TossColors.textInverse.withValues(alpha: 0.6)),
                       ),
                       TextSpan(
                         text: NumberFormatter.formatCompact(receivable),
-                        style: TextStyle(color: TossColors.textInverse.withValues(alpha: 0.9)),
+                        style: TossTextStyles.body.copyWith(color: TossColors.textInverse.withValues(alpha: 0.9)),
                       ),
                     ],
                   ),
@@ -332,11 +333,11 @@ class PerspectiveSummaryCard extends ConsumerWidget {
                   children: [
                     TextSpan(
                       text: 'P: ',
-                      style: TextStyle(color: TossColors.textInverse.withValues(alpha: 0.6)),
+                      style: TossTextStyles.body.copyWith(color: TossColors.textInverse.withValues(alpha: 0.6)),
                     ),
                     TextSpan(
                       text: NumberFormatter.formatCompact(payable),
-                      style: TextStyle(color: TossColors.textInverse.withValues(alpha: 0.9)),
+                      style: TossTextStyles.body.copyWith(color: TossColors.textInverse.withValues(alpha: 0.9)),
                     ),
                   ],
                 ),

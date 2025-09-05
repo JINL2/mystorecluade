@@ -11,7 +11,8 @@ import '../../providers/auth_provider.dart';
 import '../../providers/attendance_provider.dart';
 import '../../widgets/common/toss_scaffold.dart';
 import '../../widgets/common/toss_loading_view.dart';
-
+import 'package:myfinance_improved/core/themes/index.dart';
+import 'package:myfinance_improved/core/themes/toss_border_radius.dart';
 class QRScannerPage extends ConsumerStatefulWidget {
   const QRScannerPage({super.key});
 
@@ -90,10 +91,10 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
       builder: (context) => Center(
         child: Container(
           margin: const EdgeInsets.symmetric(horizontal: 40),
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.all(TossSpacing.space6),
           decoration: BoxDecoration(
             color: TossColors.white,
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(TossBorderRadius.xl),
             boxShadow: [
               BoxShadow(
                 color: TossColors.black.withOpacity(0.1),
@@ -119,7 +120,7 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
                   size: 40,
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: TossSpacing.space4),
               // Success Message
               Text(
                 message,
@@ -128,7 +129,7 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
                 ),
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: TossSpacing.space2),
               Text(
                 DateFormat('MMM dd, yyyy • HH:mm').format(DateTime.now()),
                 style: TossTextStyles.body.copyWith(
@@ -307,7 +308,7 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
                         color: TossColors.primary,
                         width: 2,
                       ),
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(TossBorderRadius.xl),
                     ),
                   ),
                 ),

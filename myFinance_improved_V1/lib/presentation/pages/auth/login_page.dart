@@ -19,6 +19,7 @@ import '../../../data/services/auth_data_cache.dart';
 import '../../providers/state_synchronizer.dart';
 import 'auth_signup_page.dart'; // Direct navigation
 import 'forgot_password_page.dart'; // Direct navigation
+import 'package:myfinance_improved/core/themes/index.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
@@ -738,7 +739,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
                 Expanded(
                   child: Text(
                     _getErrorMessage(e.toString()),
-                    style: const TextStyle(fontWeight: FontWeight.w500),
+                    style: TossTextStyles.body.copyWith(fontWeight: FontWeight.w500),
                   ),
                 ),
               ],

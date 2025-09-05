@@ -12,7 +12,7 @@ import '../../../widgets/toss/toss_primary_button.dart';
 import '../../../widgets/toss/toss_secondary_button.dart';
 import '../../../widgets/toss/toss_text_field.dart';
 import '../widgets/common_widgets.dart';
-
+import 'package:myfinance_improved/core/themes/toss_border_radius.dart';
 class PrivacySecurityPage extends ConsumerStatefulWidget {
   const PrivacySecurityPage({super.key});
 
@@ -152,7 +152,7 @@ class _PrivacySecurityPageState extends ConsumerState<PrivacySecurityPage> {
               height: 40,
               decoration: BoxDecoration(
                 color: (isDestructive ? TossColors.error : TossColors.gray500).withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(TossBorderRadius.md),
               ),
               child: Icon(
                 icon,

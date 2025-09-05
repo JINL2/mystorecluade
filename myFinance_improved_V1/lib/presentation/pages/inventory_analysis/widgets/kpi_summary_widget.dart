@@ -4,6 +4,7 @@ import '../../../../core/themes/toss_text_styles.dart';
 import '../../../../core/themes/toss_spacing.dart';
 import '../../../../core/themes/toss_border_radius.dart';
 import '../models/supply_chain_models.dart';
+import 'package:myfinance_improved/core/themes/index.dart';
 
 class KPISummaryWidget extends StatelessWidget {
   final List<SupplyChainKPI> kpis;
@@ -26,7 +27,7 @@ class KPISummaryWidget extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: TossColors.surface,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(TossBorderRadius.xl),
         boxShadow: [
           BoxShadow(
             color: TossColors.black.withValues(alpha: 0.05),
@@ -356,7 +357,7 @@ class KPISummaryWidget extends StatelessWidget {
       padding: EdgeInsets.all(TossSpacing.space6),
       decoration: BoxDecoration(
         color: TossColors.surface,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(TossBorderRadius.xl),
         border: Border.all(
           color: TossColors.gray200,
           width: 1,

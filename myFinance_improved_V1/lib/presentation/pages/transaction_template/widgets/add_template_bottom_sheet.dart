@@ -8,6 +8,7 @@ import 'package:myfinance_improved/presentation/widgets/toss/toss_text_field.dar
 import 'package:myfinance_improved/presentation/widgets/toss/toss_dropdown.dart';
 import 'package:myfinance_improved/presentation/widgets/toss/toss_primary_button.dart';
 import 'package:myfinance_improved/presentation/widgets/toss/toss_secondary_button.dart';
+import 'package:myfinance_improved/presentation/widgets/toss/modal_keyboard_patterns.dart';
 import 'package:myfinance_improved/presentation/widgets/specific/selectors/enhanced_account_selector.dart';
 import 'package:myfinance_improved/presentation/widgets/specific/selectors/autonomous_counterparty_selector.dart';
 import 'package:myfinance_improved/presentation/widgets/specific/selectors/autonomous_cash_location_selector.dart';
@@ -19,6 +20,7 @@ import 'package:myfinance_improved/data/services/supabase_service.dart';
 import '../providers/template_filter_provider.dart';
 import '../providers/counterparty_providers.dart';
 import 'store_selector.dart';
+import 'package:myfinance_improved/core/themes/index.dart';
 
 class AddTemplateBottomSheet extends ConsumerStatefulWidget {
   const AddTemplateBottomSheet({super.key});
@@ -28,7 +30,16 @@ class AddTemplateBottomSheet extends ConsumerStatefulWidget {
       context: context,
       isScrollControlled: true,
       backgroundColor: TossColors.transparent,
-      builder: (context) => const AddTemplateBottomSheet(),
+      // Prevent the modal from resizing when keyboard appears
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.of(context).size.height * 0.9,
+      ),
+      builder: (context) => Padding(
+        // This padding prevents the modal from being pushed up by keyboard
+        // We use zero padding to override the default keyboard avoidance
+        padding: EdgeInsets.only(bottom: 0),
+        child: const AddTemplateBottomSheet(),
+      ),
     );
   }
 
@@ -289,7 +300,7 @@ class _AddTemplateBottomSheetState extends ConsumerState<AddTemplateBottomSheet>
           builder: (BuildContext dialogContext) {
             return AlertDialog(
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(TossBorderRadius.xl),
               ),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -307,14 +318,14 @@ class _AddTemplateBottomSheetState extends ConsumerState<AddTemplateBottomSheet>
                       size: 40,
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: TossSpacing.space4),
                   Text(
                     'Success!',
                     style: TossTextStyles.h3.copyWith(
                       fontWeight: FontWeight.w600,
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: TossSpacing.space2),
                   Text(
                     'Template created successfully',
                     style: TossTextStyles.body.copyWith(
@@ -366,7 +377,7 @@ class _AddTemplateBottomSheetState extends ConsumerState<AddTemplateBottomSheet>
           builder: (BuildContext dialogContext) {
             return AlertDialog(
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(TossBorderRadius.xl),
               ),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -384,14 +395,14 @@ class _AddTemplateBottomSheetState extends ConsumerState<AddTemplateBottomSheet>
                       size: 40,
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: TossSpacing.space4),
                   Text(
                     'Error',
                     style: TossTextStyles.h3.copyWith(
                       fontWeight: FontWeight.w600,
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: TossSpacing.space2),
                   Text(
                     'Failed to create template',
                     style: TossTextStyles.body.copyWith(
@@ -503,31 +514,29 @@ class _AddTemplateBottomSheetState extends ConsumerState<AddTemplateBottomSheet>
 
   @override
   Widget build(BuildContext context) {
-    final bottomPadding = MediaQuery.of(context).viewInsets.bottom;
-    final screenHeight = MediaQuery.of(context).size.height;
-    final maxHeight = screenHeight * 0.8; // Use 80% of screen height max
+    // Determine current action buttons based on step
+    Widget? currentActionButtons = _getCurrentActionButtons();
     
-    return GestureDetector(
-      onTap: () {
-        // Dismiss keyboard when tapping outside of text fields
-        FocusScope.of(context).unfocus();
-      },
-      behavior: HitTestBehavior.opaque,
-      child: AnimatedPadding(
-        padding: EdgeInsets.only(bottom: bottomPadding),
-        duration: const Duration(milliseconds: 200),
-        child: Container(
-          constraints: BoxConstraints(
-            maxHeight: maxHeight,
-          ),
-          decoration: const BoxDecoration(
-            color: TossColors.surface,
-            borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(TossBorderRadius.xxl),
-              topRight: Radius.circular(TossBorderRadius.xxl),
-            ),
-          ),
-          child: Column(
+    // CRITICAL FIX: Prevent keyboard from pushing modal upward
+    // Problem: Default showModalBottomSheet behavior pushes entire modal up when keyboard appears
+    // Solution: Use Scaffold with resizeToAvoidBottomInset: false to lock modal position
+    // Result: Modal stays fixed, only content scrolls, Next button hides when typing
+    return Material(
+      color: TossColors.transparent,
+      child: Scaffold(
+        backgroundColor: TossColors.transparent,
+        // THIS IS THE KEY: Prevent scaffold from resizing when keyboard appears
+        resizeToAvoidBottomInset: false,
+        body: GestureDetector(
+          onTap: () {
+            // Dismiss keyboard when tapping outside of text fields
+            FocusScope.of(context).unfocus();
+          },
+          behavior: HitTestBehavior.opaque,
+          child: WizardModalWrapper(
+            maxHeightFactor: 0.9,
+            hideActionsOnKeyboard: true, // Hide Next button when keyboard is visible
+        header: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             // Handle bar
@@ -537,7 +546,7 @@ class _AddTemplateBottomSheetState extends ConsumerState<AddTemplateBottomSheet>
               height: 4,
               decoration: BoxDecoration(
                 color: TossColors.gray300,
-                borderRadius: BorderRadius.circular(2),
+                borderRadius: BorderRadius.circular(TossBorderRadius.xs),
               ),
             ),
             
@@ -577,27 +586,109 @@ class _AddTemplateBottomSheetState extends ConsumerState<AddTemplateBottomSheet>
                 ],
               ),
             ),
-            
-            // Content - Make it flexible to prevent overflow
-            Flexible(
-              child: PageView(
-                controller: _pageController,
-                physics: NeverScrollableScrollPhysics(),
-                children: [
-                  _buildStep1(),
-                  _buildStep2(ref),
-                  _buildStep3(),
-                ],
-              ),
-            ),
-            
-            // Safe area bottom padding
-            SizedBox(height: MediaQuery.of(context).padding.bottom),
           ],
         ),
-      ),
+        content: PageView(
+          controller: _pageController,
+          physics: NeverScrollableScrollPhysics(),
+          children: [
+            _buildStep1Content(),
+            _buildStep2Content(ref),
+            _buildStep3Content(),
+          ],
+        ),
+            actionButtons: currentActionButtons,
+          ),
+        ),
       ),
     );
+  }
+  
+  // Get action buttons for current step
+  Widget? _getCurrentActionButtons() {
+    switch (_currentStep) {
+      case 1:
+        return SizedBox(
+          width: double.infinity,
+          child: TossPrimaryButton(
+            text: 'Next',
+            onPressed: _nameController.text.isNotEmpty ? _nextStep : null,
+            isEnabled: _nameController.text.isNotEmpty,
+          ),
+        );
+      case 2:
+        // Need StatefulBuilder to handle reactive state
+        return StatefulBuilder(
+          builder: (context, setState) {
+            final debitAccountAsync = ref.watch(accountByIdProvider(_selectedDebitAccountId ?? ''));
+            final creditAccountAsync = ref.watch(accountByIdProvider(_selectedCreditAccountId ?? ''));
+            
+            final debitRequiresCounterparty = debitAccountAsync.maybeWhen(
+              data: (account) => account?.categoryTag == 'payable' || account?.categoryTag == 'receivable',
+              orElse: () => false,
+            );
+            
+            final creditRequiresCounterparty = creditAccountAsync.maybeWhen(
+              data: (account) => account?.categoryTag == 'payable' || account?.categoryTag == 'receivable',
+              orElse: () => false,
+            );
+            
+            final debitIsCashAccount = debitAccountAsync.maybeWhen(
+              data: (account) => account?.categoryTag == 'cash',
+              orElse: () => false,
+            );
+            
+            final creditIsCashAccount = creditAccountAsync.maybeWhen(
+              data: (account) => account?.categoryTag == 'cash',
+              orElse: () => false,
+            );
+            
+            return Row(
+              children: [
+                Expanded(
+                  child: TossSecondaryButton(
+                    text: 'Back',
+                    onPressed: _previousStep,
+                  ),
+                ),
+                SizedBox(width: TossSpacing.space3),
+                Expanded(
+                  child: TossPrimaryButton(
+                    text: 'Next',
+                    onPressed: _isStep2Valid(debitRequiresCounterparty, creditRequiresCounterparty,
+                                            debitIsCashAccount, creditIsCashAccount) 
+                        ? _nextStep 
+                        : null,
+                    isEnabled: _isStep2Valid(debitRequiresCounterparty, creditRequiresCounterparty,
+                                            debitIsCashAccount, creditIsCashAccount),
+                  ),
+                ),
+              ],
+            );
+          },
+        );
+      case 3:
+        return Row(
+          children: [
+            Expanded(
+              child: TossSecondaryButton(
+                text: 'Back',
+                onPressed: _previousStep,
+              ),
+            ),
+            SizedBox(width: TossSpacing.space3),
+            Expanded(
+              child: TossPrimaryButton(
+                text: _isCreating ? 'Creating...' : 'Create',
+                onPressed: _isCreating ? null : (_isStep3Valid() ? _createTemplate : null),
+                isEnabled: !_isCreating && _isStep3Valid(),
+              ),
+            ),
+          ],
+        );
+      default:
+        return null;
+    }
   }
 
   Widget _buildStepIndicator() {
@@ -612,15 +703,15 @@ class _AddTemplateBottomSheetState extends ConsumerState<AddTemplateBottomSheet>
           height: 8,
           decoration: BoxDecoration(
             color: isActive ? TossColors.primary : TossColors.gray300,
-            borderRadius: BorderRadius.circular(4),
+            borderRadius: BorderRadius.circular(TossBorderRadius.xs),
           ),
         );
       }),
     );
   }
 
-  Widget _buildStep1() {
-    return Padding(
+  Widget _buildStep1Content() {
+    return SingleChildScrollView(
       padding: EdgeInsets.symmetric(horizontal: TossSpacing.space5),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -653,23 +744,14 @@ class _AddTemplateBottomSheetState extends ConsumerState<AddTemplateBottomSheet>
             textInputAction: TextInputAction.done,
           ),
           
-          Spacer(),
-          
-          // Next button
-          SizedBox(
-            width: double.infinity,
-            child: TossPrimaryButton(
-              text: 'Next',
-              onPressed: _nameController.text.isNotEmpty ? _nextStep : null,
-              isEnabled: _nameController.text.isNotEmpty,
-            ),
-          ),
+          // Add padding at bottom for better scroll experience
+          SizedBox(height: TossSpacing.space5),
         ],
       ),
     );
   }
 
-  Widget _buildStep2(WidgetRef ref) {
+  Widget _buildStep2Content(WidgetRef ref) {
     // Get account details to check category tags
     final debitAccountAsync = ref.watch(accountByIdProvider(_selectedDebitAccountId ?? ''));
     final creditAccountAsync = ref.watch(accountByIdProvider(_selectedCreditAccountId ?? ''));
@@ -1178,39 +1260,13 @@ class _AddTemplateBottomSheetState extends ConsumerState<AddTemplateBottomSheet>
               ),
             ),
           ),
-          
-          SizedBox(height: TossSpacing.space4),
-          
-          // Action buttons
-          Row(
-            children: [
-              Expanded(
-                child: TossSecondaryButton(
-                  text: 'Back',
-                  onPressed: _previousStep,
-                ),
-              ),
-              SizedBox(width: TossSpacing.space3),
-              Expanded(
-                child: TossPrimaryButton(
-                  text: 'Next',
-                  onPressed: _isStep2Valid(debitRequiresCounterparty, creditRequiresCounterparty,
-                                          debitIsCashAccount, creditIsCashAccount) 
-                      ? _nextStep 
-                      : null,
-                  isEnabled: _isStep2Valid(debitRequiresCounterparty, creditRequiresCounterparty,
-                                          debitIsCashAccount, creditIsCashAccount),
-                ),
-              ),
-            ],
-          ),
         ],
       ),
     );
   }
 
-  Widget _buildStep3() {
-    return Padding(
+  Widget _buildStep3Content() {
+    return SingleChildScrollView(
       padding: EdgeInsets.symmetric(horizontal: TossSpacing.space5),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1307,29 +1363,8 @@ class _AddTemplateBottomSheetState extends ConsumerState<AddTemplateBottomSheet>
             ),
           ),
           
-          Spacer(),
-          
-          // Action buttons
-          Row(
-            children: [
-              Expanded(
-                child: TossSecondaryButton(
-                  text: 'Back',
-                  onPressed: _previousStep,
-                ),
-              ),
-              SizedBox(width: TossSpacing.space3),
-              Expanded(
-                child: TossPrimaryButton(
-                  text: _isCreating ? 'Creating...' : 'Create',
-                  onPressed: _isCreating ? null : (_isStep3Valid() ? () {
-                    _createTemplate();
-                  } : null),
-                  isEnabled: !_isCreating && _isStep3Valid(),
-                ),
-              ),
-            ],
-          ),
+          // Add padding at bottom for better scroll experience
+          SizedBox(height: TossSpacing.space5),
         ],
       ),
     );

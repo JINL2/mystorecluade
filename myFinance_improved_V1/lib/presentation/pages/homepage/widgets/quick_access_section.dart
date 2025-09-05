@@ -9,7 +9,8 @@ import '../models/homepage_models.dart';
 import '../../../widgets/toss/toss_card.dart';
 import '../providers/homepage_providers.dart';
 import '../../../../core/navigation/safe_navigation.dart';
-
+import 'package:myfinance_improved/core/themes/index.dart';
+import 'package:myfinance_improved/core/themes/toss_border_radius.dart';
 class QuickAccessSection extends ConsumerWidget {
   const QuickAccessSection({super.key});
 
@@ -121,10 +122,10 @@ class QuickAccessSection extends ConsumerWidget {
             Container(
               width: 40,
               height: 4,
-              margin: const EdgeInsets.symmetric(vertical: 12),
+              margin: const EdgeInsets.symmetric(vertical: TossSpacing.space3),
               decoration: BoxDecoration(
                 color: TossColors.gray300,
-                borderRadius: BorderRadius.circular(2),
+                borderRadius: BorderRadius.circular(TossBorderRadius.xs),
               ),
             ),
             
@@ -156,7 +157,7 @@ class QuickAccessSection extends ConsumerWidget {
                   final feature = topFeatures[index];
                   return ListTile(
                     leading: ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(TossBorderRadius.md),
                       child: CachedNetworkImage(
                         imageUrl: feature.icon,
                         width: 40,
@@ -224,7 +225,7 @@ class QuickAccessFeatureCard extends StatelessWidget {
             height: 56,
             decoration: BoxDecoration(
               color: TossColors.primary.withAlpha(26),  // Light blue background (10% opacity)
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
             ),
             child: Center(
               child: Icon(

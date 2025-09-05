@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/themes/index.dart';
 import '../models/dashboard_model.dart';
 import '../providers/dashboard_provider.dart';
-
+import 'package:myfinance_improved/core/themes/toss_border_radius.dart';
 class WidgetCatalog extends ConsumerStatefulWidget {
   final Function(DashboardWidget) onWidgetSelected;
   final bool isEditMode;
@@ -180,7 +180,7 @@ class _WidgetTemplateCard extends StatelessWidget {
       margin: EdgeInsets.only(bottom: TossSpacing.space2),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(TossBorderRadius.md),
         child: Padding(
           padding: EdgeInsets.all(TossSpacing.space3),
           child: Row(
@@ -234,7 +234,7 @@ class _WidgetTemplateCard extends StatelessWidget {
                           ),
                           child: Text(
                             template.category,
-                            style: TextStyle(
+                            style: TossTextStyles.body.copyWith(
                               fontSize: 10,
                               color: Theme.of(context).primaryColor,
                               fontWeight: FontWeight.bold,

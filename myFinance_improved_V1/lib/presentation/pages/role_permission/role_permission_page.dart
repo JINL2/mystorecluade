@@ -18,6 +18,7 @@ import '../../../core/themes/toss_border_radius.dart';
 import '../../../core/themes/toss_shadows.dart';
 import '../../../core/themes/toss_animations.dart';
 import '../../../core/navigation/safe_navigation.dart';
+import 'package:myfinance_improved/core/themes/index.dart';
 
 class RolePermissionPage extends ConsumerStatefulWidget {
   const RolePermissionPage({super.key});
@@ -201,7 +202,7 @@ class _RolePermissionPageState extends ConsumerState<RolePermissionPage> {
                         height: 80,
                         decoration: BoxDecoration(
                           color: TossColors.gray100,
-                          borderRadius: BorderRadius.circular(20),
+                          borderRadius: BorderRadius.circular(TossBorderRadius.xxl),
                         ),
                         child: Icon(
                           Icons.business_outlined,
@@ -266,7 +267,7 @@ class _RolePermissionPageState extends ConsumerState<RolePermissionPage> {
                                 height: 80,
                                 decoration: BoxDecoration(
                                   color: TossColors.gray100,
-                                  borderRadius: BorderRadius.circular(20),
+                                  borderRadius: BorderRadius.circular(TossBorderRadius.xxl),
                                 ),
                                 child: Icon(
                                   Icons.admin_panel_settings_outlined,
@@ -596,7 +597,7 @@ class _CreateRoleBottomSheetState extends ConsumerState<_CreateRoleBottomSheet> 
               height: 4,
               decoration: BoxDecoration(
                 color: TossColors.border,
-                borderRadius: BorderRadius.circular(2),
+                borderRadius: BorderRadius.circular(TossBorderRadius.xs),
               ),
             ),
             
@@ -866,9 +867,9 @@ class _CreateRoleBottomSheetState extends ConsumerState<_CreateRoleBottomSheet> 
                         onTap: () {
                           _toggleCategoryPermissions(featureIds, !allSelected);
                         },
-                        borderRadius: BorderRadius.circular(6),
+                        borderRadius: BorderRadius.circular(TossBorderRadius.sm),
                         child: Padding(
-                          padding: EdgeInsets.all(4),
+                          padding: EdgeInsets.all(TossSpacing.space1),
                           child: AnimatedContainer(
                             duration: TossAnimations.normal,
                             width: 20,
@@ -885,7 +886,7 @@ class _CreateRoleBottomSheetState extends ConsumerState<_CreateRoleBottomSheet> 
                                     : TossColors.border,
                                 width: allSelected || someSelected ? 2 : 1,
                               ),
-                              borderRadius: BorderRadius.circular(6),
+                              borderRadius: BorderRadius.circular(TossBorderRadius.sm),
                             ),
                             child: allSelected
                                 ? Icon(
@@ -990,7 +991,7 @@ class _CreateRoleBottomSheetState extends ConsumerState<_CreateRoleBottomSheet> 
                                           : TossColors.border,
                                       width: isSelected ? 2 : 1,
                                     ),
-                                    borderRadius: BorderRadius.circular(6),
+                                    borderRadius: BorderRadius.circular(TossBorderRadius.sm),
                                   ),
                                   child: isSelected
                                       ? Icon(

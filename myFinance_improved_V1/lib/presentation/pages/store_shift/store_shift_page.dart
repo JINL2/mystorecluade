@@ -31,8 +31,9 @@ import '../../../core/constants/ui_constants.dart';
 import '../../widgets/common/toss_scaffold.dart';
 import '../../../data/services/store_service.dart';
 import '../../widgets/toss/toss_bottom_sheet.dart';
-import '../../widgets/common/toss_number_input.dart';
+// Removed: toss_number_input.dart - replaced with TossTextField
 import '../../widgets/common/toss_loading_view.dart';
+import 'package:myfinance_improved/core/themes/index.dart';
 
 class StoreShiftPage extends ConsumerStatefulWidget {
   const StoreShiftPage({super.key});
@@ -2539,12 +2540,20 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
           ),
         ),
         const SizedBox(height: TossSpacing.space2),
-        TossNumberInput(
+        TossTextField(
           controller: controller,
           hintText: '0',
-          suffix: suffix,
-          height: 48,
-          textAlign: TextAlign.left,
+          keyboardType: TextInputType.number,
+          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+          suffixIcon: suffix != null 
+            ? Padding(
+                padding: EdgeInsets.only(right: 12),
+                child: Text(
+                  suffix,
+                  style: TossTextStyles.body.copyWith(color: TossColors.gray500),
+                ),
+              )
+            : null,
         ),
         const SizedBox(height: TossSpacing.space2),
         Text(
@@ -3457,8 +3466,8 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
       final qrCode = qrValidationResult.qrCode!;
       final painter = QrPainter.withQr(
         qr: qrCode,
-        color: const Color(0xFF000000),
-        emptyColor: const Color(0xFFFFFFFF),
+        color: TossColors.black,
+        emptyColor: TossColors.white,
         gapless: true,
       );
 
@@ -3473,7 +3482,7 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
       // Draw white background
       canvas.drawRect(
         Rect.fromLTWH(0, 0, totalSize, totalSize),
-        Paint()..color = Colors.white,
+        Paint()..color = TossColors.white,
       );
       
       // Draw QR code with padding

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../../../core/themes/index.dart';
-
+import 'package:myfinance_improved/core/themes/toss_border_radius.dart';
 class BarcodeScannerSheet extends StatefulWidget {
   const BarcodeScannerSheet({Key? key}) : super(key: key);
 
@@ -107,7 +107,7 @@ class _BarcodeScannerSheetState extends State<BarcodeScannerSheet> {
                           vertical: TossSpacing.space3,
                         ),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                         ),
                       ),
                     ),
@@ -127,7 +127,7 @@ class _BarcodeScannerSheetState extends State<BarcodeScannerSheet> {
                           vertical: TossSpacing.space3,
                         ),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                         ),
                       ),
                     ),
@@ -166,7 +166,7 @@ class _BarcodeScannerSheetState extends State<BarcodeScannerSheet> {
                                 color: TossColors.primary,
                                 width: 3,
                               ),
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                             ),
                           ),
                           // Scanning line animation
@@ -230,7 +230,7 @@ class _BarcodeScannerSheetState extends State<BarcodeScannerSheet> {
                         vertical: TossSpacing.space3,
                       ),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(24),
+                        borderRadius: BorderRadius.circular(TossBorderRadius.xxxl),
                       ),
                     ),
                     child: Text('Cancel Scanning'),
@@ -254,7 +254,7 @@ class _BarcodeScannerSheetState extends State<BarcodeScannerSheet> {
             padding: const EdgeInsets.all(TossSpacing.space3),
             decoration: BoxDecoration(
               color: TossColors.primary.withOpacity(0.05),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
               border: Border.all(
                 color: TossColors.primary.withOpacity(0.2),
               ),
@@ -288,7 +288,7 @@ class _BarcodeScannerSheetState extends State<BarcodeScannerSheet> {
               labelText: 'Barcode Number',
               hintText: 'Enter barcode manually',
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(TossBorderRadius.lg),
               ),
               prefixIcon: Icon(Icons.edit),
             ),
@@ -307,7 +307,7 @@ class _BarcodeScannerSheetState extends State<BarcodeScannerSheet> {
             padding: const EdgeInsets.all(TossSpacing.space3),
             decoration: BoxDecoration(
               color: TossColors.gray50,
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,

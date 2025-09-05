@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import '../../../../core/themes/toss_colors.dart';
 import '../../../../core/themes/toss_text_styles.dart';
 import '../models/sale_product_models.dart';
-
+import 'package:myfinance_improved/core/themes/index.dart';
+import 'package:myfinance_improved/core/themes/toss_border_radius.dart';
 class DeliveryToggle extends StatelessWidget {
   final bool isDelivery;
   final DeliveryInfo? deliveryInfo;
@@ -40,12 +41,12 @@ class DeliveryToggle extends StatelessWidget {
         
         // Delivery Info
         if (isDelivery && deliveryInfo != null) ...[
-          const SizedBox(height: 16),
+          const SizedBox(height: TossSpacing.space4),
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(TossSpacing.space4),
             decoration: BoxDecoration(
               color: TossColors.primary.withValues(alpha: 0.05),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
               border: Border.all(color: TossColors.primary.withValues(alpha: 0.2)),
             ),
             child: Column(
@@ -61,7 +62,7 @@ class DeliveryToggle extends StatelessWidget {
                         shape: BoxShape.circle,
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: TossSpacing.space3),
                     Expanded(
                       child: Text(
                         deliveryInfo!.address ?? 'Giao tới ...',
@@ -77,7 +78,7 @@ class DeliveryToggle extends StatelessWidget {
                   ],
                 ),
                 if (deliveryInfo!.district != null || deliveryInfo!.city != null) ...[
-                  const SizedBox(height: 8),
+                  const SizedBox(height: TossSpacing.space2),
                   Padding(
                     padding: const EdgeInsets.only(left: 20),
                     child: Column(

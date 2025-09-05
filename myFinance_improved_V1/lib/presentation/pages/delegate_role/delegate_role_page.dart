@@ -19,6 +19,7 @@ import '../../../core/themes/toss_border_radius.dart';
 import '../../../core/themes/toss_shadows.dart';
 import '../../../core/utils/tag_validator.dart';
 import '../../../core/navigation/safe_navigation.dart';
+import 'package:myfinance_improved/core/themes/index.dart';
 
 class DelegateRolePage extends ConsumerStatefulWidget {
   const DelegateRolePage({super.key});
@@ -174,7 +175,7 @@ class _DelegateRolePageState extends ConsumerState<DelegateRolePage> {
       padding: EdgeInsets.all(TossSpacing.space5),
       decoration: BoxDecoration(
         color: TossColors.surface,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -222,7 +223,7 @@ class _DelegateRolePageState extends ConsumerState<DelegateRolePage> {
         padding: EdgeInsets.all(TossSpacing.space10),
         decoration: BoxDecoration(
           color: TossColors.surface,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
         ),
         child: Center(
           child: Column(
@@ -257,7 +258,7 @@ class _DelegateRolePageState extends ConsumerState<DelegateRolePage> {
       padding: EdgeInsets.all(TossSpacing.space5),
       decoration: BoxDecoration(
         color: TossColors.surface,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -323,7 +324,7 @@ class _DelegateRolePageState extends ConsumerState<DelegateRolePage> {
             _getRoleColor(role['roleName']).withOpacity(0.1),
             TossColors.background,
           ),
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(TossBorderRadius.md),
         ),
         child: Icon(
           _getRoleIcon(role['roleName']),
@@ -611,7 +612,7 @@ class _CreateRoleBottomSheetState extends ConsumerState<_CreateRoleBottomSheet> 
               height: 4,
               decoration: BoxDecoration(
                 color: TossColors.border,
-                borderRadius: BorderRadius.circular(2),
+                borderRadius: BorderRadius.circular(TossBorderRadius.xs),
               ),
             ),
             
@@ -1257,9 +1258,9 @@ class _CreateRoleBottomSheetState extends ConsumerState<_CreateRoleBottomSheet> 
                         onTap: () {
                           _toggleCategoryPermissions(featureIds, !allSelected);
                         },
-                        borderRadius: BorderRadius.circular(6),
+                        borderRadius: BorderRadius.circular(TossBorderRadius.sm),
                         child: Padding(
-                          padding: EdgeInsets.all(4),
+                          padding: EdgeInsets.all(TossSpacing.space1),
                           child: AnimatedContainer(
                             duration: const Duration(milliseconds: 200),
                             width: 20,
@@ -1279,7 +1280,7 @@ class _CreateRoleBottomSheetState extends ConsumerState<_CreateRoleBottomSheet> 
                                     : TossColors.border,
                                 width: allSelected || someSelected ? 2 : 1,
                               ),
-                              borderRadius: BorderRadius.circular(6),
+                              borderRadius: BorderRadius.circular(TossBorderRadius.sm),
                             ),
                             child: allSelected
                                 ? Icon(
@@ -1384,7 +1385,7 @@ class _CreateRoleBottomSheetState extends ConsumerState<_CreateRoleBottomSheet> 
                                           : TossColors.border,
                                       width: isSelected ? 2 : 1,
                                     ),
-                                    borderRadius: BorderRadius.circular(6),
+                                    borderRadius: BorderRadius.circular(TossBorderRadius.sm),
                                   ),
                                   child: isSelected
                                       ? Icon(

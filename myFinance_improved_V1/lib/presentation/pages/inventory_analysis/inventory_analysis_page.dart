@@ -13,6 +13,7 @@ import 'widgets/widget_catalog.dart';
 import 'widgets/dashboard_toolbar.dart';
 import 'providers/dashboard_provider.dart';
 import 'models/dashboard_model.dart';
+import 'package:myfinance_improved/core/themes/index.dart';
 
 class InventoryAnalysisPage extends ConsumerStatefulWidget {
   const InventoryAnalysisPage({super.key});
@@ -679,7 +680,7 @@ class _InventoryAnalysisPageState extends ConsumerState<InventoryAnalysisPage> {
               margin: EdgeInsets.symmetric(vertical: TossSpacing.space3),
               decoration: BoxDecoration(
                 color: TossColors.gray300,
-                borderRadius: BorderRadius.circular(2),
+                borderRadius: BorderRadius.circular(TossBorderRadius.xs),
               ),
             ),
             Padding(

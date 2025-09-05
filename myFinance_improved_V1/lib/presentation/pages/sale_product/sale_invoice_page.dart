@@ -15,6 +15,7 @@ import '../../widgets/toss/toss_search_field.dart';
 import '../../helpers/navigation_helper.dart';
 import 'sale_product_page.dart';
 import 'models/sale_product_models.dart';
+import 'package:myfinance_improved/core/themes/index.dart';
 
 class SaleInvoicePage extends ConsumerStatefulWidget {
   const SaleInvoicePage({super.key});
@@ -29,14 +30,14 @@ class _SaleInvoicePageState extends ConsumerState<SaleInvoicePage> {
   
   // Modern color palette for product avatars
   final List<Color> _avatarColors = [
-    Color(0xFFEF5350), // Red
-    Color(0xFFFF9800), // Orange
-    Color(0xFF66BB6A), // Green
-    Color(0xFF42A5F5), // Blue
-    Color(0xFFAB47BC), // Purple
-    Color(0xFFFFCA28), // Yellow
-    Color(0xFF26A69A), // Teal
-    Color(0xFFEC407A), // Pink
+    TossColors.error, // Red
+    TossColors.warning, // Orange
+    TossColors.success, // Green
+    TossColors.primary, // Blue
+    TossColors.info, // Purple
+    TossColors.warning, // Yellow
+    TossColors.success, // Teal
+    TossColors.error, // Pink
   ];
 
   @override
@@ -384,7 +385,7 @@ class _SaleInvoicePageState extends ConsumerState<SaleInvoicePage> {
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: TossColors.primary,
-                        foregroundColor: Colors.white,
+                        foregroundColor: TossColors.white,
                         padding: EdgeInsets.symmetric(vertical: TossSpacing.space3),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(TossBorderRadius.button),
@@ -394,7 +395,7 @@ class _SaleInvoicePageState extends ConsumerState<SaleInvoicePage> {
                       child: Text(
                         'Continue to Payment',
                         style: TossTextStyles.body.copyWith(
-                          color: Colors.white,
+                          color: TossColors.white,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -602,7 +603,7 @@ class _SaleInvoicePageState extends ConsumerState<SaleInvoicePage> {
             child: Text(
               'Save',
               style: TossTextStyles.body.copyWith(
-                color: Colors.white,
+                color: TossColors.white,
                 fontWeight: FontWeight.w600,
               ),
             ),

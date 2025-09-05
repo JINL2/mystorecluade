@@ -14,9 +14,9 @@ import '../../widgets/common/toss_scaffold.dart';
 import '../../../core/navigation/safe_navigation.dart';
 import '../../../data/services/enhanced_company_service.dart';
 import '../../../data/services/company_service.dart';
-import '../../widgets/common/toss_success_dialog.dart';
-import '../../widgets/common/toss_error_dialog.dart';
-
+import '../../widgets/common/toss_dialog.dart';
+import 'package:myfinance_improved/core/themes/index.dart';
+import 'package:myfinance_improved/core/themes/toss_border_radius.dart';
 class EnhancedCreateBusinessPage extends ConsumerStatefulWidget {
   const EnhancedCreateBusinessPage({super.key});
 
@@ -325,7 +325,7 @@ class _EnhancedCreateBusinessPageState extends ConsumerState<EnhancedCreateBusin
           padding: EdgeInsets.symmetric(horizontal: TossSpacing.space3),
           decoration: BoxDecoration(
             color: TossColors.white,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
             border: Border.all(
               color: TossColors.borderLight,
               width: 1,
@@ -444,7 +444,7 @@ class _EnhancedCreateBusinessPageState extends ConsumerState<EnhancedCreateBusin
           padding: EdgeInsets.symmetric(horizontal: TossSpacing.space3),
           decoration: BoxDecoration(
             color: TossColors.white,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
             border: Border.all(
               color: TossColors.borderLight,
               width: 1,

@@ -4,6 +4,7 @@ import '../../../core/themes/toss_text_styles.dart';
 import '../../../core/themes/toss_spacing.dart';
 import '../../../core/themes/toss_border_radius.dart';
 import '../../../core/constants/ui_constants.dart';
+import 'package:myfinance_improved/core/themes/index.dart';
 
 /// Toss-style dropdown with bottom sheet selection
 class TossDropdown<T> extends StatelessWidget {
@@ -150,7 +151,7 @@ class TossDropdown<T> extends StatelessWidget {
     showModalBottomSheet(
       context: context,
       backgroundColor: TossColors.transparent,
-      barrierColor: Colors.black54, // Standard barrier color to prevent double barriers
+      barrierColor: TossColors.black54, // Standard barrier color to prevent double barriers
       isScrollControlled: true,
       enableDrag: true, // Allow swipe-to-dismiss
       shape: RoundedRectangleBorder(
@@ -191,10 +192,9 @@ class TossDropdown<T> extends StatelessWidget {
 
   /// Helper method to get display text style
   TextStyle _getDisplayTextStyle() {
-    return TossTextStyles.body.copyWith(
+    return TossTextStyles.bodyLarge.copyWith(
       color: value != null ? TossColors.textPrimary : TossColors.textTertiary,
       fontWeight: value != null ? FontWeight.w600 : FontWeight.w400,
-      fontSize: UIConstants.textSizeLarge,
     );
   }
 }
@@ -226,7 +226,7 @@ class _BottomSheetContent<T> extends StatelessWidget {
         children: [
           _buildHandleBar(),
           _buildHeader(context),
-          const SizedBox(height: 8),
+          const SizedBox(height: TossSpacing.space2),
           _buildOptionsList(context),
         ],
       ),

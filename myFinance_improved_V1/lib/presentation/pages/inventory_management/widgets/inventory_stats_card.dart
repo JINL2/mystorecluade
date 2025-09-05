@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/themes/index.dart';
-
+import 'package:myfinance_improved/core/themes/toss_border_radius.dart';
 class InventoryStatsCard extends StatelessWidget {
   final String title;
   final String value;
@@ -73,8 +73,8 @@ class InventoryStatsCard extends StatelessWidget {
                   children: [
                     Text(
                       value,
-                      style: const TextStyle(
-                        color: Colors.white,
+                      style: TossTextStyles.body.copyWith(
+                        color: TossColors.white,
                         fontSize: 20,
                         fontWeight: FontWeight.w700,
                       ),
@@ -82,7 +82,7 @@ class InventoryStatsCard extends StatelessWidget {
                     const SizedBox(height: TossSpacing.space1),
                     Text(
                       title,
-                      style: TextStyle(
+                      style: TossTextStyles.body.copyWith(
                         color: TossColors.white.withOpacity(0.9),
                         fontSize: 12,
                         fontWeight: FontWeight.w500,
@@ -90,8 +90,8 @@ class InventoryStatsCard extends StatelessWidget {
                     ),
                     Text(
                       subtitle,
-                      style: TextStyle(
-                        color: Colors.white.withOpacity(0.7),
+                      style: TossTextStyles.body.copyWith(
+                        color: TossColors.white.withOpacity(0.7),
                         fontSize: 10,
                       ),
                     ),

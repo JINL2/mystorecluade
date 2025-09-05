@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:myfinance_improved/core/themes/index.dart';
 
 /// 데이터베이스의 icon_key 문자열을 Font Awesome 아이콘으로 매핑하는 클래스
 /// 
@@ -134,52 +135,52 @@ class IconMapper {
   /// 아이콘과 함께 색상도 반환 (카테고리별 색상)
   static Color getIconColor(String? iconKey) {
     if (iconKey == null || iconKey.isEmpty) {
-      return Colors.grey;
+      return TossColors.gray500;
     }
 
     // 카테고리별 색상 매핑
     final colorMap = {
       // 재무 관련 - 초록색
-      'wallet': Colors.green,
-      'moneyCheckDollar': Colors.green,
-      'cashRegister': Colors.green,
-      'vault': Colors.green,
-      'coins': Colors.green,
-      'handHoldingDollar': Colors.green,
-      'sackDollar': Colors.green,
-      'fileInvoiceDollar': Colors.green,
+      'wallet': TossColors.success,
+      'moneyCheckDollar': TossColors.success,
+      'cashRegister': TossColors.success,
+      'vault': TossColors.success,
+      'coins': TossColors.success,
+      'handHoldingDollar': TossColors.success,
+      'sackDollar': TossColors.success,
+      'fileInvoiceDollar': TossColors.success,
       
       // 차트 & 분석 - 파란색
-      'dashboard': Colors.blue,
-      'chartLine': Colors.blue,
-      'chartPie': Colors.blue,
-      'chartBar': Colors.blue,
+      'dashboard': TossColors.primary,
+      'chartLine': TossColors.primary,
+      'chartPie': TossColors.primary,
+      'chartBar': TossColors.primary,
       
       // 사용자 관련 - 주황색
-      'userCircle': Colors.orange,
-      'userGear': Colors.orange,
-      'userClock': Colors.orange,
-      'userShield': Colors.orange,
-      'userTag': Colors.orange,
+      'userCircle': TossColors.warning,
+      'userGear': TossColors.warning,
+      'userClock': TossColors.warning,
+      'userShield': TossColors.warning,
+      'userTag': TossColors.warning,
       
       // 시간 관련 - 보라색
-      'calendarDays': Colors.purple,
-      'calendarCheck': Colors.purple,
-      'clock': Colors.purple,
-      'clockRotateLeft': Colors.purple,
-      'businessTime': Colors.purple,
+      'calendarDays': TossColors.primary,
+      'calendarCheck': TossColors.primary,
+      'clock': TossColors.primary,
+      'clockRotateLeft': TossColors.primary,
+      'businessTime': TossColors.primary,
       
       // 문서 관련 - 청록색
-      'fileContract': Colors.teal,
-      'fileSignature': Colors.teal,
-      'fileInvoice': Colors.teal,
-      'filePen': Colors.teal,
+      'fileContract': TossColors.success,
+      'fileSignature': TossColors.success,
+      'fileInvoice': TossColors.success,
+      'filePen': TossColors.success,
       
       // 기본 색상
-      'default': Colors.grey.shade700,
+      'default': TossColors.gray500,
     };
 
-    return colorMap[iconKey] ?? Colors.grey.shade700;
+    return colorMap[iconKey] ?? TossColors.gray500;
   }
 
   /// 디버깅용: 사용 가능한 모든 아이콘 키 목록

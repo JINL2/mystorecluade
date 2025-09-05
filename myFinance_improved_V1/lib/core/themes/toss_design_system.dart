@@ -11,6 +11,7 @@ import 'toss_spacing.dart';
 import 'toss_border_radius.dart';
 import 'toss_shadows.dart';
 import 'toss_animations.dart';
+import 'package:myfinance_improved/core/themes/index.dart';
 
 /// Master design system class that provides all Toss design tokens
 /// and guidelines in one place for easy reference and consistency
@@ -221,7 +222,7 @@ class TossDesignSystem {
         boxShadow: TossShadows.card,
       ),
       child: Material(
-        color: Colors.transparent,
+        color: TossColors.transparent,
         borderRadius: BorderRadius.circular(TossBorderRadius.card),
         child: InkWell(
           onTap: onTap,

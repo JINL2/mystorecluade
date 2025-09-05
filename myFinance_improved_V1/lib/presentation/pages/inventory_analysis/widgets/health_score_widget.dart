@@ -4,7 +4,8 @@ import '../../../../core/themes/toss_colors.dart';
 import '../../../../core/themes/toss_text_styles.dart';
 import '../../../../core/themes/toss_spacing.dart';
 import '../models/supply_chain_models.dart';
-
+import 'package:myfinance_improved/core/themes/index.dart';
+import 'package:myfinance_improved/core/themes/toss_border_radius.dart';
 class HealthScoreWidget extends StatelessWidget {
   final SupplyChainHealth health;
   final bool isMobile;
@@ -28,12 +29,12 @@ class HealthScoreWidget extends StatelessWidget {
   Widget _buildDesktopLayout(BuildContext context) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(TossBorderRadius.xl),
       child: Container(
         padding: EdgeInsets.all(TossSpacing.space4),
         decoration: BoxDecoration(
           color: TossColors.surface,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(TossBorderRadius.xl),
           border: Border.all(
             color: health.scoreColor.withValues(alpha: 0.3),
             width: 2,
@@ -70,12 +71,12 @@ class HealthScoreWidget extends StatelessWidget {
   Widget _buildMobileLayout(BuildContext context) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(TossBorderRadius.lg),
       child: Container(
         padding: EdgeInsets.all(TossSpacing.space3),
         decoration: BoxDecoration(
           color: TossColors.surface,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
           border: Border.all(
             color: health.scoreColor.withValues(alpha: 0.3),
             width: 1,
@@ -125,7 +126,7 @@ class HealthScoreWidget extends StatelessWidget {
             child: CircularProgressIndicator(
               value: health.currentScore / 100,
               strokeWidth: 8,
-              backgroundColor: Colors.transparent,
+              backgroundColor: TossColors.transparent,
               valueColor: AlwaysStoppedAnimation<Color>(health.scoreColor),
             ),
           ),

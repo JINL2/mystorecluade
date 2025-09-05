@@ -9,6 +9,7 @@ import '../../../../core/themes/toss_animations.dart';
 import '../../../../domain/entities/denomination.dart';
 import '../providers/denomination_providers.dart';
 import '../providers/currency_providers.dart';
+import 'package:myfinance_improved/core/themes/index.dart';
 
 class DenominationGrid extends ConsumerWidget {
   final List<Denomination> denominations;
@@ -127,7 +128,7 @@ class DenominationGrid extends ConsumerWidget {
             height: 4,
             decoration: BoxDecoration(
               color: TossColors.gray300,
-              borderRadius: BorderRadius.circular(2),
+              borderRadius: BorderRadius.circular(TossBorderRadius.xs),
             ),
           ),
           const SizedBox(height: TossSpacing.space5),

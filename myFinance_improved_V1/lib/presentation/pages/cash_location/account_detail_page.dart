@@ -14,6 +14,7 @@ import '../../../data/services/stock_flow_service.dart';
 import '../../../data/services/cash_journal_service.dart';
 import '../../../data/services/cash_location_service.dart';
 import '../../providers/app_state_provider.dart';
+import 'package:myfinance_improved/core/themes/index.dart';
 
 class AccountDetailPage extends ConsumerStatefulWidget {
   final String? locationId;
@@ -439,7 +440,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
       return TossScaffold(
         appBar: TossAppBar(
           title: widget.accountName,
-          backgroundColor: const Color(0xFFF7F8FA),
+          backgroundColor: TossColors.gray50,
           secondaryActionIcon: Icons.settings_outlined,
           onSecondaryAction: () async {
             // Navigate to account settings page
@@ -458,7 +459,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
             await _refreshDataSilently();
           },
         ),
-        backgroundColor: const Color(0xFFF7F8FA),
+        backgroundColor: TossColors.gray50,
         body: SafeArea(
           child: Column(
             children: [
@@ -493,7 +494,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
     return TossScaffold(
       appBar: TossAppBar(
         title: widget.accountName,
-        backgroundColor: const Color(0xFFF7F8FA),
+        backgroundColor: TossColors.gray50,
         secondaryActionIcon: Icons.settings_outlined,
         onSecondaryAction: () async {
           // Navigate to account settings page
@@ -512,7 +513,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
           await _refreshDataSilently();
         },
       ),
-      backgroundColor: const Color(0xFFF7F8FA),
+      backgroundColor: TossColors.gray50,
       body: SafeArea(
         child: Column(
           children: [
@@ -687,7 +688,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
           Container(
             margin: EdgeInsets.symmetric(vertical: TossSpacing.space4),
             height: 1,
-            color: const Color(0xFFE5E8EB),
+            color: TossColors.gray300,
           ),
           
           // Error
@@ -703,7 +704,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
               Text(
                 _formatCurrencyWithSign(error.toDouble(), currencySymbol),
                 style: TossTextStyles.h3.copyWith(
-                  color: const Color(0xFFE53935),
+                  color: TossColors.error,
                   fontWeight: FontWeight.w700,
                 ),
               ),
@@ -1138,7 +1139,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
                   style: TossTextStyles.body.copyWith(
                     fontSize: 15,
                     height: 1.5,
-                    color: Colors.black87,
+                    color: TossColors.black87,
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -1160,7 +1161,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
                 Text(
                   _formatCurrencyWithSign(errorAmount.toDouble(), currencySymbol),
                   style: TossTextStyles.h3.copyWith(
-                    color: const Color(0xFFE53935),
+                    color: TossColors.error,
                     fontWeight: FontWeight.w700,
                     fontSize: 20,
                   ),
@@ -1276,13 +1277,13 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
                 height: 4,
                 decoration: BoxDecoration(
                   color: TossColors.gray300,
-                  borderRadius: BorderRadius.circular(2),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                 ),
               ),
               
               // Header
               Padding(
-                padding: EdgeInsets.fromLTRB(24, 20, 20, 16),
+                padding: EdgeInsets.fromLTRB(TossSpacing.space6, TossSpacing.space5, TossSpacing.space5, TossSpacing.space4),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -1373,13 +1374,13 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
                 height: 4,
                 decoration: BoxDecoration(
                   color: TossColors.gray300,
-                  borderRadius: BorderRadius.circular(2),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                 ),
               ),
               
               // Header
               Padding(
-                padding: const EdgeInsets.fromLTRB(24, 20, 20, 16),
+                padding: const EdgeInsets.fromLTRB(TossSpacing.space6, TossSpacing.space5, TossSpacing.space5, TossSpacing.space4),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -1429,7 +1430,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
               color: Theme.of(context).colorScheme.primary,
               size: 24,
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: TossSpacing.space4),
             Expanded(
               child: Text(
                 title,
@@ -1469,7 +1470,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
                 decoration: BoxDecoration(
                   border: Border(
                     bottom: BorderSide(
-                      color: const Color(0xFFE5E8EB),
+                      color: TossColors.gray300,
                       width: 1,
                     ),
                   ),
@@ -1485,12 +1486,12 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
                     indicator: UnderlineTabIndicator(
                       borderSide: BorderSide(
                         width: 2.0,
-                        color: Colors.black87,
+                        color: TossColors.black87,
                       ),
                       insets: EdgeInsets.zero,
                     ),
-                    indicatorColor: Colors.black87,
-                    labelColor: Colors.black87,
+                    indicatorColor: TossColors.black87,
+                    labelColor: TossColors.black87,
                     unselectedLabelColor: TossColors.gray400,
                     labelStyle: TossTextStyles.body.copyWith(
                       fontWeight: FontWeight.w600,
@@ -1815,13 +1816,13 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
                   style: TossTextStyles.body.copyWith(
                     fontWeight: FontWeight.w600,
                     fontSize: 16,
-                    color: Colors.black87,
+                    color: TossColors.black87,
                     height: 1.2,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-                SizedBox(height: 8),
+                SizedBox(height: TossSpacing.space2),
                 Row(
                   children: [
                     Flexible(
@@ -1870,13 +1871,13 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
                 style: TossTextStyles.body.copyWith(
                   color: isIncome 
                       ? Theme.of(context).colorScheme.primary 
-                      : Colors.black87,
+                      : TossColors.black87,
                   fontWeight: FontWeight.w600,
                   fontSize: 16,
                   height: 1.2,
                 ),
               ),
-              SizedBox(height: 8),
+              SizedBox(height: TossSpacing.space2),
               Text(
                 _formatBalance(flow.balanceAfter, currencySymbol),
                 style: TossTextStyles.caption.copyWith(
@@ -1938,11 +1939,11 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
                   style: TossTextStyles.body.copyWith(
                     fontWeight: FontWeight.w600,
                     fontSize: 16,
-                    color: Colors.black87,
+                    color: TossColors.black87,
                     height: 1.2,
                   ),
                 ),
-                SizedBox(height: 8),
+                SizedBox(height: TossSpacing.space2),
                 Row(
                   children: [
                     Flexible(
@@ -1992,7 +1993,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
                 style: TossTextStyles.body.copyWith(
                   color: flow.flowAmount >= 0 
                       ? Theme.of(context).colorScheme.primary 
-                      : Colors.black87,
+                      : TossColors.black87,
                   fontWeight: FontWeight.w600,
                   fontSize: 16,
                   height: 1.2,
@@ -2047,13 +2048,13 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
                 height: 4,
                 decoration: BoxDecoration(
                   color: TossColors.gray300,
-                  borderRadius: BorderRadius.circular(2),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                 ),
               ),
               
               // Header
               Padding(
-                padding: const EdgeInsets.fromLTRB(24, 20, 20, 16),
+                padding: const EdgeInsets.fromLTRB(TossSpacing.space6, TossSpacing.space5, TossSpacing.space5, TossSpacing.space4),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -2084,10 +2085,10 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
                     children: [
                       // Description
                       Container(
-                        padding: const EdgeInsets.all(16),
+                        padding: const EdgeInsets.all(TossSpacing.space4),
                         decoration: BoxDecoration(
                           color: TossColors.gray50,
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -2111,33 +2112,33 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
                         ),
                       ),
                       
-                      const SizedBox(height: 16),
+                      const SizedBox(height: TossSpacing.space4),
                       
                       // Amount details
                       Container(
-                        padding: const EdgeInsets.all(16),
+                        padding: const EdgeInsets.all(TossSpacing.space4),
                         decoration: BoxDecoration(
                           color: flow.flowAmount > 0 
                               ? Theme.of(context).colorScheme.primary.withOpacity(0.1)
                               : TossColors.error.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                         ),
                         child: Column(
                           children: [
                             _buildDetailRow('Transaction Amount', 
                               _formatTransactionAmount(flow.flowAmount, currencySymbol),
                               isHighlighted: true),
-                            const SizedBox(height: 12),
+                            const SizedBox(height: TossSpacing.space3),
                             _buildDetailRow('Balance Before', 
                               _formatBalance(flow.balanceBefore, currencySymbol)),
-                            const SizedBox(height: 8),
+                            const SizedBox(height: TossSpacing.space2),
                             _buildDetailRow('Balance After', 
                               _formatBalance(flow.balanceAfter, currencySymbol)),
                           ],
                         ),
                       ),
                       
-                      const SizedBox(height: 16),
+                      const SizedBox(height: TossSpacing.space4),
                       
                       // Transaction details
                       _buildDetailRow('Account', flow.accountName),
@@ -2191,13 +2192,13 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
                 height: 4,
                 decoration: BoxDecoration(
                   color: TossColors.gray300,
-                  borderRadius: BorderRadius.circular(2),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                 ),
               ),
               
               // Header
               Padding(
-                padding: const EdgeInsets.fromLTRB(24, 20, 20, 16),
+                padding: const EdgeInsets.fromLTRB(TossSpacing.space6, TossSpacing.space5, TossSpacing.space5, TossSpacing.space4),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -2228,10 +2229,10 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
                     children: [
                       // Balance overview
                       Container(
-                        padding: const EdgeInsets.all(16),
+                        padding: const EdgeInsets.all(TossSpacing.space4),
                         decoration: BoxDecoration(
                           color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                         ),
                         child: Column(
                           children: [
@@ -2265,7 +2266,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
                                 ),
                               ],
                             ),
-                            const SizedBox(height: 16),
+                            const SizedBox(height: TossSpacing.space4),
                             Row(
                               children: [
                                 Expanded(
@@ -2328,15 +2329,15 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
                             fontSize: 16,
                           ),
                         ),
-                        const SizedBox(height: 12),
+                        const SizedBox(height: TossSpacing.space3),
                         
                         ...flow.currentDenominations.map((denomination) => 
                           Container(
                             margin: const EdgeInsets.only(bottom: 8),
-                            padding: const EdgeInsets.all(12),
+                            padding: const EdgeInsets.all(TossSpacing.space3),
                             decoration: BoxDecoration(
                               color: TossColors.gray50,
-                              borderRadius: BorderRadius.circular(8),
+                              borderRadius: BorderRadius.circular(TossBorderRadius.md),
                               border: Border.all(color: TossColors.gray200),
                             ),
                             child: Column(
@@ -2349,7 +2350,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
                                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                       decoration: BoxDecoration(
                                         color: TossColors.primary.withOpacity(0.1),
-                                        borderRadius: BorderRadius.circular(4),
+                                        borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                                       ),
                                       child: Text(
                                         _formatCurrency(denomination.denominationValue, denomination.currencySymbol),
@@ -2366,7 +2367,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
                                       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                       decoration: BoxDecoration(
                                         color: TossColors.gray200,
-                                        borderRadius: BorderRadius.circular(4),
+                                        borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                                       ),
                                       child: Text(
                                         denomination.denominationType.toUpperCase(),
@@ -2379,7 +2380,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
                                   ],
                                 ),
                                 
-                                const SizedBox(height: 12),
+                                const SizedBox(height: TossSpacing.space3),
                                 
                                 Row(
                                   children: [
@@ -2454,14 +2455,14 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
                                   ],
                                 ),
                                 
-                                const SizedBox(height: 8),
+                                const SizedBox(height: TossSpacing.space2),
                                 
                                 // Subtotal
                                 Container(
-                                  padding: const EdgeInsets.all(8),
+                                  padding: const EdgeInsets.all(TossSpacing.space2),
                                   decoration: BoxDecoration(
                                     color: TossColors.white,
-                                    borderRadius: BorderRadius.circular(4),
+                                    borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                                   ),
                                   child: Row(
                                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -2488,7 +2489,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
                           )
                         ),
                         
-                        const SizedBox(height: 16),
+                        const SizedBox(height: TossSpacing.space4),
                       ],
                       
                       // Transaction info
@@ -2513,7 +2514,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
   
   Widget _buildDetailRow(String label, String value, {bool isHighlighted = false}) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
+      padding: const EdgeInsets.symmetric(vertical: TossSpacing.space2),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

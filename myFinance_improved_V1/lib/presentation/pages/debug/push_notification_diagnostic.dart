@@ -6,6 +6,7 @@ import 'package:firebase_core/firebase_core.dart';
 import '../../widgets/common/toss_loading_view.dart';
 import '../../widgets/toss/toss_card.dart';
 import '../../../core/themes/toss_colors.dart';
+import 'package:myfinance_improved/core/themes/index.dart';
 
 class PushNotificationDiagnostic extends StatefulWidget {
   const PushNotificationDiagnostic({Key? key}) : super(key: key);
@@ -173,12 +174,12 @@ class _PushNotificationDiagnosticState extends State<PushNotificationDiagnostic>
         ],
       ),
       body: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(TossSpacing.space4),
         children: [
           if (_isRunning)
             const Center(
               child: Padding(
-                padding: EdgeInsets.all(20),
+                padding: EdgeInsets.all(TossSpacing.space5),
                 child: TossLoadingView(),
               ),
             ),
@@ -199,7 +200,7 @@ class _PushNotificationDiagnosticState extends State<PushNotificationDiagnostic>
               ),
               title: Text(
                 result.title,
-                style: const TextStyle(fontWeight: FontWeight.bold),
+                style: TossTextStyles.body.copyWith(fontWeight: FontWeight.bold),
               ),
               subtitle: Text(result.details),
               onTap: result.title == 'FCM Token' && _fcmToken != null
@@ -212,21 +213,20 @@ class _PushNotificationDiagnosticState extends State<PushNotificationDiagnostic>
           if (_fcmToken != null)
             TossCard(
               child: Padding(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(TossSpacing.space4),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       'FCM Token (tap to copy):',
-                      style: TextStyle(fontWeight: FontWeight.bold),
+                      style: TossTextStyles.body.copyWith(fontWeight: FontWeight.bold),
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: TossSpacing.space2),
                     GestureDetector(
                       onTap: _copyToken,
                       child: Text(
                         _fcmToken!,
-                        style: const TextStyle(
-                          fontSize: 12,
+                        style: TossTextStyles.caption.copyWith(
                           fontFamily: 'monospace',
                         ),
                       ),
@@ -239,19 +239,19 @@ class _PushNotificationDiagnosticState extends State<PushNotificationDiagnostic>
           const SizedBox(height: 20),
           
           TossCard(
-            child: const Padding(
-              padding: EdgeInsets.all(16),
+            child: Padding(
+              padding: const EdgeInsets.all(TossSpacing.space4),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     '⚠️ Important Notes:',
-                    style: TextStyle(
+                    style: TossTextStyles.body.copyWith(
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
                     ),
                   ),
-                  SizedBox(height: 8),
+                  SizedBox(height: TossSpacing.space2),
                   Text('1. Push notifications only work on physical devices'),
                   Text('2. APNs Authentication Key must be uploaded to Firebase Console'),
                   Text('3. Bundle ID must match Firebase configuration exactly'),
@@ -268,7 +268,7 @@ class _PushNotificationDiagnosticState extends State<PushNotificationDiagnostic>
             icon: const Icon(Icons.send),
             label: const Text('Send Test Push via Firebase'),
             style: ElevatedButton.styleFrom(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(TossSpacing.space4),
             ),
           ),
         ],
@@ -300,11 +300,11 @@ class _PushNotificationDiagnosticState extends State<PushNotificationDiagnostic>
             const Text('4. Use the FCM token below:'),
             const SizedBox(height: 10),
             Container(
-              padding: const EdgeInsets.all(8),
+              padding: const EdgeInsets.all(TossSpacing.space2),
               color: TossColors.gray200,
               child: SelectableText(
                 _fcmToken!,
-                style: const TextStyle(fontSize: 12),
+                style: TossTextStyles.caption,
               ),
             ),
           ],

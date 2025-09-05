@@ -4,7 +4,7 @@ import '../../../../core/themes/index.dart';
 import '../models/supply_chain_models.dart';
 import '../../../widgets/toss/toss_dropdown.dart';
 import '../../../widgets/common/toss_date_picker.dart';
-
+import 'package:myfinance_improved/core/themes/toss_border_radius.dart';
 // Analysis Configuration State
 class AnalysisConfig {
   final SupplyChainStage fromStage;
@@ -77,7 +77,7 @@ class _AnalysisConfigPanelState extends ConsumerState<AnalysisConfigPanel> {
     return Container(
       decoration: BoxDecoration(
         color: TossColors.surface,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(TossBorderRadius.xl),
         boxShadow: [
           BoxShadow(
             color: TossColors.black.withValues(alpha: 0.05),
@@ -589,7 +589,7 @@ class _AnalysisConfigPanelState extends ConsumerState<AnalysisConfigPanel> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      backgroundColor: TossColors.transparent,
       builder: (context) => Container(
         height: MediaQuery.of(context).size.height * 0.6,
         decoration: BoxDecoration(

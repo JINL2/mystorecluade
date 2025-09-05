@@ -8,7 +8,8 @@ import '../../../core/themes/toss_text_styles.dart';
 import '../../widgets/common/toss_scaffold.dart';
 import '../../widgets/common/safe_popup_menu.dart';
 import '../../widgets/common/toss_loading_view.dart';
-
+import 'package:myfinance_improved/core/themes/index.dart';
+import 'package:myfinance_improved/core/themes/toss_border_radius.dart';
 class AddFixAssetPage extends ConsumerStatefulWidget {
   const AddFixAssetPage({super.key});
 
@@ -88,9 +89,9 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
           ),
           onPressed: () => NavigationHelper.safeGoBack(context),
         ),
-        title: const Text(
+        title: Text(
           'Fixed Assets',
-          style: TextStyle(
+          style: TossTextStyles.body.copyWith(
             fontSize: 17,
             fontWeight: FontWeight.w600,
             color: TossColors.gray900,
@@ -124,15 +125,15 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
 
   Widget _buildStoreSelector(List<dynamic> stores) {
     return Container(
-      margin: const EdgeInsets.all(20),
+      margin: const EdgeInsets.all(TossSpacing.space5),
       child: InkWell(
         onTap: () => _showStoreSelector(stores),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(TossBorderRadius.xl),
         child: Container(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(TossSpacing.space4),
           decoration: BoxDecoration(
             color: TossColors.background,
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(TossBorderRadius.xl),
             border: Border.all(
               color: TossColors.gray100,
               width: 1,
@@ -144,10 +145,9 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       'Store',
-                      style: TextStyle(
-                        fontSize: 13,
+                      style: TossTextStyles.bodySmall.copyWith(
                         color: TossColors.gray500,
                         fontWeight: FontWeight.w500,
                       ),
@@ -155,8 +155,7 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
                     const SizedBox(height: 4),
                     Text(
                       _getStoreName(selectedStoreId, stores),
-                      style: const TextStyle(
-                        fontSize: 16,
+                      style: TossTextStyles.bodyLarge.copyWith(
                         color: TossColors.gray900,
                         fontWeight: FontWeight.w600,
                       ),
@@ -202,29 +201,27 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
     return fixedAssetsAsync.when(
       data: (assets) {
         if (assets.isEmpty) {
-          return const Center(
+          return Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(
+                const Icon(
                   Icons.inventory_outlined,
                   size: 64,
                   color: TossColors.gray400,
                 ),
-                SizedBox(height: 16),
+                const SizedBox(height: TossSpacing.space4),
                 Text(
                   'No assets found',
-                  style: TextStyle(
-                    fontSize: 16,
+                  style: TossTextStyles.bodyLarge.copyWith(
                     color: TossColors.gray500,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
-                SizedBox(height: 8),
+                const SizedBox(height: TossSpacing.space2),
                 Text(
                   'Add your first asset to get started',
-                  style: TextStyle(
-                    fontSize: 14,
+                  style: TossTextStyles.body.copyWith(
                     color: TossColors.gray400,
                   ),
                 ),
@@ -234,7 +231,7 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
         }
 
         return ListView.builder(
-          padding: const EdgeInsets.symmetric(vertical: 8),
+          padding: const EdgeInsets.symmetric(vertical: TossSpacing.space2),
           itemCount: assets.length,
           itemBuilder: (context, index) {
             final asset = assets[index];
@@ -254,7 +251,7 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
               size: 64,
               color: TossColors.error,
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: TossSpacing.space4),
             Text(
               'Error loading assets',
               style: TossTextStyles.body.copyWith(
@@ -262,7 +259,7 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
                 fontWeight: FontWeight.w500,
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: TossSpacing.space2),
             Text(
               error.toString(),
               style: TossTextStyles.bodySmall.copyWith(
@@ -296,7 +293,7 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
       margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
       decoration: BoxDecoration(
         color: TossColors.background,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(TossBorderRadius.xxl),
         boxShadow: [
           BoxShadow(
             color: TossColors.black.withOpacity(0.05),
@@ -309,7 +306,7 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
         children: [
           // Header section with asset name and actions
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(TossSpacing.space4),
             decoration: BoxDecoration(
               color: TossColors.gray50,
               borderRadius: const BorderRadius.only(
@@ -324,7 +321,7 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
                   height: 40,
                   decoration: BoxDecoration(
                     color: TossColors.primary.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(TossBorderRadius.md),
                   ),
                   child: Icon(
                     Icons.business_center_outlined,
@@ -332,7 +329,7 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
                     color: TossColors.primary,
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: TossSpacing.space3),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -363,7 +360,7 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
                     color: TossColors.gray600,
                   ),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                   ),
                   onSelected: (value) async {
                     if (value == 'edit') {
@@ -378,18 +375,18 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
                       child: Row(
                         children: [
                           Icon(Icons.edit_outlined, size: 18, color: TossColors.gray700),
-                          SizedBox(width: 12),
+                          SizedBox(width: TossSpacing.space3),
                           Text('Edit Asset'),
                         ],
                       ),
                     ),
-                    const PopupMenuItem(
+                    PopupMenuItem(
                       value: 'delete',
                       child: Row(
                         children: [
-                          Icon(Icons.delete_outline, size: 18, color: TossColors.error),
-                          SizedBox(width: 12),
-                          Text('Delete', style: TextStyle(color: TossColors.error)),
+                          const Icon(Icons.delete_outline, size: 18, color: TossColors.error),
+                          const SizedBox(width: TossSpacing.space3),
+                          Text('Delete', style: TossTextStyles.body.copyWith(color: TossColors.error)),
                         ],
                       ),
                     ),
@@ -401,12 +398,12 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
           
           // Main content
           Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(TossSpacing.space4),
             child: Column(
               children: [
                 // Current value and depreciation status
                 Container(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(TossSpacing.space4),
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       begin: Alignment.topLeft,
@@ -416,7 +413,7 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
                         TossColors.primary.withOpacity(0.1),
                       ],
                     ),
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(TossBorderRadius.xl),
                   ),
                   child: Row(
                     children: [
@@ -448,7 +445,7 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
                           color: depreciationRate > 50 
                               ? TossColors.error.withOpacity(0.1)
                               : TossColors.warning.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(20),
+                          borderRadius: BorderRadius.circular(TossBorderRadius.xxl),
                         ),
                         child: Row(
                           children: [
@@ -476,7 +473,7 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
                   ),
                 ),
                 
-                const SizedBox(height: 12),
+                const SizedBox(height: TossSpacing.space3),
                 
                 // Key metrics grid
                 Row(
@@ -489,7 +486,7 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
                         TossColors.success,
                       ),
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: TossSpacing.space2),
                     Expanded(
                       child: _buildMetricTile(
                         'Annual Deprec.',
@@ -500,7 +497,7 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: TossSpacing.space2),
                 Row(
                   children: [
                     Expanded(
@@ -511,7 +508,7 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
                         TossColors.warning,
                       ),
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: TossSpacing.space2),
                     Expanded(
                       child: _buildMetricTile(
                         'Salvage Value',
@@ -532,10 +529,10 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
   
   Widget _buildMetricTile(String label, String value, IconData icon, Color color) {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(TossSpacing.space3),
       decoration: BoxDecoration(
         color: TossColors.gray50,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
         border: Border.all(
           color: TossColors.gray100,
           width: 1,
@@ -548,7 +545,7 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
             height: 32,
             decoration: BoxDecoration(
               color: color.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(TossBorderRadius.md),
             ),
             child: Icon(
               icon,
@@ -556,7 +553,7 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
               color: color,
             ),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: TossSpacing.space2),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -649,7 +646,7 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
           ),
           child: SafeArea(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(TossSpacing.space5),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -662,7 +659,7 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
                       margin: const EdgeInsets.only(bottom: 20),
                       decoration: BoxDecoration(
                         color: TossColors.gray200,
-                        borderRadius: BorderRadius.circular(2),
+                        borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                       ),
                     ),
                   ),
@@ -675,7 +672,7 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
                         height: 44,
                         decoration: BoxDecoration(
                           color: TossColors.primary.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                         ),
                         child: const Icon(
                           Icons.edit_outlined,
@@ -683,7 +680,7 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
                           color: TossColors.primary,
                         ),
                       ),
-                      const SizedBox(width: 12),
+                      const SizedBox(width: TossSpacing.space3),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -729,7 +726,7 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
                           fontWeight: FontWeight.w600,
                         ),
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: TossSpacing.space2),
                       TextField(
                         controller: nameController,
                         style: TossTextStyles.body.copyWith(
@@ -743,19 +740,19 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
                           filled: true,
                           fillColor: TossColors.gray50,
                           border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                             borderSide: const BorderSide(
                               color: TossColors.gray200,
                             ),
                           ),
                           enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                             borderSide: const BorderSide(
                               color: TossColors.gray200,
                             ),
                           ),
                           focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                             borderSide: const BorderSide(
                               color: TossColors.primary,
                               width: 2,
@@ -783,7 +780,7 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
                           fontWeight: FontWeight.w600,
                         ),
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: TossSpacing.space2),
                       Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 16,
@@ -791,7 +788,7 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
                         ),
                         decoration: BoxDecoration(
                           color: TossColors.gray100,
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                           border: Border.all(
                             color: TossColors.gray300,
                           ),
@@ -803,7 +800,7 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
                               size: 20,
                               color: TossColors.gray400,
                             ),
-                            const SizedBox(width: 12),
+                            const SizedBox(width: TossSpacing.space3),
                             Text(
                               _formatDate(selectedDate.toIso8601String()),
                               style: TossTextStyles.body.copyWith(
@@ -832,7 +829,7 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
-                            const SizedBox(height: 8),
+                            const SizedBox(height: TossSpacing.space2),
                             TextField(
                               controller: costController,
                               enabled: false,
@@ -852,25 +849,25 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
                                 filled: true,
                                 fillColor: TossColors.gray100,
                                 border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
+                                  borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                                   borderSide: const BorderSide(
                                     color: TossColors.gray300,
                                   ),
                                 ),
                                 enabledBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
+                                  borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                                   borderSide: const BorderSide(
                                     color: TossColors.gray300,
                                   ),
                                 ),
                                 disabledBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
+                                  borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                                   borderSide: const BorderSide(
                                     color: TossColors.gray300,
                                   ),
                                 ),
                                 focusedBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
+                                  borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                                   borderSide: const BorderSide(
                                     color: TossColors.gray300,
                                     width: 1,
@@ -885,7 +882,7 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
                           ],
                         ),
                       ),
-                      const SizedBox(width: 12),
+                      const SizedBox(width: TossSpacing.space3),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -897,7 +894,7 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
-                            const SizedBox(height: 8),
+                            const SizedBox(height: TossSpacing.space2),
                             TextField(
                               controller: salvageController,
                               keyboardType: TextInputType.number,
@@ -916,19 +913,19 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
                                 filled: true,
                                 fillColor: TossColors.gray50,
                                 border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
+                                  borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                                   borderSide: const BorderSide(
                                     color: TossColors.gray200,
                                   ),
                                 ),
                                 enabledBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
+                                  borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                                   borderSide: const BorderSide(
                                     color: TossColors.gray200,
                                   ),
                                 ),
                                 focusedBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
+                                  borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                                   borderSide: const BorderSide(
                                     color: TossColors.primary,
                                     width: 2,
@@ -959,7 +956,7 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
                           fontWeight: FontWeight.w600,
                         ),
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: TossSpacing.space2),
                       TextField(
                         controller: usefulLifeController,
                         keyboardType: TextInputType.number,
@@ -974,19 +971,19 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
                           filled: true,
                           fillColor: TossColors.gray50,
                           border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                             borderSide: const BorderSide(
                               color: TossColors.gray200,
                             ),
                           ),
                           enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                             borderSide: const BorderSide(
                               color: TossColors.gray200,
                             ),
                           ),
                           focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                             borderSide: const BorderSide(
                               color: TossColors.primary,
                               width: 2,
@@ -1005,10 +1002,10 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
                   
                   // Depreciation Summary Card
                   Container(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(TossSpacing.space4),
                     decoration: BoxDecoration(
                       color: TossColors.primary.withOpacity(0.05),
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(TossBorderRadius.xl),
                       border: Border.all(
                         color: TossColors.primary.withOpacity(0.2),
                       ),
@@ -1023,7 +1020,7 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
                               size: 20,
                               color: TossColors.primary,
                             ),
-                            const SizedBox(width: 8),
+                            const SizedBox(width: TossSpacing.space2),
                             Text(
                               'Depreciation Summary',
                               style: TossTextStyles.body.copyWith(
@@ -1033,7 +1030,7 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
                             ),
                           ],
                         ),
-                        const SizedBox(height: 12),
+                        const SizedBox(height: TossSpacing.space3),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -1052,7 +1049,7 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
                             ),
                           ],
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: TossSpacing.space2),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -1084,13 +1081,13 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
                         child: OutlinedButton(
                           onPressed: () => Navigator.pop(context),
                           style: OutlinedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            padding: const EdgeInsets.symmetric(vertical: TossSpacing.space4),
                             side: const BorderSide(
                               color: TossColors.gray300,
                               width: 1,
                             ),
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                             ),
                           ),
                           child: Text(
@@ -1102,7 +1099,7 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
                           ),
                         ),
                       ),
-                      const SizedBox(width: 12),
+                      const SizedBox(width: TossSpacing.space3),
                       Expanded(
                         child: ElevatedButton(
                           onPressed: () async {
@@ -1115,16 +1112,16 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
                                 backgroundColor: TossColors.success,
                                 behavior: SnackBarBehavior.floating,
                                 shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
+                                  borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                                 ),
                               ),
                             );
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: TossColors.primary,
-                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            padding: const EdgeInsets.symmetric(vertical: TossSpacing.space4),
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                             ),
                           ),
                           child: Text(
@@ -1204,7 +1201,7 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
           ),
           child: SafeArea(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(TossSpacing.space5),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -1217,7 +1214,7 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
                       margin: const EdgeInsets.only(bottom: 20),
                       decoration: BoxDecoration(
                         color: TossColors.gray200,
-                        borderRadius: BorderRadius.circular(2),
+                        borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                       ),
                     ),
                   ),
@@ -1237,7 +1234,7 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
                               TossColors.primary,
                             ],
                           ),
-                          borderRadius: BorderRadius.circular(14),
+                          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                         ),
                         child: const Icon(
                           Icons.add_business,
@@ -1245,7 +1242,7 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
                           color: TossColors.white,
                         ),
                       ),
-                      const SizedBox(width: 16),
+                      const SizedBox(width: TossSpacing.space4),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -1327,18 +1324,18 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
                           filled: true,
                           fillColor: TossColors.gray50,
                           border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(14),
+                            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                             borderSide: BorderSide.none,
                           ),
                           enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(14),
+                            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                             borderSide: BorderSide(
                               color: TossColors.gray200,
                               width: 1,
                             ),
                           ),
                           focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(14),
+                            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                             borderSide: const BorderSide(
                               color: TossColors.primary,
                               width: 2,
@@ -1419,7 +1416,7 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
                           ),
                           decoration: BoxDecoration(
                             color: TossColors.gray50,
-                            borderRadius: BorderRadius.circular(14),
+                            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                             border: Border.all(
                               color: TossColors.gray200,
                             ),
@@ -1427,10 +1424,10 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
                           child: Row(
                             children: [
                               Container(
-                                padding: const EdgeInsets.all(8),
+                                padding: const EdgeInsets.all(TossSpacing.space2),
                                 decoration: BoxDecoration(
                                   color: TossColors.primary.withOpacity(0.1),
-                                  borderRadius: BorderRadius.circular(8),
+                                  borderRadius: BorderRadius.circular(TossBorderRadius.md),
                                 ),
                                 child: const Icon(
                                   Icons.calendar_month,
@@ -1438,7 +1435,7 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
                                   color: TossColors.primary,
                                 ),
                               ),
-                              const SizedBox(width: 12),
+                              const SizedBox(width: TossSpacing.space3),
                               Text(
                                 _formatDate(selectedDate.toIso8601String()),
                                 style: TossTextStyles.body.copyWith(
@@ -1462,10 +1459,10 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
                   
                   // Financial Information Section
                   Container(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(TossSpacing.space4),
                     decoration: BoxDecoration(
                       color: TossColors.gray50,
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(TossBorderRadius.xl),
                       border: Border.all(
                         color: TossColors.gray100,
                       ),
@@ -1476,10 +1473,10 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
                         Row(
                           children: [
                             Container(
-                              padding: const EdgeInsets.all(6),
+                              padding: EdgeInsets.all(TossSpacing.space2 * 0.75),
                               decoration: BoxDecoration(
                                 color: TossColors.success.withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(8),
+                                borderRadius: BorderRadius.circular(TossBorderRadius.md),
                               ),
                               child: Icon(
                                 Icons.payments_outlined,
@@ -1498,7 +1495,7 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
                             ),
                           ],
                         ),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: TossSpacing.space4),
                         
                         // Purchase Cost Field
                         Column(
@@ -1512,7 +1509,7 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
                                 fontSize: 13,
                               ),
                             ),
-                            const SizedBox(height: 8),
+                            const SizedBox(height: TossSpacing.space2),
                             TextField(
                               controller: costController,
                               keyboardType: TextInputType.number,
@@ -1535,18 +1532,18 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
                                 filled: true,
                                 fillColor: TossColors.white,
                                 border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
+                                  borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                                   borderSide: BorderSide.none,
                                 ),
                                 enabledBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
+                                  borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                                   borderSide: BorderSide(
                                     color: TossColors.gray200,
                                     width: 1,
                                   ),
                                 ),
                                 focusedBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
+                                  borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                                   borderSide: const BorderSide(
                                     color: TossColors.success,
                                     width: 1.5,
@@ -1561,7 +1558,7 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
                           ],
                         ),
                         
-                        const SizedBox(height: 16),
+                        const SizedBox(height: TossSpacing.space4),
                         
                         // Salvage Value and Useful Life Row
                         Row(
@@ -1578,7 +1575,7 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
                                       fontSize: 13,
                                     ),
                                   ),
-                                  const SizedBox(height: 8),
+                                  const SizedBox(height: TossSpacing.space2),
                                   TextField(
                                     controller: salvageController,
                                     keyboardType: TextInputType.number,
@@ -1599,18 +1596,18 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
                                       filled: true,
                                       fillColor: TossColors.white,
                                       border: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(12),
+                                        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                                         borderSide: BorderSide.none,
                                       ),
                                       enabledBorder: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(12),
+                                        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                                         borderSide: BorderSide(
                                           color: TossColors.gray200,
                                           width: 1,
                                         ),
                                       ),
                                       focusedBorder: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(12),
+                                        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                                         borderSide: const BorderSide(
                                           color: TossColors.primary,
                                           width: 1.5,
@@ -1625,7 +1622,7 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
                                 ],
                               ),
                             ),
-                            const SizedBox(width: 12),
+                            const SizedBox(width: TossSpacing.space3),
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -1638,7 +1635,7 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
                                       fontSize: 13,
                                     ),
                                   ),
-                                  const SizedBox(height: 8),
+                                  const SizedBox(height: TossSpacing.space2),
                                   TextField(
                                     controller: usefulLifeController,
                                     keyboardType: TextInputType.number,
@@ -1659,18 +1656,18 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
                                       filled: true,
                                       fillColor: TossColors.white,
                                       border: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(12),
+                                        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                                         borderSide: BorderSide.none,
                                       ),
                                       enabledBorder: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(12),
+                                        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                                         borderSide: BorderSide(
                                           color: TossColors.gray200,
                                           width: 1,
                                         ),
                                       ),
                                       focusedBorder: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(12),
+                                        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                                         borderSide: const BorderSide(
                                           color: TossColors.primary,
                                           width: 1.5,
@@ -1695,7 +1692,7 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
                   
                   // Depreciation Preview Card
                   Container(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(TossSpacing.space4),
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         begin: Alignment.topLeft,
@@ -1705,7 +1702,7 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
                           TossColors.primary.withOpacity(0.1),
                         ],
                       ),
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(TossBorderRadius.xl),
                       border: Border.all(
                         color: TossColors.primary.withOpacity(0.2),
                       ),
@@ -1716,10 +1713,10 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
                         Row(
                           children: [
                             Container(
-                              padding: const EdgeInsets.all(6),
+                              padding: EdgeInsets.all(TossSpacing.space2 * 0.75),
                               decoration: BoxDecoration(
                                 color: TossColors.primary.withOpacity(0.2),
-                                borderRadius: BorderRadius.circular(8),
+                                borderRadius: BorderRadius.circular(TossBorderRadius.md),
                               ),
                               child: Icon(
                                 Icons.trending_down,
@@ -1738,12 +1735,12 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
                             ),
                           ],
                         ),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: TossSpacing.space4),
                         Container(
-                          padding: const EdgeInsets.all(12),
+                          padding: const EdgeInsets.all(TossSpacing.space3),
                           decoration: BoxDecoration(
                             color: TossColors.white.withOpacity(0.8),
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                           ),
                           child: Column(
                             children: [
@@ -1835,7 +1832,7 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
                               width: 1,
                             ),
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(14),
+                              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                             ),
                           ),
                           child: Text(
@@ -1848,7 +1845,7 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
                           ),
                         ),
                       ),
-                      const SizedBox(width: 12),
+                      const SizedBox(width: TossSpacing.space3),
                       Expanded(
                         flex: 2,
                         child: Container(
@@ -1861,7 +1858,7 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
                                 TossColors.primary,
                               ],
                             ),
-                            borderRadius: BorderRadius.circular(14),
+                            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                             boxShadow: [
                               BoxShadow(
                                 color: TossColors.primary.withOpacity(0.3),
@@ -1883,14 +1880,14 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
                                         color: TossColors.white,
                                         size: 20,
                                       ),
-                                      const SizedBox(width: 12),
+                                      const SizedBox(width: TossSpacing.space3),
                                       Text('Asset added successfully'),
                                     ],
                                   ),
                                   backgroundColor: TossColors.success,
                                   behavior: SnackBarBehavior.floating,
                                   shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
+                                    borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                                   ),
                                 ),
                               );
@@ -1900,7 +1897,7 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
                               shadowColor: TossColors.transparent,
                               padding: const EdgeInsets.symmetric(vertical: 18),
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(14),
+                                borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                               ),
                             ),
                             child: Row(
@@ -1911,7 +1908,7 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
                                   color: TossColors.white,
                                   size: 20,
                                 ),
-                                const SizedBox(width: 8),
+                                const SizedBox(width: TossSpacing.space2),
                                 Text(
                                   'Add Asset',
                                   style: TossTextStyles.body.copyWith(
@@ -1928,7 +1925,7 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
                     ],
                   ),
                   
-                  const SizedBox(height: 8),
+                  const SizedBox(height: TossSpacing.space2),
                 ],
               ),
             ),
@@ -1962,10 +1959,10 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
               Container(
                 width: 40,
                 height: 4,
-                margin: const EdgeInsets.symmetric(vertical: 12),
+                margin: const EdgeInsets.symmetric(vertical: TossSpacing.space3),
                 decoration: BoxDecoration(
                   color: TossColors.gray200,
-                  borderRadius: BorderRadius.circular(2),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                 ),
               ),
               
@@ -2040,7 +2037,7 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
               height: 40,
               decoration: BoxDecoration(
                 color: isSelected ? TossColors.primary.withOpacity(0.1) : TossColors.gray100,
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(TossBorderRadius.md),
               ),
               child: Icon(
                 Icons.store_outlined,
@@ -2048,7 +2045,7 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
                 color: isSelected ? TossColors.primary : TossColors.gray600,
               ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: TossSpacing.space3),
             Expanded(
               child: Text(
                 storeName,

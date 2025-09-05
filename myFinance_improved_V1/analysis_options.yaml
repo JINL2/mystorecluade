@@ -1,0 +1,250 @@
+# Theme consistency analysis options
+include: package:flutter_lints/flutter.yaml
+
+analyzer:
+  plugins:
+    - custom_lint
+  
+  exclude:
+    - "**/*.g.dart"
+    - "**/*.freezed.dart"
+    - "**/*.mocks.dart"
+    - "build/**"
+    - "test/**.mocks.dart"
+  
+  language:
+    strict-casts: true
+    strict-inference: true
+    strict-raw-types: true
+  
+  strong-mode:
+    implicit-casts: false
+    implicit-dynamic: false
+
+linter:
+  rules:
+    # Standard Flutter lints
+    prefer_const_constructors: true
+    prefer_const_literals_to_create_immutables: true
+    prefer_const_declarations: true
+    
+    # Import organization
+    directives_ordering: true
+    
+    # Code style
+    prefer_single_quotes: true
+    require_trailing_commas: true
+    
+    # Performance
+    avoid_function_literals_in_foreach_calls: true
+    prefer_const_constructors_in_immutables: true
+    
+    # Null safety
+    avoid_null_checks_in_equality_operators: true
+    null_closures: true
+    
+    # Additional strict rules
+    avoid_dynamic_calls: true
+    avoid_type_to_string: true
+    cast_nullable_to_non_nullable: true
+    deprecated_consistency: true
+    no_adjacent_strings_in_list: true
+    prefer_void_to_null: true
+    unnecessary_null_aware_assignments: true
+    unnecessary_null_checks: true
+    use_build_context_synchronously: true
+
+# Custom lint rules for theme consistency
+custom_lint:
+  rules:
+    # Color consistency rules
+    - avoid_hardcoded_colors:
+        severity: error
+        description: "Use TossColors instead of hardcoded Color() values"
+        patterns:
+          - "Color(0x"
+          - "Colors.blue"
+          - "Colors.red"  
+          - "Colors.green"
+          - "Colors.orange"
+          - "Colors.grey"
+          - "Colors.white"
+          - "Colors.black"
+        replacement_suggestions:
+          "Colors.blue": "TossColors.primary"
+          "Colors.red": "TossColors.error"
+          "Colors.green": "TossColors.success"
+          "Colors.orange": "TossColors.warning"
+          "Colors.grey": "TossColors.gray500"
+          "Colors.white": "TossColors.white"
+          "Colors.black": "TossColors.black"
+    
+    # TextStyle consistency rules  
+    - avoid_hardcoded_textstyles:
+        severity: error
+        description: "Use TossTextStyles instead of hardcoded TextStyle() values"
+        patterns:
+          - "TextStyle("
+        exclude_patterns:
+          - "TossTextStyles"
+          - ".copyWith("
+        replacement_suggestions:
+          "fontSize: 32": "TossTextStyles.display"
+          "fontSize: 28": "TossTextStyles.h1"
+          "fontSize: 24": "TossTextStyles.h2"
+          "fontSize: 20": "TossTextStyles.h3"
+          "fontSize: 18": "TossTextStyles.h4"
+          "fontSize: 16": "TossTextStyles.bodyLarge"
+          "fontSize: 14": "TossTextStyles.body"
+          "fontSize: 13": "TossTextStyles.bodySmall"
+          "fontSize: 12": "TossTextStyles.caption"
+          "fontSize: 11": "TossTextStyles.small"
+    
+    # Spacing consistency rules
+    - enforce_spacing_grid:
+        severity: warning
+        description: "Use TossSpacing constants to maintain 4px grid system"
+        patterns:
+          - "EdgeInsets.all("
+          - "EdgeInsets.symmetric("
+          - "EdgeInsets.only("
+          - "SizedBox(width:"
+          - "SizedBox(height:"
+        exclude_patterns:
+          - "TossSpacing"
+        grid_size: 4
+        allowed_values: [0, 4, 8, 12, 16, 20, 24, 28, 32, 36, 40, 48, 56, 64, 80, 96]
+    
+    # Border radius consistency rules
+    - enforce_border_radius:
+        severity: warning 
+        description: "Use TossBorderRadius constants for consistent rounding"
+        patterns:
+          - "BorderRadius.circular("
+        exclude_patterns:
+          - "TossBorderRadius"
+        allowed_values: [0, 4, 6, 8, 12, 16, 20, 24, 999]
+        replacement_suggestions:
+          "0": "TossBorderRadius.none"
+          "4": "TossBorderRadius.xs"
+          "6": "TossBorderRadius.sm"
+          "8": "TossBorderRadius.md"
+          "12": "TossBorderRadius.lg"
+          "16": "TossBorderRadius.xl"
+          "20": "TossBorderRadius.xxl"
+          "24": "TossBorderRadius.xxxl"
+          "999": "TossBorderRadius.full"
+    
+    # Import consistency rules
+    - require_theme_imports:
+        severity: info
+        description: "Use barrel import for theme consistency"
+        required_import: "package:myfinance_improved/core/themes/index.dart"
+        when_using:
+          - "TossColors"
+          - "TossTextStyles"
+          - "TossSpacing"
+          - "TossBorderRadius"
+          - "TossShadows"
+          - "TossAnimations"
+          - "TossIcons"
+    
+    # Widget consistency rules
+    - prefer_toss_widgets:
+        severity: info
+        description: "Prefer Toss-themed widgets for consistency"
+        widget_suggestions:
+          "ElevatedButton": "TossButton.primary"
+          "OutlinedButton": "TossButton.secondary"  
+          "TextButton": "TossButton.text"
+          "TextField": "TossTextField"
+          "Card": "Consider TossCard for consistency"
+    
+    # Animation consistency rules
+    - enforce_animation_durations:
+        severity: info
+        description: "Use TossAnimations constants for consistent timing"
+        patterns:
+          - "Duration(milliseconds:"
+        exclude_patterns:
+          - "TossAnimations"
+        recommended_values: [50, 100, 150, 200, 250, 300, 400]
+        replacement_suggestions:
+          "50": "TossAnimations.instant"
+          "100": "TossAnimations.quick"
+          "150": "TossAnimations.fast"
+          "200": "TossAnimations.normal"
+          "250": "TossAnimations.medium"
+          "300": "TossAnimations.slow"
+          "400": "TossAnimations.slower"
+    
+    # Shadow consistency rules
+    - avoid_excessive_shadows:
+        severity: warning
+        description: "Toss design uses minimal shadows - avoid high elevation"
+        patterns:
+          - "elevation:"
+        max_elevation: 4
+        replacement_suggestion: "Use TossShadows constants for consistent depth"
+    
+    # Component-specific rules
+    - validate_component_theming:
+        severity: info
+        description: "Ensure components follow Toss design patterns"
+        component_rules:
+          Container:
+            - check_color_usage: true
+            - check_padding_grid: true
+            - check_border_radius: true
+          Text:
+            - check_style_usage: true
+            - check_color_usage: true
+          Card:
+            - max_elevation: 2
+            - check_color_usage: true
+          Button:
+            - check_height: [32, 40, 48, 56]
+            - check_padding_grid: true
+
+# Dart Code Metrics configuration
+dart_code_metrics:
+  anti-patterns:
+    - long-method
+    - long-parameter-list
+  
+  metrics:
+    cyclomatic-complexity: 20
+    maximum-nesting-level: 5
+    number-of-parameters: 6
+    source-lines-of-code: 50
+  
+  metrics-exclude:
+    - test/**
+    - "**/*.g.dart"
+    - "**/*.freezed.dart"
+  
+  rules:
+    # Performance rules
+    - avoid-unnecessary-type-assertions
+    - avoid-unnecessary-type-casts
+    - prefer-conditional-expressions
+    - prefer-moving-to-variable
+    
+    # Design rules  
+    - avoid-returning-widgets
+    - consistent-update-render-object
+    - prefer-const-border-radius
+    - prefer-extracting-callbacks
+    
+    # Theme-specific rules
+    - prefer-single-widget-per-file:
+        ignore-private-widgets: true
+    
+    # Code organization
+    - prefer-match-file-name
+    - prefer-trailing-comma
+    
+  rules-exclude:
+    - test/**
+    - "**/*.g.dart"
+    - "**/*.freezed.dart"

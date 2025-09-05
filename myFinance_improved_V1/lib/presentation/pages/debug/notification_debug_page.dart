@@ -561,7 +561,7 @@ class _NotificationDebugPageState extends ConsumerState<NotificationDebugPage> {
                 Expanded(
                   child: Text(
                     value,
-                    style: TextStyle(
+                    style: TossTextStyles.body.copyWith(
                       color: value == 'null' || value == 'N/A' 
                           ? TossColors.gray500 
                           : null,

@@ -3,6 +3,7 @@ import '../../../core/themes/toss_colors.dart';
 import '../../../core/themes/toss_text_styles.dart';
 import '../../../core/themes/toss_spacing.dart';
 import '../../../core/themes/toss_border_radius.dart';
+import 'package:myfinance_improved/core/themes/index.dart';
 
 /// Simple wheel-style time picker matching Toss design system
 /// Clean three-column layout: Hour | Minute | AM/PM
@@ -68,7 +69,7 @@ class _TossSimpleWheelTimePickerState extends State<TossSimpleWheelTimePicker> {
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      backgroundColor: Colors.transparent,
+      backgroundColor: TossColors.transparent,
       insetPadding: const EdgeInsets.all(TossSpacing.space4),
       child: Container(
         height: MediaQuery.of(context).size.height * 0.5,
@@ -313,7 +314,7 @@ class TossTimePicker extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: Colors.transparent,
+      color: TossColors.transparent,
       child: InkWell(
         onTap: () => _showSimpleTimePicker(context),
         borderRadius: BorderRadius.circular(TossBorderRadius.md),

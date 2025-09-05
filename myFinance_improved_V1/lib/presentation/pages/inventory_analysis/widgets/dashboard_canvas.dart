@@ -4,7 +4,7 @@ import '../../../../core/themes/index.dart';
 import '../models/dashboard_model.dart';
 import 'widget_renderer.dart';
 import 'empty_state.dart';
-
+import 'package:myfinance_improved/core/themes/toss_border_radius.dart';
 class DashboardCanvas extends ConsumerWidget {
   final UserDashboard dashboard;
   final bool isEditMode;

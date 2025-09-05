@@ -4,6 +4,7 @@ import '../../../core/themes/toss_text_styles.dart';
 import '../../../core/themes/toss_border_radius.dart';
 import '../../../core/themes/toss_shadows.dart';
 import '../../../core/themes/toss_spacing.dart';
+import 'package:myfinance_improved/core/themes/index.dart';
 
 /// Toss-style bottom sheet with smooth animations
 class TossBottomSheet extends StatelessWidget {
@@ -31,7 +32,7 @@ class TossBottomSheet extends StatelessWidget {
     return showModalBottomSheet<T>(
       context: context,
       backgroundColor: TossColors.transparent,
-      barrierColor: Colors.black54,
+      barrierColor: TossColors.black54,
       isScrollControlled: true,
       isDismissible: isDismissible,
       enableDrag: enableDrag,
@@ -40,6 +41,52 @@ class TossBottomSheet extends StatelessWidget {
         content: content,
         actions: actions,
       ),
+    );
+  }
+
+  /// Show standard bottom sheet with custom builder (from common version)
+  static Future<T?> showWithBuilder<T>({
+    required BuildContext context,
+    required Widget Function(BuildContext) builder,
+    bool isScrollControlled = true,
+    double heightFactor = 0.8,
+    bool isDismissible = true,
+    bool enableDrag = true,
+  }) {
+    return showModalBottomSheet<T>(
+      context: context,
+      backgroundColor: TossColors.transparent,
+      isScrollControlled: isScrollControlled,
+      isDismissible: isDismissible,
+      enableDrag: enableDrag,
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.of(context).size.height * heightFactor,
+      ),
+      builder: builder,
+    );
+  }
+
+  /// Show full-screen bottom sheet (from common version)
+  static Future<T?> showFullscreen<T>({
+    required BuildContext context,
+    required Widget Function(BuildContext) builder,
+  }) {
+    return showWithBuilder<T>(
+      context: context,
+      builder: builder,
+      heightFactor: 0.95,
+    );
+  }
+
+  /// Show compact bottom sheet (from common version)
+  static Future<T?> showCompact<T>({
+    required BuildContext context,
+    required Widget Function(BuildContext) builder,
+  }) {
+    return showWithBuilder<T>(
+      context: context,
+      builder: builder,
+      heightFactor: 0.6,
     );
   }
   
@@ -81,7 +128,7 @@ class TossBottomSheet extends StatelessWidget {
                   height: 4,
                   decoration: BoxDecoration(
                     color: TossColors.gray300,
-                    borderRadius: BorderRadius.circular(2),
+                    borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                   ),
                 ),
               ],

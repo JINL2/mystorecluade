@@ -11,6 +11,7 @@ import '../../widgets/common/toss_app_bar.dart';
 import '../../widgets/common/toss_loading_view.dart';
 import '../../../data/services/vault_real_service.dart';
 import '../../providers/app_state_provider.dart';
+import 'package:myfinance_improved/core/themes/index.dart';
 
 class VaultRealPage extends ConsumerStatefulWidget {
   const VaultRealPage({super.key});
@@ -128,7 +129,7 @@ class _VaultRealPageState extends ConsumerState<VaultRealPage> {
     
     if (companyId.isEmpty || storeId.isEmpty) {
       return TossScaffold(
-        backgroundColor: const Color(0xFFF7F8FA),
+        backgroundColor: TossColors.gray50,
         body: const Center(
           child: Text('Please select a company and store first'),
         ),
@@ -145,10 +146,10 @@ class _VaultRealPageState extends ConsumerState<VaultRealPage> {
     ));
     
     return TossScaffold(
-      backgroundColor: const Color(0xFFF7F8FA),
+      backgroundColor: TossColors.gray50,
       appBar: TossAppBar(
         title: 'Vault Total Real',
-        backgroundColor: const Color(0xFFF7F8FA),
+        backgroundColor: TossColors.gray50,
       ),
       body: SafeArea(
         child: Column(
@@ -188,7 +189,7 @@ class _VaultRealPageState extends ConsumerState<VaultRealPage> {
                             color: TossColors.gray600,
                           ),
                         ),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: TossSpacing.space4),
                         ElevatedButton(
                           onPressed: () {
                             // Reset state and refresh the data
@@ -526,13 +527,13 @@ class _VaultRealPageState extends ConsumerState<VaultRealPage> {
                 height: 4,
                 decoration: BoxDecoration(
                   color: TossColors.gray300,
-                  borderRadius: BorderRadius.circular(2),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                 ),
               ),
               
               // Header
               Padding(
-                padding: EdgeInsets.fromLTRB(24, 20, 20, 16),
+                padding: EdgeInsets.fromLTRB(TossSpacing.space6, TossSpacing.space5, TossSpacing.space5, TossSpacing.space4),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -659,13 +660,13 @@ class _VaultDetailBottomSheet extends StatelessWidget {
             height: 4,
             decoration: BoxDecoration(
               color: TossColors.gray300,
-              borderRadius: BorderRadius.circular(2),
+              borderRadius: BorderRadius.circular(TossBorderRadius.xs),
             ),
           ),
           
           // Header
           Padding(
-            padding: EdgeInsets.fromLTRB(24, 20, 20, 16),
+            padding: EdgeInsets.fromLTRB(TossSpacing.space6, TossSpacing.space5, TossSpacing.space5, TossSpacing.space4),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -696,12 +697,12 @@ class _VaultDetailBottomSheet extends StatelessWidget {
                 children: [
                   // Total Running Balance
                   Container(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(TossSpacing.space4),
                     decoration: BoxDecoration(
                       color: isNegative 
                           ? TossColors.error.withOpacity(0.1)
                           : Theme.of(context).colorScheme.primary.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -756,7 +757,7 @@ class _VaultDetailBottomSheet extends StatelessWidget {
                         fontSize: 16,
                       ),
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: TossSpacing.space3),
                     
                     ...realEntry.currencySummary.expand((currency) => 
                       currency.denominations
@@ -781,7 +782,7 @@ class _VaultDetailBottomSheet extends StatelessWidget {
   
   Widget _buildDetailRow(String label, String value) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
+      padding: const EdgeInsets.symmetric(vertical: TossSpacing.space2),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -814,10 +815,10 @@ class _VaultDetailBottomSheet extends StatelessWidget {
     
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(TossSpacing.space3),
       decoration: BoxDecoration(
         color: TossColors.gray50,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(TossBorderRadius.md),
         border: Border.all(color: TossColors.gray200),
       ),
       child: Column(
@@ -832,7 +833,7 @@ class _VaultDetailBottomSheet extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
                       color: TossColors.primary.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(4),
+                      borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                     ),
                     child: Text(
                       _formatCurrency(denomination.denominationValue, symbol),
@@ -852,13 +853,13 @@ class _VaultDetailBottomSheet extends StatelessWidget {
                 style: TossTextStyles.body.copyWith(
                   fontWeight: FontWeight.w500,
                   fontSize: 14,
-                  color: isNegative ? TossColors.error : Colors.black87,
+                  color: isNegative ? TossColors.error : TossColors.black87,
                 ),
               ),
             ],
           ),
           
-          const SizedBox(height: 8),
+          const SizedBox(height: TossSpacing.space2),
           
           // Running total and daily change
           Row(
@@ -872,7 +873,7 @@ class _VaultDetailBottomSheet extends StatelessWidget {
                     color: denomination.dailyChange > 0 
                         ? TossColors.success.withOpacity(0.1)
                         : TossColors.error.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(4),
+                    borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                   ),
                   child: Text(
                     'Change: ${denomination.dailyChange > 0 ? "+" : ""}${denomination.dailyChange}',
@@ -890,7 +891,7 @@ class _VaultDetailBottomSheet extends StatelessWidget {
                 style: TossTextStyles.body.copyWith(
                   fontWeight: FontWeight.w600,
                   fontSize: 14,
-                  color: isNegative ? TossColors.error : Colors.black87,
+                  color: isNegative ? TossColors.error : TossColors.black87,
                 ),
               ),
             ],

@@ -10,7 +10,8 @@ import '../../widgets/common/toss_scaffold.dart';
 import '../../widgets/common/toss_app_bar.dart';
 import '../../widgets/common/toss_loading_view.dart';
 import '../../widgets/toss/toss_time_picker.dart';
-
+import 'package:myfinance_improved/core/themes/index.dart';
+import 'package:myfinance_improved/core/themes/toss_border_radius.dart';
 class TimeTableManagePage extends ConsumerStatefulWidget {
   const TimeTableManagePage({super.key});
 
@@ -117,7 +118,7 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
                         Container(
                           decoration: BoxDecoration(
                             color: TossColors.gray100,
-                            borderRadius: BorderRadius.circular(24),
+                            borderRadius: BorderRadius.circular(TossBorderRadius.xxxl),
                           ),
                         ),
                         // Tab Bar
@@ -125,7 +126,7 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
                           controller: _tabController,
                           indicator: BoxDecoration(
                             color: TossColors.background,
-                            borderRadius: BorderRadius.circular(22),
+                            borderRadius: BorderRadius.circular(TossBorderRadius.xxl),
                             boxShadow: [
                               BoxShadow(
                                 color: TossColors.black.withValues(alpha: 0.08),
@@ -135,7 +136,7 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
                             ],
                           ),
                           indicatorSize: TabBarIndicatorSize.tab,
-                          indicatorPadding: const EdgeInsets.all(2),
+                          indicatorPadding: EdgeInsets.all(TossSpacing.space1 / 2),
                           dividerColor: TossColors.transparent,
                           labelColor: TossColors.gray900,
                           unselectedLabelColor: TossColors.gray500,
@@ -415,7 +416,7 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
                 height: 4,
                 decoration: BoxDecoration(
                   color: TossColors.gray300,
-                  borderRadius: BorderRadius.circular(100),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.full),
                 ),
               ),
               // Title
@@ -593,16 +594,16 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
       calendarDays.add(
         InkWell(
           onTap: () => onDateSelected(date),
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
           child: Container(
-            margin: const EdgeInsets.all(2),
+            margin: EdgeInsets.all(TossSpacing.space1 / 2),
             decoration: BoxDecoration(
               color: isSelected 
                   ? TossColors.primary 
                   : isToday 
                       ? TossColors.primary.withValues(alpha: 0.1)
                       : TossColors.transparent,
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
               border: isToday && !isSelected
                   ? Border.all(color: TossColors.primary, width: 1)
                   : null,
@@ -676,7 +677,7 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
               height: 4,
               decoration: BoxDecoration(
                 color: TossColors.gray300,
-                borderRadius: BorderRadius.circular(100),
+                borderRadius: BorderRadius.circular(TossBorderRadius.full),
               ),
             ),
             // Title
@@ -759,7 +760,7 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
                             height: 40,
                             decoration: BoxDecoration(
                               color: isSelected ? TossColors.primary.withValues(alpha: 0.1) : TossColors.gray100,
-                              borderRadius: BorderRadius.circular(10),
+                              borderRadius: BorderRadius.circular(TossBorderRadius.md),
                             ),
                             child: Icon(
                               Icons.store_outlined,
@@ -918,16 +919,16 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
               fetchManagerOverview();
             }
           },
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
           child: Container(
-            margin: const EdgeInsets.all(2),
+            margin: EdgeInsets.all(TossSpacing.space1 / 2),
             decoration: BoxDecoration(
               color: isSelected
                   ? TossColors.primary
                   : isToday
                       ? TossColors.primary.withValues(alpha: 0.1)
                       : TossColors.transparent,
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
               border: isToday && !isSelected
                   ? Border.all(color: TossColors.primary, width: 1.5)
                   : null,
@@ -1065,7 +1066,7 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
                 margin: const EdgeInsets.only(bottom: TossSpacing.space3),
                 decoration: BoxDecoration(
                   color: TossColors.background,
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                   border: Border.all(
                     color: hasEmployee 
                         ? (assignedEmployees.any((e) => e['is_approved'] == true) 
@@ -1106,7 +1107,7 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
                               color: hasEmployee 
                                   ? TossColors.primary.withValues(alpha: 0.1)
                                   : TossColors.error.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(8),
+                              borderRadius: BorderRadius.circular(TossBorderRadius.md),
                             ),
                             child: Icon(
                               Icons.access_time,
@@ -1145,7 +1146,7 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
                               ),
                               decoration: BoxDecoration(
                                 color: TossColors.error.withValues(alpha: 0.1),
-                                borderRadius: BorderRadius.circular(12),
+                                borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                               ),
                               child: Text(
                                 'Empty',
@@ -1270,7 +1271,7 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
                                         : (isApproved 
                                             ? TossColors.success.withValues(alpha: 0.1)
                                             : TossColors.warning.withValues(alpha: 0.1)),
-                                    borderRadius: BorderRadius.circular(12),
+                                    borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                                     border: isSelected 
                                         ? Border.all(
                                             color: TossColors.primary.withValues(alpha: 0.3),
@@ -1339,7 +1340,7 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
               padding: const EdgeInsets.all(TossSpacing.space4),
               decoration: BoxDecoration(
                 color: TossColors.gray50,
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(TossBorderRadius.md),
               ),
               child: Center(
                 child: Column(
@@ -1471,7 +1472,7 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
             padding: const EdgeInsets.all(TossSpacing.space5),
             decoration: BoxDecoration(
               color: TossColors.primarySurface,
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: BorderRadius.circular(TossBorderRadius.xxl),
             ),
             child: SizedBox(
               width: double.infinity,
@@ -1595,7 +1596,7 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
                         _showManageCalendarPopup();
                         HapticFeedback.selectionClick();
                       },
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                       child: Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: TossSpacing.space3,
@@ -1603,7 +1604,7 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
                         ),
                         decoration: BoxDecoration(
                           color: TossColors.gray50,
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                         ),
                         child: Row(
                           children: [
@@ -1907,7 +1908,7 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
                         : selectedFilter == 'approved'
                             ? TossColors.success.withValues(alpha: 0.1)
                             : TossColors.warning.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(6),
+                    borderRadius: BorderRadius.circular(TossBorderRadius.sm),
                   ),
                   child: Text(
                     selectedFilter == 'problem'
@@ -1976,14 +1977,14 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
         _showShiftDetailsBottomSheet(card);
         HapticFeedback.selectionClick();
       },
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(TossBorderRadius.xl),
       child: Container(
       margin: const EdgeInsets.only(bottom: TossSpacing.space3),
       decoration: BoxDecoration(
         color: isReportedUnsolvedProblem
             ? TossColors.primary.withValues(alpha: 0.05) // Light primary background for reported unsolved
             : TossColors.background,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(TossBorderRadius.xl),
         border: Border.all(
           color: borderColor.withValues(alpha: 0.3),
           width: 1.5,
@@ -2022,7 +2023,7 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
                   height: 40,
                   decoration: BoxDecoration(
                     color: TossColors.primary.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(20),
+                    borderRadius: BorderRadius.circular(TossBorderRadius.xxl),
                   ),
                   child: Center(
                     child: Text(
@@ -2084,7 +2085,7 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
                     ),
                     decoration: BoxDecoration(
                       color: TossColors.error.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(TossBorderRadius.md),
                     ),
                     child: Text(
                       'Problem',
@@ -2102,7 +2103,7 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
                     ),
                     decoration: BoxDecoration(
                       color: TossColors.success.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(TossBorderRadius.md),
                     ),
                     child: Text(
                       'Problem Solved',
@@ -2120,7 +2121,7 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
                     ),
                     decoration: BoxDecoration(
                       color: TossColors.success.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(TossBorderRadius.md),
                     ),
                     child: Text(
                       'Approved',
@@ -2138,7 +2139,7 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
                     ),
                     decoration: BoxDecoration(
                       color: TossColors.warning.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(TossBorderRadius.md),
                     ),
                     child: Text(
                       'Pending',
@@ -2222,7 +2223,7 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
                             ),
                             decoration: BoxDecoration(
                               color: TossColors.warning.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(6),
+                              borderRadius: BorderRadius.circular(TossBorderRadius.sm),
                             ),
                             child: Text(
                               'Late ${lateMinute}min',
@@ -2242,7 +2243,7 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
                             ),
                             decoration: BoxDecoration(
                               color: TossColors.info.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(6),
+                              borderRadius: BorderRadius.circular(TossBorderRadius.sm),
                             ),
                             child: Text(
                               'OT ${overTimeMinute}min',
@@ -2262,7 +2263,7 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
                             ),
                             decoration: BoxDecoration(
                               color: TossColors.primary.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(6),
+                              borderRadius: BorderRadius.circular(TossBorderRadius.sm),
                             ),
                             child: Text(
                               'Reported',
@@ -2299,12 +2300,12 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
                     margin: const EdgeInsets.all(TossSpacing.space5),
                     child: InkWell(
                       onTap: () => _showStoreSelector(stores),
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(TossBorderRadius.xl),
                       child: Container(
                         padding: const EdgeInsets.all(TossSpacing.space4),
                         decoration: BoxDecoration(
                           color: TossColors.background,
-                          borderRadius: BorderRadius.circular(16),
+                          borderRadius: BorderRadius.circular(TossBorderRadius.xl),
                           border: Border.all(
                             color: TossColors.gray200,
                             width: 1,
@@ -2324,7 +2325,7 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
                               height: 40,
                               decoration: BoxDecoration(
                                 color: TossColors.gray50,
-                                borderRadius: BorderRadius.circular(10),
+                                borderRadius: BorderRadius.circular(TossBorderRadius.md),
                               ),
                               child: const Icon(
                                 Icons.store_outlined,
@@ -2387,7 +2388,7 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
                           // Check if we need to load data for this month
                           await fetchMonthlyShiftStatus(forDate: focusedMonth);
                         },
-                        borderRadius: BorderRadius.circular(20),
+                        borderRadius: BorderRadius.circular(TossBorderRadius.xxl),
                         child: Container(
                           padding: const EdgeInsets.all(TossSpacing.space2),
                           child: const Icon(
@@ -2418,7 +2419,7 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
                           // Check if we need to load data for this month
                           await fetchMonthlyShiftStatus(forDate: focusedMonth);
                         },
-                        borderRadius: BorderRadius.circular(20),
+                        borderRadius: BorderRadius.circular(TossBorderRadius.xxl),
                         child: Container(
                           padding: const EdgeInsets.all(TossSpacing.space2),
                           child: const Icon(
@@ -2479,7 +2480,7 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
                               content: const Text('Error: Missing user ID or shift request ID'),
                               backgroundColor: TossColors.error,
                               behavior: SnackBarBehavior.floating,
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(TossBorderRadius.md)),
                             ),
                           );
                           return;
@@ -2505,7 +2506,7 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
                               content: Text('Shift request $action successfully'),
                               backgroundColor: TossColors.success,
                               behavior: SnackBarBehavior.floating,
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(TossBorderRadius.md)),
                             ),
                           );
                           
@@ -2545,12 +2546,12 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
                               content: Text('Error: ${e.toString()}'),
                               backgroundColor: TossColors.error,
                               behavior: SnackBarBehavior.floating,
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(TossBorderRadius.md)),
                             ),
                           );
                         }
                       } : null,
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(TossBorderRadius.xl),
                       child: Container(
                         height: 56,
                         decoration: BoxDecoration(
@@ -2559,7 +2560,7 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
                                   ? TossColors.warning 
                                   : TossColors.primary)
                               : TossColors.gray300,
-                          borderRadius: BorderRadius.circular(16),
+                          borderRadius: BorderRadius.circular(TossBorderRadius.xl),
                         ),
                         child: Center(
                           child: Text(
@@ -2592,7 +2593,7 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
               HapticFeedback.mediumImpact();
               _showAddShiftBottomSheet();
             },
-            borderRadius: BorderRadius.circular(28),
+            borderRadius: BorderRadius.circular(TossBorderRadius.xxl + 4),
             child: Container(
               width: 56,
               height: 56,
@@ -2689,12 +2690,12 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
         });
         HapticFeedback.selectionClick();
       },
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(TossBorderRadius.xl),
       child: Container(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(TossSpacing.space3),
         decoration: BoxDecoration(
           color: backgroundColor,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(TossBorderRadius.xl),
           border: isSelected 
               ? Border.all(
                   color: iconColor.withValues(alpha: 0.5),
@@ -2879,7 +2880,7 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<_ShiftDetailsBottomShe
       builder: (BuildContext context) {
         return AlertDialog(
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(TossBorderRadius.xxl),
           ),
           title: Text(
             'Delete Tag',
@@ -2904,7 +2905,7 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<_ShiftDetailsBottomShe
                 padding: const EdgeInsets.all(TossSpacing.space3),
                 decoration: BoxDecoration(
                   color: TossColors.gray50,
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                 ),
                 child: Text(
                   content,
@@ -2956,7 +2957,7 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<_ShiftDetailsBottomShe
       builder: (BuildContext context) {
         return AlertDialog(
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(TossBorderRadius.xxl),
           ),
           title: Text(
             'Confirm',
@@ -3055,7 +3056,7 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<_ShiftDetailsBottomShe
             backgroundColor: TossColors.success,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
             ),
             margin: const EdgeInsets.all(TossSpacing.space4),
             duration: const Duration(seconds: 2),
@@ -3084,7 +3085,7 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<_ShiftDetailsBottomShe
             backgroundColor: TossColors.error,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
             ),
             margin: const EdgeInsets.all(TossSpacing.space4),
             duration: const Duration(seconds: 3),
@@ -3138,7 +3139,7 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<_ShiftDetailsBottomShe
             backgroundColor: TossColors.success,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
             ),
             margin: const EdgeInsets.all(TossSpacing.space4),
             duration: const Duration(seconds: 2),
@@ -3169,7 +3170,7 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<_ShiftDetailsBottomShe
             backgroundColor: TossColors.error,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
             ),
             margin: const EdgeInsets.all(TossSpacing.space4),
             duration: const Duration(seconds: 3),
@@ -3212,7 +3213,7 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<_ShiftDetailsBottomShe
             height: 4,
             decoration: BoxDecoration(
               color: TossColors.gray300,
-              borderRadius: BorderRadius.circular(100),
+              borderRadius: BorderRadius.circular(TossBorderRadius.full),
             ),
           ),
           // Header with user info
@@ -3237,12 +3238,12 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<_ShiftDetailsBottomShe
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
-                    borderRadius: BorderRadius.circular(22),
+                    borderRadius: BorderRadius.circular(TossBorderRadius.xxl),
                   ),
                   child: Center(
                     child: Text(
                       (card['user_name'] ?? '?')[0].toUpperCase(),
-                      style: const TextStyle(
+                      style: TossTextStyles.body.copyWith(
                         color: TossColors.white,
                         fontSize: 18,
                         fontWeight: FontWeight.w700,
@@ -3280,7 +3281,7 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<_ShiftDetailsBottomShe
                     height: 32,
                     decoration: BoxDecoration(
                       color: TossColors.gray100,
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(TossBorderRadius.xl),
                     ),
                     child: const Icon(
                       Icons.close,
@@ -3305,7 +3306,7 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<_ShiftDetailsBottomShe
                 Container(
                   decoration: BoxDecoration(
                     color: TossColors.gray100,
-                    borderRadius: BorderRadius.circular(24),
+                    borderRadius: BorderRadius.circular(TossBorderRadius.xxxl),
                   ),
                 ),
                 // Tab Bar
@@ -3313,7 +3314,7 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<_ShiftDetailsBottomShe
                   controller: _tabController,
                   indicator: BoxDecoration(
                     color: TossColors.background,
-                    borderRadius: BorderRadius.circular(22),
+                    borderRadius: BorderRadius.circular(TossBorderRadius.xxl),
                     boxShadow: [
                       BoxShadow(
                         color: TossColors.black.withValues(alpha: 0.08),
@@ -3323,7 +3324,7 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<_ShiftDetailsBottomShe
                     ],
                   ),
                   indicatorSize: TabBarIndicatorSize.tab,
-                  indicatorPadding: const EdgeInsets.all(2),
+                  indicatorPadding: EdgeInsets.all(TossSpacing.space1 / 2),
                   dividerColor: TossColors.transparent,
                   labelColor: TossColors.gray900,
                   unselectedLabelColor: TossColors.gray500,
@@ -3377,7 +3378,7 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<_ShiftDetailsBottomShe
               padding: const EdgeInsets.all(TossSpacing.space4),
               decoration: BoxDecoration(
                 color: TossColors.error.withValues(alpha: 0.05),
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(TossBorderRadius.xl),
                 border: Border.all(
                   color: TossColors.error.withValues(alpha: 0.2),
                   width: 1,
@@ -3444,7 +3445,7 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<_ShiftDetailsBottomShe
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                         ),
-                        borderRadius: BorderRadius.circular(20),
+                        borderRadius: BorderRadius.circular(TossBorderRadius.xxl),
                         border: Border.all(
                           color: TossColors.primary.withValues(alpha: 0.1),
                           width: 1,
@@ -3461,7 +3462,7 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<_ShiftDetailsBottomShe
                                 height: 32,
                                 decoration: BoxDecoration(
                                   color: TossColors.primary.withValues(alpha: 0.1),
-                                  borderRadius: BorderRadius.circular(10),
+                                  borderRadius: BorderRadius.circular(TossBorderRadius.md),
                                 ),
                                 child: const Icon(
                                   Icons.access_time_filled,
@@ -3498,8 +3499,7 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<_ShiftDetailsBottomShe
                                     const SizedBox(height: TossSpacing.space2),
                                     Text(
                                       card['confirm_start_time'] ?? '--:--',
-                                      style: TextStyle(
-                                        fontSize: 32,
+                                      style: TossTextStyles.display.copyWith(
                                         fontWeight: FontWeight.w700,
                                         color: card['confirm_start_time'] != null 
                                           ? TossColors.gray900 
@@ -3530,8 +3530,7 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<_ShiftDetailsBottomShe
                                     const SizedBox(height: TossSpacing.space2),
                                     Text(
                                       card['confirm_end_time'] ?? '--:--',
-                                      style: TextStyle(
-                                        fontSize: 32,
+                                      style: TossTextStyles.display.copyWith(
                                         fontWeight: FontWeight.w700,
                                         color: card['confirm_end_time'] != null 
                                           ? TossColors.gray900 
@@ -3554,7 +3553,7 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<_ShiftDetailsBottomShe
                               ),
                               decoration: BoxDecoration(
                                 color: TossColors.background,
-                                borderRadius: BorderRadius.circular(12),
+                                borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                               ),
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
@@ -3635,7 +3634,7 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<_ShiftDetailsBottomShe
                       padding: const EdgeInsets.all(TossSpacing.space4),
                       decoration: BoxDecoration(
                         color: TossColors.gray50,
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BorderRadius.circular(TossBorderRadius.xl),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -3662,7 +3661,7 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<_ShiftDetailsBottomShe
                       padding: const EdgeInsets.all(TossSpacing.space4),
                       decoration: BoxDecoration(
                         color: TossColors.gray50,
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BorderRadius.circular(TossBorderRadius.xl),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -3689,7 +3688,7 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<_ShiftDetailsBottomShe
                         padding: const EdgeInsets.all(TossSpacing.space4),
                         decoration: BoxDecoration(
                           color: TossColors.gray50,
-                          borderRadius: BorderRadius.circular(16),
+                          borderRadius: BorderRadius.circular(TossBorderRadius.xl),
                         ),
                         child: Column(
                           children: [
@@ -3718,7 +3717,7 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<_ShiftDetailsBottomShe
                         padding: const EdgeInsets.all(TossSpacing.space4),
                         decoration: BoxDecoration(
                           color: TossColors.gray50,
-                          borderRadius: BorderRadius.circular(16),
+                          borderRadius: BorderRadius.circular(TossBorderRadius.xl),
                         ),
                         child: Wrap(
                           spacing: TossSpacing.space2,
@@ -3735,7 +3734,7 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<_ShiftDetailsBottomShe
                               ),
                               decoration: BoxDecoration(
                                 color: TossColors.primary.withValues(alpha: 0.1),
-                                borderRadius: BorderRadius.circular(12),
+                                borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                               ),
                               child: Text(
                                 content,
@@ -3771,7 +3770,7 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<_ShiftDetailsBottomShe
                   padding: const EdgeInsets.all(TossSpacing.space4),
                   decoration: BoxDecoration(
                     color: TossColors.gray50,
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(TossBorderRadius.xl),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -3855,7 +3854,7 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<_ShiftDetailsBottomShe
                     padding: const EdgeInsets.all(TossSpacing.space4),
                     decoration: BoxDecoration(
                       color: TossColors.gray50,
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(TossBorderRadius.xl),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -3936,7 +3935,7 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<_ShiftDetailsBottomShe
                   padding: const EdgeInsets.all(TossSpacing.space4),
                   decoration: BoxDecoration(
                     color: TossColors.gray50,
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(TossBorderRadius.xl),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -3968,7 +3967,7 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<_ShiftDetailsBottomShe
                         ),
                         decoration: BoxDecoration(
                           color: TossColors.background,
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                           border: Border.all(
                             color: TossColors.gray200,
                             width: 1,
@@ -4011,7 +4010,7 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<_ShiftDetailsBottomShe
                       Container(
                         decoration: BoxDecoration(
                           color: TossColors.background,
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                           border: Border.all(
                             color: TossColors.gray200,
                             width: 1,
@@ -4048,7 +4047,7 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<_ShiftDetailsBottomShe
                   padding: const EdgeInsets.all(TossSpacing.space4),
                   decoration: BoxDecoration(
                     color: TossColors.gray50,
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(TossBorderRadius.xl),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -4080,7 +4079,7 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<_ShiftDetailsBottomShe
                                 ),
                                 decoration: BoxDecoration(
                                   color: TossColors.primary.withValues(alpha: 0.1),
-                                  borderRadius: BorderRadius.circular(20),
+                                  borderRadius: BorderRadius.circular(TossBorderRadius.xxl),
                                   border: Border.all(
                                     color: TossColors.primary.withValues(alpha: 0.2),
                                     width: 1,
@@ -4173,7 +4172,7 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<_ShiftDetailsBottomShe
                           backgroundColor: TossColors.error,
                           behavior: SnackBarBehavior.floating,
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                           ),
                         ),
                       );
@@ -4187,7 +4186,7 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<_ShiftDetailsBottomShe
                         return AlertDialog(
                           backgroundColor: TossColors.background,
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(20),
+                            borderRadius: BorderRadius.circular(TossBorderRadius.xxl),
                           ),
                           title: Text(
                             'Confirm Save',
@@ -4219,7 +4218,7 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<_ShiftDetailsBottomShe
                               style: TextButton.styleFrom(
                                 backgroundColor: TossColors.primary.withValues(alpha: 0.1),
                                 shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
+                                  borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                                 ),
                               ),
                               child: Padding(
@@ -4320,7 +4319,7 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<_ShiftDetailsBottomShe
                           backgroundColor: TossColors.success,
                           behavior: SnackBarBehavior.floating,
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                           ),
                         ),
                       );
@@ -4342,7 +4341,7 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<_ShiftDetailsBottomShe
                           backgroundColor: TossColors.error,
                           behavior: SnackBarBehavior.floating,
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                           ),
                         ),
                       );
@@ -4375,7 +4374,7 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<_ShiftDetailsBottomShe
       color: TossColors.transparent,
       child: InkWell(
         onTap: disabled ? null : onTap,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
         child: Container(
           padding: const EdgeInsets.symmetric(
             horizontal: TossSpacing.space4,
@@ -4383,7 +4382,7 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<_ShiftDetailsBottomShe
           ),
           decoration: BoxDecoration(
             color: outlined ? TossColors.transparent : (disabled ? TossColors.gray100 : effectiveColor),
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
             border: Border.all(
               color: outlined ? (disabled ? TossColors.gray200 : effectiveColor.withValues(alpha: 0.3)) : (disabled ? TossColors.gray200 : effectiveColor),
               width: outlined ? 1.5 : 0,
@@ -4455,7 +4454,7 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<_ShiftDetailsBottomShe
       ),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(TossBorderRadius.xl),
         border: Border.all(
           color: color.withValues(alpha: 0.2),
           width: 1,
@@ -4636,7 +4635,7 @@ class _AddShiftBottomSheetState extends ConsumerState<_AddShiftBottomSheet> {
             content: const Text('Error: Missing store or user information'),
             backgroundColor: TossColors.error,
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(TossBorderRadius.md)),
           ),
         );
         setState(() {
@@ -4666,7 +4665,7 @@ class _AddShiftBottomSheetState extends ConsumerState<_AddShiftBottomSheet> {
           content: const Text('Shift scheduled successfully'),
           backgroundColor: TossColors.success,
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(TossBorderRadius.md)),
         ),
       );
       
@@ -4680,7 +4679,7 @@ class _AddShiftBottomSheetState extends ConsumerState<_AddShiftBottomSheet> {
           content: Text('Error: ${e.toString()}'),
           backgroundColor: TossColors.error,
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(TossBorderRadius.md)),
         ),
       );
       
@@ -4717,7 +4716,7 @@ class _AddShiftBottomSheetState extends ConsumerState<_AddShiftBottomSheet> {
             height: 4,
             decoration: BoxDecoration(
               color: TossColors.gray300,
-              borderRadius: BorderRadius.circular(2),
+              borderRadius: BorderRadius.circular(TossBorderRadius.xs),
             ),
           ),
           
@@ -4738,9 +4737,9 @@ class _AddShiftBottomSheetState extends ConsumerState<_AddShiftBottomSheet> {
                   onTap: () {
                     Navigator.pop(context, false);
                   },
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.xxl),
                   child: Container(
-                    padding: const EdgeInsets.all(8),
+                    padding: const EdgeInsets.all(TossSpacing.space2),
                     child: const Icon(
                       Icons.close,
                       size: 24,
@@ -4786,7 +4785,7 @@ class _AddShiftBottomSheetState extends ConsumerState<_AddShiftBottomSheet> {
                             const SizedBox(height: TossSpacing.space4),
                             InkWell(
                               onTap: _fetchScheduleData,
-                              borderRadius: BorderRadius.circular(8),
+                              borderRadius: BorderRadius.circular(TossBorderRadius.md),
                               child: Container(
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: TossSpacing.space4,
@@ -4794,7 +4793,7 @@ class _AddShiftBottomSheetState extends ConsumerState<_AddShiftBottomSheet> {
                                 ),
                                 decoration: BoxDecoration(
                                   border: Border.all(color: TossColors.primary),
-                                  borderRadius: BorderRadius.circular(8),
+                                  borderRadius: BorderRadius.circular(TossBorderRadius.md),
                                 ),
                                 child: Text(
                                   'Retry',
@@ -4825,7 +4824,7 @@ class _AddShiftBottomSheetState extends ConsumerState<_AddShiftBottomSheet> {
                             Container(
                               decoration: BoxDecoration(
                                 border: Border.all(color: TossColors.gray300),
-                                borderRadius: BorderRadius.circular(12),
+                                borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                               ),
                               child: DropdownButtonHideUnderline(
                                 child: DropdownButton<String>(
@@ -4888,7 +4887,7 @@ class _AddShiftBottomSheetState extends ConsumerState<_AddShiftBottomSheet> {
                             Container(
                               decoration: BoxDecoration(
                                 border: Border.all(color: TossColors.gray300),
-                                borderRadius: BorderRadius.circular(12),
+                                borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                               ),
                               child: DropdownButtonHideUnderline(
                                 child: DropdownButton<String>(
@@ -4950,12 +4949,12 @@ class _AddShiftBottomSheetState extends ConsumerState<_AddShiftBottomSheet> {
                             const SizedBox(height: TossSpacing.space2),
                             InkWell(
                               onTap: _isSaving ? null : _selectDate,
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                               child: Container(
                                 padding: const EdgeInsets.all(TossSpacing.space4),
                                 decoration: BoxDecoration(
                                   border: Border.all(color: TossColors.gray300),
-                                  borderRadius: BorderRadius.circular(12),
+                                  borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                                 ),
                                 child: Row(
                                   children: [
@@ -4995,7 +4994,7 @@ class _AddShiftBottomSheetState extends ConsumerState<_AddShiftBottomSheet> {
                                 padding: const EdgeInsets.all(TossSpacing.space3),
                                 decoration: BoxDecoration(
                                   color: TossColors.warning.withValues(alpha: 0.1),
-                                  borderRadius: BorderRadius.circular(8),
+                                  borderRadius: BorderRadius.circular(TossBorderRadius.md),
                                   border: Border.all(
                                     color: TossColors.warning.withValues(alpha: 0.3),
                                   ),
@@ -5047,12 +5046,12 @@ class _AddShiftBottomSheetState extends ConsumerState<_AddShiftBottomSheet> {
                         onTap: () {
                           Navigator.pop(context, false);
                         },
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                         child: Container(
                           height: 52,
                           decoration: BoxDecoration(
                             color: TossColors.gray100,
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                           ),
                           child: Center(
                             child: Text(
@@ -5081,14 +5080,14 @@ class _AddShiftBottomSheetState extends ConsumerState<_AddShiftBottomSheet> {
                                 await _saveShift();
                               }
                             : null,
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                         child: Container(
                           height: 52,
                           decoration: BoxDecoration(
                             color: isFormValid
                                 ? TossColors.primary
                                 : TossColors.gray200,
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                           ),
                           child: Center(
                             child: _isSaving

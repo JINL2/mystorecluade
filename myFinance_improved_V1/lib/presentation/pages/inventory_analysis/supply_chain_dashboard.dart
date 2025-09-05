@@ -14,7 +14,7 @@ import 'widgets/analysis_config_panel.dart';
 import 'widgets/product_analysis_results.dart';
 import 'models/supply_chain_models.dart';
 import 'providers/persona_provider.dart';
-
+import 'package:myfinance_improved/core/themes/toss_border_radius.dart';
 class SupplyChainDashboard extends ConsumerStatefulWidget {
   const SupplyChainDashboard({super.key});
 

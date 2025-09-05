@@ -6,6 +6,7 @@ import '../../../core/themes/toss_border_radius.dart';
 import '../../../core/themes/toss_animations.dart';
 import '../../../core/themes/toss_shadows.dart';
 import 'toss_primary_button.dart';
+import 'package:myfinance_improved/core/themes/index.dart';
 
 /// Base modal component that prevents common anti-patterns
 /// Eliminates StatefulBuilder conflicts and provides consistent modal behavior
@@ -37,7 +38,7 @@ class TossModal extends StatefulWidget {
     this.isScrollControlled = true,
   });
 
-  /// Show modal as bottom sheet
+  /// Show modal as bottom sheet with keyboard-aware positioning
   static Future<T?> show<T>({
     required BuildContext context,
     required String title,
@@ -53,26 +54,42 @@ class TossModal extends StatefulWidget {
     bool isScrollControlled = true,
     bool isDismissible = true,
     bool enableDrag = true,
+    bool enableKeyboardToolbar = false,
+    VoidCallback? onKeyboardDone,
+    String keyboardDoneText = 'Done',
+    bool enableTapDismiss = true,
   }) {
     return showModalBottomSheet<T>(
       context: context,
-      backgroundColor: Colors.transparent,
-      barrierColor: Colors.black54, // Standard barrier color to prevent double barriers
+      backgroundColor: TossColors.transparent,
+      barrierColor: TossColors.black54, // Standard barrier color to prevent double barriers
       isScrollControlled: isScrollControlled,
       isDismissible: isDismissible,
       enableDrag: enableDrag, // Allow swipe-to-dismiss by default
-      builder: (context) => TossModal(
-        title: title,
-        subtitle: subtitle,
-        child: child,
-        actions: actions,
-        onClose: onClose ?? (() => Navigator.of(context).pop()),
-        showCloseButton: showCloseButton,
-        showHandleBar: showHandleBar,
-        height: height,
-        padding: padding,
-        backgroundColor: backgroundColor,
-        isScrollControlled: isScrollControlled,
+      // CRITICAL: Prevent keyboard from pushing modal up
+      constraints: height != null ? BoxConstraints.tightFor(height: height) : BoxConstraints(
+        maxHeight: MediaQuery.of(context).size.height * 0.9,
+      ),
+      builder: (context) => Material(
+        color: TossColors.transparent,
+        child: Scaffold(
+          backgroundColor: TossColors.transparent,
+          // KEY FIX: Prevent scaffold from resizing when keyboard appears
+          resizeToAvoidBottomInset: false,
+          body: TossModal(
+            title: title,
+            subtitle: subtitle,
+            child: child,
+            actions: actions,
+            onClose: onClose ?? (() => Navigator.of(context).pop()),
+            showCloseButton: showCloseButton,
+            showHandleBar: showHandleBar,
+            height: height,
+            padding: padding,
+            backgroundColor: backgroundColor,
+            isScrollControlled: isScrollControlled,
+          ),
+        ),
       ),
     );
   }
@@ -122,7 +139,7 @@ class _TossModalState extends State<TossModal> with SingleTickerProviderStateMix
   @override
   Widget build(BuildContext context) {
     final modalHeight = widget.height ?? MediaQuery.of(context).size.height * 0.8;
-    // Get keyboard height for dynamic adjustment
+    // Get keyboard height for content padding
     final keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
     
     return AnimatedBuilder(
@@ -155,19 +172,18 @@ class _TossModalState extends State<TossModal> with SingleTickerProviderStateMix
                       height: 4,
                       decoration: BoxDecoration(
                         color: TossColors.gray300, // Restore grey handle bar
-                        borderRadius: BorderRadius.circular(2),
+                        borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                       ),
                     ),
 
                   // Header
                   _buildHeader(),
 
-                  // Content - Now with flexible sizing and scroll capability
-                  Flexible(
-                    child: SingleChildScrollView(
-                      physics: const BouncingScrollPhysics(),
+                  // Content - Add keyboard padding for form fields
+                  Expanded(
+                    child: Padding(
                       padding: EdgeInsets.only(
-                        bottom: keyboardHeight > 0 ? 20 : 0, // Extra padding when keyboard shown
+                        bottom: keyboardHeight > 0 ? keyboardHeight : 0,
                       ),
                       child: widget.child,
                     ),

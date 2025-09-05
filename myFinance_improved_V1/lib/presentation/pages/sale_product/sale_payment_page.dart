@@ -14,6 +14,7 @@ import '../../helpers/navigation_helper.dart';
 import 'models/sale_product_models.dart';
 import 'sale_product_page.dart';
 import 'widgets/delivery_toggle.dart';
+import 'package:myfinance_improved/core/themes/index.dart';
 
 
 // Payment State Provider
@@ -833,7 +834,7 @@ class _SalePaymentPageState extends ConsumerState<SalePaymentPage> {
             isEnabled: receivedInKRW > 0 && !(paymentState.selectedMethod == PaymentMethod.cash && change < 0),
             leadingIcon: Icon(
               Icons.check_circle_outline,
-              color: Colors.white,
+              color: TossColors.white,
               size: 20,
             ),
             onPressed: () {
@@ -1103,7 +1104,7 @@ class _SalePaymentPageState extends ConsumerState<SalePaymentPage> {
                       child: Text(
                         'New Sale',
                         style: TossTextStyles.body.copyWith(
-                          color: Colors.white,
+                          color: TossColors.white,
                           fontWeight: FontWeight.bold,
                         ),
                       ),

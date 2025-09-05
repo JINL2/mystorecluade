@@ -17,6 +17,7 @@ import '../../../core/themes/toss_animations.dart';
 import 'providers/currency_providers.dart';
 import 'widgets/currency_overview_card.dart';
 import 'widgets/add_currency_bottom_sheet.dart';
+import 'package:myfinance_improved/core/themes/index.dart';
 
 class RegisterDenominationPage extends ConsumerWidget {
   const RegisterDenominationPage({super.key});

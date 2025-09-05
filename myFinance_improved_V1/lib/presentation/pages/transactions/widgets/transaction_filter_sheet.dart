@@ -12,9 +12,13 @@ import '../../../widgets/toss/toss_secondary_button.dart';
 import '../../../widgets/toss/toss_dropdown.dart';
 import '../../../widgets/specific/selectors/autonomous_cash_location_selector.dart';
 import '../../../widgets/specific/selectors/autonomous_counterparty_selector.dart';
-import '../../../widgets/specific/selectors/enhanced_multi_account_selector.dart';
+import '../../../widgets/specific/selectors/enhanced_account_selector.dart';
+import '../../../providers/entities/account_provider.dart';
+import '../../../../data/models/selector_entities.dart';
+import '../../../widgets/toss/toss_chip.dart';
 import '../../../widgets/common/toss_loading_view.dart';
 import '../providers/transaction_history_provider.dart';
+import 'package:myfinance_improved/core/themes/index.dart';
 
 class TransactionFilterSheet extends ConsumerStatefulWidget {
   const TransactionFilterSheet({super.key});
@@ -108,23 +112,8 @@ class _TransactionFilterSheetState extends ConsumerState<TransactionFilterSheet>
           // New Toss selector components (self-managing)
           Column(
             children: [
-              // Accounts - using enhanced multi-account selector with frequently used
-              EnhancedMultiAccountSelector(
-                selectedAccountIds: _selectedAccountIds,
-                contextType: 'transaction_filter', // Enable usage tracking
-                showQuickAccess: true, // Enable "Frequently Used" section
-                maxQuickItems: 5, // Show top 5 frequently used accounts
-                onChanged: (accountIds) {
-                  setState(() {
-                    _selectedAccountIds = accountIds;
-                    _selectedAccountId = accountIds?.isNotEmpty == true ? accountIds!.first : null; // Sync with single-selection
-                  });
-                },
-                label: 'Accounts',
-                hint: 'All Accounts',
-                showSearch: true,
-                showTransactionCount: false,
-              ),
+              // Accounts - simplified multi-account selector
+              _buildAccountSelector(),
               const SizedBox(height: TossSpacing.space4),
               
               // Cash Location - using autonomous selector with scope awareness
@@ -593,6 +582,28 @@ class _TransactionFilterSheetState extends ConsumerState<TransactionFilterSheet>
       ),
     );
   }
+
+  Widget _buildAccountSelector() {
+    return EnhancedAccountSelector(
+      label: 'Accounts',
+      selectedAccountIds: _selectedAccountIds,
+      isMultiSelect: true,
+      onMultiChanged: (selectedIds) {
+        setState(() {
+          _selectedAccountIds = selectedIds;
+          // Also update single account ID for backward compatibility
+          _selectedAccountId = selectedIds?.isNotEmpty == true 
+              ? selectedIds!.first 
+              : null;
+        });
+      },
+      hint: 'All Accounts',
+      contextType: 'transaction_filter',
+      showSearch: true,
+      showQuickAccess: true, // Show quick access like in journal
+    );
+  }
+
 
   void _clearFilters() {
     setState(() {

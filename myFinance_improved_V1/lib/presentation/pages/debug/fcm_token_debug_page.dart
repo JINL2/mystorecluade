@@ -12,7 +12,8 @@ import '../../../core/notifications/repositories/notification_repository.dart';
 import '../../../core/notifications/services/token_manager.dart';
 import '../../../core/notifications/services/fcm_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-
+import 'package:myfinance_improved/core/themes/index.dart';
+import 'package:myfinance_improved/core/themes/toss_border_radius.dart';
 class FcmTokenDebugPage extends ConsumerStatefulWidget {
   const FcmTokenDebugPage({super.key});
 
@@ -430,7 +431,7 @@ class _FcmTokenDebugPageState extends ConsumerState<FcmTokenDebugPage> {
                 padding: EdgeInsets.all(TossSpacing.space2),
                 decoration: BoxDecoration(
                   color: TossColors.error.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.md),
                 ),
                 child: Text(
                   _diagnostics!['insert_error'].toString(),

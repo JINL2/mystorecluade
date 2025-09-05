@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../core/themes/index.dart';
 import '../models/product_model.dart';
-
+import 'package:myfinance_improved/core/themes/toss_border_radius.dart';
 class StockMovementCard extends StatelessWidget {
   final StockMovement movement;
   final bool showDetails;
@@ -80,7 +80,7 @@ class StockMovementCard extends StatelessWidget {
                         ),
                       ),
                       if (showDetails) ...[
-                        Text(' • ', style: TextStyle(color: TossColors.gray400)),
+                        Text(' • ', style: TossTextStyles.body.copyWith(color: TossColors.gray400)),
                         Text(
                           movement.user ?? '',
                           style: TossTextStyles.caption.copyWith(

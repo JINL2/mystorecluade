@@ -14,7 +14,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/constants/auth_constants.dart';
 import '../../widgets/common/toss_scaffold.dart';
 import '../../../core/navigation/safe_navigation.dart';
-
+import 'package:myfinance_improved/core/themes/index.dart';
+import 'package:myfinance_improved/core/themes/toss_border_radius.dart';
 class CreateBusinessPage extends ConsumerStatefulWidget {
   const CreateBusinessPage({super.key});
 
@@ -301,7 +302,7 @@ class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
                   ),
                   decoration: BoxDecoration(
                     color: TossColors.primary.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(TossBorderRadius.md),
                   ),
                   child: Text(
                     'Company Code: $_companyCode',
@@ -485,7 +486,7 @@ class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
           padding: EdgeInsets.symmetric(horizontal: TossSpacing.space3),
           decoration: BoxDecoration(
             color: TossColors.white,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
             border: Border.all(
               color: TossColors.borderLight,
               width: 1,
@@ -604,7 +605,7 @@ class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
           padding: EdgeInsets.symmetric(horizontal: TossSpacing.space3),
           decoration: BoxDecoration(
             color: TossColors.white,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
             border: Border.all(
               color: TossColors.borderLight,
               width: 1,
@@ -772,7 +773,7 @@ class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
                 Expanded(
                   child: Text(
                     'Failed to create business: ${e.toString()}',
-                    style: TextStyle(fontWeight: FontWeight.w500),
+                    style: TossTextStyles.body.copyWith(fontWeight: FontWeight.w500),
                   ),
                 ),
               ],
@@ -780,7 +781,7 @@ class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
             backgroundColor: TossColors.error,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
             ),
           ),
         );

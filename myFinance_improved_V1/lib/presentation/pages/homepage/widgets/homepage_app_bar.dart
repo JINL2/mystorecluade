@@ -42,7 +42,7 @@ class HomepageAppBar extends StatelessWidget {
           // Top Row - Menu, Greeting, Profile
           Container(
             height: UIConstants.appBarHeight,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+            padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
             child: Row(
               children: [
                 // Menu Icon
@@ -181,13 +181,13 @@ class HomepageAppBar extends StatelessWidget {
                   ),
                 ),
                 
-                const SizedBox(width: 8),
+                const SizedBox(width: TossSpacing.space2),
                 
                 // Sync Icon Button
                 GestureDetector(
                   onTap: isSyncing ? null : onSyncTap,
                   child: Container(
-                    padding: const EdgeInsets.all(6),
+                    padding: EdgeInsets.all(TossSpacing.space2 * 0.75),
                     child: AnimatedRotation(
                       duration: TossAnimations.quick,
                       turns: isSyncing ? 1 : 0,

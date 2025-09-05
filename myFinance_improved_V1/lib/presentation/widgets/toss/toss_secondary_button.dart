@@ -1,12 +1,9 @@
 import 'package:flutter/material.dart';
-import '../../../core/themes/toss_colors.dart';
-import '../../../core/themes/toss_text_styles.dart';
-import '../../../core/themes/toss_border_radius.dart';
-import '../../../core/themes/toss_spacing.dart';
-import '../../../core/themes/toss_animations.dart';
+import 'toss_button.dart';
 
-/// Toss-style secondary button
-class TossSecondaryButton extends StatefulWidget {
+/// Toss-style secondary button - now using unified TossButton
+/// This is a compatibility wrapper for gradual migration
+class TossSecondaryButton extends StatelessWidget {
   final String text;
   final VoidCallback? onPressed;
   final bool isLoading;
@@ -25,106 +22,14 @@ class TossSecondaryButton extends StatefulWidget {
   });
   
   @override
-  State<TossSecondaryButton> createState() => _TossSecondaryButtonState();
-}
-
-class _TossSecondaryButtonState extends State<TossSecondaryButton> 
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _scaleAnimation;
-  
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      duration: TossAnimations.quick,
-      vsync: this,
-    );
-    _scaleAnimation = Tween<double>(
-      begin: 1.0,
-      end: 0.95,
-    ).animate(CurvedAnimation(
-      parent: _controller,
-      curve: TossAnimations.standard,
-    ));
-  }
-  
-  bool get _isDisabled => !widget.isEnabled || widget.isLoading;
-  
-  @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTapDown: !_isDisabled ? (_) => _controller.forward() : null,
-      onTapUp: !_isDisabled ? (_) => _controller.reverse() : null,
-      onTapCancel: !_isDisabled ? () => _controller.reverse() : null,
-      child: AnimatedBuilder(
-        animation: _scaleAnimation,
-        builder: (context, child) => Transform.scale(
-          scale: _scaleAnimation.value,
-          child: OutlinedButton(
-            onPressed: _isDisabled ? null : widget.onPressed,
-            style: OutlinedButton.styleFrom(
-              backgroundColor: _isDisabled 
-                  ? TossColors.gray100 
-                  : TossColors.background,
-              foregroundColor: _isDisabled 
-                  ? TossColors.gray400 
-                  : TossColors.gray900,
-              side: BorderSide(
-                color: _isDisabled 
-                    ? TossColors.gray200 
-                    : TossColors.gray300,
-                width: TossSpacing.space0 + 1,
-              ),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-              ),
-              minimumSize: widget.fullWidth 
-                  ? Size(double.infinity, TossSpacing.inputHeightLG)
-                  : Size(0, TossSpacing.inputHeightLG),
-              padding: EdgeInsets.symmetric(
-                horizontal: TossSpacing.space4,
-                vertical: TossSpacing.space3,
-              ),
-            ),
-            child: widget.isLoading
-                  ? SizedBox(
-                      width: TossSpacing.iconSM,
-                      height: TossSpacing.iconSM,
-                      child: CircularProgressIndicator(
-                        strokeWidth: TossSpacing.space0 + 2.5,
-                        valueColor: AlwaysStoppedAnimation<Color>(
-                          TossColors.gray600,
-                        ),
-                      ),
-                    )
-                  : Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        if (widget.leadingIcon != null) ...[
-                          widget.leadingIcon!,
-                          SizedBox(width: TossSpacing.space2),
-                        ],
-                        Text(
-                          widget.text,
-                          style: TossTextStyles.labelLarge.copyWith(
-                            fontWeight: FontWeight.w600,
-                            color: _isDisabled 
-                                ? TossColors.gray400 
-                                : TossColors.gray900,
-                          ),
-                        ),
-                      ],
-                    ),
-          ),
-        ),
-      ),
+    return TossButton.secondary(
+      text: text,
+      onPressed: onPressed,
+      isLoading: isLoading,
+      isEnabled: isEnabled,
+      leadingIcon: leadingIcon,
+      fullWidth: fullWidth,
     );
-  }
-  
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
   }
 }

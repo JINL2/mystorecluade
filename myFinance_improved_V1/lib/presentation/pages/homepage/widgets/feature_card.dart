@@ -6,6 +6,7 @@ import 'package:myfinance_improved/core/themes/toss_animations.dart';
 import 'package:myfinance_improved/core/constants/icon_mapper.dart';
 import 'package:myfinance_improved/core/constants/ui_constants.dart';
 import 'package:myfinance_improved/domain/entities/feature.dart';
+import 'package:myfinance_improved/core/themes/index.dart';
 
 class FeatureCard extends StatefulWidget {
   const FeatureCard({
@@ -63,7 +64,7 @@ class _FeatureCardState extends State<FeatureCard> with SingleTickerProviderStat
     return Container(
       width: UIConstants.featureIconContainerCompact,
       height: UIConstants.featureIconContainerCompact,
-      padding: const EdgeInsets.all(4),
+      padding: const EdgeInsets.all(TossSpacing.space1),
       decoration: BoxDecoration(
         color: TossColors.primary.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(UIConstants.borderRadiusSmall),

@@ -5,6 +5,7 @@ import '../../../core/themes/toss_colors.dart';
 import '../../../core/themes/toss_text_styles.dart';
 import '../../../core/themes/toss_spacing.dart';
 import '../../../core/themes/toss_border_radius.dart';
+import 'package:myfinance_improved/core/themes/index.dart';
 
 /// Enhanced quantity selector with proper touch targets, haptic feedback,
 /// and smooth user experience optimized for mobile touch interfaces.
@@ -292,7 +293,7 @@ class _EnhancedQuantitySelectorState extends State<EnhancedQuantitySelector>
         onPressed: widget.enabled ? () => _handleIncrement() : null,
         style: ElevatedButton.styleFrom(
           backgroundColor: _primaryColor,
-          foregroundColor: Colors.white,
+          foregroundColor: TossColors.white,
           elevation: 0,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(TossBorderRadius.button),
@@ -302,7 +303,7 @@ class _EnhancedQuantitySelectorState extends State<EnhancedQuantitySelector>
         child: Text(
           widget.addToCartText,
           style: TossTextStyles.body.copyWith(
-            color: Colors.white,
+            color: TossColors.white,
             fontWeight: FontWeight.w600,
           ),
         ),

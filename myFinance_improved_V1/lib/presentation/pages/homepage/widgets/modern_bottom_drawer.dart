@@ -13,10 +13,10 @@ import '../../../../data/services/enhanced_company_service.dart';
 import '../../../../data/services/enhanced_store_service.dart';
 import '../../../../data/services/company_service.dart';
 import '../providers/homepage_providers.dart';
-import '../../../widgets/common/toss_success_dialog.dart';
-import '../../../widgets/common/toss_error_dialog.dart';
+import '../../../widgets/common/toss_dialog.dart';
 import '../../../../data/services/unified_join_service.dart';
 import '../../../../core/navigation/safe_navigation.dart';
+import 'package:myfinance_improved/core/themes/index.dart';
 
 // Provider for unified join service
 final unifiedJoinServiceProvider = Provider<UnifiedJoinService>((ref) {
@@ -1581,10 +1581,10 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
                 height: 20,
                 child: CircularProgressIndicator(
                   strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                  valueColor: AlwaysStoppedAnimation<Color>(TossColors.white),
                 ),
               ),
-              SizedBox(width: 16),
+              SizedBox(width: TossSpacing.space4),
               Text('Joining company...'),
             ],
           ),
@@ -1823,10 +1823,10 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
                 height: 20,
                 child: CircularProgressIndicator(
                   strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                  valueColor: AlwaysStoppedAnimation<Color>(TossColors.white),
                 ),
               ),
-              SizedBox(width: 16),
+              SizedBox(width: TossSpacing.space4),
               Text('Joining store...'),
             ],
           ),
@@ -2182,10 +2182,10 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
               height: 20,
               child: CircularProgressIndicator(
                 strokeWidth: 2,
-                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                valueColor: AlwaysStoppedAnimation<Color>(TossColors.white),
               ),
             ),
-            SizedBox(width: 16),
+            SizedBox(width: TossSpacing.space4),
             Text(message),
           ],
         ),
@@ -2213,7 +2213,7 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
         action: actionLabel != null && onAction != null
           ? SnackBarAction(
               label: actionLabel,
-              textColor: Colors.white,
+              textColor: TossColors.white,
               onPressed: onAction,
             )
           : null,
@@ -2238,7 +2238,7 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
         action: onRetry != null
           ? SnackBarAction(
               label: 'Retry',
-              textColor: Colors.white,
+              textColor: TossColors.white,
               onPressed: onRetry,
             )
           : null,

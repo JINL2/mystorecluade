@@ -12,6 +12,7 @@ import '../../widgets/common/toss_loading_view.dart';
 import '../../../data/services/cash_real_service.dart';
 import '../../providers/app_state_provider.dart';
 import 'utils/string_extensions.dart';
+import 'package:myfinance_improved/core/themes/index.dart';
 
 class TotalRealPage extends ConsumerStatefulWidget {
   final String locationType; // 'cash', 'bank', 'vault'
@@ -138,7 +139,7 @@ class _TotalRealPageState extends ConsumerState<TotalRealPage> {
     
     if (companyId.isEmpty || storeId.isEmpty) {
       return TossScaffold(
-        backgroundColor: const Color(0xFFF7F8FA),
+        backgroundColor: TossColors.gray50,
         body: const Center(
           child: Text('Please select a company and store first'),
         ),
@@ -156,10 +157,10 @@ class _TotalRealPageState extends ConsumerState<TotalRealPage> {
     ));
     
     return TossScaffold(
-      backgroundColor: const Color(0xFFF7F8FA),
+      backgroundColor: TossColors.gray50,
       appBar: TossAppBar(
         title: _pageTitle,
-        backgroundColor: const Color(0xFFF7F8FA),
+        backgroundColor: TossColors.gray50,
       ),
       body: SafeArea(
         child: Column(
@@ -199,7 +200,7 @@ class _TotalRealPageState extends ConsumerState<TotalRealPage> {
                             color: TossColors.gray600,
                           ),
                         ),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: TossSpacing.space4),
                         ElevatedButton(
                           onPressed: () {
                             // Reset state and refresh the data
@@ -560,13 +561,13 @@ class _TotalRealPageState extends ConsumerState<TotalRealPage> {
                 height: 4,
                 decoration: BoxDecoration(
                   color: TossColors.gray300,
-                  borderRadius: BorderRadius.circular(2),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                 ),
               ),
               
               // Header
               Padding(
-                padding: EdgeInsets.fromLTRB(24, 20, 20, 16),
+                padding: EdgeInsets.fromLTRB(TossSpacing.space6, TossSpacing.space5, TossSpacing.space5, TossSpacing.space4),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -699,13 +700,13 @@ class _DenominationDetailBottomSheet extends StatelessWidget {
             height: 4,
             decoration: BoxDecoration(
               color: TossColors.gray300,
-              borderRadius: BorderRadius.circular(2),
+              borderRadius: BorderRadius.circular(TossBorderRadius.xs),
             ),
           ),
           
           // Header
           Padding(
-            padding: EdgeInsets.fromLTRB(24, 20, 20, 16),
+            padding: EdgeInsets.fromLTRB(TossSpacing.space6, TossSpacing.space5, TossSpacing.space5, TossSpacing.space4),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -736,10 +737,10 @@ class _DenominationDetailBottomSheet extends StatelessWidget {
                 children: [
                   // Total Amount
                   Container(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(TossSpacing.space4),
                     decoration: BoxDecoration(
                       color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -791,7 +792,7 @@ class _DenominationDetailBottomSheet extends StatelessWidget {
                         fontSize: 16,
                       ),
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: TossSpacing.space3),
                     
                     ...realEntry.currencySummary.expand((currency) => 
                       currency.denominations
@@ -816,7 +817,7 @@ class _DenominationDetailBottomSheet extends StatelessWidget {
   
   Widget _buildDetailRow(String label, String value) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
+      padding: const EdgeInsets.symmetric(vertical: TossSpacing.space2),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -847,10 +848,10 @@ class _DenominationDetailBottomSheet extends StatelessWidget {
   Widget _buildDenominationItem(Denomination denomination, String symbol) {
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(TossSpacing.space3),
       decoration: BoxDecoration(
         color: TossColors.gray50,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(TossBorderRadius.md),
         border: Border.all(color: TossColors.gray200),
       ),
       child: Row(
@@ -863,7 +864,7 @@ class _DenominationDetailBottomSheet extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
                   color: TossColors.primary.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(4),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                 ),
                 child: Text(
                   _formatCurrency(denomination.denominationValue, symbol),
@@ -874,7 +875,7 @@ class _DenominationDetailBottomSheet extends StatelessWidget {
                   ),
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: TossSpacing.space3),
               Text(
                 '× ${denomination.quantity}',
                 style: TossTextStyles.body.copyWith(
