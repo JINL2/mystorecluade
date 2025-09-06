@@ -153,9 +153,6 @@ async function handleSignIn(email, password) {
         }
         
         // IMPORTANT: Don't manually store in Supabase's key - let Supabase handle it
-        // Removing this as it may interfere with Supabase's internal storage
-        // const supabaseStorageKey = `sb-atkekzwgukdvucqntryo-auth-token`;
-        // localStorage.setItem(supabaseStorageKey, result.session.access_token);
         console.log('Auth data stored via storageManager');
         
         TossAlertUtils.showSuccess('Login successful! Redirecting...');
