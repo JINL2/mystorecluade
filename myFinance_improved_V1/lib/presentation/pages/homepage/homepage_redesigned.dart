@@ -197,9 +197,14 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
 
   @override
   Widget build(BuildContext context) {
+    
     final userCompaniesAsync = ref.watch(userCompaniesProvider);
+    if (userCompaniesAsync.hasError) {
+    }
+    
     // Use filtered categories to ensure is_show_main filtering is applied
     final categoriesAsync = ref.watch(categoriesWithFeaturesProvider);
+    
     // Watch the selections so they update when changed
     final selectedCompany = ref.watch(selectedCompanyProvider);
     final selectedStore = ref.watch(selectedStoreProvider);
@@ -531,14 +536,12 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
       leading: IconButton(
         icon: Icon(Icons.menu, color: TossColors.textSecondary, size: 24),
         onPressed: () {
-          final userData = ref.read(userCompaniesProvider).maybeWhen(
-            data: (data) => data,
-            orElse: () => null,
-          );
-          if (userData != null) {
+          // 🎯 Use AppState display data for drawer
+          final displayData = ref.read(userDisplayDataProvider);
+          if (displayData.isNotEmpty) {
             ModernBottomDrawer.show(
               context: context,
-              userData: userData,
+              userData: displayData,  // Pass AppState display data
             );
           }
         },
@@ -786,23 +789,29 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
                 ),
               ),
             ],
-            child: CircleAvatar(
-              radius: 20, // Slightly larger for better visual weight
-              backgroundImage: userData != null && (userData['profile_image'] ?? '').isNotEmpty
-                  ? NetworkImage(userData['profile_image'])
-                  : null,
-              backgroundColor: TossColors.primary.withValues(alpha: 0.1),
-              child: userData == null || (userData['profile_image'] ?? '').isEmpty
-                  ? Text(
-                      userData != null && (userData['user_first_name'] ?? '').isNotEmpty 
-                          ? userData['user_first_name'][0] 
-                          : 'U',
-                      style: TossTextStyles.bodyLarge.copyWith(
-                        color: TossColors.primary,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    )
-                  : null,
+            child: Consumer(
+              builder: (context, ref, _) {
+                // 🎯 Watch AppState providers for real-time updates
+                final profileImage = ref.watch(userProfileImageProvider);
+                final userInitials = ref.watch(userInitialsProvider);
+                
+                return CircleAvatar(
+                  radius: 20, // Slightly larger for better visual weight
+                  backgroundImage: profileImage.isNotEmpty
+                      ? NetworkImage(profileImage)
+                      : null,
+                  backgroundColor: TossColors.primary.withValues(alpha: 0.1),
+                  child: profileImage.isEmpty
+                      ? Text(
+                          userInitials,
+                          style: TossTextStyles.bodyLarge.copyWith(
+                            color: TossColors.primary,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        )
+                      : null,
+                );
+              },
             ),
           ),
         ),
@@ -811,6 +820,9 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
   }
 
   Widget _buildPinnedHelloSection(BuildContext context, dynamic userData, dynamic selectedCompany, dynamic selectedStore) {
+    // 🎯 Get user display data from AppState
+    final userFirstName = ref.watch(userFirstNameProvider);
+    
     // Check if user has any companies
     final companies = userData != null ? (userData['companies'] as List<dynamic>? ?? []) : [];
     final hasNoCompanies = companies.isEmpty;
@@ -886,6 +898,7 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
       pinned: true,
       delegate: _PinnedHelloDelegate(
         userData: userData,
+        userFirstName: userFirstName,  // 🎯 Pass AppState first name
         selectedCompany: selectedCompany,
         selectedStore: selectedStore,
         context: context,
@@ -1966,13 +1979,11 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
       
       if (!isVerified) {
         if (kDebugMode) {
-          print('🔔 FCM token not found in database - attempting to save...');
         }
         
         // Skip diagnostics - method doesn't exist
         // Just try to save the token directly
         if (kDebugMode) {
-          print('📊 Attempting to save FCM token...');
         }
         
         // Try emergency token refresh if table exists but save fails
@@ -1980,7 +1991,6 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
         
         if (success && mounted) {
           if (kDebugMode) {
-            print('✅ FCM token saved successfully on refresh');
           }
         } else if (!success && mounted) {
           // Show warning only in debug mode
@@ -1996,19 +2006,16 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
         }
       } else {
         if (kDebugMode) {
-          print('✅ FCM token already saved and verified');
         }
       }
       
       // Get production stats for monitoring
       final stats = productionTokenService.getProductionStats();
       if (kDebugMode) {
-        print('📊 FCM Stats: ${stats['stats']}');
       }
       
     } catch (e) {
       if (kDebugMode) {
-        print('❌ FCM token check error: $e');
       }
     }
   }
@@ -2075,12 +2082,14 @@ USING (auth.uid() = user_id);''',
 
 class _PinnedHelloDelegate extends SliverPersistentHeaderDelegate {
   final dynamic userData;
+  final String userFirstName;  // 🎯 AppState first name
   final dynamic selectedCompany;
   final dynamic selectedStore;
   final BuildContext context;
 
   _PinnedHelloDelegate({
     required this.userData,
+    required this.userFirstName,  // 🎯 AppState first name
     required this.selectedCompany,
     required this.selectedStore,
     required this.context,
@@ -2112,7 +2121,7 @@ class _PinnedHelloDelegate extends SliverPersistentHeaderDelegate {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
-              'Hello, ${userData != null ? (userData['user_first_name'] ?? 'User') : 'User'}!',
+              'Hello, ${userFirstName}!',  // 🎯 Use AppState first name
               style: TossTextStyles.h2.copyWith(
                 color: TossColors.textPrimary,
                 fontWeight: FontWeight.w700,

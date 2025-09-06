@@ -212,9 +212,5 @@ class WidgetMigrationHelper {
   /// Log migration status for monitoring
   static void logStatus(String pageName) {
     final status = WidgetMigrationConfig.getMigrationStatus();
-    print('[Migration Status] Page: $pageName');
-    print('  Enabled: ${status['enabled']}');
-    print('  Active Widgets: ${status['widgets']}');
-    print('  Page Status: ${status['pages']?[pageName] ?? 'not configured'}');
   }
 }

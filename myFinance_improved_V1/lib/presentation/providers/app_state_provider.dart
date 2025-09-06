@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -46,8 +47,8 @@ class AppState {
       categoryFeatures: json['categoryFeatures'] ?? [],
       user: json['user'] ?? {},
       // Load persisted values or default to empty string
-      companyChoosen: json['companyChoosen'] ?? '',
-      storeChoosen: json['storeChoosen'] ?? '',
+      companyChoosen: (json['companyChoosen'] ?? '').toString(),
+      storeChoosen: (json['storeChoosen'] ?? '').toString(),
     );
   }
 }
@@ -69,6 +70,7 @@ class AppStateNotifier extends StateNotifier<AppState> {
       if (jsonString != null) {
         final json = jsonDecode(jsonString) as Map<String, dynamic>;
         state = AppState.fromJson(json);
+      } else {
       }
     } catch (e) {
     }
@@ -92,7 +94,38 @@ class AppStateNotifier extends StateNotifier<AppState> {
 
   // Set user from get_user_companies_and_stores(user_id) RPC
   Future<void> setUser(dynamic userData) async {
+    if (userData is Map) {
+      final companies = userData['companies'] as List<dynamic>? ?? [];
+    }
     state = state.copyWith(user: userData);
+    await _saveToStorage();
+  }
+  
+  // Update specific user profile fields without fetching from database
+  // Just sync the UI with what we know we saved
+  Future<void> updateUserProfileLocally({
+    String? firstName,
+    String? lastName,
+    String? profileImage,
+  }) async {
+    if (state.user is! Map) return;
+    
+    // Create a deep copy of the user object
+    final updatedUser = Map<String, dynamic>.from(state.user as Map);
+    
+    // Update the specific fields if provided
+    if (firstName != null) {
+      updatedUser['user_first_name'] = firstName;
+    }
+    if (lastName != null) {
+      updatedUser['user_last_name'] = lastName;
+    }
+    if (profileImage != null) {
+      updatedUser['profile_image'] = profileImage;
+    }
+    
+    // Update state with modified user object
+    state = state.copyWith(user: updatedUser);
     await _saveToStorage();
   }
 
@@ -126,7 +159,7 @@ class AppStateNotifier extends StateNotifier<AppState> {
 
   // Get selected company from user JSON
   dynamic get selectedCompany {
-    if (state.companyChoosen.isEmpty || state.user.isEmpty) {
+    if (state.companyChoosen.isEmpty || (state.user is Map && (state.user as Map).isEmpty)) {
       return null;
     }
     
@@ -163,10 +196,20 @@ class AppStateNotifier extends StateNotifier<AppState> {
   }
 
   // Helper to check if we have user data
-  bool get hasUserData => state.user.isNotEmpty;
+  bool get hasUserData {
+    if (state.user is Map) {
+      return (state.user as Map).isNotEmpty;
+    }
+    return false;
+  }
   
   // Helper to check if we have category features
-  bool get hasCategoryFeatures => (state.categoryFeatures as List).isNotEmpty;
+  bool get hasCategoryFeatures {
+    if (state.categoryFeatures is List) {
+      return (state.categoryFeatures as List).isNotEmpty;
+    }
+    return false;
+  }
 
 
   // Refresh all data from API
@@ -209,4 +252,66 @@ final userDataProvider = Provider<dynamic>((ref) {
 final categoryFeaturesProvider = Provider<dynamic>((ref) {
   final appState = ref.watch(appStateProvider);
   return appState.categoryFeatures;
+});
+
+// 🎯 CENTRALIZED USER DISPLAY PROVIDERS
+// These providers watch AppState and provide user display data
+// ensuring UI always reflects the latest AppState changes
+
+/// Provider for user display data (name, profile image)
+/// This is the SINGLE SOURCE OF TRUTH for UI components
+final userDisplayDataProvider = Provider<Map<String, dynamic>>((ref) {
+  final appState = ref.watch(appStateProvider);
+  final userData = appState.user;
+  
+  // Return user display data from AppState
+  if (userData is Map && userData.isNotEmpty) {
+    return {
+      'profile_image': userData['profile_image'] ?? '',
+      'user_first_name': userData['user_first_name'] ?? '',
+      'user_last_name': userData['user_last_name'] ?? '',
+      'user_email': userData['user_email'] ?? '',
+      'user_id': userData['user_id'] ?? '',
+      // Include full userData for compatibility
+      ...userData,
+    };
+  }
+  
+  // Return empty map if no user data
+  return {};
+});
+
+/// Provider specifically for user profile image URL
+final userProfileImageProvider = Provider<String>((ref) {
+  final displayData = ref.watch(userDisplayDataProvider);
+  return displayData['profile_image'] ?? '';
+});
+
+/// Provider specifically for user first name
+final userFirstNameProvider = Provider<String>((ref) {
+  final displayData = ref.watch(userDisplayDataProvider);
+  return displayData['user_first_name'] ?? 'User';
+});
+
+/// Provider specifically for user full name
+final userFullNameProvider = Provider<String>((ref) {
+  final displayData = ref.watch(userDisplayDataProvider);
+  final firstName = displayData['user_first_name'] ?? '';
+  final lastName = displayData['user_last_name'] ?? '';
+  
+  if (firstName.isEmpty && lastName.isEmpty) {
+    return 'User';
+  }
+  return '$firstName $lastName'.trim();
+});
+
+/// Provider for user initials (for avatar fallback)
+final userInitialsProvider = Provider<String>((ref) {
+  final displayData = ref.watch(userDisplayDataProvider);
+  final firstName = displayData['user_first_name'] ?? '';
+  
+  if (firstName.isNotEmpty) {
+    return firstName[0].toUpperCase();
+  }
+  return 'U';
 });

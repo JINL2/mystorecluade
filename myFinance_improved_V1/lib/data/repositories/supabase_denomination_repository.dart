@@ -136,7 +136,6 @@ class SupabaseDenominationRepository implements DenominationRepository {
   @override
   Future<void> removeDenomination(String denominationId) async {
     try {
-      print('=== DENOMINATION SOFT DELETE DEBUG ===');
       print('Attempting to soft delete denomination with ID: $denominationId');
       
       // First check if the denomination exists and is not already deleted
@@ -184,7 +183,6 @@ class SupabaseDenominationRepository implements DenominationRepository {
       final updatedRecord = updateResult.first;
       if (updatedRecord['denomination_id'] != denominationId) {
         print('ERROR: Wrong denomination updated!');
-        print('Expected: $denominationId, Got: ${updatedRecord['denomination_id']}');
         throw Exception('Wrong denomination was updated');
       }
       
@@ -193,12 +191,7 @@ class SupabaseDenominationRepository implements DenominationRepository {
         throw Exception('Soft delete failed - is_deleted not updated');
       }
       
-      print('✅ Successfully soft deleted denomination with ID: $denominationId');
-      print('✅ Value: $value, is_deleted: ${updatedRecord['is_deleted']}');
-      print('=== END SOFT DELETE DEBUG ===');
     } catch (e) {
-      print('=== SOFT DELETE ERROR ===');
-      print('Error soft deleting denomination: $e');
       
       // If it's a "No rows returned" error from single(), convert to more user-friendly message
       if (e.toString().contains('No rows returned')) {

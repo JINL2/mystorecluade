@@ -34,6 +34,7 @@ dependencies:
 
   flutter_svg: ^2.0.10
   image_picker: ^1.1.2
+  flutter_image_compress: ^2.0.4
   
   # Utilities
   freezed_annotation: ^2.4.0

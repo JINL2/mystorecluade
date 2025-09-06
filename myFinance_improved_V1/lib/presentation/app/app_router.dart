@@ -82,7 +82,6 @@ class RouterNotifier extends ChangeNotifier {
         // Skip notifications during active auth navigation
         if (_lastAuthNavigationTime != null &&
             DateTime.now().difference(_lastAuthNavigationTime!) < Duration(seconds: 2)) {
-          debugPrint('🔥 [RouterNotifier] SKIPPING auth listener notification - auth navigation active');
           return;
         }
         
@@ -90,7 +89,6 @@ class RouterNotifier extends ChangeNotifier {
         // This prevents RouterNotifier from triggering redirect evaluation
         if (_lastAuthNavigationTime != null &&
             DateTime.now().difference(_lastAuthNavigationTime!) < Duration(seconds: 3)) {
-          debugPrint('🔥 [RouterNotifier] SKIPPING notification - auth navigation window active');
           return;
         }
         
@@ -111,7 +109,6 @@ class RouterNotifier extends ChangeNotifier {
         // Skip notifications during active auth navigation
         if (_lastAuthNavigationTime != null &&
             DateTime.now().difference(_lastAuthNavigationTime!) < Duration(seconds: 2)) {
-          debugPrint('🔥 [RouterNotifier] SKIPPING app state listener notification - auth navigation active');
           return;
         }
         
@@ -119,7 +116,6 @@ class RouterNotifier extends ChangeNotifier {
         // This prevents RouterNotifier from triggering redirect evaluation
         if (_lastAuthNavigationTime != null &&
             DateTime.now().difference(_lastAuthNavigationTime!) < Duration(seconds: 3)) {
-          debugPrint('🔥 [RouterNotifier] SKIPPING notification - auth navigation window active');
           return;
         }
         
@@ -158,8 +154,6 @@ class RouterNotifier extends ChangeNotifier {
     
     // If the same path appears 3+ times in the time window, it's likely a loop
     if (recentPathCount >= 3) {
-      debugPrint('[RouterNotifier] Redirect loop detected for path: $path');
-      debugPrint('[RouterNotifier] Path appeared ${recentPathCount + 1} times in last ${_redirectTimeWindow.inSeconds} seconds');
       _clearRedirectHistory();
       return true;
     }
@@ -215,18 +209,15 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     redirect: (context, state) {
       try {
         final currentPath = state.matchedLocation;
-        debugPrint('🔥 [AppRouter] REDIRECT called: $currentPath → ${state.uri.path}');
         
         // NUCLEAR OPTION: NEVER process redirects for any auth routes
         // This completely bypasses all redirect logic for auth pages
         if (currentPath.startsWith('/auth')) {
-          debugPrint('🚀 [AppRouter] AUTH ROUTE BYPASSED COMPLETELY: $currentPath');
           return null;
         }
         
         // Skip redirects during active navigation to prevent ping-pong
         if (routerNotifier.isNavigationLocked) {
-          debugPrint('🔥 [AppRouter] SKIPPING REDIRECT: Navigation lock active');
           return null;
         }
         
@@ -234,7 +225,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         String? safeRedirect(String targetPath, String reason) {
           // First check if this would cause a loop
           if (routerNotifier._checkForRedirectLoop(targetPath)) {
-            debugPrint('[AppRouter] Redirect loop detected, navigating to home');
             SafeNavigation.instance.clearAllLocks();
             routerNotifier._clearRedirectHistory();
             return '/';
@@ -242,7 +232,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           
           // Only track as redirect if we're actually redirecting
           if (kDebugMode) {
-            debugPrint('[AppRouter] → $targetPath');
           }
           routerNotifier._trackRedirect(targetPath);
           return targetPath;
@@ -257,7 +246,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           
           // Allow access if user is authenticated and has companies
           if (isAuth && hasUserData && companyCount > 0) {
-            debugPrint('[AppRouter] Allowing access to /cashEnding');
             return null; // Allow navigation
           }
           
@@ -279,7 +267,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             navNotifier.updateCurrentRoute(currentPath);
           } catch (e) {
             // Silently handle any provider access errors
-            debugPrint('[AppRouter] Could not update navigation state: $e');
           }
         });
         
@@ -295,23 +282,18 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         
         // Priority 1: If not authenticated and not on auth route, go to login
         if (!isAuth) {
-          debugPrint('🔥 [AppRouter] REDIRECTING: Unauthenticated user → /auth/login');
           return safeRedirect('/auth/login', 'Not authenticated, redirecting to login');
         }
         
         // Priority 2: If authenticated, on main pages, but no companies
         // Only redirect if we have loaded user data
         if (isAuth && !isOnboardingRoute && hasUserData && companyCount == 0) {
-          debugPrint('🔥 [AppRouter] REDIRECTING: No companies → /onboarding/choose-role');
           return safeRedirect('/onboarding/choose-role', 'Authenticated on main page without companies, redirecting to onboarding');
         }
         
         // No redirect needed
-        debugPrint('🔥 [AppRouter] NO REDIRECT: Allowing navigation to $currentPath');
         return null;
       } catch (error, stackTrace) {
-        debugPrint('[AppRouter] Error in redirect: $error');
-        debugPrintStack(stackTrace: stackTrace);
         
         // Update navigation state with error after build completes
         WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -319,7 +301,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             final navNotifier = ref.read(navigationStateProvider.notifier);
             navNotifier.setNavigationError(error);
           } catch (e) {
-            debugPrint('[AppRouter] Could not set navigation error: $e');
           }
         });
         
@@ -330,7 +311,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     errorBuilder: (context, state) {
       // Log navigation error
       final error = state.error;
-      debugPrint('[AppRouter] Navigation error - Path: ${state.matchedLocation}, Error: $error');
       
       // Clear navigation locks on error
       SafeNavigation.instance.clearAllLocks();
@@ -341,7 +321,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           final navNotifier = ref.read(navigationStateProvider.notifier);
           navNotifier.setNavigationError(error ?? 'Page not found');
         } catch (e) {
-          debugPrint('[AppRouter] Could not set error state: $e');
         }
       });
       
@@ -417,7 +396,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: 'signup',
             builder: (context, state) {
-              debugPrint('🔥 [AppRouter] Route builder called for /auth/signup');
               return const AuthSignupPage();
             },
           ),

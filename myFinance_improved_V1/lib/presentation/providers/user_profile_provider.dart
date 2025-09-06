@@ -3,6 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../data/services/user_profile_service.dart';
 import '../../domain/entities/user_profile.dart';
 import 'auth_provider.dart';
+import 'app_state_provider.dart';
 
 // Provider for UserProfileService
 final userProfileServiceProvider = StateNotifierProvider<UserProfileServiceNotifier, AsyncValue<void>>((ref) {
@@ -51,37 +52,46 @@ class UserProfileServiceNotifier extends StateNotifier<AsyncValue<void>> {
 
 // Provider for current user profile with enhanced debugging
 final currentUserProfileProvider = FutureProvider<UserProfile?>((ref) async {
-  print('🚀 [currentUserProfileProvider] ===== PROVIDER TRIGGERED =====');
-  print('🔍 [currentUserProfileProvider] Starting profile creation (Updated)');
-  
   final user = ref.watch(authStateProvider);
-  print('🔍 [currentUserProfileProvider] Auth user: ${user?.id} (${user?.email})');
   
   if (user == null) {
-    print('❌ [currentUserProfileProvider] No authenticated user, returning null');
     return null;
   }
   
-  print('🔍 [currentUserProfileProvider] Watching userProfileProvider...');
-  
   try {
-    // Add timeout and retry logic for better reliability
-    final userProfileData = await ref.watch(userProfileProvider.future)
-        .timeout(Duration(seconds: 10))
-        .catchError((error) {
-          print('⚠️ [currentUserProfileProvider] Error from userProfileProvider: $error');
-          // Return minimal fallback data
-          return {
-            'user_id': user.id,
-            'email': user.email,
-          };
-        });
-        
-    print('📊 [currentUserProfileProvider] Raw profile data: $userProfileData');
-    print('📊 [currentUserProfileProvider] Profile data type: ${userProfileData.runtimeType}');
+    // IMPORTANT: Check app state FIRST for user data (it has the latest local updates)
+    final appState = ref.watch(appStateProvider);
     
-    if (userProfileData == null || userProfileData.isEmpty) {
-      print('❌ [currentUserProfileProvider] Profile data is null or empty, creating minimal profile');
+    // Try to get user data from app state first
+    dynamic userProfileData;
+    
+    // Check if app state has user data
+    if (appState.user != null && appState.user is Map && (appState.user as Map).isNotEmpty) {
+      final appUserData = appState.user as Map;
+      userProfileData = {
+        'user_id': appUserData['user_id'] ?? user.id,
+        'first_name': appUserData['user_first_name'],  // Note: app state uses user_first_name
+        'last_name': appUserData['user_last_name'],    // Note: app state uses user_last_name
+        'email': appUserData['user_email'] ?? user.email,
+        'user_phone_number': appUserData['user_phone_number'],
+        'profile_image': appUserData['profile_image'],
+        'created_at': appUserData['created_at'],
+        'updated_at': appUserData['updated_at'],
+      };
+    } else {
+      // Fallback to database fetch
+      userProfileData = await ref.watch(userProfileProvider.future)
+          .timeout(Duration(seconds: 10))
+          .catchError((error) {
+            // Return minimal fallback data
+            return {
+              'user_id': user.id,
+              'email': user.email,
+            };
+          });
+    }
+          
+    if (userProfileData == null || (userProfileData is Map && userProfileData.isEmpty)) {
       // Return minimal profile instead of null
       return UserProfile(
         userId: user.id,
@@ -92,63 +102,41 @@ final currentUserProfileProvider = FutureProvider<UserProfile?>((ref) async {
     }
     
     // Log each field extraction
-    final userId = userProfileData['user_id'] ?? user.id;
-    final firstName = userProfileData['first_name'];
-    final lastName = userProfileData['last_name'];
-    final email = userProfileData['email'] ?? user.email ?? '';
-    final phoneNumber = userProfileData['user_phone_number'];
-    final profileImage = userProfileData['profile_image'];
+    final userId = userProfileData['user_id']?.toString() ?? user.id;
+    final firstName = userProfileData['first_name']?.toString();
+    final lastName = userProfileData['last_name']?.toString();
+    final email = userProfileData['email']?.toString() ?? user.email ?? '';
+    final phoneNumber = userProfileData['user_phone_number']?.toString();
+    final profileImage = userProfileData['profile_image']?.toString();
     // Bank info will be fetched separately from users_bank_account table
-    final bankName = null;  // userProfileData['bank_name'] - removed as it's not in users table
-    final bankAccountNumber = null;  // userProfileData['bank_account_number'] - removed as it's not in users table
-    final createdAtStr = userProfileData['created_at'];
-    final updatedAtStr = userProfileData['updated_at'];
+    final String? bankName = null;  // userProfileData['bank_name'] - removed as it's not in users table
+    final String? bankAccountNumber = null;  // userProfileData['bank_account_number'] - removed as it's not in users table
+    final createdAtStr = userProfileData['created_at']?.toString();
+    final updatedAtStr = userProfileData['updated_at']?.toString();
     
-    print('🔍 [currentUserProfileProvider] Extracted fields:');
-    print('   - userId: "$userId"');
-    print('   - firstName: "$firstName" (type: ${firstName.runtimeType})');
-    print('   - lastName: "$lastName" (type: ${lastName.runtimeType})');
-    print('   - email: "$email"');
-    print('   - phoneNumber: "$phoneNumber" (type: ${phoneNumber.runtimeType})');
-    print('   - profileImage: "$profileImage" (type: ${profileImage.runtimeType})');
-    print('   - bankName: "$bankName" (type: ${bankName.runtimeType})');
-    print('   - bankAccountNumber: "$bankAccountNumber" (type: ${bankAccountNumber.runtimeType})');
-    print('   - createdAt: "$createdAtStr"');
-    print('   - updatedAt: "$updatedAtStr"');
+    // Extract fields from user profile data
     
     // Parse dates with error handling
     DateTime? createdAt;
     DateTime? updatedAt;
     
     try {
-      createdAt = createdAtStr != null ? DateTime.parse(createdAtStr) : DateTime.now();
-      print('✅ [currentUserProfileProvider] Parsed createdAt: $createdAt');
+      createdAt = createdAtStr != null && createdAtStr.isNotEmpty 
+          ? DateTime.parse(createdAtStr) 
+          : DateTime.now();
     } catch (e) {
-      print('⚠️ [currentUserProfileProvider] Error parsing createdAt "$createdAtStr": $e');
       createdAt = DateTime.now();
     }
     
     try {
-      updatedAt = updatedAtStr != null ? DateTime.parse(updatedAtStr) : DateTime.now();
-      print('✅ [currentUserProfileProvider] Parsed updatedAt: $updatedAt');
+      updatedAt = updatedAtStr != null && updatedAtStr.isNotEmpty 
+          ? DateTime.parse(updatedAtStr) 
+          : DateTime.now();
     } catch (e) {
-      print('⚠️ [currentUserProfileProvider] Error parsing updatedAt "$updatedAtStr": $e');
       updatedAt = DateTime.now();
     }
     
-    // Create UserProfile instance - using manual constructor since Supabase data has db column names
-    print('🔧 [currentUserProfileProvider] Creating UserProfile instance...');
-    print('🔧 [currentUserProfileProvider] Constructor parameters:');
-    print('   - userId: "$userId"');
-    print('   - firstName: "$firstName"'); 
-    print('   - lastName: "$lastName"');
-    print('   - email: "$email"');
-    print('   - phoneNumber: "$phoneNumber"');
-    print('   - profileImage: "$profileImage"');
-    print('   - bankName: "$bankName"');
-    print('   - bankAccountNumber: "$bankAccountNumber"');
-    print('   - createdAt: $createdAt');
-    print('   - updatedAt: $updatedAt');
+    // Create UserProfile instance
     
     final profile = UserProfile(
       userId: userId,
@@ -163,23 +151,8 @@ final currentUserProfileProvider = FutureProvider<UserProfile?>((ref) async {
       updatedAt: updatedAt,
     );
     
-    print('✅ [currentUserProfileProvider] Created UserProfile successfully');
-    print('   - profile.firstName: "${profile.firstName}"');
-    print('   - profile.lastName: "${profile.lastName}"');
-    print('   - profile.email: "${profile.email}"');
-    print('   - profile.phoneNumber: "${profile.phoneNumber}"');
-    print('   - profile.profileImage: "${profile.profileImage}"');
-    print('   - profile.bankName: "${profile.bankName}"');
-    print('   - profile.bankAccountNumber: "${profile.bankAccountNumber}"');
-    print('   - profile.fullName: "${profile.fullName}"');
-    print('   - profile.initials: "${profile.initials}"');
-    print('   - profile.hasProfileImage: ${profile.hasProfileImage}');
-    
     return profile;
   } catch (e, stackTrace) {
-    print('❌ [currentUserProfileProvider] Error creating profile: $e');
-    print('❌ [currentUserProfileProvider] Error type: ${e.runtimeType}');
-    print('❌ [currentUserProfileProvider] Stack trace: $stackTrace');
     return null;
   }
 });
@@ -226,10 +199,10 @@ final businessDashboardDataProvider = FutureProvider<BusinessDashboardData?>((re
         .eq('user_id', user.id)
         .single();
     
-    final companyName = response['companies']['name'] ?? '';
+    final companyName = (response['companies']['name'] ?? '').toString();
     final stores = response['companies']['stores'] as List;
-    final storeName = stores.isNotEmpty ? stores[0]['name'] ?? '' : '';
-    final userRole = response['role'] ?? 'Employee';
+    final storeName = stores.isNotEmpty ? (stores[0]['name'] ?? '').toString() : '';
+    final userRole = (response['role'] ?? 'Employee').toString();
     
     // For now, return mock data for other fields
     // In a real implementation, you would fetch actual data
