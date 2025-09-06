@@ -436,15 +436,10 @@ class _SaleInvoicePageState extends ConsumerState<SaleInvoicePage> {
                     color: TossColors.gray100,
                     borderRadius: BorderRadius.circular(TossBorderRadius.md),
                   ),
-                  child: item.image != null
+                  child: item.image != null && item.image!.isNotEmpty
                       ? ClipRRect(
                           borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                          child: Image.network(
-                            item.image!,
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) =>
-                                Icon(Icons.inventory_2, color: TossColors.gray400, size: TossSpacing.iconMD),
-                          ),
+                          child: _buildProductImage(item.image!),
                         )
                       : Icon(Icons.inventory_2, color: TossColors.gray400, size: TossSpacing.iconMD),
                 ),
@@ -636,5 +631,30 @@ class _SaleInvoicePageState extends ConsumerState<SaleInvoicePage> {
     }
     
     return productName[0].toUpperCase();
+  }
+  
+  Widget _buildProductImage(String imageUrl) {
+    // Check if it's a valid URL
+    if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
+      return Image.network(
+        imageUrl,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) =>
+            Icon(Icons.inventory_2, color: TossColors.gray400, size: TossSpacing.iconMD),
+      );
+    }
+    // Check if it's an asset path
+    else if (imageUrl.startsWith('assets/')) {
+      return Image.asset(
+        imageUrl,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) =>
+            Icon(Icons.inventory_2, color: TossColors.gray400, size: TossSpacing.iconMD),
+      );
+    }
+    // Fallback to icon for invalid paths
+    else {
+      return Icon(Icons.inventory_2, color: TossColors.gray400, size: TossSpacing.iconMD);
+    }
   }
 }

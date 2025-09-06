@@ -125,7 +125,7 @@ final productsProvider = Provider<List<Product>>((ref) {
       salePrice: 1700000,
       onHand: 3,
       available: 3,
-      images: ['bag1.jpg'],
+      images: ['https://via.placeholder.com/150/FF6B6B/FFFFFF?text=Bag1'],
     ),
     Product(
       id: '4',
@@ -137,7 +137,7 @@ final productsProvider = Provider<List<Product>>((ref) {
       salePrice: 4400000,
       onHand: 2,
       available: 2,
-      images: ['bag2.jpg'],
+      images: ['https://via.placeholder.com/150/4ECDC4/FFFFFF?text=Bag2'],
     ),
     Product(
       id: '5',
@@ -149,7 +149,7 @@ final productsProvider = Provider<List<Product>>((ref) {
       salePrice: 4200000,
       onHand: 4,
       available: 4,
-      images: ['bag3.jpg'],
+      images: ['https://via.placeholder.com/150/45B7D1/FFFFFF?text=Bag3'],
     ),
     Product(
       id: '6',
@@ -161,7 +161,7 @@ final productsProvider = Provider<List<Product>>((ref) {
       salePrice: 4200000,
       onHand: 1,
       available: 1,
-      images: ['bag4.jpg'],
+      images: ['https://via.placeholder.com/150/96CEB4/FFFFFF?text=Bag4'],
     ),
   ];
 });
@@ -811,15 +811,10 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage> {
               color: TossColors.gray100,
               borderRadius: BorderRadius.circular(TossBorderRadius.md),
             ),
-            child: product.images.isNotEmpty
+            child: product.images.isNotEmpty && product.images.first.isNotEmpty
                 ? ClipRRect(
                     borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                    child: Image.network(
-                      product.images.first,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) =>
-                          Icon(Icons.inventory_2, color: TossColors.gray400, size: TossSpacing.iconMD),
-                    ),
+                    child: _buildProductImage(product.images.first),
                   )
                 : Icon(Icons.inventory_2, color: TossColors.gray400, size: TossSpacing.iconMD),
           ),
@@ -972,5 +967,30 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage> {
       return '₩${(value / 1000).toStringAsFixed(0)}K';
     }
     return '₩${value.toStringAsFixed(0)}';
+  }
+  
+  Widget _buildProductImage(String imageUrl) {
+    // Check if it's a valid URL
+    if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
+      return Image.network(
+        imageUrl,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) =>
+            Icon(Icons.inventory_2, color: TossColors.gray400, size: TossSpacing.iconMD),
+      );
+    }
+    // Check if it's an asset path
+    else if (imageUrl.startsWith('assets/')) {
+      return Image.asset(
+        imageUrl,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) =>
+            Icon(Icons.inventory_2, color: TossColors.gray400, size: TossSpacing.iconMD),
+      );
+    }
+    // Fallback to icon for invalid paths
+    else {
+      return Icon(Icons.inventory_2, color: TossColors.gray400, size: TossSpacing.iconMD);
+    }
   }
 }

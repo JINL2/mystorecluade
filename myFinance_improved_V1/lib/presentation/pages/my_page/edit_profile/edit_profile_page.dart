@@ -9,7 +9,7 @@ import '../../../providers/app_state_provider.dart';
 import '../../../providers/user_profile_provider.dart';
 import '../../../widgets/common/toss_app_bar.dart';
 import '../../../widgets/common/toss_scaffold.dart';
-import '../../../widgets/toss/toss_card.dart';
+import '../../../widgets/common/toss_white_card.dart';
 import '../../../widgets/toss/toss_enhanced_text_field.dart';
 class EditProfilePage extends ConsumerStatefulWidget {
   const EditProfilePage({super.key});
@@ -237,10 +237,10 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
     
     if (_isLoading) {
       return TossScaffold(
-        backgroundColor: TossColors.surface,
+        backgroundColor: TossColors.gray100,
         appBar: TossAppBar(
           title: 'Edit Profile',
-          backgroundColor: TossColors.surface,
+          backgroundColor: TossColors.gray100,
         ),
         body: Center(
           child: CircularProgressIndicator(
@@ -252,10 +252,10 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
     
     if (_profile == null) {
       return TossScaffold(
-        backgroundColor: TossColors.surface,
+        backgroundColor: TossColors.gray100,
         appBar: TossAppBar(
           title: 'Edit Profile',
-          backgroundColor: TossColors.surface,
+          backgroundColor: TossColors.gray100,
         ),
         body: Center(
           child: Column(
@@ -294,31 +294,36 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
     }
     
     return TossScaffold(
-      backgroundColor: TossColors.surface,
+      backgroundColor: TossColors.gray100,
       appBar: TossAppBar(
         title: 'Edit Profile',
-        backgroundColor: TossColors.surface,
+        backgroundColor: TossColors.gray100,
         primaryActionText: _hasChanges ? (_isLoading ? null : 'Save') : null,
         onPrimaryAction: _hasChanges && !_isLoading ? _saveProfile : null,
       ),
       body: SingleChildScrollView(
-        padding: EdgeInsets.all(TossSpacing.screenPaddingMobile),
         child: Form(
           key: _formKey,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Personal Information Section
-              Text(
-                'Personal Information',
-                style: TossTextStyles.h3.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: TossColors.gray900,
+              Container(
+                margin: EdgeInsets.symmetric(horizontal: TossSpacing.space4),
+                child: Text(
+                  'Personal Information',
+                  style: TossTextStyles.h3.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: TossColors.gray900,
+                  ),
                 ),
               ),
               SizedBox(height: TossSpacing.space4),
               
-              TossCard(
+              Container(
+                width: double.infinity,
+                margin: EdgeInsets.symmetric(horizontal: TossSpacing.space4),
+                child: TossWhiteCard(
                 padding: EdgeInsets.all(TossSpacing.space5),
                 child: Column(
                   children: [
@@ -371,21 +376,28 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                     ),
                   ],
                 ),
+                ),
               ),
               
-              SizedBox(height: TossSpacing.space6),
+              SizedBox(height: TossSpacing.space4),
               
               // Bank Information Section
-              Text(
-                'Bank Information',
-                style: TossTextStyles.h3.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: TossColors.gray900,
+              Container(
+                margin: EdgeInsets.symmetric(horizontal: TossSpacing.space4),
+                child: Text(
+                  'Bank Information',
+                  style: TossTextStyles.h3.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: TossColors.gray900,
+                  ),
                 ),
               ),
               SizedBox(height: TossSpacing.space4),
               
-              TossCard(
+              Container(
+                width: double.infinity,
+                margin: EdgeInsets.symmetric(horizontal: TossSpacing.space4),
+                child: TossWhiteCard(
                 padding: EdgeInsets.all(TossSpacing.space5),
                 child: Column(
                   children: [
@@ -430,21 +442,28 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                     ),
                   ],
                 ),
+                ),
               ),
               
-              SizedBox(height: TossSpacing.space6),
+              SizedBox(height: TossSpacing.space4),
               
               // Account Information (Read-only)
-              Text(
-                'Account Information',
-                style: TossTextStyles.h3.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: TossColors.gray900,
+              Container(
+                margin: EdgeInsets.symmetric(horizontal: TossSpacing.space4),
+                child: Text(
+                  'Account Information',
+                  style: TossTextStyles.h3.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: TossColors.gray900,
+                  ),
                 ),
               ),
               SizedBox(height: TossSpacing.space4),
               
-              TossCard(
+              Container(
+                width: double.infinity,
+                margin: EdgeInsets.symmetric(horizontal: TossSpacing.space4),
+                child: TossWhiteCard(
                 padding: EdgeInsets.all(TossSpacing.space5),
                 child: Column(
                   children: [
@@ -461,9 +480,10 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                     ],
                   ],
                 ),
+                ),
               ),
               
-              SizedBox(height: TossSpacing.space8),
+              SizedBox(height: TossSpacing.space12),
             ],
           ),
         ),
