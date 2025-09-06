@@ -216,11 +216,15 @@ class _TossButtonState extends State<TossButton>
                           ),
                           const SizedBox(width: TossSpacing.space2),
                         ],
-                        Text(
-                          widget.text,
-                          style: TossTextStyles.body.copyWith(
-                            color: _getTextColor(),
-                            fontWeight: FontWeight.w600,
+                        Flexible(
+                          child: Text(
+                            widget.text,
+                            style: TossTextStyles.body.copyWith(
+                              color: _getTextColor(),
+                              fontWeight: FontWeight.w600,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
                           ),
                         ),
                       ],

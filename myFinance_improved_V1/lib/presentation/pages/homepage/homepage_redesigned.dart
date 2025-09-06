@@ -24,6 +24,9 @@ import '../../widgets/common/toss_loading_view.dart';
 import '../../../core/navigation/safe_navigation.dart';
 import 'package:myfinance_improved/core/themes/index.dart';
 import 'package:myfinance_improved/core/themes/toss_border_radius.dart';
+import '../../../core/notifications/services/production_token_service.dart';
+import '../../../core/notifications/repositories/notification_repository.dart';
+import 'package:flutter/foundation.dart';
 class HomePageRedesigned extends ConsumerStatefulWidget {
   const HomePageRedesigned({super.key});
 
@@ -41,8 +44,12 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
     WidgetsBinding.instance.addObserver(this);
     
     // Ensure company and store are always selected on homepage load
-    SchedulerBinding.instance.addPostFrameCallback((_) {
+    SchedulerBinding.instance.addPostFrameCallback((_) async {
       _ensureCompanyAndStoreSelected();
+      
+      // Also ensure FCM token is saved when homepage loads
+      // This catches cases where login didn't save the token
+      await _ensureFcmTokenSaved();
     });
     
     // Listen for store join events to refresh UI
@@ -1904,6 +1911,9 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
       final enhancedAuth = ref.read(enhancedAuthProvider);
       await enhancedAuth.forceRefreshData();
       
+      // IMPORTANT: Verify and save FCM token on refresh
+      await _ensureFcmTokenSaved();
+      
       // Refresh revenue data if store is selected
       if (ref.read(appStateProvider).storeChoosen.isNotEmpty) {
         await ref.read(revenueProvider.notifier).fetchRevenue(forceRefresh: true);
@@ -1944,6 +1954,120 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
   String _formatCurrency(int amount) {
     final formatter = NumberFormat('#,###', 'en_US');
     return formatter.format(amount);
+  }
+
+  /// Ensure FCM token is saved to Supabase - called on refresh
+  Future<void> _ensureFcmTokenSaved() async {
+    try {
+      final productionTokenService = ProductionTokenService();
+      
+      // First, check if token is already saved
+      final isVerified = await productionTokenService.verifyTokenSaved();
+      
+      if (!isVerified) {
+        if (kDebugMode) {
+          print('🔔 FCM token not found in database - attempting to save...');
+        }
+        
+        // Skip diagnostics - method doesn't exist
+        // Just try to save the token directly
+        if (kDebugMode) {
+          print('📊 Attempting to save FCM token...');
+        }
+        
+        // Try emergency token refresh if table exists but save fails
+        final success = await productionTokenService.emergencyTokenRefresh();
+        
+        if (success && mounted) {
+          if (kDebugMode) {
+            print('✅ FCM token saved successfully on refresh');
+          }
+        } else if (!success && mounted) {
+          // Show warning only in debug mode
+          if (kDebugMode) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('FCM token save failed - check RLS policies'),
+                backgroundColor: TossColors.warning,
+                duration: Duration(seconds: 3),
+              ),
+            );
+          }
+        }
+      } else {
+        if (kDebugMode) {
+          print('✅ FCM token already saved and verified');
+        }
+      }
+      
+      // Get production stats for monitoring
+      final stats = productionTokenService.getProductionStats();
+      if (kDebugMode) {
+        print('📊 FCM Stats: ${stats['stats']}');
+      }
+      
+    } catch (e) {
+      if (kDebugMode) {
+        print('❌ FCM token check error: $e');
+      }
+    }
+  }
+  
+  /// Build dialog with FCM setup instructions
+  Widget _buildFcmSetupDialog() {
+    return AlertDialog(
+      title: Text('FCM Token Setup Required'),
+      content: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('The user_fcm_tokens table needs RLS policies.'),
+            SizedBox(height: 16),
+            Text('Run this SQL in Supabase:', style: TextStyle(fontWeight: FontWeight.bold)),
+            SizedBox(height: 8),
+            Container(
+              padding: EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.grey[100],
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: SelectableText(
+                '''-- Enable RLS
+ALTER TABLE user_fcm_tokens ENABLE ROW LEVEL SECURITY;
+
+-- Allow users to insert their own tokens
+CREATE POLICY "Users can insert own tokens" 
+ON user_fcm_tokens FOR INSERT 
+WITH CHECK (auth.uid() = user_id);
+
+-- Allow users to update their own tokens
+CREATE POLICY "Users can update own tokens" 
+ON user_fcm_tokens FOR UPDATE 
+USING (auth.uid() = user_id);
+
+-- Allow users to select their own tokens
+CREATE POLICY "Users can select own tokens" 
+ON user_fcm_tokens FOR SELECT 
+USING (auth.uid() = user_id);
+
+-- Allow users to delete their own tokens
+CREATE POLICY "Users can delete own tokens" 
+ON user_fcm_tokens FOR DELETE 
+USING (auth.uid() = user_id);''',
+                style: TextStyle(fontFamily: 'monospace', fontSize: 12),
+              ),
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text('Close'),
+        ),
+      ],
+    );
   }
 
   // Removed - no longer needed since drawer is integrated in scaffold

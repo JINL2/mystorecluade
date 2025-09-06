@@ -10,6 +10,7 @@ import '../../../../core/themes/toss_text_styles.dart';
 import '../../../../core/themes/toss_border_radius.dart';
 import '../../../../core/themes/toss_spacing.dart';
 import '../../../widgets/toss/toss_enhanced_text_field.dart';
+import '../../../widgets/toss/keyboard/toss_numberpad_modal.dart';
 import '../../../widgets/specific/selectors/enhanced_account_selector.dart';
 import '../../../widgets/toss/toss_primary_button.dart';
 import '../../../widgets/toss/toss_secondary_button.dart';
@@ -21,79 +22,6 @@ import '../../../providers/entities/counterparty_provider.dart';
 import 'package:myfinance_improved/core/themes/index.dart';
 
 
-// Custom formatter for thousand separators
-class ThousandsSeparatorInputFormatter extends TextInputFormatter {
-  @override
-  TextEditingValue formatEditUpdate(
-    TextEditingValue oldValue,
-    TextEditingValue newValue,
-  ) {
-    if (newValue.text.isEmpty) {
-      return newValue;
-    }
-
-    // Remove all commas and non-numeric characters except decimal point
-    String newText = newValue.text.replaceAll(',', '');
-    
-    // Check if it's a valid number format
-    if (!RegExp(r'^\d*\.?\d*$').hasMatch(newText)) {
-      return oldValue;
-    }
-    
-    // Split by decimal point
-    List<String> parts = newText.split('.');
-    
-    // Format the integer part with commas
-    String integerPart = parts[0];
-    String formattedInteger = '';
-    
-    if (integerPart.isNotEmpty) {
-      // Add thousand separators
-      int digitCount = 0;
-      for (int i = integerPart.length - 1; i >= 0; i--) {
-        if (digitCount > 0 && digitCount % 3 == 0) {
-          formattedInteger = ',' + formattedInteger;
-        }
-        formattedInteger = integerPart[i] + formattedInteger;
-        digitCount++;
-      }
-    }
-    
-    // Combine integer and decimal parts
-    String formattedText = formattedInteger;
-    if (parts.length > 1) {
-      // Limit decimal places to 2
-      String decimalPart = parts[1];
-      if (decimalPart.length > 2) {
-        decimalPart = decimalPart.substring(0, 2);
-      }
-      formattedText = '$formattedInteger.$decimalPart';
-    }
-    
-    // Calculate new cursor position
-    int cursorPosition = formattedText.length;
-    
-    // If cursor was in the middle, try to maintain relative position
-    if (newValue.selection.baseOffset < newValue.text.length) {
-      int originalCursorPos = newValue.selection.baseOffset;
-      int commasBeforeCursor = 0;
-      for (int i = 0; i < originalCursorPos && i < formattedText.length; i++) {
-        if (formattedText[i] == ',') {
-          commasBeforeCursor++;
-        }
-      }
-      cursorPosition = originalCursorPos + commasBeforeCursor;
-      if (cursorPosition > formattedText.length) {
-        cursorPosition = formattedText.length;
-      }
-    }
-    
-    return TextEditingValue(
-      text: formattedText,
-      selection: TextSelection.collapsed(offset: cursorPosition),
-    );
-  }
-}
 
 class AddTransactionDialog extends ConsumerStatefulWidget {
   final TransactionLine? existingLine;
@@ -378,6 +306,21 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
   }
   
   
+  void _showNumberpadModal() {
+    TossNumberpadModal.show(
+      context: context,
+      title: 'Enter Amount',
+      initialValue: _amountController.text.isEmpty ? null : _amountController.text.replaceAll(',', ''),
+      allowDecimal: true,
+      onConfirm: (result) {
+        // Format the result with thousand separators
+        final formatter = NumberFormat('#,##0.##', 'en_US');
+        final numericValue = double.tryParse(result) ?? 0;
+        _amountController.text = formatter.format(numericValue);
+      },
+    );
+  }
+
   void _saveTransaction() {
     // Remove commas before parsing
     final amountText = _amountController.text.replaceAll(',', '');
@@ -518,9 +461,7 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
       },
       behavior: HitTestBehavior.opaque,
       child: Container(
-        padding: EdgeInsets.only(
-          bottom: MediaQuery.of(context).viewInsets.bottom,
-        ),
+        // No padding needed since footer is conditionally hidden
         decoration: BoxDecoration(
           color: TossColors.white,
           borderRadius: BorderRadius.only(
@@ -530,7 +471,7 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
         ),
         child: ConstrainedBox(
           constraints: BoxConstraints(
-            maxHeight: MediaQuery.of(context).size.height * 0.8,
+            maxHeight: (MediaQuery.of(context).size.height - MediaQuery.of(context).viewInsets.bottom) * 0.8,
           ),
           child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -574,7 +515,9 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
           // Content
           Expanded(
             child: SingleChildScrollView(
-              padding: EdgeInsets.all(TossSpacing.space5),
+              padding: EdgeInsets.all(TossSpacing.space5).copyWith(
+                bottom: TossSpacing.space5 + MediaQuery.of(context).viewInsets.bottom,
+              ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -1082,18 +1025,20 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
                     SizedBox(height: 20),
                     _buildSectionTitle('Amount *'),
                     SizedBox(height: TossSpacing.space2),
-                    _buildTextField(
-                      controller: _amountController,
-                      hint: 'Enter amount',
-                      keyboardType: TextInputType.numberWithOptions(decimal: true),
-                      inputFormatters: [
-                        ThousandsSeparatorInputFormatter(),
-                      ],
-                      focusNode: _amountFocusNode,
-                      textInputAction: TextInputAction.next,
-                      onSubmitted: (_) {
-                        _descriptionFocusNode.requestFocus();
-                      },
+                    GestureDetector(
+                      onTap: () => _showNumberpadModal(),
+                      child: AbsorbPointer(
+                        child: _buildTextField(
+                          controller: _amountController,
+                          hint: 'Enter amount',
+                          keyboardType: TextInputType.none,
+                          focusNode: _amountFocusNode,
+                          textInputAction: TextInputAction.next,
+                          onSubmitted: (_) {
+                            _descriptionFocusNode.requestFocus();
+                          },
+                        ),
+                      ),
                     ),
                     
                     // Description
@@ -1115,40 +1060,41 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
               ),
             ),
             
-            // Footer with SafeArea
-            Container(
-              decoration: BoxDecoration(
-                color: TossColors.white,
-                border: Border(
-                  top: BorderSide(color: TossColors.gray200, width: 1),
+            // Footer with SafeArea - Hide when keyboard is visible
+            if (MediaQuery.of(context).viewInsets.bottom == 0)
+              Container(
+                decoration: BoxDecoration(
+                  color: TossColors.white,
+                  border: Border(
+                    top: BorderSide(color: TossColors.gray200, width: 1),
+                  ),
                 ),
-              ),
-              child: SafeArea(
-                top: false,
-                child: Padding(
-                  padding: EdgeInsets.all(TossSpacing.space5),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: TossSecondaryButton(
-                          text: 'Cancel',
-                          onPressed: () => Navigator.of(context).pop(),
-                          fullWidth: true,
+                child: SafeArea(
+                  top: false,
+                  child: Padding(
+                    padding: EdgeInsets.all(TossSpacing.space5),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: TossSecondaryButton(
+                            text: 'Cancel',
+                            onPressed: () => Navigator.of(context).pop(),
+                            fullWidth: true,
+                          ),
                         ),
-                      ),
-                      SizedBox(width: TossSpacing.space3),
-                      Expanded(
-                        child: TossPrimaryButton(
-                          text: widget.existingLine != null ? 'Update' : 'Add',
-                          onPressed: _saveTransaction,
-                          fullWidth: true,
+                        SizedBox(width: TossSpacing.space3),
+                        Expanded(
+                          child: TossPrimaryButton(
+                            text: widget.existingLine != null ? 'Update' : 'Add',
+                            onPressed: _saveTransaction,
+                            fullWidth: true,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ),
-            ),
           ],
         ),
       ),

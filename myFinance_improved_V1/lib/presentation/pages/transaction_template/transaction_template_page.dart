@@ -412,7 +412,8 @@ class _TransactionTemplatePageState extends ConsumerState<TransactionTemplatePag
             }
             // Track template selection before showing usage sheet
             _trackTemplateSelection(template);
-            // Show template usage bottom sheet
+            
+            // Always use modal bottom sheet for consistent design
             TemplateUsageBottomSheet.show(context, template);
           },
           child: Column(
@@ -453,7 +454,7 @@ class _TransactionTemplatePageState extends ConsumerState<TransactionTemplatePag
                               ),
                               SizedBox(width: TossSpacing.space1),
                             ],
-                            Flexible(
+                            Expanded(
                               child: Text(
                                 template['name'] ?? 'Unnamed Template',
                                 style: TossTextStyles.bodyLarge.copyWith(
@@ -464,10 +465,10 @@ class _TransactionTemplatePageState extends ConsumerState<TransactionTemplatePag
                               ),
                             ),
                             if (isAdminTemplate) ...[
-                              SizedBox(width: TossSpacing.space2),
+                              SizedBox(width: TossSpacing.space1),
                               Container(
                                 padding: EdgeInsets.symmetric(
-                                  horizontal: TossSpacing.space2,
+                                  horizontal: TossSpacing.space1,
                                   vertical: TossSpacing.space1 / 2,
                                 ),
                                 decoration: BoxDecoration(

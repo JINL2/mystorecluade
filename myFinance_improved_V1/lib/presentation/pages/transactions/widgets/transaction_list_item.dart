@@ -1,17 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import '../../../../core/themes/toss_colors.dart';
-import '../../../../core/utils/text_utils.dart';
+import 'package:myfinance_improved/core/themes/index.dart';
+
 import '../../../../core/utils/number_formatter.dart';
-import '../../../../core/themes/toss_spacing.dart';
-import '../../../../core/themes/toss_text_styles.dart';
-import '../../../../core/themes/toss_border_radius.dart';
+import '../../../../core/utils/text_utils.dart';
 import '../../../../data/models/transaction_history_model.dart';
-import '../../../widgets/toss/toss_badge.dart';
 import '../../../widgets/toss/toss_card.dart';
 import 'transaction_detail_sheet.dart';
-import 'package:myfinance_improved/core/themes/index.dart';
 
 class TransactionListItem extends ConsumerWidget {
   final TransactionData transaction;
@@ -29,72 +25,35 @@ class TransactionListItem extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header with time, journal number, and creator
+          // Header with time and creator/store chips (JRN REMOVED FOR SPACE)
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Expanded(
-                child: Row(
-                  children: [
-                    Text(
-                      DateFormat('HH:mm').format(transaction.createdAt),
-                      style: TossTextStyles.caption.copyWith(
-                        color: TossColors.gray500,
-                      ),
-                    ),
-                    if (transaction.createdByName.isNotEmpty && transaction.createdByName != 'Unknown') ...[
-                      const SizedBox(width: TossSpacing.space2),
-                      const Icon(
-                        Icons.person_outline,
-                        size: 12,
-                        color: TossColors.gray400,
-                      ),
-                      const SizedBox(width: 4),
-                      Flexible(
-                        child: Text(
-                          transaction.createdByName,
-                          style: TossTextStyles.caption.copyWith(
-                            color: TossColors.gray500,
-                            fontSize: 11,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                          maxLines: 1,
-                        ),
-                      ),
-                    ],
-                    // Show store name (always show if available)
-                    if (transaction.storeName != null && transaction.storeName!.isNotEmpty) ...[
-                      const SizedBox(width: TossSpacing.space2),
-                      Flexible(
-                        child: TossBadge(
-                          label: transaction.storeName!,
-                          icon: Icons.store,
-                          iconSize: 10,
-                          backgroundColor: TossColors.primarySurface.withValues(alpha: 0.1),
-                          textColor: TossColors.primary,
-                          border: Border.all(
-                            color: TossColors.primary.withValues(alpha: 0.2),
-                            width: 0.5,
-                          ),
-                          borderRadius: 4,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: TossSpacing.space1,
-                            vertical: 1,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ],
+              // Time - Fixed width to prevent expansion
+              SizedBox(
+                width: 50,
+                child: Text(
+                  DateFormat('HH:mm').format(transaction.createdAt),
+                  style: TossTextStyles.caption.copyWith(
+                    color: TossColors.gray500,
+                  ),
                 ),
               ),
-              TossBadge(
-                label: 'JRN-${transaction.journalNumber.substring(0, 8).toUpperCase()}',
-                backgroundColor: TossColors.gray50,
-                textColor: TossColors.gray600,
-                borderRadius: 4,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: TossSpacing.space2,
-                  vertical: 2,
+              
+              // Expanded content area with optimized spacing
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space2),
+                  child: Wrap(
+                    alignment: WrapAlignment.start,
+                    spacing: 2, // Reduced from 4px
+                    runSpacing: 2,
+                    children: [
+                      if (transaction.createdByName.isNotEmpty && transaction.createdByName != 'Unknown')
+                        _buildCreatorChip(transaction.createdByName),
+                      if (transaction.storeName != null && transaction.storeName!.isNotEmpty)
+                        _buildStoreChip(transaction.storeName!),
+                    ],
+                  ),
                 ),
               ),
             ],
@@ -179,10 +138,10 @@ class TransactionListItem extends ConsumerWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Icon
+        // Icon - Optimized size for space efficiency
         Container(
-          width: 32,
-          height: 32,
+          width: 26,
+          height: 26,
           decoration: BoxDecoration(
             color: TossColors.gray50,
             borderRadius: BorderRadius.circular(TossBorderRadius.sm),
@@ -190,73 +149,55 @@ class TransactionListItem extends ConsumerWidget {
           child: Icon(
             isDebit ? Icons.arrow_downward : Icons.arrow_upward,
             color: TossColors.gray500,
-            size: 16,
+            size: 13,
           ),
         ),
         
-        const SizedBox(width: TossSpacing.space3),
+        const SizedBox(width: TossSpacing.space2),
         
         // Main Content
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Account Name with Cash Location (fixed overflow)
-              Row(
-                children: [
-                  Expanded(
-                    flex: 3,
-                    child: Text(
-                      line.accountName,
-                      style: TossTextStyles.body.copyWith(
-                        fontWeight: FontWeight.w600,
-                        color: TossColors.gray900,
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                      maxLines: 1,
-                    ),
-                  ),
-                  if (line.cashLocation != null) ...[
-                    const SizedBox(width: TossSpacing.space1),
-                    Expanded(
-                      flex: 2,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: TossSpacing.space2,
-                          vertical: 2,
-                        ),
-                        decoration: BoxDecoration(
-                          color: TossColors.gray50,
-                          borderRadius: BorderRadius.circular(TossBorderRadius.xs),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              _getCashLocationIcon(line.cashLocation!['type'] as String? ?? ''),
-                              size: 10,
-                              color: TossColors.primary,
-                            ),
-                            const SizedBox(width: 2),
-                            Expanded(
-                              child: Text(
-                                line.displayLocation,
-                                style: TossTextStyles.caption.copyWith(
-                                  color: TossColors.primary,
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                                maxLines: 1,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ],
+              // Account Name (FIXED OVERFLOW - simplified layout)
+              Text(
+                line.accountName,
+                style: TossTextStyles.body.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: TossColors.gray900,
+                ),
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
               ),
+              
+              // Cash Location as separate row to prevent overflow
+              if (line.cashLocation != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 2),
+                  child: Row(
+                    children: [
+                      Icon(
+                        _getCashLocationIcon(line.cashLocation!['type'] as String? ?? ''),
+                        size: 10,
+                        color: TossColors.primary,
+                      ),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          line.displayLocation,
+                          style: TossTextStyles.caption.copyWith(
+                            color: TossColors.primary,
+                            fontSize: 10,
+                            fontWeight: FontWeight.w500,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               
               // Counterparty (fixed overflow)
               if (line.counterparty != null)
@@ -301,9 +242,9 @@ class TransactionListItem extends ConsumerWidget {
           ),
         ),
         
-        // Amount
-        Flexible(
-          flex: 1,
+        // Amount - Optimized width for space efficiency
+        SizedBox(
+          width: 85,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
@@ -372,12 +313,87 @@ class TransactionListItem extends ConsumerWidget {
   }
 
   void _showTransactionDetail(BuildContext context) {
-    showModalBottomSheet(
+    showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       backgroundColor: TossColors.transparent,
       builder: (context) => TransactionDetailSheet(
         transaction: transaction,
+      ),
+    );
+  }
+
+  // Helper method to build creator chip (expanded width with JRN removal)
+  Widget _buildCreatorChip(String creatorName) {
+    return Container(
+      constraints: const BoxConstraints(maxWidth: 120), // Increased from 80
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+      decoration: BoxDecoration(
+        color: TossColors.gray50,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: TossColors.gray200, width: 0.5),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(
+            Icons.person_outline,
+            size: 10,
+            color: TossColors.gray400,
+          ),
+          const SizedBox(width: 2),
+          Flexible(
+            child: Text(
+              creatorName,
+              style: TossTextStyles.caption.copyWith(
+                color: TossColors.gray500,
+                fontSize: 9,
+                fontWeight: FontWeight.w500,
+              ),
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Helper method to build store chip (expanded width with JRN removal)
+  Widget _buildStoreChip(String storeName) {
+    return Container(
+      constraints: const BoxConstraints(maxWidth: 140), // Increased from 100
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+      decoration: BoxDecoration(
+        color: TossColors.primarySurface.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: TossColors.primary.withValues(alpha: 0.2),
+          width: 0.5,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(
+            Icons.store,
+            size: 10,
+            color: TossColors.primary,
+          ),
+          const SizedBox(width: 2),
+          Flexible(
+            child: Text(
+              storeName,
+              style: TossTextStyles.caption.copyWith(
+                color: TossColors.primary,
+                fontSize: 9,
+                fontWeight: FontWeight.w500,
+              ),
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
+            ),
+          ),
+        ],
       ),
     );
   }

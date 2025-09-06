@@ -80,7 +80,8 @@ class _CounterPartyPageState extends ConsumerState<CounterPartyPage> {
       isScrollControlled: true,
       backgroundColor: TossColors.transparent,
       constraints: BoxConstraints(
-        maxHeight: MediaQuery.of(context).size.height * 0.8,
+        maxHeight: (MediaQuery.of(context).size.height - 
+                   MediaQuery.of(context).viewInsets.bottom) * 0.8,
       ),
       builder: (context) => Container(
         decoration: BoxDecoration(
@@ -828,7 +829,8 @@ class _CounterPartyPageState extends ConsumerState<CounterPartyPage> {
       isScrollControlled: true,
       backgroundColor: TossColors.transparent,
       constraints: BoxConstraints(
-        maxHeight: MediaQuery.of(context).size.height * 0.8,
+        maxHeight: (MediaQuery.of(context).size.height - 
+                   MediaQuery.of(context).viewInsets.bottom) * 0.8,
       ),
       builder: (context) => Container(
         decoration: BoxDecoration(

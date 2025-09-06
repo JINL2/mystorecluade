@@ -672,14 +672,20 @@ class _CounterPartyFormState extends ConsumerState<CounterPartyForm> with Ticker
   Widget build(BuildContext context) {
     ref.watch(unlinkedCompaniesProvider);
 
-    return Container(
-      decoration: BoxDecoration(
-        color: TossColors.white,
-        borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(24),
-          topRight: Radius.circular(24),
+    return GestureDetector(
+      onTap: () {
+        // Dismiss keyboard when tapping outside of input fields
+        FocusScope.of(context).unfocus();
+      },
+      behavior: HitTestBehavior.opaque,
+      child: Container(
+        decoration: BoxDecoration(
+          color: TossColors.white,
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(24),
+            topRight: Radius.circular(24),
+          ),
         ),
-      ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -760,7 +766,9 @@ class _CounterPartyFormState extends ConsumerState<CounterPartyForm> with Ticker
                   child: SlideTransition(
                     position: _slideAnimation,
                     child: SingleChildScrollView(
-                      padding: EdgeInsets.all(TossSpacing.space5),
+                      padding: EdgeInsets.all(TossSpacing.space5).copyWith(
+                        bottom: TossSpacing.space5 + MediaQuery.of(context).viewInsets.bottom,
+                      ),
                       child: Form(
                         key: _formKey,
                         child: Column(
@@ -782,10 +790,12 @@ class _CounterPartyFormState extends ConsumerState<CounterPartyForm> with Ticker
             ),
           ),
 
-          // Step navigation buttons
-          _buildStepNavigation(),
+          // Step navigation buttons - hide when keyboard appears
+          if (MediaQuery.of(context).viewInsets.bottom == 0)
+            _buildStepNavigation(),
         ],
       ),
+    ),
     );
   }
 

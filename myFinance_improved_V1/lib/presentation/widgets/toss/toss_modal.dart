@@ -74,8 +74,8 @@ class TossModal extends StatefulWidget {
         color: TossColors.transparent,
         child: Scaffold(
           backgroundColor: TossColors.transparent,
-          // KEY FIX: Prevent scaffold from resizing when keyboard appears
-          resizeToAvoidBottomInset: false,
+          // FIXED: Allow scaffold to resize for better keyboard handling
+          resizeToAvoidBottomInset: true,
           body: TossModal(
             title: title,
             subtitle: subtitle,
@@ -179,11 +179,15 @@ class _TossModalState extends State<TossModal> with SingleTickerProviderStateMix
                   // Header
                   _buildHeader(),
 
-                  // Content - Add keyboard padding for form fields
+                  // Content - Scrollable with keyboard awareness
                   Expanded(
-                    child: Padding(
-                      padding: EdgeInsets.only(
-                        bottom: keyboardHeight > 0 ? keyboardHeight : 0,
+                    child: SingleChildScrollView(
+                      physics: const BouncingScrollPhysics(),
+                      padding: widget.padding ?? EdgeInsets.fromLTRB(
+                        TossSpacing.space4,
+                        TossSpacing.space3,
+                        TossSpacing.space4,
+                        TossSpacing.space4,
                       ),
                       child: widget.child,
                     ),

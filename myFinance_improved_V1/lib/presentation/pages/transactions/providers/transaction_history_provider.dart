@@ -85,8 +85,8 @@ class TransactionHistory extends _$TransactionHistory {
         }
       }
       
-      // Sort transactions by entry date in descending order (most recent first)
-      transactions.sort((a, b) => b.entryDate.compareTo(a.entryDate));
+      // Sort transactions by creation time in descending order (most recent first)
+      transactions.sort((a, b) => b.createdAt.compareTo(a.createdAt));
       
       return transactions;
     } catch (e) {

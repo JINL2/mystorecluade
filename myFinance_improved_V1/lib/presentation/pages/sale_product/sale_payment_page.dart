@@ -829,7 +829,7 @@ class _SalePaymentPageState extends ConsumerState<SalePaymentPage> {
         child: SafeArea(
           top: false,
           child: TossPrimaryButton(
-            text: 'Complete Payment',
+            text: 'Complete',
             fullWidth: true,
             isEnabled: receivedInKRW > 0 && !(paymentState.selectedMethod == PaymentMethod.cash && change < 0),
             leadingIcon: Icon(

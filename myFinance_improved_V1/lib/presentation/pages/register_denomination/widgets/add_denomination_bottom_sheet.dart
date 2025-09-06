@@ -12,6 +12,7 @@ import '../providers/currency_providers.dart';
 import '../../../providers/app_state_provider.dart';
 import 'package:myfinance_improved/core/themes/index.dart';
 import 'package:myfinance_improved/core/themes/toss_border_radius.dart';
+import '../../../widgets/toss/keyboard/toss_numberpad_modal.dart';
 class AddDenominationBottomSheet extends ConsumerStatefulWidget {
   final Currency currency;
 
@@ -105,40 +106,58 @@ class _AddDenominationBottomSheetState extends ConsumerState<AddDenominationBott
                     ),
                   ),
                   const SizedBox(height: TossSpacing.space2),
-                  TextField(
-                    controller: _amountController,
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                    inputFormatters: [
-                      FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
-                    ],
-                    style: TossTextStyles.body.copyWith(
-                      color: TossColors.gray900,
-                      fontWeight: FontWeight.w500,
-                    ),
-                    decoration: InputDecoration(
-                      hintText: 'Enter amount (e.g., 5.00)',
-                      hintStyle: TossTextStyles.body.copyWith(
-                        color: TossColors.gray400,
-                        fontWeight: FontWeight.w400,
-                      ),
-                      filled: true,
-                      fillColor: TossColors.gray50,
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 12,
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-                        borderSide: const BorderSide(
-                          color: TossColors.gray200,
-                          width: 1,
+                  GestureDetector(
+                    onTap: () async {
+                      final result = await TossNumberpadModal.show(
+                        context: context,
+                        title: 'Enter Amount',
+                        initialValue: _amountController.text,
+                        currency: widget.currency.symbol ?? widget.currency.code,
+                        allowDecimal: true,
+                        maxDecimalPlaces: 2,
+                        onConfirm: (value) {
+                          _amountController.text = value;
+                          setState(() {});
+                        },
+                      );
+                    },
+                    child: AbsorbPointer(
+                      child: TextField(
+                        controller: _amountController,
+                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                        inputFormatters: [
+                          FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
+                        ],
+                        style: TossTextStyles.body.copyWith(
+                          color: TossColors.gray900,
+                          fontWeight: FontWeight.w500,
                         ),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-                        borderSide: const BorderSide(
-                          color: TossColors.primary,
-                          width: 1.5,
+                        decoration: InputDecoration(
+                          hintText: 'Enter amount (e.g., 5.00)',
+                          hintStyle: TossTextStyles.body.copyWith(
+                            color: TossColors.gray400,
+                            fontWeight: FontWeight.w400,
+                          ),
+                          filled: true,
+                          fillColor: TossColors.gray50,
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 12,
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+                            borderSide: const BorderSide(
+                              color: TossColors.gray200,
+                              width: 1,
+                            ),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+                            borderSide: const BorderSide(
+                              color: TossColors.primary,
+                              width: 1.5,
+                            ),
+                          ),
                         ),
                       ),
                     ),

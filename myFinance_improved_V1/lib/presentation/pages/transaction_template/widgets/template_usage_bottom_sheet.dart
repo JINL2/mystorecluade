@@ -1,14 +1,22 @@
+/// Transaction Template Usage Modal - Create transactions from saved templates
+///
+/// Purpose: Allows users to create transactions from templates with minimal input.
+/// Handles complex templates with cash locations, counterparties, and debt tracking.
+///
+/// Keyboard Handling: Uses TossKeyboardAwareBottomSheet for proper keyboard management
+///
+/// Usage: TemplateUsageBottomSheet.show(context, template)
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/services.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../../../widgets/toss/toss_bottom_sheet.dart';
+import '../../../widgets/toss/keyboard/toss_textfield_keyboard_modal.dart';
+import '../../../widgets/toss/keyboard/toss_numberpad_modal.dart';
 import '../../../widgets/toss/toss_primary_button.dart';
 import '../../../widgets/toss/toss_secondary_button.dart';
 import '../../../widgets/toss/toss_text_field.dart';
-import '../../../widgets/toss/modal_keyboard_patterns.dart';
 import '../../../widgets/toss/toss_dropdown.dart';
 import '../../../widgets/common/toss_loading_view.dart';
 import '../../../../core/themes/toss_design_system.dart';
@@ -195,7 +203,7 @@ class TemplateUsageBottomSheet extends ConsumerStatefulWidget {
   
   static Future<void> show(BuildContext context, Map<String, dynamic> template) {
     // Clean up template name for display
-    String templateName = template['name'] ?? 'Transaction Template';
+    String templateName = template['name']?.toString() ?? 'Transaction Template';
     if (templateName.toLowerCase().contains('none') || 
         templateName.toLowerCase().contains('account none')) {
       // Try to create a better name from the template type
@@ -203,19 +211,48 @@ class TemplateUsageBottomSheet extends ConsumerStatefulWidget {
       if (data.isNotEmpty) {
         final debit = data.firstWhere((e) => e['type'] == 'debit', orElse: () => {});
         final credit = data.firstWhere((e) => e['type'] == 'credit', orElse: () => {});
-        final debitTag = debit['category_tag'] ?? '';
-        final creditTag = credit['category_tag'] ?? '';
+        final String debitTag = debit['category_tag']?.toString() ?? '';
+        final String creditTag = credit['category_tag']?.toString() ?? '';
         if (debitTag.isNotEmpty && creditTag.isNotEmpty) {
           templateName = '${_formatTagName(debitTag)} to ${_formatTagName(creditTag)}';
         }
       }
     }
     
-    // Show bottom sheet with loading indicator first for instant response
-    return TossBottomSheet.show(
+    // Create a key to access the form state
+    final GlobalKey<_TemplateUsageBottomSheetState> formKey = GlobalKey();
+    
+    // Use TossTextFieldKeyboardModal with action buttons
+    return TossTextFieldKeyboardModal.show(
       context: context,
       title: templateName,
-      content: TemplateUsageBottomSheet(template: template),
+      content: TemplateUsageBottomSheet(key: formKey, template: template),
+      // Keep the original action buttons for the modal
+      actionButtons: [
+        Expanded(
+          child: TossSecondaryButton(
+            text: 'Cancel',
+            fullWidth: true,
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+          ),
+        ),
+        Expanded(
+          flex: 2,
+          child: TossPrimaryButton(
+            text: 'Create Transaction',
+            fullWidth: true,
+            onPressed: () async {
+              // Get the form state and submit
+              final state = formKey.currentState;
+              if (state != null && state._isFormValid) {
+                await state._handleSubmit();
+              }
+            },
+          ),
+        ),
+      ],
     );
   }
   
@@ -412,32 +449,28 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
     // Check if template has all requirements filled
     final bool isTemplateComplete = _checkTemplateCompleteness();
     
-    return FixedBottomModalWrapper(
-      scrollableContent: Form(
-        key: _formKey,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Template Info Card - Compact
-            _buildCompactTemplateHeader(),
-            
-            SizedBox(height: TossSpacing.space3),
-            
-            // Primary Input Section - What user needs to do
-            _buildPrimaryInputSection(),
-            
-            SizedBox(height: TossSpacing.space3),
-            
-            // Collapsible Details Section
-            _buildCollapsibleDetailsSection(isTemplateComplete),
-            
-            SizedBox(height: TossSpacing.space4),
-          ],
-        ),
+    // Build form content without action buttons (they're handled by the page)
+    return Form(
+      key: _formKey,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Template Info Card - Compact
+          _buildCompactTemplateHeader(),
+          
+          SizedBox(height: TossSpacing.space3),
+          
+          // Primary Input Section - What user needs to do
+          _buildPrimaryInputSection(),
+          
+          SizedBox(height: TossSpacing.space3),
+          
+          // Collapsible Details Section
+          _buildCollapsibleDetailsSection(isTemplateComplete),
+          
+          SizedBox(height: TossSpacing.space4),
+        ],
       ),
-      fixedBottom: _buildActionButtons(),
-      addKeyboardPadding: true,
     );
   }
   
@@ -598,17 +631,32 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
                 ),
               ),
               SizedBox(height: TossSpacing.space2),
-              TextFormField(
-                controller: _amountController,
-                keyboardType: TextInputType.number,
-                autofocus: true, // Auto-focus for speed
-                style: TossTextStyles.h3.copyWith( // Larger text
-                  fontWeight: FontWeight.w600,
-                ),
-                decoration: InputDecoration(
-                  hintText: '0',
-                  filled: true,
-                  fillColor: TossColors.gray50,
+              GestureDetector(
+                onTap: () async {
+                  final result = await TossNumberpadModal.show(
+                    context: context,
+                    title: 'Enter Amount',
+                    initialValue: _amountController.text.replaceAll(',', ''),
+                    // No currency symbol - universal numberpad
+                    allowDecimal: false,
+                    onConfirm: (value) {
+                      _amountController.text = _numberFormat.format(int.parse(value));
+                      setState(() {});
+                    },
+                  );
+                },
+                child: AbsorbPointer(
+                  child: TextFormField(
+                  controller: _amountController,
+                  keyboardType: TextInputType.none, // Use none since we have custom numberpad
+                  // Removed autofocus to prevent keyboard from appearing immediately
+                  style: TossTextStyles.h3.copyWith( // Larger text
+                    fontWeight: FontWeight.w600,
+                  ),
+                  decoration: InputDecoration(
+                    hintText: '0',
+                    filled: true,
+                    fillColor: TossColors.gray50,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(TossBorderRadius.md),
                     borderSide: BorderSide(color: TossColors.gray300, width: 1.5),
@@ -625,14 +673,16 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
                 inputFormatters: [
                   FilteringTextInputFormatter.allow(RegExp(r'[0-9,]')),
                   LengthLimitingTextInputFormatter(15),
-                ],
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Amount is required';
-                  }
-                  return null;
-                },
-              ),
+                  ],
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Amount is required';
+                      }
+                      return null;
+                    },
+                  ),
+                  ),
+                ),
             ],
           ),
           
@@ -1139,15 +1189,34 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
         SizedBox(height: TossSpacing.space3),
         
         // Interest Rate
-        TossTextField(
-          controller: config.interestRateController,
-          label: 'Interest Rate (%)',
-          hintText: 'Enter interest rate',
-          keyboardType: TextInputType.numberWithOptions(decimal: true),
-          onChanged: (value) {
-            final rate = double.tryParse(value) ?? 0.0;
-            config.interestRate = rate;
+        GestureDetector(
+          onTap: () async {
+            final result = await TossNumberpadModal.show(
+              context: context,
+              title: 'Interest Rate (%)',
+              initialValue: config.interestRateController.text,
+              // No currency symbol for percentage input
+              allowDecimal: true,
+              maxDecimalPlaces: 2,
+              onConfirm: (value) {
+                config.interestRateController.text = value;
+                config.interestRate = double.tryParse(value) ?? 0.0;
+                setState(() {});
+              },
+            );
           },
+          child: AbsorbPointer(
+            child: TossTextField(
+              controller: config.interestRateController,
+              label: 'Interest Rate (%)',
+              hintText: 'Enter interest rate',
+              keyboardType: TextInputType.none, // Use none since we have custom numberpad
+              onChanged: (value) {
+                final rate = double.tryParse(value) ?? 0.0;
+                config.interestRate = rate;
+              },
+            ),
+          ),
         ),
       ],
     );
@@ -1624,28 +1693,12 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
     );
   }
   
-  Widget _buildActionButtons() {
-    return Row(
-      children: [
-        Expanded(
-          child: TossSecondaryButton(
-            text: 'Cancel',
-            onPressed: _isSubmitting ? null : () {
-              Navigator.of(context).pop();
-            },
-          ),
-        ),
-        SizedBox(width: TossSpacing.space3),
-        Expanded(
-          child: TossPrimaryButton(
-            text: _isSubmitting ? 'Creating...' : 'Create Transaction',
-            onPressed: (_isSubmitting || !_isFormValid) ? null : _handleSubmit,
-            isLoading: _isSubmitting,
-          ),
-        ),
-      ],
-    );
-  }
+  // Expose form validation state for external access
+  bool get isFormValid => _isFormValid;
+  bool get isSubmitting => _isSubmitting;
+  
+  // Expose submit handler for external access
+  Future<void> handleSubmit() => _handleSubmit();
   
   // Helper function to construct p_lines array
   List<Map<String, dynamic>> _constructPLines(
@@ -2077,3 +2130,4 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
     );
   }
 }
+
