@@ -62,7 +62,7 @@
         /* Stats Section */
         .stats-card {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
+            grid-template-columns: 1fr;
             gap: 16px;
             margin-bottom: 24px;
         }
@@ -338,17 +338,18 @@
             border: 1px solid rgba(0, 0, 0, 0.06);
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
             transition: all 0.2s ease;
-            cursor: pointer;
+            /* cursor removed - cards are not clickable */
             display: flex;
             flex-direction: column;
             gap: 16px;
         }
         
+        /* Hover effect removed - cards are not clickable
         .employee-item:hover {
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
             transform: translateY(-2px);
             border-color: rgba(0, 100, 255, 0.1);
-        }
+        } */
         
         .employee-item-header {
             display: flex;
@@ -363,15 +364,15 @@
         .employee-avatar {
             width: 48px;
             height: 48px;
-            border-radius: 12px;
-            background: linear-gradient(135deg, #667EEA 0%, #764BA2 100%);
+            border-radius: var(--radius-full);
+            background: var(--toss-primary);
             display: flex;
             align-items: center;
             justify-content: center;
             overflow: hidden;
             flex-shrink: 0;
             position: relative;
-            font-size: 18px;
+            font-size: var(--font-body);
             font-weight: 600;
             color: white;
         }
@@ -383,7 +384,7 @@
         }
         
         .employee-avatar-text {
-            font-size: 18px;
+            font-size: var(--font-body);
             font-weight: 600;
             color: white;
             text-transform: uppercase;
@@ -870,7 +871,7 @@
             .employee-avatar {
                 width: 44px;
                 height: 44px;
-                border-radius: 22px;
+                border-radius: var(--radius-full);
             }
             
             .employee-details {
@@ -922,7 +923,8 @@
             .employee-avatar-large {
                 width: 56px;
                 height: 56px;
-                font-size: 20px;
+                border-radius: var(--radius-full);
+                font-size: var(--font-body-large);
             }
             
             .employee-info-header h3 {
@@ -1017,12 +1019,12 @@
         .employee-avatar-large {
             width: 64px;
             height: 64px;
-            border-radius: 16px;
-            background: linear-gradient(135deg, #667EEA 0%, #764BA2 100%);
+            border-radius: var(--radius-full);
+            background: var(--toss-primary);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 24px;
+            font-size: var(--font-h4);
             font-weight: 600;
             color: white;
             text-transform: uppercase;
@@ -1337,17 +1339,6 @@
                     </div>
                 </div>
                 
-                <div class="quick-stat">
-                    <div class="quick-stat-icon-wrapper roles">
-                        <svg class="quick-stat-icon" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M12,15C12.81,15 13.5,14.7 14.11,14.11C14.7,13.5 15,12.81 15,12C15,11.19 14.7,10.5 14.11,9.89C13.5,9.3 12.81,9 12,9C11.19,9 10.5,9.3 9.89,9.89C9.3,10.5 9,11.19 9,12C9,12.81 9.3,13.5 9.89,14.11C10.5,14.7 11.19,15 12,15M12,2L14.09,8.26L22,9L16,14.74L17.18,22.74L12,19.77L6.82,22.74L8,14.74L2,9L9.91,8.26L12,2Z"/>
-                        </svg>
-                    </div>
-                    <div class="quick-stat-content">
-                        <div class="quick-stat-label">Unique Roles</div>
-                        <div class="quick-stat-value" id="totalRoles">0</div>
-                    </div>
-                </div>
             </div>
             
             <!-- Store Filter and Add Employee Controls -->
@@ -1526,17 +1517,16 @@
             </div>
         </div>
         
-        <!-- Employee Detail Modal (keeping original for view-only) -->
-        <div class="modal-overlay" id="employeeDetailModal">
+        <!-- Employee Detail Modal disabled - no popup needed -->
+        <!-- <div class="modal-overlay" id="employeeDetailModal">
             <div class="modal-content">
-                <!-- Employee detail content will be loaded here -->
                 <div style="padding: var(--space-6); text-align: center;">
                     <h3>Employee Details</h3>
                     <p>Detailed employee information and management options will be displayed here.</p>
                     <button onclick="closeEmployeeDetailModal()" style="margin-top: var(--space-4); padding: var(--space-2) var(--space-4); background: var(--toss-primary); color: white; border: none; border-radius: 8px; cursor: pointer;">Close</button>
                 </div>
             </div>
-        </div>
+        </div> -->
     </div>
     
     <!-- Component JavaScript -->
@@ -1608,12 +1598,12 @@
                     }
                 });
                 
-                // Employee detail modal
-                document.getElementById('employeeDetailModal').addEventListener('click', (e) => {
-                    if (e.target === e.currentTarget) {
-                        this.closeEmployeeDetailModal();
-                    }
-                });
+                // Employee detail modal disabled - no popup needed
+                // document.getElementById('employeeDetailModal').addEventListener('click', (e) => {
+                //     if (e.target === e.currentTarget) {
+                //         this.closeEmployeeDetailModal();
+                //     }
+                // });
                 
                 // Scroll to top
                 const scrollToTop = document.getElementById('scrollToTop');
@@ -1653,18 +1643,18 @@
                         return;
                     }
                     
-                    // Query currencies linked to this company through company_currencies table
-                    // This joins company_currencies with currency_types to get only the currencies
+                    // Query currencies linked to this company through company_currency table
+                    // This joins company_currency with currency_types to get only the currencies
                     // that are available for the current company
                     const { data, error } = await supabase
-                        .from('company_currencies')
+                        .from('company_currency')
                         .select(`
                             currency_id,
                             currency_types (
                                 currency_id,
                                 currency_code,
                                 currency_name,
-                                currency_symbol
+                                symbol
                             )
                         `)
                         .eq('company_id', selectedCompanyId)
@@ -1683,7 +1673,7 @@
                             currency_id: item.currency_types.currency_id,
                             currency_code: item.currency_types.currency_code,
                             currency_name: item.currency_types.currency_name,
-                            currency_symbol: item.currency_types.currency_symbol
+                            currency_symbol: item.currency_types.symbol
                         }));
                         console.log('✅ Loaded company-specific currencies:', this.currencies);
                         
@@ -1758,13 +1748,17 @@
             
             async loadEmployeeInfo(storeId = null) {
                 try {
+                    console.log('=== Loading employee info ===');
+                    console.log('Store filter:', storeId || 'All Stores');
+                    
                     // Show loading state
                     document.getElementById('loadingState').classList.remove('hidden');
                     document.getElementById('employeeListContent').classList.add('hidden');
                     document.getElementById('emptyState').classList.add('hidden');
                     
-                    // Get selected company from session storage
+                    // Get selected company from app state
                     const selectedCompanyId = appState.getSelectedCompanyId();
+                    console.log('Loading employees for company:', selectedCompanyId);
                     
                     if (!selectedCompanyId) {
                         console.log('No company selected');
@@ -2003,17 +1997,17 @@
                     });
                 });
                 
-                // Add listeners for employee row clicks (for details)
-                const employeeItems = document.querySelectorAll('.employee-item');
-                employeeItems.forEach(item => {
-                    item.addEventListener('click', (e) => {
-                        // Only show details if clicking on the row, not action buttons
-                        if (!e.target.closest('.employee-actions')) {
-                            const userId = item.dataset.userId;
-                            this.showEmployeeDetails(userId);
-                        }
-                    });
-                });
+                // Employee row clicks disabled - no popup needed
+                // const employeeItems = document.querySelectorAll('.employee-item');
+                // employeeItems.forEach(item => {
+                //     item.addEventListener('click', (e) => {
+                //         // Only show details if clicking on the row, not action buttons
+                //         if (!e.target.closest('.employee-actions')) {
+                //             const userId = item.dataset.userId;
+                //             this.showEmployeeDetails(userId);
+                //         }
+                //     });
+                // });
             }
             
             formatSalary(amount) {
@@ -2023,15 +2017,7 @@
             
             updateStats() {
                 const totalEmployees = this.employees.length;
-                // Count unique roles by filtering out "No role assigned" and null values
-                const uniqueRoles = new Set(
-                    this.employees
-                        .map(emp => emp.roleName)
-                        .filter(role => role && role !== 'No role assigned')
-                ).size;
-                
                 document.getElementById('totalEmployees').textContent = totalEmployees;
-                document.getElementById('totalRoles').textContent = uniqueRoles;
             }
             
             
@@ -2150,9 +2136,14 @@
                 
                 let stores = [];
                 
+                // Log current company for debugging
+                const currentCompanyId = appState?.getSelectedCompanyId?.();
+                console.log('Store filter - Current company ID:', currentCompanyId);
+                
                 // Try to get stores from appState, fallback to mock data if not available
                 if (typeof appState !== 'undefined' && typeof appState.getCompanyStores === 'function') {
                     stores = appState.getCompanyStores();
+                    console.log('Store filter - Retrieved stores:', stores);
                 } else {
                     console.warn('appState not available in filter dropdown, using fallback');
                     // Fallback mock stores for development
@@ -2981,22 +2972,23 @@
                 }
             }
             
-            showEmployeeDetails(userId) {
-                const employee = this.employees.find(emp => emp.userId === userId);
-                if (!employee) return;
-                
-                // In a real implementation, this would show a detailed modal
-                // For now, show a simple placeholder
-                const modal = document.getElementById('employeeDetailModal');
-                modal.classList.add('active');
-                
-                console.log('Show employee details for:', employee.fullName);
-            }
-            
-            closeEmployeeDetailModal() {
-                const modal = document.getElementById('employeeDetailModal');
-                modal.classList.remove('active');
-            }
+            // Employee detail modal functions disabled - no popup needed
+            // showEmployeeDetails(userId) {
+            //     const employee = this.employees.find(emp => emp.userId === userId);
+            //     if (!employee) return;
+            //     
+            //     // In a real implementation, this would show a detailed modal
+            //     // For now, show a simple placeholder
+            //     const modal = document.getElementById('employeeDetailModal');
+            //     modal.classList.add('active');
+            //     
+            //     console.log('Show employee details for:', employee.fullName);
+            // }
+            // 
+            // closeEmployeeDetailModal() {
+            //     const modal = document.getElementById('employeeDetailModal');
+            //     modal.classList.remove('active');
+            // }
             
             showEmptyState(message) {
                 document.getElementById('loadingState').classList.add('hidden');
@@ -3007,9 +2999,10 @@
         }
         
         // Global functions for modal management
-        window.closeEmployeeDetailModal = function() {
-            employeeSettingsPage.closeEmployeeDetailModal();
-        };
+        // Employee detail modal disabled - no popup needed
+        // window.closeEmployeeDetailModal = function() {
+        //     employeeSettingsPage.closeEmployeeDetailModal();
+        // };
         
         window.closeEditModal = function() {
             document.getElementById('employeeEditModal').classList.remove('active');
@@ -3033,6 +3026,10 @@
             if (employeeSettingsPage) {
                 // Reset store filter to "All Stores" when company changes
                 employeeSettingsPage.currentStoreFilter = null;
+                // Update the filter UI to reflect "All Stores"
+                employeeSettingsPage.updateFilterUI();
+                // Load currencies for the new company
+                await employeeSettingsPage.loadCurrencies();
                 // Load employees for the new company (all stores)
                 await employeeSettingsPage.loadEmployeeInfo(null);
             }

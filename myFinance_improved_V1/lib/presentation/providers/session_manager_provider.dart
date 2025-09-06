@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -29,8 +30,11 @@ class SessionState {
   }
 
   bool get isUserDataStale {
-    if (userDataCacheExpiry == null) return true;
-    return DateTime.now().isAfter(userDataCacheExpiry!);
+    if (userDataCacheExpiry == null) {
+      return true;
+    }
+    final isStale = DateTime.now().isAfter(userDataCacheExpiry!);
+    return isStale;
   }
 
   bool get areFeaturesStale {

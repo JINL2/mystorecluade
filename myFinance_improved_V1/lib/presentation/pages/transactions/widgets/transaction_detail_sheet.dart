@@ -9,8 +9,8 @@ import '../../../../core/themes/toss_text_styles.dart';
 import '../../../../core/themes/toss_border_radius.dart';
 import '../../../../data/models/transaction_history_model.dart';
 import '../../../widgets/toss/toss_bottom_sheet.dart';
-import '../../../widgets/toss/toss_icon_button.dart';
 import '../../../widgets/toss/toss_card.dart';
+import 'package:myfinance_improved/core/themes/index.dart';
 
 class TransactionDetailSheet extends StatelessWidget {
   final TransactionData transaction;
@@ -116,10 +116,12 @@ class TransactionDetailSheet extends StatelessWidget {
             ],
           ),
         ),
-        TossIconButton(
-          icon: Icons.copy,
-          iconSize: 20,
-          iconColor: TossColors.gray500,
+        IconButton(
+          icon: Icon(
+            Icons.copy,
+            size: 20,
+            color: TossColors.gray500,
+          ),
           tooltip: 'Copy journal number',
           onPressed: () {
             Clipboard.setData(ClipboardData(text: 'JRN-${transaction.journalNumber.substring(0, 8).toUpperCase()}'));
@@ -131,8 +133,11 @@ class TransactionDetailSheet extends StatelessWidget {
             );
           },
         ),
-        TossIconButton(
-          icon: Icons.close,
+        IconButton(
+          icon: Icon(
+            Icons.close,
+            color: TossColors.gray700,
+          ),
           tooltip: 'Close',
           onPressed: () => Navigator.pop(context),
         ),
@@ -148,7 +153,7 @@ class TransactionDetailSheet extends StatelessWidget {
       ),
       decoration: BoxDecoration(
         color: TossColors.gray50,
-        borderRadius: BorderRadius.circular(4),
+        borderRadius: BorderRadius.circular(TossBorderRadius.xs),
       ),
       child: Text(
         label,
@@ -221,7 +226,7 @@ class TransactionDetailSheet extends StatelessWidget {
               height: 16,
               decoration: BoxDecoration(
                 color: color,
-                borderRadius: BorderRadius.circular(2),
+                borderRadius: BorderRadius.circular(TossBorderRadius.xs),
               ),
             ),
             const SizedBox(width: TossSpacing.space2),
@@ -240,7 +245,7 @@ class TransactionDetailSheet extends StatelessWidget {
               ),
               decoration: BoxDecoration(
                 color: TossColors.gray100,
-                borderRadius: BorderRadius.circular(4),
+                borderRadius: BorderRadius.circular(TossBorderRadius.xs),
               ),
               child: Text(
                 '${lines.length} items',
@@ -315,7 +320,7 @@ class TransactionDetailSheet extends StatelessWidget {
               padding: const EdgeInsets.all(TossSpacing.space2),
               decoration: BoxDecoration(
                 color: TossColors.gray50,
-                borderRadius: BorderRadius.circular(4),
+                borderRadius: BorderRadius.circular(TossBorderRadius.xs),
               ),
               child: Row(
                 children: [

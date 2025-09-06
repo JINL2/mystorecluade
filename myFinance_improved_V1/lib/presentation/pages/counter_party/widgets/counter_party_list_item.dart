@@ -7,6 +7,7 @@ import 'package:myfinance_improved/core/themes/toss_border_radius.dart';
 import '../../../widgets/toss/toss_bottom_sheet.dart';
 import '../constants/counter_party_colors.dart';
 import '../models/counter_party_models.dart';
+import 'package:myfinance_improved/core/themes/index.dart';
 
 class CounterPartyListItem extends StatelessWidget {
   final CounterParty counterParty;
@@ -44,9 +45,9 @@ class CounterPartyListItem extends StatelessWidget {
                   borderRadius: BorderRadius.circular(TossBorderRadius.md),
                 ),
                 child: Icon(
-                  CounterPartyColors.getTypeIcon(counterParty.type),
+                  _getIconForType(counterParty.type),
                   color: TossColors.gray700,
-                  size: TossSpacing.iconMD,
+                  size: 20,
                 ),
               ),
               SizedBox(width: TossSpacing.space3),
@@ -154,6 +155,23 @@ class CounterPartyListItem extends StatelessWidget {
           ),
       ),
     );
+  }
+
+  IconData _getIconForType(CounterPartyType type) {
+    switch (type) {
+      case CounterPartyType.myCompany:
+        return Icons.business;
+      case CounterPartyType.teamMember:
+        return Icons.group;
+      case CounterPartyType.supplier:
+        return Icons.local_shipping;
+      case CounterPartyType.employee:
+        return Icons.badge;
+      case CounterPartyType.customer:
+        return Icons.people;
+      case CounterPartyType.other:
+        return Icons.category;
+    }
   }
 
   void _showOptionsSheet(BuildContext context) {

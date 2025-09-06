@@ -5,7 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import '../../../../core/themes/index.dart';
 import '../../../../core/utils/number_formatter.dart';
-import '../../../widgets/common/toss_bottom_sheet.dart';
+import '../../../widgets/toss/toss_bottom_sheet.dart';
 import '../../../widgets/common/toss_white_card.dart';
 import '../../../widgets/common/toss_section_header.dart';
 import '../../../widgets/toss/toss_text_field.dart';
@@ -14,7 +14,7 @@ import '../../../widgets/toss/toss_selection_bottom_sheet.dart';
 import '../../../helpers/navigation_helper.dart';
 import '../models/product_model.dart';
 import '../widgets/barcode_scanner_sheet.dart';
-
+import 'package:myfinance_improved/core/themes/toss_border_radius.dart';
 class EditProductPage extends ConsumerStatefulWidget {
   final Product product;
   
@@ -218,7 +218,7 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
   Future<void> _scanBarcode() async {
     final result = await TossBottomSheet.show<String>(
       context: context,
-      builder: (context) => const BarcodeScannerSheet(),
+      content: const BarcodeScannerSheet(),
     );
     
     if (result != null) {
@@ -368,7 +368,7 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: Text('Discard', style: TextStyle(color: TossColors.error)),
+            child: Text('Discard', style: TossTextStyles.body.copyWith(color: TossColors.error)),
           ),
         ],
       ),
@@ -1238,7 +1238,7 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
           child: GestureDetector(
             onTap: () => _removeExistingImage(imageUrl),
             child: Container(
-              padding: EdgeInsets.all(4),
+              padding: EdgeInsets.all(TossSpacing.space1),
               decoration: BoxDecoration(
                 color: TossColors.black.withValues(alpha: 0.7),
                 shape: BoxShape.circle,
@@ -1278,7 +1278,7 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
           top: 4,
           left: 4,
           child: Container(
-            padding: EdgeInsets.all(4),
+            padding: EdgeInsets.all(TossSpacing.space1),
             decoration: BoxDecoration(
               color: TossColors.success,
               shape: BoxShape.circle,
@@ -1296,7 +1296,7 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
           child: GestureDetector(
             onTap: () => _removeNewImage(index),
             child: Container(
-              padding: EdgeInsets.all(4),
+              padding: EdgeInsets.all(TossSpacing.space1),
               decoration: BoxDecoration(
                 color: TossColors.black.withValues(alpha: 0.7),
                 shape: BoxShape.circle,
@@ -1404,7 +1404,7 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
   void _showImagePicker() {
     TossBottomSheet.show(
       context: context,
-      builder: (context) => Container(
+      content: Container(
         decoration: BoxDecoration(
           color: TossColors.white,
           borderRadius: BorderRadius.only(

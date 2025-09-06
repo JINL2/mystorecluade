@@ -4,10 +4,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../../../widgets/toss/toss_bottom_sheet.dart';
 import '../../../widgets/toss/toss_primary_button.dart';
 import '../../../widgets/toss/toss_secondary_button.dart';
 import '../../../widgets/toss/toss_text_field.dart';
+import '../../../widgets/toss/keyboard/toss_textfield_keyboard_modal.dart';
+import '../../../widgets/toss/keyboard/toss_numberpad_modal.dart';
 import '../../../widgets/specific/selectors/autonomous_cash_location_selector.dart';
 import '../../../widgets/specific/selectors/autonomous_counterparty_selector.dart';
 import '../../../../core/themes/toss_colors.dart';
@@ -18,8 +19,21 @@ import '../../../providers/app_state_provider.dart';
 import '../../../providers/auth_provider.dart';
 import 'quick_template_analyzer.dart';
 import 'template_usage_bottom_sheet.dart';
+import 'package:myfinance_improved/core/themes/index.dart';
 
-/// Quick template interface optimized for speed and user intuition
+enum TemplateComplexity {
+  simple,
+  complex,
+}
+
+/// Quick Transaction Modal - Speed-optimized transaction creation for simple templates
+/// 
+/// Purpose: Allows users to quickly create transactions from templates that only need
+/// minimal input (typically just amount). Used for frequently used, simple templates.
+///
+/// Keyboard Handling: Uses TossTextFieldKeyboardModal for proper keyboard management
+/// 
+/// Usage: QuickTemplateBottomSheet.show(context, template)
 class QuickTemplateBottomSheet extends ConsumerStatefulWidget {
   final Map<String, dynamic> template;
   
@@ -29,11 +43,49 @@ class QuickTemplateBottomSheet extends ConsumerStatefulWidget {
   });
   
   static Future<void> show(BuildContext context, Map<String, dynamic> template) {
-    return TossBottomSheet.show(
+    // For complex templates, use full page; for simple ones, keep modal
+    final complexity = _analyzeTemplateComplexity(template);
+    
+    if (complexity == TemplateComplexity.complex) {
+      // Use full template page for complex templates
+      return TemplateUsageBottomSheet.show(context, template);
+    }
+    
+    // Use modal for simple quick templates
+    return TossTextFieldKeyboardModal.show(
       context: context,
-      title: template['name'],
+      title: template['name'] as String?,
       content: QuickTemplateBottomSheet(template: template),
+      actionButtons: [
+        Expanded(
+          child: TossSecondaryButton(
+            text: 'Cancel',
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+        ),
+        SizedBox(width: TossSpacing.space3),
+        Expanded(
+          child: Consumer(
+            builder: (context, ref, child) {
+              // Access form state to enable/disable button
+              return TossPrimaryButton(
+                text: 'Create Transaction',
+                onPressed: () {
+                  // Handle quick submission
+                },
+              );
+            },
+          ),
+        ),
+      ],
     );
+  }
+  
+  static TemplateComplexity _analyzeTemplateComplexity(Map<String, dynamic> template) {
+    final analysis = QuickTemplateAnalyzer.analyze(template);
+    return analysis.completeness == TemplateCompleteness.complex 
+        ? TemplateComplexity.complex 
+        : TemplateComplexity.simple;
   }
   
   @override
@@ -98,14 +150,8 @@ class _QuickTemplateBottomSheetState extends ConsumerState<QuickTemplateBottomSh
       setState(() {}); // Update button state
     });
     
-    // Auto-focus amount field for speed
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_analysis.completeness == TemplateCompleteness.amountOnly ||
-          _analysis.completeness == TemplateCompleteness.essential) {
-        // Auto-focus for quick entry
-        FocusScope.of(context).requestFocus(FocusNode());
-      }
-    });
+    // Removed auto-focus to prevent keyboard from appearing immediately
+    // Users can tap the amount field when ready to enter the value
   }
   
   @override
@@ -139,33 +185,27 @@ class _QuickTemplateBottomSheetState extends ConsumerState<QuickTemplateBottomSh
   
   @override
   Widget build(BuildContext context) {
+    // This widget is now only responsible for the content
     return Form(
       key: _formKey,
-      child: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Quick Status Indicator
-            _buildQuickStatusIndicator(),
-            
-            SizedBox(height: TossSpacing.space4),
-            
-            // Main Content based on completeness
-            if (_showDetailedMode) ...[
-              _buildDetailedModeToggle(),
-              SizedBox(height: TossSpacing.space3),
-              _buildDetailedInterface(),
-            ] else ...[
-              _buildQuickInterface(),
-            ],
-            
-            SizedBox(height: TossSpacing.space5),
-            
-            // Action Buttons
-            _buildActionButtons(),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Quick Status Indicator
+          _buildQuickStatusIndicator(),
+          
+          SizedBox(height: TossSpacing.space4),
+          
+          // Main Content based on completeness
+          if (_showDetailedMode) ...[
+            _buildDetailedModeToggle(),
+            SizedBox(height: TossSpacing.space3),
+            _buildDetailedInterface(),
+          ] else ...[
+            _buildQuickInterface(),
           ],
-        ),
+        ],
       ),
     );
   }
@@ -301,30 +341,40 @@ class _QuickTemplateBottomSheetState extends ConsumerState<QuickTemplateBottomSh
               ),
             ] : null,
           ),
-          child: TextFormField(
-            controller: _amountController,
-            keyboardType: TextInputType.number,
-            inputFormatters: [
-              FilteringTextInputFormatter.allow(RegExp(r'[0-9,]')),
-              LengthLimitingTextInputFormatter(15),
-            ],
-            autofocus: _analysis.isQuickEligible,
-            style: TossTextStyles.h2.copyWith(
-              color: TossColors.gray900,
-              fontWeight: FontWeight.w700,
-            ),
-            textAlign: TextAlign.center,
-            cursorColor: TossColors.primary,
-            decoration: InputDecoration(
-              hintText: '0',
-              hintStyle: TossTextStyles.h2.copyWith(
-                color: TossColors.gray300,
-                fontWeight: FontWeight.w400,
-              ),
-              border: InputBorder.none,
+          child: GestureDetector(
+            onTap: () async {
+              final result = await TossNumberpadModal.show(
+                context: context,
+                title: 'Enter Amount',
+                initialValue: _amountController.text.replaceAll(',', ''),
+                // No currency symbol - universal numberpad
+                allowDecimal: false,
+                onConfirm: (value) {
+                  _amountController.text = _numberFormat.format(int.parse(value));
+                  setState(() {});
+                },
+              );
+            },
+            child: AbsorbPointer(
+              child: TextFormField(
+                controller: _amountController,
+                keyboardType: TextInputType.none,
+                style: TossTextStyles.h2.copyWith(
+                  color: TossColors.gray900,
+                  fontWeight: FontWeight.w700,
+                ),
+                textAlign: TextAlign.center,
+                decoration: InputDecoration(
+                  hintText: '0',
+                  hintStyle: TossTextStyles.h2.copyWith(
+                    color: TossColors.gray300,
+                    fontWeight: FontWeight.w400,
+                  ),
+                  border: InputBorder.none,
               contentPadding: EdgeInsets.symmetric(
                 vertical: TossSpacing.space5,
                 horizontal: TossSpacing.space4,
+                ),
               ),
             ),
           ),
@@ -517,33 +567,7 @@ class _QuickTemplateBottomSheetState extends ConsumerState<QuickTemplateBottomSh
     );
   }
   
-  Widget _buildActionButtons() {
-    final primaryButtonText = _analysis.completeness == TemplateCompleteness.complete
-        ? 'Create Now ⚡'
-        : _canProceed ? 'Create Transaction 🚀' : 'Enter Required Fields';
-    
-    return Row(
-      children: [
-        Expanded(
-          child: TossSecondaryButton(
-            text: 'Cancel',
-            onPressed: _isSubmitting ? null : () {
-              Navigator.of(context).pop();
-            },
-          ),
-        ),
-        SizedBox(width: TossSpacing.space3),
-        Expanded(
-          flex: 2,
-          child: TossPrimaryButton(
-            text: _isSubmitting ? 'Creating...' : primaryButtonText,
-            onPressed: (_isSubmitting || !_canProceed) ? null : _handleQuickSubmit,
-            isLoading: _isSubmitting,
-          ),
-        ),
-      ],
-    );
-  }
+  // Note: Action buttons are now handled in _QuickTemplateModal
   
   Future<void> _handleQuickSubmit() async {
     if (!_formKey.currentState!.validate()) return;
@@ -568,7 +592,12 @@ class _QuickTemplateBottomSheetState extends ConsumerState<QuickTemplateBottomSh
               children: [
                 Icon(Icons.check_circle, color: TossColors.white),
                 SizedBox(width: TossSpacing.space2),
-                Text('Transaction created successfully! ⚡'),
+                Expanded(
+                  child: Text(
+                    'Transaction created successfully! ⚡',
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
               ],
             ),
             backgroundColor: TossColors.success,

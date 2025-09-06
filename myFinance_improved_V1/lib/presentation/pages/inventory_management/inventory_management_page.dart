@@ -8,7 +8,7 @@ import '../../widgets/toss/toss_list_tile.dart';
 import '../../widgets/toss/toss_search_field.dart';
 import '../../helpers/navigation_helper.dart';
 import 'models/product_model.dart';
-
+import 'package:myfinance_improved/core/themes/toss_border_radius.dart';
 class InventoryManagementPage extends ConsumerStatefulWidget {
   const InventoryManagementPage({Key? key}) : super(key: key);
 
@@ -200,9 +200,8 @@ class _InventoryManagementPageState extends ConsumerState<InventoryManagementPag
                                   child: Center(
                                     child: Text(
                                       '${_getActiveFilterCount()}',
-                                      style: TextStyle(
+                                      style: TossTextStyles.caption.copyWith(
                                         color: TossColors.white,
-                                        fontSize: 10,
                                         fontWeight: FontWeight.w700,
                                       ),
                                     ),
@@ -568,7 +567,7 @@ class _InventoryManagementPageState extends ConsumerState<InventoryManagementPag
             margin: EdgeInsets.only(top: TossSpacing.space3),
             decoration: BoxDecoration(
               color: TossColors.gray300,
-              borderRadius: BorderRadius.circular(2),
+              borderRadius: BorderRadius.circular(TossBorderRadius.xs),
             ),
           ),
           
@@ -767,7 +766,7 @@ class _InventoryManagementPageState extends ConsumerState<InventoryManagementPag
             margin: EdgeInsets.only(top: TossSpacing.space3),
             decoration: BoxDecoration(
               color: TossColors.gray300,
-              borderRadius: BorderRadius.circular(2),
+              borderRadius: BorderRadius.circular(TossBorderRadius.xs),
             ),
           ),
           

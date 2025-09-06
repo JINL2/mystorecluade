@@ -23,7 +23,7 @@ const pages = [
     
     // Settings Pages
     { path: 'settings/currency', title: 'Currency Settings', subtitle: 'Configure currency and exchange rates', activeItem: 'setting' },
-    { path: 'settings/company-store', title: 'Company & Store Settings', subtitle: 'Manage company and store information', activeItem: 'setting' },
+    { path: 'settings/store-setting', title: 'Company & Store Settings', subtitle: 'Manage company and store information', activeItem: 'setting' },
     { path: 'settings/account-mapping', title: 'Account Mapping', subtitle: 'Configure chart of accounts', activeItem: 'setting' },
     { path: 'settings/counterparty', title: 'Counterparty', subtitle: 'Manage business partners', activeItem: 'setting' }
 ];

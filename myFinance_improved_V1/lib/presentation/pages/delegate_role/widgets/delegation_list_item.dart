@@ -6,6 +6,7 @@ import '../../../../core/themes/toss_spacing.dart';
 import '../../../../core/themes/toss_shadows.dart';
 import '../../../../core/themes/toss_border_radius.dart';
 import '../models/delegate_role_models.dart';
+import 'package:myfinance_improved/core/themes/index.dart';
 
 class DelegationListItem extends StatelessWidget {
   const DelegationListItem({

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:myfinance_improved/core/themes/index.dart';
 
 // Cart Item Model
 class CartItem {
@@ -196,15 +197,15 @@ enum InvoiceStatus {
   Color get color {
     switch (this) {
       case InvoiceStatus.draft:
-        return Colors.grey;
+        return TossColors.gray500;
       case InvoiceStatus.pending:
-        return Colors.orange;
+        return TossColors.warning;
       case InvoiceStatus.paid:
-        return Colors.green;
+        return TossColors.success;
       case InvoiceStatus.cancelled:
-        return Colors.red;
+        return TossColors.error;
       case InvoiceStatus.refunded:
-        return Colors.purple;
+        return TossColors.primary;
     }
   }
 }

@@ -3,7 +3,8 @@ import '../../../../core/themes/toss_colors.dart';
 import '../../../../core/themes/toss_text_styles.dart';
 import '../../../../core/themes/toss_spacing.dart';
 import '../../toss/toss_selection_bottom_sheet.dart';
-
+import 'package:myfinance_improved/core/themes/index.dart';
+import 'package:myfinance_improved/core/themes/toss_border_radius.dart';
 /// Configuration for selector widgets
 class SelectorConfig {
   final String label;
@@ -69,7 +70,7 @@ class TossSingleSelector<T> extends StatelessWidget {
         const SizedBox(height: TossSpacing.space2),
         InkWell(
           onTap: () => _showSelector(context),
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(TossBorderRadius.md),
           child: Container(
             padding: EdgeInsets.symmetric(
               horizontal: TossSpacing.space3,
@@ -81,7 +82,7 @@ class TossSingleSelector<T> extends StatelessWidget {
                     ? TossColors.error
                     : TossColors.gray200,
               ),
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(TossBorderRadius.md),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -127,7 +128,7 @@ class TossSingleSelector<T> extends StatelessWidget {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      backgroundColor: TossColors.transparent,
       builder: (context) => TossSelectionBottomSheet(
         title: config.label,
         items: items.map((item) {
@@ -196,7 +197,7 @@ class TossMultiSelector<T> extends StatelessWidget {
         const SizedBox(height: TossSpacing.space2),
         InkWell(
           onTap: () => _showSelector(context),
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(TossBorderRadius.md),
           child: Container(
             padding: EdgeInsets.symmetric(
               horizontal: TossSpacing.space3,
@@ -208,7 +209,7 @@ class TossMultiSelector<T> extends StatelessWidget {
                     ? TossColors.error
                     : TossColors.gray200,
               ),
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(TossBorderRadius.md),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -255,7 +256,7 @@ class TossMultiSelector<T> extends StatelessWidget {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      backgroundColor: TossColors.transparent,
       builder: (context) => TossSelectionBottomSheet(
         title: config.label,
         items: items.map((item) {

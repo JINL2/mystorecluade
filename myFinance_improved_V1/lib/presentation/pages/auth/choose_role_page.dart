@@ -6,7 +6,8 @@ import '../../../core/themes/toss_text_styles.dart';
 import '../../providers/app_state_provider.dart';
 import '../../widgets/common/toss_scaffold.dart';
 import '../../../core/navigation/safe_navigation.dart';
-
+import 'package:myfinance_improved/core/themes/index.dart';
+import 'package:myfinance_improved/core/themes/toss_border_radius.dart';
 /// Simple, robust Choose Role page without complex layouts
 class ChooseRolePage extends ConsumerStatefulWidget {
   const ChooseRolePage({super.key});
@@ -31,7 +32,7 @@ class _ChooseRolePageState extends ConsumerState<ChooseRolePage> {
       resizeToAvoidBottomInset: true,
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(24.0),
+          padding: const EdgeInsets.all(TossSpacing.space6),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -44,7 +45,7 @@ class _ChooseRolePageState extends ConsumerState<ChooseRolePage> {
                     height: 40,
                     decoration: BoxDecoration(
                       color: TossColors.primary,
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(TossBorderRadius.md),
                     ),
                     child: const Icon(
                       Icons.store,
@@ -52,7 +53,7 @@ class _ChooseRolePageState extends ConsumerState<ChooseRolePage> {
                       size: 24,
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: TossSpacing.space3),
                   Text(
                     'Storebase',
                     style: TossTextStyles.h3.copyWith(
@@ -74,7 +75,7 @@ class _ChooseRolePageState extends ConsumerState<ChooseRolePage> {
                 textAlign: TextAlign.center,
               ),
               
-              const SizedBox(height: 16),
+              const SizedBox(height: TossSpacing.space4),
               
               Text(
                 'How would you like to get started?',
@@ -116,7 +117,7 @@ class _ChooseRolePageState extends ConsumerState<ChooseRolePage> {
                     color: TossColors.textSecondary,
                     size: 16,
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: TossSpacing.space2),
                   Text(
                     'Not sure which to choose?',
                     style: TossTextStyles.body.copyWith(
@@ -154,7 +155,7 @@ class _ChooseRolePageState extends ConsumerState<ChooseRolePage> {
                       color: TossColors.textSecondary,
                     ),
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: TossSpacing.space2),
                   TextButton(
                     onPressed: () async {
                       // Sign out first to clear authentication, then navigate to login
@@ -228,12 +229,12 @@ class _ChooseRolePageState extends ConsumerState<ChooseRolePage> {
       color: TossColors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(TossBorderRadius.xl),
         child: Container(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.all(TossSpacing.space6),
           decoration: BoxDecoration(
             color: TossColors.white,
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(TossBorderRadius.xl),
             border: Border.all(
               color: TossColors.gray200,
               width: 1,
@@ -253,7 +254,7 @@ class _ChooseRolePageState extends ConsumerState<ChooseRolePage> {
                 height: 56,
                 decoration: BoxDecoration(
                   color: color.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                 ),
                 child: Icon(
                   icon,
@@ -305,9 +306,9 @@ class _ChooseRolePageState extends ConsumerState<ChooseRolePage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('• Choose "Create Business" if you\'re starting a new company'),
-            SizedBox(height: 8),
+            SizedBox(height: TossSpacing.space2),
             Text('• Choose "Join Business" if you have a business code from your employer'),
-            SizedBox(height: 8),
+            SizedBox(height: TossSpacing.space2),
             Text('• You can always change this later in settings'),
           ],
         ),

@@ -631,7 +631,144 @@
 
         /* Modal Footer Buttons */
         .transaction-modal {
-            max-width: 800px;
+            max-width: 1100px;
+            width: 95%;
+            min-height: 750px;
+            max-height: 95vh !important;
+            margin: 2.5vh auto !important;
+        }
+        
+        .transaction-modal .toss-modal-body {
+            min-height: 550px;
+            max-height: calc(95vh - 200px);
+            padding: var(--space-6) var(--space-8);
+            overflow-y: auto;
+        }
+        
+        .transaction-modal .toss-modal-header {
+            padding: var(--space-6) var(--space-8);
+        }
+        
+        .transaction-modal .toss-modal-footer {
+            padding: var(--space-5) var(--space-8);
+        }
+        
+        /* Larger form elements for better usability */
+        .transaction-modal .toss-input,
+        .transaction-modal .toss-select {
+            font-size: 16px;
+            padding: 16px 18px;
+            height: 56px;
+        }
+        
+        .transaction-modal textarea.toss-input {
+            min-height: 140px;
+            padding: 16px 18px;
+            resize: vertical;
+            line-height: 1.5;
+        }
+        
+        .transaction-modal .form-group {
+            margin-bottom: var(--space-8);
+        }
+        
+        .transaction-modal .form-label {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: var(--space-3);
+            color: var(--toss-gray-800);
+        }
+        
+        .transaction-modal .transaction-type-buttons {
+            gap: var(--space-4);
+            margin-bottom: var(--space-6);
+        }
+        
+        .transaction-modal .transaction-type-btn {
+            padding: 18px 28px;
+            font-size: 17px;
+            min-height: 58px;
+        }
+        
+        /* Account dropdown in modal should also be bigger */
+        .transaction-modal .toss-select-container {
+            max-width: 100%;
+        }
+        
+        .transaction-modal .account-search-menu {
+            min-height: 300px;
+        }
+        
+        /* Cash Location Search Menu Styles */
+        .cash-location-search-menu {
+            background: var(--toss-white) !important;
+            border: 1px solid var(--toss-gray-300) !important;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
+                        0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
+            border-radius: var(--radius-lg) !important;
+            max-height: 500px !important;
+            overflow-y: auto !important;
+            min-width: 500px !important;
+            width: max-content !important;
+            max-width: 650px !important;
+        }
+        
+        .cash-location-search-menu .toss-select-option {
+            padding: var(--space-3) var(--space-4) !important;
+            border-bottom: 1px solid var(--toss-gray-100) !important;
+            background: var(--toss-white) !important;
+            color: var(--toss-gray-900) !important;
+            min-height: 60px !important;
+            display: flex !important;
+            align-items: center !important;
+        }
+        
+        .cash-location-search-menu .toss-select-option:last-child {
+            border-bottom: none !important;
+        }
+        
+        .cash-location-search-menu .toss-select-option:hover {
+            background: var(--toss-gray-50) !important;
+            color: var(--toss-gray-900) !important;
+        }
+        
+        .transaction-modal .cash-location-search-menu {
+            min-height: 300px;
+        }
+        
+        /* Counterparty Search Menu Styles */
+        .counterparty-search-menu {
+            background: var(--toss-white) !important;
+            border: 1px solid var(--toss-gray-300) !important;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
+                        0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
+            border-radius: var(--radius-lg) !important;
+            max-height: 400px !important;
+            overflow-y: auto !important;
+            width: 100% !important;
+            position: absolute !important;
+            margin-top: 8px !important;
+            z-index: 1200 !important;
+        }
+        
+        .counterparty-search-menu .toss-select-option {
+            padding: var(--space-3) var(--space-4) !important;
+            border-bottom: 1px solid var(--toss-gray-100) !important;
+            background: var(--toss-white) !important;
+            color: var(--toss-gray-900) !important;
+            min-height: 60px !important;
+            display: flex !important;
+            align-items: center !important;
+            transition: background 0.15s ease !important;
+        }
+        
+        .counterparty-search-menu .toss-select-option:last-child {
+            border-bottom: none !important;
+        }
+        
+        .counterparty-search-menu .toss-select-option:hover {
+            background: var(--toss-gray-50) !important;
+            color: var(--toss-gray-900) !important;
         }
 
         .transaction-form {
@@ -644,6 +781,21 @@
             display: flex;
             flex-direction: column;
             gap: var(--space-2);
+            margin-bottom: var(--space-5);
+        }
+        .transaction-form-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .form-row {
+            display: flex;
+            gap: var(--space-5);
+            margin-bottom: var(--space-5);
+        }
+
+        .form-row .transaction-form-section {
+            flex: 1;
+            margin-bottom: 0;
         }
 
         .transaction-form-title {
@@ -672,10 +824,14 @@
         .account-search-menu {
             background: var(--toss-white) !important;
             border: 1px solid var(--toss-gray-300) !important;
-            box-shadow: var(--shadow-dropdown) !important;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
+                        0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
             border-radius: var(--radius-lg) !important;
-            max-height: 300px !important;
+            max-height: 500px !important;
             overflow-y: auto !important;
+            min-width: 500px !important;
+            width: max-content !important;
+            max-width: 650px !important;
         }
 
         .account-search-menu .toss-select-option {
@@ -683,6 +839,9 @@
             border-bottom: 1px solid var(--toss-gray-100) !important;
             background: var(--toss-white) !important;
             color: var(--toss-gray-900) !important;
+            min-height: 52px !important;
+            display: flex !important;
+            align-items: center !important;
         }
 
         .account-search-menu .toss-select-option:last-child {
@@ -703,6 +862,37 @@
             color: var(--toss-gray-600) !important;
             font-size: var(--font-small) !important;
             margin-top: var(--space-1) !important;
+        }
+        
+        .account-option-content {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: space-between !important;
+            width: 100% !important;
+            gap: var(--space-4) !important;
+        }
+        
+        .account-option-name {
+            flex: 1 !important;
+            font-weight: 500 !important;
+            color: var(--toss-gray-900) !important;
+            font-size: 15px !important;
+            min-width: 0 !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+            white-space: nowrap !important;
+        }
+        
+        .account-option-type {
+            display: inline-flex !important;
+            align-items: center !important;
+            gap: 6px !important;
+            padding: 4px 10px !important;
+            border-radius: var(--radius-sm) !important;
+            font-size: 13px !important;
+            font-weight: 500 !important;
+            white-space: nowrap !important;
+            flex-shrink: 0 !important;
         }
 
         .transaction-type-toggle {
@@ -752,6 +942,10 @@
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: var(--space-4);
+            margin-bottom: var(--space-5);
+        }
+        .form-row:last-child {
+            margin-bottom: 0;
         }
 
         @media (max-width: 768px) {
@@ -775,10 +969,244 @@
             to { transform: rotate(360deg); }
         }
 
+        /* ==================== STORE FILTER ==================== */
+        .controls-card {
+            background: transparent;
+            padding: 0;
+            margin-bottom: var(--space-4);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .control-section {
+            flex: 0 1 auto;
+            min-width: 200px;
+            max-width: 280px;
+            width: 280px;
+            display: flex;
+            align-items: center;
+            padding: 10px 14px;
+            cursor: pointer;
+            border-radius: 10px;
+            transition: all 0.2s ease;
+            gap: 10px;
+            position: relative;
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            background: white;
+            height: 44px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+            z-index: 10;
+            pointer-events: auto;
+        }
+        
+        .control-section:hover {
+            background: rgba(0, 0, 0, 0.02);
+            border-color: rgba(0, 0, 0, 0.12);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
+        }
+        
+        .control-section.dropdown-open {
+            background: white;
+            border-color: #0064FF;
+            box-shadow: 0 0 0 4px rgba(0, 100, 255, 0.08);
+        }
+        
+        .control-section.dropdown-open .control-label {
+            color: var(--toss-primary);
+        }
+        
+        .control-section.dropdown-open .control-dropdown {
+            color: var(--toss-primary);
+            transform: rotate(180deg);
+        }
+        
+        .control-icon {
+            width: 18px;
+            height: 18px;
+            flex-shrink: 0;
+            color: var(--toss-text-secondary);
+        }
+        
+        .control-label {
+            flex: 1;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--toss-text-primary);
+            user-select: none;
+        }
+        
+        .control-dropdown {
+            width: 18px;
+            height: 18px;
+            flex-shrink: 0;
+            color: var(--toss-text-secondary);
+            transition: transform 0.2s ease;
+            margin-left: auto;
+        }
+        
+        /* Store Filter Dropdown */
+        .store-filter-dropdown {
+            position: absolute;
+            top: calc(100% + 6px);
+            left: 0;
+            min-width: 100%;
+            width: max-content;
+            max-width: 380px;
+            background: white;
+            border-radius: 14px;
+            box-shadow: 
+                0 0 0 1px rgba(0, 0, 0, 0.04),
+                0 20px 25px -5px rgba(0, 0, 0, 0.1),
+                0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-8px) scale(0.96);
+            transition: all 200ms cubic-bezier(0.16, 1, 0.3, 1);
+            max-height: 380px;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 6px 0;
+        }
+        
+        .store-filter-dropdown.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0) scale(1);
+        }
+        
+        .store-filter-search {
+            width: calc(100% - 12px);
+            padding: 10px 16px;
+            border: none;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+            font-size: 14px;
+            outline: none;
+            background: rgba(0, 0, 0, 0.02);
+            color: #1a1a1a;
+            font-family: inherit;
+            margin: 0 6px 6px;
+            border-radius: 8px 8px 0 0;
+        }
+        
+        .store-filter-search:focus {
+            border-bottom-color: #0064FF;
+            background: white;
+            box-shadow: 0 0 0 1px rgba(0, 100, 255, 0.2);
+        }
+        
+        .store-filter-search::placeholder {
+            color: rgba(0, 0, 0, 0.4);
+        }
+        
+        .store-filter-divider {
+            height: 1px;
+            background: rgba(0, 0, 0, 0.06);
+            margin: 6px 12px;
+        }
+        
+        .store-filter-dropdown-option {
+            position: relative;
+            padding: 10px 16px;
+            margin: 0 6px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            transition: all 120ms ease-out;
+            font-size: 14px;
+            color: var(--toss-text-primary);
+            user-select: none;
+        }
+        
+        .store-filter-dropdown-option:hover {
+            background: rgba(0, 0, 0, 0.04);
+        }
+        
+        .store-filter-dropdown-option:active {
+            background: rgba(0, 0, 0, 0.08);
+            transform: scale(0.98);
+            transition-duration: 50ms;
+        }
+        
+        .store-filter-dropdown-option.selected {
+            background: rgba(0, 100, 255, 0.08);
+            color: #0064FF;
+            font-weight: 500;
+        }
+        
+        .store-filter-dropdown-option.selected:hover {
+            background: rgba(0, 100, 255, 0.12);
+        }
+        
+        .store-filter-dropdown-option-icon {
+            width: 16px;
+            height: 16px;
+            flex-shrink: 0;
+            color: currentColor;
+        }
+        
+        .store-filter-dropdown-option.selected .store-filter-dropdown-option-icon {
+            color: var(--toss-primary);
+        }
+        
+        .store-filter-dropdown-option-text {
+            font-size: 14px;
+            color: currentColor;
+            flex: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .store-filter-dropdown-option.selected .store-filter-dropdown-option-text {
+            color: var(--toss-primary);
+            font-weight: 500;
+        }
+        
+        .store-filter-dropdown-option-check {
+            width: 16px;
+            height: 16px;
+            color: var(--toss-primary);
+            margin-left: auto;
+            flex-shrink: 0;
+        }
+
         /* Responsive Design */
+        @media (max-width: 1200px) {
+            .transaction-modal {
+                max-width: 95%;
+                width: 95%;
+            }
+        }
+        
         @media (max-width: 768px) {
             .page-content {
                 padding: var(--space-4);
+            }
+            
+            .transaction-modal {
+                max-width: 100%;
+                width: 100%;
+                min-height: 100vh;
+                border-radius: 0;
+            }
+            
+            .transaction-modal .toss-modal-body {
+                padding: var(--space-4);
+                min-height: auto;
+            }
+            
+            .transaction-modal .toss-modal-header,
+            .transaction-modal .toss-modal-footer {
+                padding: var(--space-4);
+            }
+            
+            .transaction-modal .toss-input,
+            .transaction-modal .toss-select {
+                font-size: 16px; /* Prevent zoom on iOS */
             }
             
             .balance-summary-grid {
@@ -832,6 +1260,26 @@
                     </svg>
                     <span class="journal-company-text" id="companyName">Company Name</span>
                     <span class="journal-store-text" id="storeName" style="display: none;"> • Store Name</span>
+                </div>
+            </div>
+            
+            <!-- Store Filter Controls -->
+            <div class="controls-card">
+                <div class="control-section" id="storeFilterControl">
+                    <svg class="control-icon" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12,3L2,12H5V20H19V12H22L12,3M12,8.75A1.25,1.25 0 0,1 13.25,10A1.25,1.25 0 0,1 12,11.25A1.25,1.25 0 0,1 10.75,10A1.25,1.25 0 0,1 12,8.75Z"/>
+                    </svg>
+                    <span class="control-label" id="storeFilterLabel">All Stores</span>
+                    <svg class="control-dropdown" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M7.41,8.58L12,13.17L16.59,8.58L18,10L12,16L6,10L7.41,8.58Z"/>
+                    </svg>
+                    
+                    <!-- Store Filter Dropdown -->
+                    <div class="store-filter-dropdown" id="storeFilterDropdown">
+                        <div id="storeFilterOptions">
+                            <!-- Store filter options will be inserted here -->
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -934,7 +1382,7 @@
                     
                     <!-- Account Selection -->
                     <div class="transaction-form-section">
-                        <div class="transaction-form-title">Account *</div>
+                        <div class="transaction-form-title">Account <span style="color: var(--toss-error);">*</span></div>
                         <div class="toss-select-container toss-select-full">
                             <button type="button" class="toss-select" id="accountSelect" onclick="openAccountSearch(event)">
                                 <span class="toss-select-value toss-select-placeholder">Select account</span>
@@ -952,7 +1400,7 @@
                     
                     <!-- Amount -->
                     <div class="transaction-form-section">
-                        <div class="transaction-form-title">Amount *</div>
+                        <div class="transaction-form-title">Amount <span style="color: var(--toss-error);">*</span></div>
                         <div class="toss-input-group">
                             <input type="text" id="amountInput" class="toss-input" placeholder="Enter amount" oninput="formatAmount(this)">
                         </div>
@@ -1012,11 +1460,17 @@
                 this.isDebit = true;
                 this.counterpartyId = null;
                 this.counterpartyName = null;
+                this.isInternalCounterparty = false;
                 this.counterpartyStoreId = null;
                 this.counterpartyStoreName = null;
+                this.counterpartyStoreCashLocationId = null;
+                this.counterpartyStoreCashLocationName = null;
+                this.counterpartyStoreCashLocationType = null;
+                this.counterpartyStoreCashCurrencyId = null;
                 this.cashLocationId = null;
                 this.cashLocationName = null;
                 this.cashLocationType = null;
+                this.cashCurrencyId = null;
                 this.linkedCompanyId = null;
                 // Debt fields
                 this.debtCategory = null;
@@ -1040,15 +1494,17 @@
                     credit: !this.isDebit ? this.amount.toString() : '0'
                 };
 
-                // Add counterparty if present
-                if (this.counterpartyId) {
+                // Add counterparty if present - matching Flutter app exactly
+                if (this.counterpartyId && this.counterpartyId.length > 0) {
                     json.counterparty_id = this.counterpartyId;
+                    // Note: App does NOT add counterparty_store_id or linked_company_id at top level
                 }
 
-                // Add cash location if it's a cash account
+                // Add cash location if it's a cash account - matching Flutter app exactly
                 if (this.categoryTag === 'cash' && this.cashLocationId) {
                     json.cash = {
                         cash_location_id: this.cashLocationId
+                        // Note: App does NOT include currency_id in cash object
                     };
                 }
 
@@ -1102,7 +1558,7 @@
                 this.overallDescription = null;
                 this.selectedCompanyId = null;
                 this.selectedStoreId = null;
-                this.counterpartyCashLocationId = null;
+                this.counterpartyCashLocationId = null;  // Added to match Flutter app
             }
 
             get totalDebits() {
@@ -1157,6 +1613,7 @@
                 this.entryDate = new Date();
                 this.overallDescription = null;
                 this.counterpartyCashLocationId = null;
+                // Don't clear company and store IDs - they should remain from selection
                 this.updateUI();
             }
 
@@ -1177,6 +1634,7 @@
         let journalEntry = new JournalEntry();
         let accounts = [];
         let currentEditIndex = -1;
+        let currentStoreFilter = null; // null means "All Stores"
 
         // Initialize page
         window.skipNavbarAutoInit = true;
@@ -1184,13 +1642,21 @@
         window.initializePage('finance', (companyId, company) => {
             console.log('Company changed in journal input:', companyId);
             journalEntry.selectedCompanyId = companyId;
+            
+            // Reset store filter when company changes
+            currentStoreFilter = null;
+            refreshStoreFilter();
+            
             loadJournalInputData(companyId, company);
         });
 
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', async () => {
             // Initialize date
             document.getElementById('journalDate').textContent = 
                 journalEntry.entryDate.toISOString().split('T')[0];
+            
+            // Setup store filter
+            setupStoreFilter();
             
             // Initialize Supabase client if not already available
             if (!window.supabaseClient && window.supabase && window.supabase.createClient) {
@@ -1202,13 +1668,102 @@
             }
             
             // Wait for page initialization to complete
-            setTimeout(() => {
-                const companyId = appState.getSelectedCompanyId();
-                const company = appState.getSelectedCompany();
+            setTimeout(async () => {
+                let companyId = appState.getSelectedCompanyId();
+                let company = appState.getSelectedCompany();
+                let stores = [];
+                
+                // If no company in appState, try to load from localStorage or Supabase
+                if (!companyId) {
+                    console.log('No company in appState, trying to load from storage...');
+                    
+                    // Try to get from localStorage
+                    const userData = localStorage.getItem('user');
+                    if (userData) {
+                        try {
+                            const parsedData = JSON.parse(userData);
+                            if (parsedData.companies && parsedData.companies.length > 0) {
+                                company = parsedData.companies[0];
+                                companyId = company.company_id;
+                                stores = company.stores || [];
+                                
+                                // Set in appState for consistency
+                                appState.setSelectedCompany(companyId);
+                                console.log('Loaded company from localStorage:', company);
+                            }
+                        } catch (e) {
+                            console.error('Error parsing user data:', e);
+                        }
+                    }
+                    
+                    // If still no company, try to load from Supabase
+                    if (!companyId && window.supabaseClient) {
+                        try {
+                            const { data: { user } } = await window.supabaseClient.auth.getUser();
+                            if (user) {
+                                const { data: companiesData } = await window.supabaseClient
+                                    .from('user_companies')
+                                    .select(`
+                                        company_id,
+                                        companies!inner (
+                                            company_id,
+                                            company_name,
+                                            stores (
+                                                store_id,
+                                                store_name
+                                            )
+                                        )
+                                    `)
+                                    .eq('user_id', user.id)
+                                    .eq('companies.is_deleted', false);
+                                
+                                if (companiesData && companiesData.length > 0) {
+                                    const companyData = companiesData[0].companies;
+                                    company = companyData;
+                                    companyId = companyData.company_id;
+                                    stores = companyData.stores || [];
+                                    
+                                    // Store in appState
+                                    appState.setSelectedCompany(companyId);
+                                    console.log('Loaded company from Supabase:', company);
+                                }
+                            }
+                        } catch (e) {
+                            console.error('Error loading from Supabase:', e);
+                        }
+                    }
+                } else {
+                    // Company exists in appState
+                    stores = appState.getCompanyStores() || [];
+                }
+                
                 if (companyId) {
                     journalEntry.selectedCompanyId = companyId;
+                    
+                    console.log('Available stores:', stores);
+                    
+                    // Get selected store or default to first
+                    let storeId = appState.getSelectedStore()?.store_id;
+                    
+                    if (storeId) {
+                        journalEntry.selectedStoreId = storeId;
+                        currentStoreFilter = storeId;
+                        console.log('Initial store set on page load:', storeId);
+                    } else if (stores.length > 0) {
+                        // Default to first store if none selected
+                        const firstStore = stores[0];
+                        journalEntry.selectedStoreId = firstStore.store_id;
+                        currentStoreFilter = firstStore.store_id;
+                        appState.setSelectedStore(firstStore.store_id);
+                        console.log('Defaulted to first store:', firstStore);
+                    }
+                    
+                    // Update the display immediately
+                    updateStoreFilterDisplay();
+                    
                     loadJournalInputData(companyId, company);
                 } else {
+                    console.warn('No company found, page may not function properly');
                     // Even if no company, still try to load accounts from database
                     loadAccounts();
                 }
@@ -1228,17 +1783,31 @@
                 companyName.textContent = company.company_name || 'Company';
                 companyInfo.style.display = 'flex';
                 
-                // Update store info if available
-                const storeId = appState.getSelectedStoreId();
-                const store = appState.getSelectedStore();
-                if (store && store.store_name) {
-                    storeName.textContent = ` • ${store.store_name}`;
-                    storeName.style.display = 'inline';
-                    journalEntry.selectedStoreId = storeId;
-                } else {
+                // Get stores and set the first one as selected if none is selected
+                const stores = appState.getCompanyStores() || [];
+                if (!currentStoreFilter && stores.length > 0) {
+                    currentStoreFilter = stores[0].store_id;
+                }
+                
+                // Update store info based on selected store
+                if (currentStoreFilter) {
+                    const store = stores.find(s => s.store_id === currentStoreFilter);
+                    if (store && store.store_name) {
+                        storeName.textContent = ` • ${store.store_name}`;
+                        storeName.style.display = 'inline';
+                        journalEntry.selectedStoreId = currentStoreFilter;
+                    } else {
+                        storeName.style.display = 'none';
+                        journalEntry.selectedStoreId = null;
+                    }
+                } else if (stores.length === 0) {
+                    // No stores available
                     storeName.style.display = 'none';
                     journalEntry.selectedStoreId = null;
                 }
+                
+                // Update the store filter display
+                updateStoreFilterDisplay();
             }
             
             // Load accounts
@@ -1406,6 +1975,81 @@
             }
             
             input.value = formattedValue;
+            
+            // Trigger validation after formatting amount
+            validateTransactionForm();
+        }
+        
+        // Validate transaction form and enable/disable Add button
+        function validateTransactionForm() {
+            const accountSelect = document.getElementById('accountSelect');
+            const amountInput = document.getElementById('amountInput');
+            const saveBtn = document.getElementById('saveTransactionBtn');
+            
+            if (!saveBtn) return;
+            
+            // Check basic required fields
+            let isValid = true;
+            
+            // Check account selection
+            if (!accountSelect || !accountSelect.dataset.accountId) {
+                isValid = false;
+            }
+            
+            // Check amount
+            const amount = parseAmount(amountInput?.value || '');
+            if (!amount || amount <= 0) {
+                isValid = false;
+            }
+            
+            // Check conditional required fields based on account category tag
+            const categoryTag = accountSelect?.dataset.categoryTag;
+            
+            // For cash accounts - need cash location
+            if (categoryTag === 'cash') {
+                const cashLocationSelect = document.getElementById('cashLocationSelect');
+                if (!cashLocationSelect || !cashLocationSelect.dataset.locationId) {
+                    isValid = false;
+                }
+            }
+            
+            // For payable/receivable accounts - need counterparty and debt category
+            else if (categoryTag === 'payable' || categoryTag === 'receivable') {
+                // Check counterparty
+                const counterpartySelect = document.getElementById('counterpartySelect');
+                if (!counterpartySelect || !counterpartySelect.dataset.counterpartyId) {
+                    isValid = false;
+                }
+                
+                // Check debt category
+                const debtCategory = document.getElementById('debtCategory');
+                if (!debtCategory || !debtCategory.value || debtCategory.value === '') {
+                    isValid = false;
+                }
+                
+                // If counterparty is internal and has stores, check if store is selected
+                if (counterpartySelect && counterpartySelect.dataset.isInternal === 'true') {
+                    const counterpartyStoreRow = document.getElementById('counterpartyStoreRow');
+                    if (counterpartyStoreRow && counterpartyStoreRow.style.display !== 'none') {
+                        const counterpartyStoreSelect = document.getElementById('counterpartyStoreSelect');
+                        if (!counterpartyStoreSelect || !counterpartyStoreSelect.dataset.storeId) {
+                            isValid = false;
+                        }
+                        
+                        // If store is selected, check cash location
+                        const cashLocationRow = document.getElementById('counterpartyStoreCashLocationRow');
+                        if (cashLocationRow && cashLocationRow.style.display !== 'none') {
+                            const cashLocationSelect = document.getElementById('counterpartyStoreCashLocationSelect');
+                            if (!cashLocationSelect || !cashLocationSelect.dataset.locationId) {
+                                isValid = false;
+                            }
+                        }
+                    }
+                }
+            }
+            
+            // Enable/disable the save button
+            saveBtn.disabled = !isValid;
         }
 
         // Parse formatted amount to number
@@ -1473,11 +2117,38 @@
                                 </div>
                             ` : ''}
                             ${line.cashLocationName ? `
-                                <div class="transaction-tag cash">
+                                <div class="transaction-tag cash" style="display: flex; align-items: center; gap: 6px;">
                                     <svg class="icon" viewBox="0 0 24 24" fill="currentColor">
                                         <path d="M11,8C11,9.66 9.66,11 8,11C6.34,11 5,9.66 5,8C5,6.34 6.34,5 8,5C9.66,5 11,6.34 11,8M14,20H2V18C2,15.79 4.69,14 8,14C11.31,14 14,15.79 14,18V20M22,8V18H24V8H22M18,10V16H20V10H18M16,13V16H17V13H16Z"/>
                                     </svg>
-                                    ${line.cashLocationName}${line.cashLocationType ? ` (${line.cashLocationType})` : ''}
+                                    <span>${line.cashLocationName}</span>
+                                    ${line.cashLocationType ? (() => {
+                                        let typeBackground = 'rgba(0, 0, 0, 0.05)';
+                                        let typeTextColor = 'var(--toss-gray-700)';
+                                        
+                                        switch(line.cashLocationType?.toLowerCase()) {
+                                            case 'cash':
+                                            case 'cash_register':
+                                            case 'petty_cash':
+                                            case 'safe':
+                                                typeBackground = 'rgba(0, 200, 150, 0.15)';
+                                                typeTextColor = '#00C896';
+                                                break;
+                                            case 'bank':
+                                            case 'bank_account':
+                                                typeBackground = 'rgba(0, 100, 255, 0.15)';
+                                                typeTextColor = '#0064FF';
+                                                break;
+                                            case 'vault':
+                                                typeBackground = 'rgba(155, 81, 224, 0.15)';
+                                                typeTextColor = '#9B51E0';
+                                                break;
+                                        }
+                                        
+                                        return `<span style="background: ${typeBackground}; color: ${typeTextColor}; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 600; text-transform: uppercase; margin-left: 4px;">
+                                            ${line.cashLocationType.replace('_', ' ').toUpperCase()}
+                                        </span>`;
+                                    })() : ''}
                                 </div>
                             ` : ''}
                             ${line.counterpartyName ? `
@@ -1519,18 +2190,41 @@
         // Update submit button state
         function updateSubmitButton() {
             const submitBtn = document.getElementById('submitBtn');
+            if (!submitBtn) {
+                console.warn('Submit button not found in updateSubmitButton');
+                return;
+            }
+            
             const canSubmit = journalEntry.canSubmit();
             
             submitBtn.disabled = !canSubmit;
             
+            // Update the text span inside the button instead of replacing all content
+            let submitBtnText = document.getElementById('submitBtnText');
+            
+            // If the span doesn't exist, create it (in case textContent was set directly before)
+            if (!submitBtnText) {
+                // Restore the button structure
+                submitBtn.innerHTML = '';
+                submitBtnText = document.createElement('span');
+                submitBtnText.id = 'submitBtnText';
+                submitBtn.appendChild(submitBtnText);
+                
+                const spinner = document.createElement('div');
+                spinner.className = 'loading-spinner';
+                spinner.id = 'submitSpinner';
+                spinner.style.display = 'none';
+                submitBtn.appendChild(spinner);
+            }
+            
             if (canSubmit) {
-                submitBtn.textContent = 'Submit Journal Entry';
+                submitBtnText.textContent = 'Submit Journal Entry';
             } else if (journalEntry.transactionLines.length === 0) {
-                submitBtn.textContent = 'Add transactions to submit';
+                submitBtnText.textContent = 'Add transactions to submit';
             } else if (!journalEntry.isBalanced) {
-                submitBtn.textContent = 'Balance debits and credits';
+                submitBtnText.textContent = 'Balance debits and credits';
             } else {
-                submitBtn.textContent = 'Submit Journal Entry';
+                submitBtnText.textContent = 'Submit Journal Entry';
             }
         }
 
@@ -1567,6 +2261,9 @@
             
             // Show modal
             showModal('transactionModal');
+            
+            // Validate form initially
+            validateTransactionForm();
         }
 
         // Edit transaction
@@ -1599,13 +2296,14 @@
             
             // Show modal
             showModal('transactionModal');
+            
+            // Validate form after loading existing data
+            validateTransactionForm();
         }
 
         // Delete transaction
         function deleteTransaction(index) {
-            if (confirm('Are you sure you want to delete this transaction?')) {
-                journalEntry.removeTransactionLine(index);
-            }
+            journalEntry.removeTransactionLine(index);
         }
 
         // Close transaction modal
@@ -1616,11 +2314,31 @@
         // Reset transaction form
         function resetTransactionForm() {
             document.getElementById('transactionForm').reset();
-            document.getElementById('accountSelect').querySelector('.toss-select-value').textContent = 'Select account';
-            document.getElementById('accountSelect').querySelector('.toss-select-value').classList.add('toss-select-placeholder');
-            document.getElementById('accountSelect').dataset.accountId = '';
-            document.getElementById('accountSelect').dataset.categoryTag = '';
+            
+            // Reset account selection
+            const accountSelect = document.getElementById('accountSelect');
+            accountSelect.querySelector('.toss-select-value').textContent = 'Select account';
+            accountSelect.querySelector('.toss-select-value').classList.add('toss-select-placeholder');
+            accountSelect.dataset.accountId = '';
+            accountSelect.dataset.categoryTag = '';
+            
+            // Clear conditional fields
             document.getElementById('conditionalFields').innerHTML = '';
+            
+            // Reset counterparty store row
+            const counterpartyStoreRow = document.getElementById('counterpartyStoreRow');
+            if (counterpartyStoreRow) {
+                counterpartyStoreRow.style.display = 'none';
+            }
+            
+            // Reset counterparty cash location row
+            const counterpartyCashLocationRow = document.getElementById('counterpartyStoreCashLocationRow');
+            if (counterpartyCashLocationRow) {
+                counterpartyCashLocationRow.style.display = 'none';
+            }
+            
+            // Re-validate the form (should be invalid after reset)
+            validateTransactionForm();
         }
 
         // Set transaction type
@@ -1670,16 +2388,13 @@
             const menu = document.createElement('div');
             menu.className = 'toss-select-menu toss-select-menu-show account-search-menu';
             menu.style.position = 'absolute';
-            menu.style.top = 'calc(100% + 4px)';
+            menu.style.top = 'calc(100% + 8px)';
             menu.style.left = '0';
-            menu.style.right = '0';
             menu.style.zIndex = '1200';
-            menu.style.maxHeight = '400px';
-            menu.style.overflowY = 'auto';
             
             // Add search input at the top
             const searchContainer = document.createElement('div');
-            searchContainer.style.padding = 'var(--space-3)';
+            searchContainer.style.padding = '12px';
             searchContainer.style.borderBottom = '1px solid var(--toss-gray-200)';
             searchContainer.style.position = 'sticky';
             searchContainer.style.top = '0';
@@ -1691,20 +2406,35 @@
             searchInput.placeholder = 'Search accounts...';
             searchInput.className = 'toss-input';
             searchInput.style.width = '100%';
+            searchInput.style.fontSize = '14px';
+            searchInput.style.padding = '10px 12px';
             searchContainer.appendChild(searchInput);
+            
+            // Prevent search container from closing the menu when clicked
+            searchContainer.addEventListener('click', (e) => {
+                e.stopPropagation();
+            });
+            
             menu.appendChild(searchContainer);
             
             const optionsContainer = document.createElement('div');
             optionsContainer.className = 'toss-select-options';
+            optionsContainer.style.display = 'flex';
+            optionsContainer.style.flexDirection = 'column';
             
             if (accounts.length === 0) {
                 const emptyOption = document.createElement('div');
                 emptyOption.className = 'toss-select-option';
+                emptyOption.style.padding = '24px';
+                emptyOption.style.textAlign = 'center';
                 emptyOption.innerHTML = `
-                    <div class="toss-select-option-content">
-                        <div class="toss-select-option-label" style="color: var(--toss-gray-500); font-style: italic;">No accounts found</div>
-                        <div class="toss-select-option-description" style="color: var(--toss-gray-400); font-size: var(--font-small);">
-                            No accounts exist for this company
+                    <div class="toss-select-option-content" style="flex-direction: column; align-items: center; gap: 8px;">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="currentColor" style="color: var(--toss-gray-300); margin-bottom: 8px;">
+                            <path d="M9,3V4H4V6H5V19A2,2 0 0,0 7,21H17A2,2 0 0,0 19,19V6H20V4H15V3H9M7,6H17V19H7V6M9,8V17H11V8H9M13,8V17H15V8H13Z"/>
+                        </svg>
+                        <div class="toss-select-option-label" style="color: var(--toss-gray-600); font-style: normal; font-size: 16px;">No accounts found</div>
+                        <div class="toss-select-option-description" style="color: var(--toss-gray-400); font-size: 14px; margin-top: 4px;">
+                            No accounts exist for this company. Please create accounts first.
                         </div>
                     </div>
                 `;
@@ -1712,24 +2442,29 @@
             } else {
                 // Simple list - all accounts sorted alphabetically
                 accounts.forEach(account => {
+                    console.log('Creating option for account:', account.account_name); // Debug
                     const option = document.createElement('div');
                     option.className = 'toss-select-option account-option';
                     option.dataset.accountName = account.account_name.toLowerCase();
+                    console.log('Set dataset.accountName to:', option.dataset.accountName); // Debug
                     
-                    // Format category tag with color
+                    // Format category tag with color - Optimized for CASH, BANK, VAULT distinction
                     let categoryColor = 'var(--toss-gray-500)';
-                    let categoryIcon = '';
                     if (account.category_tag) {
                         switch(account.category_tag.toLowerCase()) {
                             case 'cash': 
-                                categoryIcon = '📥';
-                                categoryColor = 'var(--toss-success)';
+                                categoryColor = '#00C896';
+                                break;
+                            case 'bank': 
+                                categoryColor = '#0064FF';
+                                break;
+                            case 'vault': 
+                                categoryColor = '#9B51E0';
                                 break;
                             case 'payable': 
                                 categoryColor = 'var(--toss-error)';
                                 break;
                             case 'receivable': 
-                                categoryIcon = '📥';
                                 categoryColor = 'var(--toss-primary)';
                                 break;
                             case 'fixedasset': 
@@ -1747,44 +2482,67 @@
                         }
                     }
                     
+                    // Create account option with better layout
+                    let typeBackground = 'rgba(0, 0, 0, 0.05)';
+                    let typeTextColor = 'var(--toss-gray-700)';
+                    
+                    // Set colors based on category - Optimized for CASH, BANK, VAULT distinction
+                    switch(account.category_tag?.toLowerCase()) {
+                        case 'cash':
+                            typeBackground = 'rgba(0, 200, 150, 0.15)';
+                            typeTextColor = '#00C896';
+                            break;
+                        case 'bank':
+                            typeBackground = 'rgba(0, 100, 255, 0.15)';
+                            typeTextColor = '#0064FF';
+                            break;
+                        case 'vault':
+                            typeBackground = 'rgba(155, 81, 224, 0.15)';
+                            typeTextColor = '#9B51E0';
+                            break;
+                        case 'payable':
+                            typeBackground = 'rgba(255, 59, 48, 0.1)';
+                            typeTextColor = 'var(--toss-error)';
+                            break;
+                        case 'receivable':
+                            typeBackground = 'rgba(0, 100, 255, 0.1)';
+                            typeTextColor = 'var(--toss-primary)';
+                            break;
+                        case 'fixedasset':
+                            typeBackground = 'rgba(0, 150, 255, 0.1)';
+                            typeTextColor = 'var(--toss-info)';
+                            break;
+                        case 'equity':
+                            typeBackground = 'rgba(255, 204, 0, 0.1)';
+                            typeTextColor = 'var(--toss-warning)';
+                            break;
+                        case 'retained':
+                            typeBackground = 'rgba(155, 81, 224, 0.1)';
+                            typeTextColor = '#9B51E0';
+                            break;
+                    }
+                    
                     option.innerHTML = `
-                        <div class="toss-select-option-content" style="display: flex; align-items: center; justify-content: space-between; padding: var(--space-3) var(--space-4);">
-                            <div class="toss-select-option-label" style="font-weight: 500; color: var(--toss-gray-900);">
+                        <div class="account-option-content">
+                            <div class="account-option-name">
                                 ${account.account_name}
                             </div>
                             ${account.category_tag ? `
-                                <div style="display: flex; align-items: center; gap: 6px;">
-                                    ${categoryIcon ? `<span style="font-size: 14px;">${categoryIcon}</span>` : ''}
-                                    <span style="font-size: var(--font-small); color: ${categoryColor}; font-weight: 500;">
-                                        ${formatCategoryTag(account.category_tag)}
-                                    </span>
+                                <div class="account-option-type" style="background: ${typeBackground}; color: ${typeTextColor};">
+                                    <span>${formatCategoryTag(account.category_tag)}</span>
                                 </div>
                             ` : ''}
                         </div>
                     `;
                     
-                    option.onclick = () => {
-                        selectAccount(account);
+                    option.onclick = async () => {
+                        await selectAccount(account);
                         menu.remove();
                     };
                     
                     optionsContainer.appendChild(option);
                 });
                 
-                // Add search functionality
-                searchInput.oninput = (e) => {
-                    const searchTerm = e.target.value.toLowerCase();
-                    const allOptions = optionsContainer.querySelectorAll('.account-option');
-                    
-                    allOptions.forEach(opt => {
-                        const accountName = opt.dataset.accountName;
-                        if (accountName.includes(searchTerm)) {
-                            opt.style.display = 'block';
-                        } else {
-                            opt.style.display = 'none';
-                        }
-                    });
-                };
             }
             
             menu.appendChild(optionsContainer);
@@ -1792,6 +2550,99 @@
             
             // Focus search input
             setTimeout(() => searchInput?.focus(), 10);
+            
+            // Add search functionality
+            if (searchInput) {
+                console.log('Setting up search functionality'); // Debug
+                
+                // Prevent search input from closing the menu when clicked
+                searchInput.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                });
+                
+                // Search functionality with debugging
+                searchInput.addEventListener('input', (e) => {
+                    console.log('🔍 Search input triggered!'); // Debug
+                    const searchTerm = e.target.value.toLowerCase().trim();
+                    console.log('🔍 Search term:', `"${searchTerm}"`); // Debug
+                    
+                    // Find all account options
+                    const accountOptions = Array.from(optionsContainer.querySelectorAll('.account-option'));
+                    console.log('🔍 Found account-options:', accountOptions.length); // Debug
+                    
+                    if (searchTerm === '') {
+                        // Show all options in original order
+                        accountOptions.forEach(option => {
+                            option.style.display = 'flex';
+                            option.style.order = '0';
+                        });
+                        return;
+                    }
+                    
+                    // Create array to store matches with relevance scores
+                    const matches = [];
+                    
+                    accountOptions.forEach((option, index) => {
+                        const accountName = option.dataset.accountName || '';
+                        const accountText = option.textContent.toLowerCase();
+                        
+                        // Calculate relevance score
+                        let relevanceScore = 0;
+                        const isVisible = accountName.includes(searchTerm) || accountText.includes(searchTerm);
+                        
+                        if (isVisible) {
+                            // Exact match gets highest priority
+                            if (accountName === searchTerm) {
+                                relevanceScore = 1000;
+                            }
+                            // Name starts with search term gets high priority
+                            else if (accountName.startsWith(searchTerm)) {
+                                relevanceScore = 500;
+                            }
+                            // Name contains search term gets medium priority
+                            else if (accountName.includes(searchTerm)) {
+                                relevanceScore = 100;
+                            }
+                            // Text contains search term gets low priority
+                            else if (accountText.includes(searchTerm)) {
+                                relevanceScore = 10;
+                            }
+                            
+                            // Add to matches array
+                            matches.push({
+                                element: option,
+                                score: relevanceScore,
+                                name: accountName,
+                                index: index
+                            });
+                        }
+                    });
+                    
+                    console.log('🔍 Found matches:', matches.map(m => ({ name: m.name, score: m.score })));
+                    
+                    // Hide all options first
+                    accountOptions.forEach(option => {
+                        option.style.display = 'none';
+                        option.style.order = '999';
+                    });
+                    
+                    // Sort matches by relevance score (highest first)
+                    matches.sort((a, b) => b.score - a.score);
+                    
+                    // Show matches in relevance order
+                    matches.forEach((match, index) => {
+                        match.element.style.display = 'flex';
+                        match.element.style.order = index.toString();
+                    });
+                    
+                    console.log('🔍 Ordered results:', matches.map(m => m.name));
+                    console.log('🔍 Filter results:', { visibleCount: matches.length, total: accountOptions.length });
+                });
+                
+                console.log('✅ Search functionality setup complete');
+            } else {
+                console.error('❌ Search input not found!');
+            }
             
             console.log('Menu created with', accounts.length, 'accounts');
             
@@ -1807,8 +2658,7 @@
         }
 
         // Select account
-        function selectAccount(account) {
-            console.log('Selecting account:', account);
+        async function selectAccount(account) {
             
             const accountSelect = document.getElementById('accountSelect');
             if (!accountSelect) {
@@ -1825,14 +2675,55 @@
             accountSelect.dataset.accountId = account.account_id;
             accountSelect.dataset.categoryTag = account.category_tag || '';
             
-            console.log('Account selected:', {
-                id: account.account_id,
-                name: account.account_name,
-                category: account.category_tag
-            });
+            
+            // Preload data for payable/receivable accounts
+            if (account.category_tag === 'payable' || account.category_tag === 'receivable') {
+                console.log('Preloading data for payable/receivable account');
+                
+                const companyId = appState.getSelectedCompanyId();
+                if (companyId && account.account_id) {
+                    try {
+                        // Load all counterparties with their mappings
+                        const [counterpartiesResult, mappingsResult] = await Promise.all([
+                            supabaseClient
+                                .from('counterparties')
+                                .select('counterparty_id, name, is_internal, linked_company_id')
+                                .eq('company_id', companyId)
+                                .eq('is_deleted', false),
+                            supabaseClient
+                                .from('account_mappings')
+                                .select('counterparty_id, linked_account_id, direction')
+                                .eq('my_company_id', companyId)
+                                .eq('my_account_id', account.account_id)
+                        ]);
+                        
+                        if (!counterpartiesResult.error && !mappingsResult.error) {
+                            const counterparties = counterpartiesResult.data || [];
+                            const mappings = mappingsResult.data || [];
+                            
+                            console.log('Preloaded data:', {
+                                counterparties: counterparties.length,
+                                mappings: mappings.length,
+                                mappedCounterpartyIds: mappings.map(m => m.counterparty_id)
+                            });
+                            
+                            // Store preloaded data for quick access
+                            accountSelect.dataset.preloadedCounterparties = JSON.stringify(counterparties);
+                            accountSelect.dataset.preloadedMappings = JSON.stringify(mappings);
+                        }
+                    } catch (error) {
+                        console.error('Failed to preload data:', error);
+                    }
+                }
+            }
             
             // Load conditional fields based on account type
             loadConditionalFields(account.category_tag);
+            
+            // Validate form after selecting account (small delay to ensure DOM is ready)
+            setTimeout(() => {
+                validateTransactionForm();
+            }, 10);
         }
 
         // Load conditional fields based on account type
@@ -1840,13 +2731,24 @@
             const container = document.getElementById('conditionalFields');
             container.innerHTML = '';
             
+            // Hide counterparty store row and cash location row when switching categories
+            const counterpartyStoreRow = document.getElementById('counterpartyStoreRow');
+            if (counterpartyStoreRow) {
+                counterpartyStoreRow.style.display = 'none';
+            }
+            
+            const counterpartyCashLocationRow = document.getElementById('counterpartyStoreCashLocationRow');
+            if (counterpartyCashLocationRow) {
+                counterpartyCashLocationRow.style.display = 'none';
+            }
+            
             if (!categoryTag) return;
             
             // Cash account fields
             if (categoryTag === 'cash') {
                 container.innerHTML = `
                     <div class="transaction-form-section">
-                        <div class="transaction-form-title">Cash Location</div>
+                        <div class="transaction-form-title">Cash Location <span style="color: var(--toss-error);">*</span></div>
                         <div class="toss-select-container toss-select-full">
                             <button type="button" class="toss-select" id="cashLocationSelect" onclick="openCashLocationSearch()">
                                 <span class="toss-select-value toss-select-placeholder">Select cash location</span>
@@ -1870,7 +2772,7 @@
             if (categoryTag === 'payable' || categoryTag === 'receivable') {
                 container.innerHTML = `
                     <div class="transaction-form-section">
-                        <div class="transaction-form-title">Counterparty</div>
+                        <div class="transaction-form-title">Counterparty <span style="color: var(--toss-error);">*</span></div>
                         <div class="toss-select-container toss-select-full">
                             <button type="button" class="toss-select" id="counterpartySelect" onclick="openCounterpartySearch()">
                                 <span class="toss-select-value toss-select-placeholder">Select counterparty</span>
@@ -1880,11 +2782,33 @@
                             </button>
                         </div>
                     </div>
+                    <div class="transaction-form-section" id="counterpartyStoreRow" style="display: none;">
+                        <div class="transaction-form-title">Counterparty Store <span style="color: var(--toss-error);">*</span></div>
+                        <div class="toss-select-container toss-select-full">
+                            <button type="button" class="toss-select" id="counterpartyStoreSelect" onclick="openCounterpartyStoreSearch()">
+                                <span class="toss-select-value toss-select-placeholder">Select store</span>
+                                <svg class="toss-select-arrow" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M7,10L12,15L17,10H7Z"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="transaction-form-section" id="counterpartyStoreCashLocationRow" style="display: none;">
+                        <div class="transaction-form-title">Counterparty Cash Location <span style="color: var(--toss-error);">*</span></div>
+                        <div class="toss-select-container toss-select-full">
+                            <button type="button" class="toss-select" id="counterpartyStoreCashLocationSelect" onclick="openCounterpartyStoreCashLocationSearch()">
+                                <span class="toss-select-value toss-select-placeholder">Select cash location</span>
+                                <svg class="toss-select-arrow" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M7,10L12,15L17,10H7Z"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
                     <div class="form-row">
                         <div class="transaction-form-section">
-                            <div class="transaction-form-title">Debt Category</div>
+                            <div class="transaction-form-title">Debt Category <span style="color: var(--toss-error);">*</span></div>
                             <div class="toss-select-container toss-select-full">
-                                <select class="toss-input" id="debtCategory">
+                                <select class="toss-input" id="debtCategory" required>
                                     <option value="">Select category</option>
                                     <option value="note">Note</option>
                                     <option value="account">Account</option>
@@ -1896,7 +2820,7 @@
                         <div class="transaction-form-section">
                             <div class="transaction-form-title">Interest Rate (%)</div>
                             <div class="toss-input-group">
-                                <input type="number" id="interestRate" class="toss-input" placeholder="0" step="0.01" min="0">
+                                <input type="number" id="interestRate" class="toss-input" placeholder="0" value="0" step="0.01" min="0">
                             </div>
                         </div>
                     </div>
@@ -1905,9 +2829,37 @@
                 if (existingData) {
                     if (existingData.counterpartyId) {
                         const select = document.getElementById('counterpartySelect');
-                        select.querySelector('.toss-select-value').textContent = existingData.counterpartyName;
-                        select.querySelector('.toss-select-value').classList.remove('toss-select-placeholder');
+                        const valueElement = select.querySelector('.toss-select-value');
+                        
+                        // Store data in dataset
                         select.dataset.counterpartyId = existingData.counterpartyId;
+                        select.dataset.counterpartyName = existingData.counterpartyName;
+                        select.dataset.linkedCompanyId = existingData.linkedCompanyId || '';
+                        select.dataset.isInternal = existingData.isInternalCounterparty ? 'true' : 'false';
+                        
+                        valueElement.textContent = existingData.counterpartyName;
+                        valueElement.classList.remove('toss-select-placeholder');
+                        
+                        // If there's a counterparty store, show the store row and populate it
+                        if (existingData.counterpartyStoreId && existingData.counterpartyStoreName) {
+                            const counterpartyStoreRow = document.getElementById('counterpartyStoreRow');
+                            if (counterpartyStoreRow) {
+                                counterpartyStoreRow.style.display = 'block';
+                                
+                                const storeSelect = document.getElementById('counterpartyStoreSelect');
+                                if (storeSelect) {
+                                    const storeValueElement = storeSelect.querySelector('.toss-select-value');
+                                    if (storeValueElement) {
+                                        storeValueElement.textContent = existingData.counterpartyStoreName;
+                                        storeValueElement.classList.remove('toss-select-placeholder');
+                                    }
+                                    
+                                    // Store data in dataset
+                                    storeSelect.dataset.storeId = existingData.counterpartyStoreId;
+                                    storeSelect.dataset.storeName = existingData.counterpartyStoreName;
+                                }
+                            }
+                        }
                     }
                     if (existingData.debtCategory) {
                         document.getElementById('debtCategory').value = existingData.debtCategory;
@@ -1916,21 +2868,1106 @@
                         document.getElementById('interestRate').value = existingData.interestRate;
                     }
                 }
+                
+                // Add event listener for debt category after it's created
+                setTimeout(() => {
+                    const debtCategorySelect = document.getElementById('debtCategory');
+                    if (debtCategorySelect) {
+                        debtCategorySelect.addEventListener('change', validateTransactionForm);
+                        // Also trigger validation immediately if there's already a value
+                        if (debtCategorySelect.value) {
+                            validateTransactionForm();
+                        }
+                    }
+                }, 0);
             }
         }
 
         // Open cash location search (simplified)
+        // Load cash locations from database
+        async function loadCashLocations() {
+            console.log('Loading cash locations...');
+            
+            const companyId = appState.getSelectedCompanyId();
+            const storeId = currentStoreFilter || appState.getSelectedStoreId();
+            
+            if (!companyId) {
+                console.error('No company selected');
+                return [];
+            }
+            
+            if (!storeId) {
+                console.error('No store selected');
+                return [];
+            }
+            
+            try {
+                console.log('Querying cash locations with filters:', {
+                    company_id: companyId,
+                    store_id: storeId,
+                    is_deleted: false
+                });
+                
+                const { data, error } = await supabaseClient
+                    .from('cash_locations')
+                    .select('cash_location_id, location_name, location_type, currency_id')
+                    .eq('company_id', companyId)
+                    .eq('store_id', storeId)
+                    .eq('is_deleted', false)
+                    .order('location_name');
+                    
+                if (error) {
+                    console.error('Error loading cash locations:', error);
+                    throw error;
+                }
+                
+                console.log('Cash locations loaded:', data);
+                return data || [];
+                
+            } catch (error) {
+                console.error('Failed to load cash locations:', error);
+                return [];
+            }
+        }
+        
         function openCashLocationSearch() {
-            // For demo purposes, show a simple alert
-            alert('Cash location selection would be implemented here');
+            console.log('Opening cash location search...');
+            
+            const cashLocationSelect = document.getElementById('cashLocationSelect');
+            if (!cashLocationSelect) {
+                console.error('Cash location select element not found');
+                return;
+            }
+            
+            // Check if dropdown already exists and toggle
+            const existingMenu = document.querySelector('.cash-location-search-menu');
+            if (existingMenu) {
+                console.log('Closing existing cash location menu');
+                existingMenu.remove();
+                return;
+            }
+            
+            // Load and display cash locations
+            loadCashLocations().then(locations => {
+                console.log('Creating cash location dropdown menu');
+                
+                const menu = document.createElement('div');
+                menu.className = 'toss-select-menu toss-select-menu-show cash-location-search-menu';
+                menu.style.position = 'absolute';
+                menu.style.top = 'calc(100% + 8px)';
+                menu.style.left = '0';
+                menu.style.zIndex = '1200';
+                
+                // Add search input at the top
+                const searchContainer = document.createElement('div');
+                searchContainer.style.padding = '12px';
+                searchContainer.style.borderBottom = '1px solid var(--toss-gray-200)';
+                searchContainer.style.position = 'sticky';
+                searchContainer.style.top = '0';
+                searchContainer.style.background = 'var(--toss-white)';
+                searchContainer.style.zIndex = '1';
+                
+                const searchInput = document.createElement('input');
+                searchInput.type = 'text';
+                searchInput.placeholder = 'Search cash locations...';
+                searchInput.className = 'toss-input';
+                searchInput.style.width = '100%';
+                searchInput.style.fontSize = '14px';
+                searchInput.style.padding = '10px 12px';
+                searchContainer.appendChild(searchInput);
+                
+                // Prevent search container from closing the menu when clicked
+                searchContainer.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                });
+                
+                menu.appendChild(searchContainer);
+                
+                const optionsContainer = document.createElement('div');
+                optionsContainer.className = 'toss-select-options';
+                optionsContainer.style.display = 'flex';
+                optionsContainer.style.flexDirection = 'column';
+                
+                if (locations.length === 0) {
+                    const emptyOption = document.createElement('div');
+                    emptyOption.className = 'toss-select-option';
+                    emptyOption.style.padding = '24px';
+                    emptyOption.style.textAlign = 'center';
+                    emptyOption.innerHTML = `
+                        <div class="toss-select-option-content" style="flex-direction: column; align-items: center; gap: 8px;">
+                            <svg width="48" height="48" viewBox="0 0 24 24" fill="currentColor" style="color: var(--toss-gray-300); margin-bottom: 8px;">
+                                <path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,6A1.5,1.5 0 0,1 13.5,7.5A1.5,1.5 0 0,1 12,9A1.5,1.5 0 0,1 10.5,7.5A1.5,1.5 0 0,1 12,6M12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20M12,10C13.25,10 15.29,10.54 16.19,12.38C16.66,13.27 16.65,14.35 16.15,15.23C15.5,16.37 14.45,17 13.25,17H10.75C9.55,17 8.5,16.37 7.85,15.23C7.35,14.35 7.34,13.27 7.81,12.38C8.71,10.54 10.75,10 12,10Z"/>
+                            </svg>
+                            <div class="toss-select-option-label" style="color: var(--toss-gray-600); font-style: normal; font-size: 16px;">No cash locations found</div>
+                            <div class="toss-select-option-description" style="color: var(--toss-gray-400); font-size: 14px; margin-top: 4px;">
+                                No cash locations exist for this store. Please create cash locations first.
+                            </div>
+                        </div>
+                    `;
+                    optionsContainer.appendChild(emptyOption);
+                } else {
+                    locations.forEach(location => {
+                        console.log('Creating option for cash location:', location);
+                        const option = document.createElement('div');
+                        option.className = 'toss-select-option cash-location-option';
+                        option.dataset.locationId = location.cash_location_id;
+                        option.dataset.locationName = location.location_name.toLowerCase();
+                        option.dataset.currencyId = location.currency_id;
+                        
+                        // Get location type display
+                        let typeBackground = 'rgba(0, 0, 0, 0.05)';
+                        let typeTextColor = 'var(--toss-gray-700)';
+                        
+                        switch(location.location_type?.toLowerCase()) {
+                            case 'cash':
+                            case 'cash_register':
+                            case 'petty_cash':
+                            case 'safe':
+                                typeBackground = 'rgba(0, 200, 150, 0.15)';
+                                typeTextColor = '#00C896';
+                                break;
+                            case 'bank':
+                            case 'bank_account':
+                                typeBackground = 'rgba(0, 100, 255, 0.15)';
+                                typeTextColor = '#0064FF';
+                                break;
+                            case 'vault':
+                                typeBackground = 'rgba(155, 81, 224, 0.15)';
+                                typeTextColor = '#9B51E0';
+                                break;
+                        }
+                        
+                        option.innerHTML = `
+                            <div class="account-option-content" style="width: 100%;">
+                                <div class="account-option-name">
+                                    ${location.location_name}
+                                </div>
+                                ${location.location_type ? `
+                                    <div class="account-option-type" style="background: ${typeBackground}; color: ${typeTextColor};">
+                                        <span>${location.location_type.replace('_', ' ').toUpperCase()}</span>
+                                    </div>
+                                ` : ''}
+                            </div>
+                        `;
+                        
+                        option.onclick = () => {
+                            selectCashLocation(location);
+                            menu.remove();
+                        };
+                        
+                        optionsContainer.appendChild(option);
+                    });
+                    
+                    // Add search functionality
+                    if (searchInput) {
+                        searchInput.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                        });
+                        
+                        searchInput.addEventListener('input', (e) => {
+                            const searchTerm = e.target.value.toLowerCase().trim();
+                            const locationOptions = Array.from(optionsContainer.querySelectorAll('.cash-location-option'));
+                            
+                            if (searchTerm === '') {
+                                locationOptions.forEach(option => {
+                                    option.style.display = 'flex';
+                                    option.style.order = '0';
+                                });
+                                return;
+                            }
+                            
+                            const matches = [];
+                            
+                            locationOptions.forEach((option, index) => {
+                                const locationName = option.dataset.locationName || '';
+                                const locationText = option.textContent.toLowerCase();
+                                
+                                let relevanceScore = 0;
+                                const isVisible = locationName.includes(searchTerm) || locationText.includes(searchTerm);
+                                
+                                if (isVisible) {
+                                    if (locationName === searchTerm) {
+                                        relevanceScore = 1000;
+                                    } else if (locationName.startsWith(searchTerm)) {
+                                        relevanceScore = 500;
+                                    } else if (locationName.includes(searchTerm)) {
+                                        relevanceScore = 100;
+                                    } else if (locationText.includes(searchTerm)) {
+                                        relevanceScore = 10;
+                                    }
+                                    
+                                    matches.push({
+                                        element: option,
+                                        score: relevanceScore,
+                                        name: locationName,
+                                        index: index
+                                    });
+                                }
+                            });
+                            
+                            // Hide all options first
+                            locationOptions.forEach(option => {
+                                option.style.display = 'none';
+                                option.style.order = '999';
+                            });
+                            
+                            // Sort matches by relevance score (highest first)
+                            matches.sort((a, b) => b.score - a.score);
+                            
+                            // Show matches in relevance order
+                            matches.forEach((match, index) => {
+                                match.element.style.display = 'flex';
+                                match.element.style.order = index.toString();
+                            });
+                        });
+                    }
+                }
+                
+                menu.appendChild(optionsContainer);
+                cashLocationSelect.parentElement.appendChild(menu);
+                
+                // Focus search input
+                setTimeout(() => searchInput?.focus(), 10);
+                
+                // Close menu when clicking outside
+                setTimeout(() => {
+                    document.addEventListener('click', function closeMenu(e) {
+                        if (!cashLocationSelect.parentElement.contains(e.target)) {
+                            menu.remove();
+                            document.removeEventListener('click', closeMenu);
+                        }
+                    });
+                }, 0);
+                
+            }).catch(error => {
+                console.error('Error opening cash location search:', error);
+                alert('Failed to load cash locations. Please try again.');
+            });
+        }
+        
+        // Select cash location
+        function selectCashLocation(location) {
+            
+            const cashLocationSelect = document.getElementById('cashLocationSelect');
+            if (!cashLocationSelect) {
+                console.error('Cash location select element not found');
+                return;
+            }
+            
+            const valueElement = cashLocationSelect.querySelector('.toss-select-value');
+            if (valueElement) {
+                // Get location type colors using same logic as dropdown
+                let typeBackground = 'rgba(0, 0, 0, 0.05)';
+                let typeTextColor = 'var(--toss-gray-700)';
+                
+                switch(location.location_type?.toLowerCase()) {
+                    case 'cash':
+                    case 'cash_register':
+                    case 'petty_cash':
+                    case 'safe':
+                        typeBackground = 'rgba(0, 200, 150, 0.15)';
+                        typeTextColor = '#00C896';
+                        break;
+                    case 'bank':
+                    case 'bank_account':
+                        typeBackground = 'rgba(0, 100, 255, 0.15)';
+                        typeTextColor = '#0064FF';
+                        break;
+                    case 'vault':
+                        typeBackground = 'rgba(155, 81, 224, 0.15)';
+                        typeTextColor = '#9B51E0';
+                        break;
+                }
+                
+                // Create the same styled structure as dropdown options
+                if (location.location_type) {
+                    valueElement.innerHTML = `
+                        <div class="account-option-content" style="width: 100%; display: flex; align-items: center; justify-content: space-between;">
+                            <div class="account-option-name" style="font-weight: 500;">
+                                ${location.location_name}
+                            </div>
+                            <div class="account-option-type" style="background: ${typeBackground}; color: ${typeTextColor}; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">
+                                <span>${location.location_type.replace('_', ' ').toUpperCase()}</span>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    valueElement.textContent = location.location_name;
+                }
+                valueElement.classList.remove('toss-select-placeholder');
+            }
+            
+            // Store the cash location data
+            cashLocationSelect.dataset.locationId = location.cash_location_id;
+            cashLocationSelect.dataset.locationName = location.location_name;
+            cashLocationSelect.dataset.locationType = location.location_type || '';
+            cashLocationSelect.dataset.currencyId = location.currency_id || '';
+            
+            
+            // Trigger validation after selecting cash location
+            validateTransactionForm();
         }
 
-        // Open counterparty search (simplified)
+        // Load counterparties from database
+        async function loadCounterparties() {
+            console.log('Loading counterparties...');
+            
+            const companyId = appState.getSelectedCompanyId();
+            
+            if (!companyId) {
+                console.error('No company selected');
+                return [];
+            }
+            
+            try {
+                console.log('Querying counterparties with filters:', {
+                    company_id: companyId,
+                    is_deleted: false
+                });
+                
+                const { data, error } = await supabaseClient
+                    .from('counterparties')
+                    .select('counterparty_id, name, is_internal, linked_company_id')
+                    .eq('company_id', companyId)
+                    .eq('is_deleted', false)
+                    .order('name');
+                    
+                if (error) {
+                    console.error('Error loading counterparties:', error);
+                    throw error;
+                }
+                
+                // Sort counterparties with INTERNAL at the top
+                const sortedData = (data || []).sort((a, b) => {
+                    // Internal counterparties come first
+                    if (a.is_internal && !b.is_internal) return -1;
+                    if (!a.is_internal && b.is_internal) return 1;
+                    // Then sort alphabetically by name
+                    return a.name.localeCompare(b.name);
+                });
+                
+                console.log('Counterparties loaded and sorted:', sortedData);
+                return sortedData;
+                
+            } catch (error) {
+                console.error('Failed to load counterparties:', error);
+                return [];
+            }
+        }
+
+        // Open counterparty search dropdown
         function openCounterpartySearch() {
-            // For demo purposes, show a simple alert
-            alert('Counterparty selection would be implemented here');
+            console.log('Opening counterparty search...');
+            
+            const counterpartySelect = document.getElementById('counterpartySelect');
+            if (!counterpartySelect) {
+                console.error('Counterparty select element not found');
+                return;
+            }
+            
+            // Clean up any existing listener
+            if (window.counterpartyCloseMenu) {
+                document.removeEventListener('click', window.counterpartyCloseMenu);
+                window.counterpartyCloseMenu = null;
+            }
+            
+            const existingMenu = document.querySelector('.counterparty-search-menu');
+            if (existingMenu) {
+                console.log('Closing existing menu');
+                existingMenu.remove();
+                return;
+            }
+            
+            console.log('Creating counterparty dropdown menu');
+            
+            const menu = document.createElement('div');
+            menu.className = 'toss-select-menu toss-select-menu-show counterparty-search-menu';
+            menu.style.position = 'absolute';
+            menu.style.top = 'calc(100% + 8px)';
+            menu.style.left = '0';
+            menu.style.width = '100%';
+            menu.style.maxHeight = '400px';
+            menu.style.overflowY = 'auto';
+            menu.style.zIndex = '1200';
+            menu.style.background = 'var(--toss-white)';
+            menu.style.border = '1px solid var(--toss-gray-300)';
+            menu.style.borderRadius = 'var(--radius-lg)';
+            menu.style.boxShadow = '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)';
+            
+            // Add search container
+            const searchContainer = document.createElement('div');
+            searchContainer.style.padding = '12px';
+            searchContainer.style.borderBottom = '1px solid var(--toss-gray-200)';
+            searchContainer.style.position = 'sticky';
+            searchContainer.style.top = '0';
+            searchContainer.style.background = 'var(--toss-white)';
+            searchContainer.style.zIndex = '10';
+            
+            const searchInput = document.createElement('input');
+            searchInput.type = 'text';
+            searchInput.placeholder = 'Search counterparties...';
+            searchInput.className = 'toss-select-search';
+            searchInput.style.width = '100%';
+            searchInput.style.padding = '12px';
+            searchInput.style.border = '1px solid var(--toss-gray-300)';
+            searchInput.style.borderRadius = 'var(--radius-md)';
+            searchInput.style.fontSize = 'var(--font-body)';
+            searchInput.style.background = 'var(--toss-gray-50)';
+            searchInput.style.outline = 'none';
+            
+            searchContainer.appendChild(searchInput);
+            menu.appendChild(searchContainer);
+            
+            // Add options container
+            const optionsContainer = document.createElement('div');
+            optionsContainer.className = 'counterparty-options';
+            optionsContainer.style.padding = '8px';
+            menu.appendChild(optionsContainer);
+            
+            // Show loading state
+            optionsContainer.innerHTML = `
+                <div class="toss-select-option" style="padding: 20px; text-align: center; color: var(--toss-gray-500);">
+                    Loading counterparties...
+                </div>
+            `;
+            
+            counterpartySelect.style.position = 'relative';
+            counterpartySelect.appendChild(menu);
+            
+            // Focus search input
+            setTimeout(() => searchInput.focus(), 50);
+            
+            // Load and display counterparties with mapping status
+            loadCounterparties().then(async counterparties => {
+                console.log('Displaying counterparties:', counterparties.length);
+                
+                if (counterparties.length === 0) {
+                    optionsContainer.innerHTML = `
+                        <div class="toss-select-option" style="padding: 20px; text-align: center; color: var(--toss-gray-500);">
+                            <div style="margin-bottom: 8px;">No counterparties found</div>
+                            <div style="font-size: var(--font-small);">Add counterparties from the Counterparty Management page</div>
+                        </div>
+                    `;
+                } else {
+                    // Get current account and company for mapping check
+                    const accountSelect = document.getElementById('accountSelect');
+                    const companyId = appState.getSelectedCompanyId();
+                    const accountId = accountSelect?.dataset.accountId;
+                    
+                    // Load all mappings for this account
+                    let mappings = [];
+                    if (accountId && companyId) {
+                        try {
+                            const { data } = await supabaseClient
+                                .from('account_mappings')
+                                .select('counterparty_id')
+                                .eq('my_company_id', companyId)
+                                .eq('my_account_id', accountId);
+                            
+                            mappings = (data || []).map(m => m.counterparty_id);
+                            console.log('Account mappings loaded:', mappings);
+                        } catch (error) {
+                            console.error('Failed to load mappings:', error);
+                        }
+                    }
+                    
+                    optionsContainer.innerHTML = '';
+                    counterparties.forEach(counterparty => {
+                        console.log('Creating option for counterparty:', counterparty);
+                        const option = document.createElement('div');
+                        option.className = 'toss-select-option counterparty-option';
+                        option.dataset.counterpartyId = counterparty.counterparty_id;
+                        option.dataset.counterpartyName = counterparty.name.toLowerCase();
+                        option.dataset.linkedCompanyId = counterparty.linked_company_id || '';
+                        option.dataset.isInternal = counterparty.is_internal;
+                        
+                        // Check if this counterparty is mapped
+                        const isMapped = mappings.includes(counterparty.counterparty_id);
+                        
+                        // Set colors based on internal/external status
+                        let typeBackground = 'rgba(0, 0, 0, 0.05)';
+                        let typeTextColor = 'var(--toss-gray-700)';
+                        let typeText = 'EXTERNAL';
+                        
+                        if (counterparty.is_internal) {
+                            typeBackground = 'rgba(0, 100, 255, 0.15)';
+                            typeTextColor = '#0064FF';
+                            typeText = 'INTERNAL';
+                        } else {
+                            typeBackground = 'rgba(128, 128, 128, 0.15)';
+                            typeTextColor = '#6C757D';
+                            typeText = 'EXTERNAL';
+                        }
+                        
+                        // Add mapping status for internal counterparties
+                        let mappingIndicator = '';
+                        if (counterparty.is_internal) {
+                            if (isMapped) {
+                                mappingIndicator = `
+                                    <div style="background: rgba(0, 200, 150, 0.15); color: #00C896; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 600; margin-left: 8px;">
+                                        MAPPED
+                                    </div>
+                                `;
+                            } else {
+                                mappingIndicator = `
+                                    <div style="background: rgba(255, 88, 71, 0.15); color: #FF5847; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 600; margin-left: 8px;">
+                                        NOT MAPPED
+                                    </div>
+                                `;
+                            }
+                        }
+                        
+                        option.innerHTML = `
+                            <div class="account-option-content" style="width: 100%; display: flex; align-items: center; justify-content: space-between;">
+                                <div class="account-option-name">
+                                    ${counterparty.name}
+                                </div>
+                                <div style="display: flex; align-items: center;">
+                                    <div class="account-option-type" style="background: ${typeBackground}; color: ${typeTextColor}; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">
+                                        <span>${typeText}</span>
+                                    </div>
+                                    ${mappingIndicator}
+                                </div>
+                            </div>
+                        `;
+                        
+                        option.onclick = async (e) => {
+                            e.stopPropagation();
+                            await selectCounterparty(counterparty);
+                            // Remove the menu immediately
+                            const menuToRemove = document.querySelector('.counterparty-search-menu');
+                            if (menuToRemove) {
+                                menuToRemove.remove();
+                            }
+                            // Also remove the click outside listener
+                            document.removeEventListener('click', window.counterpartyCloseMenu);
+                        };
+                        
+                        optionsContainer.appendChild(option);
+                    });
+                    
+                    // Add search functionality
+                    if (searchInput) {
+                        searchInput.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                        });
+                        
+                        searchInput.addEventListener('input', (e) => {
+                            const searchTerm = e.target.value.toLowerCase().trim();
+                            const counterpartyOptions = Array.from(optionsContainer.querySelectorAll('.counterparty-option'));
+                            
+                            if (searchTerm === '') {
+                                counterpartyOptions.forEach(option => {
+                                    option.style.display = 'flex';
+                                    option.style.order = '0';
+                                });
+                                return;
+                            }
+                            
+                            let hasVisibleOptions = false;
+                            
+                            counterpartyOptions.forEach(option => {
+                                const name = option.dataset.counterpartyName || '';
+                                const relevanceScore = calculateRelevanceScore(name, searchTerm);
+                                
+                                if (relevanceScore > 0) {
+                                    option.style.display = 'flex';
+                                    option.style.order = String(10000 - relevanceScore);
+                                    hasVisibleOptions = true;
+                                } else {
+                                    option.style.display = 'none';
+                                }
+                            });
+                            
+                            if (!hasVisibleOptions) {
+                                if (!document.querySelector('.no-results-message')) {
+                                    const noResultsDiv = document.createElement('div');
+                                    noResultsDiv.className = 'no-results-message';
+                                    noResultsDiv.style.padding = '20px';
+                                    noResultsDiv.style.textAlign = 'center';
+                                    noResultsDiv.style.color = 'var(--toss-gray-500)';
+                                    noResultsDiv.textContent = 'No matching counterparties found';
+                                    optionsContainer.appendChild(noResultsDiv);
+                                }
+                            } else {
+                                const noResultsMsg = document.querySelector('.no-results-message');
+                                if (noResultsMsg) {
+                                    noResultsMsg.remove();
+                                }
+                            }
+                        });
+                    }
+                }
+            }).catch(error => {
+                console.error('Failed to load counterparties:', error);
+                optionsContainer.innerHTML = `
+                    <div class="toss-select-option" style="padding: 20px; text-align: center; color: var(--toss-error);">
+                        Failed to load counterparties. Please try again.
+                    </div>
+                `;
+            });
+            
+            // Close menu when clicking outside
+            setTimeout(() => {
+                window.counterpartyCloseMenu = function(e) {
+                    if (!counterpartySelect.contains(e.target) && !menu.contains(e.target)) {
+                        menu.remove();
+                        document.removeEventListener('click', window.counterpartyCloseMenu);
+                        window.counterpartyCloseMenu = null;
+                    }
+                };
+                document.addEventListener('click', window.counterpartyCloseMenu);
+            }, 100);
+        }
+        
+        // Select a counterparty
+        async function selectCounterparty(counterparty) {
+            console.log('Selecting counterparty:', counterparty);
+            
+            const counterpartySelect = document.getElementById('counterpartySelect');
+            if (!counterpartySelect) {
+                console.error('Counterparty select element not found');
+                return;
+            }
+            
+            // Hide the counterparty store and cash location rows initially
+            const counterpartyStoreRow = document.getElementById('counterpartyStoreRow');
+            if (counterpartyStoreRow) {
+                counterpartyStoreRow.style.display = 'none';
+            }
+            
+            const counterpartyCashLocationRow = document.getElementById('counterpartyStoreCashLocationRow');
+            if (counterpartyCashLocationRow) {
+                counterpartyCashLocationRow.style.display = 'none';
+            }
+            
+            // If it's an internal counterparty, check account mappings first
+            if (counterparty.is_internal) {
+                console.log('Checking account mappings for internal counterparty');
+                
+                const companyId = appState.getSelectedCompanyId();
+                if (!companyId) {
+                    console.error('No company selected');
+                    showAlert('Please select a company first', 'error');
+                    return;
+                }
+                
+                // Get the selected account ID
+                const accountSelect = document.getElementById('accountSelect');
+                if (!accountSelect || !accountSelect.dataset.accountId) {
+                    console.error('No account selected');
+                    showAlert('Please select an account first', 'error');
+                    return;
+                }
+                
+                const accountId = accountSelect.dataset.accountId;
+                console.log('Checking mappings for account:', accountId, 'and counterparty:', counterparty.counterparty_id);
+                
+                try {
+                    // Check account mappings with account filter
+                    const { data: mappings, error: mappingError } = await supabaseClient
+                        .from('account_mappings')
+                        .select('*')
+                        .eq('my_company_id', companyId)
+                        .eq('counterparty_id', counterparty.counterparty_id)
+                        .eq('my_account_id', accountId);
+                    
+                    if (mappingError) {
+                        console.error('Error checking account mappings:', mappingError);
+                        showAlert('Failed to check account mappings', 'error');
+                        return;
+                    }
+                    
+                    console.log('Account mappings found:', mappings);
+                    
+                    // If no mappings exist, show message and reset
+                    if (!mappings || mappings.length === 0) {
+                        showAlert('Please map this account with the selected counterparty first', 'warning');
+                        
+                        // Reset counterparty selection
+                        const valueElement = counterpartySelect.querySelector('.toss-select-value');
+                        if (valueElement) {
+                            valueElement.innerHTML = 'Select counterparty';
+                            valueElement.classList.add('toss-select-placeholder');
+                        }
+                        counterpartySelect.dataset.counterpartyId = '';
+                        counterpartySelect.dataset.counterpartyName = '';
+                        counterpartySelect.dataset.isInternal = '';
+                        counterpartySelect.dataset.linkedCompanyId = '';
+                        
+                        return;
+                    }
+                    
+                    // If mappings exist and counterparty has linked_company_id, load stores
+                    if (counterparty.linked_company_id) {
+                        console.log('Loading stores for linked company:', counterparty.linked_company_id);
+                        
+                        const { data: stores, error: storeError } = await supabaseClient
+                            .from('stores')
+                            .select('store_id, store_name')
+                            .eq('company_id', counterparty.linked_company_id)
+                            .eq('is_deleted', false)
+                            .order('store_name');
+                        
+                        if (storeError) {
+                            console.error('Error loading stores:', storeError);
+                            showAlert('Failed to load counterparty stores', 'error');
+                        } else if (stores && stores.length > 0) {
+                            console.log('Stores loaded:', stores);
+                            
+                            // Show store selection
+                            if (counterpartyStoreRow) {
+                                counterpartyStoreRow.style.display = 'block';
+                                
+                                // Populate store dropdown
+                                const storeSelect = document.getElementById('counterpartyStoreSelect');
+                                if (storeSelect) {
+                                    const valueElement = storeSelect.querySelector('.toss-select-value');
+                                    if (valueElement) {
+                                        valueElement.innerHTML = 'Select store';
+                                        valueElement.classList.add('toss-select-placeholder');
+                                    }
+                                    
+                                    // Store the stores data for later use
+                                    storeSelect.dataset.stores = JSON.stringify(stores);
+                                }
+                            }
+                        }
+                    }
+                    
+                } catch (error) {
+                    console.error('Error processing internal counterparty:', error);
+                    showAlert('Failed to process counterparty selection', 'error');
+                    return;
+                }
+            }
+            
+            // Continue with normal selection
+            const valueElement = counterpartySelect.querySelector('.toss-select-value');
+            if (valueElement) {
+                // Set colors based on internal/external status
+                let typeBackground = 'rgba(0, 0, 0, 0.05)';
+                let typeTextColor = 'var(--toss-gray-700)';
+                let typeText = 'EXTERNAL';
+                
+                if (counterparty.is_internal) {
+                    typeBackground = 'rgba(0, 100, 255, 0.15)';
+                    typeTextColor = '#0064FF';
+                    typeText = 'INTERNAL';
+                } else {
+                    typeBackground = 'rgba(128, 128, 128, 0.15)';
+                    typeTextColor = '#6C757D';
+                    typeText = 'EXTERNAL';
+                }
+                
+                // Create the same styled structure as dropdown options
+                valueElement.innerHTML = `
+                    <div class="account-option-content" style="width: 100%; display: flex; align-items: center; justify-content: space-between;">
+                        <div class="account-option-name" style="font-weight: 500;">
+                            ${counterparty.name}
+                        </div>
+                        <div class="account-option-type" style="background: ${typeBackground}; color: ${typeTextColor}; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">
+                            <span>${typeText}</span>
+                        </div>
+                    </div>
+                `;
+                valueElement.classList.remove('toss-select-placeholder');
+            }
+            
+            // Store the counterparty data
+            counterpartySelect.dataset.counterpartyId = counterparty.counterparty_id;
+            counterpartySelect.dataset.counterpartyName = counterparty.name;
+            counterpartySelect.dataset.isInternal = counterparty.is_internal;
+            counterpartySelect.dataset.linkedCompanyId = counterparty.linked_company_id || '';
+            
+            
+            // Trigger validation after selecting counterparty
+            validateTransactionForm();
         }
 
+        // Open counterparty store search dropdown
+        function openCounterpartyStoreSearch() {
+            console.log('Opening counterparty store search...');
+            
+            const storeSelect = document.getElementById('counterpartyStoreSelect');
+            if (!storeSelect) {
+                console.error('Store select element not found');
+                return;
+            }
+            
+            // Check if stores data is available
+            const storesData = storeSelect.dataset.stores;
+            if (!storesData) {
+                console.error('No stores data available');
+                return;
+            }
+            
+            const stores = JSON.parse(storesData);
+            
+            const existingMenu = document.querySelector('.counterparty-store-search-menu');
+            if (existingMenu) {
+                console.log('Closing existing menu');
+                existingMenu.remove();
+                return;
+            }
+            
+            console.log('Creating store dropdown menu');
+            
+            const menu = document.createElement('div');
+            menu.className = 'toss-select-menu toss-select-menu-show counterparty-store-search-menu';
+            menu.style.position = 'absolute';
+            menu.style.top = 'calc(100% + 8px)';
+            menu.style.left = '0';
+            menu.style.width = '100%';
+            menu.style.maxHeight = '300px';
+            menu.style.overflowY = 'auto';
+            menu.style.zIndex = '1200';
+            menu.style.background = 'var(--toss-white)';
+            menu.style.border = '1px solid var(--toss-gray-300)';
+            menu.style.borderRadius = 'var(--radius-lg)';
+            menu.style.boxShadow = '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)';
+            
+            // Add options container
+            const optionsContainer = document.createElement('div');
+            optionsContainer.className = 'store-options';
+            optionsContainer.style.padding = '8px';
+            
+            // Add store options
+            stores.forEach(store => {
+                const option = document.createElement('div');
+                option.className = 'toss-select-option store-option';
+                option.dataset.storeId = store.store_id;
+                option.dataset.storeName = store.store_name;
+                
+                option.innerHTML = `
+                    <div class="account-option-content" style="width: 100%; display: flex; align-items: center;">
+                        <div class="account-option-name">
+                            ${store.store_name}
+                        </div>
+                    </div>
+                `;
+                
+                option.onclick = (e) => {
+                    e.stopPropagation();
+                    selectCounterpartyStore(store);
+                    menu.remove();
+                    // Remove the click outside listener
+                    if (window.counterpartyStoreCloseMenu) {
+                        document.removeEventListener('click', window.counterpartyStoreCloseMenu);
+                        window.counterpartyStoreCloseMenu = null;
+                    }
+                };
+                
+                optionsContainer.appendChild(option);
+            });
+            
+            menu.appendChild(optionsContainer);
+            
+            storeSelect.style.position = 'relative';
+            storeSelect.appendChild(menu);
+            
+            // Close menu when clicking outside
+            setTimeout(() => {
+                window.counterpartyStoreCloseMenu = function(e) {
+                    if (!storeSelect.contains(e.target) && !menu.contains(e.target)) {
+                        menu.remove();
+                        document.removeEventListener('click', window.counterpartyStoreCloseMenu);
+                        window.counterpartyStoreCloseMenu = null;
+                    }
+                };
+                document.addEventListener('click', window.counterpartyStoreCloseMenu);
+            }, 100);
+        }
+        
+        // Select a counterparty store
+        async function selectCounterpartyStore(store) {
+            console.log('Selecting counterparty store:', store);
+            
+            const storeSelect = document.getElementById('counterpartyStoreSelect');
+            if (!storeSelect) {
+                console.error('Store select element not found');
+                return;
+            }
+            
+            const valueElement = storeSelect.querySelector('.toss-select-value');
+            if (valueElement) {
+                valueElement.innerHTML = store.store_name;
+                valueElement.classList.remove('toss-select-placeholder');
+            }
+            
+            // Store the store data
+            storeSelect.dataset.storeId = store.store_id;
+            storeSelect.dataset.storeName = store.store_name;
+            
+            
+            // Show the cash location row and reset it
+            const cashLocationRow = document.getElementById('counterpartyStoreCashLocationRow');
+            const cashLocationSelect = document.getElementById('counterpartyStoreCashLocationSelect');
+            
+            if (cashLocationRow) {
+                cashLocationRow.style.display = 'block';
+            }
+            
+            if (cashLocationSelect) {
+                // Reset the cash location selection
+                const valueElement = cashLocationSelect.querySelector('.toss-select-value');
+                if (valueElement) {
+                    valueElement.textContent = 'Select cash location';
+                    valueElement.classList.add('toss-select-placeholder');
+                }
+                
+                // Clear previous data
+                delete cashLocationSelect.dataset.cashLocationId;
+                delete cashLocationSelect.dataset.locationName;
+                delete cashLocationSelect.dataset.locationType;
+                delete cashLocationSelect.dataset.currencyId;
+                
+                // Store the store ID for querying cash locations
+                cashLocationSelect.dataset.storeId = store.store_id;
+            }
+            
+            // Trigger validation after selecting store
+            validateTransactionForm();
+        }
+        
+        // Open counterparty store cash location search
+        async function openCounterpartyStoreCashLocationSearch() {
+            const cashLocationSelect = document.getElementById('counterpartyStoreCashLocationSelect');
+            if (!cashLocationSelect) return;
+            
+            const storeId = cashLocationSelect.dataset.storeId;
+            if (!storeId) {
+                showAlert('Please select a counterparty store first', 'error');
+                return;
+            }
+            
+            // Remove existing menu if any
+            const existingMenu = document.querySelector('.counterparty-cash-location-search-menu');
+            if (existingMenu) {
+                existingMenu.remove();
+            }
+            
+            // Create dropdown menu
+            const menu = document.createElement('div');
+            menu.className = 'counterparty-search-menu counterparty-cash-location-search-menu';
+            
+            // Get Supabase client
+            const supabaseClient = window.supabaseClient || window.supabase?.createClient?.(
+                'https://atkekzwgukdvucqntryo.supabase.co',
+                'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF0a2VrendndWtkdnVjcW50cnlvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI4OTQwMjIsImV4cCI6MjA1ODQ3MDAyMn0.G4WqAmLvQSqYEfMWIpFOAZOYtnT0kxCxj8dVGhuUYO8'
+            );
+            
+            if (!supabaseClient) {
+                showAlert('Supabase client not available', 'error');
+                return;
+            }
+            
+            try {
+                // Query cash locations for the selected store
+                const { data: cashLocations, error } = await supabaseClient
+                    .from('cash_locations')
+                    .select('cash_location_id, location_name, location_type, currency_id')
+                    .eq('store_id', storeId)
+                    .eq('is_deleted', false)
+                    .order('location_name');
+                
+                if (error) throw error;
+                
+                if (!cashLocations || cashLocations.length === 0) {
+                    showAlert('No cash locations found for this store', 'info');
+                    return;
+                }
+                
+                const optionsContainer = document.createElement('div');
+                optionsContainer.className = 'toss-select-options';
+                
+                cashLocations.forEach(location => {
+                    const option = document.createElement('div');
+                    option.className = 'toss-select-option';
+                    
+                    // Format display with location type
+                    const typeLabel = location.location_type === 'vault' ? 'Vault' : 
+                                     location.location_type === 'bank' ? 'Bank' : 
+                                     location.location_type;
+                    
+                    option.innerHTML = `
+                        <div style="display: flex; justify-content: space-between; width: 100%; align-items: center;">
+                            <span style="font-weight: 500; color: var(--toss-gray-900);">
+                                ${location.location_name}
+                            </span>
+                            <span style="font-size: 13px; color: var(--toss-gray-600); padding: 4px 8px; background: var(--toss-gray-100); border-radius: 4px;">
+                                ${typeLabel}
+                            </span>
+                        </div>
+                    `;
+                    
+                    option.onclick = (e) => {
+                        e.stopPropagation();
+                        selectCounterpartyStoreCashLocation(location);
+                        menu.remove();
+                        // Remove the click outside listener
+                        if (window.counterpartyCashLocationCloseMenu) {
+                            document.removeEventListener('click', window.counterpartyCashLocationCloseMenu);
+                            window.counterpartyCashLocationCloseMenu = null;
+                        }
+                    };
+                    
+                    optionsContainer.appendChild(option);
+                });
+                
+                menu.appendChild(optionsContainer);
+                
+                cashLocationSelect.style.position = 'relative';
+                cashLocationSelect.appendChild(menu);
+                
+                // Close menu when clicking outside
+                setTimeout(() => {
+                    window.counterpartyCashLocationCloseMenu = function(e) {
+                        if (!cashLocationSelect.contains(e.target) && !menu.contains(e.target)) {
+                            menu.remove();
+                            document.removeEventListener('click', window.counterpartyCashLocationCloseMenu);
+                            window.counterpartyCashLocationCloseMenu = null;
+                        }
+                    };
+                    document.addEventListener('click', window.counterpartyCashLocationCloseMenu);
+                }, 100);
+                
+            } catch (error) {
+                console.error('Failed to load cash locations:', error);
+                showAlert('Failed to load cash locations', 'error');
+            }
+        }
+        
+        // Select a counterparty store cash location
+        function selectCounterpartyStoreCashLocation(location) {
+            console.log('Selecting counterparty store cash location:', location);
+            
+            const cashLocationSelect = document.getElementById('counterpartyStoreCashLocationSelect');
+            if (!cashLocationSelect) {
+                console.error('Cash location select element not found');
+                return;
+            }
+            
+            const valueElement = cashLocationSelect.querySelector('.toss-select-value');
+            if (valueElement) {
+                const typeLabel = location.location_type === 'vault' ? 'Vault' : 
+                                 location.location_type === 'bank' ? 'Bank' : 
+                                 location.location_type;
+                valueElement.innerHTML = `${location.location_name} (${typeLabel})`;
+                valueElement.classList.remove('toss-select-placeholder');
+            }
+            
+            // Store the cash location data
+            cashLocationSelect.dataset.locationId = location.cash_location_id;  // Changed from cashLocationId to locationId to match validation
+            cashLocationSelect.dataset.locationName = location.location_name;
+            cashLocationSelect.dataset.locationType = location.location_type;
+            cashLocationSelect.dataset.currencyId = location.currency_id;
+            
+            
+            // Trigger validation after selecting cash location
+            validateTransactionForm();
+        }
+        
         // Save transaction
         function saveTransaction() {
             const accountSelect = document.getElementById('accountSelect');
@@ -1950,6 +3987,16 @@
                 return;
             }
             
+            // Validate debt category for payable/receivable accounts
+            const categoryTag = accountSelect.dataset.categoryTag;
+            if (categoryTag === 'payable' || categoryTag === 'receivable') {
+                const debtCategory = document.getElementById('debtCategory');
+                if (debtCategory && (!debtCategory.value || debtCategory.value === '')) {
+                    showAlert('Please select a debt category', 'error');
+                    return;
+                }
+            }
+            
             // Create transaction line
             const line = new TransactionLine();
             line.accountId = accountSelect.dataset.accountId;
@@ -1960,13 +4007,15 @@
             line.description = descriptionInput.value || null;
             
             // Add conditional field data
-            const categoryTag = accountSelect.dataset.categoryTag;
+            // categoryTag already defined above in validation section
             
             if (categoryTag === 'cash') {
                 const cashLocationSelect = document.getElementById('cashLocationSelect');
                 if (cashLocationSelect && cashLocationSelect.dataset.locationId) {
                     line.cashLocationId = cashLocationSelect.dataset.locationId;
-                    line.cashLocationName = cashLocationSelect.querySelector('.toss-select-value').textContent;
+                    line.cashLocationName = cashLocationSelect.dataset.locationName;
+                    line.cashLocationType = cashLocationSelect.dataset.locationType;
+                    line.cashCurrencyId = cashLocationSelect.dataset.currencyId;
                 }
             }
             
@@ -1974,20 +4023,64 @@
                 const counterpartySelect = document.getElementById('counterpartySelect');
                 if (counterpartySelect && counterpartySelect.dataset.counterpartyId) {
                     line.counterpartyId = counterpartySelect.dataset.counterpartyId;
-                    line.counterpartyName = counterpartySelect.querySelector('.toss-select-value').textContent;
+                    line.counterpartyName = counterpartySelect.dataset.counterpartyName;
+                    line.linkedCompanyId = counterpartySelect.dataset.linkedCompanyId || null;
+                    line.isInternalCounterparty = counterpartySelect.dataset.isInternal === 'true';
+                    
+                    // Add counterparty store if selected
+                    const counterpartyStoreSelect = document.getElementById('counterpartyStoreSelect');
+                    if (counterpartyStoreSelect && counterpartyStoreSelect.dataset.storeId) {
+                        line.counterpartyStoreId = counterpartyStoreSelect.dataset.storeId;
+                        line.counterpartyStoreName = counterpartyStoreSelect.dataset.storeName;
+                    }
+                    
+                    // Add counterparty store cash location if selected
+                    const counterpartyStoreCashLocationSelect = document.getElementById('counterpartyStoreCashLocationSelect');
+                    if (counterpartyStoreCashLocationSelect && counterpartyStoreCashLocationSelect.dataset.cashLocationId) {
+                        line.counterpartyStoreCashLocationId = counterpartyStoreCashLocationSelect.dataset.cashLocationId;
+                        line.counterpartyStoreCashLocationName = counterpartyStoreCashLocationSelect.dataset.locationName;
+                        line.counterpartyStoreCashLocationType = counterpartyStoreCashLocationSelect.dataset.locationType;
+                        line.counterpartyStoreCashCurrencyId = counterpartyStoreCashLocationSelect.dataset.currencyId;
+                    }
                 }
                 
                 const debtCategory = document.getElementById('debtCategory');
                 const interestRate = document.getElementById('interestRate');
                 if (debtCategory) line.debtCategory = debtCategory.value || null;
-                if (interestRate) line.interestRate = parseFloat(interestRate.value) || null;
+                if (interestRate) line.interestRate = parseFloat(interestRate.value) || 0;
             }
+            
+            // Log the complete transaction data being stored
+            console.log('Saving transaction with data:', {
+                accountId: line.accountId,
+                accountName: line.accountName,
+                categoryTag: line.categoryTag,
+                amount: line.amount,
+                isDebit: line.isDebit,
+                counterpartyId: line.counterpartyId,
+                counterpartyName: line.counterpartyName,
+                isInternalCounterparty: line.isInternalCounterparty,
+                counterpartyStoreId: line.counterpartyStoreId,
+                counterpartyStoreName: line.counterpartyStoreName,
+                counterpartyStoreCashLocationId: line.counterpartyStoreCashLocationId,
+                counterpartyStoreCashLocationName: line.counterpartyStoreCashLocationName,
+                linkedCompanyId: line.linkedCompanyId,
+                cashLocationId: line.cashLocationId,
+                debtCategory: line.debtCategory,
+                interestRate: line.interestRate
+            });
             
             // Add or update transaction
             if (currentEditIndex >= 0) {
                 journalEntry.updateTransactionLine(currentEditIndex, line);
             } else {
                 journalEntry.addTransactionLine(line);
+            }
+            
+            // If the transaction line has a counterparty cash location, set it on the journal (matching Flutter app)
+            if (line.counterpartyStoreCashLocationId) {
+                journalEntry.counterpartyCashLocationId = line.counterpartyStoreCashLocationId;
+                console.log('Set journal-level counterparty cash location:', journalEntry.counterpartyCashLocationId);
             }
             
             // Close modal
@@ -2005,10 +4098,21 @@
             const submitSpinner = document.getElementById('submitSpinner');
             const submitBtnText = document.getElementById('submitBtnText');
             
+            // Check if elements exist before using them
+            if (!submitBtn) {
+                console.error('Submit button not found');
+                showAlert('Error: Submit button not found', 'error');
+                return;
+            }
+            
             // Show loading state
             submitBtn.disabled = true;
-            submitSpinner.style.display = 'inline-block';
-            submitBtnText.textContent = 'Submitting...';
+            if (submitSpinner) {
+                submitSpinner.style.display = 'inline-block';
+            }
+            if (submitBtnText) {
+                submitBtnText.textContent = 'Submitting...';
+            }
             
             try {
                 // Get Supabase client
@@ -2027,32 +4131,95 @@
                 if (!user) throw new Error('User not authenticated');
                 
                 // Prepare journal entry data
+                // Use device's current time - matching Flutter app format exactly
                 const currentTime = new Date();
-                const entryDate = currentTime.toISOString();
+                
+                // Format as YYYY-MM-DD HH:MM:SS.SSS matching Flutter DateFormat
+                const formatDateTimeForRPC = (date) => {
+                    const year = date.getFullYear();
+                    const month = String(date.getMonth() + 1).padStart(2, '0');
+                    const day = String(date.getDate()).padStart(2, '0');
+                    const hours = String(date.getHours()).padStart(2, '0');
+                    const minutes = String(date.getMinutes()).padStart(2, '0');
+                    const seconds = String(date.getSeconds()).padStart(2, '0');
+                    const milliseconds = String(date.getMilliseconds()).padStart(3, '0');
+                    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}.${milliseconds}`;
+                };
+                
+                const entryDate = formatDateTimeForRPC(currentTime);
+                
+                console.log('Current device time:', currentTime);
+                console.log('Formatted entry date (matching Flutter):', entryDate);
                 
                 const pLines = journalEntry.transactionLines.map(line => line.toJson());
                 
-                // Determine main counterparty (if any)
+                // Log the complete data being sent
+                console.log('Submitting journal entry with lines:', pLines);
+                
+                // Determine main counterparty (if any) - matching Flutter app logic
                 let mainCounterpartyId = null;
                 for (const line of journalEntry.transactionLines) {
-                    if (line.counterpartyId) {
+                    if (line.counterpartyId && line.counterpartyId.length > 0) {
                         mainCounterpartyId = line.counterpartyId;
                         break;
                     }
                 }
                 
-                // Call the journal RPC
-                const { data, error } = await client.rpc('insert_journal_with_everything', {
+                // Get counterparty cash location - matching Flutter app logic
+                // The app sets this at journal level, not checking if internal
+                let counterpartyStoreCashLocationId = null;
+                
+                // Check if it's set at journal level (like the app does)
+                if (journalEntry.counterpartyCashLocationId) {
+                    counterpartyStoreCashLocationId = journalEntry.counterpartyCashLocationId;
+                    console.log('Using journal-level counterparty cash location:', counterpartyStoreCashLocationId);
+                } else {
+                    // Check transaction lines for counterparty cash location
+                    for (const line of journalEntry.transactionLines) {
+                        if (line.counterpartyStoreCashLocationId) {
+                            counterpartyStoreCashLocationId = line.counterpartyStoreCashLocationId;
+                            console.log('Using counterparty cash location from transaction line:', counterpartyStoreCashLocationId);
+                            break;
+                        }
+                    }
+                }
+                
+                console.log('Counterparty data:', {
+                    mainCounterpartyId,
+                    counterpartyStoreCashLocationId
+                });
+                
+                // Get company and store IDs - matching Flutter app logic exactly
+                const companyId = appState.getSelectedCompanyId();
+                const storeId = appState.getSelectedStoreId();  // This matches Flutter's appState.storeChoosen
+                
+                // Use company from appState if available, otherwise use journalEntry
+                const finalCompanyId = companyId || journalEntry.selectedCompanyId;
+                
+                // Use store from appState if available (send null if empty string, matching Flutter)
+                const finalStoreId = storeId || null;
+                
+                console.log('Company and Store:', {
+                    companyId: finalCompanyId,
+                    storeId: finalStoreId
+                });
+                
+                // Build RPC parameters - matching Flutter app exactly
+                const rpcParams = {
                     p_base_amount: journalEntry.totalDebits,
-                    p_company_id: journalEntry.selectedCompanyId,
+                    p_company_id: finalCompanyId,
                     p_created_by: user.id,
                     p_description: journalEntry.overallDescription,
                     p_entry_date: entryDate,
                     p_lines: pLines,
-                    p_counterparty_id: mainCounterpartyId,
-                    p_if_cash_location_id: journalEntry.counterpartyCashLocationId,
-                    p_store_id: journalEntry.selectedStoreId
-                });
+                    p_counterparty_id: mainCounterpartyId,  // Can be null
+                    p_if_cash_location_id: counterpartyStoreCashLocationId,  // Can be null
+                    p_store_id: finalStoreId  // Can be null
+                };
+                
+                console.log('Final RPC parameters:', JSON.stringify(rpcParams, null, 2));
+                
+                const { data, error } = await client.rpc('insert_journal_with_everything', rpcParams);
                 
                 if (error) throw error;
                 
@@ -2068,18 +4235,472 @@
                 showAlert('Error creating journal entry: ' + error.message, 'error');
             } finally {
                 // Reset button state
-                submitBtn.disabled = false;
-                submitSpinner.style.display = 'none';
-                submitBtnText.textContent = 'Submit Journal Entry';
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                }
+                if (submitSpinner) {
+                    submitSpinner.style.display = 'none';
+                }
+                if (submitBtnText) {
+                    submitBtnText.textContent = 'Submit Journal Entry';
+                }
                 updateSubmitButton();
             }
         }
 
-        // Show alert (placeholder for actual alert system)
+        // Show alert with centered modal
         function showAlert(message, type = 'info') {
-            // This would integrate with your actual alert system
             console.log(`${type.toUpperCase()}: ${message}`);
-            alert(message);
+            
+            // Remove any existing alert
+            const existingAlert = document.querySelector('.custom-alert-overlay');
+            if (existingAlert) {
+                existingAlert.remove();
+            }
+            
+            // Create alert overlay
+            const overlay = document.createElement('div');
+            overlay.className = 'custom-alert-overlay';
+            overlay.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0, 0, 0, 0.5);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 10000;
+                animation: fadeIn 0.2s ease-in-out;
+            `;
+            
+            // Create alert container
+            const alertBox = document.createElement('div');
+            alertBox.className = 'custom-alert-box';
+            
+            // Set colors based on type
+            let bgColor = '#FFFFFF';
+            let borderColor = '#E9ECEF';
+            let titleColor = '#212529';
+            
+            if (type === 'success') {
+                borderColor = '#00C896';
+                titleColor = '#00C896';
+            } else if (type === 'error') {
+                borderColor = '#FF5847';
+                titleColor = '#FF5847';
+            } else if (type === 'warning') {
+                borderColor = '#0064FF';  // Use Toss blue for warning/notice
+                titleColor = '#0064FF';
+            } else {
+                borderColor = '#0064FF';
+                titleColor = '#0064FF';
+            }
+            
+            alertBox.style.cssText = `
+                background: ${bgColor};
+                border: 2px solid ${borderColor};
+                border-radius: 16px;
+                padding: 24px;
+                max-width: 480px;
+                width: 90%;
+                box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+                animation: slideIn 0.3s ease-out;
+            `;
+            
+            alertBox.innerHTML = `
+                <div style="display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 16px;">
+                    <h3 style="margin: 0; font-size: 18px; font-weight: 600; color: ${titleColor};">
+                        ${type === 'success' ? 'Success' : type === 'error' ? 'Error' : type === 'warning' ? 'Notice' : 'Notice'}
+                    </h3>
+                </div>
+                <p style="margin: 0 0 20px 0; font-size: 15px; color: #495057; line-height: 1.5;">
+                    ${message}
+                </p>
+                <button onclick="this.closest('.custom-alert-overlay').remove()" style="
+                    background: ${titleColor};
+                    color: white;
+                    border: none;
+                    padding: 10px 20px;
+                    border-radius: 8px;
+                    font-size: 14px;
+                    font-weight: 600;
+                    cursor: pointer;
+                    width: 100%;
+                    transition: opacity 0.2s;
+                " onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
+                    확인
+                </button>
+            `;
+            
+            overlay.appendChild(alertBox);
+            document.body.appendChild(overlay);
+            
+            // Add animations
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes fadeIn {
+                    from { opacity: 0; }
+                    to { opacity: 1; }
+                }
+                @keyframes slideIn {
+                    from { transform: translateY(-20px); opacity: 0; }
+                    to { transform: translateY(0); opacity: 1; }
+                }
+            `;
+            if (!document.querySelector('#alertAnimations')) {
+                style.id = 'alertAnimations';
+                document.head.appendChild(style);
+            }
+            
+            // Close on overlay click
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) {
+                    overlay.remove();
+                }
+            });
+        }
+
+        // Store filter functions
+        function setupStoreFilter() {
+            const storeFilterControl = document.getElementById('storeFilterControl');
+            
+            if (storeFilterControl) {
+                storeFilterControl.addEventListener('click', async (e) => {
+                    e.stopPropagation();
+                    await toggleStoreFilterDropdown();
+                });
+                
+                // Keyboard support
+                storeFilterControl.addEventListener('keydown', async (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        await toggleStoreFilterDropdown();
+                    }
+                });
+                
+                storeFilterControl.setAttribute('tabindex', '0');
+                storeFilterControl.setAttribute('role', 'button');
+                storeFilterControl.setAttribute('aria-label', 'Select store filter');
+            }
+            
+            // Close dropdown when clicking outside
+            document.addEventListener('click', (e) => {
+                if (!e.target.closest('.control-section') && !e.target.closest('.store-filter-dropdown')) {
+                    hideStoreFilterDropdown();
+                }
+            });
+        }
+        
+        async function toggleStoreFilterDropdown() {
+            const dropdown = document.getElementById('storeFilterDropdown');
+            
+            if (!dropdown) {
+                console.error('Dropdown element not found');
+                return;
+            }
+            
+            if (dropdown.classList.contains('active')) {
+                hideStoreFilterDropdown();
+            } else {
+                await showStoreFilterDropdown();
+            }
+        }
+        
+        async function showStoreFilterDropdown() {
+            const storeFilterDropdown = document.getElementById('storeFilterDropdown');
+            const storeFilterControl = document.getElementById('storeFilterControl');
+            const storeFilterOptions = document.getElementById('storeFilterOptions');
+            
+            if (!storeFilterDropdown || !storeFilterControl || !storeFilterOptions) {
+                console.error('Store filter dropdown elements not found');
+                return;
+            }
+            
+            if (typeof appState === 'undefined') {
+                console.error('appState is not defined');
+                return;
+            }
+            
+            // Get stores from app state
+            const companyId = appState.getSelectedCompanyId();
+            console.log('Building store dropdown for company:', companyId);
+            let stores = [];
+            
+            // Try to get fresh data from navbar instance first
+            if (window.navbarInstance && window.navbarInstance.companySelector) {
+                try {
+                    const selectedOption = window.navbarInstance.companySelector.getSelectedOption();
+                    if (selectedOption && selectedOption.data) {
+                        stores = selectedOption.data.stores || [];
+                        console.log('Got fresh stores from navbar selector:', stores);
+                    }
+                } catch (navbarError) {
+                    console.log('Could not get from navbar:', navbarError);
+                }
+            }
+            
+            // If navbar didn't work, try getting from fresh user data
+            if (stores.length === 0) {
+                try {
+                    const userData = localStorage.getItem('user');
+                    if (userData) {
+                        const parsedData = JSON.parse(userData);
+                        const company = parsedData.companies?.find(c => c.company_id === companyId);
+                        if (company) {
+                            stores = company.stores || [];
+                            console.log('Got stores from fresh user data:', stores);
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error getting fresh user data:', error);
+                }
+            }
+            
+            // Final fallback to appState
+            if (stores.length === 0) {
+                try {
+                    stores = appState.getCompanyStores();
+                    console.log('Got stores from appState (fallback):', stores);
+                } catch (fallbackError) {
+                    console.error('All methods failed:', fallbackError);
+                    stores = [];
+                }
+            }
+            
+            // If no store is selected yet, select the first one
+            if (!currentStoreFilter && stores.length > 0) {
+                currentStoreFilter = stores[0].store_id;
+                journalEntry.selectedStoreId = currentStoreFilter;
+                updateStoreFilterDisplay();
+            }
+            
+            // Build store options HTML
+            let optionsHTML = `
+                <input 
+                    type="text" 
+                    placeholder="Search stores..." 
+                    class="store-filter-search" 
+                    id="storeFilterSearch" 
+                    autocomplete="off"
+                >
+                <div class="store-filter-divider"></div>
+            `;
+            
+            // Add individual store options (no "All Stores" option)
+            stores.forEach((store, index) => {
+                // Select first store if nothing is selected, or the matching store
+                const isSelected = store.store_id === currentStoreFilter || (!currentStoreFilter && index === 0);
+                optionsHTML += `
+                    <div class="store-filter-dropdown-option${isSelected ? ' selected' : ''}" data-store-filter="${store.store_id}">
+                        <svg class="store-filter-dropdown-option-icon" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12,3L2,12H5V20H19V12H22L12,3M12,8.75A1.25,1.25 0 0,1 13.25,10A1.25,1.25 0 0,1 12,11.25A1.25,1.25 0 0,1 10.75,10A1.25,1.25 0 0,1 12,8.75Z"/>
+                        </svg>
+                        <span class="store-filter-dropdown-option-text">${store.store_name}</span>
+                        ${isSelected ? '<svg class="store-filter-dropdown-option-check" fill="currentColor" viewBox="0 0 24 24"><path d="M9,20.42L2.79,14.21L5.62,11.38L9,14.77L18.88,4.88L21.71,7.71L9,20.42Z"/></svg>' : ''}
+                    </div>
+                `;
+            });
+            
+            if (stores.length === 0) {
+                optionsHTML += `
+                    <div class="store-filter-dropdown-option" style="opacity: 0.6; pointer-events: none;">
+                        <svg class="store-filter-dropdown-option-icon" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,6A1.5,1.5 0 0,1 13.5,7.5A1.5,1.5 0 0,1 12,9A1.5,1.5 0 0,1 10.5,7.5A1.5,1.5 0 0,1 12,6M12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20M12,10C13.25,10 15.29,10.54 16.19,12.38C16.66,13.27 16.65,14.35 16.15,15.23C15.5,16.37 14.45,17 13.25,17H10.75C9.55,17 8.5,16.37 7.85,15.23C7.35,14.35 7.34,13.27 7.81,12.38C8.71,10.54 10.75,10 12,10Z"/>
+                        </svg>
+                        <span class="store-filter-dropdown-option-text">No stores available</span>
+                    </div>
+                `;
+            }
+            
+            storeFilterOptions.innerHTML = optionsHTML;
+            
+            // Setup search functionality
+            const searchInput = document.getElementById('storeFilterSearch');
+            if (searchInput) {
+                searchInput.addEventListener('input', (e) => {
+                    const searchTerm = e.target.value.toLowerCase();
+                    const options = storeFilterOptions.querySelectorAll('.store-filter-dropdown-option');
+                    
+                    options.forEach(option => {
+                        const text = option.querySelector('.store-filter-dropdown-option-text');
+                        if (text) {
+                            const storeName = text.textContent.toLowerCase();
+                            if (storeName.includes(searchTerm)) {
+                                option.style.display = 'flex';
+                            } else {
+                                option.style.display = 'none';
+                            }
+                        }
+                    });
+                });
+            }
+            
+            // Setup option click handlers
+            storeFilterOptions.querySelectorAll('.store-filter-dropdown-option').forEach(option => {
+                option.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const storeFilter = option.dataset.storeFilter;
+                    
+                    // Always set to the selected store (no null option)
+                    if (storeFilter) {
+                        currentStoreFilter = storeFilter;
+                        journalEntry.selectedStoreId = storeFilter;
+                        // Store is selected and saved to currentStoreFilter
+                    }
+                    
+                    updateStoreFilterDisplay();
+                    hideStoreFilterDropdown();
+                });
+            });
+            
+            storeFilterDropdown.classList.add('active');
+            storeFilterControl.classList.add('dropdown-open');
+            
+            // Focus search input
+            setTimeout(() => {
+                const searchInput = document.getElementById('storeFilterSearch');
+                if (searchInput) {
+                    searchInput.focus();
+                }
+            }, 100);
+        }
+        
+        function hideStoreFilterDropdown() {
+            const storeFilterDropdown = document.getElementById('storeFilterDropdown');
+            const storeFilterControl = document.getElementById('storeFilterControl');
+            
+            if (storeFilterDropdown) storeFilterDropdown.classList.remove('active');
+            if (storeFilterControl) storeFilterControl.classList.remove('dropdown-open');
+        }
+        
+        function updateStoreFilterDisplay() {
+            const label = document.getElementById('storeFilterLabel');
+            const companyId = appState.getSelectedCompanyId();
+            let store = null;
+            let stores = [];
+            
+            // Get stores from appState or companies
+            try {
+                stores = appState.getCompanyStores() || [];
+            } catch (error) {
+                console.error('Error getting store data:', error);
+                try {
+                    const companies = appState.getUserCompanies();
+                    const company = companies.find(c => c.company_id === companyId);
+                    stores = company?.stores || [];
+                } catch (fallbackError) {
+                    console.error('Fallback store lookup failed:', fallbackError);
+                    stores = [];
+                }
+            }
+            
+            // If currentStoreFilter is set, try to find the matching store
+            if (currentStoreFilter) {
+                store = stores.find(s => s.store_id === currentStoreFilter);
+                
+                // If we have currentStoreFilter but can't find the store in the array,
+                // it might be because the stores array isn't complete. 
+                // Try to get the store name from the dropdown if it exists
+                if (!store) {
+                    // Look for the selected option in the dropdown to get the store name
+                    const selectedOption = document.querySelector(`.store-filter-dropdown-option[data-store-filter="${currentStoreFilter}"]`);
+                    if (selectedOption) {
+                        const storeName = selectedOption.querySelector('.store-filter-dropdown-option-text')?.textContent;
+                        if (storeName) {
+                            // Create a temporary store object to use
+                            store = {
+                                store_id: currentStoreFilter,
+                                store_name: storeName
+                            };
+                        }
+                    }
+                }
+            }
+            
+            // If still no store selected, use the first one
+            if (!store && stores.length > 0) {
+                currentStoreFilter = stores[0].store_id;
+                journalEntry.selectedStoreId = currentStoreFilter;
+                appState.setSelectedStore(currentStoreFilter);
+                store = stores[0];
+            }
+            
+            // Update label with store name
+            if (store) {
+                label.textContent = store.store_name;
+                
+                // Also update the store name in the header
+                const storeName = document.getElementById('storeName');
+                if (storeName) {
+                    storeName.textContent = ` • ${store.store_name}`;
+                    storeName.style.display = 'inline';
+                }
+            } else if (stores.length === 0) {
+                label.textContent = 'No stores available';
+                const storeName = document.getElementById('storeName');
+                if (storeName) {
+                    storeName.style.display = 'none';
+                }
+            } else {
+                // If stores exist but none selected (shouldn't happen after auto-selection)
+                // Try to select the first store again
+                if (stores.length > 0) {
+                    currentStoreFilter = stores[0].store_id;
+                    journalEntry.selectedStoreId = currentStoreFilter;
+                    appState.setSelectedStore(currentStoreFilter);
+                    label.textContent = stores[0].store_name;
+                    
+                    const storeName = document.getElementById('storeName');
+                    if (storeName) {
+                        storeName.textContent = ` • ${stores[0].store_name}`;
+                        storeName.style.display = 'inline';
+                    }
+                    
+                } else {
+                    label.textContent = 'Select Store';
+                }
+            }
+        }
+        
+        // Refresh store filter when company changes
+        function refreshStoreFilter() {
+            
+            // Close any open dropdown
+            const storeFilterControl = document.getElementById('storeFilterControl');
+            const storeFilterDropdown = document.getElementById('storeFilterDropdown');
+            const storeFilterOptions = document.getElementById('storeFilterOptions');
+            
+            if (storeFilterControl) {
+                storeFilterControl.classList.remove('dropdown-open');
+            }
+            if (storeFilterDropdown) {
+                storeFilterDropdown.classList.remove('show');
+                storeFilterDropdown.classList.remove('active');
+            }
+            
+            // Clear the dropdown options to force rebuild on next open
+            if (storeFilterOptions) {
+                storeFilterOptions.innerHTML = '';
+            }
+            
+            // Get the stores for the current company
+            const stores = appState.getCompanyStores() || [];
+            
+            // Reset filter and select first store if available
+            if (stores.length > 0) {
+                currentStoreFilter = stores[0].store_id;
+                journalEntry.selectedStoreId = currentStoreFilter;
+                appState.setSelectedStore(currentStoreFilter);
+            } else {
+                currentStoreFilter = null;
+                journalEntry.selectedStoreId = null;
+            }
+            
+            // Update display which will show the selected store
+            updateStoreFilterDisplay();
         }
 
         // Show modal

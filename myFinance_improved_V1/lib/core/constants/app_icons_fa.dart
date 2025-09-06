@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:myfinance_improved/core/themes/index.dart';
 
 /// 매장 관리 앱을 위한 Font Awesome 아이콘 시스템 (300+ 아이콘)
 /// 
@@ -11,7 +12,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 /// // 색상과 크기 지정
 /// FaIcon(
 ///   AppIcons.sales,
-///   color: Colors.green,
+///   color: TossColors.success,
 ///   size: 30,
 /// )
 /// ```

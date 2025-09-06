@@ -4,6 +4,7 @@ import '../../../core/themes/toss_border_radius.dart';
 import '../../../core/themes/toss_shadows.dart';
 import '../../../core/themes/toss_spacing.dart';
 import '../../../core/themes/toss_animations.dart';
+import 'package:myfinance_improved/core/themes/index.dart';
 
 /// Toss-style card with micro-interactions
 class TossCard extends StatefulWidget {

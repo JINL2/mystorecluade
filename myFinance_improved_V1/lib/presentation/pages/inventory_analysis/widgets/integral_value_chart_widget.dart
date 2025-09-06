@@ -6,6 +6,7 @@ import '../../../../core/themes/toss_text_styles.dart';
 import '../../../../core/themes/toss_spacing.dart';
 import '../../../../core/themes/toss_border_radius.dart';
 import '../models/supply_chain_models.dart';
+import 'package:myfinance_improved/core/themes/index.dart';
 
 class IntegralValueChartWidget extends StatefulWidget {
   final List<IntegralDataPoint> data;
@@ -37,7 +38,7 @@ class _IntegralValueChartWidgetState extends State<IntegralValueChartWidget> {
       ),
       decoration: BoxDecoration(
         color: TossColors.surface,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(TossBorderRadius.xl),
         boxShadow: [
           BoxShadow(
             color: TossColors.black.withValues(alpha: 0.05),
@@ -154,13 +155,13 @@ class _IntegralValueChartWidgetState extends State<IntegralValueChartWidget> {
                 vertical: TossSpacing.space1,
               ),
               decoration: BoxDecoration(
-                color: isSelected ? TossColors.primary : Colors.transparent,
+                color: isSelected ? TossColors.primary : TossColors.transparent,
                 borderRadius: BorderRadius.circular(TossBorderRadius.sm),
               ),
               child: Text(
                 period,
                 style: TossTextStyles.caption.copyWith(
-                  color: isSelected ? Colors.white : TossColors.gray600,
+                  color: isSelected ? TossColors.white : TossColors.gray600,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -422,7 +423,7 @@ class _IntegralValueChartWidgetState extends State<IntegralValueChartWidget> {
           height: 3,
           decoration: BoxDecoration(
             color: color,
-            borderRadius: BorderRadius.circular(2),
+            borderRadius: BorderRadius.circular(TossBorderRadius.xs),
           ),
           child: isDashed 
               ? CustomPaint(

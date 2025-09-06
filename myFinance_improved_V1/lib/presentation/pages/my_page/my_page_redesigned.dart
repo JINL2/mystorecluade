@@ -16,7 +16,8 @@ import '../../providers/user_profile_provider.dart';
 import '../../../domain/entities/user_profile.dart';
 import '../../services/profile_image_service.dart';
 import '../../../core/navigation/safe_navigation.dart';
-
+import 'package:myfinance_improved/core/themes/index.dart';
+import 'package:myfinance_improved/core/themes/toss_border_radius.dart';
 /// Modern finance app-inspired My Page with comprehensive analytics
 class MyPageRedesigned extends ConsumerStatefulWidget {
   const MyPageRedesigned({super.key});
@@ -30,6 +31,10 @@ class _MyPageRedesignedState extends ConsumerState<MyPageRedesigned>
   late AnimationController _entryController;
   late ScrollController _scrollController;
   late List<Animation<double>> _animations;
+  
+  // Local state for optimistic UI updates
+  String? _temporaryProfileImageUrl;
+  bool _isUploadingImage = false;
   
   @override
   void initState() {
@@ -171,12 +176,19 @@ class _MyPageRedesignedState extends ConsumerState<MyPageRedesigned>
                           width: 4,
                         ),
                       ),
-                      child: profile.hasProfileImage
+                      child: _temporaryProfileImageUrl != null
                           ? CircleAvatar(
                               radius: 56,
-                              backgroundImage: NetworkImage(profile.profileImage!),
+                              backgroundImage: _temporaryProfileImageUrl!.startsWith('http')
+                                  ? NetworkImage(_temporaryProfileImageUrl!) as ImageProvider
+                                  : FileImage(File(_temporaryProfileImageUrl!)),
                             )
-                          : CircleAvatar(
+                          : profile.hasProfileImage
+                              ? CircleAvatar(
+                                  radius: 56,
+                                  backgroundImage: NetworkImage(profile.profileImage!),
+                                )
+                              : CircleAvatar(
                               radius: 56,
                               backgroundColor: TossColors.primary.withValues(alpha: 0.1),
                               child: Text(
@@ -243,7 +255,7 @@ class _MyPageRedesignedState extends ConsumerState<MyPageRedesigned>
                 ),
                 decoration: BoxDecoration(
                   color: TossColors.primary.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.xxl),
                 ),
                 child: Text(
                   businessData?.userRole ?? profile.displayRole,
@@ -380,7 +392,7 @@ class _MyPageRedesignedState extends ConsumerState<MyPageRedesigned>
               height: 40,
               decoration: BoxDecoration(
                 color: (isDestructive ? TossColors.error : TossColors.gray500).withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(TossBorderRadius.md),
               ),
               child: Icon(
                 icon,
@@ -450,7 +462,7 @@ class _MyPageRedesignedState extends ConsumerState<MyPageRedesigned>
                 margin: EdgeInsets.symmetric(vertical: TossSpacing.space3),
                 decoration: BoxDecoration(
                   color: TossColors.gray300,
-                  borderRadius: BorderRadius.circular(2),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                 ),
               ),
               Padding(
@@ -540,7 +552,7 @@ class _MyPageRedesignedState extends ConsumerState<MyPageRedesigned>
   }) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(TossBorderRadius.lg),
       child: Container(
         padding: EdgeInsets.symmetric(
           horizontal: TossSpacing.space4,
@@ -548,7 +560,7 @@ class _MyPageRedesignedState extends ConsumerState<MyPageRedesigned>
         ),
         decoration: BoxDecoration(
           color: TossColors.gray50,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
         ),
         child: Row(
           children: [
@@ -581,7 +593,14 @@ class _MyPageRedesignedState extends ConsumerState<MyPageRedesigned>
   }
 
   Future<void> _uploadProfileImage(File imageFile) async {
-    // Show loading indicator
+    // Set optimistic UI update - show image immediately
+    setState(() {
+      _isUploadingImage = true;
+      // Create a temporary URL from the file for immediate display
+      _temporaryProfileImageUrl = imageFile.path;
+    });
+
+    // Show subtle loading indicator without blocking UI
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -590,32 +609,84 @@ class _MyPageRedesignedState extends ConsumerState<MyPageRedesigned>
           padding: EdgeInsets.all(TossSpacing.space6),
           decoration: BoxDecoration(
             color: TossColors.surface,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
           ),
-          child: TossLoadingView(),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TossLoadingView(),
+              SizedBox(height: TossSpacing.space3),
+              Text(
+                'Uploading...',
+                style: TossTextStyles.caption.copyWith(
+                  color: TossColors.textSecondary,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
 
     try {
-      await ProfileImageService.uploadProfileImage(imageFile, ref);
+      // Upload and get the actual URL
+      final publicUrl = await ProfileImageService.uploadProfileImage(imageFile, ref);
       
       if (mounted) {
+        // Update with the actual URL from Supabase
+        setState(() {
+          _temporaryProfileImageUrl = publicUrl;
+          _isUploadingImage = false;
+        });
+        
         Navigator.pop(context); // Close loading dialog
+        
+        // Show success with subtle animation
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Profile picture updated successfully'),
+            content: Row(
+              children: [
+                Icon(Icons.check_circle, color: TossColors.white, size: 20),
+                SizedBox(width: TossSpacing.space2),
+                Text('Profile picture updated successfully'),
+              ],
+            ),
             backgroundColor: TossColors.success,
+            behavior: SnackBarBehavior.floating,
+            duration: Duration(seconds: 2),
           ),
         );
+        
+        // Clear temporary URL after a delay to let provider update take over
+        Future.delayed(Duration(seconds: 1), () {
+          if (mounted) {
+            setState(() {
+              _temporaryProfileImageUrl = null;
+            });
+          }
+        });
       }
     } catch (e) {
       if (mounted) {
+        // Revert optimistic update on error
+        setState(() {
+          _temporaryProfileImageUrl = null;
+          _isUploadingImage = false;
+        });
+        
         Navigator.pop(context); // Close loading dialog
+        
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(e.toString()),
+            content: Row(
+              children: [
+                Icon(Icons.error_outline, color: TossColors.white, size: 20),
+                SizedBox(width: TossSpacing.space2),
+                Expanded(child: Text(e.toString())),
+              ],
+            ),
             backgroundColor: TossColors.error,
+            behavior: SnackBarBehavior.floating,
           ),
         );
       }
@@ -632,7 +703,7 @@ class _MyPageRedesignedState extends ConsumerState<MyPageRedesigned>
           padding: EdgeInsets.all(TossSpacing.space6),
           decoration: BoxDecoration(
             color: TossColors.surface,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
           ),
           child: TossLoadingView(),
         ),
@@ -687,9 +758,17 @@ class _MyPageRedesignedState extends ConsumerState<MyPageRedesigned>
     );
   }
 
-  void _navigateToEditProfile() {
+  void _navigateToEditProfile() async {
     HapticFeedback.lightImpact();
-    context.safePush('/edit-profile');
+    await context.safePush('/edit-profile');
+    
+    // Refresh the page when returning from edit profile
+    // This ensures we show the latest data after any updates
+    if (mounted) {
+      setState(() {
+        // Force rebuild to show updated data
+      });
+    }
   }
 
   void _navigateToNotifications() {

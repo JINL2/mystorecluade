@@ -13,7 +13,8 @@ import '../models/employee_salary.dart';
 import '../models/currency_type.dart';
 import '../models/salary_update_request.dart';
 import '../providers/employee_setting_providers.dart';
-
+import 'package:myfinance_improved/core/themes/index.dart';
+import 'package:myfinance_improved/core/themes/toss_border_radius.dart';
 class SalaryEditModal extends ConsumerStatefulWidget {
   final EmployeeSalary employee;
   final Function(double, String, String, String, String) onSave;
@@ -112,15 +113,15 @@ class _SalaryEditModalState extends ConsumerState<SalaryEditModal> {
                         hintText: 'Enter new salary amount',
                         prefixIcon: Icon(Icons.attach_money, color: TossColors.gray600),
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                           borderSide: BorderSide(color: TossColors.gray300),
                         ),
                         enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                           borderSide: BorderSide(color: TossColors.gray300),
                         ),
                         focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                           borderSide: BorderSide(color: TossColors.primary, width: 2),
                         ),
                         filled: true,
@@ -225,7 +226,7 @@ class _SalaryEditModalState extends ConsumerState<SalaryEditModal> {
                         padding: EdgeInsets.all(TossSpacing.space4),
                         decoration: BoxDecoration(
                           color: TossColors.gray50,
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                           border: Border.all(
                             color: TossColors.gray200,
                           ),
@@ -307,7 +308,7 @@ class _SalaryEditModalState extends ConsumerState<SalaryEditModal> {
       padding: EdgeInsets.all(TossSpacing.space4),
       decoration: BoxDecoration(
         color: TossColors.gray50,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
         border: Border.all(
           color: TossColors.gray100,
         ),
@@ -523,7 +524,7 @@ class _PaymentTypeChip extends StatelessWidget {
         ),
         decoration: BoxDecoration(
           color: isSelected ? TossColors.primary : TossColors.gray50,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
           border: Border.all(
             color: isSelected ? TossColors.primary : TossColors.gray200,
             width: isSelected ? 2 : 1,

@@ -5,7 +5,7 @@ import '../../../widgets/common/toss_scaffold.dart';
 import '../../../helpers/navigation_helper.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
-
+import 'package:myfinance_improved/core/themes/toss_border_radius.dart';
 class InventoryReportsPage extends ConsumerStatefulWidget {
   const InventoryReportsPage({Key? key}) : super(key: key);
 
@@ -157,7 +157,7 @@ class _InventoryReportsPageState extends ConsumerState<InventoryReportsPage>
                           }
                         },
                         selectedColor: TossColors.primary.withOpacity(0.2),
-                        labelStyle: TextStyle(
+                        labelStyle: TossTextStyles.body.copyWith(
                           color: isSelected ? TossColors.primary : TossColors.gray600,
                           fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
                         ),
@@ -467,7 +467,7 @@ class _InventoryReportsPageState extends ConsumerState<InventoryReportsPage>
                           height: 12,
                           decoration: BoxDecoration(
                             color: colors[index % colors.length],
-                            borderRadius: BorderRadius.circular(2),
+                            borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                           ),
                         ),
                         SizedBox(width: 4),
@@ -526,7 +526,7 @@ class _InventoryReportsPageState extends ConsumerState<InventoryReportsPage>
                               ),
                               decoration: BoxDecoration(
                                 color: TossColors.success.withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(4),
+                                borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                               ),
                               child: Text(
                                 '${35 - index}%',
@@ -879,7 +879,7 @@ class _InventoryReportsPageState extends ConsumerState<InventoryReportsPage>
                 ),
                 decoration: BoxDecoration(
                   color: (isPositive ? TossColors.success : TossColors.error).withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(4),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                 ),
                 child: Text(
                   change,
@@ -1087,7 +1087,7 @@ class _InventoryReportsPageState extends ConsumerState<InventoryReportsPage>
                 ),
                 decoration: BoxDecoration(
                   color: (isPositive ? TossColors.success : TossColors.error).withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(4),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,

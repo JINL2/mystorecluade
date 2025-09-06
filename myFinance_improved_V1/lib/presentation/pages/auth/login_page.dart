@@ -14,13 +14,12 @@ import '../../providers/app_state_provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/constants/auth_constants.dart';
 import '../../../core/navigation/safe_navigation.dart';
-import '../../../core/navigation/auth_navigator.dart';
 import '../../../core/notifications/services/production_token_service.dart';
 import '../../../data/services/auth_data_cache.dart';
-import '../../providers/smart_selection_provider.dart';
 import '../../providers/state_synchronizer.dart';
 import 'auth_signup_page.dart'; // Direct navigation
 import 'forgot_password_page.dart'; // Direct navigation
+import 'package:myfinance_improved/core/themes/index.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
@@ -740,7 +739,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
                 Expanded(
                   child: Text(
                     _getErrorMessage(e.toString()),
-                    style: const TextStyle(fontWeight: FontWeight.w500),
+                    style: TossTextStyles.body.copyWith(fontWeight: FontWeight.w500),
                   ),
                 ),
               ],

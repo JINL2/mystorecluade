@@ -10,7 +10,8 @@ import '../../providers/notification_provider.dart';
 import '../../widgets/common/toss_scaffold.dart';
 import '../../widgets/common/toss_loading_view.dart';
 import '../../widgets/toss/toss_card.dart';
-
+import 'package:myfinance_improved/core/themes/index.dart';
+import 'package:myfinance_improved/core/themes/toss_border_radius.dart';
 /// Debug page for testing and monitoring the notification system
 class ComponentTestPage extends ConsumerStatefulWidget {
   const ComponentTestPage({super.key});
@@ -144,7 +145,7 @@ class _ComponentTestPageState extends ConsumerState<ComponentTestPage> {
             ),
             decoration: BoxDecoration(
               color: status ? TossColors.success.withOpacity(0.1) : TossColors.error.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(6),
+              borderRadius: BorderRadius.circular(TossBorderRadius.sm),
             ),
             child: Text(
               status ? 'Active' : 'Inactive',
@@ -190,7 +191,7 @@ class _ComponentTestPageState extends ConsumerState<ComponentTestPage> {
                   padding: EdgeInsets.all(TossSpacing.space2),
                   decoration: BoxDecoration(
                     color: TossColors.gray100,
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(TossBorderRadius.md),
                     border: Border.all(color: TossColors.borderLight),
                   ),
                   child: Row(
@@ -213,7 +214,7 @@ class _ComponentTestPageState extends ConsumerState<ComponentTestPage> {
                 padding: EdgeInsets.all(TossSpacing.space3),
                 decoration: BoxDecoration(
                   color: TossColors.warning.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.md),
                 ),
                 child: Row(
                   children: [
@@ -260,7 +261,7 @@ class _ComponentTestPageState extends ConsumerState<ComponentTestPage> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: TossColors.primary,
                   foregroundColor: TossColors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(TossBorderRadius.md)),
                 ),
               ),
             ),
@@ -274,7 +275,7 @@ class _ComponentTestPageState extends ConsumerState<ComponentTestPage> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: TossColors.warning,
                   foregroundColor: TossColors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(TossBorderRadius.md)),
                 ),
               ),
             ),
@@ -288,7 +289,7 @@ class _ComponentTestPageState extends ConsumerState<ComponentTestPage> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: TossColors.success,
                   foregroundColor: TossColors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(TossBorderRadius.md)),
                 ),
               ),
             ),
@@ -302,7 +303,7 @@ class _ComponentTestPageState extends ConsumerState<ComponentTestPage> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: TossColors.primary,
                   foregroundColor: TossColors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(TossBorderRadius.md)),
                 ),
               ),
             ),
@@ -334,7 +335,7 @@ class _ComponentTestPageState extends ConsumerState<ComponentTestPage> {
                     ),
                     decoration: BoxDecoration(
                       color: TossColors.error,
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                     ),
                     child: Text(
                       '$_unreadCount',
@@ -357,7 +358,7 @@ class _ComponentTestPageState extends ConsumerState<ComponentTestPage> {
                 padding: EdgeInsets.all(TossSpacing.space3),
                 decoration: BoxDecoration(
                   color: TossColors.gray100,
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.md),
                 ),
                 child: Row(
                   children: [
@@ -387,7 +388,7 @@ class _ComponentTestPageState extends ConsumerState<ComponentTestPage> {
       padding: EdgeInsets.all(TossSpacing.space3),
       decoration: BoxDecoration(
         color: notification.isRead ? TossColors.gray50 : TossColors.primary.withOpacity(0.05),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(TossBorderRadius.md),
         border: Border.all(
           color: notification.isRead ? TossColors.borderLight : TossColors.primary.withOpacity(0.2),
         ),
@@ -415,7 +416,7 @@ class _ComponentTestPageState extends ConsumerState<ComponentTestPage> {
                     ),
                     decoration: BoxDecoration(
                       color: TossColors.primary,
-                      borderRadius: BorderRadius.circular(4),
+                      borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                     ),
                     child: Text(
                       'Mark Read',
@@ -443,7 +444,7 @@ class _ComponentTestPageState extends ConsumerState<ComponentTestPage> {
                   ),
                   decoration: BoxDecoration(
                     color: TossColors.primary.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(4),
+                    borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                   ),
                   child: Text(
                     notification.category!,

@@ -1698,6 +1698,230 @@
             color: var(--text-tertiary);
             cursor: not-allowed;
         }
+
+        /* ==================== ADD SHIFT BUTTON & MODAL STYLES ==================== */
+        
+        /* Add Shift Button Styles */
+        .control-right {
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+        }
+
+        .add-shift-btn {
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+            padding: var(--space-3) var(--space-4);
+            background: var(--toss-primary);
+            color: var(--toss-white);
+            border: none;
+            border-radius: var(--radius-lg);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .add-shift-btn:hover {
+            background: var(--toss-primary-dark);
+            box-shadow: var(--shadow-md);
+            transform: translateY(-1px);
+        }
+
+        .add-shift-btn:active {
+            transform: translateY(0);
+            box-shadow: var(--shadow-sm);
+        }
+
+        /* Add Shift Modal Styles */
+        .add-shift-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            backdrop-filter: blur(4px);
+        }
+
+        .add-shift-modal.active {
+            display: flex;
+        }
+
+        .add-shift-modal-content {
+            background: var(--toss-white);
+            border-radius: var(--radius-xl);
+            width: 90%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow: hidden;
+            box-shadow: var(--shadow-xl);
+            animation: modalSlideIn 0.3s ease;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95) translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        .add-shift-modal-header {
+            padding: var(--space-6);
+            border-bottom: 1px solid var(--toss-border-light);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .add-shift-modal-title {
+            font-size: var(--text-xl);
+            font-weight: 700;
+            color: var(--text-primary);
+            margin: 0;
+        }
+
+        .add-shift-modal-close {
+            width: 40px;
+            height: 40px;
+            border-radius: var(--radius-lg);
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .add-shift-modal-close:hover {
+            background: var(--toss-gray-100);
+            color: var(--text-primary);
+        }
+
+        .add-shift-modal-body {
+            padding: var(--space-6);
+        }
+
+        .shift-form-group {
+            margin-bottom: var(--space-5);
+        }
+
+        .shift-form-label {
+            display: block;
+            margin-bottom: var(--space-2);
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .shift-form-input {
+            width: 100%;
+            padding: var(--space-3) var(--space-4);
+            border: 1px solid var(--toss-border);
+            border-radius: var(--radius-lg);
+            font-size: 14px;
+            font-family: inherit;
+            transition: all 0.2s ease;
+            background: var(--toss-white);
+            color: var(--text-primary);
+        }
+
+        .shift-form-input:focus {
+            outline: none;
+            border-color: var(--toss-primary);
+            box-shadow: 0 0 0 3px rgba(66, 99, 235, 0.1);
+        }
+
+        .shift-form-input::placeholder {
+            color: var(--text-tertiary);
+        }
+
+        .shift-time-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--space-4);
+            margin-bottom: var(--space-5);
+        }
+
+        .time-input-wrapper {
+            position: relative;
+        }
+
+        .time-input {
+            padding-right: 40px;
+        }
+
+        .time-icon {
+            position: absolute;
+            right: var(--space-3);
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-tertiary);
+            pointer-events: none;
+        }
+
+        .number-input-wrapper {
+            position: relative;
+        }
+
+        .number-input {
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .number-helper-text {
+            display: block;
+            margin-top: var(--space-2);
+            font-size: 12px;
+            color: var(--text-tertiary);
+            text-align: center;
+        }
+
+        .shift-duration-display {
+            background: var(--toss-gray-50);
+            padding: var(--space-4);
+            border-radius: var(--radius-lg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--space-2);
+            border: 1px solid var(--toss-border-light);
+        }
+
+        .duration-label {
+            font-size: 14px;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .duration-value {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--toss-primary);
+        }
+
+        .add-shift-modal-footer {
+            display: flex;
+            gap: var(--space-3);
+            padding: var(--space-6);
+            padding-top: 0;
+        }
+
+        .add-shift-modal-footer .toss-btn {
+            flex: 1;
+        }
         
         /* ==================== MISSING ASSIGNMENT MODAL CLASSES ==================== */
         
@@ -2407,6 +2631,14 @@
                             <button class="today-btn" id="today-btn">Today</button>
                         </div>
                     </div>
+                    <div class="control-right">
+                        <button class="add-shift-btn" id="add-shift-btn">
+                            <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+                            </svg>
+                            Add Shift
+                        </button>
+                    </div>
                 </div>
             
             <!-- Schedule Container -->
@@ -2524,6 +2756,101 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Add Shift Modal -->
+            <div class="add-shift-modal" id="add-shift-modal">
+                <div class="add-shift-modal-content">
+                    <div class="add-shift-modal-header">
+                        <h3 class="add-shift-modal-title">Add New Shift</h3>
+                        <button class="add-shift-modal-close" id="close-add-shift-modal">
+                            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                                <line x1="18" y1="6" x2="6" y2="18"/>
+                                <line x1="6" y1="6" x2="18" y2="18"/>
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <div class="add-shift-modal-body">
+                        <!-- Shift Name Input -->
+                        <div class="shift-form-group">
+                            <label class="shift-form-label" for="shift-name">Shift Name</label>
+                            <input 
+                                type="text" 
+                                id="shift-name" 
+                                class="shift-form-input" 
+                                placeholder="e.g., Morning Shift, Evening Shift"
+                                maxlength="50"
+                            />
+                        </div>
+                        
+                        <!-- Time Selection -->
+                        <div class="shift-time-container">
+                            <!-- From Time -->
+                            <div class="shift-form-group">
+                                <label class="shift-form-label" for="shift-from-time">From Time</label>
+                                <div class="time-input-wrapper">
+                                    <input 
+                                        type="time" 
+                                        id="shift-from-time" 
+                                        class="shift-form-input time-input"
+                                        value="09:00"
+                                    />
+                                    <svg class="time-icon" width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"/>
+                                        <path d="M12.5 7H11v6l5.25 3.15.75-1.23-4.5-2.67z"/>
+                                    </svg>
+                                </div>
+                            </div>
+                            
+                            <!-- To Time -->
+                            <div class="shift-form-group">
+                                <label class="shift-form-label" for="shift-to-time">To Time</label>
+                                <div class="time-input-wrapper">
+                                    <input 
+                                        type="time" 
+                                        id="shift-to-time" 
+                                        class="shift-form-input time-input"
+                                        value="17:00"
+                                    />
+                                    <svg class="time-icon" width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"/>
+                                        <path d="M12.5 7H11v6l5.25 3.15.75-1.23-4.5-2.67z"/>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Number of Shifts -->
+                        <div class="shift-form-group">
+                            <label class="shift-form-label" for="shift-number">Number of Shifts</label>
+                            <div class="number-input-wrapper">
+                                <input 
+                                    type="number" 
+                                    id="shift-number" 
+                                    class="shift-form-input number-input"
+                                    value="1"
+                                    min="1"
+                                    max="10"
+                                    step="1"
+                                />
+                                <span class="number-helper-text">How many employees can work this shift</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Duration Display -->
+                        <div class="shift-duration-display">
+                            <span class="duration-label">Duration:</span>
+                            <span class="duration-value" id="shift-duration">8 hours</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Action Buttons -->
+                    <div class="add-shift-modal-footer">
+                        <button class="toss-btn toss-btn-secondary" id="cancel-add-shift">Cancel</button>
+                        <button class="toss-btn toss-btn-primary" id="save-shift">Save Shift</button>
+                    </div>
+                </div>
+            </div>
         </main>
     </div>
     
@@ -2599,6 +2926,9 @@
                 // Initialize store_id from session storage if available
                 this.selectedStoreId = sessionStorage.getItem('selectedStoreId');
                 
+                // Restore selectedStore from sessionStorage if available
+                this.restoreSelectedStoreFromSession();
+                
                 // Load employee and shift data
                 // Commenting out demo data - will be loaded from API
                 // this.loadDemoData();
@@ -2606,8 +2936,96 @@
                 // Initialize assignment modal
                 this.initAssignmentModal();
                 
+                // Initialize add shift modal
+                this.initAddShiftModal();
+                
+                // Listen for company changes
+                this.initCompanyChangeListener();
+                
                 // Render current level content
                 this.renderCurrentLevel();
+            }
+            
+            // Initialize company change listener
+            initCompanyChangeListener() {
+                // Listen for company change event from navbar
+                window.addEventListener('companyChanged', async (event) => {
+                    console.log('🔄 Company changed event detected:', event.detail);
+                    const newCompanyId = event.detail?.value || event.detail?.companyId;
+                    console.log('📌 New company ID:', newCompanyId);
+                    
+                    // Reset to dashboard view
+                    this.currentLevel = 'dashboard';
+                    this.selectedStore = null;
+                    this.selectedStoreId = null;
+                    
+                    // Clear all store-related session storage
+                    sessionStorage.removeItem('selectedStoreId');
+                    sessionStorage.removeItem('selectedStoreName');
+                    sessionStorage.removeItem('selectedStoreUuid');
+                    sessionStorage.removeItem('selectedStoreData');
+                    
+                    // Clear current data
+                    this.stores = [];
+                    this.employees = [];
+                    this.shifts = [];
+                    this.companySummary = null;
+                    this.employeeData = [];
+                    this.shiftScheduleData = [];
+                    
+                    // Show loading state
+                    this.showLoadingState();
+                    
+                    // Navigate to dashboard
+                    this.showLevel('dashboard');
+                    this.updateBreadcrumbs();
+                    
+                    try {
+                        // Reload store data for the new company
+                        await this.loadStoreDataFromAPI();
+                        console.log('✅ Store data reloaded for new company');
+                        console.log('📋 Number of stores loaded:', this.stores.length);
+                        
+                        // Re-render the dashboard with new data
+                        this.renderCurrentLevel();
+                    } catch (error) {
+                        console.error('❌ Failed to reload store data after company change:', error);
+                        
+                        // Show error state with helpful message
+                        const errorMessage = error.message || 'Unable to load data for selected company';
+                        this.showErrorState(`${errorMessage}. Please check your connection and try refreshing the page.`);
+                        
+                        // Ensure we still show empty dashboard rather than stale data
+                        this.renderCurrentLevel();
+                    }
+                });
+                
+                // Also handle the legacy callback if it exists
+                window.onCompanyChange = async (companyId) => {
+                    console.log('🔄 Legacy company change callback:', companyId);
+                    // The event listener above will handle the actual reload
+                };
+            }
+            
+            // Restore selectedStore object from sessionStorage
+            restoreSelectedStoreFromSession() {
+                const selectedStoreData = sessionStorage.getItem('selectedStoreData');
+                if (selectedStoreData && !this.selectedStore) {
+                    try {
+                        const storeData = JSON.parse(selectedStoreData);
+                        this.selectedStore = {
+                            id: storeData.store_id,
+                            store_uuid: storeData.store_uuid,  // This should now contain the UUID
+                            name: storeData.store_name,
+                            code: storeData.store_code,
+                            company_id: storeData.company_id,
+                            statistics: storeData.statistics
+                        };
+                        console.log('📋 Restored selectedStore from sessionStorage:', this.selectedStore);
+                    } catch (error) {
+                        console.error('❌ Failed to restore selectedStore from sessionStorage:', error);
+                    }
+                }
             }
             
             // Multi-Store Navigation Methods
@@ -2874,7 +3292,7 @@
                         shifts: shifts,
                         
                         // Store UUIDs and non-display data for card functionality
-                        store_uuid: store.store_uuid,
+                        store_uuid: store.store_id,  // Use store_id as the UUID source
                         company_id: store.company_id,
                         manager_id: store.manager_id,
                         created_at: store.created_at,
@@ -3002,6 +3420,9 @@
                         this.renderDashboard();
                         break;
                     case 'schedule':
+                        // Ensure selectedStore is available from sessionStorage
+                        this.restoreSelectedStoreFromSession();
+                        
                         // Check if we have any data to render
                         console.log('📊 Schedule render check:', {
                             hasSelectedStoreId: !!this.selectedStoreId,
@@ -3092,7 +3513,7 @@
                 card.dataset.storeId = store.id;
                 
                 // Store UUIDs and non-display data
-                card.dataset.storeUuid = store.store_uuid || '';
+                card.dataset.storeUuid = store.id;  // Use store.id which contains the UUID
                 card.dataset.companyId = store.company_id || '';
                 
                 // Get statistics data - always show 0 instead of N/A
@@ -3177,10 +3598,10 @@
                 // Store in session storage for persistence (including UUID if available)
                 sessionStorage.setItem('selectedStoreId', store.id);
                 sessionStorage.setItem('selectedStoreName', store.name);
-                sessionStorage.setItem('selectedStoreUuid', store.store_uuid || '');
+                sessionStorage.setItem('selectedStoreUuid', store.id);  // Use store.id which contains the UUID
                 sessionStorage.setItem('selectedStoreData', JSON.stringify({
                     store_id: store.id,
-                    store_uuid: store.store_uuid,
+                    store_uuid: store.id,  // Use store.id which contains the UUID
                     store_name: store.name,
                     store_code: store.code,
                     company_id: store.company_id,
@@ -3189,7 +3610,7 @@
                 
                 console.log('📍 Store selected for navigation:', {
                     store_id: store.id,
-                    store_uuid: store.store_uuid,
+                    store_uuid: store.id,  // Use store.id which contains the UUID
                     name: store.name,
                     code: store.code,
                     company_id: store.company_id
@@ -5464,6 +5885,237 @@
                 this.assignmentData = null;
                 this.storeEmployees = [];
                 this.storeShifts = [];
+            }
+
+            // Add Shift Modal Methods
+            initAddShiftModal() {
+                const addShiftBtn = document.getElementById('add-shift-btn');
+                const addShiftModal = document.getElementById('add-shift-modal');
+                const closeBtn = document.getElementById('close-add-shift-modal');
+                const cancelBtn = document.getElementById('cancel-add-shift');
+                const saveBtn = document.getElementById('save-shift');
+                const fromTimeInput = document.getElementById('shift-from-time');
+                const toTimeInput = document.getElementById('shift-to-time');
+                const shiftNameInput = document.getElementById('shift-name');
+                const shiftNumberInput = document.getElementById('shift-number');
+                const durationDisplay = document.getElementById('shift-duration');
+
+                // Open modal
+                if (addShiftBtn) {
+                    addShiftBtn.addEventListener('click', () => {
+                        this.openAddShiftModal();
+                    });
+                }
+
+                // Close modal
+                if (closeBtn) {
+                    closeBtn.addEventListener('click', () => {
+                        this.closeAddShiftModal();
+                    });
+                }
+
+                if (cancelBtn) {
+                    cancelBtn.addEventListener('click', () => {
+                        this.closeAddShiftModal();
+                    });
+                }
+
+                // Close on background click
+                if (addShiftModal) {
+                    addShiftModal.addEventListener('click', (e) => {
+                        if (e.target === addShiftModal) {
+                            this.closeAddShiftModal();
+                        }
+                    });
+                }
+
+                // Update duration when time changes
+                const updateDuration = () => {
+                    this.updateShiftDuration();
+                };
+
+                if (fromTimeInput) {
+                    fromTimeInput.addEventListener('change', updateDuration);
+                }
+
+                if (toTimeInput) {
+                    toTimeInput.addEventListener('change', updateDuration);
+                }
+
+                // Save button click
+                if (saveBtn) {
+                    saveBtn.addEventListener('click', () => {
+                        this.saveShift();
+                    });
+                }
+
+                // Enable/disable save button based on input
+                if (shiftNameInput) {
+                    shiftNameInput.addEventListener('input', () => {
+                        this.validateShiftForm();
+                    });
+                }
+
+                if (shiftNumberInput) {
+                    shiftNumberInput.addEventListener('input', () => {
+                        this.validateShiftForm();
+                    });
+                }
+            }
+
+            openAddShiftModal() {
+                const modal = document.getElementById('add-shift-modal');
+                if (modal) {
+                    modal.classList.add('active');
+                    // Reset form
+                    document.getElementById('shift-name').value = '';
+                    document.getElementById('shift-from-time').value = '09:00';
+                    document.getElementById('shift-to-time').value = '17:00';
+                    document.getElementById('shift-number').value = '1';
+                    this.updateShiftDuration();
+                    this.validateShiftForm();
+                }
+            }
+
+            closeAddShiftModal() {
+                const modal = document.getElementById('add-shift-modal');
+                if (modal) {
+                    modal.classList.remove('active');
+                }
+            }
+
+            updateShiftDuration() {
+                const fromTime = document.getElementById('shift-from-time').value;
+                const toTime = document.getElementById('shift-to-time').value;
+                const durationDisplay = document.getElementById('shift-duration');
+
+                if (fromTime && toTime && durationDisplay) {
+                    // Calculate duration
+                    const from = new Date(`2000-01-01T${fromTime}:00`);
+                    let to = new Date(`2000-01-01T${toTime}:00`);
+                    
+                    // Handle overnight shifts
+                    if (to < from) {
+                        to = new Date(`2000-01-02T${toTime}:00`);
+                    }
+                    
+                    const diffMs = to - from;
+                    const diffHrs = Math.floor(diffMs / (1000 * 60 * 60));
+                    const diffMins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+                    
+                    if (diffMins === 0) {
+                        durationDisplay.textContent = `${diffHrs} hours`;
+                    } else {
+                        durationDisplay.textContent = `${diffHrs} hours ${diffMins} minutes`;
+                    }
+                }
+            }
+
+            validateShiftForm() {
+                const shiftName = document.getElementById('shift-name').value.trim();
+                const fromTime = document.getElementById('shift-from-time').value;
+                const toTime = document.getElementById('shift-to-time').value;
+                const shiftNumber = parseInt(document.getElementById('shift-number').value);
+                const saveBtn = document.getElementById('save-shift');
+
+                // Validate all fields
+                const isValid = shiftName && fromTime && toTime && 
+                              shiftNumber && shiftNumber >= 1 && shiftNumber <= 10;
+
+                if (saveBtn) {
+                    saveBtn.disabled = !isValid;
+                }
+            }
+
+            async saveShift() {
+                const shiftName = document.getElementById('shift-name').value.trim();
+                const fromTime = document.getElementById('shift-from-time').value;
+                const toTime = document.getElementById('shift-to-time').value;
+                const shiftNumber = parseInt(document.getElementById('shift-number').value);
+                const saveBtn = document.getElementById('save-shift');
+
+                // Validate inputs
+                if (!shiftName || !fromTime || !toTime || !shiftNumber || shiftNumber < 1) {
+                    this.showNotification('Please fill all required fields correctly', 'error');
+                    return;
+                }
+
+                // Get store UUID - try from selectedStore first, then from sessionStorage
+                let storeUuid = null;
+                
+                if (this.selectedStore && this.selectedStore.id) {
+                    // The store UUID is in the 'id' property, not 'store_uuid'
+                    storeUuid = this.selectedStore.id;
+                } else {
+                    // Fallback to sessionStorage - use selectedStoreId since selectedStoreUuid might be empty
+                    storeUuid = sessionStorage.getItem('selectedStoreId') || sessionStorage.getItem('selectedStoreUuid');
+                }
+                
+                if (!storeUuid) {
+                    this.showNotification('No store selected. Please select a store first.', 'error');
+                    console.error('❌ No store UUID found. selectedStore:', this.selectedStore, 'sessionStorage:', {
+                        selectedStoreId: sessionStorage.getItem('selectedStoreId'),
+                        selectedStoreUuid: sessionStorage.getItem('selectedStoreUuid'),
+                        selectedStoreName: sessionStorage.getItem('selectedStoreName')
+                    });
+                    console.log('🔍 Debug info: store.id=', this.selectedStore?.id, 'store.store_uuid=', this.selectedStore?.store_uuid);
+                    return;
+                }
+
+                try {
+                    // Disable save button and show loading
+                    saveBtn.disabled = true;
+                    const originalText = saveBtn.textContent;
+                    saveBtn.textContent = 'Saving...';
+
+                    console.log('💾 Creating shift with data:', {
+                        shift_name: shiftName,
+                        start_time: fromTime,
+                        end_time: toTime,
+                        number_shift: shiftNumber,
+                        store_id: storeUuid,
+                        is_active: true
+                    });
+
+                    // Insert into store_shifts table
+                    const { data, error } = await supabase
+                        .from('store_shifts')
+                        .insert({
+                            shift_name: shiftName,
+                            start_time: fromTime,
+                            end_time: toTime,
+                            number_shift: shiftNumber,
+                            store_id: storeUuid,
+                            is_active: true
+                        })
+                        .select();
+
+                    if (error) {
+                        console.error('❌ Error creating shift:', error);
+                        throw new Error(error.message || 'Failed to create shift');
+                    }
+
+                    console.log('✅ Shift created successfully:', data);
+
+                    // Show success message
+                    this.showNotification('Shift created successfully!', 'success');
+                    
+                    // Close the modal
+                    this.closeAddShiftModal();
+
+                    // Refresh the schedule page to show the new shift
+                    console.log('🔄 Refreshing schedule data...');
+                    await this.loadShiftScheduleData(true); // Force reload
+                    
+                } catch (error) {
+                    console.error('❌ Failed to save shift:', error);
+                    this.showNotification(error.message || 'Failed to create shift. Please try again.', 'error');
+                    
+                } finally {
+                    // Re-enable save button
+                    saveBtn.disabled = false;
+                    saveBtn.textContent = originalText || 'Save Shift';
+                }
             }
             
             showNotification(message, type = 'info') {

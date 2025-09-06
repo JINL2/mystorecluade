@@ -79,6 +79,18 @@ class AppState {
             return null;
         }
         
+        // Check if navbar has fresher data
+        if (window.navbarInstance && window.navbarInstance.companySelector) {
+            try {
+                const selectedOption = window.navbarInstance.companySelector.getSelectedOption();
+                if (selectedOption && selectedOption.data && selectedOption.data.company_id === companyId) {
+                    return selectedOption.data;
+                }
+            } catch (e) {
+                // Fallback to userData
+            }
+        }
+        
         return userData.companies.find(c => c.company_id === companyId) || null;
     }
 

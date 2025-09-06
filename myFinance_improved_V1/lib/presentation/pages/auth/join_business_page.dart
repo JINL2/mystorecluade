@@ -7,13 +7,14 @@ import '../../../core/themes/toss_animations.dart';
 import '../../widgets/toss/toss_primary_button.dart';
 import '../../widgets/toss/toss_text_field.dart';
 import '../../widgets/auth/storebase_auth_header.dart';
-import '../../../data/services/company_service.dart';
+import '../../../data/services/enhanced_company_service.dart';
 import '../../providers/app_state_provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/constants/auth_constants.dart';
 import '../../widgets/common/toss_scaffold.dart';
 import '../../../core/navigation/safe_navigation.dart';
-
+import 'package:myfinance_improved/core/themes/index.dart';
+import 'package:myfinance_improved/core/themes/toss_border_radius.dart';
 class JoinBusinessPage extends ConsumerStatefulWidget {
   const JoinBusinessPage({super.key});
 
@@ -403,7 +404,7 @@ class _JoinBusinessPageState extends ConsumerState<JoinBusinessPage>
       padding: EdgeInsets.all(TossSpacing.space4),
       decoration: BoxDecoration(
         color: TossColors.info.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
         border: Border.all(
           color: TossColors.info.withOpacity(0.3),
           width: 1,
@@ -454,7 +455,7 @@ class _JoinBusinessPageState extends ConsumerState<JoinBusinessPage>
     });
 
     try {
-      final service = ref.read(companyServiceProvider);
+      final service = ref.read(enhancedCompanyServiceProvider);
       
       final result = await service.joinCompany(
         companyCode: _codeController.text.trim(),
@@ -493,7 +494,7 @@ class _JoinBusinessPageState extends ConsumerState<JoinBusinessPage>
                 Expanded(
                   child: Text(
                     errorMessage,
-                    style: TextStyle(fontWeight: FontWeight.w500),
+                    style: TossTextStyles.body.copyWith(fontWeight: FontWeight.w500),
                   ),
                 ),
               ],
@@ -501,7 +502,7 @@ class _JoinBusinessPageState extends ConsumerState<JoinBusinessPage>
             backgroundColor: TossColors.error,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
             ),
           ),
         );

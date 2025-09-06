@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../core/themes/index.dart';
 import '../models/product_model.dart';
-
+import 'package:myfinance_improved/core/themes/toss_border_radius.dart';
 class ProductCard extends StatelessWidget {
   final Product product;
   final bool isSelected;
@@ -86,7 +86,7 @@ class ProductCard extends StatelessWidget {
                           children: [
                             Text(
                               product.name,
-                              style: const TextStyle(
+                              style: TossTextStyles.body.copyWith(
                                 fontWeight: FontWeight.w700,
                                 fontSize: 14,
                               ),
@@ -96,7 +96,7 @@ class ProductCard extends StatelessWidget {
                             const SizedBox(height: TossSpacing.space1),
                             Text(
                               product.sku,
-                              style: TextStyle(
+                              style: TossTextStyles.body.copyWith(
                                 color: TossColors.gray600,
                                 fontSize: 12,
                                 fontFamily: 'monospace',
@@ -109,7 +109,7 @@ class ProductCard extends StatelessWidget {
                           children: [
                             Text(
                               _formatCurrency(product.salePrice),
-                              style: const TextStyle(
+                              style: TossTextStyles.body.copyWith(
                                 fontWeight: FontWeight.w700,
                                 fontSize: 16,
                               ),
@@ -120,7 +120,7 @@ class ProductCard extends StatelessWidget {
                               children: [
                                 Text(
                                   '${product.onHand} units',
-                                  style: TextStyle(
+                                  style: TossTextStyles.body.copyWith(
                                     color: _getStockColor(),
                                     fontSize: 12,
                                     fontWeight: FontWeight.w500,
@@ -129,7 +129,7 @@ class ProductCard extends StatelessWidget {
                                 if (product.location != null)
                                   Text(
                                     product.location!,
-                                    style: TextStyle(
+                                    style: TossTextStyles.body.copyWith(
                                       color: TossColors.gray600,
                                       fontSize: 11,
                                     ),
@@ -177,7 +177,7 @@ class ProductCard extends StatelessWidget {
   Widget _buildPlaceholder() {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.grey[200],
+        color: TossColors.gray500[200],
         borderRadius: const BorderRadius.vertical(
           top: Radius.circular(12),
         ),
@@ -227,7 +227,7 @@ class ProductCard extends StatelessWidget {
       ),
       child: Text(
         text,
-        style: const TextStyle(
+        style: TossTextStyles.body.copyWith(
           color: TossColors.white,
           fontSize: 10,
           fontWeight: FontWeight.w700,
@@ -332,7 +332,7 @@ class ProductListTile extends StatelessWidget {
                 const SizedBox(width: TossSpacing.space1),
                 Text(
                   '${product.onHand} units',
-                  style: TextStyle(
+                  style: TossTextStyles.body.copyWith(
                     color: _getStockColor(),
                     fontWeight: FontWeight.w500,
                   ),
@@ -343,7 +343,7 @@ class ProductListTile extends StatelessWidget {
                   const SizedBox(width: TossSpacing.space0 + 2),
                   Text(
                     product.location!,
-                    style: TextStyle(color: TossColors.gray600),
+                    style: TossTextStyles.body.copyWith(color: TossColors.gray600),
                   ),
                 ],
               ],
@@ -356,14 +356,14 @@ class ProductListTile extends StatelessWidget {
           children: [
             Text(
               _formatCurrency(product.salePrice),
-              style: const TextStyle(
+              style: TossTextStyles.body.copyWith(
                 fontWeight: FontWeight.w700,
                 fontSize: 16,
               ),
             ),
             Text(
               'Value: ${_formatCurrency(product.inventoryValue)}',
-              style: TextStyle(
+              style: TossTextStyles.body.copyWith(
                 color: TossColors.gray600,
                 fontSize: 11,
               ),

@@ -8,7 +8,8 @@ import '../../../widgets/common/toss_scaffold.dart';
 import '../../../widgets/common/toss_app_bar.dart';
 import '../../../widgets/toss/toss_card.dart';
 import '../widgets/common_widgets.dart';
-
+import 'package:myfinance_improved/core/themes/index.dart';
+import 'package:myfinance_improved/core/themes/toss_border_radius.dart';
 class NotificationsSettingsPage extends ConsumerStatefulWidget {
   const NotificationsSettingsPage({super.key});
 
@@ -154,7 +155,7 @@ class _NotificationsSettingsPageState extends ConsumerState<NotificationsSetting
               padding: EdgeInsets.all(TossSpacing.space4),
               decoration: BoxDecoration(
                 color: TossColors.gray100,
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(TossBorderRadius.lg),
               ),
               child: Row(
                 children: [

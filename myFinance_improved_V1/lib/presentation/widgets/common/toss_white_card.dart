@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../core/themes/toss_colors.dart';
 import '../../../core/themes/toss_border_radius.dart';
+import 'package:myfinance_improved/core/themes/index.dart';
 
 /// White card container with consistent styling
 class TossWhiteCard extends StatelessWidget {

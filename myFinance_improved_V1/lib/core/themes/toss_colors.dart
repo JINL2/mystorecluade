@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-
 /// Toss Design System - Official Color Palette
 /// Based on Toss (토스) Korean fintech app's actual design patterns
 /// 
@@ -30,6 +29,8 @@ class TossColors {
   static const Color gray800 = Color(0xFF343A40);        // Heading
   static const Color gray900 = Color(0xFF212529);        // Primary text
   static const Color black = Color(0xFF000000);          // Pure black
+  static const Color black87 = Color(0xDD000000);         // 87% opacity black
+  static const Color black54 = Color(0x8A000000);         // 54% opacity black
   
   
   // ==================== SEMANTIC COLORS ====================
@@ -51,9 +52,9 @@ class TossColors {
   static const Color loss = Color(0xFFFF5847);           // Negative (red) - same as error
   
   // ==================== SURFACE COLORS ====================
-  static const Color background = Color(0xFFFFFFFF);     // Main bg
-  static const Color surface = Color(0xFFFFFFFF);        // Card surface
-  static const Color overlay = Color(0x8A000000);        // Modal overlay
+  static const Color background = Color(0xFFFFFFFF);     // Main bg (white)
+  static const Color surface = Color(0xFFFFFFFF);        // Card surface (white)
+  static const Color overlay = Color(0x80000000);        // Modal overlay
   
   // ==================== BORDER & DIVIDER ====================
   static const Color border = Color(0xFFE9ECEF);         // Default border
@@ -63,7 +64,7 @@ class TossColors {
   static const Color textPrimary = Color(0xFF212529);    // Main text
   static const Color textSecondary = Color(0xFF6C757D);  // Secondary
   static const Color textTertiary = Color(0xFFADB5BD);   // Hint text
-  static const Color textInverse = Color(0xFFFFFFFF);    // On dark bg
+  static const Color textInverse = Color(0xFFFFFFFF);    // On dark bg (white)
   
   // ==================== SPECIAL PURPOSE ====================
   static const Color shimmer = Color(0xFFF1F3F5);        // Loading

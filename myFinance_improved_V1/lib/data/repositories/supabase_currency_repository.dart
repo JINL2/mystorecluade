@@ -111,7 +111,6 @@ class SupabaseCurrencyRepository implements CurrencyRepository {
   @override
   Future<Currency> addCompanyCurrency(String companyId, String currencyId) async {
     try {
-      print('=== ADD COMPANY CURRENCY DEBUG ===');
       print('Adding currency: $currencyId to company: $companyId');
       
       // Check if currency type exists
@@ -121,11 +120,9 @@ class SupabaseCurrencyRepository implements CurrencyRepository {
           .eq('currency_id', currencyId)
           .single();
       
-      print('Currency type found: ${currencyType['currency_code']}');
 
       // Check if this currency was previously soft deleted
       // This handles the case where user deleted a currency and wants to add it back
-      print('Checking for existing soft-deleted entry...');
       
       // First check if ANY entry exists for this company/currency combination
       final anyExisting = await _client
@@ -138,7 +135,6 @@ class SupabaseCurrencyRepository implements CurrencyRepository {
       print('Any existing entry found: ${anyExisting != null ? 'YES' : 'NO'}');
       if (anyExisting != null) {
         print('Existing entry details: $anyExisting');
-        print('is_deleted value: ${anyExisting['is_deleted']}');
       }
       
       // Check specifically for soft-deleted entries
@@ -219,7 +215,6 @@ class SupabaseCurrencyRepository implements CurrencyRepository {
         print('Successfully created new company_currency entry');
       }
 
-      print('=== END ADD COMPANY CURRENCY DEBUG ===');
       
       // Return the full currency with empty denominations initially
       return Currency(

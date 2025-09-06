@@ -3,7 +3,8 @@ import 'package:go_router/go_router.dart';
 import '../../../core/themes/toss_colors.dart';
 import '../../../core/themes/toss_spacing.dart';
 import '../../../core/navigation/safe_navigation.dart';
-
+import 'package:myfinance_improved/core/themes/index.dart';
+import 'package:myfinance_improved/core/themes/toss_border_radius.dart';
 /// Storebase branded header for authentication pages
 /// Provides consistent branding across all auth flows
 class StorebaseAuthHeader extends StatelessWidget {
@@ -76,7 +77,7 @@ class StorebaseAuthHeader extends StatelessWidget {
           padding: EdgeInsets.symmetric(horizontal: TossSpacing.space3),
           decoration: BoxDecoration(
             color: TossColors.primary,
-            borderRadius: BorderRadius.circular(6),
+            borderRadius: BorderRadius.circular(TossBorderRadius.sm),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
@@ -87,12 +88,12 @@ class StorebaseAuthHeader extends StatelessWidget {
                 height: 20,
                 decoration: BoxDecoration(
                   color: TossColors.white,
-                  borderRadius: BorderRadius.circular(4),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                 ),
                 child: Center(
                   child: Text(
                     'S',
-                    style: TextStyle(
+                    style: TossTextStyles.body.copyWith(
                       color: TossColors.primary,
                       fontWeight: FontWeight.w800,
                       fontSize: 12,
@@ -103,7 +104,7 @@ class StorebaseAuthHeader extends StatelessWidget {
               const SizedBox(width: 6),
               Text(
                 'Storebase',
-                style: TextStyle(
+                style: TossTextStyles.body.copyWith(
                   color: TossColors.white,
                   fontWeight: FontWeight.w700,
                   fontSize: 16,
@@ -129,7 +130,7 @@ class StorebaseAuthHeader extends StatelessWidget {
         padding: EdgeInsets.symmetric(horizontal: TossSpacing.space4),
         decoration: BoxDecoration(
           color: TossColors.primary,
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(TossBorderRadius.md),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -139,12 +140,12 @@ class StorebaseAuthHeader extends StatelessWidget {
               height: 24,
               decoration: BoxDecoration(
                 color: TossColors.white,
-                borderRadius: BorderRadius.circular(6),
+                borderRadius: BorderRadius.circular(TossBorderRadius.sm),
               ),
               child: Center(
                 child: Text(
                   'S',
-                  style: TextStyle(
+                  style: TossTextStyles.body.copyWith(
                     color: TossColors.primary,
                     fontWeight: FontWeight.w800,
                     fontSize: 14,
@@ -152,10 +153,10 @@ class StorebaseAuthHeader extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: TossSpacing.space2),
             Text(
               'Storebase',
-              style: TextStyle(
+              style: TossTextStyles.body.copyWith(
                 color: TossColors.white,
                 fontWeight: FontWeight.w700,
                 fontSize: 18,
@@ -198,7 +199,7 @@ class StorebaseAuthHeader extends StatelessWidget {
                   height: 4,
                   decoration: BoxDecoration(
                     color: TossColors.gray300,
-                    borderRadius: BorderRadius.circular(2),
+                    borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                   ),
                 ),
                 const SizedBox(height: TossSpacing.space4),
@@ -218,7 +219,7 @@ class StorebaseAuthHeader extends StatelessWidget {
                         children: [
                           Text(
                             'Need help?',
-                            style: TextStyle(
+                            style: TossTextStyles.body.copyWith(
                               color: TossColors.textPrimary,
                               fontWeight: FontWeight.w600,
                               fontSize: 16,
@@ -227,7 +228,7 @@ class StorebaseAuthHeader extends StatelessWidget {
                           const SizedBox(height: TossSpacing.space1),
                           Text(
                             'Contact our support team for assistance with your account',
-                            style: TextStyle(
+                            style: TossTextStyles.body.copyWith(
                               color: TossColors.textSecondary,
                               fontSize: 14,
                             ),
@@ -309,12 +310,12 @@ class StorebaseWelcomeHeader extends StatelessWidget {
             height: 80,
             decoration: BoxDecoration(
               color: TossColors.primary,
-              borderRadius: BorderRadius.circular(18),
+              borderRadius: BorderRadius.circular(TossBorderRadius.xl),
             ),
             child: Center(
               child: Text(
                 'S',
-                style: TextStyle(
+                style: TossTextStyles.body.copyWith(
                   color: TossColors.white,
                   fontWeight: FontWeight.w800,
                   fontSize: 32,
@@ -328,7 +329,7 @@ class StorebaseWelcomeHeader extends StatelessWidget {
           // Wordmark
           Text(
             'Storebase',
-            style: TextStyle(
+            style: TossTextStyles.body.copyWith(
               color: TossColors.textPrimary,
               fontWeight: FontWeight.w800,
               fontSize: 32,
@@ -341,7 +342,7 @@ class StorebaseWelcomeHeader extends StatelessWidget {
           // Tagline
           Text(
             'Your business command center',
-            style: TextStyle(
+            style: TossTextStyles.body.copyWith(
               color: TossColors.textSecondary,
               fontWeight: FontWeight.w500,
               fontSize: 16,

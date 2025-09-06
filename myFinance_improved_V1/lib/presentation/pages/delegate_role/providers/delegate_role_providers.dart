@@ -12,7 +12,8 @@ final userCompaniesProvider = FutureProvider<dynamic>((ref) async {
   final appState = ref.watch(appStateProvider);
   
   if (user == null) {
-    throw UnauthorizedException();
+    // Return empty list instead of throwing exception when user is not authenticated
+    return [];
   }
   
   // Check if we have cached data
@@ -43,7 +44,8 @@ final forceRefreshUserCompaniesProvider = FutureProvider<dynamic>((ref) async {
   final appStateNotifier = ref.read(appStateProvider.notifier);
   
   if (user == null) {
-    throw UnauthorizedException();
+    // Return empty list instead of throwing exception when user is not authenticated
+    return [];
   }
   
   // ALWAYS fetch fresh data from API
@@ -160,7 +162,8 @@ final activeDelegationsProvider = FutureProvider<List<RoleDelegation>>((ref) asy
   final appState = ref.watch(appStateProvider);
   
   if (user == null) {
-    throw UnauthorizedException();
+    // Return empty list instead of throwing exception when user is not authenticated
+    return [];
   }
   
   final selectedCompany = appState.companyChoosen;
@@ -321,7 +324,8 @@ final delegationHistoryProvider = FutureProvider<List<DelegationAudit>>((ref) as
   final appState = ref.watch(appStateProvider);
   
   if (user == null) {
-    throw UnauthorizedException();
+    // Return empty list instead of throwing exception when user is not authenticated
+    return [];
   }
   
   final selectedCompany = appState.companyChoosen;
@@ -540,7 +544,8 @@ final createDelegationProvider = Provider((ref) {
     final appState = ref.read(appStateProvider);
     
     if (user == null) {
-      throw UnauthorizedException();
+      // Return null instead of throwing exception when user is not authenticated
+    return null;
     }
     
     final selectedCompany = appState.companyChoosen;
@@ -562,7 +567,8 @@ final revokeDelegationProvider = Provider((ref) {
     final user = ref.read(authStateProvider);
     
     if (user == null) {
-      throw UnauthorizedException();
+      // Return null instead of throwing exception when user is not authenticated
+    return null;
     }
     
     // Delegation feature not implemented yet

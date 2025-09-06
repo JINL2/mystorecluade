@@ -16,6 +16,7 @@ import '../../../../core/themes/toss_colors.dart';
 import '../../../../core/themes/toss_text_styles.dart';
 import '../../../../core/themes/toss_spacing.dart';
 import '../../../../core/themes/toss_border_radius.dart';
+import 'package:myfinance_improved/core/themes/index.dart';
 
 /// Autonomous cash location selector with scope awareness
 /// Uses dedicated RPC function and entity providers
@@ -351,7 +352,7 @@ class _AutonomousCashLocationSelectorState extends ConsumerState<AutonomousCashL
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      backgroundColor: TossColors.transparent,
       builder: (context) => TossBottomSheet(
         content: StatefulBuilder(
           builder: (context, setModalState) {
@@ -391,7 +392,7 @@ class _AutonomousCashLocationSelectorState extends ConsumerState<AutonomousCashL
                   Container(
                     decoration: BoxDecoration(
                       color: TossColors.gray50,
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                       border: Border.all(color: TossColors.gray200),
                     ),
                     child: Row(
@@ -436,10 +437,10 @@ class _AutonomousCashLocationSelectorState extends ConsumerState<AutonomousCashL
                             children: [
                               Text(
                                 'There is no Cash Location.',
-                                style: TextStyle(color: TossColors.gray500),
+                                style: TossTextStyles.body.copyWith(color: TossColors.gray500),
                                 textAlign: TextAlign.center,
                               ),
-                              const SizedBox(height: 8),
+                              const SizedBox(height: TossSpacing.space2),
                               Text(
                                 'Go to Cash and create Cash Location',
                                 style: TossTextStyles.caption.copyWith(
@@ -464,11 +465,11 @@ class _AutonomousCashLocationSelectorState extends ConsumerState<AutonomousCashL
                                 _searchQuery.isEmpty
                                   ? 'There is no Cash Location.'
                                   : 'No results found',
-                                style: TextStyle(color: TossColors.gray500),
+                                style: TossTextStyles.body.copyWith(color: TossColors.gray500),
                                 textAlign: TextAlign.center,
                               ),
                               if (_searchQuery.isEmpty) ...[ 
-                                const SizedBox(height: 8),
+                                const SizedBox(height: TossSpacing.space2),
                                 Text(
                                   'Go to Cash and create Cash Location',
                                   style: TossTextStyles.caption.copyWith(
@@ -521,7 +522,7 @@ class _AutonomousCashLocationSelectorState extends ConsumerState<AutonomousCashL
                                       children: [
                                         Text(
                                           item.displayName,
-                                          style: TextStyle(
+                                          style: TossTextStyles.body.copyWith(
                                             color: isSelected ? TossColors.primary : TossColors.gray900,
                                             fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
                                           ),
@@ -564,20 +565,20 @@ class _AutonomousCashLocationSelectorState extends ConsumerState<AutonomousCashL
                     ),
                   ),
                   error: (error, stack) => Padding(
-                    padding: const EdgeInsets.all(24),
+                    padding: const EdgeInsets.all(TossSpacing.space6),
                     child: Center(
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
                             'Failed to load cash locations',
-                            style: TextStyle(color: TossColors.error),
+                            style: TossTextStyles.body.copyWith(color: TossColors.error),
                             textAlign: TextAlign.center,
                           ),
-                          const SizedBox(height: 8),
+                          const SizedBox(height: TossSpacing.space2),
                           Text(
                             'Please try again',
-                            style: TextStyle(
+                            style: TossTextStyles.body.copyWith(
                               color: TossColors.gray500,
                               fontSize: 14,
                             ),
@@ -631,7 +632,7 @@ class _AutonomousCashLocationSelectorState extends ConsumerState<AutonomousCashL
                 const SizedBox(width: TossSpacing.space1),
                 Text(
                   label,
-                  style: TextStyle(
+                  style: TossTextStyles.body.copyWith(
                     color: isSelected ? TossColors.primary : TossColors.gray600,
                     fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
                     fontSize: 12,
@@ -724,17 +725,17 @@ class _AutonomousCashLocationSelectorState extends ConsumerState<AutonomousCashL
           horizontal: 16,
           vertical: 12,
         ),
-        child: const Row(
+        child: Row(
           children: [
-            Icon(
+            const Icon(
               Icons.clear,
               size: 20,
               color: TossColors.gray500,
             ),
-            SizedBox(width: TossSpacing.space3),
+            const SizedBox(width: TossSpacing.space3),
             Text(
               'Clear selection',
-              style: TextStyle(color: TossColors.gray500),
+              style: TossTextStyles.body.copyWith(color: TossColors.gray500),
             ),
           ],
         ),

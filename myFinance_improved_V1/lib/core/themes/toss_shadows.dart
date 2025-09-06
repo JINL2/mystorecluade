@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'toss_colors.dart';
+import 'package:myfinance_improved/core/themes/index.dart';
 
 /// Toss Shadow System - Ultra-subtle depth
 /// Based on Toss's minimal shadow approach
@@ -20,7 +21,7 @@ class TossShadows {
   // Level 1 - Barely visible (cards on background)
   static const List<BoxShadow> elevation1 = [
     BoxShadow(
-      color: Color(0x0A000000), // 4% black
+      color: TossColors.shadow, // 4% black
       offset: Offset(0, 2),
       blurRadius: 8,
       spreadRadius: 0,
@@ -62,7 +63,7 @@ class TossShadows {
   // Card shadow - Ultra subtle
   static const List<BoxShadow> card = [
     BoxShadow(
-      color: Color(0x0A000000), // 4% black
+      color: TossColors.shadow, // 4% black
       offset: Offset(0, 2),
       blurRadius: 8,
       spreadRadius: 0,
@@ -118,7 +119,7 @@ class TossShadows {
   // Navigation bar (top or bottom)
   static const List<BoxShadow> navbar = [
     BoxShadow(
-      color: Color(0x0A000000), // 4% black
+      color: TossColors.shadow, // 4% black
       offset: Offset(0, 1),
       blurRadius: 4,
       spreadRadius: 0,
@@ -130,7 +131,7 @@ class TossShadows {
   // Inner shadow (inset)
   static const List<BoxShadow> inset = [
     BoxShadow(
-      color: Color(0x0A000000), // 4% black
+      color: TossColors.shadow, // 4% black
       offset: Offset(0, 1),
       blurRadius: 3,
       spreadRadius: -1,

@@ -74,7 +74,7 @@ function buildPageUrl(route, basePath = '/mcparrange-main/myFinance_claude/websi
         
         // Settings pages
         'cashLocation': 'settings/currency',
-        'storeShiftSetting': 'settings/company-store',
+        'storeShiftSetting': 'settings/store-setting',
         'accountMapping': 'settings/account-mapping',
         'registerCounterparty': 'settings/counterparty',
         

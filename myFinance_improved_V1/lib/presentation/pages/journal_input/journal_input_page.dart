@@ -18,6 +18,7 @@ import '../../../core/themes/toss_colors.dart';
 import '../../../core/themes/toss_text_styles.dart';
 import '../../../core/themes/toss_spacing.dart';
 import '../../../core/themes/toss_border_radius.dart';
+import 'package:myfinance_improved/core/themes/index.dart';
 
 class JournalInputPage extends ConsumerStatefulWidget {
   const JournalInputPage({super.key});
@@ -499,7 +500,7 @@ class _JournalInputPageState extends ConsumerState<JournalInputPage>
   
   Widget _buildBalanceItem(String label, double amount, int? count, Color color, {bool isClickable = false}) {
     return Padding(
-      padding: EdgeInsets.symmetric(vertical: 8),
+      padding: EdgeInsets.symmetric(vertical: TossSpacing.space2),
       child: Column(
         children: [
           Text(

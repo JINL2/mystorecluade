@@ -3,6 +3,7 @@ import '../../../core/themes/toss_colors.dart';
 import '../../../core/themes/toss_text_styles.dart';
 import '../../../core/themes/toss_spacing.dart';
 import '../../../core/themes/toss_border_radius.dart';
+import 'package:myfinance_improved/core/themes/index.dart';
 
 /// Simple wheel-style time picker matching Toss design system
 /// Clean three-column layout: Hour | Minute | AM/PM
@@ -35,24 +36,42 @@ class _TossSimpleWheelTimePickerState extends State<TossSimpleWheelTimePicker> {
     super.initState();
     _selectedTime = widget.initialTime ?? TimeOfDay.now();
     
-    // Initialize scroll controllers
-    final hour = widget.use24HourFormat 
-        ? _selectedTime.hour 
-        : (_selectedTime.hourOfPeriod == 0 ? 12 : _selectedTime.hourOfPeriod);
-    
-    _hourController = FixedExtentScrollController(
-      initialItem: widget.use24HourFormat ? hour : hour - 1,
-    );
+    // Initialize scroll controllers with correct initial positions
+    if (widget.use24HourFormat) {
+      _hourController = FixedExtentScrollController(
+        initialItem: _selectedTime.hour,
+      );
+    } else {
+      // For 12-hour format: hours are 1-12 (index 0-11)
+      final displayHour = _selectedTime.hourOfPeriod == 0 ? 12 : _selectedTime.hourOfPeriod;
+      _hourController = FixedExtentScrollController(
+        initialItem: displayHour - 1, // Convert to 0-based index
+      );
+      
+      _periodController = FixedExtentScrollController(
+        initialItem: _selectedTime.period == DayPeriod.am ? 0 : 1,
+      );
+    }
     
     _minuteController = FixedExtentScrollController(
       initialItem: _selectedTime.minute,
     );
     
-    if (!widget.use24HourFormat) {
-      _periodController = FixedExtentScrollController(
-        initialItem: _selectedTime.period == DayPeriod.am ? 0 : 1,
-      );
-    }
+    // Ensure initial positions are properly set after the first frame
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        // Force jump to the initial positions to ensure proper alignment
+        if (_hourController.hasClients) {
+          _hourController.jumpToItem(_hourController.initialItem);
+        }
+        if (_minuteController.hasClients) {
+          _minuteController.jumpToItem(_minuteController.initialItem);
+        }
+        if (!widget.use24HourFormat && _periodController.hasClients) {
+          _periodController.jumpToItem(_periodController.initialItem);
+        }
+      }
+    });
   }
 
   @override
@@ -68,18 +87,25 @@ class _TossSimpleWheelTimePickerState extends State<TossSimpleWheelTimePicker> {
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      backgroundColor: Colors.transparent,
+      backgroundColor: TossColors.transparent,
       insetPadding: const EdgeInsets.all(TossSpacing.space4),
       child: Container(
-        height: MediaQuery.of(context).size.height * 0.5,
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * 0.5,
+          minHeight: 350,
+        ),
         decoration: BoxDecoration(
           color: TossColors.white,
           borderRadius: BorderRadius.circular(TossBorderRadius.xl),
         ),
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
             _buildHeader(),
-            Expanded(child: _buildWheelPickers()),
+            SizedBox(
+              height: 200,
+              child: _buildWheelPickers(),
+            ),
             _buildActionButtons(),
           ],
         ),
@@ -110,17 +136,20 @@ class _TossSimpleWheelTimePickerState extends State<TossSimpleWheelTimePicker> {
   }
 
   Widget _buildWheelPickers() {
+    const double containerHeight = 200;
+    const double itemHeight = 40;
+    
+    // Center the selection box properly in the middle of the container
+    // Since we want to show items above and below the selected item,
+    // the selection box should be truly centered
     return Container(
-      height: 200,
+      height: containerHeight,
       child: Stack(
         children: [
-          // Selection background indicator
-          Positioned(
-            left: 0,
-            right: 0,
-            top: 80,
-            height: 40,
+          // Selection background indicator - properly centered in the middle
+          Center(
             child: Container(
+              height: itemHeight,
               margin: const EdgeInsets.symmetric(horizontal: TossSpacing.space2),
               decoration: BoxDecoration(
                 color: TossColors.primarySurface,
@@ -147,6 +176,7 @@ class _TossSimpleWheelTimePickerState extends State<TossSimpleWheelTimePicker> {
                         : (index + 1).toString(),
                   ),
                   onSelectedItemChanged: (index) {
+                    if (!mounted) return;
                     int hour = widget.use24HourFormat ? index : index + 1;
                     if (!widget.use24HourFormat) {
                       if (_selectedTime.period == DayPeriod.pm && hour != 12) {
@@ -171,6 +201,7 @@ class _TossSimpleWheelTimePickerState extends State<TossSimpleWheelTimePicker> {
                     (index) => index.toString().padLeft(2, '0'),
                   ),
                   onSelectedItemChanged: (index) {
+                    if (!mounted) return;
                     setState(() {
                       _selectedTime = _selectedTime.replacing(minute: index);
                     });
@@ -185,6 +216,7 @@ class _TossSimpleWheelTimePickerState extends State<TossSimpleWheelTimePicker> {
                     controller: _periodController,
                     items: ['AM', 'PM'],
                     onSelectedItemChanged: (index) {
+                      if (!mounted) return;
                       final period = index == 0 ? DayPeriod.am : DayPeriod.pm;
                       int hour = _selectedTime.hourOfPeriod;
                       if (hour == 0) hour = 12;
@@ -215,23 +247,44 @@ class _TossSimpleWheelTimePickerState extends State<TossSimpleWheelTimePicker> {
   }) {
     return NotificationListener<ScrollNotification>(
       onNotification: (ScrollNotification notification) {
+        if (notification is ScrollEndNotification) {
+          // Ensure the scroll position is properly aligned after scrolling ends
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (controller.hasClients) {
+              final selectedIndex = controller.selectedItem;
+              if (selectedIndex != controller.selectedItem.round()) {
+                controller.jumpToItem(selectedIndex);
+              }
+            }
+          });
+        }
         return false;
       },
       child: ListWheelScrollView.useDelegate(
         controller: controller,
         itemExtent: 40,
-        perspective: 0.005,
-        diameterRatio: 1.2,
+        perspective: 0.002, // Small perspective for slight 3D effect
+        diameterRatio: 1.8, // Optimal diameter for centering
         physics: const FixedExtentScrollPhysics(),
-        onSelectedItemChanged: onSelectedItemChanged,
+        useMagnifier: false, // Disable magnifier to avoid distortion
+        squeeze: 1.0, // No squeeze to maintain proper alignment
+        overAndUnderCenterOpacity: 0.7, // Slightly transparent for non-selected items
+        onSelectedItemChanged: (index) {
+          // Ensure the item is properly centered when selected
+          onSelectedItemChanged(index);
+        },
         childDelegate: ListWheelChildBuilderDelegate(
           builder: (context, index) {
             if (index < 0 || index >= items.length) return null;
             
+            // Check if this item is the currently selected one
             final isSelected = controller.hasClients && 
                 controller.selectedItem == index;
             
-            return _buildPickerItem(items[index], isSelected);
+            return Container(
+              alignment: Alignment.center,
+              child: _buildPickerItem(items[index], isSelected),
+            );
           },
           childCount: items.length,
         ),
@@ -242,9 +295,11 @@ class _TossSimpleWheelTimePickerState extends State<TossSimpleWheelTimePicker> {
   Widget _buildPickerItem(String text, bool isSelected) {
     return Container(
       height: 40,
+      width: double.infinity,
       alignment: Alignment.center,
       child: Text(
         text,
+        textAlign: TextAlign.center,
         style: TossTextStyles.h4.copyWith(
           color: isSelected ? TossColors.primary : TossColors.gray600,
           fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
@@ -313,7 +368,7 @@ class TossTimePicker extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: Colors.transparent,
+      color: TossColors.transparent,
       child: InkWell(
         onTap: () => _showSimpleTimePicker(context),
         borderRadius: BorderRadius.circular(TossBorderRadius.md),

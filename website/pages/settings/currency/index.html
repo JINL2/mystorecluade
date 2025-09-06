@@ -1305,7 +1305,7 @@
     <script src="../../../core/utils/page-init.js"></script>
     
     <script>
-        // Set flag immediately to prevent navbar auto-init
+        // Prevent navbar auto-init to use PageInitializer pattern
         window.skipNavbarAutoInit = true;
         
         // Store current company ID and base currency globally
@@ -1368,117 +1368,203 @@
         let initializationCompleted = false;
         let initializationTimeout = null;
         
-        // CRITICAL FIX: Add timeout safety mechanism for stuck loading states
+        // CRITICAL FIX: Simplified and more reliable timeout safety mechanism
         function setupInitializationTimeout() {
             // Clear any existing timeout
             if (initializationTimeout) {
                 clearTimeout(initializationTimeout);
             }
             
-            // Set a 20-second timeout to give window.initializePage adequate time
+            // Set a shorter, more reasonable timeout (10 seconds)
             initializationTimeout = setTimeout(() => {
                 if (!initializationCompleted) {
-                    console.warn('TIMEOUT: Page initialization taking longer than expected (20s)');
-                    console.warn('This usually indicates a problem with window.initializePage or navbar loading');
+                    console.warn('TIMEOUT: Page initialization timeout after 10 seconds');
+                    console.log('Attempting fallback initialization...');
                     
                     // Try to recover by checking if we have any stored company data
                     const storedCompanyId = localStorage.getItem('selectedCompanyId') || sessionStorage.getItem('currentCompanyId');
                     
                     if (storedCompanyId && storedCompanyId !== 'null' && storedCompanyId !== 'undefined') {
-                        console.log('RECOVERY: Found stored company ID, attempting to load:', storedCompanyId);
+                        console.log('FALLBACK: Using stored company ID:', storedCompanyId);
                         currentCompanyId = storedCompanyId;
+                        initializationCompleted = true;
                         loadCurrencyData(storedCompanyId);
                     } else {
-                        console.log('RECOVERY: No stored company ID found, showing error state');
-                        showErrorState('Unable to load currency settings - please check your connection and try again');
+                        console.log('FALLBACK: No stored company ID found');
+                        initializationCompleted = true;
+                        showErrorState('Unable to load currency settings - please select a company and try again');
                     }
                 }
-            }, 20000);
+            }, 10000); // Reduced from 20s to 10s
         }
         
-        // CRITICAL FIX: Enhanced error handling for window.initializePage
-        try {
-            if (typeof window.initializePage === 'function') {
-                window.initializePage('setting', (companyId, company) => {
-                    console.log('Company changed in currency settings:', companyId, company?.company_name);
-                    
-                    // Mark initialization as completed IMMEDIATELY
-                    initializationCompleted = true;
-                    
-                    // Clear ALL timeouts immediately since initialization is working
-                    if (initializationTimeout) {
-                        clearTimeout(initializationTimeout);
-                        initializationTimeout = null;
-                    }
-                    
-                    // CRITICAL FIX: Ensure we have a valid company ID before proceeding
-                    if (!companyId) {
-                        console.warn('No company ID provided to currency settings');
-                        showEmptyState();
-                        return;
-                    }
-                    
-                    currentCompanyId = companyId;
-                    console.log('Currency page: Calling loadCurrencyData with companyId:', companyId);
-                    loadCurrencyData(companyId);
-                });
-            } else {
-                throw new Error('window.initializePage is not available');
+        // Enhanced initialization function to handle multiple scenarios
+        function initializePageWithCompany(companyId) {
+            if (!companyId || companyId === 'null' || companyId === 'undefined') {
+                console.warn('Invalid company ID provided');
+                showEmptyState();
+                return;
             }
-        } catch (error) {
-            console.error('CRITICAL ERROR: Failed to set up window.initializePage callback:', error);
             
-            // Fallback initialization after adequate delay for window.initializePage
-            setTimeout(() => {
-                if (!initializationCompleted) {
-                    console.log('FALLBACK: Attempting fallback initialization after 8 seconds');
-                    const storedCompanyId = localStorage.getItem('selectedCompanyId') || sessionStorage.getItem('currentCompanyId');
-                    
-                    if (storedCompanyId && storedCompanyId !== 'null' && storedCompanyId !== 'undefined') {
-                        console.log('FALLBACK: Using stored company ID:', storedCompanyId);
-                        initializationCompleted = true;
-                        currentCompanyId = storedCompanyId;
-                        loadCurrencyData(storedCompanyId);
-                    } else {
-                        console.log('FALLBACK: No valid company data found');
-                        showErrorState('Unable to load currency settings - please refresh and try again');
-                    }
+            // Clear previous company's data to prevent cross-contamination
+            currenciesData = [];
+            baseCurrencyId = null;
+            addedCurrencyIds = [];
+            
+            // Mark initialization as completed
+            initializationCompleted = true;
+            
+            // Clear any pending timeouts
+            if (initializationTimeout) {
+                clearTimeout(initializationTimeout);
+                initializationTimeout = null;
+            }
+            
+            // Store and load data
+            currentCompanyId = companyId;
+            console.log('Currency page: Loading data for companyId:', companyId);
+            loadCurrencyData(companyId);
+        }
+        
+        // Setup event listener for company changes
+        window.addEventListener('companyChanged', function(event) {
+            console.log('Currency page: Company changed event received', event.detail);
+            if (event.detail && event.detail.companyId) {
+                initializePageWithCompany(event.detail.companyId);
+            }
+        });
+        
+        // Setup window.onCompanyChange for navbar compatibility
+        window.onCompanyChange = function(companyId) {
+            console.log('Currency page: onCompanyChange called with:', companyId);
+            initializePageWithCompany(companyId);
+        };
+        
+        // Try to get company from localStorage on initial load
+        function attemptInitialLoad() {
+            // Check multiple storage locations for company ID
+            const companyId = localStorage.getItem('companyChoosen') || 
+                            localStorage.getItem('selectedCompanyId') || 
+                            sessionStorage.getItem('currentCompanyId');
+            
+            if (companyId && companyId !== 'null' && companyId !== 'undefined') {
+                console.log('Found stored company ID on initial load:', companyId);
+                initializePageWithCompany(companyId);
+                return true;
+            }
+            return false;
+        }
+        
+        // Legacy window.initializePage support (keep for compatibility)
+        function setupLegacyInitialization() {
+            if (typeof window.initializePage === 'function') {
+                console.log('Setting up legacy window.initializePage');
+                try {
+                    window.initializePage('setting', (companyId, company) => {
+                        console.log('Legacy initialization callback:', companyId, company?.company_name);
+                        initializePageWithCompany(companyId);
+                    });
+                    return true;
+                } catch (error) {
+                    console.error('Error with legacy initialization:', error);
+                    return false;
                 }
-            }, 8000);
+            }
+            return false;
         }
         
         // Additional page initialization after navbar is ready
-        document.addEventListener('DOMContentLoaded', () => {
-            // CRITICAL FIX: Only initialize UI components here, don't load data
-            // Data loading will be handled by window.initializePage callback to prevent race conditions
-            console.log('Currency page DOM loaded - waiting for company initialization');
+        document.addEventListener('DOMContentLoaded', async () => {
+            console.log('🚀 Currency page DOM loaded - starting initialization...');
             
-            // Show loading state initially while waiting for company initialization
+            // Show loading state initially
             showLoadingState();
             
-            // CRITICAL FIX: Start the initialization timeout safety mechanism
-            setupInitializationTimeout();
+            // Initialize using PageInitializer pattern for correct navbar active state
+            const pageInit = new PageInitializer('setting');
+            await pageInit.initialize();
             
-            // Initialize any UI components that don't depend on company data
-            // The window.initializePage callback will handle all data loading
+            // Now setup the page-specific initialization
+            console.log('🔍 Setting up currency page after navbar initialization');
+            
+            // The initializePage callback will be triggered by PageInitializer
+            window.initializePage = function(activeItem, callback) {
+                console.log('Currency page initializePage called with activeItem:', activeItem);
+                if (callback && typeof callback === 'function') {
+                    // Get company from storage
+                    const companyId = localStorage.getItem('companyChoosen') || 
+                                    localStorage.getItem('selectedCompanyId') || 
+                                    sessionStorage.getItem('currentCompanyId');
+                    
+                    if (companyId && companyId !== 'null' && companyId !== 'undefined') {
+                        const company = { company_id: companyId };
+                        callback(companyId, company);
+                    } else {
+                        callback(null, null);
+                    }
+                }
+            };
+            
+            // Small delay to ensure everything is ready
+            setTimeout(() => {
+                console.log('🔍 Checking for navbar instance:', !!window.navbarInstance);
+                
+                // Start the initialization timeout safety mechanism
+                setupInitializationTimeout();
+                
+                // Log current storage state for debugging
+                console.log('💾 Checking stored company data...');
+                console.log('companychoosen:', localStorage.getItem('companyChoosen'));
+                console.log('selectedCompanyId:', localStorage.getItem('selectedCompanyId'));
+                console.log('currentCompanyId:', sessionStorage.getItem('currentCompanyId'));
+                
+                // Try immediate initialization from stored data
+                if (attemptInitialLoad()) {
+                    console.log('✅ Successfully initialized from stored company data');
+                    return;
+                }
+                
+                // If no immediate initialization, wait a bit for navbar to set up
+                console.log('⏳ Waiting for navbar to provide company data...');
+                
+                // Set up a retry mechanism
+                let retryCount = 0;
+                const maxRetries = 10;
+                const retryInterval = setInterval(() => {
+                    retryCount++;
+                    console.log(`Retry ${retryCount}/${maxRetries}: Checking for company data...`);
+                    
+                    // Try to load from storage again
+                    if (attemptInitialLoad()) {
+                        console.log('✅ Successfully initialized on retry', retryCount);
+                        clearInterval(retryInterval);
+                        return;
+                    }
+                    
+                    // After max retries, show error
+                    if (retryCount >= maxRetries) {
+                        console.warn('❌ Max retries reached, unable to initialize');
+                        clearInterval(retryInterval);
+                        initializationCompleted = true;
+                        showErrorState('Unable to load currency settings - please select a company and refresh the page');
+                    }
+                }, 500);
+            }, 200); // 200ms delay to let PageInitializer complete
         });
         
         // Load all currency data for the company
         async function loadCurrencyData(companyId) {
             console.log('Loading currencies for company:', companyId);
             
-            // CRITICAL FIX: Add timeout safety for data loading
+            // CRITICAL FIX: Simplified timeout handling
             let loadingTimeout = null;
             
             try {
-                // Set a generous timeout to prevent false positive errors
+                // Set a reasonable timeout for data loading
                 loadingTimeout = setTimeout(() => {
-                    console.warn('TIMEOUT: Data loading is taking longer than expected (25s)');
-                    if (!initializationCompleted) {
-                        console.error('Data loading timeout - showing error state');
-                        showErrorState('Loading timeout - please check your connection and try again');
-                    }
-                }, 25000); // 25 second timeout for data loading
+                    console.warn('TIMEOUT: Data loading is taking longer than expected (15s)');
+                    showErrorState('Loading timeout - please check your connection and try again');
+                }, 15000); // Reduced from 25s to 15s
                 
                 // CRITICAL FIX: Validate company ID before proceeding
                 if (!companyId) {
@@ -1536,8 +1622,25 @@
                     throw companyCurrencyError;
                 }
                 
-                if (!companyCurrencies || companyCurrencies.length === 0) {
-                    console.log('No currencies found for company, showing empty state');
+                // Query ALL currency_types for the Add Currency feature (do this BEFORE checking empty state)
+                const { data: allTypes, error: allTypesError } = await supabase
+                    .from('currency_types')
+                    .select('*')
+                    .order('currency_code', { ascending: true });
+                
+                if (allTypesError) {
+                    console.error('Error fetching all currency types:', allTypesError);
+                } else {
+                    allCurrencyTypes = allTypes || [];
+                    console.log('Loaded all currency types:', allCurrencyTypes.length);
+                }
+                
+                // Check if we have no currencies or only the base currency
+                const hasOnlyBaseCurrency = companyCurrencies && companyCurrencies.length === 1 && 
+                                           baseCurrencyId && companyCurrencies[0].currency_id === baseCurrencyId;
+                
+                if (!companyCurrencies || companyCurrencies.length === 0 || hasOnlyBaseCurrency) {
+                    console.log('No currencies or only base currency found for company, showing empty state');
                     // Clear all timeouts since we found no data (valid state)
                     if (loadingTimeout) {
                         clearTimeout(loadingTimeout);
@@ -1550,6 +1653,23 @@
                     
                     // Mark initialization as complete for empty state
                     initializationCompleted = true;
+                    
+                    // Store the base currency info if it exists
+                    if (hasOnlyBaseCurrency) {
+                        // Still need to load currency type info for the base currency
+                        const { data: currencyType, error: typeError } = await supabase
+                            .from('currency_types')
+                            .select('currency_code')
+                            .eq('currency_id', baseCurrencyId)
+                            .single();
+                        
+                        if (!typeError && currencyType) {
+                            // Update empty state message to mention base currency
+                            showEmptyStateWithBaseCurrency(currencyType.currency_code);
+                            return;
+                        }
+                    }
+                    
                     showEmptyState();
                     return;
                 }
@@ -1559,18 +1679,7 @@
                 console.log('Found currency IDs:', currencyIds);
                 addedCurrencyIds = currencyIds; // Store for filtering in Add Currency modal
                 
-                // Query ALL currency_types for the Add Currency feature
-                const { data: allTypes, error: allTypesError } = await supabase
-                    .from('currency_types')
-                    .select('*')
-                    .order('currency_code', { ascending: true });
-                
-                if (allTypesError) {
-                    console.error('Error fetching all currency types:', allTypesError);
-                } else {
-                    allCurrencyTypes = allTypes || [];
-                    console.log('Loaded all currency types:', allCurrencyTypes.length);
-                }
+                // Note: allCurrencyTypes already loaded above before checking empty state
                 
                 // Query currency_types table for currencies that are already added
                 const { data: currencyTypes, error: currencyTypeError } = await supabase
@@ -1597,9 +1706,9 @@
                 // Combine the data
                 currenciesData = companyCurrencies.map(cc => {
                     const currencyType = currencyTypes.find(ct => ct.currency_id === cc.currency_id);
-                    // Find exchange rate from book_exchange_rates, fallback to company_currency rate
+                    // Find exchange rate from book_exchange_rates only (company_currency doesn't have exchange_rate)
                     const bookExchangeRate = exchangeRates?.find(er => er.from_currency_id === cc.currency_id);
-                    const exchangeRate = bookExchangeRate?.rate || cc.exchange_rate;
+                    const exchangeRate = bookExchangeRate?.rate || 1.0; // Default to 1.0 if no rate found
                     
                     return {
                         ...cc,
@@ -1633,9 +1742,9 @@
                 initializationCompleted = true;
                 
                 // Display the currencies
-                console.log('About to display currencies, data length:', currenciesData.length);
+                console.log('Successfully loaded currencies:', currenciesData.length, 'items');
                 displayCurrencies(currenciesData);
-                console.log('displayCurrencies called successfully - page fully loaded');
+                console.log('Currency page fully loaded and displayed');
                 
             } catch (error) {
                 console.error('Error loading currency data:', error);
@@ -1653,18 +1762,34 @@
                 // Mark initialization as complete even in error state
                 initializationCompleted = true;
                 
+                // Show appropriate error message based on error type
+                let errorMessage = 'Unable to load currency settings';
+                if (error.message && error.message.includes('company_id')) {
+                    errorMessage = 'Invalid company selected - please select a valid company and try again';
+                } else if (error.message) {
+                    errorMessage = error.message;
+                }
+                
                 // CRITICAL: Ensure loading is hidden before showing error
                 hideAllStates();
-                showErrorState(error.message || 'Unable to load currency settings');
+                showErrorState(errorMessage);
             } finally {
                 // CRITICAL FIX: Always mark as completed and ensure loading is hidden
-                console.log('Currency page: loadCurrencyData finally block');
+                console.log('Currency page: Completing loadCurrencyData');
                 initializationCompleted = true;
                 
-                // Extra safety: force hide loading state
+                // Clear any remaining timeouts
+                if (loadingTimeout) {
+                    clearTimeout(loadingTimeout);
+                }
+                if (initializationTimeout) {
+                    clearTimeout(initializationTimeout);
+                }
+                
+                // Extra safety: ensure loading state is hidden
                 const loadingState = document.getElementById('loading-state');
                 if (loadingState && loadingState.style.display !== 'none') {
-                    console.warn('Currency page: Loading still visible in finally, forcing hide');
+                    console.log('Currency page: Ensuring loading state is hidden');
                     loadingState.style.display = 'none';
                 }
             }
@@ -1672,8 +1797,7 @@
         
         // Display all currencies in cards
         function displayCurrencies(currencies) {
-            console.log('displayCurrencies function called with currencies:', currencies);
-            console.log('Current company ID:', currentCompanyId);
+            console.log('💰 displayCurrencies called with', currencies.length, 'currencies for company:', currentCompanyId);
             
             // SAFETY CHECK: Ensure we have a valid currentCompanyId
             if (!currentCompanyId) {
@@ -1703,6 +1827,9 @@
             // Update statistics (with all currencies including base)
             updateStatistics(currencies);
             
+            // Check if base currency actually exists in the loaded currencies
+            const baseCurrencyExists = baseCurrencyId && currencies.some(c => c.currency_id === baseCurrencyId);
+            
             // Filter out the base currency from the display
             const currenciesToDisplay = currencies.filter(c => c.currency_id !== baseCurrencyId);
             
@@ -1711,12 +1838,23 @@
             currencyGrid.innerHTML = '';
             
             if (currenciesToDisplay.length === 0) {
-                // If only base currency exists, show a message
-                currencyGrid.innerHTML = `
-                    <div style="grid-column: 1 / -1; text-align: center; padding: var(--space-8); color: var(--text-secondary);">
-                        <p>No additional currencies configured. Only the base currency (${currencies.find(c => c.currency_id === baseCurrencyId)?.currency_code || 'Primary'}) is set.</p>
-                    </div>
-                `;
+                // Check if we have a base currency that actually exists
+                if (baseCurrencyExists) {
+                    // Only base currency exists, show a message
+                    const baseCurrency = currencies.find(c => c.currency_id === baseCurrencyId);
+                    currencyGrid.innerHTML = `
+                        <div style="grid-column: 1 / -1; text-align: center; padding: var(--space-8); color: var(--text-secondary);">
+                            <p>No additional currencies configured. Only the base currency (${baseCurrency?.currency_code || 'Primary'}) is set.</p>
+                        </div>
+                    `;
+                } else {
+                    // No currencies at all (should not normally reach here since we show empty state earlier)
+                    currencyGrid.innerHTML = `
+                        <div style="grid-column: 1 / -1; text-align: center; padding: var(--space-8); color: var(--text-secondary);">
+                            <p>No currencies configured yet.</p>
+                        </div>
+                    `;
+                }
             } else {
                 currenciesToDisplay.forEach((currency, index) => {
                     const card = createCurrencyCard(currency, index);
@@ -1796,15 +1934,15 @@
             hideAllStates();
             document.getElementById('loading-state').style.display = 'flex';
             
-            // Show manual recovery button after reasonable delay (15 seconds)
+            // Show manual recovery button after a shorter delay
             setTimeout(() => {
                 const loadingState = document.getElementById('loading-state');
                 const recoveryButton = document.getElementById('loading-recovery');
                 if (loadingState && loadingState.style.display === 'flex' && recoveryButton && !initializationCompleted) {
-                    console.log('Showing recovery button after 15 seconds');
+                    console.log('Showing recovery button after 8 seconds');
                     recoveryButton.style.display = 'block';
                 }
-            }, 15000);
+            }, 8000); // Reduced from 15s to 8s
         }
         
         // CRITICAL FIX: Force recovery function for manual intervention
@@ -1823,6 +1961,59 @@
         // Show empty state
         function showEmptyState() {
             hideAllStates();
+            // Clear added currency IDs since there are no currencies
+            addedCurrencyIds = [];
+            
+            // Reset empty state to default message
+            const emptyTitle = document.querySelector('#empty-state .empty-title');
+            const emptyText = document.querySelector('#empty-state .empty-text');
+            const addButton = document.querySelector('#empty-state .add-currency-btn');
+            
+            if (emptyTitle) {
+                emptyTitle.textContent = 'No Currencies Configured';
+            }
+            if (emptyText) {
+                emptyText.textContent = 'Get started by adding your first currency';
+            }
+            if (addButton) {
+                addButton.innerHTML = `
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+                    </svg>
+                    Add Your First Currency
+                `;
+            }
+            
+            document.getElementById('empty-state').style.display = 'block';
+        }
+        
+        // Show empty state with base currency info
+        function showEmptyStateWithBaseCurrency(baseCurrencyCode) {
+            hideAllStates();
+            // Keep the base currency in addedCurrencyIds
+            addedCurrencyIds = [baseCurrencyId];
+            
+            // Update the empty state message to mention the base currency
+            const emptyTitle = document.querySelector('#empty-state .empty-title');
+            const emptyText = document.querySelector('#empty-state .empty-text');
+            const addButton = document.querySelector('#empty-state .add-currency-btn');
+            
+            if (emptyTitle) {
+                emptyTitle.textContent = 'No Additional Currencies';
+            }
+            if (emptyText) {
+                emptyText.textContent = `Only the base currency (${baseCurrencyCode}) is configured. Add more currencies to enable multi-currency features.`;
+            }
+            if (addButton) {
+                // Update button text to be more appropriate
+                addButton.innerHTML = `
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+                    </svg>
+                    Add Currency
+                `;
+            }
+            
             document.getElementById('empty-state').style.display = 'block';
         }
         
@@ -1853,8 +2044,39 @@
         }
         
         // Handle add currency button click
-        function handleAddCurrency() {
+        async function handleAddCurrency() {
             console.log('Add currency clicked');
+            console.log('Current company ID:', currentCompanyId);
+            
+            // Check if company is selected
+            if (!currentCompanyId) {
+                showNotification('Please select a company first', 'error');
+                return;
+            }
+            
+            // Check if currency types are loaded
+            if (!allCurrencyTypes || allCurrencyTypes.length === 0) {
+                console.warn('Currency types not loaded, attempting to load...');
+                try {
+                    const { data: types, error } = await supabase
+                        .from('currency_types')
+                        .select('*')
+                        .order('currency_code', { ascending: true });
+                    
+                    if (error) {
+                        console.error('Failed to load currency types:', error);
+                        showNotification('Unable to load available currencies. Please refresh and try again.', 'error');
+                        return;
+                    }
+                    
+                    allCurrencyTypes = types || [];
+                    console.log('Successfully loaded currency types:', allCurrencyTypes.length);
+                } catch (err) {
+                    console.error('Error loading currency types:', err);
+                    showNotification('Unable to load available currencies. Please refresh and try again.', 'error');
+                    return;
+                }
+            }
             
             // Filter out currencies that are already added
             const availableCurrencies = allCurrencyTypes.filter(ct => 
@@ -2126,6 +2348,14 @@
         async function saveNewCurrency() {
             if (!currentAddingCurrency) {
                 console.error('No currency selected');
+                showNotification('Please select a currency', 'error');
+                return;
+            }
+            
+            // Validate company ID
+            if (!currentCompanyId) {
+                console.error('No company ID available');
+                showNotification('Please select a company and try again', 'error');
                 return;
             }
             
@@ -2172,25 +2402,34 @@
                 const currentDate = new Date();
                 const rateDate = currentDate.toISOString().split('T')[0];
                 
-                // First, add to company_currency table
-                const { error: compCurrError } = await supabase
+                // First, add to company_currency table (only linking, no exchange rate here)
+                console.log('Attempting to add currency with:', {
+                    company_id: currentCompanyId,
+                    currency_id: currentAddingCurrency.currency_id,
+                    is_deleted: false
+                });
+                
+                const { data: insertData, error: compCurrError } = await supabase
                     .from('company_currency')
                     .insert({
                         company_id: currentCompanyId,
                         currency_id: currentAddingCurrency.currency_id,
-                        exchange_rate: parseFloat(exchangeRate),
                         is_deleted: false
-                    });
+                    })
+                    .select();
                 
                 if (compCurrError) {
                     console.error('Error adding to company_currency:', compCurrError);
+                    console.error('Error details:', compCurrError.details);
+                    console.error('Error message:', compCurrError.message);
                     throw compCurrError;
                 }
                 
-                // Then add to book_exchange_rates table
-                const { error: bookRateError } = await supabase
-                    .from('book_exchange_rates')
-                    .insert({
+                console.log('Successfully added to company_currency:', insertData);
+                
+                // Then add to book_exchange_rates table (only if baseCurrencyId exists)
+                if (baseCurrencyId) {
+                    console.log('Adding to book_exchange_rates with:', {
                         company_id: currentCompanyId,
                         from_currency_id: currentAddingCurrency.currency_id,
                         to_currency_id: baseCurrencyId,
@@ -2198,17 +2437,34 @@
                         rate_date: rateDate,
                         created_by: userId
                     });
-                
-                if (bookRateError) {
-                    console.error('Error adding to book_exchange_rates:', bookRateError);
-                    // Don't throw as the main operation succeeded
+                    
+                    const { error: bookRateError } = await supabase
+                        .from('book_exchange_rates')
+                        .insert({
+                            company_id: currentCompanyId,
+                            from_currency_id: currentAddingCurrency.currency_id,
+                            to_currency_id: baseCurrencyId,
+                            rate: parseFloat(exchangeRate),
+                            rate_date: rateDate,
+                            created_by: userId
+                        });
+                    
+                    if (bookRateError) {
+                        console.error('Error adding to book_exchange_rates:', bookRateError);
+                        // Don't throw as the main operation succeeded
+                    }
+                } else {
+                    console.log('Skipping book_exchange_rates insert - no base currency set');
                 }
+                
+                // Save currency code before clearing the reference
+                const addedCurrencyCode = currentAddingCurrency.currency_code;
                 
                 // Close modal and reload data
                 closeAddModal();
                 
                 // Show success notification
-                showNotification(`${currentAddingCurrency.currency_code} added successfully!`, 'success');
+                showNotification(`${addedCurrencyCode} added successfully!`, 'success');
                 
                 // Reload data after a short delay
                 setTimeout(() => {
@@ -2219,7 +2475,17 @@
                 console.error('Error adding currency:', error);
                 
                 let errorMessage = 'Failed to add currency';
-                if (error.message) {
+                
+                // Check for specific error types
+                if (error.code === '42P01') {
+                    errorMessage = 'Database table not found. Please contact support.';
+                } else if (error.code === '23505') {
+                    errorMessage = 'This currency has already been added to this company.';
+                } else if (error.code === '23503') {
+                    errorMessage = 'Invalid company or currency reference. Please refresh and try again.';
+                } else if (error.message && error.message.includes('company_id')) {
+                    errorMessage = 'Invalid company selected. Please select a valid company and try again.';
+                } else if (error.message) {
                     errorMessage = error.message;
                 } else if (error.details) {
                     errorMessage = error.details;
@@ -2227,9 +2493,12 @@
                 
                 showNotification(errorMessage, 'error');
                 
-                // Restore button state
-                saveButton.disabled = false;
-                saveButton.textContent = originalButtonText;
+                // Restore button state (check if button still exists)
+                const saveButton = document.querySelector('#addCurrencyModal .modal-btn-save');
+                if (saveButton) {
+                    saveButton.disabled = false;
+                    saveButton.textContent = 'Add Currency';
+                }
             }
         }
         
@@ -2572,17 +2841,8 @@
                     console.log('Exchange rate created successfully');
                 }
                 
-                // Also update the company_currency table to keep it in sync
-                const { error: syncError } = await supabase
-                    .from('company_currency')
-                    .update({ exchange_rate: parseFloat(newExchangeRate) })
-                    .eq('company_id', currentCompanyId)
-                    .eq('currency_id', currentEditingCurrency.currency_id);
-                
-                if (syncError) {
-                    console.warn('Warning: Could not sync with company_currency table:', syncError);
-                    // Don't throw error as the main operation succeeded
-                }
+                // Note: company_currency table doesn't have exchange_rate column
+                // Exchange rates are only stored in book_exchange_rates table
                 
                 // Clear the timeout since operation completed successfully
                 clearTimeout(buttonTimeout);

@@ -7,7 +7,7 @@ import '../../core/navigation/safe_navigation.dart';
 import '../../core/navigation/navigation_state_provider.dart';
 import '../pages/auth/login_page.dart';
 import '../pages/auth/auth_signup_page.dart';
-import '../pages/auth/create_business_page.dart';
+import '../pages/auth/enhanced_create_business_page.dart';
 import '../pages/auth/create_store_page.dart';
 import '../pages/auth/choose_role_page.dart';
 import '../pages/auth/join_business_page.dart';
@@ -51,8 +51,11 @@ import '../pages/debug/supabase_connection_test_page.dart';
 import '../pages/debug/notification_debug_page.dart';
 import '../pages/debug/push_notification_diagnostic.dart';
 import '../pages/debug/fcm_token_debug_page.dart';
+import '../pages/debug/theme_monitor_page.dart';
+import '../pages/debug/widget_consistency_analyzer_page.dart';
 import '../../core/themes/toss_text_styles.dart';
 import '../../core/themes/toss_colors.dart';
+import '../../core/themes/toss_spacing.dart';
 import '../widgets/common/toss_scaffold.dart';
 
 
@@ -79,7 +82,6 @@ class RouterNotifier extends ChangeNotifier {
         // Skip notifications during active auth navigation
         if (_lastAuthNavigationTime != null &&
             DateTime.now().difference(_lastAuthNavigationTime!) < Duration(seconds: 2)) {
-          debugPrint('🔥 [RouterNotifier] SKIPPING auth listener notification - auth navigation active');
           return;
         }
         
@@ -87,7 +89,6 @@ class RouterNotifier extends ChangeNotifier {
         // This prevents RouterNotifier from triggering redirect evaluation
         if (_lastAuthNavigationTime != null &&
             DateTime.now().difference(_lastAuthNavigationTime!) < Duration(seconds: 3)) {
-          debugPrint('🔥 [RouterNotifier] SKIPPING notification - auth navigation window active');
           return;
         }
         
@@ -108,7 +109,6 @@ class RouterNotifier extends ChangeNotifier {
         // Skip notifications during active auth navigation
         if (_lastAuthNavigationTime != null &&
             DateTime.now().difference(_lastAuthNavigationTime!) < Duration(seconds: 2)) {
-          debugPrint('🔥 [RouterNotifier] SKIPPING app state listener notification - auth navigation active');
           return;
         }
         
@@ -116,7 +116,6 @@ class RouterNotifier extends ChangeNotifier {
         // This prevents RouterNotifier from triggering redirect evaluation
         if (_lastAuthNavigationTime != null &&
             DateTime.now().difference(_lastAuthNavigationTime!) < Duration(seconds: 3)) {
-          debugPrint('🔥 [RouterNotifier] SKIPPING notification - auth navigation window active');
           return;
         }
         
@@ -155,8 +154,6 @@ class RouterNotifier extends ChangeNotifier {
     
     // If the same path appears 3+ times in the time window, it's likely a loop
     if (recentPathCount >= 3) {
-      debugPrint('[RouterNotifier] Redirect loop detected for path: $path');
-      debugPrint('[RouterNotifier] Path appeared ${recentPathCount + 1} times in last ${_redirectTimeWindow.inSeconds} seconds');
       _clearRedirectHistory();
       return true;
     }
@@ -212,18 +209,15 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     redirect: (context, state) {
       try {
         final currentPath = state.matchedLocation;
-        debugPrint('🔥 [AppRouter] REDIRECT called: $currentPath → ${state.uri.path}');
         
         // NUCLEAR OPTION: NEVER process redirects for any auth routes
         // This completely bypasses all redirect logic for auth pages
         if (currentPath.startsWith('/auth')) {
-          debugPrint('🚀 [AppRouter] AUTH ROUTE BYPASSED COMPLETELY: $currentPath');
           return null;
         }
         
         // Skip redirects during active navigation to prevent ping-pong
         if (routerNotifier.isNavigationLocked) {
-          debugPrint('🔥 [AppRouter] SKIPPING REDIRECT: Navigation lock active');
           return null;
         }
         
@@ -231,7 +225,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         String? safeRedirect(String targetPath, String reason) {
           // First check if this would cause a loop
           if (routerNotifier._checkForRedirectLoop(targetPath)) {
-            debugPrint('[AppRouter] Redirect loop detected, navigating to home');
             SafeNavigation.instance.clearAllLocks();
             routerNotifier._clearRedirectHistory();
             return '/';
@@ -239,7 +232,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           
           // Only track as redirect if we're actually redirecting
           if (kDebugMode) {
-            debugPrint('[AppRouter] → $targetPath');
           }
           routerNotifier._trackRedirect(targetPath);
           return targetPath;
@@ -254,7 +246,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           
           // Allow access if user is authenticated and has companies
           if (isAuth && hasUserData && companyCount > 0) {
-            debugPrint('[AppRouter] Allowing access to /cashEnding');
             return null; // Allow navigation
           }
           
@@ -276,7 +267,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             navNotifier.updateCurrentRoute(currentPath);
           } catch (e) {
             // Silently handle any provider access errors
-            debugPrint('[AppRouter] Could not update navigation state: $e');
           }
         });
         
@@ -292,23 +282,18 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         
         // Priority 1: If not authenticated and not on auth route, go to login
         if (!isAuth) {
-          debugPrint('🔥 [AppRouter] REDIRECTING: Unauthenticated user → /auth/login');
           return safeRedirect('/auth/login', 'Not authenticated, redirecting to login');
         }
         
         // Priority 2: If authenticated, on main pages, but no companies
         // Only redirect if we have loaded user data
         if (isAuth && !isOnboardingRoute && hasUserData && companyCount == 0) {
-          debugPrint('🔥 [AppRouter] REDIRECTING: No companies → /onboarding/choose-role');
           return safeRedirect('/onboarding/choose-role', 'Authenticated on main page without companies, redirecting to onboarding');
         }
         
         // No redirect needed
-        debugPrint('🔥 [AppRouter] NO REDIRECT: Allowing navigation to $currentPath');
         return null;
       } catch (error, stackTrace) {
-        debugPrint('[AppRouter] Error in redirect: $error');
-        debugPrintStack(stackTrace: stackTrace);
         
         // Update navigation state with error after build completes
         WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -316,7 +301,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             final navNotifier = ref.read(navigationStateProvider.notifier);
             navNotifier.setNavigationError(error);
           } catch (e) {
-            debugPrint('[AppRouter] Could not set navigation error: $e');
           }
         });
         
@@ -327,7 +311,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     errorBuilder: (context, state) {
       // Log navigation error
       final error = state.error;
-      debugPrint('[AppRouter] Navigation error - Path: ${state.matchedLocation}, Error: $error');
       
       // Clear navigation locks on error
       SafeNavigation.instance.clearAllLocks();
@@ -338,7 +321,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           final navNotifier = ref.read(navigationStateProvider.notifier);
           navNotifier.setNavigationError(error ?? 'Page not found');
         } catch (e) {
-          debugPrint('[AppRouter] Could not set error state: $e');
         }
       });
       
@@ -352,14 +334,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 size: 64,
                 color: TossColors.error,
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: TossSpacing.space4),
               Text(
                 'Page Not Found',
                 style: TossTextStyles.h2.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: TossSpacing.space2),
               Text(
                 error?.toString() ?? 'The page you are looking for does not exist.',
                 style: TossTextStyles.bodyLarge.copyWith(
@@ -375,7 +357,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 },
                 child: const Text('Go to Home'),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: TossSpacing.space3),
               TextButton(
                 onPressed: () {
                   // Try to go back safely
@@ -414,7 +396,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: 'signup',
             builder: (context, state) {
-              debugPrint('🔥 [AppRouter] Route builder called for /auth/signup');
               return const AuthSignupPage();
             },
           ),
@@ -442,7 +423,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           ),
           GoRoute(
             path: 'create-business',
-            builder: (context, state) => const CreateBusinessPage(),
+            builder: (context, state) => const EnhancedCreateBusinessPage(),
           ),
           GoRoute(
             path: 'create-store',
@@ -715,6 +696,16 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: 'debug/fcm-token',
             builder: (context, state) => const FcmTokenDebugPage(),
+          ),
+          // Debug Page (Theme Monitor)
+          GoRoute(
+            path: 'debug/theme-monitor',
+            builder: (context, state) => const ThemeMonitorPage(),
+          ),
+          // Debug Page (Widget Consistency Analyzer)
+          GoRoute(
+            path: 'debug/widget-analyzer',
+            builder: (context, state) => const WidgetConsistencyAnalyzerPage(),
           ),
         ],
       ),

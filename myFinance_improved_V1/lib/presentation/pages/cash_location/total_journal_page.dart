@@ -12,6 +12,7 @@ import '../../widgets/common/toss_loading_view.dart';
 import '../../../data/services/cash_journal_service.dart';
 import '../../providers/app_state_provider.dart';
 import 'utils/string_extensions.dart';
+import 'package:myfinance_improved/core/themes/index.dart';
 
 class TotalJournalPage extends ConsumerStatefulWidget {
   final String locationType; // 'cash', 'bank', 'vault'
@@ -145,7 +146,7 @@ class _TotalJournalPageState extends ConsumerState<TotalJournalPage> {
     
     if (companyId.isEmpty || storeId.isEmpty) {
       return TossScaffold(
-        backgroundColor: const Color(0xFFF7F8FA),
+        backgroundColor: TossColors.gray50,
         body: const Center(
           child: Text('Please select a company and store first'),
         ),
@@ -163,10 +164,10 @@ class _TotalJournalPageState extends ConsumerState<TotalJournalPage> {
     ));
     
     return TossScaffold(
-      backgroundColor: const Color(0xFFF7F8FA),
+      backgroundColor: TossColors.gray50,
       appBar: TossAppBar(
         title: _pageTitle,
-        backgroundColor: const Color(0xFFF7F8FA),
+        backgroundColor: TossColors.gray50,
       ),
       body: SafeArea(
         child: Column(
@@ -206,7 +207,7 @@ class _TotalJournalPageState extends ConsumerState<TotalJournalPage> {
                             color: TossColors.gray600,
                           ),
                         ),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: TossSpacing.space4),
                         ElevatedButton(
                           onPressed: () {
                             // Reset state and refresh the data
@@ -653,13 +654,13 @@ class _TotalJournalPageState extends ConsumerState<TotalJournalPage> {
                 height: 4,
                 decoration: BoxDecoration(
                   color: TossColors.gray300,
-                  borderRadius: BorderRadius.circular(2),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                 ),
               ),
               
               // Header
               Padding(
-                padding: EdgeInsets.fromLTRB(24, 20, 20, 16),
+                padding: EdgeInsets.fromLTRB(TossSpacing.space5, TossSpacing.space5, TossSpacing.space5, TossSpacing.space4),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -791,13 +792,13 @@ class _TransactionDetailBottomSheet extends StatelessWidget {
             height: 4,
             decoration: BoxDecoration(
               color: TossColors.gray300,
-              borderRadius: BorderRadius.circular(2),
+              borderRadius: BorderRadius.circular(TossBorderRadius.xs),
             ),
           ),
           
           // Header
           Padding(
-            padding: EdgeInsets.fromLTRB(24, 20, 20, 16),
+            padding: EdgeInsets.fromLTRB(TossSpacing.space5, TossSpacing.space5, TossSpacing.space5, TossSpacing.space4),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -827,12 +828,12 @@ class _TransactionDetailBottomSheet extends StatelessWidget {
               children: [
                 // Amount and type
                 Container(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(TossSpacing.space4),
                   decoration: BoxDecoration(
                     color: transaction.isIncome 
                         ? Theme.of(context).colorScheme.primary.withOpacity(0.1)
                         : TossColors.error.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -905,7 +906,7 @@ class _TransactionDetailBottomSheet extends StatelessWidget {
                           fontSize: 16,
                         ),
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: TossSpacing.space3),
                       
                       ..._buildFilteredJournalLines(journalEntry, transaction),
                     ],
@@ -923,7 +924,7 @@ class _TransactionDetailBottomSheet extends StatelessWidget {
   
   Widget _buildDetailRow(String label, String value) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
+      padding: const EdgeInsets.symmetric(vertical: TossSpacing.space2),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -996,10 +997,10 @@ class _TransactionDetailBottomSheet extends StatelessWidget {
     
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(TossSpacing.space3),
       decoration: BoxDecoration(
         color: TossColors.gray50,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(TossBorderRadius.md),
         border: Border.all(color: TossColors.gray200),
       ),
       child: Column(

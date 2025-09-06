@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import '../../../../core/themes/toss_colors.dart';
 import '../../../../core/themes/toss_text_styles.dart';
 import '../models/sale_product_models.dart';
-
+import 'package:myfinance_improved/core/themes/index.dart';
+import 'package:myfinance_improved/core/themes/toss_border_radius.dart';
 class PaymentMethodSelector extends StatelessWidget {
   final PaymentMethod selectedMethod;
   final Function(PaymentMethod) onMethodChanged;
@@ -24,7 +25,7 @@ class PaymentMethodSelector extends StatelessWidget {
             fontWeight: FontWeight.w600,
           ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: TossSpacing.space3),
         Row(
           children: [
             // Cash
@@ -33,7 +34,7 @@ class PaymentMethodSelector extends StatelessWidget {
               'Cash',
               selectedMethod == PaymentMethod.cash,
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: TossSpacing.space3),
             
             // Bank Transfer
             _buildPaymentMethodButton(
@@ -41,7 +42,7 @@ class PaymentMethodSelector extends StatelessWidget {
               'Bank transfer',
               selectedMethod == PaymentMethod.bankTransfer,
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: TossSpacing.space3),
             
             // Card
             _buildPaymentMethodButton(
@@ -59,12 +60,12 @@ class PaymentMethodSelector extends StatelessWidget {
     return Expanded(
       child: InkWell(
         onTap: () => onMethodChanged(method),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
         child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 12),
+          padding: const EdgeInsets.symmetric(vertical: TossSpacing.space3),
           decoration: BoxDecoration(
-            color: isSelected ? TossColors.primary : Colors.transparent,
-            borderRadius: BorderRadius.circular(12),
+            color: isSelected ? TossColors.primary : TossColors.transparent,
+            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
             border: Border.all(
               color: isSelected ? TossColors.primary : TossColors.gray300,
             ),
@@ -74,7 +75,7 @@ class PaymentMethodSelector extends StatelessWidget {
               Text(
                 label,
                 style: TossTextStyles.bodySmall.copyWith(
-                  color: isSelected ? Colors.white : TossColors.gray700,
+                  color: isSelected ? TossColors.white : TossColors.gray700,
                   fontWeight: FontWeight.w500,
                 ),
                 textAlign: TextAlign.center,
@@ -85,8 +86,8 @@ class PaymentMethodSelector extends StatelessWidget {
                   height: 2,
                   width: 20,
                   decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(1),
+                    color: TossColors.white,
+                    borderRadius: BorderRadius.circular(TossBorderRadius.xs / 4),
                   ),
                 ),
             ],

@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../widgets/toss/toss_primary_button.dart';
 import '../../../widgets/toss/toss_secondary_button.dart';
 import '../../../widgets/toss/toss_search_field.dart';
-import '../../../widgets/toss/toss_checkbox.dart';
 import '../../../widgets/common/toss_loading_view.dart';
 import '../../../../core/themes/toss_colors.dart';
 import '../../../../core/themes/toss_text_styles.dart';
@@ -13,7 +12,8 @@ import '../../../providers/app_state_provider.dart';
 import '../../../providers/exchange_rate_provider.dart';
 import '../providers/currency_providers.dart';
 import '../providers/denomination_providers.dart';
-
+import 'package:myfinance_improved/core/themes/index.dart';
+import 'package:myfinance_improved/core/themes/toss_border_radius.dart';
 // Note: availableCurrenciesToAddProvider is now defined in currency_providers.dart
 
 class AddCurrencyBottomSheet extends ConsumerStatefulWidget {
@@ -172,7 +172,7 @@ class _AddCurrencyBottomSheetState extends ConsumerState<AddCurrencyBottomSheet>
                 style: IconButton.styleFrom(
                   backgroundColor: TossColors.gray100,
                   shape: const CircleBorder(),
-                  padding: const EdgeInsets.all(6),
+                  padding: EdgeInsets.all(TossSpacing.space2 * 0.75),
                   minimumSize: const Size(28, 28),
                 ),
               ),
@@ -191,7 +191,7 @@ class _AddCurrencyBottomSheetState extends ConsumerState<AddCurrencyBottomSheet>
               style: IconButton.styleFrom(
                 backgroundColor: TossColors.gray100,
                 shape: const CircleBorder(),
-                padding: const EdgeInsets.all(6),
+                padding: EdgeInsets.all(TossSpacing.space2 * 0.75),
                 minimumSize: const Size(28, 28),
               ),
             ),
@@ -348,7 +348,7 @@ class _AddCurrencyBottomSheetState extends ConsumerState<AddCurrencyBottomSheet>
                             ),
                             decoration: BoxDecoration(
                               color: TossColors.primary,
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                             ),
                             child: Text(
                               '1 selected',
@@ -376,27 +376,28 @@ class _AddCurrencyBottomSheetState extends ConsumerState<AddCurrencyBottomSheet>
                             padding: EdgeInsets.only(
                               bottom: index == availableCurrencies.length - 1 ? 0 : TossSpacing.space2,
                             ),
-                            child: TossCheckboxListTile(
+                            child: CheckboxListTile(
                               value: isSelected,
                               onChanged: (value) {
                                 setState(() {
                                   // Single selection: if selecting this item, deselect others
-                                  if (value) {
+                                  if (value ?? false) {
                                     selectedCurrencyId = currency.currencyId;
                                   } else {
                                     selectedCurrencyId = null;
                                   }
                                 });
                               },
-                              leading: Text(
+                              secondary: Text(
                                 currency.flagEmoji,
                                 style: TossTextStyles.h3,
                               ),
                               title: Text(
                                 '${currency.currencyCode} - ${currency.currencyName}',
                               ),
-                              enabled: true,
                               selected: isSelected,
+                              activeColor: TossColors.primary,
+                              checkColor: TossColors.white,
                             ),
                           );
                         },
@@ -504,7 +505,7 @@ class _AddCurrencyBottomSheetState extends ConsumerState<AddCurrencyBottomSheet>
             margin: const EdgeInsets.only(bottom: TossSpacing.space4),
             decoration: BoxDecoration(
               color: TossColors.gray50,
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
               border: Border.all(color: TossColors.gray200),
             ),
             child: Row(
@@ -542,7 +543,7 @@ class _AddCurrencyBottomSheetState extends ConsumerState<AddCurrencyBottomSheet>
           Container(
             padding: const EdgeInsets.all(TossSpacing.space4),
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
               border: Border.all(color: TossColors.gray200),
             ),
             child: Column(
@@ -563,7 +564,7 @@ class _AddCurrencyBottomSheetState extends ConsumerState<AddCurrencyBottomSheet>
                     padding: const EdgeInsets.all(TossSpacing.space3),
                     decoration: BoxDecoration(
                       color: TossColors.gray50,
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(TossBorderRadius.md),
                     ),
                     child: Column(
                       children: [
@@ -626,17 +627,17 @@ class _AddCurrencyBottomSheetState extends ConsumerState<AddCurrencyBottomSheet>
                         hintText: isFetchingExchangeRate ? 'Fetching rate...' : 'Enter exchange rate',
                         suffixText: baseCurrencySymbol,
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(TossBorderRadius.md),
                           borderSide: BorderSide(
                             color: isFetchingExchangeRate ? TossColors.gray300 : TossColors.gray300,
                           ),
                         ),
                         focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(TossBorderRadius.md),
                           borderSide: const BorderSide(color: TossColors.primary),
                         ),
                         disabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(TossBorderRadius.md),
                           borderSide: const BorderSide(color: TossColors.gray200),
                         ),
                       ),

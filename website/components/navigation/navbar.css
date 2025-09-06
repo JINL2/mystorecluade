@@ -33,16 +33,11 @@
 }
 
 .navbar-logo {
-    width: 40px;
+    width: auto;
     height: 40px;
-    background: var(--toss-primary);
-    border-radius: var(--radius-lg);
     display: flex;
     align-items: center;
     justify-content: center;
-    color: white;
-    font-size: 20px;
-    font-weight: 700;
 }
 
 .navbar-title {

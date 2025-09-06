@@ -7,13 +7,15 @@ import '../../../core/themes/toss_animations.dart';
 import '../../widgets/toss/toss_primary_button.dart';
 import '../../widgets/toss/toss_text_field.dart';
 import '../../widgets/auth/storebase_auth_header.dart';
+import '../../../data/services/enhanced_company_service.dart';
 import '../../../data/services/company_service.dart';
 import '../../providers/app_state_provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/constants/auth_constants.dart';
 import '../../widgets/common/toss_scaffold.dart';
 import '../../../core/navigation/safe_navigation.dart';
-
+import 'package:myfinance_improved/core/themes/index.dart';
+import 'package:myfinance_improved/core/themes/toss_border_radius.dart';
 class CreateBusinessPage extends ConsumerStatefulWidget {
   const CreateBusinessPage({super.key});
 
@@ -99,7 +101,7 @@ class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
   }
   
   void _loadCompanyTypes() async {
-    final service = ref.read(companyServiceProvider);
+    final service = ref.read(enhancedCompanyServiceProvider);
     final types = await service.getCompanyTypes();
     if (mounted) {
       setState(() {
@@ -112,7 +114,7 @@ class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
   }
   
   void _loadCurrencies() async {
-    final service = ref.read(companyServiceProvider);
+    final service = ref.read(enhancedCompanyServiceProvider);
     final currencies = await service.getCurrencies();
     if (mounted) {
       setState(() {
@@ -300,7 +302,7 @@ class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
                   ),
                   decoration: BoxDecoration(
                     color: TossColors.primary.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(TossBorderRadius.md),
                   ),
                   child: Text(
                     'Company Code: $_companyCode',
@@ -484,7 +486,7 @@ class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
           padding: EdgeInsets.symmetric(horizontal: TossSpacing.space3),
           decoration: BoxDecoration(
             color: TossColors.white,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
             border: Border.all(
               color: TossColors.borderLight,
               width: 1,
@@ -603,7 +605,7 @@ class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
           padding: EdgeInsets.symmetric(horizontal: TossSpacing.space3),
           decoration: BoxDecoration(
             color: TossColors.white,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
             border: Border.all(
               color: TossColors.borderLight,
               width: 1,
@@ -732,7 +734,7 @@ class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
     });
 
     try {
-      final service = ref.read(companyServiceProvider);
+      final service = ref.read(enhancedCompanyServiceProvider);
       
       final companyDetails = await service.createCompany(
         companyName: _businessNameController.text.trim(),
@@ -771,7 +773,7 @@ class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
                 Expanded(
                   child: Text(
                     'Failed to create business: ${e.toString()}',
-                    style: TextStyle(fontWeight: FontWeight.w500),
+                    style: TossTextStyles.body.copyWith(fontWeight: FontWeight.w500),
                   ),
                 ),
               ],
@@ -779,7 +781,7 @@ class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
             backgroundColor: TossColors.error,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
             ),
           ),
         );

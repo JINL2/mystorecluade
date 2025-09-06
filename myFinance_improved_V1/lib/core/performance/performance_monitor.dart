@@ -548,16 +548,16 @@ class PerformanceMonitor {
 }
 
 /// Performance monitoring extensions for common operations
-extension PerformanceMonitoring on Future<T> {
+extension PerformanceMonitoring<T> on Future<T> {
   /// Add performance monitoring to any Future
-  Future<T> withPerformanceMonitoring<T>(
+  Future<T> withPerformanceMonitoring(
     String operationName, {
     Map<String, dynamic> metadata = const {},
     bool enableMemoization = false,
   }) {
     return PerformanceMonitor().measure(
       operationName,
-      () => this as Future<T>,
+      () => this,
       metadata: metadata,
       enableMemoization: enableMemoization,
     );

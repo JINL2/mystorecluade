@@ -7,7 +7,8 @@ import '../../../../core/themes/toss_shadows.dart';
 import '../providers/revenue_provider.dart';
 import '../models/revenue_models.dart';
 import '../../../providers/app_state_provider.dart';
-
+import 'package:myfinance_improved/core/themes/index.dart';
+import 'package:myfinance_improved/core/themes/toss_border_radius.dart';
 class RevenueCard extends ConsumerWidget {
   const RevenueCard({super.key});
 
@@ -29,7 +30,7 @@ class RevenueCard extends ConsumerWidget {
             TossColors.primary.withOpacity(0.8),
           ],
         ),
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(TossBorderRadius.xxxl),
         boxShadow: TossShadows.elevation3,
       ),
       child: Padding(
@@ -44,7 +45,7 @@ class RevenueCard extends ConsumerWidget {
                     Text(
                       'Revenue',
                       style: TossTextStyles.h3.copyWith(
-                        color: Colors.white,
+                        color: TossColors.white,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -79,7 +80,7 @@ class RevenueCard extends ConsumerWidget {
                             ? formattedRevenue
                             : _getStoreRevenue(ref),
                           style: TossTextStyles.display.copyWith(
-                            color: Colors.white,
+                            color: TossColors.white,
                             fontWeight: FontWeight.bold,
                             fontSize: 36,
                           ),
@@ -97,7 +98,7 @@ class RevenueCard extends ConsumerWidget {
                     child: Text(
                       'Last updated: ${_formatLastUpdated(revenueAsync.value?.lastUpdated)}',
                       style: TossTextStyles.caption.copyWith(
-                        color: Colors.white.withOpacity(0.7),
+                        color: TossColors.white.withOpacity(0.7),
                       ),
                     ),
                   ),
@@ -147,10 +148,10 @@ class _TabSelector extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.15),
-        borderRadius: BorderRadius.circular(12),
+        color: TossColors.white.withOpacity(0.15),
+        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
       ),
-      padding: const EdgeInsets.all(2),
+      padding: EdgeInsets.all(TossSpacing.space1 / 2),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -178,13 +179,13 @@ class _TabSelector extends StatelessWidget {
           vertical: TossSpacing.space1,
         ),
         decoration: BoxDecoration(
-          color: isSelected ? Colors.white.withOpacity(0.25) : Colors.transparent,
-          borderRadius: BorderRadius.circular(10),
+          color: isSelected ? TossColors.white.withOpacity(0.25) : TossColors.transparent,
+          borderRadius: BorderRadius.circular(TossBorderRadius.md),
         ),
         child: Text(
           label,
           style: TossTextStyles.bodySmall.copyWith(
-            color: Colors.white,
+            color: TossColors.white,
             fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
           ),
         ),
@@ -206,8 +207,8 @@ class _PeriodSelector extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.2),
-        borderRadius: BorderRadius.circular(12),
+        color: TossColors.white.withOpacity(0.2),
+        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
       ),
       child: PopupMenuButton<RevenuePeriod>(
         initialValue: selectedPeriod,
@@ -229,14 +230,14 @@ class _PeriodSelector extends StatelessWidget {
               Text(
                 selectedPeriod.displayName,
                 style: TossTextStyles.body.copyWith(
-                  color: Colors.white,
+                  color: TossColors.white,
                   fontWeight: FontWeight.w500,
                 ),
               ),
               const SizedBox(width: 4),
               const Icon(
                 Icons.arrow_drop_down,
-                color: Colors.white,
+                color: TossColors.white,
                 size: 20,
               ),
             ],
@@ -259,8 +260,8 @@ class _LoadingRevenue extends StatelessWidget {
           width: 150,
           height: 36,
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.2),
-            borderRadius: BorderRadius.circular(8),
+            color: TossColors.white.withOpacity(0.2),
+            borderRadius: BorderRadius.circular(TossBorderRadius.md),
           ),
         ),
         const SizedBox(height: TossSpacing.space2),
@@ -268,8 +269,8 @@ class _LoadingRevenue extends StatelessWidget {
           width: 200,
           height: 20,
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.15),
-            borderRadius: BorderRadius.circular(4),
+            color: TossColors.white.withOpacity(0.15),
+            borderRadius: BorderRadius.circular(TossBorderRadius.xs),
           ),
         ),
       ],
@@ -287,14 +288,14 @@ class _ErrorRevenue extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(TossSpacing.space4),
       decoration: BoxDecoration(
-        color: Colors.red.withOpacity(0.2),
-        borderRadius: BorderRadius.circular(12),
+        color: TossColors.error.withOpacity(0.2),
+        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
       ),
       child: Row(
         children: [
           const Icon(
             Icons.error_outline,
-            color: Colors.white,
+            color: TossColors.white,
             size: 20,
           ),
           const SizedBox(width: TossSpacing.space2),
@@ -302,7 +303,7 @@ class _ErrorRevenue extends StatelessWidget {
             child: Text(
               'Unable to load revenue data',
               style: TossTextStyles.body.copyWith(
-                color: Colors.white,
+                color: TossColors.white,
               ),
             ),
           ),

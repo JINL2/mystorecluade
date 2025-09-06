@@ -139,7 +139,7 @@ class EmployeeCardEnhanced extends ConsumerWidget {
   Color _getRoleColor(String role) {
     switch (role.toLowerCase()) {
       case 'owner':
-        return const Color(0xFF8B5CF6); // Purple for Owner
+        return TossColors.primary; // Purple for Owner
       case 'assistant manager':
       case 'manager':
         return TossColors.primary; // Primary color for managers
@@ -151,7 +151,7 @@ class EmployeeCardEnhanced extends ConsumerWidget {
       case 'intern':
         return TossColors.warning; // Orange for interns
       case 'contractor':
-        return const Color(0xFF06B6D4); // Cyan for contractors
+        return TossColors.info; // Cyan for contractors
       default:
         return TossColors.gray600; // Default gray
     }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../core/themes/toss_colors.dart';
 import '../../../core/themes/toss_text_styles.dart';
 import '../../../core/themes/toss_spacing.dart';
+import 'package:myfinance_improved/core/themes/index.dart';
 
 /// A reusable tab bar component following the Toss design system.
 /// 
@@ -144,8 +145,8 @@ class _TossTabBarState extends State<TossTabBar> with SingleTickerProviderStateM
   
   @override
   Widget build(BuildContext context) {
-    final selectedColor = widget.selectedColor ?? Colors.black87;
-    final unselectedColor = widget.unselectedColor ?? Colors.grey[400]!;
+    final selectedColor = widget.selectedColor ?? TossColors.black87;
+    final unselectedColor = widget.unselectedColor ?? TossColors.gray500;
     
     final selectedStyle = widget.selectedLabelStyle ?? 
       TossTextStyles.bodyLarge.copyWith(
@@ -159,8 +160,8 @@ class _TossTabBarState extends State<TossTabBar> with SingleTickerProviderStateM
       padding: widget.padding ?? EdgeInsets.symmetric(horizontal: TossSpacing.space4),
       child: Theme(
         data: ThemeData(
-          splashColor: Colors.transparent,
-          highlightColor: Colors.transparent,
+          splashColor: TossColors.transparent,
+          highlightColor: TossColors.transparent,
         ),
         child: TabBar(
           controller: _tabController,
@@ -178,8 +179,8 @@ class _TossTabBarState extends State<TossTabBar> with SingleTickerProviderStateM
           unselectedLabelColor: unselectedColor,
           labelStyle: selectedStyle,
           unselectedLabelStyle: unselectedStyle,
-          dividerColor: Colors.transparent,
-          overlayColor: WidgetStateProperty.all(Colors.transparent),
+          dividerColor: TossColors.transparent,
+          overlayColor: WidgetStateProperty.all(TossColors.transparent),
           tabs: widget.tabs.map((tab) => Tab(text: tab)).toList(),
         ),
       ),
@@ -417,7 +418,7 @@ class TossPillTabBar extends StatelessWidget {
           insets: EdgeInsets.zero,
         ),
         indicatorSize: TabBarIndicatorSize.tab,
-        dividerColor: Colors.transparent,
+        dividerColor: TossColors.transparent,
         labelColor: labelColor ?? TossColors.gray900,
         unselectedLabelColor: unselectedLabelColor ?? TossColors.gray400,
         labelStyle: labelStyle ??
@@ -529,8 +530,8 @@ class TossMinimalTabBar extends StatelessWidget {
           insets: EdgeInsets.symmetric(horizontal: TossSpacing.space3),
         ),
         indicatorSize: TabBarIndicatorSize.tab,
-        dividerColor: Colors.transparent,
-        overlayColor: WidgetStateProperty.all(Colors.transparent),
+        dividerColor: TossColors.transparent,
+        overlayColor: WidgetStateProperty.all(TossColors.transparent),
         labelColor: selectedColor ?? TossColors.gray900,
         unselectedLabelColor: unselectedColor ?? TossColors.gray400,
         labelStyle: TossTextStyles.body.copyWith(

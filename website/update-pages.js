@@ -21,7 +21,7 @@ const pages = [
     '/Applications/XAMPP/xamppfiles/htdocs/mcparrange-main/myFinance_claude/website/pages/marketing/marketing-plan/index.html',
     '/Applications/XAMPP/xamppfiles/htdocs/mcparrange-main/myFinance_claude/website/pages/product/inventory/index.html',
     '/Applications/XAMPP/xamppfiles/htdocs/mcparrange-main/myFinance_claude/website/pages/settings/account-mapping/index.html',
-    '/Applications/XAMPP/xamppfiles/htdocs/mcparrange-main/myFinance_claude/website/pages/settings/company-store/index.html',
+    '/Applications/XAMPP/xamppfiles/htdocs/mcparrange-main/myFinance_claude/website/pages/settings/store-setting/index.html',
     '/Applications/XAMPP/xamppfiles/htdocs/mcparrange-main/myFinance_claude/website/pages/settings/counterparty/index.html',
     '/Applications/XAMPP/xamppfiles/htdocs/mcparrange-main/myFinance_claude/website/pages/settings/currency/index.html'
 ];

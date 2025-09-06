@@ -18,6 +18,7 @@
     <link rel="stylesheet" href="../../../components/form/toss-filter.css">
     <link rel="stylesheet" href="../../../components/feedback/toss-alert.css">
     <link rel="stylesheet" href="../../../components/navigation/navbar.css">
+    <link rel="stylesheet" href="../../../components/layout/toss-modal.css">
     
     <!-- Supabase CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -2139,6 +2140,12 @@
                         </svg>
                         Cash Ending
                     </button>
+                    <button class="cash-ending-btn" onclick="openAddCashLocationModal()" style="background: var(--toss-success);">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12,3L2,12H5V20H19V12H22L12,3M12,8.75A1.25,1.25 0 0,1 13.25,10A1.25,1.25 0 0,1 12,11.25A1.25,1.25 0 0,1 10.75,10A1.25,1.25 0 0,1 12,8.75M17,18H7V17C7,15.34 11,14.5 12,14.5C13,14.5 17,15.34 17,17V18Z"/>
+                        </svg>
+                        Add Cash Location
+                    </button>
                 </div>
                 
                 <!-- Difference Section -->
@@ -2602,6 +2609,100 @@
                 </div>
             </div>
             
+            <!-- Add Cash Location Modal -->
+            <div class="toss-modal-overlay" id="addCashLocationModal">
+                <div class="toss-modal toss-modal-sm">
+                    <!-- Modal Header -->
+                    <div class="toss-modal-header">
+                        <div class="toss-modal-header-content">
+                            <div class="toss-modal-icon primary">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M12,3L2,12H5V20H19V12H22L12,3M12,8.75A1.25,1.25 0 0,1 13.25,10A1.25,1.25 0 0,1 12,11.25A1.25,1.25 0 0,1 10.75,10A1.25,1.25 0 0,1 12,8.75M17,18H7V17C7,15.34 11,14.5 12,14.5C13,14.5 17,15.34 17,17V18Z"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <h2 class="toss-modal-title">Add Cash Location</h2>
+                                <p class="toss-modal-subtitle">Create a new cash location for your store</p>
+                            </div>
+                        </div>
+                        <button class="toss-modal-close" onclick="closeAddCashLocationModal()">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"/>
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <!-- Modal Body -->
+                    <div class="toss-modal-body" style="padding: var(--space-8);">
+                        <form id="addCashLocationForm">
+                            <!-- Cash Location Name -->
+                            <div class="toss-input-group" style="margin-bottom: var(--space-6);">
+                                <label class="toss-input-label" style="margin-bottom: var(--space-2); display: block; font-weight: 600; color: var(--text-primary);">
+                                    Cash Location Name <span style="color: var(--toss-error);">*</span>
+                                </label>
+                                <input 
+                                    type="text" 
+                                    id="cashLocationName" 
+                                    class="toss-input toss-input-lg" 
+                                    placeholder="Enter cash location name"
+                                    style="width: 100%;"
+                                    required
+                                />
+                            </div>
+                            
+                            <!-- Cash Location Type -->
+                            <div class="toss-select-group" style="margin-bottom: var(--space-6);">
+                                <label class="toss-select-label" style="margin-bottom: var(--space-2); display: block; font-weight: 600; color: var(--text-primary);">
+                                    Location Type <span style="color: var(--toss-error);">*</span>
+                                </label>
+                                <select 
+                                    id="cashLocationType" 
+                                    class="toss-select toss-select-lg" 
+                                    style="width: 100%; padding: 12px 16px; font-size: 16px; border: 1px solid var(--toss-border); border-radius: var(--radius-input); background: white;"
+                                    required
+                                >
+                                    <option value="" disabled selected>Select location type</option>
+                                    <option value="cash">💵 Cash</option>
+                                    <option value="bank">🏦 Bank</option>
+                                    <option value="vault">🔒 Vault</option>
+                                </select>
+                            </div>
+                            
+                            <!-- Location Type Cards (Alternative UI) -->
+                            <div style="display: none; margin-bottom: var(--space-6);">
+                                <label style="margin-bottom: var(--space-3); display: block; font-weight: 600; color: var(--text-primary);">
+                                    Location Type <span style="color: var(--toss-error);">*</span>
+                                </label>
+                                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-3);">
+                                    <div class="type-card" data-type="cash" style="padding: var(--space-4); border: 2px solid var(--toss-border); border-radius: var(--radius-lg); cursor: pointer; text-align: center; transition: all 0.2s;">
+                                        <div style="font-size: 32px; margin-bottom: var(--space-2);">💵</div>
+                                        <div style="font-weight: 600; color: var(--text-primary);">Cash</div>
+                                    </div>
+                                    <div class="type-card" data-type="bank" style="padding: var(--space-4); border: 2px solid var(--toss-border); border-radius: var(--radius-lg); cursor: pointer; text-align: center; transition: all 0.2s;">
+                                        <div style="font-size: 32px; margin-bottom: var(--space-2);">🏦</div>
+                                        <div style="font-weight: 600; color: var(--text-primary);">Bank</div>
+                                    </div>
+                                    <div class="type-card" data-type="vault" style="padding: var(--space-4); border: 2px solid var(--toss-border); border-radius: var(--radius-lg); cursor: pointer; text-align: center; transition: all 0.2s;">
+                                        <div style="font-size: 32px; margin-bottom: var(--space-2);">🔒</div>
+                                        <div style="font-weight: 600; color: var(--text-primary);">Vault</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    
+                    <!-- Modal Footer -->
+                    <div class="toss-modal-footer">
+                        <button class="toss-button toss-button-secondary toss-button-lg" onclick="closeAddCashLocationModal()">
+                            Cancel
+                        </button>
+                        <button class="toss-button toss-button-primary toss-button-lg" onclick="addCashLocation()">
+                            Add Location
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
         </main>
     </div>
 
@@ -2635,6 +2736,51 @@
         let currencyTypes = [];
         let currencyDenominations = [];
 
+        // Add Cash Location Modal Functions
+        function openAddCashLocationModal() {
+            const modal = document.getElementById('addCashLocationModal');
+            if (modal) {
+                modal.classList.add('show');
+                document.body.style.overflow = 'hidden';
+                
+                // Reset form
+                const form = document.getElementById('addCashLocationForm');
+                if (form) {
+                    form.reset();
+                }
+            }
+        }
+        
+        function closeAddCashLocationModal() {
+            const modal = document.getElementById('addCashLocationModal');
+            if (modal) {
+                modal.classList.remove('show');
+                document.body.style.overflow = '';
+            }
+        }
+        
+        function addCashLocation() {
+            // This function will handle the actual adding of cash location
+            // For now, just get the values and log them
+            const name = document.getElementById('cashLocationName').value;
+            const type = document.getElementById('cashLocationType').value;
+            
+            if (!name || !type) {
+                alert('Please fill in all required fields');
+                return;
+            }
+            
+            console.log('Adding cash location:', {
+                name: name,
+                type: type
+            });
+            
+            // TODO: Add the actual implementation to save to database
+            
+            // Close modal after adding
+            closeAddCashLocationModal();
+        }
+        
         // Main Cash Ending Modal Functions
         async function openCashEndingModal() {
             // Ensure appState is properly initialized before opening modal

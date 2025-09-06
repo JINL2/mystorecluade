@@ -9,6 +9,7 @@ import '../../../../core/themes/toss_animations.dart';
 import '../../../../domain/entities/denomination.dart';
 import '../providers/denomination_providers.dart';
 import '../providers/currency_providers.dart';
+import 'package:myfinance_improved/core/themes/index.dart';
 
 class DenominationGrid extends ConsumerWidget {
   final List<Denomination> denominations;
@@ -127,7 +128,7 @@ class DenominationGrid extends ConsumerWidget {
             height: 4,
             decoration: BoxDecoration(
               color: TossColors.gray300,
-              borderRadius: BorderRadius.circular(2),
+              borderRadius: BorderRadius.circular(TossBorderRadius.xs),
             ),
           ),
           const SizedBox(height: TossSpacing.space5),
@@ -170,7 +171,6 @@ class DenominationGrid extends ConsumerWidget {
     // Haptic feedback
     HapticFeedback.lightImpact();
     
-    print('=== UI DELETION DEBUG START ===');
     print('Starting deletion for denomination:');
     print('  ID: ${denomination.id}');
     print('  Value: ${denomination.formattedValue}');
@@ -184,10 +184,8 @@ class DenominationGrid extends ConsumerWidget {
       await ref.read(denominationOperationsProvider.notifier)
           .removeDenomination(denomination.id, denomination.currencyId);
       
-      print('✅ Database deletion successful for denomination: ${denomination.id}');
       
       // Refresh the remote providers to get updated data from database
-      print('Refreshing remote providers to fetch updated data...');
       ref.invalidate(denominationListProvider(denomination.currencyId));
       ref.invalidate(companyCurrenciesProvider);
       ref.invalidate(companyCurrenciesStreamProvider);
@@ -211,11 +209,9 @@ class DenominationGrid extends ConsumerWidget {
       // Success haptic feedback
       HapticFeedback.selectionClick();
       
-      print('=== UI DELETION DEBUG END - SUCCESS ===');
       
     } catch (e) {
       print('❌ Failed to delete denomination: $e');
-      print('=== UI DELETION DEBUG END - ERROR ===');
       
       // Show error message
       if (context.mounted) {

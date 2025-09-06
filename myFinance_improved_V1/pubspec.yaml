@@ -34,6 +34,7 @@ dependencies:
 
   flutter_svg: ^2.0.10
   image_picker: ^1.1.2
+  flutter_image_compress: ^2.0.4
   
   # Utilities
   freezed_annotation: ^2.4.0
@@ -83,12 +84,18 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  integration_test:
+    sdk: flutter
   build_runner: ^2.4.0
   freezed: ^2.4.0
   json_serializable: ^6.7.0
   riverpod_generator: ^2.3.0
   flutter_lints: ^3.0.0
   flutter_launcher_icons: ^0.13.1
+  
+  # Development Scripts
+  path: ^1.8.0
+  args: ^2.4.0
 
 flutter:
   uses-material-design: true

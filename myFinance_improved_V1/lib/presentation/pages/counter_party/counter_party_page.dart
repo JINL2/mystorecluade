@@ -4,7 +4,9 @@ import 'package:myfinance_improved/core/themes/toss_colors.dart';
 import 'package:myfinance_improved/core/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/core/themes/toss_spacing.dart';
 import 'package:myfinance_improved/core/themes/toss_border_radius.dart';
+import 'package:myfinance_improved/core/themes/toss_shadows.dart';
 import 'package:myfinance_improved/core/themes/toss_animations.dart';
+import 'package:myfinance_improved/core/constants/icon_mapper.dart';
 import 'dart:async';
 import 'constants/counter_party_colors.dart';
 import 'providers/counter_party_providers.dart';
@@ -14,11 +16,11 @@ import 'widgets/counter_party_list_item.dart';
 import 'widgets/counter_party_form.dart';
 import '../../providers/app_state_provider.dart';
 import '../../widgets/common/toss_scaffold.dart';
-import '../../widgets/common/toss_stats_card.dart';
 import '../../widgets/common/toss_app_bar.dart';
 import '../../widgets/toss/toss_search_field.dart';
 import '../../widgets/common/toss_loading_view.dart';
 import '../../../core/navigation/safe_navigation.dart';
+import 'package:myfinance_improved/core/themes/index.dart';
 
 class CounterPartyPage extends ConsumerStatefulWidget {
   const CounterPartyPage({super.key});
@@ -78,7 +80,8 @@ class _CounterPartyPageState extends ConsumerState<CounterPartyPage> {
       isScrollControlled: true,
       backgroundColor: TossColors.transparent,
       constraints: BoxConstraints(
-        maxHeight: MediaQuery.of(context).size.height * 0.8,
+        maxHeight: (MediaQuery.of(context).size.height - 
+                   MediaQuery.of(context).viewInsets.bottom) * 0.8,
       ),
       builder: (context) => Container(
         decoration: BoxDecoration(
@@ -150,38 +153,38 @@ class _CounterPartyPageState extends ConsumerState<CounterPartyPage> {
               TossStatItem(
                 label: 'My Company',
                 count: stats.myCompanies,
-                icon: CounterPartyColors.getTypeIcon(CounterPartyType.myCompany),
-                color: CounterPartyColors.myCompany,
+                icon: Icons.business,
+                color: TossColors.primary,
               ),
               TossStatItem(
                 label: 'Team Member',
                 count: stats.teamMembers,
-                icon: CounterPartyColors.getTypeIcon(CounterPartyType.teamMember),
-                color: CounterPartyColors.teamMember,
+                icon: Icons.group,
+                color: TossColors.success,
               ),
               TossStatItem(
                 label: 'Suppliers',
                 count: stats.suppliers,
-                icon: CounterPartyColors.getTypeIcon(CounterPartyType.supplier),
-                color: CounterPartyColors.supplier,
+                icon: Icons.local_shipping,
+                color: TossColors.info,
               ),
               TossStatItem(
                 label: 'Employees',
                 count: stats.employees,
-                icon: CounterPartyColors.getTypeIcon(CounterPartyType.employee),
-                color: CounterPartyColors.employee,
+                icon: Icons.badge,
+                color: TossColors.warning,
               ),
               TossStatItem(
                 label: 'Customers',
                 count: stats.customers,
-                icon: CounterPartyColors.getTypeIcon(CounterPartyType.customer),
-                color: CounterPartyColors.customer,
+                icon: Icons.people,
+                color: TossColors.error,
               ),
               TossStatItem(
                 label: 'Others',
                 count: stats.others,
-                icon: CounterPartyColors.getTypeIcon(CounterPartyType.other),
-                color: CounterPartyColors.other,
+                icon: Icons.category,
+                color: TossColors.gray500,
               ),
             ],
             onRetry: _refreshData,
@@ -439,7 +442,7 @@ class _CounterPartyPageState extends ConsumerState<CounterPartyPage> {
             margin: EdgeInsets.only(top: TossSpacing.space3),
             decoration: BoxDecoration(
               color: TossColors.gray300,
-              borderRadius: BorderRadius.circular(2),
+              borderRadius: BorderRadius.circular(TossBorderRadius.xs),
             ),
           ),
           
@@ -607,7 +610,7 @@ class _CounterPartyPageState extends ConsumerState<CounterPartyPage> {
             margin: EdgeInsets.only(top: TossSpacing.space3),
             decoration: BoxDecoration(
               color: TossColors.gray300,
-              borderRadius: BorderRadius.circular(2),
+              borderRadius: BorderRadius.circular(TossBorderRadius.xs),
             ),
           ),
           
@@ -826,7 +829,8 @@ class _CounterPartyPageState extends ConsumerState<CounterPartyPage> {
       isScrollControlled: true,
       backgroundColor: TossColors.transparent,
       constraints: BoxConstraints(
-        maxHeight: MediaQuery.of(context).size.height * 0.8,
+        maxHeight: (MediaQuery.of(context).size.height - 
+                   MediaQuery.of(context).viewInsets.bottom) * 0.8,
       ),
       builder: (context) => Container(
         decoration: BoxDecoration(
@@ -867,4 +871,208 @@ class _CounterPartyPageState extends ConsumerState<CounterPartyPage> {
       }
     }
   }
+}
+
+// Local widgets - only used in this file
+class TossStatsCard extends StatelessWidget {
+  final String title;
+  final int totalCount;
+  final List<TossStatItem> items;
+  final bool isLoading;
+  final String? errorMessage;
+  final VoidCallback? onRetry;
+
+  const TossStatsCard({
+    super.key,
+    required this.title,
+    required this.totalCount,
+    required this.items,
+    this.isLoading = false,
+    this.errorMessage,
+    this.onRetry,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (isLoading) {
+      return _buildLoadingState();
+    }
+
+    if (errorMessage != null) {
+      return _buildErrorState();
+    }
+
+    return Container(
+      padding: EdgeInsets.all(TossSpacing.space4),
+      decoration: BoxDecoration(
+        color: TossColors.surface,
+        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+        boxShadow: TossShadows.card,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header with title and total count
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                title,
+                style: TossTextStyles.body.copyWith(
+                  color: TossColors.textSecondary,
+                ),
+              ),
+              Text(
+                totalCount.toString(),
+                style: TossTextStyles.h2.copyWith(
+                  color: TossColors.textPrimary,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
+          ),
+          
+          SizedBox(height: TossSpacing.space3),
+          
+          // Divider
+          Container(
+            height: TossSpacing.space0 + 1,
+            color: TossColors.border,
+          ),
+          
+          SizedBox(height: TossSpacing.space3),
+          
+          // Grid of stat items
+          _buildStatsGrid(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatsGrid() {
+    // Split items into rows of 3
+    final rows = <List<TossStatItem>>[];
+    for (int i = 0; i < items.length; i += 3) {
+      final endIndex = (i + 3 > items.length) ? items.length : i + 3;
+      rows.add(items.sublist(i, endIndex));
+    }
+
+    return Column(
+      children: rows.map((row) {
+        return Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: row.map((item) => _buildStatItem(item)).toList(),
+            ),
+            if (row != rows.last) SizedBox(height: TossSpacing.space3),
+          ],
+        );
+      }).toList(),
+    );
+  }
+
+  Widget _buildStatItem(TossStatItem item) {
+    return Column(
+      children: [
+        Container(
+          width: TossSpacing.space10,
+          height: TossSpacing.space10,
+          decoration: BoxDecoration(
+            color: TossColors.gray100,
+            borderRadius: BorderRadius.circular(TossBorderRadius.sm),
+          ),
+          child: Icon(
+            item.icon,
+            color: item.color,
+            size: TossSpacing.iconSM,
+          ),
+        ),
+        SizedBox(height: TossSpacing.space2),
+        Text(
+          item.count.toString(),
+          style: TossTextStyles.h3.copyWith(
+            color: TossColors.textPrimary,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        Text(
+          item.label,
+          style: TossTextStyles.caption.copyWith(
+            color: TossColors.textSecondary,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildLoadingState() {
+    return Container(
+      height: TossSpacing.space10 * 3.5,
+      padding: EdgeInsets.all(TossSpacing.space4),
+      decoration: BoxDecoration(
+        color: TossColors.surface,
+        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+        boxShadow: TossShadows.card,
+      ),
+      child: Center(
+        child: CircularProgressIndicator(
+          color: TossColors.primary,
+          strokeWidth: TossSpacing.space0 + 2,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildErrorState() {
+    return Container(
+      padding: EdgeInsets.all(TossSpacing.space4),
+      decoration: BoxDecoration(
+        color: TossColors.surface,
+        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+        boxShadow: TossShadows.card,
+      ),
+      child: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              errorMessage ?? 'Failed to load statistics',
+              style: TossTextStyles.body.copyWith(
+                color: TossColors.error,
+              ),
+            ),
+            if (onRetry != null) ...[
+              SizedBox(height: TossSpacing.space3),
+              TextButton(
+                onPressed: onRetry,
+                child: Text(
+                  'Retry',
+                  style: TossTextStyles.body.copyWith(
+                    color: TossColors.primary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Data class for individual stat items
+class TossStatItem {
+  final String label;
+  final int count;
+  final IconData icon;
+  final Color color;
+
+  const TossStatItem({
+    required this.label,
+    required this.count,
+    required this.icon,
+    required this.color,
+  });
 }

@@ -15,6 +15,7 @@ import '../../../providers/app_state_provider.dart';
 import 'denomination_grid.dart';
 import 'add_denomination_bottom_sheet.dart';
 import 'edit_exchange_rate_bottom_sheet.dart';
+import 'package:myfinance_improved/core/themes/index.dart';
 
 class CurrencyOverviewCard extends ConsumerWidget {
   final Currency currency;
@@ -72,13 +73,13 @@ class CurrencyOverviewCard extends ConsumerWidget {
               error: (error, _) => Padding(
                 padding: const EdgeInsets.all(TossSpacing.space5),
                 child: Center(
-                  child: const Column(
+                  child: Column(
                     children: [
                       Icon(Icons.error_outline, color: TossColors.error, size: 32),
                       SizedBox(height: TossSpacing.space2),
                       Text(
                         'Failed to load denominations',
-                        style: TextStyle(color: TossColors.error),
+                        style: TossTextStyles.body.copyWith(color: TossColors.error),
                         textAlign: TextAlign.center,
                       ),
                     ],
@@ -252,7 +253,7 @@ class CurrencyOverviewCard extends ConsumerWidget {
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(TossBorderRadius.md),
                         ),
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
                       ),
                       child: const Icon(
                         Icons.add,
@@ -275,7 +276,7 @@ class CurrencyOverviewCard extends ConsumerWidget {
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(TossBorderRadius.md),
                           ),
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
                         ),
                         child: const Icon(
                           Icons.swap_horiz,
@@ -299,7 +300,7 @@ class CurrencyOverviewCard extends ConsumerWidget {
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(TossBorderRadius.md),
                         ),
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
                       ),
                       child: const Icon(
                         Icons.delete_outline,
@@ -421,7 +422,7 @@ class CurrencyOverviewCard extends ConsumerWidget {
                 onPressed: () => Navigator.of(context).pop(),
                 child: Text(
                   'Understood',
-                  style: TextStyle(
+                  style: TossTextStyles.body.copyWith(
                     color: TossColors.primary,
                     fontWeight: FontWeight.w600,
                   ),
@@ -459,9 +460,9 @@ class CurrencyOverviewCard extends ConsumerWidget {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text(
+              child: Text(
                 'Cancel',
-                style: TextStyle(
+                style: TossTextStyles.body.copyWith(
                   color: TossColors.gray600,
                   fontWeight: FontWeight.w600,
                 ),
@@ -482,7 +483,7 @@ class CurrencyOverviewCard extends ConsumerWidget {
                           height: 16,
                           child: TossLoadingView(),
                         ),
-                        const SizedBox(width: 8),
+                        const SizedBox(width: TossSpacing.space2),
                         const Text('Removing...'),
                       ],
                     ),
@@ -498,9 +499,9 @@ class CurrencyOverviewCard extends ConsumerWidget {
                     style: TextButton.styleFrom(
                       foregroundColor: TossColors.error,
                     ),
-                    child: const Text(
+                    child: Text(
                       'Remove',
-                      style: TextStyle(
+                      style: TossTextStyles.body.copyWith(
                         color: TossColors.error,
                         fontWeight: FontWeight.w600,
                       ),

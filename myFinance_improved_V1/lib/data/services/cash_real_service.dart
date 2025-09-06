@@ -30,8 +30,6 @@ class CashRealService {
     int limit = 20,
   }) async {
     try {
-      // Debug: print('Fetching cash real for company: $companyId, store: $storeId, offset: $offset, limit: $limit');
-      
       final response = await _supabase.rpc(
         'get_cash_real',
         params: {

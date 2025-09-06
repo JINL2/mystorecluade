@@ -9,22 +9,18 @@ import '../../../providers/app_state_provider.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../widgets/toss/toss_primary_button.dart';
 import '../../../widgets/toss/toss_dropdown.dart';
-import '../../../widgets/common/toss_loading_view.dart';
+import '../../../../data/services/enhanced_company_service.dart';
+import '../../../../data/services/enhanced_store_service.dart';
 import '../../../../data/services/company_service.dart';
 import '../providers/homepage_providers.dart';
-import '../../../../data/services/store_service.dart';
-import '../../../../data/services/store_join_service.dart';
-import '../../../../data/services/company_join_service.dart';
+import '../../../widgets/common/toss_dialog.dart';
+import '../../../../data/services/unified_join_service.dart';
 import '../../../../core/navigation/safe_navigation.dart';
+import 'package:myfinance_improved/core/themes/index.dart';
 
-// Provider for store join service
-final storeJoinServiceProvider = Provider<StoreJoinService>((ref) {
-  return StoreJoinService();
-});
-
-// Provider for company join service
-final companyJoinServiceProvider = Provider<CompanyJoinService>((ref) {
-  return CompanyJoinService();
+// Provider for unified join service
+final unifiedJoinServiceProvider = Provider<UnifiedJoinService>((ref) {
+  return UnifiedJoinService();
 });
 
 /// Modern bottom drawer using bottom sheet pattern
@@ -47,16 +43,21 @@ class ModernBottomDrawer extends ConsumerStatefulWidget {
       isScrollControlled: true,
       isDismissible: true,
       enableDrag: true,
-      builder: (context) => Container(
-        height: MediaQuery.of(context).size.height * 0.85,
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface,
-          borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(TossBorderRadius.bottomSheet),
-            topRight: Radius.circular(TossBorderRadius.bottomSheet),
+      builder: (context) => AnimatedPadding(
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeOut,
+        padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+        child: Container(
+          height: MediaQuery.of(context).size.height * 0.85,
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surface,
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(TossBorderRadius.bottomSheet),
+              topRight: Radius.circular(TossBorderRadius.bottomSheet),
+            ),
           ),
+          child: ModernBottomDrawer(userData: userData),
         ),
-        child: ModernBottomDrawer(userData: userData),
       ),
     );
   }
@@ -78,12 +79,12 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
   @override
   Widget build(BuildContext context) {
     // Watch for updates
-    final appState = ref.watch(appStateProvider);
+    ref.watch(appStateProvider);
     final userCompaniesAsync = ref.watch(userCompaniesProvider);
     
     // Use the latest data from the provider if available
     final userData = userCompaniesAsync.maybeWhen(
-      data: (data) => data,
+      data: (data) => data ?? widget.userData, // Handle null data when user is not authenticated
       orElse: () => widget.userData,
     );
     
@@ -140,13 +141,13 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
                     // Profile Image
                     CircleAvatar(
                       radius: TossSpacing.paddingXL,
-                      backgroundImage: (userData['profile_image'] ?? '').isNotEmpty
+                      backgroundImage: userData != null && (userData['profile_image'] ?? '').isNotEmpty
                           ? NetworkImage(userData['profile_image'])
                           : null,
                       backgroundColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.2),
-                      child: (userData['profile_image'] ?? '').isEmpty
+                      child: userData == null || (userData['profile_image'] ?? '').isEmpty
                           ? Text(
-                              (userData['user_first_name'] ?? '').isNotEmpty ? userData['user_first_name'][0] : 'U',
+                              userData != null && (userData['user_first_name'] ?? '').isNotEmpty ? userData['user_first_name'][0] : 'U',
                               style: TossTextStyles.h3.copyWith(
                                 color: Theme.of(context).colorScheme.primary,
                                 fontWeight: FontWeight.w700,
@@ -164,7 +165,9 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
                           Row(
                             children: [
                               Text(
-                                '${userData['user_first_name'] ?? ''} ${userData['user_last_name'] ?? ''}',
+                                userData != null 
+                                  ? '${userData['user_first_name'] ?? ''} ${userData['user_last_name'] ?? ''}'
+                                  : 'User',
                                 style: TossTextStyles.body.copyWith(
                                   fontWeight: FontWeight.w600,
                                   color: Theme.of(context).colorScheme.onSurface,
@@ -180,7 +183,7 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
                           ),
                           const SizedBox(height: TossSpacing.space1/2),
                           Text(
-                            'View profile • ${userData['company_count'] ?? 0} companies',
+                            'View profile • ${userData != null ? (userData['company_count'] ?? 0) : 0} companies',
                             style: TossTextStyles.caption.copyWith(
                               color: Theme.of(context).colorScheme.primary,
                             ),
@@ -250,7 +253,7 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
               // Existing Companies with their Stores (selected company first)
               ...() {
                 // Get companies from userData
-                final companies = userData['companies'] as List<dynamic>? ?? [];
+                final companies = userData != null ? (userData['companies'] as List<dynamic>? ?? []) : [];
                 
                 // Remove any duplicate companies by ID
                 final uniqueCompanies = <String, dynamic>{};
@@ -340,20 +343,23 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
             padding: const EdgeInsets.all(TossSpacing.paddingMD),
             child: Row(
               children: [
-                // Clickable company area (everything except expand button)
+                // Clickable company area - always selects first store
                 Expanded(
                   child: InkWell(
                     onTap: () async {
-                      // Only select company, don't toggle expansion
+                      // Always select the company and its first store
+                      final stores = company['stores'] as List<dynamic>? ?? [];
+                      
                       await ref.read(appStateProvider.notifier).setCompanyChoosen(company['company_id']);
-                      await ref.read(appStateProvider.notifier).setStoreChoosen(''); // Clear store selection for HQ view
                       
-                      // Auto-expand when selecting
-                      setState(() {
-                        _expandedCompanies[company['company_id']] = true;
-                      });
+                      if (stores.isNotEmpty) {
+                        // Select the first store
+                        await ref.read(appStateProvider.notifier).setStoreChoosen(stores[0]['store_id']);
+                      }
                       
-                      // Don't close drawer - let user explore
+                      // Navigate to dashboard
+                      Navigator.of(context).pop();
+                      context.safeGo('/');
                     },
                     borderRadius: BorderRadius.circular(TossBorderRadius.md),
                     child: Row(
@@ -1497,120 +1503,65 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
     final scaffoldMessenger = ScaffoldMessenger.maybeOf(context);
     
     // Show loading indicator
-    if (scaffoldMessenger != null) {
-      scaffoldMessenger.showSnackBar(
-        SnackBar(
-          content: Row(
-            children: [
-              SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                ),
-              ),
-              SizedBox(width: 16),
-              Text('Creating company "$name"...'),
-            ],
-          ),
-          backgroundColor: TossColors.primary,
-          duration: Duration(seconds: 30), // Long duration, will be dismissed manually
-        ),
-      );
-    }
+    _showLoadingSnackBar(scaffoldMessenger, 'Creating company "$name"...');
     
     try {
       
-      final companyService = ref.read(companyServiceProvider);
-      final companyData = await companyService.createCompany(
+      final companyService = ref.read(enhancedCompanyServiceProvider);
+      final result = await companyService.createCompanyEnhanced(
         companyName: name,
         companyTypeId: companyTypeId,
         baseCurrencyId: baseCurrencyId,
       );
       
-      if (companyData != null && companyData['company_id'] != null) {
+      // Dismiss loading
+      _dismissSnackBar(scaffoldMessenger);
+      
+      if (result.isSuccess) {
+        // Select the new company in app state FIRST
+        final appStateNotifier = ref.read(appStateProvider.notifier);
+        if (result.companyId != null) {
+          await appStateNotifier.setCompanyChoosen(result.companyId!);
+        }
         
-        // Close both the modal and the drawer
-        // First close the create company modal
+        // Close modals (create company modal + drawer)
         if (navigator.canPop()) {
           navigator.pop(); // Close the modal
         }
-        // Then close the drawer
         if (navigator.canPop()) {
           navigator.pop(); // Close the drawer
         }
         
-        // Dismiss loading and show success message
-        if (scaffoldMessenger != null) {
-          scaffoldMessenger.hideCurrentSnackBar();
-          scaffoldMessenger.showSnackBar(
-            SnackBar(
-              content: Row(
-                children: [
-                  Icon(Icons.check_circle, color: Colors.white),
-                  SizedBox(width: 12),
-                  Expanded(
-                    child: Text('Company "$name" created successfully!'),
-                  ),
-                ],
-              ),
-              backgroundColor: TossColors.success,
-              behavior: SnackBarBehavior.floating,
-              duration: Duration(seconds: 3),
-            ),
-          );
-        }
+        // Navigate to dashboard with state refresh
+        await _navigateToDashboard(context, ref);
         
-        // Force refresh user data after drawer is closed
-        await Future.delayed(Duration(milliseconds: 300));
-        
-        // Invalidate all company-related providers
-        ref.invalidate(userCompaniesProvider);
-        ref.invalidate(forceRefreshUserCompaniesProvider);
-        ref.invalidate(categoriesWithFeaturesProvider);
-        ref.invalidate(forceRefreshCategoriesProvider);
-        
-        // Wait for data to refresh
-        await Future.delayed(Duration(milliseconds: 500));
-        
-        // Select the new company and its first store (if created)
-        final appStateNotifier = ref.read(appStateProvider.notifier);
-        await appStateNotifier.setCompanyChoosen(companyData['company_id'] as String);
-        
-        // If a store was also created, select it
-        if (companyData['store_id'] != null) {
-          await appStateNotifier.setStoreChoosen(companyData['store_id'] as String);
-        }
+        // Show success message
+        _showSuccessSnackBar(
+          scaffoldMessenger,
+          'Company "${result.companyName}" created successfully!',
+          actionLabel: result.companyCode != null ? 'Share Code' : null,
+          onAction: result.companyCode != null ? () {
+            _copyToClipboard(context, result.companyCode!, 'Company code');
+          } : null,
+        );
       } else {
-        throw Exception('Failed to create company - no data returned');
-      }
-    } catch (e) {
-      
-      // Dismiss loading and show error message
-      if (scaffoldMessenger != null) {
-        scaffoldMessenger.hideCurrentSnackBar();
-        scaffoldMessenger.showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                Icon(Icons.error_outline, color: Colors.white),
-                SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    'Failed to create company: ${e.toString().replaceAll('Exception: ', '')}',
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ],
-            ),
-            backgroundColor: TossColors.error,
-            behavior: SnackBarBehavior.floating,
-            duration: Duration(seconds: 4),
-          ),
+        // Show error via snackbar to avoid context issues
+        _showErrorSnackBar(
+          scaffoldMessenger,
+          result.userMessage ?? 'Failed to create company',
+          onRetry: () => _createCompany(context, ref, name, companyTypeId, baseCurrencyId),
         );
       }
+    } catch (e) {
+      // Dismiss loading
+      _dismissSnackBar(scaffoldMessenger);
+      
+      // Show error via snackbar to avoid context issues
+      _showErrorSnackBar(
+        scaffoldMessenger,
+        'Error: ${e.toString().replaceAll('Exception: ', '')}',
+        onRetry: () => _createCompany(context, ref, name, companyTypeId, baseCurrencyId),
+      );
     }
   }
 
@@ -1630,10 +1581,10 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
                 height: 20,
                 child: CircularProgressIndicator(
                   strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                  valueColor: AlwaysStoppedAnimation<Color>(TossColors.white),
                 ),
               ),
-              SizedBox(width: 16),
+              SizedBox(width: TossSpacing.space4),
               Text('Joining company...'),
             ],
           ),
@@ -1645,8 +1596,8 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
     
     try {
       
-      // Import the company join service
-      final companyJoinService = ref.read(companyJoinServiceProvider);
+      // Import the unified join service
+      final unifiedJoinService = ref.read(unifiedJoinServiceProvider);
       final user = ref.read(authStateProvider);
       
       if (user == null) {
@@ -1663,47 +1614,44 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
         return;
       }
       
-      // Call the join_company_by_code RPC (will fail gracefully if not implemented yet)
-      final result = await companyJoinService.joinCompanyByCode(
+      // Call the unified join_user_by_code RPC (server determines if it's a company code)
+      final result = await unifiedJoinService.joinByCode(
         userId: user.id,
-        companyCode: code,
+        code: code,
       );
       
       if (result != null && (result['success'] == true || result['company_id'] != null)) {
         
-        // Success! Close the drawer FIRST
+        // Success! Close all modals (input modal + drawer)
+        // Safely close up to 2 modals: input modal + drawer
+        if (navigator.canPop()) {
+          navigator.pop(); // Close the input modal
+        }
         if (navigator.canPop()) {
           navigator.pop(); // Close the drawer
         }
         
-        // Dismiss loading and show success message
+        // Dismiss loading
         if (scaffoldMessenger != null) {
           scaffoldMessenger.hideCurrentSnackBar();
-          
-          final companyName = result['company_name'] ?? 'the company';
-          scaffoldMessenger.showSnackBar(
-            SnackBar(
-              content: Row(
-                children: [
-                  Icon(Icons.check_circle, color: Colors.white),
-                  SizedBox(width: 12),
-                  Text('Successfully joined $companyName!'),
-                ],
-              ),
-              backgroundColor: TossColors.success,
-              behavior: SnackBarBehavior.floating,
-              duration: Duration(seconds: 3),
-            ),
-          );
         }
         
-        // Force refresh user data after drawer is closed
+        // Force comprehensive data refresh for immediate UI update
         await Future.delayed(Duration(milliseconds: 300));
+        
+        // Invalidate all company-related providers for real-time update
         ref.invalidate(userCompaniesProvider);
         ref.invalidate(forceRefreshUserCompaniesProvider);
+        ref.invalidate(categoriesWithFeaturesProvider);
+        ref.invalidate(forceRefreshCategoriesProvider);
         
-        // Wait for data to refresh
-        await Future.delayed(Duration(milliseconds: 500));
+        // Force fetch fresh data immediately
+        try {
+          await ref.read(forceRefreshUserCompaniesProvider.future);
+          await ref.read(forceRefreshCategoriesProvider.future);
+        } catch (e) {
+          // Continue even if refresh fails
+        }
         
         // Set the new company as selected if company_id is returned
         if (result['company_id'] != null) {
@@ -1713,7 +1661,7 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
           // Auto-select first store of the joined company if available
           try {
             final userData = await ref.read(userCompaniesProvider.future);
-            final companies = userData['companies'] as List? ?? [];
+            final companies = userData != null ? (userData['companies'] as List? ?? []) : [];
             final joinedCompany = companies.firstWhere(
               (c) => c['company_id'] == result['company_id'],
               orElse: () => null,
@@ -1730,36 +1678,53 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
             // Handle error silently
           }
         }
+        
+        // Navigate to dashboard to show the new company/store immediately
+        if (context.mounted) {
+          final companyName = result['company_name'] ?? result['entity_name'] ?? 'the company';
+          
+          // Show success dialog with proper navigation
+          await TossSuccessDialogs.showBusinessJoined(
+            context: context,
+            companyName: companyName,
+            roleName: result['role_assigned'] ?? 'Member',
+            onContinue: () {
+              Navigator.of(context).pop(); // Close dialog
+              context.safeGo('/'); // Navigate to dashboard
+            },
+          );
+        }
       } else {
-        throw Exception('Failed to join company');
+        // Show error dialog for invalid response
+        if (scaffoldMessenger != null) {
+          scaffoldMessenger.hideCurrentSnackBar();
+        }
+        await TossErrorDialogs.showBusinessJoinFailed(
+          context: context,
+          error: 'Invalid response from server',
+          onRetry: () {
+            Navigator.of(context).pop();
+            _joinCompany(context, ref, code);
+          },
+        );
+        return;
       }
       
     } catch (e) {
       
-      // Dismiss loading and show error message
+      // Dismiss loading and show error dialog
       if (scaffoldMessenger != null) {
         scaffoldMessenger.hideCurrentSnackBar();
-        scaffoldMessenger.showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                Icon(Icons.error_outline, color: Colors.white),
-                SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    'Failed: ${e.toString().replaceAll('Exception: ', '')}',
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ],
-            ),
-            backgroundColor: TossColors.error,
-            behavior: SnackBarBehavior.floating,
-            duration: Duration(seconds: 4),
-          ),
-        );
       }
+      
+      await TossErrorDialogs.showBusinessJoinFailed(
+        context: context,
+        error: e.toString().replaceAll('Exception: ', ''),
+        onRetry: () {
+          Navigator.of(context).pop();
+          _joinCompany(context, ref, code);
+        },
+      );
     }
   }
 
@@ -1776,117 +1741,69 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
     final scaffoldMessenger = ScaffoldMessenger.maybeOf(context);
     
     // Show loading indicator
-    if (scaffoldMessenger != null) {
-      scaffoldMessenger.showSnackBar(
-        SnackBar(
-          content: Row(
-            children: [
-              SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                ),
-              ),
-              SizedBox(width: 16),
-              Text('Creating store "$name"...'),
-            ],
-          ),
-          backgroundColor: TossColors.primary,
-          duration: Duration(seconds: 30), // Long duration, will be dismissed manually
-        ),
-      );
-    }
+    _showLoadingSnackBar(scaffoldMessenger, 'Creating store "$name"...');
     
     try {
       
-      final storeService = ref.read(storeServiceProvider);
-      final storeData = await storeService.createStore(
+      final storeService = ref.read(enhancedStoreServiceProvider);
+      final result = await storeService.createStoreEnhanced(
         storeName: name,
         companyId: company['company_id'],
         storeAddress: address,
         storePhone: phone,
       );
       
-      if (storeData != null && storeData['store_id'] != null) {
-        
-        // Close both the modal and the drawer
-        // First close the create store modal
-        if (navigator.canPop()) {
-          navigator.pop(); // Close the modal
+      // Dismiss loading
+      _dismissSnackBar(scaffoldMessenger);
+      
+      if (result.isSuccess) {
+        // Select the new company and store in app state FIRST
+        final appStateNotifier = ref.read(appStateProvider.notifier);
+        if (result.companyId != null) {
+          await appStateNotifier.setCompanyChoosen(result.companyId!);
         }
-        // Then close the drawer
+        if (result.storeId != null) {
+          await appStateNotifier.setStoreChoosen(result.storeId!);
+        }
+        
+        // Close modals (create store modal + drawer)
+        if (navigator.canPop()) {
+          navigator.pop(); // Close the create store modal
+        }
         if (navigator.canPop()) {
           navigator.pop(); // Close the drawer
         }
         
-        // Dismiss loading and show success message
-        if (scaffoldMessenger != null) {
-          scaffoldMessenger.hideCurrentSnackBar();
-          
-          final storeCode = storeData['store_code'] ?? '';
-          scaffoldMessenger.showSnackBar(
-            SnackBar(
-              content: Row(
-                children: [
-                  Icon(Icons.check_circle, color: Colors.white),
-                  SizedBox(width: 12),
-                  Expanded(
-                    child: Text('Store "$name" created! Code: $storeCode'),
-                  ),
-                ],
-              ),
-              backgroundColor: TossColors.success,
-              behavior: SnackBarBehavior.floating,
-              duration: Duration(seconds: 4),
-            ),
-          );
-        }
+        // Navigate to dashboard with state refresh
+        await _navigateToDashboard(context, ref);
         
-        // Force refresh user data after drawer is closed
-        await Future.delayed(Duration(milliseconds: 300));
-        
-        // Invalidate all store-related providers
-        ref.invalidate(userCompaniesProvider);
-        ref.invalidate(forceRefreshUserCompaniesProvider);
-        ref.invalidate(categoriesWithFeaturesProvider);
-        
-        // Wait for data to refresh
-        await Future.delayed(Duration(milliseconds: 500));
-        
-        // Select the new store
-        final appStateNotifier = ref.read(appStateProvider.notifier);
-        await appStateNotifier.setStoreChoosen(storeData['store_id'] as String);
+        // Show success message
+        _showSuccessSnackBar(
+          scaffoldMessenger,
+          'Store "${result.storeName}" created successfully!',
+          actionLabel: result.storeCode != null ? 'Share Code' : null,
+          onAction: result.storeCode != null ? () {
+            _copyToClipboard(context, result.storeCode!, 'Store code');
+          } : null,
+        );
       } else {
-        throw Exception('Failed to create store - no data returned');
-      }
-    } catch (e) {
-      
-      // Dismiss loading and show error message
-      if (scaffoldMessenger != null) {
-        scaffoldMessenger.hideCurrentSnackBar();
-        scaffoldMessenger.showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                Icon(Icons.error_outline, color: Colors.white),
-                SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    'Failed to create store: ${e.toString().replaceAll('Exception: ', '')}',
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ],
-            ),
-            backgroundColor: TossColors.error,
-            behavior: SnackBarBehavior.floating,
-            duration: Duration(seconds: 4),
-          ),
+        // Show error via snackbar to avoid context issues
+        _showErrorSnackBar(
+          scaffoldMessenger,
+          result.userMessage ?? 'Failed to create store',
+          onRetry: () => _createStore(context, ref, name, company, address, phone),
         );
       }
+    } catch (e) {
+      // Dismiss loading
+      _dismissSnackBar(scaffoldMessenger);
+      
+      // Show error via snackbar to avoid context issues
+      _showErrorSnackBar(
+        scaffoldMessenger,
+        'Error: ${e.toString().replaceAll('Exception: ', '')}',
+        onRetry: () => _createStore(context, ref, name, company, address, phone),
+      );
     }
   }
 
@@ -1906,10 +1823,10 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
                 height: 20,
                 child: CircularProgressIndicator(
                   strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                  valueColor: AlwaysStoppedAnimation<Color>(TossColors.white),
                 ),
               ),
-              SizedBox(width: 16),
+              SizedBox(width: TossSpacing.space4),
               Text('Joining store...'),
             ],
           ),
@@ -1920,8 +1837,8 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
     }
     
     try {
-      // Import the store join service
-      final storeJoinService = ref.read(storeJoinServiceProvider);
+      // Import the unified join service
+      final unifiedJoinService = ref.read(unifiedJoinServiceProvider);
       final user = ref.read(authStateProvider);
       
       if (user == null) {
@@ -1939,44 +1856,44 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
       }
       
       
-      // Call the join_user_by_code RPC
-      final result = await storeJoinService.joinStoreByCode(
+      // Call the unified join_user_by_code RPC (server determines if it's a store code)
+      final result = await unifiedJoinService.joinByCode(
         userId: user.id,
-        storeCode: code,
+        code: code,
       );
       
       if (result != null && (result['success'] == true || result['store_id'] != null)) {
         
-        // Success! Close the drawer FIRST
+        // Success! Close all modals (input modal + drawer)
+        // Safely close up to 2 modals: input modal + drawer
+        if (navigator.canPop()) {
+          navigator.pop(); // Close the input modal
+        }
         if (navigator.canPop()) {
           navigator.pop(); // Close the drawer
         }
         
-        // Dismiss loading and show success message
+        // Dismiss loading
         if (scaffoldMessenger != null) {
           scaffoldMessenger.hideCurrentSnackBar();
-          
-          final storeName = result['store_name'] ?? 'the store';
-          scaffoldMessenger.showSnackBar(
-            SnackBar(
-              content: Row(
-                children: [
-                  Icon(Icons.check_circle, color: Colors.white),
-                  SizedBox(width: 12),
-                  Text('Successfully joined $storeName!'),
-                ],
-              ),
-              backgroundColor: TossColors.success,
-              behavior: SnackBarBehavior.floating,
-              duration: Duration(seconds: 3),
-            ),
-          );
         }
         
-        // Force refresh user data after drawer is closed
+        // Force comprehensive data refresh for immediate UI update
         await Future.delayed(Duration(milliseconds: 300));
+        
+        // Invalidate all store and company-related providers for real-time update
         ref.invalidate(userCompaniesProvider);
         ref.invalidate(forceRefreshUserCompaniesProvider);
+        ref.invalidate(categoriesWithFeaturesProvider);
+        ref.invalidate(forceRefreshCategoriesProvider);
+        
+        // Force fetch fresh data immediately
+        try {
+          await ref.read(forceRefreshUserCompaniesProvider.future);
+          await ref.read(forceRefreshCategoriesProvider.future);
+        } catch (e) {
+          // Continue even if refresh fails
+        }
         
         // Set the company and store as selected
         final appStateNotifier = ref.read(appStateProvider.notifier);
@@ -1986,61 +1903,71 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
           await appStateNotifier.setCompanyChoosen(result['company_id']);
         }
         
-        // Then set the store if provided
+        // Then set the store if provided  
         if (result['store_id'] != null) {
           await appStateNotifier.setStoreChoosen(result['store_id']);
         }
+        
+        // Navigate to dashboard to show the new store/company immediately
+        if (context.mounted) {
+          final entityName = result['store_name'] ?? result['company_name'] ?? result['entity_name'] ?? 'the organization';
+          
+          // Show success dialog
+          await TossSuccessDialogs.showBusinessJoined(
+            context: context,
+            companyName: entityName,
+            roleName: result['role_assigned'] ?? 'Member',
+            onContinue: () => Navigator.of(context).pop(true),
+          );
+          
+          // Navigate to homepage dashboard to show new data
+          context.safeGo('/');
+        }
       } else {
-        throw Exception('Failed to join store');
+        // Show error dialog for invalid response
+        if (scaffoldMessenger != null) {
+          scaffoldMessenger.hideCurrentSnackBar();
+        }
+        await TossErrorDialogs.showBusinessJoinFailed(
+          context: context,
+          error: 'Invalid response from server',
+          onRetry: () {
+            Navigator.of(context).pop();
+            _joinStore(context, ref, code);
+          },
+        );
+        return;
       }
     } catch (e) {
       
-      // Dismiss loading and show error message
+      // Dismiss loading and show error dialog
       if (scaffoldMessenger != null) {
         scaffoldMessenger.hideCurrentSnackBar();
-        scaffoldMessenger.showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                Icon(Icons.error_outline, color: Colors.white),
-                SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    'Failed: ${e.toString().replaceAll('Exception: ', '')}',
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ],
-            ),
-            backgroundColor: TossColors.error,
-            behavior: SnackBarBehavior.floating,
-            duration: Duration(seconds: 4),
-          ),
-        );
       }
+      
+      await TossErrorDialogs.showBusinessJoinFailed(
+        context: context,
+        error: e.toString().replaceAll('Exception: ', ''),
+        onRetry: () {
+          Navigator.of(context).pop();
+          _joinCompany(context, ref, code);
+        },
+      );
     }
   }
 
-  void _copyToClipboard(BuildContext context, String text, String label) {
-    Clipboard.setData(ClipboardData(text: text));
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('$label copied to clipboard'),
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(TossBorderRadius.md)),
-        duration: const Duration(seconds: 2),
-      ),
-    );
-  }
-
   void _showCodesBottomSheet(BuildContext context, dynamic company) {
+    final stores = (company['stores'] as List<dynamic>? ?? []);
+    final maxHeight = MediaQuery.of(context).size.height * 0.85;
+    
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: TossColors.transparent,
       builder: (context) => Container(
+        constraints: BoxConstraints(
+          maxHeight: maxHeight,
+        ),
         decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.surface,
           borderRadius: const BorderRadius.only(
@@ -2088,39 +2015,48 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
             
             const SizedBox(height: TossSpacing.space4),
             
-            // Codes List
-            Padding(
-              padding: const EdgeInsets.fromLTRB(TossSpacing.paddingXL, 0, TossSpacing.paddingXL, TossSpacing.paddingXL),
-              child: Column(
-                children: [
-                  // Company Code
-                  _buildCodeItem(
-                    context: context,
-                    icon: Icons.business,
-                    title: company['company_name'] ?? '',
-                    subtitle: 'Company Code',
-                    code: company['company_code'] ?? '',
-                    onCopy: () => _copyToClipboard(context, company['company_code'] ?? '', 'Company code'),
-                  ),
-                  
-                  const SizedBox(height: TossSpacing.space3),
-                  
-                  // Store Codes
-                  ...(company['stores'] as List<dynamic>? ?? []).map((store) => Padding(
-                    padding: const EdgeInsets.only(bottom: TossSpacing.space3),
-                    child: _buildCodeItem(
+            // Codes List - Now scrollable
+            Flexible(
+              child: SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                padding: EdgeInsets.fromLTRB(
+                  TossSpacing.paddingXL,
+                  0,
+                  TossSpacing.paddingXL,
+                  TossSpacing.paddingXL + MediaQuery.of(context).padding.bottom,
+                ),
+                child: Column(
+                  children: [
+                    // Company Code
+                    _buildCodeItem(
                       context: context,
-                      icon: Icons.store_outlined,
-                      title: store['store_name'] ?? '',
-                      subtitle: 'Store Code',
-                      code: store['store_code'] ?? '',
-                      onCopy: () => _copyToClipboard(context, store['store_code'] ?? '', 'Store code'),
+                      icon: Icons.business,
+                      title: company['company_name'] ?? '',
+                      subtitle: 'Company Code',
+                      code: company['company_code'] ?? '',
+                      onCopy: () => _copyToClipboard(context, company['company_code'] ?? '', 'Company code'),
                     ),
-                  )),
-                ],
+                    
+                    if (stores.isNotEmpty) ...[
+                      const SizedBox(height: TossSpacing.space3),
+                      
+                      // Store Codes
+                      ...stores.map((store) => Padding(
+                        padding: const EdgeInsets.only(bottom: TossSpacing.space3),
+                        child: _buildCodeItem(
+                          context: context,
+                          icon: Icons.store_outlined,
+                          title: store['store_name'] ?? '',
+                          subtitle: 'Store Code',
+                          code: store['store_code'] ?? '',
+                          onCopy: () => _copyToClipboard(context, store['store_code'] ?? '', 'Store code'),
+                        ),
+                      )),
+                    ],
+                  ],
+                ),
               ),
             ),
-            SizedBox(height: MediaQuery.of(context).padding.bottom),
           ],
         ),
       ),
@@ -2229,5 +2165,113 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
         ),
       ),
     );
+  }
+  
+  // Helper methods to reduce duplication
+  
+  /// Show a loading snackbar with consistent styling
+  void _showLoadingSnackBar(ScaffoldMessengerState? messenger, String message) {
+    if (messenger == null) return;
+    
+    messenger.showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                valueColor: AlwaysStoppedAnimation<Color>(TossColors.white),
+              ),
+            ),
+            SizedBox(width: TossSpacing.space4),
+            Text(message),
+          ],
+        ),
+        backgroundColor: TossColors.primary,
+        duration: Duration(seconds: 30),
+      ),
+    );
+  }
+  
+  /// Show a success snackbar with optional action
+  void _showSuccessSnackBar(
+    ScaffoldMessengerState? messenger,
+    String message, {
+    String? actionLabel,
+    VoidCallback? onAction,
+    Duration? duration,
+  }) {
+    if (messenger == null) return;
+    
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: TossColors.success,
+        duration: duration ?? Duration(seconds: 3),
+        action: actionLabel != null && onAction != null
+          ? SnackBarAction(
+              label: actionLabel,
+              textColor: TossColors.white,
+              onPressed: onAction,
+            )
+          : null,
+      ),
+    );
+  }
+  
+  /// Show an error snackbar with optional retry
+  void _showErrorSnackBar(
+    ScaffoldMessengerState? messenger,
+    String message, {
+    VoidCallback? onRetry,
+    Duration? duration,
+  }) {
+    if (messenger == null) return;
+    
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: TossColors.error,
+        duration: duration ?? Duration(seconds: 4),
+        action: onRetry != null
+          ? SnackBarAction(
+              label: 'Retry',
+              textColor: TossColors.white,
+              onPressed: onRetry,
+            )
+          : null,
+      ),
+    );
+  }
+  
+  /// Dismiss current snackbar if any
+  void _dismissSnackBar(ScaffoldMessengerState? messenger) {
+    messenger?.hideCurrentSnackBar();
+  }
+  
+  /// Copy text to clipboard and show feedback
+  void _copyToClipboard(BuildContext context, String text, String label) {
+    Clipboard.setData(ClipboardData(text: text));
+    final messenger = ScaffoldMessenger.maybeOf(context);
+    _showSuccessSnackBar(
+      messenger,
+      '$label "$text" copied!',
+      duration: Duration(seconds: 2),
+    );
+  }
+  
+  /// Navigate to dashboard with proper state refresh
+  Future<void> _navigateToDashboard(BuildContext context, WidgetRef ref) async {
+    // Invalidate providers to force refresh
+    ref.invalidate(userCompaniesProvider);
+    ref.invalidate(forceRefreshUserCompaniesProvider);
+    ref.invalidate(categoriesWithFeaturesProvider);
+    ref.invalidate(forceRefreshCategoriesProvider);
+    ref.invalidate(appStateProvider);
+    
+    // Navigate
+    context.safeGo('/');
   }
 }

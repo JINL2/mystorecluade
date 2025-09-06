@@ -13,6 +13,7 @@ import '../../../data/services/cash_location_service.dart';
 import '../../widgets/common/toss_scaffold.dart';
 import '../../widgets/common/toss_app_bar.dart';
 import '../../widgets/common/toss_loading_view.dart';
+import 'package:myfinance_improved/core/themes/index.dart';
 
 class AccountSettingsPage extends ConsumerStatefulWidget {
   final String accountName;
@@ -170,9 +171,9 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage>
     return TossScaffold(
       appBar: TossAppBar(
         title: 'Account Settings',
-        backgroundColor: const Color(0xFFF7F8FA),
+        backgroundColor: TossColors.gray50,
       ),
-      backgroundColor: const Color(0xFFF7F8FA),
+      backgroundColor: TossColors.gray50,
       body: SafeArea(
         child: Column(
           children: [
@@ -417,7 +418,7 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage>
             child: Text(
               'Delete Account',
               style: TossTextStyles.body.copyWith(
-                color: const Color(0xFFE53935),
+                color: TossColors.error,
                 fontSize: 16,
                 fontWeight: FontWeight.w500,
               ),
@@ -676,7 +677,7 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage>
                         behavior: SnackBarBehavior.floating,
                         duration: const Duration(seconds: 2),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                         ),
                       ),
                     );
@@ -702,7 +703,7 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage>
                         behavior: SnackBarBehavior.floating,
                         duration: const Duration(seconds: 2),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                         ),
                       ),
                     );
@@ -712,7 +713,7 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage>
               child: Text(
                 'Delete',
                 style: TossTextStyles.body.copyWith(
-                  color: const Color(0xFFE53935),
+                  color: TossColors.error,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -988,7 +989,7 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage>
             behavior: SnackBarBehavior.floating,
             duration: const Duration(seconds: 3),
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
             ),
           ),
         );
@@ -1038,7 +1039,7 @@ class _SimpleNameEditSheet extends StatelessWidget {
                 height: 4,
                 decoration: BoxDecoration(
                   color: TossColors.gray300,
-                  borderRadius: BorderRadius.circular(2),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                 ),
               ),
               
@@ -1120,7 +1121,7 @@ class _SimpleNameEditSheet extends StatelessWidget {
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Theme.of(context).colorScheme.primary,
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                           ),
                           elevation: 0,
                         ),
@@ -1187,7 +1188,7 @@ class _SimpleNoteEditSheet extends StatelessWidget {
                 height: 4,
                 decoration: BoxDecoration(
                   color: TossColors.gray300,
-                  borderRadius: BorderRadius.circular(2),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                 ),
               ),
               
@@ -1267,7 +1268,7 @@ class _SimpleNoteEditSheet extends StatelessWidget {
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Theme.of(context).colorScheme.primary,
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                           ),
                           elevation: 0,
                         ),

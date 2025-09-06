@@ -3,7 +3,7 @@ import '../../../core/themes/toss_colors.dart';
 import '../../../core/themes/toss_text_styles.dart';
 import '../../../core/themes/toss_spacing.dart';
 import '../../../core/themes/toss_animations.dart';
-import '../../../core/themes/toss_border_radius.dart';
+import 'package:myfinance_improved/core/themes/index.dart';
 
 /// Toss-style list tile with smooth animations and clean design
 class TossListTile extends StatefulWidget {
@@ -64,7 +64,7 @@ class _TossListTileState extends State<TossListTile>
     ));
     
     _colorAnimation = ColorTween(
-      begin: widget.backgroundColor ?? Colors.transparent,
+      begin: widget.backgroundColor ?? TossColors.transparent,
       end: TossColors.gray50,
     ).animate(CurvedAnimation(
       parent: _controller,
@@ -143,7 +143,8 @@ class _TossListTileState extends State<TossListTile>
                         crossAxisAlignment: CrossAxisAlignment.start,
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          AnimatedDefaultTextStyle(
+                          // TODO: Review AnimatedDefaultTextStyle for TossTextStyles usage
+AnimatedDefaultTextStyle(
                             style: TossTextStyles.body.copyWith(
                               color: isDisabled
                                   ? TossColors.gray400
@@ -159,7 +160,8 @@ class _TossListTileState extends State<TossListTile>
                           ),
                           if (widget.subtitle != null) ...[
                             SizedBox(height: TossSpacing.space1),
-                            AnimatedDefaultTextStyle(
+                            // TODO: Review AnimatedDefaultTextStyle for TossTextStyles usage
+AnimatedDefaultTextStyle(
                               style: TossTextStyles.bodySmall.copyWith(
                                 color: isDisabled
                                     ? TossColors.gray300

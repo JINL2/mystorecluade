@@ -18,6 +18,7 @@ import 'providers/employee_setting_providers.dart';
 import 'widgets/employee_detail_sheet_v2.dart';
 import 'widgets/salary_edit_modal.dart';
 import 'widgets/role_management_modal.dart';
+import 'package:myfinance_improved/core/themes/index.dart';
 
 class EmployeeSettingPageV2 extends ConsumerStatefulWidget {
   const EmployeeSettingPageV2({super.key});
@@ -414,7 +415,7 @@ class _EmployeeSettingPageV2State extends ConsumerState<EmployeeSettingPageV2>
                                   child: Center(
                                     child: Text(
                                       '${_getActiveFilterCount()}',
-                                      style: TextStyle(
+                                      style: TossTextStyles.body.copyWith(
                                         color: TossColors.white,
                                         fontSize: 10,
                                         fontWeight: FontWeight.w700,
@@ -629,7 +630,7 @@ class _EmployeeSettingPageV2State extends ConsumerState<EmployeeSettingPageV2>
                   height: 52,
                   decoration: BoxDecoration(
                     color: TossColors.gray100,
-                    borderRadius: BorderRadius.circular(26),
+                    borderRadius: BorderRadius.circular(TossBorderRadius.xxxl),
                     image: employee.profileImage?.isNotEmpty == true
                         ? DecorationImage(
                             image: NetworkImage(employee.profileImage!),
@@ -828,7 +829,7 @@ class _EmployeeSettingPageV2State extends ConsumerState<EmployeeSettingPageV2>
             margin: EdgeInsets.only(top: TossSpacing.space3),
             decoration: BoxDecoration(
               color: TossColors.gray300,
-              borderRadius: BorderRadius.circular(2),
+              borderRadius: BorderRadius.circular(TossBorderRadius.xs),
             ),
           ),
           
@@ -1039,7 +1040,7 @@ class _EmployeeSettingPageV2State extends ConsumerState<EmployeeSettingPageV2>
             margin: EdgeInsets.only(top: TossSpacing.space3),
             decoration: BoxDecoration(
               color: TossColors.gray300,
-              borderRadius: BorderRadius.circular(2),
+              borderRadius: BorderRadius.circular(TossBorderRadius.xs),
             ),
           ),
           

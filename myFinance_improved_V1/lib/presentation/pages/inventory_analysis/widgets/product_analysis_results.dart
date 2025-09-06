@@ -6,6 +6,7 @@ import '../../../../core/themes/toss_spacing.dart';
 import '../../../../core/themes/toss_border_radius.dart';
 import '../models/supply_chain_models.dart';
 import 'analysis_config_panel.dart';
+import 'package:myfinance_improved/core/themes/index.dart';
 
 // Product Analysis Result Model
 class ProductAnalysisResult {
@@ -74,7 +75,7 @@ class _ProductAnalysisResultsState extends ConsumerState<ProductAnalysisResults>
     return Container(
       decoration: BoxDecoration(
         color: TossColors.surface,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(TossBorderRadius.xl),
         boxShadow: [
           BoxShadow(
             color: TossColors.black.withValues(alpha: 0.05),
@@ -253,7 +254,7 @@ class _ProductAnalysisResultsState extends ConsumerState<ProductAnalysisResults>
         child: Text(
           label,
           style: TossTextStyles.small.copyWith(
-            color: isSelected ? Colors.white : TossColors.gray700,
+            color: isSelected ? TossColors.white : TossColors.gray700,
             fontWeight: FontWeight.w600,
           ),
         ),
@@ -388,7 +389,7 @@ class _ProductAnalysisResultsState extends ConsumerState<ProductAnalysisResults>
             child: Text(
               _getProductInitial(result.product.name),
               style: TossTextStyles.bodyLarge.copyWith(
-                color: Colors.white,
+                color: TossColors.white,
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -603,7 +604,7 @@ class _ProductAnalysisResultsState extends ConsumerState<ProductAnalysisResults>
           ),
           Text(
             _getRiskEmoji(riskScore),
-            style: TextStyle(fontSize: 12),
+            style: TossTextStyles.caption,
           ),
         ],
       ),
@@ -625,12 +626,12 @@ class _ProductAnalysisResultsState extends ConsumerState<ProductAnalysisResults>
               icon: Icon(
                 action.icon,
                 size: 14,
-                color: Colors.white,
+                color: TossColors.white,
               ),
               label: Text(
                 action.englishLabel,
                 style: TossTextStyles.small.copyWith(
-                  color: Colors.white,
+                  color: TossColors.white,
                   fontWeight: FontWeight.w600,
                 ),
                 maxLines: 1,
@@ -670,7 +671,7 @@ class _ProductAnalysisResultsState extends ConsumerState<ProductAnalysisResults>
           child: Text(
             'View Details',
             style: TossTextStyles.caption.copyWith(
-              color: Colors.white,
+              color: TossColors.white,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -696,7 +697,7 @@ class _ProductAnalysisResultsState extends ConsumerState<ProductAnalysisResults>
     return Container(
       decoration: BoxDecoration(
         color: TossColors.surface,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(TossBorderRadius.xl),
       ),
       padding: EdgeInsets.all(TossSpacing.space6),
       child: Column(
@@ -728,7 +729,7 @@ class _ProductAnalysisResultsState extends ConsumerState<ProductAnalysisResults>
     return Container(
       decoration: BoxDecoration(
         color: TossColors.surface,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(TossBorderRadius.xl),
         border: Border.all(
           color: TossColors.gray200,
           width: 1,
@@ -866,7 +867,7 @@ class _ProductAnalysisResultsState extends ConsumerState<ProductAnalysisResults>
               );
             }).toList(),
             
-            const SizedBox(height: 16),
+            const SizedBox(height: TossSpacing.space4),
           ],
         ),
       ),
@@ -888,7 +889,7 @@ class _ProductAnalysisResultsState extends ConsumerState<ProductAnalysisResults>
             SizedBox(height: TossSpacing.space3),
             
             ListTile(
-              leading: const Icon(Icons.table_chart, color: Colors.green),
+              leading: const Icon(Icons.table_chart, color: TossColors.success),
               title: Text('Excel Spreadsheet', style: TossTextStyles.body),
               subtitle: Text('Detailed data for further analysis', style: TossTextStyles.caption.copyWith(color: TossColors.gray600)),
               onTap: () {
@@ -898,7 +899,7 @@ class _ProductAnalysisResultsState extends ConsumerState<ProductAnalysisResults>
             ),
             
             ListTile(
-              leading: const Icon(Icons.picture_as_pdf, color: Colors.red),
+              leading: const Icon(Icons.picture_as_pdf, color: TossColors.error),
               title: Text('PDF Report', style: TossTextStyles.body),
               subtitle: Text('Formatted executive summary', style: TossTextStyles.caption.copyWith(color: TossColors.gray600)),
               onTap: () {
@@ -907,7 +908,7 @@ class _ProductAnalysisResultsState extends ConsumerState<ProductAnalysisResults>
               },
             ),
             
-            const SizedBox(height: 16),
+            const SizedBox(height: TossSpacing.space4),
           ],
         ),
       ),

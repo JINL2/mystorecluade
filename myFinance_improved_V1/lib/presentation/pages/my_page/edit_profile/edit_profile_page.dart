@@ -1,22 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:image_picker/image_picker.dart';
+import 'package:myfinance_improved/core/themes/index.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'dart:io';
-import '../../../../core/themes/toss_colors.dart';
-import '../../../../core/themes/toss_spacing.dart';
-import '../../../../core/themes/toss_text_styles.dart';
-import '../../../widgets/common/toss_scaffold.dart';
-import '../../../widgets/common/toss_app_bar.dart';
-import '../../../widgets/toss/toss_card.dart';
-import '../../../widgets/toss/toss_enhanced_text_field.dart';
-import '../../../providers/user_profile_provider.dart';
-import '../../../providers/app_state_provider.dart';
-import '../../../services/profile_image_service.dart';
 import '../../../../core/navigation/safe_navigation.dart';
 import '../../../../domain/entities/user_profile.dart';
-
+import '../../../providers/app_state_provider.dart';
+import '../../../providers/user_profile_provider.dart';
+import '../../../widgets/common/toss_app_bar.dart';
+import '../../../widgets/common/toss_scaffold.dart';
+import '../../../widgets/toss/toss_card.dart';
+import '../../../widgets/toss/toss_enhanced_text_field.dart';
 class EditProfilePage extends ConsumerStatefulWidget {
   const EditProfilePage({super.key});
 
@@ -35,7 +29,6 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
   
   bool _isLoading = true;
   bool _hasChanges = false;
-  File? _selectedImage;
   UserProfile? _profile;
   
   // Store original values to detect real changes
@@ -66,12 +59,10 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
   
   Future<void> _loadProfileData() async {
     try {
-      print('🔍 [EditProfile] Starting _loadProfileData');
       final userId = Supabase.instance.client.auth.currentUser?.id;
-      print('🔍 [EditProfile] User ID: $userId');
       
       if (userId == null) {
-        print('❌ [EditProfile] No user ID found');
+        // No user ID found
         setState(() {
           _isLoading = false;
         });
@@ -81,7 +72,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
       // Get the chosen company from app state
       final appState = ref.read(appStateProvider);
       final companyId = appState.companyChoosen;
-      print('🔍 [EditProfile] Company ID: $companyId');
+      // Get company ID from app state
       
       // Directly query Supabase for user profile
       final response = await Supabase.instance.client
@@ -93,7 +84,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
       // Query bank account from users_bank_account table (only if companyId exists)
       Map<String, dynamic>? bankResponse;
       if (companyId != null && companyId.isNotEmpty) {
-        print('🔍 [EditProfile] Fetching bank account data for company: $companyId');
+        // Fetch bank account data for company
         try {
           bankResponse = await Supabase.instance.client
               .from('users_bank_account')
@@ -101,29 +92,28 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
               .eq('user_id', userId)
               .eq('company_id', companyId)
               .maybeSingle();
-          print('✅ [EditProfile] Bank response: $bankResponse');
+          // Bank data fetched successfully
         } catch (bankError) {
-          print('⚠️ [EditProfile] Bank account fetch error (non-fatal): $bankError');
-          // Continue without bank data
+          // Bank account fetch error (non-fatal) - continue without bank data
         }
       } else {
-        print('⚠️ [EditProfile] No company ID, skipping bank account fetch');
+        // No company ID, skipping bank account fetch
       }
       
       if (response != null) {
-        print('✅ [EditProfile] User data fetched: $response');
+        // User data fetched successfully
         // Create UserProfile from response (without bank info)
         _profile = UserProfile(
-          userId: response['user_id'] ?? userId,
-          firstName: response['first_name'],
-          lastName: response['last_name'],
-          email: response['email'] ?? Supabase.instance.client.auth.currentUser?.email ?? '',
-          phoneNumber: response['user_phone_number'],
-          profileImage: response['profile_image'],
+          userId: (response['user_id'] ?? userId).toString(),
+          firstName: response['first_name']?.toString(),
+          lastName: response['last_name']?.toString(),
+          email: (response['email'] ?? Supabase.instance.client.auth.currentUser?.email ?? '').toString(),
+          phoneNumber: response['user_phone_number']?.toString(),
+          profileImage: response['profile_image']?.toString(),
           bankName: '', // Will be set from users_bank_account
           bankAccountNumber: '', // Will be set from users_bank_account
-          createdAt: response['created_at'] != null ? DateTime.parse(response['created_at']) : DateTime.now(),
-          updatedAt: response['updated_at'] != null ? DateTime.parse(response['updated_at']) : DateTime.now(),
+          createdAt: response['created_at'] != null ? DateTime.parse(response['created_at'].toString()) : DateTime.now(),
+          updatedAt: response['updated_at'] != null ? DateTime.parse(response['updated_at'].toString()) : DateTime.now(),
         );
         
         // Store original values from user profile
@@ -132,9 +122,9 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
         _originalPhoneNumber = _profile!.phoneNumber ?? '';
         
         // Store original values from bank account (if exists)
-        _originalBankName = bankResponse?['user_bank_name'] ?? '';
-        _originalBankAccount = bankResponse?['user_account_number'] ?? '';
-        _originalBankDescription = bankResponse?['description'] ?? '';
+        _originalBankName = bankResponse?['user_bank_name']?.toString() ?? '';
+        _originalBankAccount = bankResponse?['user_account_number']?.toString() ?? '';
+        _originalBankDescription = bankResponse?['description']?.toString() ?? '';
         
         // Set controller values
         _firstNameController.text = _originalFirstName!;
@@ -174,14 +164,12 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
         _bankDescriptionController.addListener(_onFieldChanged);
       }
       
-      print('✅ [EditProfile] Profile loaded successfully');
+      // Profile loaded successfully
       setState(() {
         _isLoading = false;
       });
     } catch (e, stackTrace) {
-      print('❌ [EditProfile] Error in _loadProfileData: $e');
-      print('❌ [EditProfile] Error type: ${e.runtimeType}');
-      print('❌ [EditProfile] Stack trace: $stackTrace');
+      // Error loading profile data
       setState(() {
         _isLoading = false;
       });
@@ -218,12 +206,11 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
 
   @override
   Widget build(BuildContext context) {
-    final businessData = ref.watch(businessDashboardDataProvider);
     final profileFromProvider = ref.watch(currentUserProfileProvider).valueOrNull;
     
     // Use provider data as fallback if direct load failed
     if (_profile == null && profileFromProvider != null && !_isLoading) {
-      print('🔄 [EditProfile] Using profile data from provider as fallback');
+      // Using profile data from provider as fallback
       _profile = profileFromProvider;
       // Update controllers with provider data
       _firstNameController.text = profileFromProvider.firstName ?? '';
@@ -321,98 +308,6 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Profile Avatar Section
-              Center(
-                child: Column(
-                  children: [
-                    Material(
-                      color: Colors.transparent,
-                      child: InkWell(
-                        onTap: _handleAvatarTap,
-                        borderRadius: BorderRadius.circular(50),
-                        customBorder: CircleBorder(),
-                        child: Stack(
-                        children: [
-                          Container(
-                            width: 100,
-                            height: 100,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color: TossColors.gray100,
-                                width: 3,
-                              ),
-                            ),
-                            child: _selectedImage != null
-                                ? CircleAvatar(
-                                    radius: 47,
-                                    backgroundImage: FileImage(_selectedImage!),
-                                  )
-                                : (_profile!.profileImage != null && _profile!.profileImage!.isNotEmpty)
-                                    ? CircleAvatar(
-                                        radius: 47,
-                                        backgroundImage: NetworkImage(_profile!.profileImage!),
-                                        onBackgroundImageError: (exception, stackTrace) {
-                                          // Silent error handling
-                                        },
-                                      )
-                                    : CircleAvatar(
-                                        radius: 47,
-                                        backgroundColor: TossColors.primary.withValues(alpha: 0.1),
-                                        child: Text(
-                                          _profile!.initials,
-                                          style: TossTextStyles.h2.copyWith(
-                                            color: TossColors.primary,
-                                            fontWeight: FontWeight.w700,
-                                          ),
-                                        ),
-                                      ),
-                          ),
-                          Positioned(
-                            bottom: 0,
-                            right: 0,
-                            child: Container(
-                              width: 28,
-                              height: 28,
-                              decoration: BoxDecoration(
-                                color: TossColors.primary,
-                                shape: BoxShape.circle,
-                                border: Border.all(
-                                  color: TossColors.surface,
-                                  width: 2,
-                                ),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: TossColors.gray900.withValues(alpha: 0.1),
-                                    blurRadius: 6,
-                                    offset: Offset(0, 2),
-                                  ),
-                                ],
-                              ),
-                              child: Icon(
-                                Icons.camera_alt,
-                                size: 14,
-                                color: TossColors.surface,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      ),
-                    ),
-                    SizedBox(height: TossSpacing.space4),
-                    Text(
-                      'Tap to change photo',
-                      style: TossTextStyles.caption.copyWith(
-                        color: TossColors.gray600,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              
-              SizedBox(height: TossSpacing.space8),
-              
               // Personal Information Section
               Text(
                 'Personal Information',
@@ -555,7 +450,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                   children: [
                     _buildReadOnlyField('Email', _profile!.email),
                     SizedBox(height: TossSpacing.space4),
-                    _buildReadOnlyField('Role', businessData.value?.userRole ?? _profile!.displayRole),
+                    _buildReadOnlyField('Role', _profile!.displayRole),
                     if (_profile!.companyName?.isNotEmpty == true) ...[
                       SizedBox(height: TossSpacing.space4),
                       _buildReadOnlyField('Company', _profile!.companyName!),
@@ -596,7 +491,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
           ),
           decoration: BoxDecoration(
             color: TossColors.gray50,
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(TossBorderRadius.md),
             border: Border.all(color: TossColors.gray100),
           ),
           child: Text(
@@ -608,163 +503,6 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
         ),
       ],
     );
-  }
-  
-  void _handleAvatarTap() {
-    HapticFeedback.lightImpact();
-    _showImagePickerOptions();
-  }
-
-  void _showImagePickerOptions() {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: TossColors.transparent,
-      builder: (context) => Container(
-        decoration: BoxDecoration(
-          color: TossColors.surface,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-        ),
-        child: SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 40,
-                height: 4,
-                margin: EdgeInsets.symmetric(vertical: TossSpacing.space3),
-                decoration: BoxDecoration(
-                  color: TossColors.gray300,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              Padding(
-                padding: EdgeInsets.all(TossSpacing.space4),
-                child: Column(
-                  children: [
-                    Text(
-                      'Change Profile Picture',
-                      style: TossTextStyles.h3.copyWith(
-                        fontWeight: FontWeight.w700,
-                        color: TossColors.gray900,
-                      ),
-                    ),
-                    SizedBox(height: TossSpacing.space6),
-                    _buildImageOption(
-                      icon: Icons.camera_alt_outlined,
-                      title: 'Take Photo',
-                      onTap: () async {
-                        Navigator.pop(context);
-                        await _pickImage(ImageSource.camera);
-                      },
-                    ),
-                    SizedBox(height: TossSpacing.space3),
-                    _buildImageOption(
-                      icon: Icons.photo_library_outlined,
-                      title: 'Choose from Gallery',
-                      onTap: () async {
-                        Navigator.pop(context);
-                        await _pickImage(ImageSource.gallery);
-                      },
-                    ),
-                    SizedBox(height: TossSpacing.space3),
-                    _buildImageOption(
-                      icon: Icons.close,
-                      title: 'Cancel',
-                      onTap: () => Navigator.pop(context),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildImageOption({
-    required IconData icon,
-    required String title,
-    required VoidCallback onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        padding: EdgeInsets.symmetric(
-          horizontal: TossSpacing.space4,
-          vertical: TossSpacing.space4,
-        ),
-        decoration: BoxDecoration(
-          color: TossColors.gray50,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Row(
-          children: [
-            Icon(
-              icon,
-              size: 24,
-              color: TossColors.gray700,
-            ),
-            SizedBox(width: TossSpacing.space4),
-            Expanded(
-              child: Text(
-                title,
-                style: TossTextStyles.bodyLarge.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: TossColors.gray900,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Future<void> _pickImage(ImageSource source) async {
-    final imageFile = await ProfileImageService.pickImage(source, context);
-    if (imageFile != null) {
-      setState(() {
-        _selectedImage = imageFile;
-        _hasChanges = true;
-      });
-      await _uploadProfileImage(imageFile);
-    }
-  }
-
-  Future<void> _uploadProfileImage(File imageFile) async {
-    setState(() {
-      _isLoading = true;
-    });
-
-    try {
-      await ProfileImageService.uploadProfileImage(imageFile, ref);
-      
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Profile picture updated successfully'),
-            backgroundColor: TossColors.success,
-          ),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(e.toString()),
-            backgroundColor: TossColors.error,
-          ),
-        );
-      }
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
-    }
   }
   
   Future<void> _saveProfile() async {
@@ -781,7 +519,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
       final appState = ref.read(appStateProvider);
       final companyId = appState.companyChoosen;
       
-      print('🔧 [EditProfile] Saving profile - userId: $userId, companyId: $companyId');
+      // Save profile changes
       
       // 1. Update users table for profile information
       // Only update if profile fields have changed
@@ -789,7 +527,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
           _lastNameController.text.trim() != (_originalLastName ?? '') ||
           _phoneNumberController.text.trim() != (_originalPhoneNumber ?? '')) {
         
-        print('📝 [EditProfile] Updating user profile in users table');
+        // Update user profile in database
         final phoneValue = _phoneNumberController.text.trim().isEmpty ? null : _phoneNumberController.text.trim();
         
         await Supabase.instance.client
@@ -802,7 +540,14 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
             })
             .eq('user_id', userId);
         
-        print('✅ [EditProfile] User profile updated successfully');
+        // User profile updated
+        
+        // Update app state locally without RPC call
+        await ref.read(appStateProvider.notifier).updateUserProfileLocally(
+          firstName: _firstNameController.text.trim(),
+          lastName: _lastNameController.text.trim(),
+        );
+        // App state updated locally
       }
       
       // 2. Update users_bank_account table for bank information
@@ -817,7 +562,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
               _bankAccountController.text.trim().isNotEmpty ||
               _bankDescriptionController.text.trim().isNotEmpty) {
             
-            print('🏦 [EditProfile] Updating bank account in users_bank_account table');
+            // Update bank account information
             
             // Check if bank account exists for this user and company
             final existingBank = await Supabase.instance.client
@@ -829,7 +574,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
             
             if (existingBank != null) {
               // Update existing bank account
-              print('📝 [EditProfile] Updating existing bank account record');
+              // Update existing bank account
               await Supabase.instance.client
                   .from('users_bank_account')
                   .update({
@@ -842,7 +587,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                   .eq('company_id', companyId);
             } else {
               // Create new bank account
-              print('➕ [EditProfile] Creating new bank account record');
+              // Create new bank account record
               await Supabase.instance.client
                   .from('users_bank_account')
                   .insert({
@@ -856,11 +601,11 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                   });
             }
             
-            print('✅ [EditProfile] Bank account updated successfully');
+            // Bank account updated
           }
         }
       } else {
-        print('⚠️ [EditProfile] No company selected, skipping bank account update');
+        // No company selected, skipping bank account update
       }
       
       // Update original values after successful save
@@ -874,15 +619,27 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
         _hasChanges = false;
       });
       
-      // Refresh the profile data to show updated values
+      // Only refresh the local user profile provider
+      // App state was already updated locally above
+      // Refresh local user profile
       ref.invalidate(currentUserProfileProvider);
+      
+      // Profile updated successfully
       
       if (mounted) {
         HapticFeedback.lightImpact();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Profile updated successfully'),
+            content: Row(
+              children: [
+                Icon(Icons.check_circle, color: TossColors.white, size: 20),
+                SizedBox(width: TossSpacing.space2),
+                Text('Profile updated successfully'),
+              ],
+            ),
             backgroundColor: TossColors.success,
+            behavior: SnackBarBehavior.floating,
+            duration: Duration(seconds: 2),
           ),
         );
         context.safePop();

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:myfinance_improved/core/themes/index.dart';
 
 // Supply Chain Analytics Data Models
 
@@ -406,10 +407,10 @@ class SupplyChainHealth {
   });
 
   Color get scoreColor {
-    if (currentScore >= 85) return Colors.green;
-    if (currentScore >= 70) return Colors.orange;
-    if (currentScore >= 50) return Colors.yellow;
-    return Colors.red;
+    if (currentScore >= 85) return TossColors.success;
+    if (currentScore >= 70) return TossColors.warning;
+    if (currentScore >= 50) return TossColors.warning;
+    return TossColors.error;
   }
 
   String get scoreLabel {
@@ -461,11 +462,11 @@ enum HealthTrend {
   Color get color {
     switch (this) {
       case HealthTrend.improving:
-        return Colors.green;
+        return TossColors.success;
       case HealthTrend.stable:
-        return Colors.blue;
+        return TossColors.primary;
       case HealthTrend.declining:
-        return Colors.red;
+        return TossColors.error;
     }
   }
 }
@@ -756,11 +757,11 @@ enum ProblemSeverity {
   Color get color {
     switch (this) {
       case ProblemSeverity.critical:
-        return Colors.red;
+        return TossColors.error;
       case ProblemSeverity.warning:
-        return Colors.orange;
+        return TossColors.warning;
       case ProblemSeverity.normal:
-        return Colors.green;
+        return TossColors.success;
     }
   }
 

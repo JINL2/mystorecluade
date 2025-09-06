@@ -16,6 +16,7 @@ import '../../../data/models/transaction_history_model.dart';
 import '../../../data/services/supabase_service.dart';
 import 'widgets/edit_counterparty_sheet.dart';
 import '../../../core/navigation/safe_navigation.dart';
+import 'package:myfinance_improved/core/themes/index.dart';
 
 class DebtRelationshipPage extends ConsumerStatefulWidget {
   final String counterpartyId;
@@ -150,7 +151,7 @@ class _DebtRelationshipPageState extends ConsumerState<DebtRelationshipPage> {
         primaryActionIcon: Icons.add,
         onPrimaryAction: () => _showAddOptionsBottomSheet(context),
       ),
-      backgroundColor: const Color(0xFFF7F8FA),
+      backgroundColor: TossColors.gray50,
       body: SafeArea(
         child: Column(
           children: [
@@ -158,7 +159,7 @@ class _DebtRelationshipPageState extends ConsumerState<DebtRelationshipPage> {
             // Content
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(TossSpacing.space4),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -166,7 +167,7 @@ class _DebtRelationshipPageState extends ConsumerState<DebtRelationshipPage> {
               if (counterpartyDebt != null)
                 _buildOverviewCard(counterpartyDebt),
               
-              const SizedBox(height: 12),
+              const SizedBox(height: TossSpacing.space3),
 
               // Transaction History Section
               _buildTransactionHistorySection(),
@@ -204,7 +205,7 @@ class _DebtRelationshipPageState extends ConsumerState<DebtRelationshipPage> {
         ],
       ),
       child: Padding(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(TossSpacing.space6),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -216,7 +217,7 @@ class _DebtRelationshipPageState extends ConsumerState<DebtRelationshipPage> {
                   color: TossColors.textInverse.withValues(alpha: 0.9),
                   size: 16,
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: TossSpacing.space2),
                 Text(
                   '${widget.counterpartyName} relationship',
                   style: TossTextStyles.body.copyWith(
@@ -236,7 +237,7 @@ class _DebtRelationshipPageState extends ConsumerState<DebtRelationshipPage> {
               ),
             ),
             
-            const SizedBox(height: 8),
+            const SizedBox(height: TossSpacing.space2),
             
             // Hero amount - white text on blue background like dashboard
             Text(
@@ -267,7 +268,7 @@ class _DebtRelationshipPageState extends ConsumerState<DebtRelationshipPage> {
               children: [
                 Expanded(
                   child: Container(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(TossSpacing.space4),
                     decoration: BoxDecoration(
                       color: TossColors.white.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(TossBorderRadius.lg),
@@ -291,7 +292,7 @@ class _DebtRelationshipPageState extends ConsumerState<DebtRelationshipPage> {
                             ),
                           ],
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: TossSpacing.space2),
                         Text(
                           NumberFormatter.formatCurrency(
                             debt.amount > 0 ? debt.amount : 0.0,
@@ -314,11 +315,11 @@ class _DebtRelationshipPageState extends ConsumerState<DebtRelationshipPage> {
                   ),
                 ),
                 
-                const SizedBox(width: 12),
+                const SizedBox(width: TossSpacing.space3),
                 
                 Expanded(
                   child: Container(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(TossSpacing.space4),
                     decoration: BoxDecoration(
                       color: TossColors.white.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(TossBorderRadius.lg),
@@ -342,7 +343,7 @@ class _DebtRelationshipPageState extends ConsumerState<DebtRelationshipPage> {
                             ),
                           ],
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: TossSpacing.space2),
                         Text(
                           NumberFormatter.formatCurrency(
                             debt.amount < 0 ? debt.amount.abs() : 0.0,
@@ -381,7 +382,7 @@ class _DebtRelationshipPageState extends ConsumerState<DebtRelationshipPage> {
     for (int i = 0; i < itemCount; i++) {
       widgets.add(_buildRealTransactionItem(_recentTransactions![i]));
       if (i < itemCount - 1) {
-        widgets.add(const SizedBox(height: 12));
+        widgets.add(const SizedBox(height: TossSpacing.space3));
       }
     }
     
@@ -425,7 +426,7 @@ class _DebtRelationshipPageState extends ConsumerState<DebtRelationshipPage> {
                   fontWeight: FontWeight.w600,
                 ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: TossSpacing.space2),
               Icon(
                 Icons.arrow_forward,
                 size: 16,
@@ -440,7 +441,7 @@ class _DebtRelationshipPageState extends ConsumerState<DebtRelationshipPage> {
   
   Widget _buildTransactionHistorySection() {
     return TossWhiteCard(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(TossSpacing.space6),
       child: Column(
         children: [
           // Header
@@ -467,7 +468,7 @@ class _DebtRelationshipPageState extends ConsumerState<DebtRelationshipPage> {
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
                     color: TossColors.primary.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(TossBorderRadius.xl),
                   ),
                   child: Text(
                     'View All',
@@ -503,7 +504,7 @@ class _DebtRelationshipPageState extends ConsumerState<DebtRelationshipPage> {
                     size: 48,
                     color: TossColors.textSecondary.withValues(alpha: 0.5),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: TossSpacing.space4),
                   Text(
                     'No recent transactions',
                     style: TossTextStyles.body.copyWith(
@@ -595,11 +596,11 @@ class _DebtRelationshipPageState extends ConsumerState<DebtRelationshipPage> {
           decoration: BoxDecoration(
             // Green for receivables (money we will receive), Red for payables (money we owe)
             color: isReceivable ? TossColors.success : TossColors.error,
-            borderRadius: BorderRadius.circular(4),
+            borderRadius: BorderRadius.circular(TossBorderRadius.xs),
           ),
         ),
         
-        const SizedBox(width: 16),
+        const SizedBox(width: TossSpacing.space4),
         
         // Transaction details
         Expanded(
@@ -686,7 +687,7 @@ class _DebtRelationshipPageState extends ConsumerState<DebtRelationshipPage> {
                   height: 4,
                   decoration: BoxDecoration(
                     color: TossColors.gray300,
-                    borderRadius: BorderRadius.circular(2),
+                    borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                   ),
                 ),
                 

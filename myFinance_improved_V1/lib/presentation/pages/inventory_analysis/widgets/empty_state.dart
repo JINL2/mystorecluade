@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'dart:math' as math;
 import '../../../../core/themes/index.dart';
-
+import 'package:myfinance_improved/core/themes/toss_border_radius.dart';
 class EmptyStateWidget extends StatelessWidget {
   final VoidCallback onGetStarted;
   final VoidCallback onViewSample;
@@ -341,20 +340,20 @@ class EmptyStateWidget extends StatelessWidget {
                   children: [
                     const Text(
                       '📊 Priority Problems',
-                      style: TextStyle(
+                      style: TossTextStyles.body.copyWith(
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
                       ),
                     ),
-                    const SizedBox(height: 12),
-                    _buildSampleProblemItem('#1', 'Wallet-C GOYARD', '15 days delayed', Colors.red),
-                    _buildSampleProblemItem('#2', 'Bag-A LV', '8 units short', Colors.orange),
-                    _buildSampleProblemItem('#3', 'Belt-G HERMES', 'Low stock', Colors.yellow[700]!),
+                    const SizedBox(height: TossSpacing.space3),
+                    _buildSampleProblemItem('#1', 'Wallet-C GOYARD', '15 days delayed', TossColors.error),
+                    _buildSampleProblemItem('#2', 'Bag-A LV', '8 units short', TossColors.warning),
+                    _buildSampleProblemItem('#3', 'Belt-G HERMES', 'Low stock', TossColors.warning!),
                   ],
                 ),
               ),
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: TossSpacing.space4),
             // Chart
             Expanded(
               flex: 3,
@@ -371,12 +370,12 @@ class EmptyStateWidget extends StatelessWidget {
                   children: [
                     const Text(
                       '📈 Supply Chain Flow',
-                      style: TextStyle(
+                      style: TossTextStyles.body.copyWith(
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
                       ),
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: TossSpacing.space3),
                     Expanded(child: _buildSampleChart()),
                   ],
                 ),
@@ -390,7 +389,7 @@ class EmptyStateWidget extends StatelessWidget {
   
   Widget _buildSampleKPICard(BuildContext context, String label, String value, Color color) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(TossSpacing.space4),
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(TossBorderRadius.lg),
@@ -418,7 +417,7 @@ class EmptyStateWidget extends StatelessWidget {
   
   Widget _buildSampleProblemItem(String rank, String name, String issue, Color color) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
+      padding: const EdgeInsets.symmetric(vertical: TossSpacing.space2),
       child: Row(
         children: [
           Container(
@@ -426,12 +425,12 @@ class EmptyStateWidget extends StatelessWidget {
             height: 32,
             decoration: BoxDecoration(
               color: color.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(6),
+              borderRadius: BorderRadius.circular(TossBorderRadius.sm),
             ),
             child: Center(
               child: Text(
                 rank,
-                style: TextStyle(
+                style: TossTextStyles.body.copyWith(
                   color: color,
                   fontWeight: FontWeight.bold,
                   fontSize: 12,
@@ -439,23 +438,22 @@ class EmptyStateWidget extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: TossSpacing.space3),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   name,
-                  style: const TextStyle(
+                  style: TossTextStyles.body.copyWith(
                     fontWeight: FontWeight.w600,
                     fontSize: 14,
                   ),
                 ),
                 Text(
                   issue,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey[600],
+                  style: TossTextStyles.caption
+                    color: TossColors.gray500[600],
                   ),
                 ),
               ],
@@ -482,7 +480,7 @@ class EmptyStateWidget extends StatelessWidget {
                 if (value.toInt() < labels.length) {
                   return Text(
                     labels[value.toInt()],
-                    style: const TextStyle(fontSize: 10),
+                    style: TossTextStyles.body.copyWith(fontSize: 10),
                   );
                 }
                 return const Text('');
@@ -500,12 +498,12 @@ class EmptyStateWidget extends StatelessWidget {
               const FlSpot(3, 60),
             ],
             isCurved: true,
-            color: Colors.blue,
+            color: TossColors.primary,
             barWidth: 3,
             dotData: FlDotData(show: true),
             belowBarData: BarAreaData(
               show: true,
-              color: Colors.blue.withOpacity(0.1),
+              color: TossColors.primary.withOpacity(0.1),
             ),
           ),
         ],
@@ -524,10 +522,10 @@ class EmptyStateWidget extends StatelessWidget {
               color: Theme.of(context).primaryColor,
               size: 28,
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: TossSpacing.space2),
             const Text(
               'Why Supply Chain Analytics?',
-              style: TextStyle(
+              style: TossTextStyles.body.copyWith(
                 fontSize: 22,
                 fontWeight: FontWeight.bold,
               ),
@@ -538,11 +536,11 @@ class EmptyStateWidget extends StatelessWidget {
         Row(
           children: [
             Expanded(child: _buildBenefitCard(context, Icons.speed, '90% Faster', 'Problem identification')),
-            const SizedBox(width: 16),
+            const SizedBox(width: TossSpacing.space4),
             Expanded(child: _buildBenefitCard(context, Icons.trending_down, '60% Reduction', 'In supply chain delays')),
-            const SizedBox(width: 16),
+            const SizedBox(width: TossSpacing.space4),
             Expanded(child: _buildBenefitCard(context, Icons.savings, '₩2.3M Saved', 'Annual cost avoidance')),
-            const SizedBox(width: 16),
+            const SizedBox(width: TossSpacing.space4),
             Expanded(child: _buildBenefitCard(context, Icons.visibility, 'Real-time', 'Supply chain visibility')),
           ],
         ),
@@ -552,29 +550,27 @@ class EmptyStateWidget extends StatelessWidget {
   
   Widget _buildBenefitCard(BuildContext context, IconData icon, String value, String label) {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(TossSpacing.space5),
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-        border: Border.all(color: Colors.grey.withOpacity(0.2)),
+        border: Border.all(color: TossColors.gray500.withOpacity(0.2)),
       ),
       child: Column(
         children: [
           Icon(icon, color: Theme.of(context).primaryColor, size: 32),
-          const SizedBox(height: 8),
+          const SizedBox(height: TossSpacing.space2),
           Text(
             value,
-            style: const TextStyle(
-              fontSize: 18,
+            style: TossTextStyles.h4
               fontWeight: FontWeight.bold,
             ),
           ),
           const SizedBox(height: 4),
           Text(
             label,
-            style: TextStyle(
-              fontSize: 12,
-              color: Colors.grey[600],
+            style: TossTextStyles.caption
+              color: TossColors.gray500[600],
             ),
             textAlign: TextAlign.center,
           ),
@@ -586,7 +582,7 @@ class EmptyStateWidget extends StatelessWidget {
   // Mobile-specific widgets
   Widget _buildMobileHero(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(TossSpacing.space6),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
@@ -594,27 +590,25 @@ class EmptyStateWidget extends StatelessWidget {
             Theme.of(context).primaryColor.withOpacity(0.8),
           ],
         ),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(TossBorderRadius.xl),
       ),
       child: Column(
         children: [
-          const Icon(Icons.insights, size: 48, color: Colors.white),
-          const SizedBox(height: 12),
+          const Icon(Icons.insights, size: 48, color: TossColors.white),
+          const SizedBox(height: TossSpacing.space3),
           const Text(
             'Supply Chain\nAnalytics',
             textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 24,
+            style: TossTextStyles.h2
               fontWeight: FontWeight.bold,
-              color: Colors.white,
+              color: TossColors.white,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: TossSpacing.space2),
           Text(
             'Find and fix problems fast',
-            style: TextStyle(
-              fontSize: 16,
-              color: Colors.white.withOpacity(0.95),
+            style: TossTextStyles.bodyLarge
+              color: TossColors.white.withOpacity(0.95),
             ),
           ),
           const SizedBox(height: 20),
@@ -623,13 +617,13 @@ class EmptyStateWidget extends StatelessWidget {
             child: ElevatedButton(
               onPressed: onGetStarted,
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.white,
+                backgroundColor: TossColors.white,
                 foregroundColor: Theme.of(context).primaryColor,
-                padding: const EdgeInsets.symmetric(vertical: 12),
+                padding: const EdgeInsets.symmetric(vertical: TossSpacing.space3),
               ),
               child: const Text(
                 'Get Started',
-                style: TextStyle(fontWeight: FontWeight.bold),
+                style: TossTextStyles.body.copyWith(fontWeight: FontWeight.bold),
               ),
             ),
           ),
@@ -644,12 +638,11 @@ class EmptyStateWidget extends StatelessWidget {
       children: [
         const Text(
           'Quick Start',
-          style: TextStyle(
-            fontSize: 18,
+          style: TossTextStyles.h4
             fontWeight: FontWeight.bold,
           ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: TossSpacing.space3),
         GridView.count(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
@@ -658,10 +651,10 @@ class EmptyStateWidget extends StatelessWidget {
           crossAxisSpacing: 12,
           childAspectRatio: 1.5,
           children: [
-            _buildMobileQuickCard(context, 'Problems', Icons.warning, Colors.red),
-            _buildMobileQuickCard(context, 'KPIs', Icons.trending_up, Colors.green),
-            _buildMobileQuickCard(context, 'Trends', Icons.analytics, Colors.blue),
-            _buildMobileQuickCard(context, 'Custom', Icons.build, Colors.purple),
+            _buildMobileQuickCard(context, 'Problems', Icons.warning, TossColors.error),
+            _buildMobileQuickCard(context, 'KPIs', Icons.trending_up, TossColors.success),
+            _buildMobileQuickCard(context, 'Trends', Icons.analytics, TossColors.primary),
+            _buildMobileQuickCard(context, 'Custom', Icons.build, TossColors.primary),
           ],
         ),
       ],
@@ -683,10 +676,10 @@ class EmptyStateWidget extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(icon, color: color, size: 28),
-            const SizedBox(height: 8),
+            const SizedBox(height: TossSpacing.space2),
             Text(
               title,
-              style: const TextStyle(
+              style: TossTextStyles.body.copyWith(
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -705,8 +698,7 @@ class EmptyStateWidget extends StatelessWidget {
           children: [
             const Text(
               'Sample Preview',
-              style: TextStyle(
-                fontSize: 18,
+              style: TossTextStyles.h4
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -716,7 +708,7 @@ class EmptyStateWidget extends StatelessWidget {
             ),
           ],
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: TossSpacing.space3),
         Container(
           height: 200,
           padding: EdgeInsets.all(TossSpacing.paddingMD),

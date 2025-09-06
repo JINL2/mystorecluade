@@ -15,7 +15,8 @@ final userCompaniesProvider = FutureProvider<dynamic>((ref) async {
   final appState = ref.watch(appStateProvider);
   
   if (user == null) {
-    throw UnauthorizedException();
+    // Return null instead of throwing exception when user is not authenticated
+    return null;
   }
   
   // Check if we have cached data
@@ -46,7 +47,8 @@ final forceRefreshUserCompaniesProvider = FutureProvider<dynamic>((ref) async {
   final appStateNotifier = ref.read(appStateProvider.notifier);
   
   if (user == null) {
-    throw UnauthorizedException();
+    // Return null instead of throwing exception when user is not authenticated
+    return null;
   }
   
   // ALWAYS fetch fresh data from API

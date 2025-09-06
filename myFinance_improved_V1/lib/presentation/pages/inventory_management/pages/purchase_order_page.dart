@@ -7,7 +7,7 @@ import '../../../helpers/navigation_helper.dart';
 import '../models/product_model.dart';
 import '../models/purchase_order_model.dart';
 import 'package:intl/intl.dart';
-
+import 'package:myfinance_improved/core/themes/toss_border_radius.dart';
 class PurchaseOrderPage extends ConsumerStatefulWidget {
   final PurchaseOrder? existingOrder;
   
@@ -287,7 +287,7 @@ class _PurchaseOrderPageState extends ConsumerState<PurchaseOrderPage>
               onPressed: _isProcessing ? null : _submitOrder,
               child: Text(
                 'Submit',
-                style: TextStyle(
+                style: TossTextStyles.body.copyWith(
                   color: TossColors.primary,
                   fontWeight: FontWeight.w600,
                 ),
@@ -1272,7 +1272,7 @@ class _ProductSelectionSheetState extends State<_ProductSelectionSheet> {
                     subtitle: Text('${product.sku} • Stock: ${product.onHand}'),
                     trailing: Text(
                       '₩${product.costPrice.toStringAsFixed(0)}',
-                      style: TextStyle(fontWeight: FontWeight.w700),
+                      style: TossTextStyles.body.copyWith(fontWeight: FontWeight.w700),
                     ),
                     onTap: () {
                       setState(() {

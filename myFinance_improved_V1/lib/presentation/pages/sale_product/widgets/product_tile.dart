@@ -3,7 +3,8 @@ import 'package:intl/intl.dart';
 import '../../../../core/themes/toss_colors.dart';
 import '../../../../core/themes/toss_text_styles.dart';
 import '../../inventory_management/models/product_model.dart';
-
+import 'package:myfinance_improved/core/themes/index.dart';
+import 'package:myfinance_improved/core/themes/toss_border_radius.dart';
 class ProductTile extends StatelessWidget {
   final Product product;
   final int quantity;
@@ -23,10 +24,10 @@ class ProductTile extends StatelessWidget {
     final formatter = NumberFormat('#,###');
     
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(TossSpacing.space4),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        color: TossColors.white,
+        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
         border: Border.all(
           color: quantity > 0 ? TossColors.primary : TossColors.gray100,
           width: quantity > 0 ? 2 : 1,
@@ -40,19 +41,19 @@ class ProductTile extends StatelessWidget {
             height: 48,
             decoration: BoxDecoration(
               color: _getProductColor(product.name),
-              borderRadius: BorderRadius.circular(24),
+              borderRadius: BorderRadius.circular(TossBorderRadius.xxxl),
             ),
             child: Center(
               child: Text(
                 _getProductInitial(product.name),
                 style: TossTextStyles.h4.copyWith(
-                  color: Colors.white,
+                  color: TossColors.white,
                   fontWeight: FontWeight.bold,
                 ),
               ),
             ),
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: TossSpacing.space4),
           
           // Product Info
           Expanded(
@@ -74,7 +75,7 @@ class ProductTile extends StatelessWidget {
                         color: TossColors.gray600,
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: TossSpacing.space3),
                     Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 8,
@@ -82,7 +83,7 @@ class ProductTile extends StatelessWidget {
                       ),
                       decoration: BoxDecoration(
                         color: TossColors.warning.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(4),
+                        borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                       ),
                       child: Text(
                         '${product.available}',
@@ -91,7 +92,7 @@ class ProductTile extends StatelessWidget {
                         ),
                       ),
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: TossSpacing.space2),
                     Text(
                       'Customer ordered: 0',
                       style: TossTextStyles.caption.copyWith(
@@ -100,7 +101,7 @@ class ProductTile extends StatelessWidget {
                     ),
                   ],
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: TossSpacing.space2),
                 Text(
                   '${formatter.format(product.salePrice.round())}',
                   style: TossTextStyles.amount.copyWith(
@@ -127,7 +128,7 @@ class ProductTile extends StatelessWidget {
               height: 32,
               decoration: BoxDecoration(
                 color: TossColors.primary.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(TossBorderRadius.md),
               ),
               child: Center(
                 child: Text(
@@ -163,12 +164,12 @@ class ProductTile extends StatelessWidget {
 
   Color _getProductColor(String name) {
     final colors = [
-      Colors.blue,
-      Colors.purple,
-      Colors.orange,
-      Colors.green,
-      Colors.red,
-      Colors.teal,
+      TossColors.primary,
+      TossColors.primary,
+      TossColors.warning,
+      TossColors.success,
+      TossColors.error,
+      TossColors.success,
     ];
     
     final index = name.hashCode % colors.length;

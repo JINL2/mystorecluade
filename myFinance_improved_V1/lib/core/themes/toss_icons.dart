@@ -71,11 +71,20 @@ class TossIcons {
   static const IconData downloadFilled = Icons.download;
   static const IconData upload = Icons.upload_outlined;
   static const IconData uploadFilled = Icons.upload;
+  static const IconData visibility = Icons.visibility_outlined;
+  static const IconData visibilityFilled = Icons.visibility;
   
   // ==================== SEARCH & FILTER ICONS ====================
   static const IconData search = Icons.search;
   static const IconData filter = Icons.filter_list;
   static const IconData sort = Icons.sort;
+  
+  // ==================== DASHBOARD & ANALYTICS ICONS ====================
+  static const IconData dashboard = Icons.dashboard_outlined;
+  static const IconData dashboardFilled = Icons.dashboard;
+  static const IconData analytics = Icons.analytics_outlined;
+  static const IconData analyticsFilled = Icons.analytics;
+  static const IconData refresh = Icons.refresh;
   
   // ==================== SETTINGS & PREFERENCES ICONS ====================
   static const IconData settings = Icons.settings_outlined;

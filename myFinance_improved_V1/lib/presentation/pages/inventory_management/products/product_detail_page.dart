@@ -7,7 +7,7 @@ import '../../../../core/constants/app_icons_fa.dart';
 import '../../../../core/themes/index.dart';
 import '../../../widgets/common/toss_scaffold.dart';
 import '../../../widgets/common/toss_app_bar.dart';
-import '../../../widgets/common/toss_bottom_sheet.dart';
+import '../../../widgets/toss/toss_bottom_sheet.dart';
 import '../../../widgets/toss/toss_text_field.dart';
 import '../../../widgets/toss/toss_chip.dart';
 import '../../../widgets/toss/toss_primary_button.dart';
@@ -16,7 +16,7 @@ import '../../../widgets/toss/toss_badge.dart';
 import '../../../widgets/toss/toss_list_tile.dart';
 import '../../../helpers/navigation_helper.dart';
 import '../models/product_model.dart';
-
+import 'package:myfinance_improved/core/themes/toss_border_radius.dart';
 class ProductDetailPage extends ConsumerStatefulWidget {
   final Product product;
 
@@ -90,7 +90,7 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
   void _adjustStock() {
     TossBottomSheet.show(
       context: context,
-      builder: (context) => _StockAdjustmentSheet(
+      content: _StockAdjustmentSheet(
         product: _product,
         onAdjust: (newQuantity, reason) {
           setState(() {

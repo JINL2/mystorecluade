@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:myfinance_improved/domain/repositories/user_repository.dart';
@@ -60,37 +61,63 @@ class _HomepageUtils {
 }
 
 /// Provider for user data with companies (integrates with intelligent caching)
-final userCompaniesProvider = FutureProvider.autoDispose<dynamic>((ref) async {
+final userCompaniesProvider = FutureProvider<dynamic>((ref) async {
+  debugPrint('🔵 [userCompaniesProvider] Provider called');
+  
   final user = ref.watch(authStateProvider);
+  debugPrint('🔵 [userCompaniesProvider] User auth state: ${user != null ? "authenticated (${user.id})" : "not authenticated"}');
   
   if (user == null) {
-    throw UnauthorizedException();
+    debugPrint('🔵 [userCompaniesProvider] Returning null - user not authenticated');
+    // Return null instead of throwing exception when user is not authenticated
+    return null;
   }
   
+  // Read app state WITHOUT watching to avoid rebuilds
+  final appState = ref.read(appStateProvider);
   final appStateNotifier = ref.read(appStateProvider.notifier);
-  final sessionManager = ref.read(sessionManagerProvider.notifier);
   
-  
-  // Smart caching decision based on session state
-  final shouldFetch = sessionManager.shouldFetchUserData();
+  // Check if we have cached data
   final hasCache = appStateNotifier.hasUserData;
   
-  // Use cached data if available and fresh
-  if (hasCache && !shouldFetch) {
-    final currentState = ref.read(appStateProvider);
-    return currentState.user;
+  debugPrint('🔵 [userCompaniesProvider] Cache check - hasCache: $hasCache');
+  
+  // Use cached data if available
+  if (hasCache) {
+    final cachedData = appState.user;
+    if (cachedData != null && cachedData is Map && cachedData.isNotEmpty) {
+      debugPrint('🔵 [userCompaniesProvider] Returning cached data from app state');
+      // Return cached data immediately
+      return cachedData;
+    }
   }
   
   // Fetch fresh data from API using RPC function
+  debugPrint('🔵 [userCompaniesProvider] Fetching fresh data from API...');
   
-  final supabase = Supabase.instance.client;
-  final response = await supabase.rpc('get_user_companies_and_stores', params: {'p_user_id': user.id});
-  
-  // Save to app state for persistence
-  await appStateNotifier.setUser(response);
-  
-  // Record successful data fetch for cache TTL
-  await sessionManager.recordUserDataFetch();
+  dynamic response;
+  try {
+    final supabase = Supabase.instance.client;
+    debugPrint('🔵 [userCompaniesProvider] Calling RPC get_user_companies_and_stores with user_id: ${user.id}');
+    
+    response = await supabase.rpc('get_user_companies_and_stores', params: {'p_user_id': user.id});
+    
+    debugPrint('🔵 [userCompaniesProvider] RPC response received');
+    debugPrint('🔵 [userCompaniesProvider] Response type: ${response.runtimeType}');
+    if (response is Map) {
+      final companies = response['companies'] as List<dynamic>? ?? [];
+      debugPrint('🔵 [userCompaniesProvider] Companies count: ${companies.length}');
+    }
+    
+    // Save to app state for persistence
+    debugPrint('🔵 [userCompaniesProvider] Saving to app state...');
+    await appStateNotifier.setUser(response);
+    debugPrint('🔵 [userCompaniesProvider] Saved to app state');
+  } catch (e, stack) {
+    debugPrint('🔵 [userCompaniesProvider] ERROR fetching data: $e');
+    debugPrint('🔵 [userCompaniesProvider] Stack: $stack');
+    rethrow;
+  }
   
   final companies = response['companies'] as List<dynamic>? ?? [];
   
@@ -152,7 +179,9 @@ final userCompaniesProvider = FutureProvider.autoDispose<dynamic>((ref) async {
   }
   
   
-  return response;
+  // IMPORTANT: Always return from app state (single source of truth)
+  // This ensures that any local updates to app state are reflected immediately
+  return ref.read(appStateProvider).user;
 });
 
 /// Force refresh provider - ALWAYS fetches from API
@@ -162,7 +191,8 @@ final forceRefreshUserCompaniesProvider = FutureProvider<dynamic>((ref) async {
   final appStateNotifier = ref.read(appStateProvider.notifier);
   
   if (user == null) {
-    throw UnauthorizedException();
+    // Return null instead of throwing exception when user is not authenticated
+    return null;
   }
   
   // ALWAYS fetch fresh data from API - no cache check
@@ -234,7 +264,9 @@ final forceRefreshUserCompaniesProvider = FutureProvider<dynamic>((ref) async {
     }
   }
   
-  return response;
+  // IMPORTANT: Always return from app state (single source of truth)
+  // This ensures consistency across all providers
+  return ref.read(appStateProvider).user;
 });
 
 // Note: selectedCompanyProvider and selectedStoreProvider are now imported from app_state_provider.dart
@@ -244,6 +276,11 @@ final forceRefreshUserCompaniesProvider = FutureProvider<dynamic>((ref) async {
 final categoriesWithFeaturesProvider = FutureProvider.autoDispose<dynamic>((ref) async {
   // Wait for user data to be loaded first (dependency)
   final userData = await ref.watch(userCompaniesProvider.future);
+  
+  // Return empty list if user is not authenticated
+  if (userData == null) {
+    return [];
+  }
   
   final appStateNotifier = ref.read(appStateProvider.notifier);
   final sessionManager = ref.read(sessionManagerProvider.notifier);

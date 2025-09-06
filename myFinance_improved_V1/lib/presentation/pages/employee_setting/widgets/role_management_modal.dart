@@ -10,7 +10,8 @@ import '../../../widgets/toss/toss_secondary_button.dart';
 import '../../../widgets/common/toss_loading_view.dart';
 import '../models/role.dart';
 import '../providers/employee_setting_providers.dart';
-
+import 'package:myfinance_improved/core/themes/index.dart';
+import 'package:myfinance_improved/core/themes/toss_border_radius.dart';
 class RoleManagementModal extends ConsumerStatefulWidget {
   final String userId;
   final String? currentRole;
@@ -61,7 +62,7 @@ class _RoleManagementModalState extends ConsumerState<RoleManagementModal> {
             height: 4,
             decoration: BoxDecoration(
               color: TossColors.gray300,
-              borderRadius: BorderRadius.circular(2),
+              borderRadius: BorderRadius.circular(TossBorderRadius.xs),
             ),
           ),
           // Header
@@ -367,7 +368,7 @@ class _RoleItem extends StatelessWidget {
         padding: EdgeInsets.all(TossSpacing.space4),
         decoration: BoxDecoration(
           color: isSelected ? TossColors.primary.withValues(alpha: 0.05) : TossColors.background,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
           border: Border.all(
             color: isSelected ? TossColors.primary : TossColors.gray200,
             width: isSelected ? 2 : 1,
@@ -381,7 +382,7 @@ class _RoleItem extends StatelessWidget {
               height: 24,
               decoration: BoxDecoration(
                 color: isSelected ? TossColors.primary : TossColors.background,
-                borderRadius: BorderRadius.circular(6),
+                borderRadius: BorderRadius.circular(TossBorderRadius.sm),
                 border: Border.all(
                   color: isSelected ? TossColors.primary : TossColors.gray300,
                   width: 2,
@@ -422,7 +423,7 @@ class _RoleItem extends StatelessWidget {
                           ),
                           decoration: BoxDecoration(
                             color: TossColors.success.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(6),
+                            borderRadius: BorderRadius.circular(TossBorderRadius.sm),
                           ),
                           child: Text(
                             'Current',

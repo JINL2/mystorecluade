@@ -5,12 +5,10 @@ import '../../../core/themes/toss_text_styles.dart';
 import '../../../core/themes/toss_spacing.dart';
 import '../../widgets/toss/toss_text_field.dart';
 import '../../widgets/toss/toss_primary_button.dart';
+import '../../widgets/toss/toss_card.dart';
 import '../../widgets/common/toss_scaffold.dart';
-import '../../widgets/common/toss_empty_state_card.dart';
 import '../../widgets/toss/toss_bottom_sheet.dart';
 import '../../providers/auth_provider.dart';
-import '../../../core/navigation/safe_navigation.dart';
-import '../../../core/navigation/auth_navigator.dart';
 
 class ForgotPasswordPage extends ConsumerStatefulWidget {
   const ForgotPasswordPage({super.key});
@@ -91,11 +89,29 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
                 
                 const SizedBox(height: TossSpacing.space3),
                 
-                TossEmptyStateCard(
-                  message: 'Check your spam folder if you don\'t receive the email',
-                  icon: Icons.info_outline,
+                TossCard(
+                  padding: const EdgeInsets.all(TossSpacing.space4),
                   backgroundColor: TossColors.info.withValues(alpha: 0.1),
-                  textColor: TossColors.info,
+                  child: Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.info_outline,
+                          color: TossColors.info,
+                          size: 24,
+                        ),
+                        const SizedBox(height: TossSpacing.space2),
+                        Text(
+                          'Check your spam folder if you don\'t receive the email',
+                          style: TossTextStyles.body.copyWith(
+                            color: TossColors.info,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               ],
             ),

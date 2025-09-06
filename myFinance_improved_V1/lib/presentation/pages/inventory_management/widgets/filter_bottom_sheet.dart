@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../core/themes/index.dart';
 import '../models/product_model.dart';
-
+import 'package:myfinance_improved/core/themes/toss_border_radius.dart';
 class FilterBottomSheet extends StatefulWidget {
   final StockStatus? selectedStockStatus;
   final ProductCategory? selectedCategory;
@@ -86,8 +86,7 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                 children: [
                   const Text(
                     'Filters',
-                    style: TextStyle(
-                      fontSize: 20,
+                    style: TossTextStyles.h3
                       fontWeight: FontWeight.w700,
                     ),
                   ),
@@ -178,11 +177,11 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                     children: [
                       Text(
                         _formatCurrency(_priceRange.start),
-                        style: const TextStyle(fontWeight: FontWeight.w500),
+                        style: TossTextStyles.body.copyWith(fontWeight: FontWeight.w500),
                       ),
                       Text(
                         _formatCurrency(_priceRange.end),
-                        style: const TextStyle(fontWeight: FontWeight.w500),
+                        style: TossTextStyles.body.copyWith(fontWeight: FontWeight.w500),
                       ),
                     ],
                   ),
@@ -214,15 +213,15 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                     child: OutlinedButton(
                       onPressed: () => Navigator.pop(context),
                       style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        padding: const EdgeInsets.symmetric(vertical: TossSpacing.space4),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                         ),
                       ),
                       child: const Text('Cancel'),
                     ),
                   ),
-                  const SizedBox(width: 16),
+                  const SizedBox(width: TossSpacing.space4),
                   Expanded(
                     flex: 2,
                     child: ElevatedButton(
@@ -236,9 +235,9 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                         Navigator.pop(context);
                       },
                       style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        padding: const EdgeInsets.symmetric(vertical: TossSpacing.space4),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                         ),
                       ),
                       child: const Text('Apply Filters'),
@@ -261,12 +260,11 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
         children: [
           Text(
             title,
-            style: const TextStyle(
-              fontSize: 16,
+            style: TossTextStyles.bodyLarge
               fontWeight: FontWeight.w600,
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: TossSpacing.space3),
           content,
         ],
       ),
@@ -298,13 +296,13 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
   Color _getStatusColor(StockStatus status) {
     switch (status) {
       case StockStatus.critical:
-        return Colors.red;
+        return TossColors.error;
       case StockStatus.low:
-        return Colors.orange;
+        return TossColors.warning;
       case StockStatus.optimal:
-        return Colors.green;
+        return TossColors.success;
       case StockStatus.excess:
-        return Colors.blue;
+        return TossColors.primary;
     }
   }
 

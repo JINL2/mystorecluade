@@ -51,10 +51,10 @@ class _RoleTagsWidgetState extends State<RoleTagsWidget> {
     'Temporary': TossColors.warning,
     'Finance': TossColors.success,
     'Sales': TossColors.primary,
-    'Marketing': Colors.purple,
-    'Technical': Colors.indigo,
+    'Marketing': TossColors.primary,
+    'Technical': TossColors.primary,
     'Customer Service': TossColors.warning,
-    'Admin': Colors.teal,
+    'Admin': TossColors.success,
     'Restricted': TossColors.error,
   };
 

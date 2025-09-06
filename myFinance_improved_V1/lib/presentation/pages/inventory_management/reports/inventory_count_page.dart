@@ -8,7 +8,7 @@ import '../models/product_model.dart';
 import '../models/inventory_count_model.dart';
 import '../widgets/barcode_scanner_sheet.dart';
 import 'package:intl/intl.dart';
-
+import 'package:myfinance_improved/core/themes/toss_border_radius.dart';
 class InventoryCountPage extends ConsumerStatefulWidget {
   final String? countSessionId;
   final List<Product>? products;
@@ -339,7 +339,7 @@ class _InventoryCountPageState extends ConsumerState<InventoryCountPage>
               onPressed: _isProcessing ? null : _finalizeCount,
               child: Text(
                 'Finalize',
-                style: TextStyle(
+                style: TossTextStyles.body.copyWith(
                   color: TossColors.primary,
                   fontWeight: FontWeight.w600,
                 ),

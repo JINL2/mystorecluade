@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:myfinance_improved/core/themes/index.dart';
 
 /// Helper class for handling color opacity without pixel rendering errors
 class ColorOpacityHelper {
@@ -13,7 +14,7 @@ class ColorOpacityHelper {
     if (opacity == 1.0) return color;
     
     // For zero opacity, return transparent
-    if (opacity == 0.0) return Colors.transparent;
+    if (opacity == 0.0) return TossColors.transparent;
     
     // Use withValues for proper alpha channel handling
     // This avoids the precision loss issues of withOpacity
