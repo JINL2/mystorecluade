@@ -33,17 +33,24 @@ function initializeIcons() {
 // Get correct dashboard path - COMPLETELY REWRITTEN FOR ABSOLUTE URLS
 function getDashboardPath() {
     // Get current location info
-    const origin = window.location.origin;  // http://localhost
-    const pathname = window.location.pathname;  // /mcparrange-main/myFinance_claude/website/pages/auth/login.html
+    const origin = window.location.origin;  // http://localhost or https://mystorecluade.onrender.com
+    const pathname = window.location.pathname;  // /pages/auth/login.html
     
     console.log('getDashboardPath - Origin:', origin);
     console.log('getDashboardPath - Pathname:', pathname);
     
-    // Build the FULL URL - no ambiguity possible
+    // Build the FULL URL - works for both local and deployed
     let dashboardUrl = '';
     
-    // Primary path for XAMPP mcparrange-main structure - explicitly include index.html
-    dashboardUrl = origin + '/mcparrange-main/myFinance_claude/website/pages/dashboard/index.html';
+    // Check if we're on localhost with XAMPP structure
+    if (origin.includes('localhost') && pathname.includes('/mcparrange-main/')) {
+        // Local XAMPP path
+        dashboardUrl = origin + '/mcparrange-main/myFinance_claude/website/pages/dashboard/index.html';
+    } else {
+        // Deployed path (Render, Netlify, etc.) - use simple path
+        dashboardUrl = origin + '/pages/dashboard/index.html';
+    }
+    
     console.log('getDashboardPath - Built dashboard URL:', dashboardUrl);
     return dashboardUrl;
 }
