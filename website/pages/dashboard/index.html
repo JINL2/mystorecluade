@@ -511,6 +511,9 @@
     <!-- Toast Container -->
     <div id="toast-container" class="toss-toast-container"></div>
     
+    <!-- Core Path Resolver (must be loaded first) -->
+    <script src="../../core/utils/path-resolver.js"></script>
+    
     <!-- Component JavaScript -->
     <script src="../../components/base/toss-button.js"></script>
     <script src="../../components/feedback/toss-alert.js"></script>
@@ -661,7 +664,7 @@
                 if (!session) {
                     TossAlertUtils.showError('Authentication required. Redirecting to login...');
                     setTimeout(() => {
-                        window.location.href = '/mcparrange-main/myFinance_claude/website/pages/auth/login.html';
+                        window.location.href = window.pathResolver.getLoginPath();
                     }, 2000);
                     return;
                 }
@@ -673,7 +676,7 @@
                 console.error('Error checking authentication:', error);
                 TossAlertUtils.showError('Authentication error. Please sign in again.');
                 setTimeout(() => {
-                    window.location.href = '/mcparrange-main/myFinance_claude/website/pages/auth/login.html';
+                    window.location.href = window.pathResolver.getLoginPath();
                 }, 2000);
             }
         }
@@ -1180,8 +1183,8 @@
                         if (typeof NavBar !== 'undefined' && NavBar.navigateToLogin) {
                             NavBar.navigateToLogin();
                         } else {
-                            // Fallback navigation for dashboard (we're in pages/dashboard/)
-                            window.location.replace('/mcparrange-main/myFinance_claude/website/pages/auth/login.html');
+                            // Fallback navigation using pathResolver
+                            window.location.replace(window.pathResolver.getLoginPath());
                         }
                     }, 1000);
                 } else {
@@ -1200,8 +1203,8 @@
         
         // Navigate to transaction history page
         function navigateToTransactionHistory() {
-            // Navigate to the transaction history page
-            window.location.href = '/mcparrange-main/myFinance_claude/website/pages/finance/transaction-history/index.html';
+            // Navigate to the transaction history page using pathResolver
+            window.location.href = window.pathResolver.resolvePagePath('finance/transaction-history/index.html');
         }
         
         // Toggle submenu function (removed since we're using hover)
@@ -1221,7 +1224,7 @@
         if (typeof supabase !== 'undefined') {
             supabase.auth.onAuthStateChange((event, session) => {
                 if (event === 'SIGNED_OUT') {
-                    window.location.href = '/mcparrange-main/myFinance_claude/website/pages/auth/login.html';
+                    window.location.href = window.pathResolver.getLoginPath();
                 }
             });
         }

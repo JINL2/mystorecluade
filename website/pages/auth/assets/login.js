@@ -30,7 +30,7 @@ function initializeIcons() {
     console.log('Icons initialization skipped - using image logo');
 }
 
-// Get correct dashboard path - COMPLETELY REWRITTEN FOR ABSOLUTE URLS
+// Get correct dashboard path using pathResolver
 function getDashboardPath() {
     // Get current location info
     const origin = window.location.origin;  // http://localhost or https://mystorecluade.onrender.com
@@ -39,16 +39,17 @@ function getDashboardPath() {
     console.log('getDashboardPath - Origin:', origin);
     console.log('getDashboardPath - Pathname:', pathname);
     
-    // Build the FULL URL - works for both local and deployed
+    // Build the FULL URL using pathResolver if available
     let dashboardUrl = '';
     
-    // Check if we're on localhost with XAMPP structure
-    if (origin.includes('localhost') && pathname.includes('/mcparrange-main/')) {
-        // Local XAMPP path
-        dashboardUrl = origin + '/mcparrange-main/myFinance_claude/website/pages/dashboard/index.html';
+    if (typeof window !== 'undefined' && window.pathResolver) {
+        // Use pathResolver for consistent path resolution
+        dashboardUrl = origin + window.pathResolver.getDashboardPath();
+        console.log('getDashboardPath - Using pathResolver:', dashboardUrl);
     } else {
-        // Deployed path (Render, Netlify, etc.) - use simple path
+        // Fallback to simple path if pathResolver not available
         dashboardUrl = origin + '/pages/dashboard/index.html';
+        console.log('getDashboardPath - Using fallback path:', dashboardUrl);
     }
     
     console.log('getDashboardPath - Built dashboard URL:', dashboardUrl);

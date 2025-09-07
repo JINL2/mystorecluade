@@ -161,21 +161,14 @@ const SupabaseAuth = {
      */
     async resetPassword(email) {
         try {
-            // Build proper reset password URL with full path
-            const currentPath = window.location.pathname;
-            let resetPasswordUrl = '';
+            // Use pathResolver to build proper reset password URL
+            let resetPasswordUrl;
             
-            // Check if we're in the mcparrange-main project structure
-            if (currentPath.includes('/mcparrange-main/')) {
-                resetPasswordUrl = `${window.location.origin}/mcparrange-main/myFinance_claude/website/pages/auth/reset-password.html`;
-            } else if (currentPath.includes('/myFinance_claude/website/')) {
-                // Extract base path and build full URL
-                const basePath = currentPath.substring(0, currentPath.indexOf('/pages/auth/'));
-                resetPasswordUrl = `${window.location.origin}${basePath}/pages/auth/reset-password.html`;
+            if (typeof window !== 'undefined' && window.pathResolver) {
+                resetPasswordUrl = `${window.location.origin}${window.pathResolver.resolvePagePath('auth/reset-password.html')}`;
             } else {
-                // Fallback - build based on current auth page location
-                const authPath = currentPath.substring(0, currentPath.lastIndexOf('/') + 1);
-                resetPasswordUrl = `${window.location.origin}${authPath}reset-password.html`;
+                // Fallback if pathResolver is not available
+                resetPasswordUrl = `${window.location.origin}/pages/auth/reset-password.html`;
             }
             
             const { error } = await supabase.auth.resetPasswordForEmail(email, {
@@ -398,47 +391,14 @@ const AuthManager = {
         
         console.log('🔄 AuthManager navigating from path:', currentPath);
         
-        // Check if we're in the mcparrange-main project structure
-        if (currentPath.includes('/mcparrange-main/')) {
-            // Extract the base path up to mcparrange-main
-            const baseMatch = currentPath.match(/(.*\/mcparrange-main\/)/);
-            if (baseMatch) {
-                // Build the correct absolute path to login
-                loginPath = baseMatch[1] + 'myFinance_claude/website/pages/auth/login.html';
-                console.log('🎯 Using absolute path for mcparrange-main:', loginPath);
-            } else {
-                // Fallback for mcparrange-main without clear base
-                loginPath = '/mcparrange-main/myFinance_claude/website/pages/auth/login.html';
-                console.log('🎯 Using default mcparrange-main path:', loginPath);
-            }
-        } else if (currentPath.includes('/pages/')) {
-            // We're somewhere in the pages directory structure
-            const afterPages = currentPath.split('/pages/')[1];
-            const segments = afterPages.split('/').filter(p => p && p !== 'index.html');
-            
-            console.log('📂 Path segments after /pages/:', segments);
-            
-            if (segments.length >= 2) {
-                // We're in a nested page like /pages/finance/journal-input/
-                loginPath = '../../auth/login.html';
-                console.log('🎯 Detected nested page, using: ../../auth/login.html');
-            } else if (segments.length === 1) {
-                // We're in a top-level page like /pages/dashboard/
-                loginPath = '../auth/login.html';
-                console.log('🎯 Detected top-level page, using: ../auth/login.html');
-            } else {
-                // We're in pages directory itself
-                loginPath = 'auth/login.html';
-                console.log('🎯 Detected pages root, using: auth/login.html');
-            }
-        } else if (currentPath.includes('/website/')) {
-            // We're at website root level
-            loginPath = '/mcparrange-main/myFinance_claude/website/pages/auth/login.html';
-            console.log('🎯 Detected website root, using absolute path');
+        // Use pathResolver for consistent path resolution
+        if (typeof window !== 'undefined' && window.pathResolver) {
+            loginPath = window.pathResolver.getLoginPath();
+            console.log('🎯 Using pathResolver login path:', loginPath);
         } else {
-            // Absolute fallback path for XAMPP environment
-            loginPath = '/mcparrange-main/myFinance_claude/website/pages/auth/login.html';
-            console.log('🎯 Using absolute fallback path');
+            // Fallback to absolute path if pathResolver is not available
+            loginPath = '/pages/auth/login.html';
+            console.log('🎯 Using fallback login path:', loginPath);
         }
         
         console.log('✅ Final login path:', loginPath);

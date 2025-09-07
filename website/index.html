@@ -6,12 +6,21 @@
     <title>Store Base - Store Management System</title>
     <script>
         // Smart redirect that works both locally and on deployed servers
-        const currentPath = window.location.pathname;
-        let loginPath = '/pages/auth/login.html';
+        const hostname = window.location.hostname;
+        const pathname = window.location.pathname;
+        let loginPath = 'pages/auth/login.html';
         
-        // Check if we're on localhost with XAMPP structure
-        if (window.location.hostname === 'localhost' && currentPath.includes('/mcparrange-main/')) {
-            loginPath = '/mcparrange-main/myFinance_claude/website/pages/auth/login.html';
+        // For localhost environments, detect the project structure
+        if (hostname === 'localhost' || hostname === '127.0.0.1') {
+            // Check if we're in a deep project structure
+            const projectMatch = pathname.match(/^(.*?\/mysite\/mystorecluade\/website)/);
+            if (projectMatch) {
+                // Use absolute path for XAMPP/MAMP environments
+                loginPath = projectMatch[1] + '/pages/auth/login.html';
+            } else {
+                // Simple localhost structure
+                loginPath = 'pages/auth/login.html';
+            }
         }
         
         // Redirect to login page
@@ -20,6 +29,6 @@
 </head>
 <body>
     <p>Redirecting to Store Base...</p>
-    <p>If you are not redirected, <a href="/pages/auth/login.html">click here</a>.</p>
+    <p>If you are not redirected, <a href="pages/auth/login.html">click here</a>.</p>
 </body>
 </html>
