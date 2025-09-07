@@ -186,9 +186,11 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
   Future<void> fetchShiftMetadata(String storeId) async {
     if (storeId.isEmpty) return;
     
-    setState(() {
-      isLoadingMetadata = true;
-    });
+    if (mounted) {
+      setState(() {
+        isLoadingMetadata = true;
+      });
+    }
     
     try {
       final response = await Supabase.instance.client.rpc(
@@ -199,21 +201,25 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
       );
       
       
-      setState(() {
-        // Store the raw response directly - it should be a List of shift objects
-        if (response != null) {
-          shiftMetadata = response;
-        } else {
-          shiftMetadata = [];
-        }
-        isLoadingMetadata = false;
-      });
+      if (mounted) {
+        setState(() {
+          // Store the raw response directly - it should be a List of shift objects
+          if (response != null) {
+            shiftMetadata = response;
+          } else {
+            shiftMetadata = [];
+          }
+          isLoadingMetadata = false;
+        });
+      }
       
     } catch (e) {
-      setState(() {
-        isLoadingMetadata = false;
-        shiftMetadata = [];
-      });
+      if (mounted) {
+        setState(() {
+          isLoadingMetadata = false;
+          shiftMetadata = [];
+        });
+      }
     }
   }
   
@@ -225,9 +231,11 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
     final user = ref.read(authStateProvider);
     if (user == null) return;
     
-    setState(() {
-      isLoadingShiftStatus = true;
-    });
+    if (mounted) {
+      setState(() {
+        isLoadingShiftStatus = true;
+      });
+    }
     
     try {
       // Format date as YYYY-MM-DD for the first day of the focused month
@@ -242,16 +250,20 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
         },
       );
       
-      setState(() {
-        monthlyShiftStatus = response != null ? List<Map<String, dynamic>>.from(response) : [];
-        isLoadingShiftStatus = false;
-      });
+      if (mounted) {
+        setState(() {
+          monthlyShiftStatus = response != null ? List<Map<String, dynamic>>.from(response) : [];
+          isLoadingShiftStatus = false;
+        });
+      }
       
     } catch (e) {
-      setState(() {
-        isLoadingShiftStatus = false;
-        monthlyShiftStatus = null;
-      });
+      if (mounted) {
+        setState(() {
+          isLoadingShiftStatus = false;
+          monthlyShiftStatus = null;
+        });
+      }
     }
   }
   
@@ -5255,6 +5267,9 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
       return;
     }
     
+    // Capture the root context for ScaffoldMessenger
+    final rootContext = context;
+    
     // Parse date for better display
     final dateStr = cardData['request_date'] ?? '';
     final dateParts = dateStr.split('-');
@@ -5571,12 +5586,14 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                           final shiftRequestId = cardData['shift_request_id'];
                           if (shiftRequestId == null) {
                             // Show error if no shift request ID
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text('Unable to report issue: Missing shift ID'),
-                                backgroundColor: TossColors.error,
-                              ),
-                            );
+                            if (mounted) {
+                              ScaffoldMessenger.of(rootContext).showSnackBar(
+                                SnackBar(
+                                  content: Text('Unable to report issue: Missing shift ID'),
+                                  backgroundColor: TossColors.error,
+                                ),
+                              );
+                            }
                             return;
                           }
                           
@@ -5613,28 +5630,34 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                             cardData['is_problem_solved'] = false;
                             
                             // Show success message
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text('Issue reported successfully'),
-                                backgroundColor: TossColors.success,
-                              ),
-                            );
+                            if (mounted) {
+                              ScaffoldMessenger.of(rootContext).showSnackBar(
+                                SnackBar(
+                                  content: Text('Issue reported successfully'),
+                                  backgroundColor: TossColors.success,
+                                ),
+                              );
+                            }
                             
                             // Close the modal after a short delay
                             Future.delayed(const Duration(milliseconds: 500), () {
-                              Navigator.of(context).pop();
+                              if (Navigator.of(rootContext).canPop()) {
+                                Navigator.of(rootContext).pop();
+                              }
                             });
                             
                             // Refresh the main page data
                             _fetchMonthData(selectedDate);
                           } else {
                             // Show error message
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text('Failed to report issue. Please try again.'),
-                                backgroundColor: TossColors.error,
-                              ),
-                            );
+                            if (mounted) {
+                              ScaffoldMessenger.of(rootContext).showSnackBar(
+                                SnackBar(
+                                  content: Text('Failed to report issue. Please try again.'),
+                                  backgroundColor: TossColors.error,
+                                ),
+                              );
+                            }
                           }
                         },
                         borderRadius: BorderRadius.circular(TossBorderRadius.lg),

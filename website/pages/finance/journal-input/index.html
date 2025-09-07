@@ -22,10 +22,6 @@
     <!-- Supabase CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
-    <!-- Environment Configuration (for local development) -->
-    <script src="../../../core/config/env-loader.js"></script>
-    <script src="../../../core/config/env-config.js"></script>
-    
     <!-- Journal Input Specific Styles -->
     <style>
         body {
@@ -1664,17 +1660,9 @@
             
             // Initialize Supabase client if not already available
             if (!window.supabaseClient && window.supabase && window.supabase.createClient) {
-                const SUPABASE_URL = window.ENV?.SUPABASE_URL || '';
-                const SUPABASE_ANON_KEY = window.ENV?.SUPABASE_ANON_KEY || '';
-                
-                if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
-                    console.error('Supabase credentials not configured');
-                    return;
-                }
-                
                 window.supabaseClient = window.supabase.createClient(
-                    SUPABASE_URL, 
-                    SUPABASE_ANON_KEY
+                    'https://atkekzwgukdvucqntryo.supabase.co', 
+                    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF0a2VrendndWtkdnVjcW50cnlvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI4OTQwMjIsImV4cCI6MjA1ODQ3MDAyMn0.G4WqAmLvQSqYEfMWIpFOAZOYtnT0kxCxj8dVGhuUYO8'
                 );
                 console.log('Supabase client initialized for journal input page');
             }
@@ -1842,17 +1830,9 @@
                 // If not available, try to get from global supabase object
                 if (!client && window.supabase && window.supabase.createClient) {
                     console.log('Creating new Supabase client');
-                    const SUPABASE_URL = window.ENV?.SUPABASE_URL || '';
-                    const SUPABASE_ANON_KEY = window.ENV?.SUPABASE_ANON_KEY || '';
-                    
-                    if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
-                        console.error('Supabase credentials not configured');
-                        throw new Error('Supabase credentials unavailable');
-                    }
-                    
                     client = window.supabase.createClient(
-                        SUPABASE_URL, 
-                        SUPABASE_ANON_KEY
+                        'https://atkekzwgukdvucqntryo.supabase.co', 
+                        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF0a2VrendndWtkdnVjcW50cnlvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI4OTQwMjIsImV4cCI6MjA1ODQ3MDAyMn0.G4WqAmLvQSqYEfMWIpFOAZOYtnT0kxCxj8dVGhuUYO8'
                     );
                     window.supabaseClient = client; // Store for reuse
                 } else if (!client && window.supabase) {
@@ -1921,17 +1901,9 @@
             try {
                 let client = window.supabaseClient;
                 if (!client && window.supabase && window.supabase.createClient) {
-                    const SUPABASE_URL = window.ENV?.SUPABASE_URL || '';
-                    const SUPABASE_ANON_KEY = window.ENV?.SUPABASE_ANON_KEY || '';
-                    
-                    if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
-                        console.error('Supabase credentials not configured');
-                        return;
-                    }
-                    
                     client = window.supabase.createClient(
-                        SUPABASE_URL, 
-                        SUPABASE_ANON_KEY
+                        'https://atkekzwgukdvucqntryo.supabase.co', 
+                        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF0a2VrendndWtkdnVjcW50cnlvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI4OTQwMjIsImV4cCI6MjA1ODQ3MDAyMn0.G4WqAmLvQSqYEfMWIpFOAZOYtnT0kxCxj8dVGhuUYO8'
                     );
                 }
                 
@@ -3880,16 +3852,10 @@
             menu.className = 'counterparty-search-menu counterparty-cash-location-search-menu';
             
             // Get Supabase client
-            const SUPABASE_URL = window.ENV?.SUPABASE_URL || '';
-            const SUPABASE_ANON_KEY = window.ENV?.SUPABASE_ANON_KEY || '';
-            
-            let supabaseClient = window.supabaseClient;
-            if (!supabaseClient && window.supabase?.createClient && SUPABASE_URL && SUPABASE_ANON_KEY) {
-                supabaseClient = window.supabase.createClient(
-                    SUPABASE_URL,
-                    SUPABASE_ANON_KEY
-                );
-            }
+            const supabaseClient = window.supabaseClient || window.supabase?.createClient?.(
+                'https://atkekzwgukdvucqntryo.supabase.co',
+                'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF0a2VrendndWtkdnVjcW50cnlvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI4OTQwMjIsImV4cCI6MjA1ODQ3MDAyMn0.G4WqAmLvQSqYEfMWIpFOAZOYtnT0kxCxj8dVGhuUYO8'
+            );
             
             if (!supabaseClient) {
                 showAlert('Supabase client not available', 'error');
@@ -4152,17 +4118,9 @@
                 // Get Supabase client
                 let client = window.supabaseClient;
                 if (!client && window.supabase && window.supabase.createClient) {
-                    const SUPABASE_URL = window.ENV?.SUPABASE_URL || '';
-                    const SUPABASE_ANON_KEY = window.ENV?.SUPABASE_ANON_KEY || '';
-                    
-                    if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
-                        console.error('Supabase credentials not configured');
-                        throw new Error('Configuration error');
-                    }
-                    
                     client = window.supabase.createClient(
-                        SUPABASE_URL, 
-                        SUPABASE_ANON_KEY
+                        'https://atkekzwgukdvucqntryo.supabase.co', 
+                        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF0a2VrendndWtkdnVjcW50cnlvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI4OTQwMjIsImV4cCI6MjA1ODQ3MDAyMn0.G4WqAmLvQSqYEfMWIpFOAZOYtnT0kxCxj8dVGhuUYO8'
                     );
                 }
                 if (!client) throw new Error('Supabase client not available');

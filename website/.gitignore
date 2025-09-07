@@ -1,48 +1,32 @@
-# Environment files
-.env
-.env.local
-.env.production
-.env.*.local
+# Good practice even for private repos
+# Prevents accidental commits of unwanted files
 
-# Config with secrets
-core/config/supabase-config.js
-core/config/env-config.js
-core/config/supabase-original.js
-
-# OS generated files
+# Mac system files
 .DS_Store
+
+# Windows system files  
 Thumbs.db
+
+# Backup files
+*.backup
+**/*.backup
 
 # IDE files
 .vscode/
 .idea/
-*.swp
-*.swo
 
 # Logs
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# Dependencies
-node_modules/
-
-# Build output
-dist/
-build/
-
-# Temporary files
+*.log
 *.tmp
-*.temp
-.cache/
 
-# Backup files
-*.backup
-*.bak
-*~
+# Local development files
+update-pages.js
+P_LINES_ALIGNMENT_SUMMARY.md
 
-# Test files
-*.test.js
-*.spec.js
-test/
-tests/
+# Documentation (if not needed)
+docs/
+
+# Future: When you add environment files
+.env
+.env.local
+*.env

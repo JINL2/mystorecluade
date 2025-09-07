@@ -132,8 +132,8 @@ class _SalaryEditModalState extends ConsumerState<SalaryEditModal> {
                           return 'Please enter an amount';
                         }
                         final amount = double.tryParse(value);
-                        if (amount == null || amount <= 0) {
-                          return 'Please enter a valid amount';
+                        if (amount == null || amount < 0) {
+                          return 'Please enter a valid amount (0 or positive)';
                         }
                         return null;
                       },
