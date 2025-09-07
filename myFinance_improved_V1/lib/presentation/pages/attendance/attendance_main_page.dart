@@ -223,47 +223,39 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
     }
   }
   
-  // Fetch monthly shift status from Supabase RPC
+  // Fetch monthly shift status from Supabase RPC (Shows all employees' registrations)
   Future<void> fetchMonthlyShiftStatus() async {
     if (selectedStoreId == null || selectedStoreId!.isEmpty) return;
     
-    // Get user ID from auth provider
-    final user = ref.read(authStateProvider);
-    if (user == null) return;
-    
-    if (mounted) {
-      setState(() {
-        isLoadingShiftStatus = true;
-      });
-    }
+    setState(() {
+      isLoadingShiftStatus = true;
+    });
     
     try {
       // Format date as YYYY-MM-DD for the first day of the focused month
       final requestDate = '${focusedMonth.year}-${focusedMonth.month.toString().padLeft(2, '0')}-01';
       
+      // Call the manager RPC to get all employees' shift status for the store
       final response = await Supabase.instance.client.rpc(
-        'get_monthly_shift_status',
+        'get_monthly_shift_status_manager',
         params: {
-          'p_user_id': user.id,
           'p_store_id': selectedStoreId,
           'p_request_date': requestDate,
         },
       );
       
-      if (mounted) {
-        setState(() {
-          monthlyShiftStatus = response != null ? List<Map<String, dynamic>>.from(response) : [];
-          isLoadingShiftStatus = false;
-        });
-      }
+      setState(() {
+        monthlyShiftStatus = response != null 
+            ? List<Map<String, dynamic>>.from(response as List) 
+            : [];
+        isLoadingShiftStatus = false;
+      });
       
     } catch (e) {
-      if (mounted) {
-        setState(() {
-          isLoadingShiftStatus = false;
-          monthlyShiftStatus = null;
-        });
-      }
+      setState(() {
+        isLoadingShiftStatus = false;
+        monthlyShiftStatus = [];
+      });
     }
   }
   
@@ -396,6 +388,229 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
     setState(() {
       selectedShift = null;
       selectionMode = null;
+    });
+  }
+  
+  
+  // Optimistically update local shift status to prevent race condition
+  void _updateLocalShiftStatusOptimistically({
+    required String shiftId,
+    required String userId,
+    required String userName,
+    required String profileImage,
+    required String requestDate,
+  }) {
+    if (monthlyShiftStatus == null) {
+      monthlyShiftStatus = [];
+    }
+    
+    
+    // We don't have shift_request_id since we're not calling RPC after registration
+    // Set it to null for local state update
+    
+    // Find the existing shift data for this date
+    Map<String, dynamic>? existingDayData;
+    int existingIndex = -1;
+    
+    for (int i = 0; i < monthlyShiftStatus!.length; i++) {
+      if (monthlyShiftStatus![i]['request_date'] == requestDate) {
+        existingDayData = monthlyShiftStatus![i];
+        existingIndex = i;
+        break;
+      }
+    }
+    
+    // Create new employee entry for optimistic update
+    final newEmployee = {
+      'user_id': userId,
+      'user_name': userName,
+      'profile_image': profileImage,
+      'is_approved': false, // New registrations start as not approved
+      'shift_request_id': null, // Set to null since we don't have it from RPC
+    };
+    
+    if (existingDayData != null && existingIndex != -1) {
+      // Update existing day data
+      var shifts = existingDayData['shifts'] as List<dynamic>?;
+      if (shifts == null) {
+        shifts = [];
+        existingDayData['shifts'] = shifts;
+      }
+      
+      // Find the specific shift
+      bool shiftFound = false;
+      for (var shift in shifts) {
+        if (shift['shift_id'].toString() == shiftId) {
+          shiftFound = true;
+          // Add to pending_employees list
+          var pendingEmployees = shift['pending_employees'] as List<dynamic>? ?? [];
+          
+          // Check if user is not already registered
+          bool alreadyRegistered = false;
+          for (var emp in pendingEmployees) {
+            if (emp['user_id'] == userId) {
+              alreadyRegistered = true;
+              break;
+            }
+          }
+          
+          // Also check approved employees
+          var approvedEmployees = shift['approved_employees'] as List<dynamic>? ?? [];
+          for (var emp in approvedEmployees) {
+            if (emp['user_id'] == userId) {
+              alreadyRegistered = true;
+              break;
+            }
+          }
+          
+          if (!alreadyRegistered) {
+            pendingEmployees.add(newEmployee);
+            shift['pending_employees'] = pendingEmployees;
+            
+            // Update the total_pending count for the day
+            existingDayData['total_pending'] = (existingDayData['total_pending'] ?? 0) + 1;
+          } else {
+          }
+          break;
+        }
+      }
+      
+      // If shift doesn't exist in this day, create it
+      if (!shiftFound) {
+        // Get shift metadata to properly create the shift structure
+        final allStoreShifts = _getAllStoreShifts();
+        
+        Map<String, dynamic>? shiftMetadata;
+        for (final storeShift in allStoreShifts) {
+          final storeShiftId = (storeShift['shift_id'] ?? storeShift['id'] ?? storeShift['store_shift_id'])?.toString();
+          if (storeShiftId == shiftId) {
+            shiftMetadata = storeShift;
+            break;
+          }
+        }
+        
+        if (shiftMetadata == null) {
+        }
+        
+        final newShift = {
+          'shift_id': shiftId,
+          'shift_name': shiftMetadata?['shift_name'] ?? shiftMetadata?['name'] ?? 'Unknown Shift',
+          'start_time': shiftMetadata?['start_time'] ?? '00:00:00',
+          'end_time': shiftMetadata?['end_time'] ?? '00:00:00',
+          'pending_employees': [newEmployee],
+          'approved_employees': [],
+        };
+        shifts.add(newShift);
+        
+        // Update the total_pending count for the day
+        existingDayData['total_pending'] = (existingDayData['total_pending'] ?? 0) + 1;
+      }
+    } else {
+      // Create new day data if it doesn't exist
+      // Get shift metadata to properly create the shift structure
+      final allStoreShifts = _getAllStoreShifts();
+      
+      Map<String, dynamic>? shiftMetadata;
+      for (final storeShift in allStoreShifts) {
+        final storeShiftId = (storeShift['shift_id'] ?? storeShift['id'] ?? storeShift['store_shift_id'])?.toString();
+        if (storeShiftId == shiftId) {
+          shiftMetadata = storeShift;
+          break;
+        }
+      }
+      
+      if (shiftMetadata == null) {
+      }
+      
+      final newDayData = {
+        'request_date': requestDate,
+        'total_pending': 1, // Starting with 1 pending employee
+        'total_approved': 0,
+        'shifts': [
+          {
+            'shift_id': shiftId,
+            'shift_name': shiftMetadata?['shift_name'] ?? shiftMetadata?['name'] ?? 'Unknown Shift',
+            'start_time': shiftMetadata?['start_time'] ?? '00:00:00',
+            'end_time': shiftMetadata?['end_time'] ?? '00:00:00',
+            'pending_employees': [newEmployee],
+            'approved_employees': [],
+          }
+        ],
+      };
+      monthlyShiftStatus!.add(newDayData);
+    }
+    
+    // Trigger UI update
+    setState(() {
+      // Force a new list to trigger rebuild
+      monthlyShiftStatus = List<Map<String, dynamic>>.from(monthlyShiftStatus!);
+    });
+    
+    
+  }
+  
+  // Optimistically remove user from local shift status to prevent race condition on cancellation
+  void _removeFromLocalShiftStatusOptimistically({
+    required String shiftId,
+    required String userId,
+    required String requestDate,
+  }) {
+    if (monthlyShiftStatus == null || monthlyShiftStatus!.isEmpty) return;
+    
+    
+    // Find the existing shift data for this date
+    for (int dayIndex = 0; dayIndex < monthlyShiftStatus!.length; dayIndex++) {
+      if (monthlyShiftStatus![dayIndex]['request_date'] == requestDate) {
+        final dayData = monthlyShiftStatus![dayIndex];
+        final shifts = dayData['shifts'] as List<dynamic>?;
+        
+        bool removedFromPending = false;
+        bool removedFromApproved = false;
+        
+        if (shifts != null) {
+          // Find the specific shift and remove the employee
+          for (var shift in shifts) {
+            if (shift['shift_id'].toString() == shiftId) {
+              // Remove from pending_employees list
+              var pendingEmployees = shift['pending_employees'] as List<dynamic>? ?? [];
+              int pendingCountBefore = pendingEmployees.length;
+              pendingEmployees.removeWhere((emp) => emp['user_id'] == userId);
+              shift['pending_employees'] = pendingEmployees;
+              if (pendingCountBefore > pendingEmployees.length) {
+                removedFromPending = true;
+              }
+              
+              // Remove from approved_employees list
+              var approvedEmployees = shift['approved_employees'] as List<dynamic>? ?? [];
+              int approvedCountBefore = approvedEmployees.length;
+              approvedEmployees.removeWhere((emp) => emp['user_id'] == userId);
+              shift['approved_employees'] = approvedEmployees;
+              if (approvedCountBefore > approvedEmployees.length) {
+                removedFromApproved = true;
+              }
+              
+              break;
+            }
+          }
+        }
+        
+        // Update the total counts for the day
+        if (removedFromPending) {
+          dayData['total_pending'] = (dayData['total_pending'] ?? 1) - 1;
+        }
+        if (removedFromApproved) {
+          dayData['total_approved'] = (dayData['total_approved'] ?? 1) - 1;
+        }
+        
+        break;
+      }
+    }
+    
+    
+    // Trigger UI update
+    setState(() {
+      // Force a new list to trigger rebuild
+      monthlyShiftStatus = List<Map<String, dynamic>>.from(monthlyShiftStatus!);
     });
   }
   
@@ -532,43 +747,110 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
   
   // Handle cancel shifts
   Future<void> _handleCancelShifts() async {
-    if (selectedShift == null) return;
+    
+    if (selectedShift == null) {
+      return;
+    }
     
     // Get the selected shift details
     final allStoreShifts = _getAllStoreShifts();
     Map<String, dynamic>? selectedShiftDetail;
     
     // Get user's shift data for the selected date
-    final userShiftsForDate = monthlyShiftStatus?.where((shift) {
-      final shiftDate = shift['shift_date'] ?? shift['request_date'];
-      final dateStr = '${selectedDate.year}-${selectedDate.month.toString().padLeft(2, '0')}-${selectedDate.day.toString().padLeft(2, '0')}';
-      return shiftDate == dateStr;
-    }).toList() ?? [];
+    final dateStr = '${selectedDate.year}-${selectedDate.month.toString().padLeft(2, '0')}-${selectedDate.day.toString().padLeft(2, '0')}';
     
-    // Find the selected shift details
+    // monthlyShiftStatus contains days with nested shifts and employee arrays
+    // We need to find the day data first, then look for the user in the shift's employee arrays
+    final dayData = monthlyShiftStatus?.firstWhere(
+      (day) => day['request_date'] == dateStr,
+      orElse: () => <String, dynamic>{},
+    );
+    
+    if (dayData != null && dayData.isNotEmpty) {
+    } else {
+    }
+    
+    // Extract user's shift information from the nested structure
+    final user = ref.read(authStateProvider);
+    Map<String, dynamic>? userShiftData;
+    
+    if (dayData != null && dayData.isNotEmpty && user != null) {
+      final shifts = dayData['shifts'] as List? ?? [];
+      
+      // Look ONLY for the SELECTED shift, not all shifts
+      for (final shift in shifts) {
+        final shiftId = shift['shift_id']?.toString() ?? '';
+        
+        // IMPORTANT: Only check the shift that matches the selected shift
+        if (shiftId != selectedShift) {
+          continue;
+        }
+        
+        
+        // Check pending employees for THIS specific shift
+        final pendingEmployees = shift['pending_employees'] as List? ?? [];
+        for (final emp in pendingEmployees) {
+          if (emp['user_id'] == user.id) {
+            userShiftData = {
+              'shift_id': shiftId,
+              'shift_request_id': emp['shift_request_id'],
+              'is_approved': false,
+              'shift_type': shift['shift_name'] ?? shift['shift_type'],
+            };
+            break;
+          }
+        }
+        
+        // Check approved employees if not found in pending
+        if (userShiftData == null) {
+          final approvedEmployees = shift['approved_employees'] as List? ?? [];
+          for (final emp in approvedEmployees) {
+            if (emp['user_id'] == user.id) {
+              userShiftData = {
+                'shift_id': shiftId,
+                'shift_request_id': emp['shift_request_id'],
+                'is_approved': true,
+                'shift_type': shift['shift_name'] ?? shift['shift_type'],
+              };
+              break;
+            }
+          }
+        }
+        
+        // We found (or didn't find) the user in the selected shift, so we're done
+        break;
+      }
+    }
+    
+    
+    // Find the selected shift details from store shifts
     for (final shift in allStoreShifts) {
       final shiftId = shift['shift_id'] ?? shift['id'] ?? shift['store_shift_id'];
+      
       if (shiftId?.toString() == selectedShift) {
-        // Find the corresponding user shift
-        final userShift = userShiftsForDate.firstWhere(
-          (us) => (us['shift_id']?.toString() == selectedShift || 
-                   us['store_shift_id']?.toString() == selectedShift ||
-                   us['shift_type'] == (shift['shift_name'] ?? shift['name'] ?? shift['shift_type'])),
-          orElse: () => <String, dynamic>{},
-        );
         
-        if (userShift.isNotEmpty) {
+        // If we found user data for this shift, use it
+        if (userShiftData != null) {
           selectedShiftDetail = {
             ...shift,
-            'shift_request_id': userShift['shift_request_id'],
-            'is_approved': userShift['is_approved'] ?? false,
+            'shift_request_id': userShiftData['shift_request_id'],
+            'is_approved': userShiftData['is_approved'] ?? false,
           };
+        } else {
         }
         break;
       }
     }
     
-    if (selectedShiftDetail == null) return;
+    if (selectedShiftDetail == null) {
+      
+      // Show alert if user hasn't registered for this shift
+      if (userShiftData == null) {
+        _showNotRegisteredAlert();
+      }
+      return;
+    }
+    
     
     // Check if the shift is approved
     if (selectedShiftDetail['is_approved'] == true) {
@@ -750,9 +1032,10 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
                             final user = ref.read(authStateProvider);
                             if (user == null) return;
                             
+                            
                             try {
                               // Call RPC function to register shift
-                              await Supabase.instance.client.rpc(
+                              final response = await Supabase.instance.client.rpc(
                                 'insert_shift_request_v2',
                                 params: {
                                   'p_user_id': user.id,
@@ -762,14 +1045,52 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
                                 },
                               );
                               
-                              // Immediately refresh the shift status after successful registration
-                              await fetchMonthlyShiftStatus();
+                              
+                              // Optimistic UI update: immediately update local state
+                              // This prevents the race condition where fetch happens before DB commit
+                              
+                              // Get user data from app state for more accurate information
+                              final appState = ref.read(appStateProvider);
+                              final userData = appState.user as Map<String, dynamic>? ?? {};
+                              
+                              // Use app state data first, fallback to auth metadata
+                              final firstName = userData['user_first_name'] ?? '';
+                              final lastName = userData['user_last_name'] ?? '';
+                              final fullName = '$firstName $lastName'.trim();
+                              
+                              final userName = fullName.isNotEmpty 
+                                             ? fullName
+                                             : (user.userMetadata?['full_name'] as String?) ?? 
+                                               (user.userMetadata?['name'] as String?) ?? 
+                                               user.email?.split('@')[0] ?? 
+                                               'Unknown';
+                              
+                              // Get profile image from app state
+                              final profileImage = userData['profile_image'] ?? 
+                                                 (user.userMetadata?['avatar_url'] as String?) ?? 
+                                                 '';
+                              
+                              
+                              _updateLocalShiftStatusOptimistically(
+                                shiftId: selectedShift!,
+                                userId: user.id,
+                                userName: userName,
+                                profileImage: profileImage,
+                                requestDate: dateStr,
+                              );
+                              
                               _resetSelections();
                               
-                              // Force UI update to show the new status
+                              // Force immediate UI update with local state changes
+                              // NO RPC CALL - just use the updated local state
                               if (mounted) {
-                                setState(() {});
+                                setState(() {
+                                  // The UI will now reflect the changes made by _updateLocalShiftStatusOptimistically
+                                });
                               }
+                              
+                              // REMOVED: No more fetchMonthlyShiftStatus() call
+                              // The local state is already updated, no need to fetch from server
                               
                               // Show success message
                               if (mounted) {
@@ -1054,6 +1375,110 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
     );
   }
   
+  // Show alert for shifts not registered by user
+  void _showNotRegisteredAlert() {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (BuildContext context) {
+        return Dialog(
+          backgroundColor: TossColors.transparent,
+          child: Container(
+            decoration: BoxDecoration(
+              color: TossColors.white,
+              borderRadius: BorderRadius.circular(TossBorderRadius.xxl),
+              boxShadow: [
+                BoxShadow(
+                  color: TossColors.black.withOpacity(0.1),
+                  blurRadius: 20,
+                  offset: const Offset(0, 10),
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Icon and Title Section
+                Container(
+                  padding: const EdgeInsets.all(TossSpacing.space5),
+                  child: Column(
+                    children: [
+                      Container(
+                        width: 56,
+                        height: 56,
+                        decoration: BoxDecoration(
+                          color: TossColors.warning.withOpacity(0.1),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.info_outline,
+                          color: TossColors.warning,
+                          size: 28,
+                        ),
+                      ),
+                      const SizedBox(height: TossSpacing.space4),
+                      Text(
+                        'Not Registered',
+                        style: TossTextStyles.h3.copyWith(
+                          color: TossColors.gray900,
+                          fontWeight: FontWeight.w700,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: TossSpacing.space3),
+                      Text(
+                        'You have not registered for this shift.\nYou can only cancel shifts you have registered for.',
+                        style: TossTextStyles.body.copyWith(
+                          color: TossColors.gray600,
+                          height: 1.5,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
+                ),
+                
+                // OK Button
+                InkWell(
+                  onTap: () {
+                    HapticFeedback.selectionClick();
+                    Navigator.of(context).pop();
+                  },
+                  borderRadius: const BorderRadius.only(
+                    bottomLeft: Radius.circular(20),
+                    bottomRight: Radius.circular(20),
+                  ),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      vertical: TossSpacing.space4,
+                    ),
+                    decoration: const BoxDecoration(
+                      border: Border(
+                        top: BorderSide(
+                          color: TossColors.gray200,
+                          width: 1,
+                        ),
+                      ),
+                    ),
+                    child: Center(
+                      child: Text(
+                        'OK',
+                        style: TossTextStyles.bodyLarge.copyWith(
+                          color: TossColors.primary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+  
   // Show alert for approved shifts
   void _showApprovedShiftAlert() {
     showDialog(
@@ -1298,6 +1723,13 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
   // Cancel shifts in Supabase
   Future<void> _cancelShifts(List<Map<String, dynamic>> shiftsToCancel) async {
     try {
+      // Get current user
+      final user = ref.read(authStateProvider);
+      if (user == null) {
+        return;
+      }
+      
+      
       // Show loading indicator
       showDialog(
         context: context,
@@ -1309,23 +1741,51 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
       
       // Cancel each shift
       for (final shift in shiftsToCancel) {
-        final shiftRequestId = shift['shift_request_id'];
-        if (shiftRequestId != null) {
-          await Supabase.instance.client
+        // Get shift_id and prepare request_date
+        final shiftId = shift['shift_id']?.toString() ?? 
+                       shift['id']?.toString() ?? 
+                       shift['store_shift_id']?.toString() ?? '';
+        final dateStr = '${selectedDate.year}-${selectedDate.month.toString().padLeft(2, '0')}-${selectedDate.day.toString().padLeft(2, '0')}';
+        
+        
+        if (shiftId.isNotEmpty) {
+          
+          // Delete using the three-column filter approach
+          // This uniquely identifies the row without needing shift_request_id
+          final response = await Supabase.instance.client
               .from('shift_requests')
               .delete()
-              .eq('shift_request_id', shiftRequestId);
+              .eq('user_id', user.id)
+              .eq('shift_id', shiftId)
+              .eq('request_date', dateStr);
+          
+          
+          // Optimistic UI update: immediately remove from local state
+          // This prevents the race condition where fetch happens before DB commit
+          _removeFromLocalShiftStatusOptimistically(
+            shiftId: shiftId,
+            userId: user.id,
+            requestDate: dateStr,
+          );
         }
       }
       
       // Close loading indicator
       if (mounted) Navigator.of(context).pop();
       
-      // Refresh the shift status
-      await fetchMonthlyShiftStatus();
-      
-      // Reset selections
+      // Reset selections first
       _resetSelections();
+      
+      // Force immediate UI update with local state changes
+      // NO RPC CALL - just use the updated local state
+      if (mounted) {
+        setState(() {
+          // The UI will now reflect the changes made by _removeFromLocalShiftStatusOptimistically
+        });
+      }
+      
+      // REMOVED: No more fetchMonthlyShiftStatus() call
+      // The local state is already updated, no need to fetch from server
       
       // Show success message
       if (mounted) {
@@ -1679,6 +2139,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
                     _handleCancelShifts();
                   } else if (selectionMode == 'unregistered' && selectedShift != null) {
                     _handleRegisterShift();
+                  } else {
                   }
                 } : null,
                 borderRadius: BorderRadius.circular(TossBorderRadius.xl),
@@ -1758,7 +2219,9 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
       final isWeekend = date.weekday >= 6;
       final hasShift = _hasShiftOnDate(date);
       final shiftData = _getShiftForDate(date);
-      final isApproved = shiftData?['is_approved'] ?? false;
+      // For manager view, check if there are any approved shifts
+      final hasApprovedShifts = shiftData != null && ((shiftData['total_approved'] ?? 0) as int) > 0;
+      final hasPendingShifts = shiftData != null && ((shiftData['total_pending'] ?? 0) as int) > 0;
       final isPast = date.isBefore(DateTime.now().subtract(const Duration(days: 1)));
       
       calendarDays.add(
@@ -1810,9 +2273,11 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
                         decoration: BoxDecoration(
                           color: isSelected
                               ? TossColors.white
-                              : isApproved
-                                  ? TossColors.success
-                                  : TossColors.warning,
+                              : hasApprovedShifts
+                                  ? TossColors.success  // Green for approved
+                                  : hasPendingShifts
+                                      ? TossColors.error  // Red for pending only
+                                      : TossColors.gray400,  // Gray if no registrations
                           shape: BoxShape.circle,
                         ),
                       ),
@@ -1989,25 +2454,23 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
   bool _hasShiftOnDate(DateTime date) {
     if (monthlyShiftStatus == null || monthlyShiftStatus!.isEmpty) return false;
     
-    // Check if user has a registered shift for this date
+    // Check if there are any shifts registered for this date (for any employee)
     final dateStr = '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
-    return monthlyShiftStatus!.any((shift) {
-      final shiftDate = shift['shift_date'] ?? shift['request_date'];
-      return shiftDate == dateStr;
+    return monthlyShiftStatus!.any((dayData) {
+      return dayData['request_date'] == dateStr && 
+             (((dayData['total_approved'] ?? 0) as int) > 0 || 
+              ((dayData['total_pending'] ?? 0) as int) > 0);
     });
   }
   
-  // Get shift details for a specific date
+  // Get shift details for a specific date (returns the day's data with all employees)
   Map<String, dynamic>? _getShiftForDate(DateTime date) {
     if (monthlyShiftStatus == null || monthlyShiftStatus!.isEmpty) return null;
     
     final dateStr = '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
     try {
       return monthlyShiftStatus!.firstWhere(
-        (shift) {
-          final shiftDate = shift['shift_date'] ?? shift['request_date'];
-          return shiftDate == dateStr;
-        },
+        (dayData) => dayData['request_date'] == dateStr,
       );
     } catch (e) {
       return null;
@@ -2169,41 +2632,116 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
               final startTime = shift['start_time'] ?? shift['shift_start_time'] ?? shift['default_start_time'] ?? '--:--';
               final endTime = shift['end_time'] ?? shift['shift_end_time'] ?? shift['default_end_time'] ?? '--:--';
               
-              // Check registration status
-              final userShiftForDate = _getShiftForDate(selectedDate);
-              final isRegisteredForThisShift = userShiftForDate != null && 
-                  (userShiftForDate['shift_id'] == shiftId || 
-                   userShiftForDate['store_shift_id'] == shiftId ||
-                   userShiftForDate['shift_type'] == shiftName);
-              final isApproved = isRegisteredForThisShift && (userShiftForDate['is_approved'] ?? false);
+              // Get employees for this shift from monthlyShiftStatus
+              List<Map<String, dynamic>> pendingEmployees = [];
+              List<Map<String, dynamic>> approvedEmployees = [];
+              
+              // Find employees for this shift on the selected date
+              final dateStr = '${selectedDate.year}-${selectedDate.month.toString().padLeft(2, '0')}-${selectedDate.day.toString().padLeft(2, '0')}';
+              
+              if (monthlyShiftStatus != null && monthlyShiftStatus!.isNotEmpty) {
+                // Find the data for the selected date
+                bool foundDate = false;
+                for (final dayData in monthlyShiftStatus!) {
+                  if (dayData['request_date'] == dateStr) {
+                    foundDate = true;
+                    final shifts = dayData['shifts'] as List? ?? [];
+                    
+                    // Find the matching shift by ID
+                    for (final shiftData in shifts) {
+                      // Compare shift IDs as strings to avoid type issues
+                      if (shiftData['shift_id'].toString() == shiftId.toString()) {
+                        // Extract pending employees
+                        if (shiftData['pending_employees'] != null) {
+                          final pending = shiftData['pending_employees'] as List;
+                          pendingEmployees = List<Map<String, dynamic>>.from(
+                            pending.map((e) => Map<String, dynamic>.from(e as Map))
+                          );
+                        }
+                        
+                        // Extract approved employees
+                        if (shiftData['approved_employees'] != null) {
+                          final approved = shiftData['approved_employees'] as List;
+                          approvedEmployees = List<Map<String, dynamic>>.from(
+                            approved.map((e) => Map<String, dynamic>.from(e as Map))
+                          );
+                        }
+                        break;
+                      }
+                    }
+                    break;
+                  }
+                }
+                if (!foundDate) {
+                }
+              } else {
+              }
+              
+              // Check if the current user has registered for this shift
+              final user = ref.read(authStateProvider);
+              bool userHasRegistered = false;
+              bool userRegistrationIsPending = false; // Track if user's registration is pending
+              
+              if (user != null) {
+                // Check in pending employees
+                for (final emp in pendingEmployees) {
+                  if (emp['user_id'] == user.id) {
+                    userHasRegistered = true;
+                    userRegistrationIsPending = true; // User is in pending list
+                    break;
+                  }
+                }
+                
+                // Check in approved employees if not found in pending
+                if (!userHasRegistered) {
+                  for (final emp in approvedEmployees) {
+                    if (emp['user_id'] == user.id) {
+                      userHasRegistered = true;
+                      userRegistrationIsPending = false; // User is in approved list
+                      break;
+                    }
+                  }
+                }
+                
+                if (!userHasRegistered && (pendingEmployees.isNotEmpty || approvedEmployees.isNotEmpty)) {
+                }
+              }
+              
+              // Use the full employee lists (including current user)
+              final displayPendingEmployees = pendingEmployees;
+              final displayApprovedEmployees = approvedEmployees;
+              
+              // Check if any employees are registered for this shift (for display purposes)
+              final hasAnyRegistrations = pendingEmployees.isNotEmpty || approvedEmployees.isNotEmpty;
+              final hasPendingEmployees = pendingEmployees.isNotEmpty;
               final isSelected = selectedShift == shiftIdStr;
               
               return GestureDetector(
-                onTap: () => _handleShiftClick(shiftIdStr, isRegisteredForThisShift),
+                onTap: () => _handleShiftClick(shiftIdStr, userHasRegistered),
                 child: Container(
                     margin: const EdgeInsets.only(bottom: TossSpacing.space3),
                     padding: const EdgeInsets.all(TossSpacing.space4),
                     decoration: BoxDecoration(
                       color: isSelected 
-                        ? (isRegisteredForThisShift 
-                            ? (isApproved 
-                                ? TossColors.primary.withOpacity(0.08)
-                                : TossColors.primary.withOpacity(0.08))
-                            : TossColors.primary.withOpacity(0.08))
-                        : (isRegisteredForThisShift 
-                            ? (isApproved 
-                                ? TossColors.success.withOpacity(0.05)
-                                : TossColors.warning.withOpacity(0.05))
-                            : TossColors.background),
+                        ? TossColors.primary.withOpacity(0.08)
+                        : (userRegistrationIsPending
+                            ? TossColors.warning.withOpacity(0.08)  // Orange/yellow background when user's registration is pending
+                            : (userHasRegistered && !userRegistrationIsPending
+                                ? TossColors.success.withOpacity(0.08)  // Green background when user's registration is approved
+                                : (hasAnyRegistrations 
+                                    ? TossColors.gray50
+                                    : TossColors.background))),
                       borderRadius: BorderRadius.circular(TossBorderRadius.xl),
                       border: Border.all(
                         color: isSelected
                           ? TossColors.primary
-                          : (isRegisteredForThisShift 
-                              ? (isApproved 
-                                  ? TossColors.success.withOpacity(0.3)
-                                  : TossColors.warning.withOpacity(0.3))
-                              : TossColors.gray200),
+                          : (userRegistrationIsPending
+                              ? TossColors.warning.withOpacity(0.3)  // Orange/yellow border when user's registration is pending
+                              : (userHasRegistered && !userRegistrationIsPending
+                                  ? TossColors.success.withOpacity(0.3)  // Green border when user's registration is approved
+                                  : (hasAnyRegistrations 
+                                      ? TossColors.gray300
+                                      : TossColors.gray200))),
                         width: isSelected ? 1.5 : 1,
                       ),
                     ),
@@ -2244,21 +2782,21 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
                               width: 32,
                               height: 32,
                               decoration: BoxDecoration(
-                                color: TossColors.gray100,
+                                color: Colors.transparent,  // Make background transparent to show parent color
                                 borderRadius: BorderRadius.circular(TossBorderRadius.md),
                               ),
                               child: Icon(
                                 Icons.access_time,
                                 size: 18,
-                                color: isRegisteredForThisShift 
-                                  ? (isApproved ? TossColors.success : TossColors.warning)
+                                color: hasAnyRegistrations 
+                                  ? TossColors.primary
                                   : TossColors.gray600,
                               ),
                             ),
                             const SizedBox(width: TossSpacing.space3),
                             Expanded(
                               child: Text(
-                                shiftName,
+                                shiftName.toString(),
                                 style: TossTextStyles.body.copyWith(
                                   color: TossColors.gray900,
                                   fontWeight: FontWeight.w600,
@@ -2266,22 +2804,33 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ),
-                            if (isRegisteredForThisShift) ...[
+                            // Show employee count if there are registrations
+                            if (hasAnyRegistrations) ...[
                               Container(
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: TossSpacing.space2,
                                   vertical: 4,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: isApproved 
-                                    ? TossColors.success
-                                    : TossColors.warning,
+                                  color: userHasRegistered && !userRegistrationIsPending
+                                    ? TossColors.success.withOpacity(0.1)  // Light green background for approved
+                                    : userRegistrationIsPending
+                                      ? TossColors.warning.withOpacity(0.1)  // Light orange background for pending
+                                      : TossColors.gray100,  // Default gray background
                                   borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                                 ),
                                 child: Text(
-                                  isApproved ? 'Approved' : 'Pending',
+                                  userHasRegistered && !userRegistrationIsPending
+                                    ? 'Approved'  // Show "Approved" when user's registration is approved
+                                    : userRegistrationIsPending
+                                      ? 'Pending'  // Show "Pending" when user's registration is pending
+                                      : '${approvedEmployees.length + pendingEmployees.length} registered',  // Show count when user not registered
                                   style: TossTextStyles.caption.copyWith(
-                                    color: TossColors.white,
+                                    color: userHasRegistered && !userRegistrationIsPending
+                                      ? TossColors.success  // Green text for approved
+                                      : userRegistrationIsPending
+                                        ? TossColors.warning  // Orange text for pending
+                                        : TossColors.gray700,  // Default gray for count
                                     fontWeight: FontWeight.w600,
                                     fontSize: 10,
                                   ),
@@ -2298,7 +2847,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
                         vertical: TossSpacing.space2,
                       ),
                       decoration: BoxDecoration(
-                        color: TossColors.gray50,
+                        color: Colors.transparent,  // Make background transparent to show parent color
                         borderRadius: BorderRadius.circular(TossBorderRadius.md),
                       ),
                       child: Row(
@@ -2320,10 +2869,194 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
                         ],
                       ),
                     ),
-                    if (!isRegisteredForThisShift && !isSelected) ...[
+                    // Show registered employees for this shift
+                    if (approvedEmployees.isNotEmpty || pendingEmployees.isNotEmpty) ...[
+                      const SizedBox(height: TossSpacing.space3),
+                      Container(
+                        padding: const EdgeInsets.all(TossSpacing.space2),
+                        decoration: BoxDecoration(
+                          color: Colors.transparent,  // Make background transparent to show parent color
+                          borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Approved employees
+                            if (displayApprovedEmployees.isNotEmpty) ...[
+                              ...displayApprovedEmployees.map((employee) => Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 4),
+                                child: Row(
+                                  children: [
+                                    // Status dot
+                                    Container(
+                                      width: 8,
+                                      height: 8,
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        color: TossColors.success,
+                                      ),
+                                    ),
+                                    const SizedBox(width: TossSpacing.space2),
+                                    // Profile image
+                                    ClipOval(
+                                      child: Container(
+                                        width: 24,
+                                        height: 24,
+                                        decoration: BoxDecoration(
+                                          color: Colors.transparent,  // Make transparent to show parent color
+                                          border: Border.all(
+                                            color: TossColors.white,
+                                            width: 1.5,
+                                          ),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: TossColors.black.withOpacity(0.1),
+                                              blurRadius: 2,
+                                              offset: const Offset(0, 1),
+                                            ),
+                                          ],
+                                        ),
+                                        child: employee['profile_image'] != null && 
+                                               employee['profile_image'].toString().isNotEmpty
+                                          ? Image.network(
+                                              employee['profile_image'].toString(),
+                                              fit: BoxFit.cover,
+                                              errorBuilder: (context, error, stackTrace) {
+                                                return Center(
+                                                  child: Icon(
+                                                    Icons.person,
+                                                    size: 14,
+                                                    color: TossColors.gray500,
+                                                  ),
+                                                );
+                                              },
+                                            )
+                                          : Center(
+                                              child: Icon(
+                                                Icons.person,
+                                                size: 14,
+                                                color: TossColors.gray500,
+                                              ),
+                                            ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: TossSpacing.space2),
+                                    // Name
+                                    Expanded(
+                                      child: Text(
+                                        (employee['user_name'] ?? 'Unknown').toString(),
+                                        style: TossTextStyles.caption.copyWith(
+                                          color: TossColors.gray700,
+                                          fontSize: 12,
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                    // Approval status
+                                    Text(
+                                      'Approved',
+                                      style: TossTextStyles.caption.copyWith(
+                                        color: TossColors.success,
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              )).toList(),
+                            ],
+                            // Pending employees
+                            if (displayPendingEmployees.isNotEmpty) ...[
+                              ...displayPendingEmployees.map((employee) => Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 4),
+                                child: Row(
+                                  children: [
+                                    // Status dot
+                                    Container(
+                                      width: 8,
+                                      height: 8,
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        color: TossColors.error,
+                                      ),
+                                    ),
+                                    const SizedBox(width: TossSpacing.space2),
+                                    // Profile image
+                                    ClipOval(
+                                      child: Container(
+                                        width: 24,
+                                        height: 24,
+                                        decoration: BoxDecoration(
+                                          color: Colors.transparent,  // Make transparent to show parent color
+                                          border: Border.all(
+                                            color: TossColors.white,
+                                            width: 1.5,
+                                          ),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: TossColors.black.withOpacity(0.1),
+                                              blurRadius: 2,
+                                              offset: const Offset(0, 1),
+                                            ),
+                                          ],
+                                        ),
+                                        child: employee['profile_image'] != null && 
+                                               employee['profile_image'].toString().isNotEmpty
+                                          ? Image.network(
+                                              employee['profile_image'].toString(),
+                                              fit: BoxFit.cover,
+                                              errorBuilder: (context, error, stackTrace) {
+                                                return Center(
+                                                  child: Icon(
+                                                    Icons.person,
+                                                    size: 14,
+                                                    color: TossColors.gray500,
+                                                  ),
+                                                );
+                                              },
+                                            )
+                                          : Center(
+                                              child: Icon(
+                                                Icons.person,
+                                                size: 14,
+                                                color: TossColors.gray500,
+                                              ),
+                                            ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: TossSpacing.space2),
+                                    // Name
+                                    Expanded(
+                                      child: Text(
+                                        (employee['user_name'] ?? 'Unknown').toString(),
+                                        style: TossTextStyles.caption.copyWith(
+                                          color: TossColors.gray700,
+                                          fontSize: 12,
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                    // Approval status
+                                    Text(
+                                      'Pending',
+                                      style: TossTextStyles.caption.copyWith(
+                                        color: TossColors.error,
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              )).toList(),
+                            ],
+                          ],
+                        ),
+                      ),
+                    ],
+                    if (displayPendingEmployees.isEmpty && displayApprovedEmployees.isEmpty && !isSelected) ...[
                       const SizedBox(height: TossSpacing.space3),
                       Text(
-                        'Tap to select for ${selectedDate.day} ${_getMonthName(selectedDate.month)}',
+                        'No employees registered for this shift',
                         style: TossTextStyles.caption.copyWith(
                           color: TossColors.gray500,
                         ),
@@ -2890,6 +3623,69 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
         errorMessage = 'Error loading data: ${e.toString()}';
       });
     }
+  }
+  
+  // Update local state after QR scan (check-in/out)
+  void _updateLocalStateAfterQRScan(Map<String, dynamic> scanResult) {
+    final requestDate = scanResult['request_date'] ?? '';
+    final action = scanResult['action'] ?? '';
+    final timestamp = scanResult['timestamp'] ?? DateTime.now().toIso8601String();
+    
+    
+    // Find the existing shift card for today's date
+    final existingCardIndex = allShiftCardsData.indexWhere((card) {
+      return card['request_date'] == requestDate;
+    });
+    
+    if (existingCardIndex != -1) {
+      // Update existing card
+      final existingCard = allShiftCardsData[existingCardIndex];
+      
+      if (action == 'check_in') {
+        // Update check-in time
+        existingCard['actual_start_time'] = timestamp;
+        existingCard['confirm_start_time'] = timestamp;
+        
+        // Clear check-out time if exists (for re-check-in scenarios)
+        existingCard['actual_end_time'] = null;
+        existingCard['confirm_end_time'] = null;
+      } else if (action == 'check_out') {
+        // Update check-out time
+        existingCard['actual_end_time'] = timestamp;
+        existingCard['confirm_end_time'] = timestamp;
+      }
+      
+      // Update the card in the list
+      allShiftCardsData[existingCardIndex] = existingCard;
+    } else {
+      // Create new card if it doesn't exist (shouldn't happen normally)
+      final newCard = {
+        'request_date': requestDate,
+        'shift_request_id': scanResult['shift_request_id'] ?? '',
+        'shift_name': scanResult['shift_name'] ?? 'Shift',
+        'shift_start_time': scanResult['shift_start_time'] ?? '09:00:00',
+        'shift_end_time': scanResult['shift_end_time'] ?? '18:00:00',
+        'is_approved': true,
+        'actual_start_time': action == 'check_in' ? timestamp : null,
+        'confirm_start_time': action == 'check_in' ? timestamp : null,
+        'actual_end_time': action == 'check_out' ? timestamp : null,
+        'confirm_end_time': action == 'check_out' ? timestamp : null,
+      };
+      
+      allShiftCardsData.add(newCard);
+    }
+    
+    // Update monthly overview stats if needed
+    _updateMonthlyOverviewStats(scanResult);
+  }
+  
+  // Update monthly overview statistics after QR scan
+  void _updateMonthlyOverviewStats(Map<String, dynamic> scanResult) {
+    // This can be expanded to update:
+    // - Total hours worked
+    // - Overtime calculations
+    // - Late deductions
+    // - etc.
   }
   
   
@@ -3626,34 +4422,15 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                       ),
                     );
                     
-                    // If successfully checked in/out, refresh the data
-                    if (result == true) {
-                      // Show loading indicator while refreshing
-                      setState(() {
-                        isLoading = true;
-                      });
+                    // If successfully checked in/out, update local state
+                    if (result != null && result is Map<String, dynamic>) {
+                      // Update local state instead of calling RPC
+                      _updateLocalStateAfterQRScan(result);
                       
-                      // Clear cache for current month to force fresh data fetch
-                      final monthKey = '${selectedDate.year}-${selectedDate.month.toString().padLeft(2, '0')}';
-                      _monthlyOverviewCache.remove(monthKey);
-                      _monthlyCardsCache.remove(monthKey);
-                      _loadedMonths.remove(monthKey);
-                      
-                      // Refresh all data in parallel with force refresh
-                      await Future.wait([
-                        _fetchMonthData(selectedDate, forceRefresh: true),
-                        ref.read(shiftOverviewProvider.notifier).refresh(),
-                      ]);
-                      
-                      // Add small delay to ensure data is fully loaded
-                      await Future.delayed(const Duration(milliseconds: 300));
-                      
-                      // Force UI update
+                      // Force UI update immediately
                       if (mounted) {
                         setState(() {
-                          isLoading = false;
-                          // Force rebuild of activity section
-                          allShiftCardsData = List.from(allShiftCardsData);
+                          // Force rebuild of activity section with updated data
                         });
                       }
                     }
