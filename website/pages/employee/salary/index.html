@@ -21,6 +21,9 @@
     <!-- Supabase CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
+    <!-- Environment Configuration (for local development) -->
+    <script src="../../../core/config/env-loader.js"></script>
+    <script src="../../../core/config/env-config.js"></script>    
     <!-- Page Specific Styles -->
     <style>
         /* ==================== BASE STYLES ==================== */
@@ -1073,6 +1076,14 @@
         // Initialize page using standardized pattern
         window.initializePage('employee', (companyId, company) => {
             console.log('Company changed in salary management:', companyId);
+            
+            // Reset store filter when company changes
+            currentStoreFilter = null;
+            
+            // Update store filter dropdown with new company's stores
+            refreshStoreFilter();
+            
+            // Load salary data for the new company
             loadSalaryData(companyId);
         });
         
@@ -1107,6 +1118,14 @@
             return new Intl.NumberFormat('ko-KR').format(number);
         }
         
+        // Update period display
+        function updatePeriodDisplay() {
+            const periodElement = document.getElementById('currentPeriod');
+            if (periodElement) {
+                periodElement.textContent = currentPeriod;
+            }
+        }
+        
         // Get employee initials
         function getInitials(name) {
             if (!name) return '??';
@@ -1122,6 +1141,16 @@
             if (!companyId) {
                 console.error('No company ID available');
                 return;
+            }
+            
+            // Clear previous data when loading new company data
+            salaryData = null;
+            filteredEmployees = [];
+            
+            // Clear the employee list display
+            const employeeListElement = document.getElementById('employeeList');
+            if (employeeListElement) {
+                employeeListElement.innerHTML = '';
             }
             
             // Show loading state
@@ -1204,8 +1233,8 @@
             // Update period display
             document.getElementById('currentPeriod').textContent = salaryData.period || currentPeriod;
             
-            // Update summary cards
-            renderSummaryCards();
+            // Update summary cards - pass null to use original summary for initial load
+            renderSummaryCards(null);
             
             // Store all employees for filtering (employees already in correct format)
             filteredEmployees = salaryData.employees || [];
@@ -1216,12 +1245,71 @@
             applyFilters();
         }
         
+        // Calculate summary from filtered employees
+        function calculateFilteredSummary(employees) {
+            if (!employees || employees.length === 0) {
+                return {
+                    total_employees: 0,
+                    total_payment: 0,
+                    total_base_payment: 0,
+                    unsolved_problems: 0,
+                    total_problems: 0,
+                    employee_breakdown: {
+                        monthly: 0,
+                        hourly: 0
+                    }
+                };
+            }
+            
+            let summary = {
+                total_employees: employees.length,
+                total_payment: 0,
+                total_base_payment: 0,
+                unsolved_problems: 0,
+                total_problems: 0,
+                employee_breakdown: {
+                    monthly: 0,
+                    hourly: 0
+                }
+            };
+            
+            employees.forEach(employee => {
+                // Count employee types
+                if (employee.salary_type === 'monthly') {
+                    summary.employee_breakdown.monthly++;
+                } else if (employee.salary_type === 'hourly') {
+                    summary.employee_breakdown.hourly++;
+                }
+                
+                // Sum payments
+                const salaryInfo = employee.salary_info || {};
+                const baseInfo = salaryInfo.base_info || {};
+                summary.total_payment += salaryInfo.total_payment || 0;
+                summary.total_base_payment += baseInfo.base_payment || baseInfo.monthly_salary || 0;
+                
+                // Count problems
+                const problems = employee.problems || {};
+                const problemDetails = problems.problem_details || [];
+                summary.total_problems += problemDetails.length;
+                summary.unsolved_problems += problemDetails.filter(p => !p.is_solved).length;
+            });
+            
+            return summary;
+        }
+        
         // Render summary cards
-        function renderSummaryCards() {
+        function renderSummaryCards(filteredEmployees = null) {
             if (!salaryData || !salaryData.summary) return;
             
-            const summary = salaryData.summary;
-            const baseCurrency = summary.base_currency || {};
+            // Use filtered summary if employees are filtered, otherwise use the original summary
+            let summary;
+            if (filteredEmployees && (currentStoreFilter || currentFilter !== 'all' || searchTerm)) {
+                summary = calculateFilteredSummary(filteredEmployees);
+            } else {
+                summary = salaryData.summary;
+            }
+            
+            const baseCurrency = salaryData.summary.base_currency || {};
             const baseCurrencySymbol = baseCurrency.currency_symbol || '';
             const summarySection = document.getElementById('summarySection');
             
@@ -1460,6 +1548,41 @@
             }).join('');
         }
         
+        // Refresh store filter when company changes
+        function refreshStoreFilter() {
+            console.log('Refreshing store filter for new company');
+            
+            // Reset the store filter
+            currentStoreFilter = null;
+            
+            // Close any open dropdown
+            const storeFilterControl = document.getElementById('storeFilterControl');
+            const storeFilterDropdown = document.getElementById('storeFilterDropdown');
+            const storeFilterOptions = document.getElementById('storeFilterOptions');
+            
+            if (storeFilterControl) {
+                storeFilterControl.classList.remove('dropdown-open');
+            }
+            if (storeFilterDropdown) {
+                storeFilterDropdown.classList.remove('show');
+                storeFilterDropdown.classList.remove('active');
+            }
+            
+            // Clear the dropdown options to force rebuild on next open
+            if (storeFilterOptions) {
+                console.log('Clearing store dropdown options');
+                storeFilterOptions.innerHTML = '';
+            }
+            
+            // Update the label to show "All Stores" since we reset the filter
+            const label = document.getElementById('storeFilterLabel');
+            if (label) {
+                label.textContent = 'All Stores';
+            }
+            
+            // The dropdown contents will be rebuilt when it's next opened
+        }
+        
         // Store filter functions
         function setupStoreFilter() {
             const storeFilterControl = document.getElementById('storeFilterControl');
@@ -1522,22 +1645,56 @@
                 return;
             }
             
-            // Get stores from app state
+            // Get stores from app state - get fresh company data from navbar
             const companyId = appState.getSelectedCompanyId();
-            let stores = [];
+            console.log('Building store dropdown for company:', companyId);
+            let stores = null; // Use null to indicate not yet fetched
             
-            try {
-                stores = appState.getCompanyStores();
-            } catch (error) {
-                console.error('Error getting stores:', error);
+            // Try to get fresh data from navbar instance first
+            if (window.navbarInstance && window.navbarInstance.companySelector) {
                 try {
-                    const companies = appState.getUserCompanies();
-                    const company = companies.find(c => c.company_id === companyId);
-                    stores = company?.stores || [];
+                    // Get the currently selected option from navbar's company selector
+                    const selectedOption = window.navbarInstance.companySelector.getSelectedOption();
+                    if (selectedOption && selectedOption.data) {
+                        stores = selectedOption.data.stores || [];
+                        console.log('Got fresh stores from navbar selector:', stores);
+                    }
+                } catch (navbarError) {
+                    console.log('Could not get from navbar:', navbarError);
+                }
+            }
+            
+            // If navbar didn't work, try getting from fresh user data
+            if (stores === null) {
+                try {
+                    const userData = localStorage.getItem('user');
+                    if (userData) {
+                        const parsedData = JSON.parse(userData);
+                        const company = parsedData.companies?.find(c => c.company_id === companyId);
+                        if (company) {
+                            stores = company.stores || [];
+                            console.log('Got stores from fresh user data:', stores);
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error getting fresh user data:', error);
+                }
+            }
+            
+            // Final fallback to appState
+            if (stores === null) {
+                try {
+                    stores = appState.getCompanyStores();
+                    console.log('Got stores from appState (fallback):', stores);
                 } catch (fallbackError) {
-                    console.error('Fallback also failed:', fallbackError);
+                    console.error('All methods failed:', fallbackError);
                     stores = [];
                 }
+            }
+            
+            // Ensure stores is an array
+            if (!stores) {
+                stores = [];
             }
             
             // Build store options HTML
@@ -1616,12 +1773,21 @@
                 option.addEventListener('click', (e) => {
                     e.stopPropagation();
                     const storeFilter = option.dataset.storeFilter;
+                    const storeName = option.querySelector('.store-filter-dropdown-option-text')?.textContent;
+                    
                     currentStoreFilter = storeFilter || null;
                     
+                    // Update the display immediately with the known store name
+                    const label = document.getElementById('storeFilterLabel');
+                    if (label && storeName) {
+                        label.textContent = storeName;
+                    }
+                    
+                    // Also run the full update (for consistency)
                     updateStoreFilterDisplay();
                     hideStoreFilterDropdown();
                     
-                    // Apply filters to employee list
+                    // Apply filters to employee list and update summary
                     applyFilters();
                 });
             });
@@ -1652,21 +1818,57 @@
                 const companyId = appState.getSelectedCompanyId();
                 let store = null;
                 
-                try {
-                    const stores = appState.getCompanyStores();
-                    store = stores.find(s => s.store_id === currentStoreFilter);
-                } catch (error) {
-                    console.error('Error getting store data:', error);
+                // Try multiple methods to find the store
+                // Method 1: Try getting from navbar instance first (most up-to-date)
+                if (window.navbarInstance && window.navbarInstance.companySelector) {
+                    try {
+                        const selectedOption = window.navbarInstance.companySelector.getSelectedOption();
+                        if (selectedOption && selectedOption.data && selectedOption.data.stores) {
+                            store = selectedOption.data.stores.find(s => s.store_id === currentStoreFilter);
+                        }
+                    } catch (navbarError) {
+                        console.log('Could not get store from navbar:', navbarError);
+                    }
+                }
+                
+                // Method 2: Try getting from fresh user data
+                if (!store) {
+                    try {
+                        const userData = localStorage.getItem('user');
+                        if (userData) {
+                            const parsedData = JSON.parse(userData);
+                            const company = parsedData.companies?.find(c => c.company_id === companyId);
+                            if (company && company.stores) {
+                                store = company.stores.find(s => s.store_id === currentStoreFilter);
+                            }
+                        }
+                    } catch (error) {
+                        console.error('Error getting store from user data:', error);
+                    }
+                }
+                
+                // Method 3: Try appState methods
+                if (!store) {
+                    try {
+                        const stores = appState.getCompanyStores();
+                        store = stores.find(s => s.store_id === currentStoreFilter);
+                    } catch (error) {
+                        console.error('Error getting store from appState:', error);
+                    }
+                }
+                
+                // Method 4: Final fallback - get from companies
+                if (!store) {
                     try {
                         const companies = appState.getUserCompanies();
                         const company = companies.find(c => c.company_id === companyId);
                         store = company?.stores?.find(s => s.store_id === currentStoreFilter);
                     } catch (fallbackError) {
-                        console.error('Fallback store lookup failed:', fallbackError);
+                        console.error('Final fallback store lookup failed:', fallbackError);
                     }
                 }
                 
-                label.textContent = store ? store.store_name : 'Unknown Store';
+                label.textContent = store ? store.store_name : 'Store Not Found';
             } else {
                 label.textContent = 'All Stores';
             }
@@ -1745,6 +1947,11 @@
             
             console.log('Final filtered and sorted employees count:', filtered.length);
             console.log('Filtered employees:', filtered);
+            
+            // Update summary cards with filtered data
+            renderSummaryCards(filtered);
+            
+            // Render the employee list
             renderEmployeeList(filtered);
         }
         
@@ -1766,7 +1973,13 @@
             const [year, month] = currentPeriod.split('-');
             const date = new Date(year, parseInt(month) - 2);
             currentPeriod = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-            loadSalaryData(appState.getSelectedCompanyId());
+            updatePeriodDisplay();
+            
+            // Get current company ID from localStorage
+            const companyId = localStorage.getItem('companyChoosen') || appState.getSelectedCompanyId();
+            if (companyId) {
+                loadSalaryData(companyId);
+            }
         });
         
         document.getElementById('nextPeriod').addEventListener('click', () => {
@@ -1774,7 +1987,13 @@
             const [year, month] = currentPeriod.split('-');
             const date = new Date(year, parseInt(month));
             currentPeriod = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-            loadSalaryData(appState.getSelectedCompanyId());
+            updatePeriodDisplay();
+            
+            // Get current company ID from localStorage
+            const companyId = localStorage.getItem('companyChoosen') || appState.getSelectedCompanyId();
+            if (companyId) {
+                loadSalaryData(companyId);
+            }
         });
         
         // Filter functionality
@@ -1807,10 +2026,77 @@
             }, 300);
         });
         
+        // Listen for company changes from navbar
+        window.addEventListener('companyChanged', function(event) {
+            console.log('Salary page: Company changed event received', event.detail);
+            if (event.detail && event.detail.companyId) {
+                // Reset store filter when company changes
+                currentStoreFilter = null;
+                
+                // Reset to current month when company changes
+                const now = new Date();
+                currentPeriod = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+                updatePeriodDisplay();
+                
+                // Update store filter dropdown with new company's stores
+                refreshStoreFilter();
+                
+                // Load salary data for the new company
+                loadSalaryData(event.detail.companyId);
+            }
+        });
+        
+        // Setup window.onCompanyChange for navbar compatibility
+        window.onCompanyChange = function(companyId) {
+            console.log('Salary page: onCompanyChange called with:', companyId);
+            
+            // Reset store filter when company changes
+            currentStoreFilter = null;
+            
+            // Reset to current month when company changes
+            const now = new Date();
+            currentPeriod = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+            updatePeriodDisplay();
+            
+            // Update store filter dropdown with new company's stores
+            refreshStoreFilter();
+            
+            // Load salary data for the new company
+            loadSalaryData(companyId);
+        };
+        
         // Initial load
-        document.addEventListener('DOMContentLoaded', () => {
-            // Setup store filter
+        document.addEventListener('DOMContentLoaded', async () => {
+            console.log('🚀 Salary page DOM loaded - starting initialization...');
+            
+            // Initialize using PageInitializer pattern for correct navbar active state
+            const pageInit = new PageInitializer('employee');
+            await pageInit.initialize();
+            
+            // Setup store filter after navbar is ready
             setupStoreFilter();
+            
+            // Update the period display to current period
+            updatePeriodDisplay();
+            
+            // Setup the page-specific initialization
+            console.log('🔍 Setting up salary page after navbar initialization');
+            
+            // The initializePage callback for legacy support
+            if (typeof window.initializePage === 'function') {
+                window.initializePage('employee', (companyId, company) => {
+                    console.log('Salary page initializePage callback:', companyId);
+                    
+                    // Reset store filter when company changes
+                    currentStoreFilter = null;
+                    
+                    // Update store filter dropdown with new company's stores
+                    refreshStoreFilter();
+                    
+                    // Load salary data for the new company
+                    loadSalaryData(companyId);
+                });
+            }
             
             // Wait for supabase to be initialized
             setTimeout(() => {
@@ -1819,11 +2105,20 @@
                     initializeSupabase();
                 }
                 
-                const companyId = appState.getSelectedCompanyId();
-                if (companyId) {
+                // Get company from storage and load data
+                const companyId = localStorage.getItem('companyChoosen') || 
+                                localStorage.getItem('selectedCompanyId') || 
+                                appState.getSelectedCompanyId();
+                
+                if (companyId && companyId !== 'null' && companyId !== 'undefined') {
+                    console.log('Loading initial salary data for company:', companyId);
                     loadSalaryData(companyId);
+                } else {
+                    console.log('No company selected, showing empty state');
+                    document.getElementById('loadingState').classList.add('hidden');
+                    document.getElementById('emptyState').classList.remove('hidden');
                 }
-            }, 100);
+            }, 200);
         });
     </script>
 </body>

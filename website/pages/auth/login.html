@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MyFinance - Login</title>
+    <title>Store Base - Login</title>
     
     <!-- Theme CSS -->
     <link rel="stylesheet" href="../../core/themes/toss-variables.css">
@@ -23,15 +23,21 @@
     <!-- Supabase CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
+    <!-- Environment Configuration (for local development) -->
+    <script src="../../core/config/env-loader.js"></script>
+    <script src="../../core/config/env-config.js"></script>
+    
 </head>
 <body>
     <div class="login-container">
         <div class="login-card">
             <!-- Header -->
             <div class="login-header">
-                <div class="login-logo" id="loginLogo">₩</div>
-                <h1 class="login-title">Welcome to MyFinance</h1>
-                <p class="login-subtitle">Sign in to manage your finances</p>
+                <div class="login-logo" id="loginLogo">
+                    <img src="../../assets/app icon.png" alt="Store Base Logo">
+                </div>
+                <h1 class="login-title">Welcome to Store Base</h1>
+                <p class="login-subtitle">Sign in to manage your store</p>
             </div>
             
             

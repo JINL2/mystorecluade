@@ -25,6 +25,9 @@
     <!-- Supabase CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
+    <!-- Environment Configuration (for local development) -->
+    <script src="../../../core/config/env-loader.js"></script>
+    <script src="../../../core/config/env-config.js"></script>    
     <!-- Page Specific Styles -->
     <style>
         body {
@@ -822,13 +825,10 @@
             return formatNumber(amount);
         }
         
-        // Initialize page using standardized pattern
+        // Initialize page using standardized pattern with comprehensive company change handling
         window.initializePage('finance', (companyId, company) => {
-            console.log('Company changed in income statement:', companyId);
-            // Reload stores when company changes
-            loadStoresFromSession();
-            // For now, just keep showing the coming soon message
-            // The filter is ready for when the feature is implemented
+            console.log('🏢 [INCOME-STATEMENT] Company changed via initializePage:', companyId, company);
+            handleCompanyChange(companyId, company, 'initializePage');
         });
         
         // Additional page initialization after navbar is ready
@@ -842,18 +842,153 @@
                 // Filter is ready for future implementation
             }, 100);
             
-            // Listen for company changes from navbar
+            // Listen for company changes from navbar with comprehensive handling
             window.addEventListener('companyChanged', (event) => {
-                console.log('Company changed event received:', event.detail);
-                // Reload stores when company changes
-                loadStoresFromSession();
+                console.log('🔄 [INCOME-STATEMENT] Company changed event received:', event.detail);
+                const { companyId, company } = event.detail;
+                handleCompanyChange(companyId, company, 'companyChanged');
             });
         });
+        
+        // Comprehensive company change handler
+        function handleCompanyChange(companyId, company, source) {
+            console.log(`🏢 [INCOME-STATEMENT] handleCompanyChange called:`, {
+                companyId,
+                company: company ? company.company_name : 'null',
+                source,
+                timestamp: new Date().toISOString()
+            });
+
+            // Step 1: Clear current income statement data
+            clearCurrentIncomeStatementData(source);
+
+            // Step 2: Reload stores for new company
+            loadStoresFromSession();
+
+            // Step 3: Refresh store filter if component exists
+            refreshStoreFilterForNewCompany();
+
+            // Step 4: Reset date filters to default
+            resetDateFiltersToDefault();
+
+            // Step 5: Show company change message
+            showCompanyChangeMessage(company);
+        }
+
+        function clearCurrentIncomeStatementData(source) {
+            console.log(`🧹 [INCOME-STATEMENT] Clearing current income statement data (source: ${source})`);
+            
+            // Reset content to initial state
+            showComingSoonMessage();
+            
+            // Clear any cached data
+            // (Income statement doesn't cache data like balance sheet, but we maintain consistency)
+            
+            console.log('✅ [INCOME-STATEMENT] Current data cleared');
+        }
+
+        function refreshStoreFilterForNewCompany() {
+            console.log('🔄 [INCOME-STATEMENT] Refreshing store filter for new company');
+            
+            if (incomeStatementFilter && typeof incomeStatementFilter.refreshStores === 'function') {
+                console.log('🔄 [INCOME-STATEMENT] Calling refreshStores on filter component');
+                incomeStatementFilter.refreshStores();
+            } else {
+                console.log('⚠️ [INCOME-STATEMENT] Filter component not available or refreshStores method missing');
+                
+                // Fallback: reinitialize the filter component
+                setTimeout(() => {
+                    console.log('🔄 [INCOME-STATEMENT] Reinitializing filter component as fallback');
+                    initializeFilterComponent();
+                }, 100);
+            }
+        }
+
+        function resetDateFiltersToDefault() {
+            console.log('📅 [INCOME-STATEMENT] Resetting date filters to default');
+            
+            if (incomeStatementFilter && typeof incomeStatementFilter.resetToDefaults === 'function') {
+                incomeStatementFilter.resetToDefaults();
+                console.log('✅ [INCOME-STATEMENT] Date filters reset via component method');
+            } else {
+                console.log('⚠️ [INCOME-STATEMENT] Filter component resetToDefaults method not available');
+            }
+        }
+
+        function showCompanyChangeMessage(company) {
+            let companyName = 'Unknown';
+            
+            // First try to get company name from the company object
+            if (company && company.company_name) {
+                companyName = company.company_name;
+            } else {
+                // If company object is not available, try to get it from localStorage
+                try {
+                    const userData = localStorage.getItem('user');
+                    const selectedCompanyId = localStorage.getItem('companyChoosen'); // using correct key
+                    
+                    if (userData && selectedCompanyId) {
+                        const user = JSON.parse(userData);
+                        const selectedCompany = user.companies?.find(c => c.company_id === selectedCompanyId);
+                        if (selectedCompany && selectedCompany.company_name) {
+                            companyName = selectedCompany.company_name;
+                        }
+                    }
+                } catch (error) {
+                    console.error('❌ [INCOME-STATEMENT] Error getting company name from localStorage:', error);
+                }
+            }
+            
+            console.log(`💬 [INCOME-STATEMENT] Showing company change message for: ${companyName}`);
+            
+            const contentCard = document.querySelector('#income-statement-content');
+            if (!contentCard) {
+                console.log('❌ [INCOME-STATEMENT] Content card not found');
+                return;
+            }
+
+            contentCard.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-icon" style="background: var(--toss-primary-surface); color: var(--toss-primary);">
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+                        </svg>
+                    </div>
+                    <h3 class="empty-title">Company Changed</h3>
+                    <p class="empty-text">
+                        Switched to <strong>${companyName}</strong><br>
+                        Stores and filters have been updated. Use the filters above to load the income statement.
+                    </p>
+                </div>
+            `;
+            
+            console.log('✅ [INCOME-STATEMENT] Company change message displayed');
+        }
+
+        // Load stores from session (used by company change handler)
+        function loadStoresFromSession() {
+            console.log('🏪 [INCOME-STATEMENT] Loading stores from session');
+            
+            // Get the selected company using correct storage key (lowercase)
+            const selectedCompanyId = localStorage.getItem('companyChoosen'); // capital 'C'
+            console.log('🏢 [INCOME-STATEMENT] Selected company ID from storage:', selectedCompanyId);
+            
+            if (!selectedCompanyId) {
+                console.log('⚠️ [INCOME-STATEMENT] No company selected');
+                return;
+            }
+
+            // The stores are loaded by the app state management
+            // This function ensures the filter component gets refreshed
+            console.log('✅ [INCOME-STATEMENT] Store loading completed');
+        }
         
         // Initialize the filter component
         let incomeStatementFilter = null;
         
         function initializeFilterComponent() {
+            console.log('🔧 [INCOME-STATEMENT] Initializing filter component');
+            
             // Create the income statement filter component with Type selector
             incomeStatementFilter = new TossIncomeStatementFilter({
                 container: '#income-statement-filter',
@@ -867,31 +1002,35 @@
                 toDateLabel: 'To Date',
                 defaultExpanded: true,
                 onSearch: (filters) => {
-                    console.log('Searching with filters:', filters);
+                    console.log('🔍 [INCOME-STATEMENT] Searching with filters:', filters);
                     applyFiltersAndLoadData(filters);
                 },
                 onClear: () => {
-                    console.log('Filters cleared');
+                    console.log('🧹 [INCOME-STATEMENT] Filters cleared');
                     const companyId = appState.getSelectedCompanyId();
                     if (companyId) {
                         loadIncomeStatementData(companyId);
                     }
                 },
                 onFilterChange: (filters) => {
-                    console.log('Filter changed:', filters);
+                    console.log('🔄 [INCOME-STATEMENT] Filter changed:', filters);
                 }
             });
+            
+            console.log('✅ [INCOME-STATEMENT] Filter component initialized successfully');
         }
         
         // Apply filters and reload income statement data
         function applyFiltersAndLoadData(filters) {
+            console.log('📊 [INCOME-STATEMENT] applyFiltersAndLoadData called with filters:', filters);
+            
             const companyId = appState.getSelectedCompanyId();
             if (!companyId) {
-                console.log('No company selected');
+                console.log('⚠️ [INCOME-STATEMENT] No company selected');
                 return;
             }
             
-            console.log('Loading income statement with filters:', {
+            console.log('📈 [INCOME-STATEMENT] Loading income statement with filters:', {
                 companyId: companyId,
                 storeId: filters.store || 'all',
                 type: filters.type || 'monthly',
@@ -904,26 +1043,35 @@
         
         // Load income statement data for company
         function loadIncomeStatementData(companyId, filters = null) {
-            console.log('Loading income statement for company:', companyId, 'with filters:', filters);
+            console.log('📊 [INCOME-STATEMENT] loadIncomeStatementData called:', {
+                companyId,
+                filters,
+                timestamp: new Date().toISOString()
+            });
             
             // If no filters provided, use current filter values
             if (!filters && incomeStatementFilter) {
                 filters = incomeStatementFilter.getFilters();
+                console.log('📋 [INCOME-STATEMENT] Using current filter values:', filters);
             }
             
             // Check type and call appropriate RPC
             if (filters && filters.type === 'monthly') {
+                console.log('📅 [INCOME-STATEMENT] Loading monthly income statement');
                 callIncomeStatementRPC(companyId, filters);
             } else if (filters && filters.type === '12month') {
+                console.log('📊 [INCOME-STATEMENT] Loading 12-month income statement');
                 callIncomeStatementMonthlyRPC(companyId, filters);
             } else {
-                // For no type, show coming soon message
+                console.log('ℹ️ [INCOME-STATEMENT] No type selected, showing coming soon message');
                 showComingSoonMessage();
             }
         }
         
         // Call the income statement RPC
         async function callIncomeStatementRPC(companyId, filters) {
+            console.log('🚀 [INCOME-STATEMENT] callIncomeStatementRPC starting:', { companyId, filters });
+            
             try {
                 // Show loading state
                 showLoadingState();
@@ -936,34 +1084,38 @@
                     p_end_date: filters?.toDate || null
                 };
                 
-                console.log('Calling get_income_statement_v2 RPC with params:', params);
+                console.log('📞 [INCOME-STATEMENT] Calling get_income_statement_v2 RPC with params:', params);
                 
                 // Call the RPC
                 const { data, error } = await supabase.rpc('get_income_statement_v2', params);
                 
                 if (error) {
-                    console.error('Error calling get_income_statement_v2:', error);
+                    console.error('❌ [INCOME-STATEMENT] Error calling get_income_statement_v2:', error);
                     showErrorState(error.message);
                     return;
                 }
                 
-                console.log('Income statement data received:', data);
+                console.log('📊 [INCOME-STATEMENT] Income statement data received:', data);
                 
                 // Display the income statement data
                 if (data && Array.isArray(data) && data.length > 0) {
+                    console.log('✅ [INCOME-STATEMENT] Displaying income statement data');
                     await displayIncomeStatement(data, filters);
                 } else {
+                    console.log('📄 [INCOME-STATEMENT] No data available, showing empty state');
                     showEmptyState('No income statement data available for the selected period');
                 }
                 
             } catch (error) {
-                console.error('Error in income statement RPC:', error);
+                console.error('💥 [INCOME-STATEMENT] Error in income statement RPC:', error);
                 showErrorState('Failed to load income statement');
             }
         }
         
         // Call the 12-month income statement RPC
         async function callIncomeStatementMonthlyRPC(companyId, filters) {
+            console.log('🚀 [INCOME-STATEMENT] callIncomeStatementMonthlyRPC starting:', { companyId, filters });
+            
             try {
                 // Show loading state
                 showLoadingState();
@@ -988,28 +1140,30 @@
                     p_end_date: endDate
                 };
                 
-                console.log('Calling get_income_statement_monthly RPC with params:', params);
+                console.log('📞 [INCOME-STATEMENT] Calling get_income_statement_monthly RPC with params:', params);
                 
                 // Call the RPC
                 const { data, error } = await supabase.rpc('get_income_statement_monthly', params);
                 
                 if (error) {
-                    console.error('Error calling get_income_statement_monthly:', error);
+                    console.error('❌ [INCOME-STATEMENT] Error calling get_income_statement_monthly:', error);
                     showErrorState(error.message);
                     return;
                 }
                 
-                console.log('12-month income statement data received:', data);
+                console.log('📊 [INCOME-STATEMENT] 12-month income statement data received:', data);
                 
                 // Display the 12-month income statement data
                 if (data && data.sections && data.months) {
+                    console.log('✅ [INCOME-STATEMENT] Displaying 12-month income statement data');
                     await display12MonthIncomeStatement(data, filters);
                 } else {
+                    console.log('📄 [INCOME-STATEMENT] No 12-month data available, showing empty state');
                     showEmptyState('No 12-month income statement data available');
                 }
                 
             } catch (error) {
-                console.error('Error in 12-month income statement RPC:', error);
+                console.error('💥 [INCOME-STATEMENT] Error in 12-month income statement RPC:', error);
                 showErrorState('Failed to load 12-month income statement');
             }
         }
@@ -1449,8 +1603,12 @@
         
         // Show loading state
         function showLoadingState() {
+            console.log('⏳ [INCOME-STATEMENT] Showing loading state');
             const contentCard = document.querySelector('#income-statement-content');
-            if (!contentCard) return;
+            if (!contentCard) {
+                console.log('❌ [INCOME-STATEMENT] Content card not found for loading state');
+                return;
+            }
             
             contentCard.innerHTML = `
                 <div class="loading-container">
@@ -1472,8 +1630,12 @@
         
         // Show error state
         function showErrorState(message) {
+            console.log('❌ [INCOME-STATEMENT] Showing error state:', message);
             const contentCard = document.querySelector('#income-statement-content');
-            if (!contentCard) return;
+            if (!contentCard) {
+                console.log('❌ [INCOME-STATEMENT] Content card not found for error state');
+                return;
+            }
             
             contentCard.innerHTML = `
                 <div class="empty-state">
@@ -1492,8 +1654,12 @@
         
         // Show empty state
         function showEmptyState(message) {
+            console.log('📄 [INCOME-STATEMENT] Showing empty state:', message);
             const contentCard = document.querySelector('#income-statement-content');
-            if (!contentCard) return;
+            if (!contentCard) {
+                console.log('❌ [INCOME-STATEMENT] Content card not found for empty state');
+                return;
+            }
             
             contentCard.innerHTML = `
                 <div class="empty-state">
@@ -1510,8 +1676,12 @@
         
         // Show coming soon message
         function showComingSoonMessage() {
+            console.log('ℹ️ [INCOME-STATEMENT] Showing coming soon message');
             const contentCard = document.querySelector('#income-statement-content');
-            if (!contentCard) return;
+            if (!contentCard) {
+                console.log('❌ [INCOME-STATEMENT] Content card not found for coming soon message');
+                return;
+            }
             
             contentCard.innerHTML = `
                 <div class="coming-soon">

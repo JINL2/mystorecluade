@@ -144,13 +144,18 @@ class NavBar {
             return;
         }
         
+        // Calculate the correct path to assets based on current page location
+        const logoPath = this.getAssetPath('brand name logo.png');
+        
         const navHTML = `
             <nav class="navbar-component">
                 <div class="navbar-inner">
                     <!-- Logo -->
                     <a href="#" class="navbar-brand">
-                        <div class="navbar-logo" id="navbar-logo"></div>
-                        <h1 class="navbar-title">MyFinance</h1>
+                        <div class="navbar-logo" id="navbar-logo">
+                            <img src="${logoPath}" alt="Store Base" style="height: 30px; object-fit: contain;">
+                        </div>
+                        <h1 class="navbar-title">Store Base</h1>
                     </a>
                     
                     <!-- Navigation Menu -->
@@ -180,9 +185,6 @@ class NavBar {
         `;
         
         container.innerHTML = navHTML;
-        
-        // Set logo using AppIcons
-        this.setLogo();
         
         // Show loading state immediately, then auto-load company selector
         this.showCompanySelectorLoading();
@@ -360,19 +362,40 @@ class NavBar {
         }
     }
     
-    setLogo() {
-        const logoElement = document.getElementById('navbar-logo');
-        if (logoElement && typeof AppIcons !== 'undefined') {
-            // Use the Won sign from AppIcons
-            logoElement.innerHTML = AppIcons.getSVG('wonSign', { 
-                size: 20, 
-                color: 'white' 
-            });
-        } else if (logoElement) {
-            // Fallback if AppIcons is not loaded
-            logoElement.textContent = '₩';
+    /**
+     * Calculate the correct relative path to assets based on current page location
+     * @param {string} filename - The asset filename
+     * @returns {string} The correct relative path to the asset
+     */
+    getAssetPath(filename) {
+        const currentPath = window.location.pathname;
+        
+        // Count how many directory levels deep we are from the website root
+        // Remove the base path and count remaining directory segments
+        const websiteBasePath = '/mcparrange-main/myFinance_claude/website/';
+        
+        if (currentPath.includes(websiteBasePath)) {
+            // Remove the base path and split by '/'
+            const relativePath = currentPath.replace(websiteBasePath, '');
+            const pathSegments = relativePath.split('/').filter(segment => segment.length > 0);
+            
+            // Remove the filename (last segment) to get directory depth
+            if (pathSegments.length > 0 && pathSegments[pathSegments.length - 1].includes('.')) {
+                pathSegments.pop();
+            }
+            
+            // Calculate how many levels up we need to go
+            const levelsUp = pathSegments.length;
+            const relativePrefixes = '../'.repeat(levelsUp);
+            
+            console.log(`Current path: ${currentPath}, Levels up: ${levelsUp}, Asset path: ${relativePrefixes}assets/${filename}`);
+            return `${relativePrefixes}assets/${filename}`;
         }
+        
+        // Fallback for development or different environments
+        return `../../assets/${filename}`;
     }
+
     
     showCompanySelectorLoading() {
         const container = document.getElementById('navbar-company-selector');
@@ -521,7 +544,9 @@ class NavBar {
                     const companyExists = userData.companies.some(c => c.company_id === selectedCompanyId);
                     if (!selectedCompanyId || !companyExists) {
                         selectedCompanyId = userData.companies[0].company_id;
+                        console.log('📦 DEBUG: Setting default companyChoosen:', selectedCompanyId);
                         localStorage.setItem('companyChoosen', selectedCompanyId);
+                        console.log('🔍 DEBUG: Verification - localStorage.getItem("companyChoosen"):', localStorage.getItem('companyChoosen'));
                         console.log('Set default company:', selectedCompanyId);
                         
                         // Also set the first store for the selected company
@@ -656,7 +681,9 @@ class NavBar {
             width: 'inline',
             searchable: options.length > 5,
             onChange: (value, option) => {
-                // Save selected company (UUID)
+                console.log('Company selection changed:', value, option.label);
+                
+                // Save selected company (UUID) with correct key
                 localStorage.setItem('companyChoosen', value);
                 
                 // Also update the first store for the selected company
@@ -666,6 +693,17 @@ class NavBar {
                     // Clear store if no stores available
                     localStorage.removeItem('storeChoosen');
                 }
+                
+                // Update the selector's internal state and display
+                this.companySelector.selectedValue = value;
+                
+                // Force display update to ensure the selected company name shows
+                setTimeout(() => {
+                    if (this.companySelector && this.companySelector.updateDisplay) {
+                        this.companySelector.updateDisplay();
+                        console.log('✅ Company selector display updated to:', option.label);
+                    }
+                }, 10);
                 
                 // Trigger company change event
                 window.dispatchEvent(new CustomEvent('companyChanged', { 
@@ -686,11 +724,25 @@ class NavBar {
             this.companySelector.init();
             console.log('Company selector initialized successfully');
             
-            // Force update display after initialization
+            // Ensure the selector has the correct value and force display update
             setTimeout(() => {
-                if (this.companySelector && this.companySelector.updateDisplay) {
-                    this.companySelector.updateDisplay();
-                    console.log('✅ Force updated company selector display');
+                if (this.companySelector) {
+                    // Set the value explicitly to ensure proper state
+                    this.companySelector.selectedValue = selectedId;
+                    
+                    // Force display update
+                    if (this.companySelector.updateDisplay) {
+                        this.companySelector.updateDisplay();
+                        console.log('✅ Force updated company selector display with value:', selectedId);
+                    }
+                    
+                    // Double-check the display value is correct
+                    const selectedOption = this.companySelector.getSelectedOption();
+                    if (selectedOption) {
+                        console.log('✅ Display should show:', selectedOption.label);
+                    } else {
+                        console.warn('⚠️ Selected option not found for ID:', selectedId);
+                    }
                 }
             }, 100);
         } catch (error) {
@@ -731,7 +783,7 @@ class NavBar {
                 const selectedOption = options.find(opt => opt.value === selectedValue);
                 
                 if (selectedOption) {
-                    // Save selected company (UUID)
+                    // Save selected company (UUID) with correct key
                     localStorage.setItem('companyChoosen', selectedValue);
                     
                     // Also update the first store for the selected company

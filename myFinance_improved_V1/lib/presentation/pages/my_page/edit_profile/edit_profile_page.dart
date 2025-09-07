@@ -309,23 +309,45 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
             children: [
               // Personal Information Section
               Container(
-                margin: EdgeInsets.symmetric(horizontal: TossSpacing.space4),
-                child: Text(
-                  'Personal Information',
-                  style: TossTextStyles.h3.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: TossColors.gray900,
-                  ),
-                ),
-              ),
-              SizedBox(height: TossSpacing.space4),
-              
-              Container(
                 width: double.infinity,
                 margin: EdgeInsets.symmetric(horizontal: TossSpacing.space4),
                 child: TossWhiteCard(
-                padding: EdgeInsets.all(TossSpacing.space5),
-                child: Column(
+                  padding: EdgeInsets.zero,
+                  child: Column(
+                    children: [
+                      // Section Header - matching sale invoice pattern
+                      Container(
+                        padding: EdgeInsets.all(TossSpacing.space4),
+                        decoration: BoxDecoration(
+                          border: Border(
+                            bottom: BorderSide(
+                              color: TossColors.gray100,
+                              width: 1,
+                            ),
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.person_outline,
+                              color: TossColors.primary,
+                              size: TossSpacing.iconSM,
+                            ),
+                            SizedBox(width: TossSpacing.space2),
+                            Text(
+                              'Personal Information',
+                              style: TossTextStyles.bodyLarge.copyWith(
+                                fontWeight: FontWeight.w700,
+                                color: TossColors.gray900,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      // Form fields with proper padding
+                      Container(
+                        padding: EdgeInsets.all(TossSpacing.space5),
+                        child: Column(
                   children: [
                     TossEnhancedTextField(
                       controller: _firstNameController,
@@ -375,7 +397,10 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                       },
                     ),
                   ],
-                ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
               
@@ -383,24 +408,46 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
               
               // Bank Information Section
               Container(
-                margin: EdgeInsets.symmetric(horizontal: TossSpacing.space4),
-                child: Text(
-                  'Bank Information',
-                  style: TossTextStyles.h3.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: TossColors.gray900,
-                  ),
-                ),
-              ),
-              SizedBox(height: TossSpacing.space4),
-              
-              Container(
                 width: double.infinity,
                 margin: EdgeInsets.symmetric(horizontal: TossSpacing.space4),
                 child: TossWhiteCard(
-                padding: EdgeInsets.all(TossSpacing.space5),
-                child: Column(
-                  children: [
+                  padding: EdgeInsets.zero,
+                  child: Column(
+                    children: [
+                      // Section Header - matching sale invoice pattern
+                      Container(
+                        padding: EdgeInsets.all(TossSpacing.space4),
+                        decoration: BoxDecoration(
+                          border: Border(
+                            bottom: BorderSide(
+                              color: TossColors.gray100,
+                              width: 1,
+                            ),
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.account_balance_outlined,
+                              color: TossColors.primary,
+                              size: TossSpacing.iconSM,
+                            ),
+                            SizedBox(width: TossSpacing.space2),
+                            Text(
+                              'Bank Information',
+                              style: TossTextStyles.bodyLarge.copyWith(
+                                fontWeight: FontWeight.w700,
+                                color: TossColors.gray900,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      // Form fields with proper padding
+                      Container(
+                        padding: EdgeInsets.all(TossSpacing.space5),
+                        child: Column(
+                          children: [
                     TossEnhancedTextField(
                       controller: _bankNameController,
                       label: 'Bank Name',
@@ -441,7 +488,10 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                       maxLines: 2,
                     ),
                   ],
-                ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
               
@@ -449,37 +499,62 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
               
               // Account Information (Read-only)
               Container(
-                margin: EdgeInsets.symmetric(horizontal: TossSpacing.space4),
-                child: Text(
-                  'Account Information',
-                  style: TossTextStyles.h3.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: TossColors.gray900,
-                  ),
-                ),
-              ),
-              SizedBox(height: TossSpacing.space4),
-              
-              Container(
                 width: double.infinity,
                 margin: EdgeInsets.symmetric(horizontal: TossSpacing.space4),
                 child: TossWhiteCard(
-                padding: EdgeInsets.all(TossSpacing.space5),
-                child: Column(
-                  children: [
-                    _buildReadOnlyField('Email', _profile!.email),
-                    SizedBox(height: TossSpacing.space4),
-                    _buildReadOnlyField('Role', _profile!.displayRole),
-                    if (_profile!.companyName?.isNotEmpty == true) ...[
-                      SizedBox(height: TossSpacing.space4),
-                      _buildReadOnlyField('Company', _profile!.companyName!),
+                  padding: EdgeInsets.zero,
+                  child: Column(
+                    children: [
+                      // Section Header
+                      Container(
+                        padding: EdgeInsets.all(TossSpacing.space4),
+                        decoration: BoxDecoration(
+                          border: Border(
+                            bottom: BorderSide(
+                              color: TossColors.gray100,
+                              width: 1,
+                            ),
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.info_outline,
+                              color: TossColors.primary,
+                              size: TossSpacing.iconSM,
+                            ),
+                            SizedBox(width: TossSpacing.space2),
+                            Text(
+                              'Account Information',
+                              style: TossTextStyles.bodyLarge.copyWith(
+                                fontWeight: FontWeight.w700,
+                                color: TossColors.gray900,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      // Read-only Fields
+                      Container(
+                        padding: EdgeInsets.all(TossSpacing.space5),
+                        child: Column(
+                          children: [
+                            _buildReadOnlyField('Email', _profile!.email),
+                            SizedBox(height: TossSpacing.space4),
+                            _buildReadOnlyField('Role', _profile!.displayRole),
+                            if (_profile!.companyName?.isNotEmpty == true) ...[
+                              SizedBox(height: TossSpacing.space4),
+                              _buildReadOnlyField('Company', _profile!.companyName!),
+                            ],
+                            if (_profile!.storeName?.isNotEmpty == true) ...[
+                              SizedBox(height: TossSpacing.space4),
+                              _buildReadOnlyField('Store', _profile!.storeName!),
+                            ],
+                          ],
+                        ),
+                      ),
                     ],
-                    if (_profile!.storeName?.isNotEmpty == true) ...[
-                      SizedBox(height: TossSpacing.space4),
-                      _buildReadOnlyField('Store', _profile!.storeName!),
-                    ],
-                  ],
-                ),
+                  ),
                 ),
               ),
               

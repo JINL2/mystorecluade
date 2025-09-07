@@ -25,18 +25,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 // Initialize icons with official app icons
 function initializeIcons() {
-    if (typeof AppIcons !== 'undefined') {
-        // Update logo with official money icon
-        const logoElement = document.getElementById('loginLogo');
-        if (logoElement) {
-            logoElement.innerHTML = AppIcons.getSVG('wonSign', { 
-                size: 28, 
-                color: 'white' 
-            });
-        }
-        
-        console.log('Official icons initialized');
-    }
+    // No longer replacing the logo image with SVG icons
+    // The HTML img tag will display the actual app icon image
+    console.log('Icons initialization skipped - using image logo');
 }
 
 // Get correct dashboard path - COMPLETELY REWRITTEN FOR ABSOLUTE URLS
@@ -162,9 +153,6 @@ async function handleSignIn(email, password) {
         }
         
         // IMPORTANT: Don't manually store in Supabase's key - let Supabase handle it
-        // Removing this as it may interfere with Supabase's internal storage
-        // const supabaseStorageKey = `sb-atkekzwgukdvucqntryo-auth-token`;
-        // localStorage.setItem(supabaseStorageKey, result.session.access_token);
         console.log('Auth data stored via storageManager');
         
         TossAlertUtils.showSuccess('Login successful! Redirecting...');
@@ -251,12 +239,12 @@ function toggleSignUpMode() {
     
     if (isSignUpMode) {
         loginTitle.textContent = 'Create Your Account';
-        loginSubtitle.textContent = 'Join MyFinance to start managing your finances';
+        loginSubtitle.textContent = 'Join Store Base to start managing your store';
         submitButton.querySelector('.btn-text').textContent = 'Create Account';
         toggleButton.textContent = 'Already have an account? Sign In';
     } else {
-        loginTitle.textContent = 'Welcome to MyFinance';
-        loginSubtitle.textContent = 'Sign in to manage your finances';
+        loginTitle.textContent = 'Welcome to Store Base';
+        loginSubtitle.textContent = 'Sign in to manage your store';
         submitButton.querySelector('.btn-text').textContent = 'Sign In';
         toggleButton.textContent = 'Create New Account';
     }

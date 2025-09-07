@@ -1,0 +1,48 @@
+# Environment files
+.env
+.env.local
+.env.production
+.env.*.local
+
+# Config with secrets
+core/config/supabase-config.js
+core/config/env-config.js
+core/config/supabase-original.js
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+build/
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+
+# Backup files
+*.backup
+*.bak
+*~
+
+# Test files
+*.test.js
+*.spec.js
+test/
+tests/

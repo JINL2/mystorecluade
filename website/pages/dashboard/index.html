@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MyFinance - Dashboard</title>
+    <title>Store Base - Dashboard</title>
     
     <!-- Theme CSS -->
     <link rel="stylesheet" href="../../core/themes/toss-variables.css">
@@ -22,6 +22,10 @@
     
     <!-- Supabase CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- Environment Configuration (for local development) -->
+    <script src="../../core/config/env-loader.js"></script>
+    <script src="../../core/config/env-config.js"></script>
     
     <style>
         /* Modern Dashboard Styles - 2024 Design Standards */
@@ -49,23 +53,14 @@
         
         /* Page Header */
         .page-header {
-            background: var(--toss-white);
-            border-bottom: 1px solid var(--toss-border);
-            padding: var(--space-5) var(--space-6);
             margin-bottom: var(--space-6);
-        }
-        
-        .header-content {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
         }
         
         .header-title {
             font-size: var(--font-h2);
             font-weight: 700;
             color: var(--text-primary);
-            margin: 0;
+            margin: 0 0 var(--space-8) 0;
         }
         
         .header-right {
@@ -118,31 +113,36 @@
         .dashboard-main {
             max-width: 1400px;
             margin: 0 auto;
-            padding: var(--space-6);
+            padding: var(--space-6) var(--space-8);
+            background: var(--toss-white);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-1);
         }
         
         /* Financial Overview Cards */
         .overview-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            grid-template-columns: repeat(4, 1fr);
             gap: var(--space-5);
             margin-bottom: var(--space-8);
         }
         
         .overview-card {
-            background: var(--toss-white);
+            background: var(--toss-gray-50);
             border-radius: var(--radius-lg);
             padding: var(--space-6);
-            border: 1px solid var(--toss-border);
-            box-shadow: var(--shadow-1);
+            border: 1px solid var(--toss-border-light);
             transition: all var(--transition-fast);
             position: relative;
             overflow: hidden;
+            min-height: 140px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
         }
         
         .overview-card:hover {
-            box-shadow: var(--shadow-3);
-            transform: translateY(-2px);
+            background: var(--toss-gray-100);
         }
         
         .card-header {
@@ -150,6 +150,7 @@
             align-items: center;
             justify-content: space-between;
             margin-bottom: var(--space-4);
+            min-height: 24px;
         }
         
         .card-title {
@@ -172,6 +173,9 @@
             font-weight: 700;
             color: var(--text-primary);
             margin-bottom: var(--space-2);
+            min-height: 40px;
+            display: flex;
+            align-items: center;
         }
         
         .card-change {
@@ -239,9 +243,10 @@
         .transaction-item {
             display: flex;
             align-items: center;
-            justify-content: between;
+            justify-content: space-between;
             padding: var(--space-3) 0;
             border-bottom: 1px solid var(--toss-border-light);
+            gap: var(--space-3);
         }
         
         .transaction-item:last-child {
@@ -258,6 +263,7 @@
             justify-content: center;
             margin-right: var(--space-3);
             color: var(--text-secondary);
+            flex-shrink: 0;
         }
         
         .transaction-details {
@@ -281,6 +287,12 @@
             font-size: var(--font-body);
             font-weight: 600;
             text-align: right;
+            min-width: 100px;
+            flex-shrink: 0;
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            padding-left: var(--space-3);
         }
         
         .amount-positive {
@@ -291,57 +303,13 @@
             color: var(--toss-error);
         }
         
-        /* Quick Actions */
-        .quick-actions {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: var(--space-4);
-            margin-top: var(--space-6);
-        }
-        
-        .action-card {
-            background: var(--toss-white);
-            border: 1px solid var(--toss-border);
-            border-radius: var(--radius-lg);
-            padding: var(--space-5);
-            text-align: center;
-            cursor: pointer;
-            transition: all var(--transition-fast);
-            text-decoration: none;
-        }
-        
-        .action-card:hover {
-            box-shadow: var(--shadow-2);
-            transform: translateY(-1px);
-            border-color: var(--toss-primary);
-        }
-        
-        .action-icon {
-            width: 48px;
-            height: 48px;
-            background: var(--toss-primary-surface);
-            border-radius: var(--radius-lg);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto var(--space-3);
-            color: var(--toss-primary);
-        }
-        
-        .action-title {
-            font-size: var(--font-body);
-            font-weight: 600;
-            color: var(--text-primary);
-            margin: 0 0 var(--space-1) 0;
-        }
-        
-        .action-subtitle {
-            font-size: var(--font-small);
-            color: var(--text-secondary);
-            margin: 0;
-        }
-        
         /* Responsive Design */
+        @media (max-width: 1400px) {
+            .overview-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
         @media (max-width: 1200px) {
             .content-grid {
                 grid-template-columns: 1fr;
@@ -375,13 +343,10 @@
                 display: none;
             }
             
-            .header-content {
-                flex-direction: column;
-                align-items: stretch;
-            }
-            
             .dashboard-main {
                 padding: var(--space-4);
+                border-radius: 0;
+                box-shadow: none;
             }
             
             .overview-grid {
@@ -389,10 +354,16 @@
                 gap: var(--space-4);
             }
             
-            .quick-actions {
-                grid-template-columns: repeat(2, 1fr);
-                gap: var(--space-3);
+            .header-title {
+                font-size: var(--font-h3);
+                margin-bottom: var(--space-5);
             }
+            
+            .overview-card {
+                min-height: 120px;
+                padding: var(--space-4);
+            }
+            
         }
         
         /* Loading States */
@@ -436,50 +407,26 @@
         
         <!-- Main Content Area -->
         <div class="main-content">
-            <!-- Page Header -->
-            <header class="page-header">
-                <div class="header-content">
-                    <h1 class="header-title">Dashboard</h1>
-                </div>
-            </header>
-        
             <!-- Dashboard Content -->
             <main class="dashboard-main">
+            <!-- Page Header -->
+            <header class="page-header">
+                <h1 class="header-title">Dashboard</h1>
+            </header>
             <!-- Financial Overview Cards -->
-            <section class="overview-grid">
-                <div class="overview-card">
-                    <div class="card-header">
-                        <div class="card-title">
-                            <svg class="card-icon" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-                            </svg>
-                            Net Worth
-                        </div>
-                    </div>
-                    <div class="card-value" id="netWorthValue">$45,230.50</div>
-                    <div class="card-change change-positive">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M7 14l5-5 5 5z"/>
-                        </svg>
-                        +12.5% this month
-                    </div>
-                </div>
-                
+            <section class="overview-grid" id="overviewGrid">
                 <div class="overview-card">
                     <div class="card-header">
                         <div class="card-title">
                             <svg class="card-icon" viewBox="0 0 24 24" fill="currentColor">
                                 <path d="M7 15h2c0 1.08.81 2 2 2h2c1.19 0 2-.81 2-2s-.81-2-2-2h-2c-1.19 0-2-.81-2-2s.81-2 2-2h2c1.19 0 2 .92 2 2h2c0-1.08-.81-2-2-2V9h-2v2h-2c-1.19 0-2 .81-2 2s.81 2 2 2h2c1.19 0 2 .81 2 2s-.81 2-2 2h-2c-1.19 0-2-.92-2-2H7v2z"/>
                             </svg>
-                            Monthly Income
+                            Today Revenue
                         </div>
                     </div>
-                    <div class="card-value" id="monthlyIncomeValue">$8,500.00</div>
-                    <div class="card-change change-positive">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M7 14l5-5 5 5z"/>
-                        </svg>
-                        +5.2% vs last month
+                    <div class="card-value" id="todayRevenueValue">Loading...</div>
+                    <div class="card-change" id="todayRevenueChange">
+                        <!-- Change indicator will be populated dynamically -->
                     </div>
                 </div>
                 
@@ -489,15 +436,12 @@
                             <svg class="card-icon" viewBox="0 0 24 24" fill="currentColor">
                                 <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14H7v-2h5v2zm5-4H7v-2h10v2zm0-4H7V7h10v2z"/>
                             </svg>
-                            Monthly Expenses
+                            Today Expense
                         </div>
                     </div>
-                    <div class="card-value" id="monthlyExpensesValue">$6,230.75</div>
-                    <div class="card-change change-negative">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M7 10l5 5 5-5z"/>
-                        </svg>
-                        +8.3% vs budget
+                    <div class="card-value" id="todayExpenseValue">Loading...</div>
+                    <div class="card-change" id="todayExpenseChange">
+                        <!-- Change indicator will be populated dynamically -->
                     </div>
                 </div>
                 
@@ -505,17 +449,29 @@
                     <div class="card-header">
                         <div class="card-title">
                             <svg class="card-icon" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                                <path d="M7 15h2c0 1.08.81 2 2 2h2c1.19 0 2-.81 2-2s-.81-2-2-2h-2c-1.19 0-2-.81-2-2s.81-2 2-2h2c1.19 0 2 .92 2 2h2c0-1.08-.81-2-2-2V9h-2v2h-2c-1.19 0-2 .81-2 2s.81 2 2 2h2c1.19 0 2 .81 2 2s-.81 2-2 2h-2c-1.19 0-2-.92-2-2H7v2z"/>
                             </svg>
-                            Savings Goal
+                            This Month Revenue
                         </div>
                     </div>
-                    <div class="card-value" id="savingsGoalValue">$15,500</div>
-                    <div class="card-change change-positive">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M7 14l5-5 5 5z"/>
-                        </svg>
-                        72% complete
+                    <div class="card-value" id="thisMonthRevenueValue">Loading...</div>
+                    <div class="card-change" id="thisMonthRevenueChange">
+                        <!-- Change indicator will be populated dynamically -->
+                    </div>
+                </div>
+                
+                <div class="overview-card">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <svg class="card-icon" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M7 15h2c0 1.08.81 2 2 2h2c1.19 0 2-.81 2-2s-.81-2-2-2h-2c-1.19 0-2-.81-2-2s.81-2 2-2h2c1.19 0 2 .92 2 2h2c0-1.08-.81-2-2-2V9h-2v2h-2c-1.19 0-2 .81-2 2s.81 2 2 2h2c1.19 0 2 .81 2 2s-.81 2-2 2h-2c-1.19 0-2-.92-2-2H7v2z"/>
+                            </svg>
+                            Last Month Revenue
+                        </div>
+                    </div>
+                    <div class="card-value" id="lastMonthRevenueValue">Loading...</div>
+                    <div class="card-change" id="lastMonthRevenueChange">
+                        <!-- Change indicator will be populated dynamically -->
                     </div>
                 </div>
             </section>
@@ -525,14 +481,14 @@
                 <!-- Spending Overview Chart -->
                 <section class="content-section">
                     <div class="section-header">
-                        <h2 class="section-title">Spending Overview</h2>
-                        <button class="toss-btn toss-btn-ghost toss-btn-sm" onclick="showComingSoon('Chart Details')">
-                            View Details
-                        </button>
+                        <h2 class="section-title">This Month Expenses</h2>
                     </div>
                     <div class="section-content">
                         <div class="chart-container">
                             <canvas id="spendingChart"></canvas>
+                        </div>
+                        <div id="chartEmptyState" style="display: none; text-align: center; padding: 40px;">
+                            <p style="color: var(--text-tertiary); font-size: var(--font-body);">No expense data available for this month</p>
                         </div>
                     </div>
                 </section>
@@ -541,110 +497,18 @@
                 <section class="content-section">
                     <div class="section-header">
                         <h2 class="section-title">Recent Activity</h2>
-                        <button class="toss-btn toss-btn-ghost toss-btn-sm" onclick="showComingSoon('All Transactions')">
+                        <button class="toss-btn toss-btn-ghost toss-btn-sm" onclick="navigateToTransactionHistory()">
                             View All
                         </button>
                     </div>
                     <div class="section-content">
                         <div id="transactionsList">
-                            <div class="transaction-item">
-                                <div class="transaction-icon">
-                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                                        <path d="M11 9h2V6h3V4h-3V1h-2v3H8v2h3v3zm-4 9c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zm10 0c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2zm-9.83-3.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03L21.7 4H5.21l-.94-2H1v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.13 0-.25-.11-.25-.25z"/>
-                                    </svg>
-                                </div>
-                                <div class="transaction-details">
-                                    <h4 class="transaction-title">Grocery Store</h4>
-                                    <p class="transaction-subtitle">Today, 2:30 PM</p>
-                                </div>
-                                <div class="transaction-amount amount-negative">-$85.42</div>
-                            </div>
-                            
-                            <div class="transaction-item">
-                                <div class="transaction-icon">
-                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-                                    </svg>
-                                </div>
-                                <div class="transaction-details">
-                                    <h4 class="transaction-title">Salary Deposit</h4>
-                                    <p class="transaction-subtitle">Dec 15, 9:00 AM</p>
-                                </div>
-                                <div class="transaction-amount amount-positive">+$4,250.00</div>
-                            </div>
-                            
-                            <div class="transaction-item">
-                                <div class="transaction-icon">
-                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                                        <path d="M19 7h-3V6a4 4 0 0 0-8 0v1H5a1 1 0 0 0-1 1v11a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3V8a1 1 0 0 0-1-1zM10 6a2 2 0 0 1 4 0v1h-4V6zm8 13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V9h2v1a1 1 0 0 0 2 0V9h4v1a1 1 0 0 0 2 0V9h2v10z"/>
-                                    </svg>
-                                </div>
-                                <div class="transaction-details">
-                                    <h4 class="transaction-title">Coffee Shop</h4>
-                                    <p class="transaction-subtitle">Dec 15, 8:15 AM</p>
-                                </div>
-                                <div class="transaction-amount amount-negative">-$12.50</div>
-                            </div>
-                            
-                            <div class="transaction-item">
-                                <div class="transaction-icon">
-                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-                                    </svg>
-                                </div>
-                                <div class="transaction-details">
-                                    <h4 class="transaction-title">Investment Return</h4>
-                                    <p class="transaction-subtitle">Dec 14, 3:45 PM</p>
-                                </div>
-                                <div class="transaction-amount amount-positive">+$180.25</div>
-                            </div>
+                            <!-- Transactions will be loaded dynamically -->
                         </div>
                     </div>
                 </section>
             </div>
             
-            <!-- Quick Actions -->
-            <section class="quick-actions">
-                <div class="action-card" onclick="showComingSoon('Add Transaction')">
-                    <div class="action-icon">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
-                        </svg>
-                    </div>
-                    <h3 class="action-title">Add Transaction</h3>
-                    <p class="action-subtitle">Record income or expense</p>
-                </div>
-                
-                <div class="action-card" onclick="showComingSoon('Transfer Money')">
-                    <div class="action-icon">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M9 3L5 6.99h3V14h2V6.99h3L9 3zm7 14.01V10h-2v7.01h-3L15 21l4-3.99h-3z"/>
-                        </svg>
-                    </div>
-                    <h3 class="action-title">Transfer</h3>
-                    <p class="action-subtitle">Move money between accounts</p>
-                </div>
-                
-                <div class="action-card" onclick="showComingSoon('Create Budget')">
-                    <div class="action-icon">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14H7v-2h5v2zm5-4H7v-2h10v2zm0-4H7V7h10v2z"/>
-                        </svg>
-                    </div>
-                    <h3 class="action-title">Set Budget</h3>
-                    <p class="action-subtitle">Plan your spending</p>
-                </div>
-                
-                <div class="action-card" onclick="showComingSoon('Generate Report')">
-                    <div class="action-icon">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
-                        </svg>
-                    </div>
-                    <h3 class="action-title">Reports</h3>
-                    <p class="action-subtitle">View financial insights</p>
-                </div>
-            </section>
         </main>
     </div>
     
@@ -681,34 +545,37 @@
         
         // Dashboard functionality with modern UX patterns
         let spendingChart = null;
+        let isLoadingData = false; // Prevent multiple concurrent loads
         
         // Initialize page using standardized pattern
-        window.initializePage('dashboard', (companyId, company) => {
-            console.log('Company changed in dashboard:', companyId);
-            loadDashboardData(companyId);
+        window.initializePage('dashboard', async (companyId, company) => {
+            console.log('Dashboard callback triggered with company:', companyId);
+            
+            if (companyId) {
+                // Company is selected, load data
+                if (!isLoadingData) {
+                    loadDashboardData(companyId);
+                }
+            } else {
+                console.warn('No company selected');
+                updateEmptyState();
+            }
         });
         
         // Additional dashboard initialization after navbar is ready
         document.addEventListener('DOMContentLoaded', () => {
             console.log('🎯 Dashboard DOMContentLoaded at:', new Date().toISOString());
             
-            // Wait for page initialization to complete, then initialize dashboard-specific features
-            setTimeout(() => {
-                // Initialize icons
-                initializeIcons();
-                
-                // Initialize chart
-                initializeSpendingChart();
-                
-                // Simulate real-time data updates
-                startDataRefresh();
-                
-                // Load dashboard data for selected company
-                const companyId = appState.getSelectedCompanyId();
-                if (companyId) {
-                    loadDashboardData(companyId);
-                }
-            }, 100);
+            // Initialize dashboard-specific features
+            initializeIcons();
+            
+            // Initialize chart with empty state
+            initializeSpendingChart(null);
+            
+            // Start data refresh timer
+            startDataRefresh();
+            
+            // Don't load data here - wait for window.initializePage callback
         });
         
         // Keep the loadAppStateData function for backward compatibility but it won't be called anymore
@@ -840,27 +707,44 @@
         }
         
         // Initialize modern spending chart with Chart.js
-        function initializeSpendingChart() {
+        function initializeSpendingChart(expenseData = null) {
             const ctx = document.getElementById('spendingChart');
+            const chartContainer = document.querySelector('.chart-container');
+            const emptyState = document.getElementById('chartEmptyState');
+            
             if (!ctx) return;
             
-            // Placeholder data structure
-            const spendingData = {
-                labels: ['Housing', 'Food', 'Transportation', 'Entertainment', 'Utilities', 'Other'],
-                datasets: [{
-                    data: [1800, 650, 400, 300, 200, 350],
-                    backgroundColor: [
-                        '#0064FF',
-                        '#00C896', 
-                        '#FF9500',
-                        '#FF5847',
-                        '#6C757D',
-                        '#DEE2E6'
-                    ],
-                    borderWidth: 0,
-                    hoverOffset: 4
-                }]
-            };
+            // Use actual data if provided, otherwise show placeholder
+            let spendingData;
+            if (expenseData && expenseData.length > 0) {
+                // Show chart, hide empty state
+                if (chartContainer) chartContainer.style.display = 'block';
+                if (emptyState) emptyState.style.display = 'none';
+                
+                const labels = expenseData.map(item => item.category);
+                const amounts = expenseData.map(item => item.amount);
+                const colors = generateChartColors(expenseData.length);
+                
+                spendingData = {
+                    labels: labels,
+                    datasets: [{
+                        data: amounts,
+                        backgroundColor: colors,
+                        borderWidth: 0,
+                        hoverOffset: 4
+                    }]
+                };
+            } else {
+                // Show empty state, hide chart
+                if (chartContainer) chartContainer.style.display = 'none';
+                if (emptyState) emptyState.style.display = 'block';
+                return; // Don't create chart for empty state
+            }
+            
+            // Destroy existing chart if it exists
+            if (spendingChart) {
+                spendingChart.destroy();
+            }
             
             spendingChart = new Chart(ctx, {
                 type: 'doughnut',
@@ -877,7 +761,41 @@
                                     family: 'Inter',
                                     size: 14
                                 },
-                                color: '#495057'
+                                color: '#495057',
+                                generateLabels: function(chart) {
+                                    const data = chart.data;
+                                    if (data.labels.length && data.datasets.length) {
+                                        return data.labels.map((label, i) => {
+                                            const dataset = data.datasets[0];
+                                            const value = dataset.data[i];
+                                            const percentage = expenseData && expenseData[i] ? expenseData[i].percentage : 0;
+                                            return {
+                                                text: `${label} (${percentage.toFixed(1)}%)`,
+                                                fillStyle: dataset.backgroundColor[i],
+                                                strokeStyle: dataset.backgroundColor[i],
+                                                lineWidth: 0,
+                                                hidden: false,
+                                                index: i
+                                            };
+                                        });
+                                    }
+                                    return [];
+                                }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const value = context.parsed || 0;
+                                    const percentage = expenseData && expenseData[context.dataIndex] ? 
+                                        expenseData[context.dataIndex].percentage : 0;
+                                    const symbol = window.dashboardCurrency || '₫';
+                                    return `${label}: ${symbol}${value.toLocaleString('en-US', {
+                                        minimumFractionDigits: 0,
+                                        maximumFractionDigits: 0
+                                    })} (${percentage.toFixed(1)}%)`;
+                                }
                             }
                         }
                     },
@@ -890,29 +808,41 @@
             });
         }
         
+        // Generate chart colors based on number of categories
+        function generateChartColors(count) {
+            const baseColors = [
+                '#0064FF', // Blue
+                '#00C896', // Green
+                '#FF9500', // Orange
+                '#FF5847', // Red
+                '#6C757D', // Gray
+                '#8B4FC3', // Purple
+                '#00D2FF', // Cyan
+                '#FFD700', // Gold
+                '#FF69B4', // Pink
+                '#32CD32'  // Lime
+            ];
+            
+            // Return colors, cycling through if needed
+            const colors = [];
+            for (let i = 0; i < count; i++) {
+                colors.push(baseColors[i % baseColors.length]);
+            }
+            return colors;
+        }
+        
         // Simulate real-time data updates (modern dashboard pattern)
         function startDataRefresh() {
             // Update data every 30 seconds (in real app, this would be WebSocket or polling)
             setInterval(() => {
-                updateFinancialMetrics();
+                const companyId = appState.getSelectedCompanyId();
+                if (companyId && !isLoadingData) {
+                    loadDashboardData(companyId);
+                }
             }, 30000);
         }
         
-        // Update financial metrics with animations
-        function updateFinancialMetrics() {
-            // In a real application, this would fetch from API
-            const metrics = {
-                netWorth: generateRandomValue(45000, 50000),
-                monthlyIncome: generateRandomValue(8000, 9000),
-                monthlyExpenses: generateRandomValue(6000, 7000),
-                savingsGoal: 15500 // Static goal
-            };
-            
-            // Animate value updates
-            animateValue('netWorthValue', metrics.netWorth, '$', true);
-            animateValue('monthlyIncomeValue', metrics.monthlyIncome, '$', true);
-            animateValue('monthlyExpensesValue', metrics.monthlyExpenses, '$', true);
-        }
+        // Removed updateFinancialMetrics - no longer needed as we use real data from RPC
         
         // Animate number changes (modern UX pattern)
         function animateValue(elementId, targetValue, prefix = '', isCurrency = false) {
@@ -946,18 +876,300 @@
         }
         
         // Load dashboard data for specific company
-        function loadDashboardData(companyId) {
+        async function loadDashboardData(companyId) {
             console.log('Loading dashboard data for company:', companyId);
-            // Future implementation: Load company-specific dashboard data
-            // This could include:
-            // - Company financial metrics
-            // - Company-specific transactions
-            // - Company-specific charts and reports
+            
+            // Check if companyId is valid
+            if (!companyId) {
+                console.warn('No company ID provided for dashboard data loading');
+                updateEmptyState();
+                return;
+            }
+            
+            // Prevent multiple concurrent loads
+            if (isLoadingData) {
+                console.log('Already loading data, skipping...');
+                return;
+            }
+            
+            isLoadingData = true;
+            
+            // Show loading state
+            showLoadingState();
+            
+            try {
+                // Get current device time in ISO format
+                const currentDate = new Date().toISOString();
+                
+                // Call the RPC function to get dashboard data
+                const { data, error } = await supabase.rpc('get_dashboard_page', {
+                    p_company_id: companyId,
+                    p_date: currentDate
+                });
+                
+                if (error) {
+                    console.error('Error loading dashboard data:', error);
+                    TossAlertUtils.showError('Failed to load dashboard data');
+                    updateEmptyState(); // Clear loading states on error
+                    isLoadingData = false; // Clear loading flag
+                    return;
+                }
+                
+                if (data) {
+                    console.log('Dashboard data received:', data);
+                    updateDashboardUI(data);
+                }
+                
+                isLoadingData = false; // Clear loading flag on success
+            } catch (error) {
+                console.error('Error in loadDashboardData:', error);
+                TossAlertUtils.showError('Failed to load dashboard data');
+                updateEmptyState(); // Clear loading states on error
+                isLoadingData = false; // Clear loading flag on error
+            }
+        }
+        
+        // Update dashboard UI with fetched data
+        function updateDashboardUI(data) {
+            console.log('📊 Updating dashboard UI with data:', data);
+            
+            const currency = data.currency || {};
+            const symbol = currency.symbol || '$';
+            
+            // Store currency symbol globally for chart tooltip
+            window.dashboardCurrency = symbol;
+            
+            console.log('💰 Currency info:', { symbol, currency_code: currency.currency_code });
+            
+            // Format currency values
+            const formatCurrency = (value) => {
+                if (value === null || value === undefined) return `${symbol}0`;
+                return `${symbol}${parseFloat(value).toLocaleString('en-US', {
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 0
+                })}`;
+            };
+            
+            // Update financial values
+            console.log('💹 Financial data:', {
+                today_revenue: data.today_revenue,
+                today_expense: data.today_expense,
+                this_month_revenue: data.this_month_revenue,
+                last_month_revenue: data.last_month_revenue
+            });
+            
+            // Update Today Revenue
+            const todayRevenueEl = document.getElementById('todayRevenueValue');
+            if (todayRevenueEl) {
+                todayRevenueEl.textContent = formatCurrency(data.today_revenue);
+            }
+            
+            // Update Today Expense
+            const todayExpenseEl = document.getElementById('todayExpenseValue');
+            if (todayExpenseEl) {
+                todayExpenseEl.textContent = formatCurrency(data.today_expense);
+            }
+            
+            // Update This Month Revenue
+            const thisMonthRevenueEl = document.getElementById('thisMonthRevenueValue');
+            if (thisMonthRevenueEl) {
+                thisMonthRevenueEl.textContent = formatCurrency(data.this_month_revenue);
+            }
+            
+            // Update Last Month Revenue
+            const lastMonthRevenueEl = document.getElementById('lastMonthRevenueValue');
+            if (lastMonthRevenueEl) {
+                lastMonthRevenueEl.textContent = formatCurrency(data.last_month_revenue);
+            }
+            
+            // Calculate and display percentage changes
+            updatePercentageChanges(data);
+            
+            // Update Spending Chart with expense breakdown
+            if (data.expense_breakdown && data.expense_breakdown.length > 0) {
+                console.log('📊 Updating spending chart with expense breakdown:', data.expense_breakdown);
+                initializeSpendingChart(data.expense_breakdown);
+            } else {
+                console.log('📊 No expense data for chart');
+                initializeSpendingChart(null); // Show empty state
+            }
+            
+            // Update Recent Transactions
+            updateRecentTransactions(data.recent_transactions, symbol);
+        }
+        
+        // Calculate and display percentage changes
+        function updatePercentageChanges(data) {
+            // Calculate this month vs last month revenue change
+            if (data.last_month_revenue > 0) {
+                const changePercent = ((data.this_month_revenue - data.last_month_revenue) / data.last_month_revenue * 100).toFixed(1);
+                const changeEl = document.getElementById('thisMonthRevenueChange');
+                if (changeEl) {
+                    const isPositive = changePercent >= 0;
+                    changeEl.className = `card-change ${isPositive ? 'change-positive' : 'change-negative'}`;
+                    changeEl.innerHTML = `
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="${isPositive ? 'M7 14l5-5 5 5z' : 'M7 10l5 5 5-5z'}"/>
+                        </svg>
+                        ${isPositive ? '+' : ''}${changePercent}% vs last month
+                    `;
+                }
+            }
+        }
+        
+        // Update Recent Transactions section
+        function updateRecentTransactions(journalEntries, symbol) {
+            console.log('📋 Updating recent transactions with entries:', journalEntries);
+            
+            const transactionsList = document.getElementById('transactionsList');
+            if (!transactionsList || !journalEntries || journalEntries.length === 0) {
+                console.log('⚠️ No transactions to display');
+                if (transactionsList) {
+                    transactionsList.innerHTML = '<p style="text-align: center; color: var(--text-tertiary);">No recent transactions</p>';
+                }
+                return;
+            }
+            
+            // Get icon based on account type and amount
+            const getTransactionIcon = (accountType, isIncome) => {
+                const icons = {
+                    income: '<path d="M7 15h2c0 1.08.81 2 2 2h2c1.19 0 2-.81 2-2s-.81-2-2-2h-2c-1.19 0-2-.81-2-2s.81-2 2-2h2c1.19 0 2 .92 2 2h2c0-1.08-.81-2-2-2V9h-2v2h-2c-1.19 0-2 .81-2 2s.81 2 2 2h2c1.19 0 2 .81 2 2s-.81 2-2 2h-2c-1.19 0-2-.92-2-2H7v2z"/>',
+                    expense: '<path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14H7v-2h5v2zm5-4H7v-2h10v2zm0-4H7V7h10v2z"/>',
+                    asset: '<path d="M4 10v7h3v-7H4zm6 0v7h3v-7h-3zM2 22h19v-3H2v3zm14-12v7h3v-7h-3zm-4.5-9L2 6v2h19V6l-9.5-5z"/>',
+                    general: '<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>'
+                };
+                
+                if (isIncome || accountType === 'income') return icons.income;
+                if (accountType === 'asset') return icons.asset;
+                if (accountType === 'expense') return icons.expense;
+                return icons.general;
+            };
+            
+            // Format date and time
+            const formatDateTime = (dateStr) => {
+                const date = new Date(dateStr);
+                const today = new Date();
+                const yesterday = new Date(today);
+                yesterday.setDate(yesterday.getDate() - 1);
+                
+                let dateDisplay;
+                if (date.toDateString() === today.toDateString()) {
+                    dateDisplay = 'Today';
+                } else if (date.toDateString() === yesterday.toDateString()) {
+                    dateDisplay = 'Yesterday';
+                } else {
+                    dateDisplay = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                }
+                
+                const timeDisplay = date.toLocaleTimeString('en-US', { 
+                    hour: 'numeric', 
+                    minute: '2-digit',
+                    hour12: true 
+                });
+                
+                return `${dateDisplay}, ${timeDisplay}`;
+            };
+            
+            // Build transaction HTML from journal entries
+            const transactionsHTML = journalEntries.map(entry => {
+                // Analyze journal entry to determine display info
+                const amount = parseFloat(entry.total_amount) || 0;
+                
+                // Find the main account (usually the first non-Cash account or income/expense account)
+                const mainAccount = entry.lines.find(line => 
+                    line.account_type === 'income' || 
+                    line.account_type === 'expense' ||
+                    (line.account_name && line.account_name.toLowerCase() !== 'cash')
+                ) || entry.lines[0];
+                
+                // Determine if this is income or expense based on account types
+                const isIncome = entry.lines.some(line => line.account_type === 'income' && line.credit > 0) ||
+                               entry.lines.some(line => line.account_type === 'asset' && line.debit > 0);
+                
+                // Format the amount with proper sign
+                const formattedAmount = `${isIncome ? '+' : '-'}${symbol}${Math.abs(amount).toLocaleString('en-US', {
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 0
+                })}`;
+                
+                // Get transaction title (use description or main account name)
+                const transactionTitle = entry.description || 
+                                       mainAccount?.account_name || 
+                                       'Transaction';
+                
+                // Get subtitle with additional context
+                const subtitle = mainAccount?.description || 
+                               `${mainAccount?.account_name || 'General'}`;
+                
+                return `
+                    <div class="transaction-item">
+                        <div class="transaction-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                ${getTransactionIcon(mainAccount?.account_type, isIncome)}
+                            </svg>
+                        </div>
+                        <div class="transaction-details">
+                            <h4 class="transaction-title">${transactionTitle}</h4>
+                            <p class="transaction-subtitle">${formatDateTime(entry.created_at)}</p>
+                        </div>
+                        <div class="transaction-amount ${isIncome ? 'amount-positive' : 'amount-negative'}">
+                            ${formattedAmount}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            transactionsList.innerHTML = transactionsHTML;
+            console.log(`✅ Updated transactions list with ${journalEntries.length} entries`);
         }
         
         // Generate placeholder values for development
         function generateRandomValue(min, max) {
             return Math.random() * (max - min) + min;
+        }
+        
+        // Show empty state when no company is selected
+        function updateEmptyState() {
+            // Update financial values to show no data
+            const elements = ['todayRevenueValue', 'todayExpenseValue', 'thisMonthRevenueValue', 'lastMonthRevenueValue'];
+            elements.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.textContent = 'No data';
+            });
+            
+            // Clear transactions
+            const transactionsList = document.getElementById('transactionsList');
+            if (transactionsList) {
+                transactionsList.innerHTML = '<div style="text-align: center; padding: 20px; color: var(--text-tertiary);">No company selected</div>';
+            }
+            
+            // Clear chart
+            if (spendingChart) {
+                spendingChart.destroy();
+                spendingChart = null;
+            }
+            
+            // Show empty state for chart
+            const chartContainer = document.querySelector('.chart-container');
+            const emptyState = document.getElementById('chartEmptyState');
+            if (chartContainer) chartContainer.style.display = 'none';
+            if (emptyState) emptyState.style.display = 'block';
+        }
+        
+        // Show loading state for dashboard elements
+        function showLoadingState() {
+            // Update financial values to show loading
+            const elements = ['todayRevenueValue', 'todayExpenseValue', 'thisMonthRevenueValue', 'lastMonthRevenueValue'];
+            elements.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.textContent = 'Loading...';
+            });
+            
+            // Show loading in transactions
+            const transactionsList = document.getElementById('transactionsList');
+            if (transactionsList) {
+                transactionsList.innerHTML = '<div style="text-align: center; padding: 20px; color: var(--text-tertiary);">Loading transactions...</div>';
+            }
         }
         
         // Enhanced sign out with better UX
@@ -988,6 +1200,12 @@
         // Show coming soon with modern styling
         function showComingSoon(featureName) {
             TossAlertUtils.showInfo(`${featureName} is coming soon! This modern dashboard is currently in development.`);
+        }
+        
+        // Navigate to transaction history page
+        function navigateToTransactionHistory() {
+            // Navigate to the transaction history page
+            window.location.href = '/mcparrange-main/myFinance_claude/website/pages/finance/transaction-history/index.html';
         }
         
         // Toggle submenu function (removed since we're using hover)

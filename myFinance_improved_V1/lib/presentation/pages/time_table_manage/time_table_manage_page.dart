@@ -525,9 +525,11 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
     final monthKey = '${displayMonth.year}-${displayMonth.month.toString().padLeft(2, '0')}';
     final monthData = managerCardsDataByMonth[monthKey];
     
-    // Process cards data to find dates with problems or pending shifts
+    // Process cards data to find dates with problems, pending, approved shifts, or no shifts
     Map<String, bool> datesWithProblems = {};
     Map<String, bool> datesWithPending = {};
+    Map<String, bool> datesWithApproved = {};
+    Map<String, bool> datesWithShifts = {}; // Track dates that have any shifts
     
     if (monthData != null && monthData['stores'] != null) {
       final stores = monthData['stores'] as List<dynamic>? ?? [];
@@ -538,6 +540,9 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
         for (var card in cards) {
           final requestDate = card['request_date'] as String?;
           if (requestDate != null) {
+            // Mark this date as having shifts
+            datesWithShifts[requestDate] = true;
+            
             final isProblem = (card['is_problem'] == true) && (card['is_problem_solved'] != true);
             final isApproved = card['is_approved'] ?? false;
             
@@ -546,6 +551,9 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
             }
             if (!isApproved) {
               datesWithPending[requestDate] = true;
+            }
+            if (isApproved && !isProblem) {
+              datesWithApproved[requestDate] = true;
             }
           }
         }
@@ -590,6 +598,8 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
       
       final hasProblem = datesWithProblems[dateStr] ?? false;
       final hasPending = datesWithPending[dateStr] ?? false;
+      final hasApproved = datesWithApproved[dateStr] ?? false;
+      final hasShift = datesWithShifts[dateStr] ?? false;
       
       calendarDays.add(
         InkWell(
@@ -623,16 +633,23 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
                     fontWeight: isSelected || isToday ? FontWeight.w700 : FontWeight.w500,
                   ),
                 ),
-                // Show indicator dots below the date for problems and pending
-                if ((hasProblem || hasPending) && !isSelected) ...[
+                // Show indicator dots below the date matching the weekly schedule logic
+                if (!isSelected) ...[
                   const SizedBox(height: 2),
                   Container(
                     width: 4,
                     height: 4,
                     decoration: BoxDecoration(
+                      // Priority: Problem (red) > Pending (orange) > Approved (green) > No shift (gray)
                       color: hasProblem 
-                          ? TossColors.error 
-                          : TossColors.warning,
+                          ? TossColors.error               // Red for problems
+                          : hasPending 
+                              ? TossColors.warning         // Orange for pending
+                              : hasApproved
+                                  ? TossColors.success     // Green for approved
+                                  : hasShift
+                                      ? TossColors.gray400  // Should not happen, but fallback
+                                      : TossColors.gray300, // Gray for no shifts (off day)
                       shape: BoxShape.circle,
                     ),
                   ),
@@ -3096,14 +3113,32 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<_ShiftDetailsBottomShe
   }
   
   Future<void> _deleteTag(String tagId) async {
+    // Validate tag ID
+    if (tagId.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Invalid tag ID',
+            style: TossTextStyles.body.copyWith(color: TossColors.white),
+          ),
+          backgroundColor: TossColors.error,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+          ),
+        ),
+      );
+      return;
+    }
+    
     try {
       // Show loading indicator
       showDialog(
         context: context,
-        barrierDismissible: true, // Allow dismissing loading dialogs
+        barrierDismissible: false,
         builder: (BuildContext context) {
           return const Center(
-            child: const TossLoadingView(),
+            child: TossLoadingView(),
           );
         },
       );
@@ -3112,8 +3147,17 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<_ShiftDetailsBottomShe
       final appState = ref.read(appStateProvider);
       final userId = appState.user['user_id'] ?? '';
       
+      if (userId.isEmpty) {
+        throw Exception('User ID not found');
+      }
+      
+      // Debug log
+      print('RPC manager_shift_delete_tag Parameters:');
+      print('  p_tag_id: $tagId');
+      print('  p_user_id: $userId');
+      
       // Call RPC to delete tag
-      await Supabase.instance.client.rpc(
+      final response = await Supabase.instance.client.rpc(
         'manager_shift_delete_tag',
         params: {
           'p_tag_id': tagId,
@@ -3121,9 +3165,44 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<_ShiftDetailsBottomShe
         },
       );
       
+      // Debug log response
+      print('RPC Response: $response');
+      
       // Close loading dialog
       if (mounted) {
         Navigator.of(context).pop();
+      }
+      
+      // Check response
+      if (response != null && response is Map) {
+        final success = response['success'] ?? false;
+        
+        if (!success) {
+          // Handle error response
+          final errorMessage = response['message'] ?? 'Failed to delete tag';
+          final errorCode = response['error'] ?? 'UNKNOWN_ERROR';
+          
+          print('RPC Error: $errorCode - $errorMessage');
+          
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  errorMessage,
+                  style: TossTextStyles.body.copyWith(color: TossColors.white),
+                ),
+                backgroundColor: TossColors.error,
+                behavior: SnackBarBehavior.floating,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+                ),
+                margin: const EdgeInsets.all(TossSpacing.space4),
+                duration: const Duration(seconds: 3),
+              ),
+            );
+          }
+          return;
+        }
       }
       
       // Show success message
@@ -3132,9 +3211,7 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<_ShiftDetailsBottomShe
           SnackBar(
             content: Text(
               'Tag deleted successfully',
-              style: TossTextStyles.body.copyWith(
-                color: TossColors.white,
-              ),
+              style: TossTextStyles.body.copyWith(color: TossColors.white),
             ),
             backgroundColor: TossColors.success,
             behavior: SnackBarBehavior.floating,
@@ -3146,10 +3223,9 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<_ShiftDetailsBottomShe
           ),
         );
         
-        // Refresh the data
-        // You might want to trigger a refresh of the parent widget here
-        // For now, just close and reopen the bottom sheet
-        Navigator.of(context).pop();
+        // Don't modify widget.card directly, just close with success flag
+        // The parent will refresh the data
+        Navigator.of(context).pop(true);
       }
     } catch (e) {
       // Close loading dialog if still open
@@ -3163,9 +3239,7 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<_ShiftDetailsBottomShe
           SnackBar(
             content: Text(
               'Failed to delete tag: ${e.toString()}',
-              style: TossTextStyles.body.copyWith(
-                color: TossColors.white,
-              ),
+              style: TossTextStyles.body.copyWith(color: TossColors.white),
             ),
             backgroundColor: TossColors.error,
             behavior: SnackBarBehavior.floating,
@@ -4068,10 +4142,30 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<_ShiftDetailsBottomShe
                             // Parse tag as a Map if it's not already
                             final tagData = tag is Map ? tag : {};
                             final content = tagData['content'] ?? 'No content';
-                            final tagId = tagData['id'] ?? '';
+                            final tagId = tagData['id']?.toString() ?? '';
+                            
+                            // Only show delete option if tag has a valid ID
+                            if (tagId.isEmpty) {
+                              return Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: TossSpacing.space3,
+                                  vertical: TossSpacing.space2,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: TossColors.gray100,
+                                  borderRadius: BorderRadius.circular(TossBorderRadius.xxl),
+                                ),
+                                child: Text(
+                                  content,
+                                  style: TossTextStyles.bodySmall.copyWith(
+                                    color: TossColors.gray600,
+                                  ),
+                                ),
+                              );
+                            }
                             
                             return GestureDetector(
-                              onTap: () => _showDeleteTagDialog(context, tagId, content),
+                              onTap: () => _showDeleteTagDialog(context, tagId.toString(), content),
                               child: Container(
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: TossSpacing.space3,
@@ -4160,13 +4254,33 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<_ShiftDetailsBottomShe
                   TossColors.primary,
                   Icons.save_outlined,
                   hasChanges() ? () async {
-                    // Validate tag inputs
-                    if ((selectedTagType != null && tagContent == null) || 
-                        (selectedTagType == null && tagContent != null)) {
+                    // Validate tag inputs - both must be provided or both must be empty
+                    final hasTagType = selectedTagType != null && selectedTagType!.trim().isNotEmpty;
+                    final hasTagContent = tagContent != null && tagContent!.trim().isNotEmpty;
+                    
+                    if (hasTagType != hasTagContent) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: Text(
                             'Please fill both tag type and content or leave both empty',
+                            style: TossTextStyles.body.copyWith(color: TossColors.white),
+                          ),
+                          backgroundColor: TossColors.error,
+                          behavior: SnackBarBehavior.floating,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+                          ),
+                        ),
+                      );
+                      return;
+                    }
+                    
+                    // Additional validation for tag content length
+                    if (hasTagContent && tagContent!.trim().length > 500) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            'Tag content cannot exceed 500 characters',
                             style: TossTextStyles.body.copyWith(color: TossColors.white),
                           ),
                           backgroundColor: TossColors.error,
@@ -4245,8 +4359,8 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<_ShiftDetailsBottomShe
                     // Get values from app state and card
                     final appState = ref.read(appStateProvider);
                     final userId = appState.user['user_id'];
-                    final shiftRequestId = card['shift_request_id'];
-                    final isLate = card['is_late'] ?? false;
+                    final shiftRequestId = widget.card['shift_request_id'];
+                    final isLate = widget.card['is_late'] ?? false;
                     
                     // Show loading indicator
                     showDialog(
@@ -4261,50 +4375,94 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<_ShiftDetailsBottomShe
                     );
                     
                     try {
-                      // Format times to ensure HH:mm format
+                      // Format times to ensure HH:mm format (24-hour)
                       String? formatTimeToHHmm(String? timeStr) {
-                        if (timeStr == null || timeStr == '--:--') return null;
-                        // If already in HH:mm format, return as is
+                        if (timeStr == null || timeStr == '--:--' || timeStr.isEmpty) return null;
+                        
+                        // If already in HH:mm format, validate and return
                         if (RegExp(r'^\d{2}:\d{2}$').hasMatch(timeStr)) {
-                          return timeStr;
+                          final parts = timeStr.split(':');
+                          final hour = int.parse(parts[0]);
+                          final minute = int.parse(parts[1]);
+                          // Validate time values
+                          if (hour >= 0 && hour <= 23 && minute >= 0 && minute <= 59) {
+                            return timeStr;
+                          }
                         }
-                        // If it contains date or other format, try to extract time
+                        
+                        // Try to extract time from datetime string
                         try {
-                          // Check if it's a datetime string
                           if (timeStr.contains('T') || timeStr.contains(' ')) {
                             final parts = timeStr.split(RegExp(r'[T ]'));
                             if (parts.length > 1) {
                               final timePart = parts[1];
-                              // Extract HH:mm from HH:mm:ss or similar
                               final timeComponents = timePart.split(':');
                               if (timeComponents.length >= 2) {
-                                return '${timeComponents[0].padLeft(2, '0')}:${timeComponents[1].padLeft(2, '0')}';
+                                final hour = int.tryParse(timeComponents[0]) ?? 0;
+                                final minute = int.tryParse(timeComponents[1]) ?? 0;
+                                if (hour >= 0 && hour <= 23 && minute >= 0 && minute <= 59) {
+                                  return '${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}';
+                                }
                               }
                             }
                           }
-                          return timeStr; // Return as is if can't parse
+                          return null; // Return null if can't parse properly
                         } catch (e) {
-                          return timeStr;
+                          return null;
                         }
                       }
                       
-                      final startTime = formatTimeToHHmm(editedStartTime ?? card['confirm_start_time']);
-                      final endTime = formatTimeToHHmm(editedEndTime ?? card['confirm_end_time']);
+                      // Format times - these should already be in HH:mm format from _formatTimeOfDay
+                      final startTime = formatTimeToHHmm(editedStartTime ?? widget.card['confirm_start_time']);
+                      final endTime = formatTimeToHHmm(editedEndTime ?? widget.card['confirm_end_time']);
                       
-                      // Call the RPC
-                      await Supabase.instance.client.rpc(
+                      // Prepare tag parameters - ensure null instead of empty strings
+                      final processedTagContent = (tagContent != null && tagContent!.trim().isNotEmpty) 
+                          ? tagContent!.trim() 
+                          : null;
+                      final processedTagType = (selectedTagType != null && selectedTagType!.trim().isNotEmpty)
+                          ? selectedTagType!.trim()
+                          : null;
+                      
+                      // Ensure shiftRequestId is valid
+                      if (shiftRequestId == null || shiftRequestId.isEmpty) {
+                        throw Exception('Invalid shift request ID');
+                      }
+                      
+                      // Debug log to verify parameters
+                      print('RPC Parameters:');
+                      print('  p_manager_id: $userId');
+                      print('  p_shift_request_id: $shiftRequestId');
+                      print('  p_confirm_start_time: $startTime');
+                      print('  p_confirm_end_time: $endTime');
+                      print('  p_new_tag_content: $processedTagContent');
+                      print('  p_new_tag_type: $processedTagType');
+                      print('  p_is_late: $isLate');
+                      print('  p_is_problem_solved: $isProblemSolved');
+                      
+                      // Call the RPC with properly formatted parameters
+                      final response = await Supabase.instance.client.rpc(
                         'manager_shift_input_card',
                         params: {
                           'p_manager_id': userId,
                           'p_confirm_start_time': startTime,
                           'p_confirm_end_time': endTime,
-                          'p_new_tag_content': tagContent,
-                          'p_new_tag_type': selectedTagType,
+                          'p_new_tag_content': processedTagContent,
+                          'p_new_tag_type': processedTagType,
                           'p_is_late': isLate,
                           'p_shift_request_id': shiftRequestId,
                           'p_is_problem_solved': isProblemSolved,
                         },
                       );
+                      
+                      // Check if RPC returned an error structure
+                      if (response != null && response is Map) {
+                        if (response['success'] == false) {
+                          final errorMessage = response['message'] ?? 'Unknown error occurred';
+                          final errorCode = response['error'] ?? 'UNKNOWN_ERROR';
+                          throw Exception('$errorCode: $errorMessage');
+                        }
+                      }
                       
                       // Close loading dialog
                       Navigator.pop(context);

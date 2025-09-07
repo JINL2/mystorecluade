@@ -184,8 +184,12 @@ class TossFilter {
         }
         
         // Listen for company changes to reload stores
-        window.addEventListener('companyChanged', () => {
-            this.loadStores();
+        window.addEventListener('companyChanged', (event) => {
+            console.log('🎯 DEBUG: TossFilter received companyChanged event:', event.detail);
+            console.log('🎯 DEBUG: Event companyId:', event.detail.companyId);
+            console.log('🎯 DEBUG: Event companyName:', event.detail.companyName);
+            console.log('🔄 DEBUG: Calling refreshStoresForNewCompany...');
+            this.refreshStoresForNewCompany();
         });
     }
     
@@ -227,6 +231,12 @@ class TossFilter {
         }
         
         // Get selected company ID from localStorage
+        // DEBUG: Check storage keys for company selection
+        console.log('🔍 DEBUG: TossFilter localStorage keys:', Object.keys(localStorage));
+        console.log('🔍 DEBUG: companychoosen (lowercase c):', localStorage.getItem('companychoosen'));
+        console.log('🔍 DEBUG: companyChoosen (capital C):', localStorage.getItem('companyChoosen'));
+        
+        // Use correct storage key that navbar uses (capital 'C')
         const selectedCompanyId = localStorage.getItem('companyChoosen');
         if (!selectedCompanyId) {
             console.log('TossFilter: No company selected');
@@ -257,11 +267,32 @@ class TossFilter {
                     this.storeFilter.appendChild(option);
                 });
                 
-                console.log(`TossFilter: Loaded ${selectedCompany.stores.length} stores for company ${selectedCompany.company_name || selectedCompanyId}`);
+                console.log(`✅ DEBUG: TossFilter loaded ${selectedCompany.stores.length} stores for company ${selectedCompany.company_name || selectedCompanyId}`);
+            console.log('🏢 DEBUG: Store list:', selectedCompany.stores.map(s => `${s.store_name} (${s.store_id})`));
             }
         } catch (error) {
             console.error('TossFilter: Error loading stores:', error);
         }
+    }
+    
+    // Method to refresh stores when company changes
+    refreshStoresForNewCompany() {
+        console.log('🔄 DEBUG: TossFilter refreshStoresForNewCompany called');
+        console.log('🔍 DEBUG: Current localStorage companyChoosen:', localStorage.getItem('companyChoosen'));
+        
+        // Reset store selection to "All Stores"
+        if (this.storeFilter) {
+            this.storeFilter.value = 'null';
+        }
+        
+        // Reload stores for the new company
+        console.log('🔄 DEBUG: About to call loadStores()...');
+        this.loadStores();
+        
+        // Trigger filter change event to notify parent component
+        console.log('🔄 DEBUG: About to trigger onFilterChange...');
+        this.options.onFilterChange(this.getFilters());
+        console.log('✅ DEBUG: TossFilter refresh complete');
     }
     
     getFilters() {

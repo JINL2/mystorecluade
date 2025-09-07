@@ -285,7 +285,7 @@ class TossIncomeStatementFilter {
         
         try {
             const user = JSON.parse(userData);
-            const selectedCompanyId = localStorage.getItem('companyChoosen');
+            const selectedCompanyId = localStorage.getItem('companyChoosen'); // Fixed: use capital 'C' to match navbar
             
             if (!selectedCompanyId) {
                 console.log('TossIncomeStatementFilter: No company selected');
@@ -316,6 +316,47 @@ class TossIncomeStatementFilter {
         } catch (error) {
             console.error('TossIncomeStatementFilter: Error loading stores:', error);
         }
+    }
+    
+    // Method to refresh stores when company changes (matching TossFilter API)
+    refreshStoresForNewCompany() {
+        console.log('🔄 [INCOME-STATEMENT] TossIncomeStatementFilter refreshStoresForNewCompany called');
+        console.log('🔍 [INCOME-STATEMENT] Current localStorage companyChoosen:', localStorage.getItem('companyChoosen'));
+        
+        // Reset store selection to "All Stores"
+        if (this.storeFilter) {
+            this.storeFilter.value = 'null';
+        }
+        
+        // Reload stores for the new company
+        console.log('🔄 [INCOME-STATEMENT] About to call loadStores()...');
+        this.loadStores();
+        console.log('✅ [INCOME-STATEMENT] Store refresh completed');
+    }
+    
+    // Alias method for compatibility (matching what income statement calls)
+    refreshStores() {
+        return this.refreshStoresForNewCompany();
+    }
+    
+    // Method to reset filters to defaults
+    resetToDefaults() {
+        console.log('📅 [INCOME-STATEMENT] Resetting filters to defaults');
+        
+        // Reset store filter to "All Stores"
+        if (this.storeFilter) {
+            this.storeFilter.value = 'null';
+        }
+        
+        // Reset type filter to "Monthly"
+        if (this.typeFilter) {
+            this.typeFilter.value = 'monthly';
+        }
+        
+        // Reset dates to current month
+        this.setDefaultDates();
+        
+        console.log('✅ [INCOME-STATEMENT] Filters reset to defaults');
     }
     
     getFilters() {

@@ -1,0 +1,1176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyFinance - Store Setting</title>
+    
+    <!-- Theme CSS -->
+    <link rel="stylesheet" href="../../../core/themes/toss-variables.css">
+    <link rel="stylesheet" href="../../../core/themes/toss-component-variables.css">
+    <link rel="stylesheet" href="../../../core/themes/toss-base.css">
+    <link rel="stylesheet" href="../../../core/themes/toss-typography.css">
+    
+    <!-- Component CSS -->
+    <link rel="stylesheet" href="../../../components/base/toss-button.css">
+    <link rel="stylesheet" href="../../../components/form/toss-input.css">
+    <link rel="stylesheet" href="../../../components/form/toss-select.css">
+    <link rel="stylesheet" href="../../../components/feedback/toss-alert.css">
+    <link rel="stylesheet" href="../../../components/navigation/navbar.css">
+    
+    <!-- Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- Environment Configuration (for local development) -->
+    <script src="../../../core/config/env-loader.js"></script>
+    <script src="../../../core/config/env-config.js"></script>    
+    <!-- Page Specific Styles -->
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: var(--font-family);
+            background: var(--toss-gray-50);
+            min-height: 100vh;
+        }
+        
+        .page-container {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .page-content {
+            flex: 1;
+            padding: var(--space-6);
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+        }
+        
+        .page-header {
+            margin-bottom: var(--space-8);
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+        
+        .page-header-content {
+            flex: 1;
+        }
+        
+        .page-title {
+            font-size: var(--font-h1);
+            font-weight: 700;
+            color: var(--text-primary);
+            margin: 0 0 var(--space-2) 0;
+        }
+        
+        .page-subtitle {
+            font-size: var(--font-large);
+            color: var(--text-secondary);
+            margin: 0;
+        }
+        
+        .add-store-btn {
+            background: var(--toss-primary);
+            color: var(--toss-white);
+            border: none;
+            border-radius: var(--radius-md);
+            padding: var(--space-3) var(--space-5);
+            font-size: var(--font-medium);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+        }
+        
+        .add-store-btn:hover {
+            background: var(--toss-primary-dark);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .stores-container {
+            margin-top: var(--space-6);
+        }
+        
+        .stores-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: var(--space-4);
+        }
+        
+        .store-card {
+            background: var(--toss-white);
+            border: 1px solid var(--toss-border-light);
+            border-radius: var(--radius-lg);
+            padding: var(--space-5);
+            transition: all 0.2s ease;
+            cursor: pointer;
+            position: relative;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .store-card:hover {
+            background: var(--toss-surface-primary, #f0f8ff);
+            border-color: var(--toss-primary);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            transform: translateY(-2px);
+        }
+        
+        .store-card-header {
+            padding-right: var(--space-8);
+        }
+        
+        .store-name {
+            font-size: var(--font-h4);
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0 0 var(--space-2) 0;
+        }
+        
+        
+        .store-actions {
+            position: absolute;
+            top: var(--space-3);
+            right: var(--space-3);
+            display: flex;
+            gap: var(--space-1);
+            opacity: 1;
+            transition: all 0.2s ease;
+        }
+        
+        .store-action-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: var(--radius-sm);
+            background: var(--toss-white);
+            border: 1px solid var(--toss-border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            color: var(--text-tertiary);
+        }
+        
+        .store-action-btn:hover {
+            transform: scale(1.1);
+        }
+        
+        .store-action-btn.edit:hover {
+            background: var(--toss-primary);
+            color: var(--toss-white);
+            border-color: var(--toss-primary);
+            box-shadow: 0 2px 6px rgba(0, 100, 255, 0.3);
+        }
+        
+        .store-action-btn.delete:hover {
+            background: var(--toss-error);
+            color: var(--toss-white);
+            border-color: var(--toss-error);
+            box-shadow: 0 2px 6px rgba(244, 67, 54, 0.3);
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: var(--space-12) var(--space-6);
+            background: var(--toss-white);
+            border-radius: var(--radius-lg);
+            border: 2px dashed var(--toss-gray-200);
+        }
+        
+        .empty-state-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto var(--space-4);
+            background: var(--toss-gray-100);
+            border-radius: var(--radius-full);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-tertiary);
+        }
+        
+        .empty-state-title {
+            font-size: var(--font-h3);
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0 0 var(--space-2) 0;
+        }
+        
+        .empty-state-text {
+            font-size: var(--font-medium);
+            color: var(--text-secondary);
+            margin: 0 0 var(--space-4) 0;
+        }
+        
+        /* Modal Styles */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-overlay.active {
+            display: flex;
+        }
+        
+        .modal-content {
+            background: var(--toss-white);
+            border-radius: var(--radius-xl);
+            padding: var(--space-6);
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--space-6);
+        }
+        
+        .modal-title {
+            font-size: var(--font-h2);
+            font-weight: 700;
+            color: var(--text-primary);
+            margin: 0;
+        }
+        
+        .modal-close {
+            background: none;
+            border: none;
+            padding: var(--space-2);
+            cursor: pointer;
+            color: var(--text-tertiary);
+            transition: color 0.2s ease;
+        }
+        
+        .modal-close:hover {
+            color: var(--text-primary);
+        }
+        
+        .modal-body {
+            margin-bottom: var(--space-6);
+        }
+        
+        .form-group {
+            margin-bottom: var(--space-4);
+        }
+        
+        .form-label {
+            display: block;
+            font-size: var(--font-small);
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: var(--space-2);
+        }
+        
+        .modal-footer {
+            display: flex;
+            gap: var(--space-3);
+            justify-content: flex-end;
+        }
+        
+        /* Modal Button Styles */
+        .modal-btn {
+            padding: var(--space-3) var(--space-5);
+            border-radius: var(--radius-md);
+            font-size: var(--font-medium);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: none;
+            min-height: 44px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-btn-cancel {
+            background: var(--toss-gray-100);
+            color: var(--text-secondary);
+        }
+        
+        .modal-btn-cancel:hover {
+            background: var(--toss-gray-200);
+            transform: translateY(-1px);
+        }
+        
+        .modal-btn-save {
+            background: var(--toss-primary);
+            color: var(--toss-white);
+        }
+        
+        .modal-btn-save:hover:not(:disabled) {
+            background: var(--toss-primary-dark);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .modal-btn-save:disabled {
+            background: var(--toss-gray-300);
+            color: var(--text-tertiary);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .store-detail {
+            color: var(--text-secondary);
+            font-size: var(--font-small);
+            margin-top: var(--space-2);
+            line-height: 1.4;
+        }
+        
+        .optional-label {
+            color: var(--text-tertiary);
+            font-size: var(--font-small);
+            font-weight: 400;
+            margin-left: 4px;
+        }
+        
+        
+        .modal-body .form-group {
+            margin-bottom: var(--space-5);
+        }
+        
+        /* Ensure Toss input styles are applied */
+        .modal-content .toss-input {
+            display: block;
+            width: 100%;
+            font-family: var(--font-family);
+            font-size: var(--font-body);
+            color: var(--text-primary);
+            background: var(--toss-white);
+            border: 1px solid var(--toss-gray-200);
+            border-radius: var(--radius-md);
+            padding: var(--space-3) var(--space-4);
+            transition: all 0.2s ease;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+        
+        .modal-content .toss-input:focus {
+            outline: none;
+            border-color: var(--toss-primary);
+            box-shadow: 0 0 0 3px rgba(0, 100, 255, 0.08);
+        }
+        
+        .modal-content .toss-input::placeholder {
+            color: var(--text-tertiary);
+        }
+        
+        .modal-content .toss-label {
+            display: block;
+            font-size: var(--font-small);
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: var(--space-2);
+        }
+        
+        .modal-content .toss-label.required::after {
+            content: " *";
+            color: var(--toss-error);
+        }
+        
+        /* Delete Button Hover Effect */
+        .modal-btn[onclick="confirmDeleteStore()"]:hover:not(:disabled) {
+            background: var(--toss-error-dark, #d32f2f) !important;
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+    </style>
+</head>
+<body>
+    <div class="page-container">
+        <!-- Navigation Bar -->
+        <div id="navbar-container"></div>
+        
+        <!-- Page Content -->
+        <main class="page-content">
+            <div class="page-header">
+                <div class="page-header-content">
+                    <h1 class="page-title">Store Setting</h1>
+                    <p class="page-subtitle">Manage your store configuration and settings</p>
+                </div>
+                <button class="add-store-btn" onclick="openAddStoreModal()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M19 13H13V19H11V13H5V11H11V5H13V11H19V13Z"/>
+                    </svg>
+                    Add Store
+                </button>
+            </div>
+            
+            <!-- Stores Container -->
+            <div class="stores-container">
+                <div id="storesGrid" class="stores-grid">
+                    <!-- Stores will be loaded here dynamically -->
+                </div>
+                
+                <!-- Empty State -->
+                <div id="emptyState" class="empty-state" style="display: none;">
+                    <div class="empty-state-icon">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M21 6H18V5C18 3.89 17.11 3 16 3H8C6.89 3 6 3.89 6 5V6H3C2.45 6 2 6.45 2 7C2 7.55 2.45 8 3 8H4V19C4 20.11 4.89 21 6 21H18C19.11 21 20 20.11 20 19V8H21C21.55 8 22 7.55 22 7C22 6.45 21.55 6 21 6ZM8 5H16V6H8V5ZM18 19H6V8H18V19Z"/>
+                        </svg>
+                    </div>
+                    <h3 class="empty-state-title">No Stores Yet</h3>
+                    <p class="empty-state-text">Click "Add Store" to create your first store location.</p>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <!-- Add Store Modal -->
+    <div id="addStoreModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Add New Store</h2>
+                <button class="modal-close" onclick="closeAddStoreModal()">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M19 6.41L17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12L19 6.41Z"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <div class="toss-input-group">
+                        <label class="toss-label required">Store Name</label>
+                        <input 
+                            type="text"
+                            class="toss-input"
+                            id="storeName"
+                            placeholder="Enter store name"
+                            required
+                            oninput="validateStoreForm()">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="toss-input-group">
+                        <label class="toss-label">Store Address <span class="optional-label">(Optional)</span></label>
+                        <input 
+                            type="text"
+                            class="toss-input"
+                            id="storeAddress"
+                            placeholder="Enter store address">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="toss-input-group">
+                        <label class="toss-label">Store Phone <span class="optional-label">(Optional)</span></label>
+                        <input 
+                            type="tel"
+                            class="toss-input"
+                            id="storePhone"
+                            placeholder="Enter phone number">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn modal-btn-cancel" onclick="closeAddStoreModal()">
+                    Cancel
+                </button>
+                <button id="createStoreBtn" class="modal-btn modal-btn-save" onclick="saveStore()" disabled>
+                    Create Store
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Edit Store Modal -->
+    <div id="editStoreModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Edit Store</h2>
+                <button class="modal-close" onclick="closeEditStoreModal()">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M19 6.41L17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12L19 6.41Z"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <div class="toss-input-group">
+                        <label class="toss-label required">Store Name</label>
+                        <input 
+                            type="text"
+                            class="toss-input"
+                            id="editStoreName"
+                            placeholder="Enter store name"
+                            required
+                            oninput="checkEditFormChanges()">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="toss-input-group">
+                        <label class="toss-label">Store Address <span class="optional-label">(Optional)</span></label>
+                        <input 
+                            type="text"
+                            class="toss-input"
+                            id="editStoreAddress"
+                            placeholder="Enter store address"
+                            oninput="checkEditFormChanges()">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="toss-input-group">
+                        <label class="toss-label">Store Phone <span class="optional-label">(Optional)</span></label>
+                        <input 
+                            type="tel"
+                            class="toss-input"
+                            id="editStorePhone"
+                            placeholder="Enter phone number"
+                            oninput="checkEditFormChanges()">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="toss-input-group">
+                        <label class="toss-label">Huddle Time (minutes) <span class="optional-label">(Optional)</span></label>
+                        <input 
+                            type="number"
+                            class="toss-input"
+                            id="editHuddleTime"
+                            placeholder="Enter huddle time in minutes"
+                            min="0"
+                            oninput="checkEditFormChanges()">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="toss-input-group">
+                        <label class="toss-label">Payment Time (minutes) <span class="optional-label">(Optional)</span></label>
+                        <input 
+                            type="number"
+                            class="toss-input"
+                            id="editPaymentTime"
+                            placeholder="Enter payment time in minutes"
+                            min="0"
+                            oninput="checkEditFormChanges()">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="toss-input-group">
+                        <label class="toss-label">Allowed Distance (meters) <span class="optional-label">(Optional)</span></label>
+                        <input 
+                            type="number"
+                            class="toss-input"
+                            id="editAllowedDistance"
+                            placeholder="Enter allowed distance in meters"
+                            min="0"
+                            oninput="checkEditFormChanges()">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn modal-btn-cancel" onclick="closeEditStoreModal()">
+                    Cancel
+                </button>
+                <button id="confirmEditBtn" class="modal-btn modal-btn-save" onclick="saveEditStore()" disabled>
+                    Confirm Changes
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteConfirmModal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 400px;">
+            <div class="modal-header">
+                <h2 class="modal-title">Delete Store</h2>
+                <button class="modal-close" onclick="closeDeleteConfirmModal()">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M19 6.41L17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12L19 6.41Z"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div style="text-align: center; margin-bottom: var(--space-6);">
+                    <div style="width: 64px; height: 64px; margin: 0 auto var(--space-4); background: var(--toss-error-light, #ffebee); border-radius: var(--radius-full); display: flex; align-items: center; justify-content: center; color: var(--toss-error);">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+                        </svg>
+                    </div>
+                    <p style="font-size: var(--font-large); font-weight: 600; color: var(--text-primary); margin: 0 0 var(--space-2) 0;">
+                        Are you sure you want to delete this store?
+                    </p>
+                    <p style="font-size: var(--font-medium); color: var(--text-secondary); margin: 0;">
+                        This action cannot be undone. The store will be permanently removed from your system.
+                    </p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn modal-btn-cancel" onclick="closeDeleteConfirmModal()">
+                    Cancel
+                </button>
+                <button id="confirmDeleteBtn" class="modal-btn" style="background: var(--toss-error); color: var(--toss-white);" onclick="confirmDeleteStore()">
+                    Yes, Delete Store
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    
+    <!-- Component JavaScript -->
+    <script src="../../../components/base/toss-button.js"></script>
+    <script src="../../../components/form/toss-input.js"></script>
+    <script src="../../../components/form/toss-select.js"></script>
+    <script src="../../../components/navigation/navbar.js"></script>
+    <script src="../../../components/feedback/toss-alert.js"></script>
+    
+    <!-- Core Scripts -->
+    <script src="../../../core/constants/app-icons.js"></script>
+    <script src="../../../core/config/supabase.js"></script>
+    
+    <!-- App State Management -->
+    <script src="../../../core/utils/app-state.js"></script>
+    
+    <!-- Route Mapping -->
+    <script src="../../../core/config/route-mapping.js"></script>
+    
+    <!-- Page Initialization Utility -->
+    <script src="../../../core/utils/page-init.js"></script>
+    
+    <script>
+        // Set flag immediately to prevent navbar auto-init
+        window.skipNavbarAutoInit = true;
+        
+        // Initialize page using standardized pattern
+        window.initializePage('setting', (companyId, company) => {
+            console.log('Company changed in store settings:', companyId);
+            loadStoreSettingsData(companyId);
+        });
+        
+        // Additional page initialization after navbar is ready
+        document.addEventListener('DOMContentLoaded', () => {
+            // Wait for page initialization to complete, then initialize page-specific content
+            setTimeout(() => {
+                const companyId = appState.getSelectedCompanyId();
+                if (companyId) {
+                    loadStoreSettingsData(companyId);
+                }
+            }, 100);
+        });
+        
+        // Load store settings data for company
+        async function loadStoreSettingsData(companyId) {
+            console.log('Loading stores for company:', companyId);
+            
+            if (!companyId) {
+                console.error('No company selected');
+                displayEmptyState();
+                return;
+            }
+            
+            try {
+                // Ensure we have a valid supabase client
+                if (!supabase) {
+                    console.error('Supabase client not available');
+                    displayEmptyState();
+                    return;
+                }
+                
+                // Query stores table with all necessary columns
+                const { data: stores, error } = await supabase
+                    .from('stores')
+                    .select('store_id, store_name, store_address, store_phone, huddle_time, payment_time, allowed_distance')
+                    .eq('company_id', companyId)
+                    .eq('is_deleted', false)
+                    .order('created_at', { ascending: false });
+                
+                if (error) {
+                    console.error('Error loading stores:', error);
+                    // Don't show error toast during refresh to avoid UI noise
+                    if (error.message && !error.message.includes('JWT')) {
+                        TossAlertUtils.showError('Failed to load stores');
+                    }
+                    displayEmptyState();
+                    return;
+                }
+                
+                console.log('Loaded stores:', stores);
+                
+                // Display stores
+                displayStores(stores || []);
+                
+            } catch (error) {
+                console.error('Unexpected error loading stores:', error);
+                // Only show error if it's not an authentication issue
+                if (!error.message || !error.message.includes('JWT')) {
+                    TossAlertUtils.showError('An unexpected error occurred');
+                }
+                displayEmptyState();
+            }
+        }
+        
+        // Display stores as cards
+        function displayStores(stores) {
+            const storesGrid = document.getElementById('storesGrid');
+            const emptyState = document.getElementById('emptyState');
+            
+            if (!stores || stores.length === 0) {
+                displayEmptyState();
+                return;
+            }
+            
+            // Hide empty state
+            emptyState.style.display = 'none';
+            
+            // Clear existing content and reset stores data
+            storesGrid.innerHTML = '';
+            storesData = {}; // Clear cached store data to ensure fresh data
+            
+            console.log('Displaying', stores.length, 'stores with updated data');
+            
+            // Create store cards with fresh data
+            stores.forEach(store => {
+                const storeCard = createStoreCard(store);
+                storesGrid.appendChild(storeCard);
+            });
+            
+            console.log('Store cards updated successfully');
+        }
+        
+        // Store data globally for editing
+        let storesData = {};
+        
+        // Create a store card element
+        function createStoreCard(store) {
+            // Store the data for later use
+            storesData[store.store_id] = store;
+            
+            const card = document.createElement('div');
+            card.className = 'store-card';
+            card.dataset.storeId = store.store_id;
+            
+            card.innerHTML = `
+                <div class="store-actions">
+                    <button class="store-action-btn edit" onclick="openEditStoreModal('${store.store_id}')" title="Edit">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+                        </svg>
+                    </button>
+                    <button class="store-action-btn delete" onclick="deleteStore('${store.store_id}')" title="Delete">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+                        </svg>
+                    </button>
+                </div>
+                <div class="store-card-header">
+                    <h3 class="store-name">${escapeHtml(store.store_name)}</h3>
+                    ${store.store_address ? `<div class="store-detail">Address: ${escapeHtml(store.store_address)}</div>` : ''}
+                    ${store.store_phone ? `<div class="store-detail">Phone: ${escapeHtml(store.store_phone)}</div>` : ''}
+                    ${store.huddle_time ? `<div class="store-detail">Huddle Time: ${store.huddle_time} minutes</div>` : ''}
+                    ${store.payment_time ? `<div class="store-detail">Payment Time: ${store.payment_time} minutes</div>` : ''}
+                    ${store.allowed_distance ? `<div class="store-detail">Allowed Distance: ${store.allowed_distance} meters</div>` : ''}
+                </div>
+            `;
+            
+            return card;
+        }
+        
+        // Display empty state
+        function displayEmptyState() {
+            const storesGrid = document.getElementById('storesGrid');
+            const emptyState = document.getElementById('emptyState');
+            
+            storesGrid.innerHTML = '';
+            emptyState.style.display = 'block';
+        }
+        
+        // Escape HTML to prevent XSS
+        function escapeHtml(text) {
+            if (!text) return '';
+            const map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+            return text.replace(/[&<>"']/g, m => map[m]);
+        }
+        
+        // Store original values for change detection
+        let originalStoreValues = {};
+        let currentEditStoreId = null;
+        let currentDeleteStoreId = null;
+        
+        // Open edit store modal
+        function openEditStoreModal(storeId) {
+            const store = storesData[storeId];
+            if (!store) {
+                console.error('Store not found:', storeId);
+                return;
+            }
+            
+            currentEditStoreId = storeId;
+            
+            // Populate form fields
+            document.getElementById('editStoreName').value = store.store_name || '';
+            document.getElementById('editStoreAddress').value = store.store_address || '';
+            document.getElementById('editStorePhone').value = store.store_phone || '';
+            document.getElementById('editHuddleTime').value = store.huddle_time || '';
+            document.getElementById('editPaymentTime').value = store.payment_time || '';
+            document.getElementById('editAllowedDistance').value = store.allowed_distance || '';
+            
+            // Store original values for change detection
+            originalStoreValues = {
+                store_name: store.store_name || '',
+                store_address: store.store_address || '',
+                store_phone: store.store_phone || '',
+                huddle_time: store.huddle_time || '',
+                payment_time: store.payment_time || '',
+                allowed_distance: store.allowed_distance || ''
+            };
+            
+            // Reset button state
+            document.getElementById('confirmEditBtn').setAttribute('disabled', 'true');
+            
+            // Show modal
+            document.getElementById('editStoreModal').classList.add('active');
+        }
+        
+        // Close edit store modal
+        function closeEditStoreModal() {
+            document.getElementById('editStoreModal').classList.remove('active');
+            currentEditStoreId = null;
+            originalStoreValues = {};
+        }
+        
+        // Check if form has changes to enable/disable confirm button
+        function checkEditFormChanges() {
+            if (!originalStoreValues || !currentEditStoreId) return;
+            
+            const currentValues = {
+                store_name: document.getElementById('editStoreName').value || '',
+                store_address: document.getElementById('editStoreAddress').value || '',
+                store_phone: document.getElementById('editStorePhone').value || '',
+                huddle_time: document.getElementById('editHuddleTime').value || '',
+                payment_time: document.getElementById('editPaymentTime').value || '',
+                allowed_distance: document.getElementById('editAllowedDistance').value || ''
+            };
+            
+            // Check if any value has changed
+            const hasChanges = Object.keys(originalStoreValues).some(
+                key => currentValues[key] !== originalStoreValues[key]
+            );
+            
+            const confirmBtn = document.getElementById('confirmEditBtn');
+            if (hasChanges && currentValues.store_name.trim()) {
+                confirmBtn.removeAttribute('disabled');
+            } else {
+                confirmBtn.setAttribute('disabled', 'true');
+            }
+        }
+        
+        // Save store changes
+        async function saveEditStore() {
+            if (!currentEditStoreId) {
+                console.error('No store selected for editing');
+                return;
+            }
+            
+            const confirmBtn = document.getElementById('confirmEditBtn');
+            const originalText = confirmBtn.textContent;
+            
+            try {
+                // Disable button and show loading
+                confirmBtn.disabled = true;
+                confirmBtn.textContent = 'Updating...';
+                
+                // Get form values
+                const updatedData = {
+                    store_name: document.getElementById('editStoreName').value.trim(),
+                    store_address: document.getElementById('editStoreAddress').value.trim() || null,
+                    store_phone: document.getElementById('editStorePhone').value.trim() || null,
+                    huddle_time: document.getElementById('editHuddleTime').value ? parseInt(document.getElementById('editHuddleTime').value) : null,
+                    payment_time: document.getElementById('editPaymentTime').value ? parseInt(document.getElementById('editPaymentTime').value) : null,
+                    allowed_distance: document.getElementById('editAllowedDistance').value ? parseInt(document.getElementById('editAllowedDistance').value) : null,
+                    updated_at: new Date().toISOString()
+                };
+                
+                // Validate required fields
+                if (!updatedData.store_name) {
+                    TossAlertUtils.showError('Store name is required');
+                    return;
+                }
+                
+                console.log('Updating store with data:', updatedData);
+                
+                // Update in Supabase
+                const { error } = await supabase
+                    .from('stores')
+                    .update(updatedData)
+                    .eq('store_id', currentEditStoreId);
+                
+                if (error) {
+                    console.error('Error updating store:', error);
+                    TossAlertUtils.showError('Failed to update store: ' + error.message);
+                    return;
+                }
+                
+                console.log('Store updated successfully');
+                
+                // Update the local store data with the new values immediately
+                if (storesData[currentEditStoreId]) {
+                    storesData[currentEditStoreId] = {
+                        ...storesData[currentEditStoreId],
+                        ...updatedData
+                    };
+                }
+                
+                closeEditStoreModal();
+                TossAlertUtils.showSuccess('Store updated successfully!');
+                
+                // Small delay to ensure database operation completes, then reload
+                setTimeout(async () => {
+                    const companyId = appState.getSelectedCompanyId();
+                    console.log('Reloading stores for company:', companyId);
+                    if (companyId) {
+                        await loadStoreSettingsData(companyId);
+                    } else {
+                        console.error('No company ID found during refresh');
+                        // Try to get company ID from navbar if available
+                        if (window.navbarInstance && window.navbarInstance.companySelector) {
+                            const selectedCompany = window.navbarInstance.companySelector.getSelectedOption();
+                            if (selectedCompany && selectedCompany.data && selectedCompany.data.company_id) {
+                                console.log('Using company ID from navbar:', selectedCompany.data.company_id);
+                                await loadStoreSettingsData(selectedCompany.data.company_id);
+                            }
+                        }
+                    }
+                }, 100);
+                
+            } catch (error) {
+                console.error('Unexpected error updating store:', error);
+                TossAlertUtils.showError('An unexpected error occurred while updating the store.');
+            } finally {
+                // Re-enable the button
+                confirmBtn.disabled = false;
+                confirmBtn.textContent = originalText;
+            }
+        }
+        
+        // Open delete confirmation modal
+        function deleteStore(storeId) {
+            currentDeleteStoreId = storeId;
+            document.getElementById('deleteConfirmModal').classList.add('active');
+        }
+        
+        // Close delete confirmation modal
+        function closeDeleteConfirmModal() {
+            document.getElementById('deleteConfirmModal').classList.remove('active');
+            currentDeleteStoreId = null;
+        }
+        
+        // Confirm and execute store deletion
+        async function confirmDeleteStore() {
+            if (!currentDeleteStoreId) {
+                console.error('No store selected for deletion');
+                return;
+            }
+            
+            const confirmBtn = document.getElementById('confirmDeleteBtn');
+            const originalText = confirmBtn.textContent;
+            
+            try {
+                // Disable button and show loading
+                confirmBtn.disabled = true;
+                confirmBtn.textContent = 'Deleting...';
+                
+                console.log('Deleting store:', currentDeleteStoreId);
+                
+                // Soft delete by setting is_deleted to true
+                const { error } = await supabase
+                    .from('stores')
+                    .update({ 
+                        is_deleted: true, 
+                        updated_at: new Date().toISOString() 
+                    })
+                    .eq('store_id', currentDeleteStoreId);
+                
+                if (error) {
+                    console.error('Error deleting store:', error);
+                    TossAlertUtils.showError('Failed to delete store: ' + error.message);
+                    return;
+                }
+                
+                console.log('Store deleted successfully');
+                closeDeleteConfirmModal();
+                TossAlertUtils.showSuccess('Store deleted successfully!');
+                
+                // Small delay to ensure database operation completes, then reload
+                setTimeout(async () => {
+                    const companyId = appState.getSelectedCompanyId();
+                    console.log('Reloading stores after deletion for company:', companyId);
+                    if (companyId) {
+                        await loadStoreSettingsData(companyId);
+                    } else {
+                        console.error('No company ID found during refresh after deletion');
+                        // Try to get company ID from navbar if available
+                        if (window.navbarInstance && window.navbarInstance.companySelector) {
+                            const selectedCompany = window.navbarInstance.companySelector.getSelectedOption();
+                            if (selectedCompany && selectedCompany.data && selectedCompany.data.company_id) {
+                                console.log('Using company ID from navbar for deletion refresh:', selectedCompany.data.company_id);
+                                await loadStoreSettingsData(selectedCompany.data.company_id);
+                            }
+                        }
+                    }
+                }, 100);
+                
+            } catch (error) {
+                console.error('Unexpected error deleting store:', error);
+                TossAlertUtils.showError('An unexpected error occurred while deleting the store.');
+            } finally {
+                // Re-enable the button
+                confirmBtn.disabled = false;
+                confirmBtn.textContent = originalText;
+            }
+        }
+        
+        // Modal Functions
+        function openAddStoreModal() {
+            document.getElementById('addStoreModal').classList.add('active');
+            // Initialize button state
+            validateStoreForm();
+        }
+        
+        function closeAddStoreModal() {
+            document.getElementById('addStoreModal').classList.remove('active');
+            // Clear form
+            document.getElementById('storeName').value = '';
+            document.getElementById('storeAddress').value = '';
+            document.getElementById('storePhone').value = '';
+            // Reset button state
+            const createBtn = document.getElementById('createStoreBtn');
+            createBtn.setAttribute('disabled', 'true');
+            createBtn.disabled = true;
+        }
+        
+        // Validate store form and enable/disable create button
+        function validateStoreForm() {
+            const storeNameInput = document.getElementById('storeName');
+            const createBtn = document.getElementById('createStoreBtn');
+            
+            if (!storeNameInput || !createBtn) {
+                console.error('Store form elements not found');
+                return;
+            }
+            
+            const storeName = storeNameInput.value.trim();
+            
+            if (storeName && storeName.length > 0) {
+                createBtn.removeAttribute('disabled');
+                createBtn.disabled = false;
+            } else {
+                createBtn.setAttribute('disabled', 'true');
+                createBtn.disabled = true;
+            }
+        }
+        
+        
+        async function saveStore() {
+            const storeName = document.getElementById('storeName').value.trim();
+            const storeAddress = document.getElementById('storeAddress').value.trim();
+            const storePhone = document.getElementById('storePhone').value.trim();
+            
+            if (!storeName) {
+                TossAlertUtils.showError('Please enter a store name');
+                return;
+            }
+            
+            // Get the selected company ID from appState
+            const companyId = appState.getSelectedCompanyId();
+            if (!companyId) {
+                TossAlertUtils.showError('No company selected. Please select a company first.');
+                return;
+            }
+            
+            // Disable the create button to prevent double submission
+            const createBtn = document.getElementById('createStoreBtn');
+            createBtn.disabled = true;
+            createBtn.textContent = 'Creating...';
+            
+            try {
+                // Prepare store data
+                const storeData = {
+                    company_id: companyId,
+                    store_name: storeName,
+                    store_address: storeAddress || null,
+                    store_phone: storePhone || null,
+                    created_at: new Date().toISOString(),
+                    updated_at: new Date().toISOString(),
+                    is_deleted: false
+                };
+                
+                console.log('Creating store with data:', storeData);
+                
+                // Insert into Supabase
+                const { data, error } = await supabase
+                    .from('stores')
+                    .insert(storeData)
+                    .select(); // Return the inserted data
+                
+                if (error) {
+                    console.error('Error creating store:', error);
+                    TossAlertUtils.showError('Failed to create store: ' + error.message);
+                    return;
+                }
+                
+                console.log('Store created successfully:', data);
+                TossAlertUtils.showSuccess('Store created successfully!');
+                closeAddStoreModal();
+                
+                // Reload stores instead of full page reload
+                const companyId = appState.getSelectedCompanyId();
+                if (companyId) {
+                    loadStoreSettingsData(companyId);
+                }
+                
+            } catch (error) {
+                console.error('Unexpected error creating store:', error);
+                TossAlertUtils.showError('An unexpected error occurred while creating the store.');
+            } finally {
+                // Re-enable the create button
+                createBtn.disabled = false;
+                createBtn.textContent = 'Create Store';
+            }
+        }
+        
+        
+        // Close modal when clicking outside
+        document.getElementById('addStoreModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeAddStoreModal();
+            }
+        });
+        
+        document.getElementById('editStoreModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeEditStoreModal();
+            }
+        });
+        
+        document.getElementById('deleteConfirmModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeDeleteConfirmModal();
+            }
+        });
+        
+    </script>
+</body>
+</html>

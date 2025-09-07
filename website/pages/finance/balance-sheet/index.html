@@ -22,6 +22,9 @@
     <!-- Supabase CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
+    <!-- Environment Configuration (for local development) -->
+    <script src="../../../core/config/env-loader.js"></script>
+    <script src="../../../core/config/env-config.js"></script>    
     <!-- Page Specific Styles -->
     <style>
         body {
@@ -604,15 +607,8 @@
         
         // Initialize page using standardized pattern
         window.initializePage('finance', (companyId, company) => {
-            console.log('Company changed in balance sheet:', companyId);
-            // Clear currency cache when company changes
-            cachedCurrencyInfo = null;
-            lastCompanyId = null;
-            // Reload stores when company changes
-            loadStoresFromSession();
-            // Don't auto-load balance sheet data - just show empty state
-            // User needs to click Search button to load data
-            showEmptyState();
+            console.log('Company changed in balance sheet via page initializer:', companyId);
+            handleCompanyChange(companyId, company);
         });
         
         // Additional page initialization after navbar is ready
@@ -629,15 +625,59 @@
             
             // Listen for company changes from navbar
             window.addEventListener('companyChanged', (event) => {
-                console.log('Company changed event received:', event.detail);
-                // Clear currency cache when company changes
-                cachedCurrencyInfo = null;
-                lastCompanyId = null;
-                // When company changes, just reset to empty state
-                // Don't auto-load data - wait for user to click Search
-                showEmptyState();
+                console.log('🎯 DEBUG: Balance Sheet received companyChanged event:', event.detail);
+                console.log('🎯 DEBUG: Event companyId:', event.detail.companyId);
+                console.log('🎯 DEBUG: Event companyName:', event.detail.companyName);
+                handleCompanyChange(event.detail.companyId, event.detail.company);
             });
-        })
+        });
+        
+        // Handle company change from any source (navbar or page initializer)
+        function handleCompanyChange(companyId, company) {
+            console.log('🔄 DEBUG: Balance Sheet handleCompanyChange called with:', companyId, company);
+            console.log('🔍 DEBUG: Current localStorage companyChoosen:', localStorage.getItem('companyChoosen'));
+            console.log('🔍 DEBUG: Current localStorage storeChoosen:', localStorage.getItem('storeChoosen'));
+            
+            // Clear currency cache when company changes
+            cachedCurrencyInfo = null;
+            lastCompanyId = null;
+            
+            // Reset to empty state
+            showEmptyState();
+            
+            // Refresh the filter component to load new stores
+            if (balanceSheetFilter) {
+                console.log('🔄 DEBUG: Refreshing store filter for new company:', companyId);
+                // Load stores for the new company
+                balanceSheetFilter.loadStores();
+                // Reset filter to default state (clear selections and reset dates)
+                balanceSheetFilter.handleClear();
+                console.log('✅ DEBUG: Store filter refreshed successfully');
+            } else {
+                console.warn('⚠️ DEBUG: Balance sheet filter not initialized yet');
+            }
+            
+            // Show message to user that they need to search again
+            showEmptyStateMessage('Company changed. Please select your filters and search to view the balance sheet.');
+        }
+        
+        // Enhanced empty state with custom message
+        function showEmptyStateMessage(message) {
+            const contentCard = document.querySelector('.content-card');
+            if (!contentCard) return;
+            
+            contentCard.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-icon">
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14H7v-2h5v2zm5-4H7v-2h10v2zm0-4H7V7h10v2z"/>
+                        </svg>
+                    </div>
+                    <h3 class="empty-title">Balance Sheet</h3>
+                    <p class="empty-text">${message || 'Select your filters and click Search to view the balance sheet data.'}</p>
+                </div>
+            `;
+        }
         
         // Load balance sheet data for company
         function loadBalanceSheetData(companyId, filters = null) {
@@ -1154,6 +1194,12 @@
         async function getCompanyCurrency() {
             try {
                 // Get the selected company ID from localStorage
+                // DEBUG: Check storage keys for company selection
+                console.log('🔍 DEBUG: All localStorage keys:', Object.keys(localStorage));
+                console.log('🔍 DEBUG: companychoosen (lowercase c):', localStorage.getItem('companychoosen'));
+                console.log('🔍 DEBUG: companyChoosen (capital C):', localStorage.getItem('companyChoosen'));
+                
+                // Use correct storage key that navbar uses (capital 'C')
                 const companyId = localStorage.getItem('companyChoosen');
                 if (!companyId) {
                     console.log('No company selected');

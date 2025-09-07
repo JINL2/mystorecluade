@@ -392,6 +392,16 @@ window.initializePage = function(activeItem, onCompanyChange) {
             // Set up company change listener if provided
             if (onCompanyChange) {
                 initializer.setupCompanyChangeListener(onCompanyChange);
+                
+                // Trigger callback with initial company ID after initialization
+                // Wait a bit to ensure navbar has loaded
+                setTimeout(() => {
+                    const currentCompanyId = appState.getSelectedCompanyId();
+                    const userData = appState.getUserData();
+                    const currentCompany = userData?.companies?.find(c => c.company_id === currentCompanyId);
+                    console.log('Triggering initial callback with company:', currentCompanyId);
+                    onCompanyChange(currentCompanyId, currentCompany);
+                }, 500);
             }
         });
     } else {
@@ -402,6 +412,16 @@ window.initializePage = function(activeItem, onCompanyChange) {
             // Set up company change listener if provided
             if (onCompanyChange) {
                 initializer.setupCompanyChangeListener(onCompanyChange);
+                
+                // Trigger callback with initial company ID after initialization
+                // Wait a bit to ensure navbar has loaded
+                setTimeout(() => {
+                    const currentCompanyId = appState.getSelectedCompanyId();
+                    const userData = appState.getUserData();
+                    const currentCompany = userData?.companies?.find(c => c.company_id === currentCompanyId);
+                    console.log('Triggering initial callback with company:', currentCompanyId);
+                    onCompanyChange(currentCompanyId, currentCompany);
+                }, 500);
             }
         })();
     }
