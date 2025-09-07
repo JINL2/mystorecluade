@@ -7,7 +7,7 @@ import '../../../../core/themes/toss_spacing.dart';
 import '../../../../core/themes/toss_text_styles.dart';
 import '../../../widgets/common/toss_scaffold.dart';
 import '../../../widgets/common/toss_app_bar.dart';
-import '../../../widgets/toss/toss_card.dart';
+import '../../../widgets/common/toss_white_card.dart';
 import '../../../widgets/toss/toss_primary_button.dart';
 import '../../../widgets/toss/toss_secondary_button.dart';
 import '../../../widgets/toss/toss_text_field.dart';
@@ -43,7 +43,7 @@ class _PrivacySecurityPageState extends ConsumerState<PrivacySecurityPage> {
   @override
   Widget build(BuildContext context) {
     return TossScaffold(
-      backgroundColor: TossColors.surface,
+      backgroundColor: TossColors.gray100,
       appBar: const TossAppBar(
         title: 'Privacy & Security',
       ),
@@ -62,7 +62,7 @@ class _PrivacySecurityPageState extends ConsumerState<PrivacySecurityPage> {
             ),
             SizedBox(height: TossSpacing.space4),
             
-            TossCard(
+            TossWhiteCard(
               padding: EdgeInsets.zero,
               child: Column(
                 children: [
@@ -108,7 +108,7 @@ class _PrivacySecurityPageState extends ConsumerState<PrivacySecurityPage> {
             ),
             SizedBox(height: TossSpacing.space4),
             
-            TossCard(
+            TossWhiteCard(
               padding: EdgeInsets.zero,
               child: Column(
                 children: [
@@ -194,7 +194,7 @@ class _PrivacySecurityPageState extends ConsumerState<PrivacySecurityPage> {
   }
 
   Widget _buildChangePasswordForm() {
-    return TossCard(
+    return TossWhiteCard(
       padding: EdgeInsets.all(TossSpacing.space5),
       child: Form(
         key: _formKey,

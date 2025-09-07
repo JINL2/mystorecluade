@@ -6,7 +6,7 @@ import '../../../../core/themes/toss_spacing.dart';
 import '../../../../core/themes/toss_text_styles.dart';
 import '../../../widgets/common/toss_scaffold.dart';
 import '../../../widgets/common/toss_app_bar.dart';
-import '../../../widgets/toss/toss_card.dart';
+import '../../../widgets/common/toss_white_card.dart';
 import '../widgets/common_widgets.dart';
 import 'package:myfinance_improved/core/themes/index.dart';
 import 'package:myfinance_improved/core/themes/toss_border_radius.dart';
@@ -34,7 +34,7 @@ class _NotificationsSettingsPageState extends ConsumerState<NotificationsSetting
   @override
   Widget build(BuildContext context) {
     return TossScaffold(
-      backgroundColor: TossColors.surface,
+      backgroundColor: TossColors.gray100,
       appBar: const TossAppBar(
         title: 'Notifications',
       ),
@@ -53,7 +53,7 @@ class _NotificationsSettingsPageState extends ConsumerState<NotificationsSetting
             ),
             SizedBox(height: TossSpacing.space4),
             
-            TossCard(
+            TossWhiteCard(
               padding: EdgeInsets.zero,
               child: Column(
                 children: [
@@ -111,7 +111,7 @@ class _NotificationsSettingsPageState extends ConsumerState<NotificationsSetting
             ),
             SizedBox(height: TossSpacing.space4),
             
-            TossCard(
+            TossWhiteCard(
               padding: EdgeInsets.zero,
               child: Column(
                 children: [

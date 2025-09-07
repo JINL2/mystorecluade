@@ -5,19 +5,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
-import '../../../core/themes/toss_colors.dart';
-import '../../../core/themes/toss_spacing.dart';
-import '../../../core/themes/toss_text_styles.dart';
 import '../../../core/constants/ui_constants.dart';
 import '../../widgets/common/toss_scaffold.dart';
-import '../../widgets/toss/toss_card.dart';
+import '../../widgets/common/toss_white_card.dart';
+import '../../widgets/toss/toss_list_tile.dart';
 import '../../widgets/common/toss_loading_view.dart';
 import '../../providers/user_profile_provider.dart';
 import '../../../domain/entities/user_profile.dart';
 import '../../services/profile_image_service.dart';
 import '../../../core/navigation/safe_navigation.dart';
 import 'package:myfinance_improved/core/themes/index.dart';
-import 'package:myfinance_improved/core/themes/toss_border_radius.dart';
 /// Modern finance app-inspired My Page with comprehensive analytics
 class MyPageRedesigned extends ConsumerStatefulWidget {
   const MyPageRedesigned({super.key});
@@ -73,25 +70,25 @@ class _MyPageRedesignedState extends ConsumerState<MyPageRedesigned>
     final businessData = ref.watch(businessDashboardDataProvider);
     
     return TossScaffold(
-      backgroundColor: TossColors.background,
+      backgroundColor: TossColors.gray100,
       body: SafeArea(
         child: Column(
           children: [
-            // App Bar - matching attendance page style
+            // App Bar - matching sale invoice page style
             Container(
-              color: TossColors.background,
+              color: TossColors.gray100,
               child: Column(
                 children: [
                   // Title Bar
                   Container(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: TossSpacing.space5,
-                      vertical: TossSpacing.space4,
+                      horizontal: TossSpacing.space4,
+                      vertical: TossSpacing.space3,
                     ),
                     child: Row(
                       children: [
                         IconButton(
-                          icon: const Icon(Icons.arrow_back_ios, size: 24),
+                          icon: const Icon(Icons.arrow_back, size: 24),
                           onPressed: () => context.safePop(),
                           padding: EdgeInsets.zero,
                           constraints: const BoxConstraints(),
@@ -129,6 +126,8 @@ class _MyPageRedesignedState extends ConsumerState<MyPageRedesigned>
                         child: _buildMainProfileSection(userProfile, businessData.value),
                       ),
                       
+                      SizedBox(height: TossSpacing.space4), // Compact section separation
+                      
                       // Account Settings Section
                       FadeTransition(
                         opacity: _animations[1],
@@ -152,48 +151,50 @@ class _MyPageRedesignedState extends ConsumerState<MyPageRedesigned>
     if (profile == null) return const SizedBox.shrink();
 
     return Container(
-      margin: EdgeInsets.symmetric(
-        horizontal: TossSpacing.screenPaddingMobile,
-        vertical: TossSpacing.space6, // Reduced breathing space
-      ),
+      width: double.infinity,  // Ensure full width expansion
+      margin: EdgeInsets.symmetric(horizontal: TossSpacing.space4), // 16px horizontal margins
+      child: TossWhiteCard(
+        padding: EdgeInsets.symmetric(
+          horizontal: TossSpacing.space5,  // 20px - more balanced
+          vertical: TossSpacing.space4,    // 16px - compact vertical
+        ),
       child: Column(
-        children: [
-          // Hero Profile Section
-          Column(
-            children: [
-              // Large Avatar with better spacing
-              GestureDetector(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+              // Large Avatar with better spacing - keep centered
+              Center(
+                child: GestureDetector(
                 onTap: _handleAvatarTap,
                 child: Stack(
                   children: [
                     Container(
-                      width: 120, // Much larger avatar
-                      height: 120,
+                      width: 90,  // Optimized avatar size
+                      height: 90,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         border: Border.all(
                           color: TossColors.gray100,
-                          width: 4,
+                          width: 3,  // Slightly thinner border
                         ),
                       ),
                       child: _temporaryProfileImageUrl != null
                           ? CircleAvatar(
-                              radius: 56,
+                              radius: 42,  // Adjusted for 90px container
                               backgroundImage: _temporaryProfileImageUrl!.startsWith('http')
                                   ? NetworkImage(_temporaryProfileImageUrl!) as ImageProvider
                                   : FileImage(File(_temporaryProfileImageUrl!)),
                             )
                           : profile.hasProfileImage
                               ? CircleAvatar(
-                                  radius: 56,
+                                  radius: 42,  // Adjusted for 90px container
                                   backgroundImage: NetworkImage(profile.profileImage!),
                                 )
                               : CircleAvatar(
-                              radius: 56,
+                              radius: 42,  // Adjusted for 90px container
                               backgroundColor: TossColors.primary.withValues(alpha: 0.1),
                               child: Text(
                                 profile.initials,
-                                style: TossTextStyles.display.copyWith(
+                                style: TossTextStyles.h3.copyWith(  // Adjusted for smaller avatar
                                   color: TossColors.primary,
                                   fontWeight: FontWeight.w700,
                                 ),
@@ -202,17 +203,17 @@ class _MyPageRedesignedState extends ConsumerState<MyPageRedesigned>
                     ),
                     // Edit indicator
                     Positioned(
-                      bottom: 4,
-                      right: 4,
+                      bottom: 2,
+                      right: 2,
                       child: Container(
-                        width: 32,
-                        height: 32,
+                        width: 28,  // Smaller camera button
+                        height: 28,
                         decoration: BoxDecoration(
                           color: TossColors.primary,
                           shape: BoxShape.circle,
                           border: Border.all(
                             color: TossColors.surface,
-                            width: 3,
+                            width: 2,  // Thinner border
                           ),
                           boxShadow: [
                             BoxShadow(
@@ -224,7 +225,7 @@ class _MyPageRedesignedState extends ConsumerState<MyPageRedesigned>
                         ),
                         child: Icon(
                           Icons.camera_alt,
-                          size: 16,
+                          size: 14,  // Smaller icon
                           color: TossColors.surface,
                         ),
                       ),
@@ -232,13 +233,14 @@ class _MyPageRedesignedState extends ConsumerState<MyPageRedesigned>
                   ],
                 ),
               ),
+              ),
               
-              SizedBox(height: TossSpacing.space8), // More breathing space
+              SizedBox(height: TossSpacing.space6),  // Better proportional spacing (24px)
               
-              // Name - Much larger and prominent
+              // Name - Appropriately sized
               Text(
                 _getDisplayName(profile),
-                style: TossTextStyles.h1.copyWith(
+                style: TossTextStyles.h2.copyWith(  // h2 instead of h1
                   fontWeight: FontWeight.w800,
                   color: TossColors.gray900,
                 ),
@@ -248,7 +250,8 @@ class _MyPageRedesignedState extends ConsumerState<MyPageRedesigned>
               SizedBox(height: TossSpacing.space3),
               
               // Role badge - cleaner design
-              Container(
+              Center(
+                child: Container(
                 padding: EdgeInsets.symmetric(
                   horizontal: TossSpacing.space4,
                   vertical: TossSpacing.space2,
@@ -259,14 +262,15 @@ class _MyPageRedesignedState extends ConsumerState<MyPageRedesigned>
                 ),
                 child: Text(
                   businessData?.userRole ?? profile.displayRole,
-                  style: TossTextStyles.labelLarge.copyWith(
+                  style: TossTextStyles.body.copyWith(  // Better for badge text
                     color: TossColors.primary,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
               ),
+              ),
               
-              SizedBox(height: TossSpacing.space4),
+              SizedBox(height: TossSpacing.space4),  // Better balance for company info
               
               // Clean info display
               if (businessData?.companyName.isNotEmpty == true)
@@ -288,10 +292,9 @@ class _MyPageRedesignedState extends ConsumerState<MyPageRedesigned>
                   ),
                   textAlign: TextAlign.center,
                 ),
-              ],
             ],
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -299,53 +302,161 @@ class _MyPageRedesignedState extends ConsumerState<MyPageRedesigned>
 
 
   Widget _buildAccountSettingsSection() {
-    return Container(
-      margin: EdgeInsets.symmetric(horizontal: TossSpacing.screenPaddingMobile),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Settings',
-            style: TossTextStyles.h2.copyWith(
-              fontWeight: FontWeight.w700,
-              color: TossColors.gray900,
-            ),
-          ),
-          SizedBox(height: TossSpacing.space6),
-          
-          // Settings List - Cleaner design
-          TossCard(
-            padding: EdgeInsets.zero,
-            child: Column(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+          // Settings List - Using TossWhiteCard with section header
+          Container(
+            width: double.infinity,  // Ensure full width expansion
+            margin: EdgeInsets.symmetric(horizontal: TossSpacing.space4), // 16px horizontal margins
+            child: TossWhiteCard(
+              padding: EdgeInsets.zero,
+              child: Column(
               children: [
-                _buildCleanSettingsItem(
-                  Icons.person_outline,
-                  'Edit Profile',
-                  () => _navigateToEditProfile(),
+                // Section Header - matching sale invoice pattern
+                Container(
+                  padding: EdgeInsets.all(TossSpacing.space4),
+                  decoration: BoxDecoration(
+                    border: Border(
+                      bottom: BorderSide(
+                        color: TossColors.gray100,
+                        width: 1,
+                      ),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.settings,
+                        color: TossColors.primary,
+                        size: TossSpacing.iconSM,
+                      ),
+                      SizedBox(width: TossSpacing.space2),
+                      Text(
+                        'Settings',
+                        style: TossTextStyles.bodyLarge.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: TossColors.gray900,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-                _buildCleanSettingsItem(
-                  Icons.notifications_outlined,
-                  'Notifications',
-                  () => _navigateToNotifications(),
+                
+                // Settings Items using TossListTile
+                TossListTile(
+                  title: 'Edit Profile',
+                  leading: Container(
+                    width: TossSpacing.space10,
+                    height: TossSpacing.space10,
+                    decoration: BoxDecoration(
+                      color: TossColors.primary.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                    ),
+                    child: Icon(
+                      Icons.person_outline,
+                      color: TossColors.primary,
+                      size: TossSpacing.iconSM,
+                    ),
+                  ),
+                  trailing: Icon(
+                    Icons.chevron_right,
+                    color: TossColors.gray400,
+                    size: TossSpacing.iconSM,
+                  ),
+                  onTap: () => _navigateToEditProfile(),
                 ),
-                _buildCleanSettingsItem(
-                  Icons.security_outlined,
-                  'Privacy & Security',
-                  () => _navigateToPrivacySecurity(),
+                
+                TossListTile(
+                  title: 'Notifications',
+                  leading: Container(
+                    width: TossSpacing.space10,
+                    height: TossSpacing.space10,
+                    decoration: BoxDecoration(
+                      color: TossColors.info.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                    ),
+                    child: Icon(
+                      Icons.notifications_outlined,
+                      color: TossColors.info,
+                      size: TossSpacing.iconSM,
+                    ),
+                  ),
+                  trailing: Icon(
+                    Icons.chevron_right,
+                    color: TossColors.gray400,
+                    size: TossSpacing.iconSM,
+                  ),
+                  onTap: () => _navigateToNotifications(),
                 ),
-                _buildCleanSettingsItem(
-                  Icons.logout,
-                  'Sign Out',
-                  () => _handleSignOut(),
-                  isDestructive: true,
+                
+                TossListTile(
+                  title: 'Privacy & Security',
+                  leading: Container(
+                    width: TossSpacing.space10,
+                    height: TossSpacing.space10,
+                    decoration: BoxDecoration(
+                      color: TossColors.success.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                    ),
+                    child: Icon(
+                      Icons.security_outlined,
+                      color: TossColors.success,
+                      size: TossSpacing.iconSM,
+                    ),
+                  ),
+                  trailing: Icon(
+                    Icons.chevron_right,
+                    color: TossColors.gray400,
+                    size: TossSpacing.iconSM,
+                  ),
+                  onTap: () => _navigateToPrivacySecurity(),
+                ),
+                
+                // Custom sign out tile to maintain destructive styling
+                InkWell(
+                  onTap: () => _handleSignOut(),
+                  child: Container(
+                    padding: EdgeInsets.all(TossSpacing.space4),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: TossSpacing.space10,
+                          height: TossSpacing.space10,
+                          decoration: BoxDecoration(
+                            color: TossColors.error.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                          ),
+                          child: Icon(
+                            Icons.logout,
+                            color: TossColors.error,
+                            size: TossSpacing.iconSM,
+                          ),
+                        ),
+                        SizedBox(width: TossSpacing.space3),
+                        Expanded(
+                          child: Text(
+                            'Sign Out',
+                            style: TossTextStyles.bodyLarge.copyWith(
+                              fontWeight: FontWeight.w600,
+                              color: TossColors.error, // Maintain destructive styling
+                            ),
+                          ),
+                        ),
+                        Icon(
+                          Icons.chevron_right,
+                          color: TossColors.gray400,
+                          size: TossSpacing.iconSM,
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               ],
             ),
           ),
-          
-          SizedBox(height: TossSpacing.space12), // More breathing space
+          ),
         ],
-      ),
     );
   }
 
@@ -375,51 +486,6 @@ class _MyPageRedesignedState extends ConsumerState<MyPageRedesigned>
     return 'User';
   }
 
-  Widget _buildCleanSettingsItem(
-    IconData icon,
-    String title,
-    VoidCallback onTap, {
-    bool isDestructive = false,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      child: Container(
-        padding: EdgeInsets.all(TossSpacing.space4),
-        child: Row(
-          children: [
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: (isDestructive ? TossColors.error : TossColors.gray500).withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(TossBorderRadius.md),
-              ),
-              child: Icon(
-                icon,
-                size: 20,
-                color: isDestructive ? TossColors.error : TossColors.gray700,
-              ),
-            ),
-            SizedBox(width: TossSpacing.space4),
-            Expanded(
-              child: Text(
-                title,
-                style: TossTextStyles.bodyLarge.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: isDestructive ? TossColors.error : TossColors.gray900,
-                ),
-              ),
-            ),
-            Icon(
-              Icons.arrow_forward_ios,
-              size: 16,
-              color: TossColors.gray400,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 
   
 
