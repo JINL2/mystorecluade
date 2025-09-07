@@ -3933,45 +3933,77 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<_ShiftDetailsBottomShe
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Header with toggle switch
+                        // Header with problem status
                         Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Row(
-                              children: [
-                                Icon(
-                                  Icons.warning_amber_rounded,
-                                  size: 20,
-                                  color: isProblemSolved ? TossColors.success : TossColors.warning,
-                                ),
-                                const SizedBox(width: TossSpacing.space2),
-                                Text(
-                                  'Problem Status',
-                                  style: TossTextStyles.body.copyWith(
-                                    color: TossColors.gray900,
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                ),
-                              ],
+                            Icon(
+                              Icons.warning_amber_rounded,
+                              size: 20,
+                              color: isProblemSolved ? TossColors.success : TossColors.warning,
                             ),
-                            // Modern toggle switch
-                            Transform.scale(
-                              scale: 0.9,
-                              child: Switch(
-                                value: isProblemSolved,
-                                onChanged: (value) {
-                                  setState(() {
-                                    isProblemSolved = value;
-                                  });
-                                },
-                                activeColor: TossColors.success,
-                                activeTrackColor: TossColors.success.withValues(alpha: 0.5),
-                                inactiveThumbColor: TossColors.gray400,
-                                inactiveTrackColor: TossColors.gray200,
-                                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            const SizedBox(width: TossSpacing.space2),
+                            Text(
+                              'Problem Status',
+                              style: TossTextStyles.body.copyWith(
+                                color: TossColors.gray900,
+                                fontWeight: FontWeight.w700,
                               ),
                             ),
                           ],
+                        ),
+                        const SizedBox(height: TossSpacing.space3),
+                        // Animated toggle button - Same style as journal input
+                        Container(
+                          height: 48,
+                          decoration: BoxDecoration(
+                            color: TossColors.gray50,
+                            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+                          ),
+                          padding: EdgeInsets.all(TossSpacing.space1),
+                          child: Stack(
+                            children: [
+                              // Animated selection indicator
+                              AnimatedAlign(
+                                alignment: isProblemSolved 
+                                  ? Alignment.centerRight 
+                                  : Alignment.centerLeft,
+                                duration: Duration(milliseconds: 250),
+                                curve: Curves.easeInOut,
+                                child: FractionallySizedBox(
+                                  widthFactor: 0.5,
+                                  child: Container(
+                                    margin: EdgeInsets.symmetric(horizontal: 2),
+                                    decoration: BoxDecoration(
+                                      color: isProblemSolved 
+                                        ? TossColors.success 
+                                        : TossColors.warning,
+                                      borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: (isProblemSolved 
+                                            ? TossColors.success 
+                                            : TossColors.warning).withValues(alpha: 0.3),
+                                          blurRadius: 8,
+                                          offset: Offset(0, 2),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              // Buttons
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: _buildProblemToggleButton('Not solve', false),
+                                  ),
+                                  Expanded(
+                                    child: _buildProblemToggleButton('Solved', true),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
                         ),
                         const SizedBox(height: TossSpacing.space2),
                         // Status description
@@ -4663,6 +4695,34 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<_ShiftDetailsBottomShe
     return TimeOfDay(
       hour: int.parse(parts[0]),
       minute: int.parse(parts[1]),
+    );
+  }
+  
+  Widget _buildProblemToggleButton(String label, bool isSolved) {
+    final isSelected = isProblemSolved == isSolved;
+    return GestureDetector(
+      onTap: () {
+        if (!isSelected) {
+          setState(() {
+            isProblemSolved = isSolved;
+          });
+          // Add haptic feedback for better user experience
+          HapticFeedback.lightImpact();
+        }
+      },
+      child: Container(
+        color: TossColors.transparent,
+        child: Center(
+          child: AnimatedDefaultTextStyle(
+            duration: Duration(milliseconds: 200),
+            style: TossTextStyles.body.copyWith(
+              color: isSelected ? TossColors.white : TossColors.gray600,
+              fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+            ),
+            child: Text(label),
+          ),
+        ),
+      ),
     );
   }
 

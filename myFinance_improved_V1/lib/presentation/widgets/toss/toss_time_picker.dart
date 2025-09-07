@@ -36,13 +36,22 @@ class _TossSimpleWheelTimePickerState extends State<TossSimpleWheelTimePicker> {
     super.initState();
     _selectedTime = widget.initialTime ?? TimeOfDay.now();
     
-    // Initialize scroll controllers
-    final hour = widget.use24HourFormat 
-        ? _selectedTime.hour 
-        : (_selectedTime.hourOfPeriod == 0 ? 12 : _selectedTime.hourOfPeriod);
+
+    // Initialize scroll controllers with correct positions
+    int hourIndex;
+    if (widget.use24HourFormat) {
+      hourIndex = _selectedTime.hour;
+    } else {
+      // For 12-hour format: 
+      // hourOfPeriod returns 0 for 12 AM/PM, 1-11 for other hours
+      // Our list shows 1,2,3...12 (indices 0,1,2...11)
+      // So for hourOfPeriod=0 (12 o'clock), we want index 11 (showing "12")
+      // For hourOfPeriod=1-11, we want index 0-10 (showing "1"-"11")
+      hourIndex = _selectedTime.hourOfPeriod == 0 ? 11 : _selectedTime.hourOfPeriod - 1;
+    }
     
     _hourController = FixedExtentScrollController(
-      initialItem: widget.use24HourFormat ? hour : hour - 1,
+      initialItem: hourIndex,
     );
     
     _minuteController = FixedExtentScrollController(
@@ -111,24 +120,30 @@ class _TossSimpleWheelTimePickerState extends State<TossSimpleWheelTimePicker> {
   }
 
   Widget _buildWheelPickers() {
-    return Container(
+
+    return SizedBox(
       height: 200,
       child: Stack(
+        alignment: Alignment.center,
         children: [
-          // Selection background indicator
+
+          // Selection background indicator - centered
           Positioned(
             left: 0,
             right: 0,
-            top: 80,
-            height: 40,
-            child: Container(
-              margin: const EdgeInsets.symmetric(horizontal: TossSpacing.space2),
-              decoration: BoxDecoration(
-                color: TossColors.primarySurface,
-                borderRadius: BorderRadius.circular(TossBorderRadius.sm),
-                border: Border.all(
-                  color: TossColors.primary.withValues(alpha: 0.2),
-                  width: 1,
+            top: 0,
+            bottom: 0,
+            child: Center(
+              child: Container(
+                height: 40,
+                margin: const EdgeInsets.symmetric(horizontal: TossSpacing.space2),
+                decoration: BoxDecoration(
+                  color: TossColors.primarySurface,
+                  borderRadius: BorderRadius.circular(TossBorderRadius.sm),
+                  border: Border.all(
+                    color: TossColors.primary.withValues(alpha: 0.2),
+                    width: 1,
+                  ),
                 ),
               ),
             ),
@@ -148,12 +163,21 @@ class _TossSimpleWheelTimePickerState extends State<TossSimpleWheelTimePicker> {
                         : (index + 1).toString(),
                   ),
                   onSelectedItemChanged: (index) {
-                    int hour = widget.use24HourFormat ? index : index + 1;
-                    if (!widget.use24HourFormat) {
-                      if (_selectedTime.period == DayPeriod.pm && hour != 12) {
-                        hour += 12;
-                      } else if (_selectedTime.period == DayPeriod.am && hour == 12) {
-                        hour = 0;
+                    int hour;
+                    if (widget.use24HourFormat) {
+                      hour = index;
+                    } else {
+                      // For 12-hour format:
+                      // index 0-10 represents hours 1-11
+                      // index 11 represents hour 12
+                      int displayHour = index + 1; // This gives us 1-12
+                      
+                      if (_selectedTime.period == DayPeriod.pm) {
+                        // PM times: 12 PM = 12, 1 PM = 13, ... 11 PM = 23
+                        hour = displayHour == 12 ? 12 : displayHour + 12;
+                      } else {
+                        // AM times: 12 AM = 0, 1 AM = 1, ... 11 AM = 11
+                        hour = displayHour == 12 ? 0 : displayHour;
                       }
                     }
                     setState(() {
@@ -186,18 +210,34 @@ class _TossSimpleWheelTimePickerState extends State<TossSimpleWheelTimePicker> {
                     controller: _periodController,
                     items: ['AM', 'PM'],
                     onSelectedItemChanged: (index) {
-                      final period = index == 0 ? DayPeriod.am : DayPeriod.pm;
-                      int hour = _selectedTime.hourOfPeriod;
-                      if (hour == 0) hour = 12;
+                      final newPeriod = index == 0 ? DayPeriod.am : DayPeriod.pm;
                       
-                      if (period == DayPeriod.pm && hour != 12) {
-                        hour += 12;
-                      } else if (period == DayPeriod.am && hour == 12) {
-                        hour = 0;
+                      // Get current display hour (1-12)
+                      int currentHour = _selectedTime.hour;
+                      int displayHour;
+                      
+                      if (currentHour == 0) {
+                        displayHour = 12; // 12 AM
+                      } else if (currentHour > 12) {
+                        displayHour = currentHour - 12; // PM hours
+                      } else if (currentHour == 12) {
+                        displayHour = 12; // 12 PM
+                      } else {
+                        displayHour = currentHour; // AM hours 1-11
+                      }
+                      
+                      // Calculate new hour based on new period
+                      int newHour;
+                      if (newPeriod == DayPeriod.pm) {
+                        // Converting to PM
+                        newHour = displayHour == 12 ? 12 : displayHour + 12;
+                      } else {
+                        // Converting to AM
+                        newHour = displayHour == 12 ? 0 : displayHour;
                       }
                       
                       setState(() {
-                        _selectedTime = TimeOfDay(hour: hour, minute: _selectedTime.minute);
+                        _selectedTime = TimeOfDay(hour: newHour, minute: _selectedTime.minute);
                       });
                     },
                   ),
