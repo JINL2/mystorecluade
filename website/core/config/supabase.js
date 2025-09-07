@@ -1,40 +1,27 @@
 /**
- * Supabase Configuration - Safe Version
- * This file uses environment variables instead of hardcoded credentials
- * Credentials should be loaded from env-config.js
+ * Supabase Configuration
+ * Authentication and database connection setup
  */
 
-// Get configuration from environment
-const SUPABASE_URL = window.ENV?.SUPABASE_URL || '';
-const SUPABASE_ANON_KEY = window.ENV?.SUPABASE_ANON_KEY || '';
-
-// Validate configuration
-if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
-    console.error('⚠️ Supabase credentials not configured.');
-    console.error('Please ensure env-config.js is loaded and contains valid credentials.');
-    console.error('For local development, create env-config.js from env-config.example.js');
-}
+// Supabase configuration - Replace with your actual Supabase credentials
+const SUPABASE_URL = 'https://atkekzwgukdvucqntryo.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF0a2VrendndWtkdnVjcW50cnlvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI4OTQwMjIsImV4cCI6MjA1ODQ3MDAyMn0.G4WqAmLvQSqYEfMWIpFOAZOYtnT0kxCxj8dVGhuUYO8';
 
 // Import Supabase client (will be loaded from CDN)
 let supabase;
 
 // Initialize Supabase client
 function initializeSupabase() {
-    if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
-        console.error('Cannot initialize Supabase: Missing credentials');
-        return null;
-    }
-    
     if (typeof window.supabase !== 'undefined') {
         supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
             auth: {
                 persistSession: true,
                 autoRefreshToken: true,
                 detectSessionInUrl: true,
-                storage: window.localStorage
+                storage: window.localStorage  // 명시적으로 localStorage 사용
             }
         });
-        console.log('Supabase initialized successfully');
+        console.log('Supabase initialized successfully with persistence');
         return supabase;
     } else {
         console.error('Supabase library not loaded. Make sure to include the Supabase CDN script.');
@@ -48,10 +35,6 @@ const SupabaseAuth = {
      * Sign in with email and password
      */
     async signIn(email, password) {
-        if (!supabase) {
-            return { success: false, error: 'Supabase not initialized' };
-        }
-        
         try {
             const { data, error } = await supabase.auth.signInWithPassword({
                 email: email,
@@ -73,10 +56,6 @@ const SupabaseAuth = {
      * Sign up with email and password
      */
     async signUp(email, password, additionalData = {}) {
-        if (!supabase) {
-            return { success: false, error: 'Supabase not initialized' };
-        }
-        
         try {
             const { data, error } = await supabase.auth.signUp({
                 email: email,
@@ -101,24 +80,16 @@ const SupabaseAuth = {
      * Sign out
      */
     async signOut() {
-        if (!supabase) {
-            // Still clear local storage even if supabase not initialized
-            localStorage.removeItem('user');
-            localStorage.removeItem('session');
-            localStorage.removeItem('companyChoosen');
-            localStorage.removeItem('storeChoosen');
-            sessionStorage.clear();
-            return { success: true };
-        }
-        
         try {
+            // Clear the supabase session
             const { error } = await supabase.auth.signOut();
             
             if (error) {
                 console.warn('Supabase signout error:', error);
+                // Don't throw error - still clear local data and redirect
             }
 
-            // Clear all local storage data
+            // Clear all local storage data regardless of supabase response
             localStorage.removeItem('user');
             localStorage.removeItem('session');
             localStorage.removeItem('companyChoosen');
@@ -129,7 +100,7 @@ const SupabaseAuth = {
         } catch (error) {
             console.error('Logout error:', error);
             
-            // Clear local data anyway
+            // Even if there's an error, clear local data
             localStorage.removeItem('user');
             localStorage.removeItem('session');
             localStorage.removeItem('companyChoosen');
@@ -144,10 +115,6 @@ const SupabaseAuth = {
      * Get current user
      */
     async getCurrentUser() {
-        if (!supabase) {
-            return { success: false, error: 'Supabase not initialized' };
-        }
-        
         try {
             const { data: { user }, error } = await supabase.auth.getUser();
             
@@ -166,10 +133,6 @@ const SupabaseAuth = {
      * Get current session
      */
     async getCurrentSession() {
-        if (!supabase) {
-            return { success: false, error: 'Supabase not initialized' };
-        }
-        
         try {
             const { data: { session }, error } = await supabase.auth.getSession();
             
@@ -188,11 +151,6 @@ const SupabaseAuth = {
      * Listen to auth state changes
      */
     onAuthStateChange(callback) {
-        if (!supabase) {
-            console.error('Cannot set auth listener: Supabase not initialized');
-            return { unsubscribe: () => {} };
-        }
-        
         return supabase.auth.onAuthStateChange((event, session) => {
             callback(event, session);
         });
@@ -202,20 +160,20 @@ const SupabaseAuth = {
      * Reset password
      */
     async resetPassword(email) {
-        if (!supabase) {
-            return { success: false, error: 'Supabase not initialized' };
-        }
-        
         try {
+            // Build proper reset password URL with full path
             const currentPath = window.location.pathname;
             let resetPasswordUrl = '';
             
+            // Check if we're in the mcparrange-main project structure
             if (currentPath.includes('/mcparrange-main/')) {
                 resetPasswordUrl = `${window.location.origin}/mcparrange-main/myFinance_claude/website/pages/auth/reset-password.html`;
             } else if (currentPath.includes('/myFinance_claude/website/')) {
+                // Extract base path and build full URL
                 const basePath = currentPath.substring(0, currentPath.indexOf('/pages/auth/'));
                 resetPasswordUrl = `${window.location.origin}${basePath}/pages/auth/reset-password.html`;
             } else {
+                // Fallback - build based on current auth page location
                 const authPath = currentPath.substring(0, currentPath.lastIndexOf('/') + 1);
                 resetPasswordUrl = `${window.location.origin}${authPath}reset-password.html`;
             }
@@ -242,10 +200,6 @@ const SupabaseDB = {
      * Get user companies and stores
      */
     async getUserCompaniesAndStores() {
-        if (!supabase) {
-            return { success: false, error: 'Supabase not initialized' };
-        }
-        
         try {
             const { data, error } = await supabase.rpc('get_user_companies_and_stores');
 
@@ -264,10 +218,6 @@ const SupabaseDB = {
      * Get categories with features
      */
     async getCategoriesWithFeatures(companyId) {
-        if (!supabase) {
-            return { success: false, error: 'Supabase not initialized' };
-        }
-        
         try {
             const { data, error } = await supabase.rpc('get_categories_with_features', {
                 p_company_id: companyId
@@ -288,10 +238,6 @@ const SupabaseDB = {
      * Generic query function
      */
     async query(table, options = {}) {
-        if (!supabase) {
-            return { success: false, error: 'Supabase not initialized' };
-        }
-        
         try {
             let query = supabase.from(table).select(options.select || '*');
 
@@ -338,11 +284,6 @@ const AuthManager = {
      * Initialize auth manager
      */
     async init() {
-        if (!supabase) {
-            console.warn('AuthManager: Supabase not initialized');
-            return;
-        }
-        
         // Get current session
         const sessionResult = await SupabaseAuth.getCurrentSession();
         if (sessionResult.success) {
@@ -383,32 +324,47 @@ const AuthManager = {
      * Handle successful sign in
      */
     handleSignIn(session) {
-        console.log('User signed in:', session.user);
+        console.log('AuthManager.handleSignIn called - User signed in:', session.user);
         
-        // Store session data
+        // Use StorageManager for hybrid storage
         if (typeof storageManager !== 'undefined') {
+            // Check if remember me is enabled (will be set by login page)
             const rememberMe = localStorage.getItem('rememberMe') === 'true';
+            
+            // Store auth token appropriately
             storageManager.setAuthToken(session.access_token, rememberMe);
             storageManager.setSession(session, rememberMe);
+            
+            // Store user data (non-sensitive) in localStorage
             storageManager.setUserData(session.user);
         } else {
+            // Fallback to old method if StorageManager not loaded
             localStorage.setItem('user', JSON.stringify(session.user));
             sessionStorage.setItem('session', JSON.stringify(session));
         }
 
-        // Check if we're being called from login page
+        // IMPORTANT: AuthManager should NEVER handle redirects after login
+        // The login page (login.js) handles all redirect logic with proper path calculation
+        
+        // Check if we're being called from login page redirect flow
         const isLoginPageRedirecting = sessionStorage.getItem('loginPageRedirecting') === 'true';
         if (isLoginPageRedirecting) {
-            console.log('Login page is handling redirect');
+            console.log('=== AUTHMANAGER: LOGIN PAGE IS HANDLING REDIRECT ===');
+            console.log('AuthManager will not interfere with redirect');
             return;
         }
         
-        // Check if we're on any auth page
+        // Also check if we're on any auth page
         const currentPath = window.location.pathname;
         if (currentPath.includes('/auth/') || currentPath.includes('/login.html')) {
-            console.log('On auth page - no redirect');
+            console.log('=== AUTHMANAGER: ON AUTH PAGE - NO REDIRECT ===');
+            console.log('Auth pages handle their own redirects');
             return;
         }
+        
+        // For all other cases, still don't redirect to avoid any conflicts
+        console.log('AuthManager: Redirect disabled to prevent path issues');
+        return;
     },
 
     /**
@@ -417,10 +373,11 @@ const AuthManager = {
     handleSignOut() {
         console.log('User signed out');
         
-        // Clear storage
+        // Use StorageManager to clear all data
         if (typeof storageManager !== 'undefined') {
             storageManager.clearAll();
         } else {
+            // Fallback to old method
             localStorage.removeItem('user');
             localStorage.removeItem('session');
             localStorage.removeItem('companyChoosen');
@@ -428,7 +385,7 @@ const AuthManager = {
             sessionStorage.clear();
         }
 
-        // Navigate to login page
+        // Navigate to login page with proper path calculation
         this.navigateToLogin();
     },
     
@@ -439,28 +396,54 @@ const AuthManager = {
         const currentPath = window.location.pathname;
         let loginPath;
         
+        console.log('🔄 AuthManager navigating from path:', currentPath);
+        
+        // Check if we're in the mcparrange-main project structure
         if (currentPath.includes('/mcparrange-main/')) {
+            // Extract the base path up to mcparrange-main
             const baseMatch = currentPath.match(/(.*\/mcparrange-main\/)/);
             if (baseMatch) {
+                // Build the correct absolute path to login
                 loginPath = baseMatch[1] + 'myFinance_claude/website/pages/auth/login.html';
+                console.log('🎯 Using absolute path for mcparrange-main:', loginPath);
             } else {
+                // Fallback for mcparrange-main without clear base
                 loginPath = '/mcparrange-main/myFinance_claude/website/pages/auth/login.html';
+                console.log('🎯 Using default mcparrange-main path:', loginPath);
             }
         } else if (currentPath.includes('/pages/')) {
+            // We're somewhere in the pages directory structure
             const afterPages = currentPath.split('/pages/')[1];
             const segments = afterPages.split('/').filter(p => p && p !== 'index.html');
             
+            console.log('📂 Path segments after /pages/:', segments);
+            
             if (segments.length >= 2) {
+                // We're in a nested page like /pages/finance/journal-input/
                 loginPath = '../../auth/login.html';
+                console.log('🎯 Detected nested page, using: ../../auth/login.html');
             } else if (segments.length === 1) {
+                // We're in a top-level page like /pages/dashboard/
                 loginPath = '../auth/login.html';
+                console.log('🎯 Detected top-level page, using: ../auth/login.html');
             } else {
+                // We're in pages directory itself
                 loginPath = 'auth/login.html';
+                console.log('🎯 Detected pages root, using: auth/login.html');
             }
-        } else {
+        } else if (currentPath.includes('/website/')) {
+            // We're at website root level
             loginPath = '/mcparrange-main/myFinance_claude/website/pages/auth/login.html';
+            console.log('🎯 Detected website root, using absolute path');
+        } else {
+            // Absolute fallback path for XAMPP environment
+            loginPath = '/mcparrange-main/myFinance_claude/website/pages/auth/login.html';
+            console.log('🎯 Using absolute fallback path');
         }
         
+        console.log('✅ Final login path:', loginPath);
+        
+        // Use replace to prevent back button issues and ensure clean logout
         window.location.replace(loginPath);
     },
 

@@ -9,7 +9,7 @@ class StorageManager {
     constructor() {
         // Define what goes where
         this.sessionKeys = [
-            this.getSupabaseAuthKey(),
+            'sb-atkekzwgukdvucqntryo-auth-token',
             'session',
             'access_token',
             'refresh_token'
@@ -23,19 +23,6 @@ class StorageManager {
             'lastDataRefresh',
             'rememberMe'      // Remember me preference
         ];
-    }
-
-    /**
-     * Get Supabase auth token key dynamically
-     */
-    getSupabaseAuthKey() {
-        // Generate auth key dynamically from Supabase URL
-        if (window.ENV?.SUPABASE_URL) {
-            const projectId = window.ENV.SUPABASE_URL.split('.')[0]?.split('//')[1];
-            return `sb-${projectId}-auth-token`;
-        }
-        // Fallback to a generic key if ENV is not loaded
-        return 'sb-auth-token';
     }
 
     /**

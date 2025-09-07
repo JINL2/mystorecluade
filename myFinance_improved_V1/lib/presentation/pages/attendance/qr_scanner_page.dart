@@ -83,7 +83,7 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
     );
   }
   
-  void _showSuccessDialog(String message) {
+  void _showSuccessDialog(String message, Map<String, dynamic> resultData) {
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -143,11 +143,11 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
       ),
     );
     
-    // Auto close after 2 seconds and return to previous screen
+    // Auto close after 2 seconds and return to previous screen with result data
     Future.delayed(const Duration(seconds: 2), () {
       if (mounted) {
         Navigator.of(context).pop(); // Close dialog
-        Navigator.of(context).pop(true); // Return to previous screen with success result
+        Navigator.of(context).pop(resultData); // Return to previous screen with result data
       }
     });
   }
@@ -244,14 +244,11 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
                   throw Exception('Failed to update shift request. Please try again.');
                 }
                 
-                // Force refresh the attendance provider to update the activity list
-                await ref.read(shiftOverviewProvider.notifier).refresh();
+                // NO RPC REFRESH - Just pass the result back to update local state
+                // The attendance main page will handle local state updates
                 
-                // Invalidate any cached data to ensure fresh fetch
-                ref.invalidate(currentShiftProvider);
-                
-                // Add a small delay to ensure data is refreshed
-                await Future.delayed(const Duration(milliseconds: 300));
+                // Add a small delay for UX
+                await Future.delayed(const Duration(milliseconds: 100));
                 
                 // Show success popup
                 if (mounted) {
@@ -276,8 +273,17 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
                     }
                   }
                   
-                  // Show the success dialog
-                  _showSuccessDialog(message);
+                  // Prepare data to pass back to attendance page
+                  final checkInOutData = {
+                    ...result,  // Include all result data from RPC
+                    'message': message,
+                    'request_date': requestDate,
+                    'timestamp': currentTime,
+                    'action': message.contains('out') ? 'check_out' : 'check_in',
+                  };
+                  
+                  // Show the success dialog with result data
+                  _showSuccessDialog(message, checkInOutData);
                 }
               } catch (e) {
                 _showErrorDialog('Failed to process QR code: ${e.toString()}');

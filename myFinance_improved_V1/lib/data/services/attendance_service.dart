@@ -205,18 +205,6 @@ class AttendanceService {
     required double lng,
   }) async {
     try {
-      print('========================================');
-      print('Calling update_shift_requests_v3 RPC');
-      print('========================================');
-      print('Parameters:');
-      print('  p_user_id: $userId');
-      print('  p_store_id: $storeId');
-      print('  p_request_date: $requestDate');
-      print('  p_time: $timestamp');
-      print('  p_lat: $lat');
-      print('  p_lng: $lng');
-      print('========================================');
-      
       // Call the RPC function
       final response = await _supabase.rpc(
         'update_shift_requests_v3',
@@ -230,12 +218,8 @@ class AttendanceService {
         },
       );
       
-      print('RPC Raw Response: $response');
-      print('Response Type: ${response.runtimeType}');
-      
       // If response is null, the RPC call itself failed
       if (response == null) {
-        print('ERROR: Response is null - RPC might not exist or parameters are wrong');
         throw Exception('RPC call failed - please check database function exists');
       }
       
@@ -244,7 +228,6 @@ class AttendanceService {
       
       if (response is List) {
         if (response.isEmpty) {
-          print('Warning: Response is empty list');
           result = {'success': true, 'action': 'check_in'};
         } else {
           // Take first item from list
@@ -272,7 +255,6 @@ class AttendanceService {
         };
       } else {
         // Unexpected format
-        print('Warning: Unexpected response format');
         result = {
           'success': true,
           'action': 'check_in',
@@ -292,19 +274,9 @@ class AttendanceService {
         }
       }
       
-      print('========================================');
-      print('Final Parsed Result: $result');
-      print('========================================');
-      
       return result;
       
     } catch (e) {
-      print('========================================');
-      print('ERROR in updateShiftRequest:');
-      print('Error Type: ${e.runtimeType}');
-      print('Error Message: $e');
-      print('========================================');
-      
       // Check if it's a specific Supabase/PostgreSQL error
       if (e.toString().contains('function') && e.toString().contains('does not exist')) {
         throw Exception('RPC function update_shift_requests_v3 does not exist in database');
