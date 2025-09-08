@@ -6067,356 +6067,482 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
       context: context,
       backgroundColor: TossColors.transparent,
       isScrollControlled: true,
-      builder: (context) => Container(
-        constraints: BoxConstraints(
-          maxHeight: MediaQuery.of(context).size.height * 0.8,
-        ),
-        decoration: BoxDecoration(
-          color: TossColors.background,
-          borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(20),
-            topRight: Radius.circular(20),
-          ),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Handle bar - Toss style (thinner)
-            Center(
-              child: Container(
-                margin: const EdgeInsets.only(top: TossSpacing.space2, bottom: TossSpacing.space4),
-                width: 36,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: TossColors.gray200,
-                  borderRadius: BorderRadius.circular(TossBorderRadius.full),
-                ),
+      builder: (context) {
+        // State variables for expandable sections
+        bool isInfoExpanded = false;
+        bool isActualAttendanceExpanded = false;
+        
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setState) {
+            return Container(
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(context).size.height * 0.8,
+            ),
+            decoration: BoxDecoration(
+              color: TossColors.background,
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(20),
+                topRight: Radius.circular(20),
               ),
             ),
-            
-            // Title - Centered with better weight
-            Text(
-              'Shift Details',
-              style: TossTextStyles.h3.copyWith(
-                color: TossColors.gray900,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            
-            const SizedBox(height: TossSpacing.space5),
-            
-            // Content with scroll
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space5),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Basic Information Section - Clean rows without Store
-                    _buildInfoRow('Date', '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}'),
-                    const SizedBox(height: TossSpacing.space4),
-                    
-                    _buildInfoRow('Shift Time', shiftTime),
-                    const SizedBox(height: TossSpacing.space4),
-                    
-                    // Work Status with proper detection
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'Status',
-                          style: TossTextStyles.body.copyWith(
-                            color: TossColors.gray500,
-                          ),
-                        ),
-                        Text(
-                          _getWorkStatusFromCard(cardData),
-                          style: TossTextStyles.body.copyWith(
-                            color: _getWorkStatusColorFromCard(cardData),
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
-                    
-                    // Late info if exists
-                    if ((cardData['is_late'] ?? false) || (cardData['late_minutes'] ?? 0) > 0) ...[
-                      const SizedBox(height: TossSpacing.space4),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'Late',
-                            style: TossTextStyles.body.copyWith(
-                              color: TossColors.error,
-                            ),
-                          ),
-                          Text(
-                            '${cardData['late_minutes'] ?? 0} minutes',
-                            style: TossTextStyles.body.copyWith(
-                              color: TossColors.error,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                    
-                    const SizedBox(height: TossSpacing.space6),
-                    
-                    // Actual Attendance Section
-                    Text(
-                      'Actual Attendance',
-                      style: TossTextStyles.body.copyWith(
-                        color: TossColors.gray900,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(height: TossSpacing.space3),
-                    
-                    _buildInfoRow('Actual Check-in', _formatTime(cardData['actual_start_time'])),
-                    const SizedBox(height: TossSpacing.space3),
-                    _buildInfoRow('Actual Check-out', _formatTime(cardData['actual_end_time'])),
-                    
-                    const SizedBox(height: TossSpacing.space4),
-                    
-                    // Hours Section
-                    _buildInfoRow('Scheduled Hours', '${cardData['scheduled_hours'] ?? 0.0} hours'),
-                    const SizedBox(height: TossSpacing.space3),
-                    _buildInfoRow('Paid Hours', '${cardData['paid_hours'] ?? 0} hours'),
-                    
-                    const SizedBox(height: TossSpacing.space4),
-                    
-                    // Salary information
-                    _buildInfoRow('Salary Type', cardData['salary_type'] ?? 'hourly'),
-                    const SizedBox(height: TossSpacing.space3),
-                    _buildInfoRow('Salary per Hour', '$currencySymbol${_formatNumber(cardData['salary_amount'] ?? 0)}'),
-                    
-                    const SizedBox(height: TossSpacing.space6),
-                    
-                    // Confirmed Attendance - Simpler design with light background
-                    Container(
-                      padding: const EdgeInsets.all(TossSpacing.space4),
-                      decoration: BoxDecoration(
-                        color: TossColors.info.withOpacity(0.05),
-                        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Confirmed Attendance',
-                            style: TossTextStyles.body.copyWith(
-                              color: TossColors.info,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          const SizedBox(height: TossSpacing.space3),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                'Check-in',
-                                style: TossTextStyles.bodySmall.copyWith(
-                                  color: TossColors.gray500,
-                                ),
-                              ),
-                              Text(
-                                _formatTime(cardData['confirm_start_time']),
-                                style: TossTextStyles.body.copyWith(
-                                  color: TossColors.gray900,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: TossSpacing.space2),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                'Check-out',
-                                style: TossTextStyles.bodySmall.copyWith(
-                                  color: TossColors.gray500,
-                                ),
-                              ),
-                              Text(
-                                _formatTime(cardData['confirm_end_time']),
-                                style: TossTextStyles.body.copyWith(
-                                  color: TossColors.gray900,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                    
-                    const SizedBox(height: TossSpacing.space6),
-                    
-                    // Divider
-                    Container(
-                      height: 1,
-                      color: TossColors.gray100,
-                    ),
-                    
-                    const SizedBox(height: TossSpacing.space4),
-                    
-                    // Total Pay - More prominent
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'Total Pay',
-                          style: TossTextStyles.body.copyWith(
-                            color: TossColors.gray900,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        Text(
-                          '$currencySymbol${_formatNumber(cardData['total_pay_with_bonus'] ?? '0')}',
-                          style: TossTextStyles.h2.copyWith(
-                            color: TossColors.info,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ],
-                    ),
-              
-                    
-                    const SizedBox(height: TossSpacing.space5),
-                    
-                    // Show reported status if already reported
-                    if (cardData['is_reported'] ?? false) ...[
-                      Container(
-                        padding: const EdgeInsets.all(TossSpacing.space4),
-                        decoration: BoxDecoration(
-                          color: TossColors.warning.withOpacity(0.06),
-                          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-                          border: Border.all(
-                            color: TossColors.warning.withOpacity(0.15),
-                            width: 1,
-                          ),
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(
-                              Icons.info_outline_rounded,
-                              color: TossColors.warning,
-                              size: 20,
-                            ),
-                            const SizedBox(width: TossSpacing.space3),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Issue Reported',
-                                    style: TossTextStyles.body.copyWith(
-                                      color: TossColors.warning,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    (cardData['is_problem_solved'] ?? false)
-                                        ? 'Your report has been resolved'
-                                        : 'Your report is being reviewed',
-                                    style: TossTextStyles.bodySmall.copyWith(
-                                      color: TossColors.gray600,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: TossSpacing.space5),
-                    ],
-                    
-                    // Report Issue Button - Toss style with better visibility
-                    Container(
-                      width: double.infinity,
-                      height: 52,
-                      decoration: BoxDecoration(
-                        color: (cardData['is_reported'] ?? false) || !(cardData['is_approved'] ?? false)
-                            ? TossColors.gray50
-                            : TossColors.background,
-                        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-                        border: Border.all(
-                          color: (cardData['is_reported'] ?? false) || !(cardData['is_approved'] ?? false)
-                              ? TossColors.gray100
-                              : TossColors.gray200,
-                          width: 1,
-                        ),
-                      ),
-                      child: Material(
-                        color: TossColors.transparent,
-                        child: InkWell(
-                          onTap: (cardData['is_reported'] ?? false) || !(cardData['is_approved'] ?? false)
-                              ? null  // Disable if already reported OR not approved
-                              : () async {
-                            final shiftRequestId = cardData['shift_request_id'];
-                            if (shiftRequestId == null) {
-                              // Show error if no shift request ID
-                              if (mounted) {
-                                ScaffoldMessenger.of(rootContext).showSnackBar(
-                                  SnackBar(
-                                    content: Text('Unable to report issue: Missing shift ID'),
-                                    backgroundColor: TossColors.error,
-                                  ),
-                                );
-                              }
-                              return;
-                            }
-                            
-                            HapticFeedback.selectionClick();
-                            
-                            // Show the report issue dialog
-                            await _showReportIssueDialog(shiftRequestId, cardData);
-                          },
-                        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            vertical: TossSpacing.space3,
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.flag_outlined,
-                                size: 20,
-                                color: (cardData['is_reported'] ?? false) || !(cardData['is_approved'] ?? false)
-                                    ? TossColors.gray300
-                                    : TossColors.gray600,
-                              ),
-                              const SizedBox(width: TossSpacing.space2),
-                              Text(
-                                'Report Issue',
-                                style: TossTextStyles.body.copyWith(
-                                  fontWeight: FontWeight.w500,
-                                  color: (cardData['is_reported'] ?? false) || !(cardData['is_approved'] ?? false)
-                                      ? TossColors.gray300
-                                      : TossColors.gray700,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Handle bar - Toss style (thinner)
+                Center(
+                  child: Container(
+                    margin: const EdgeInsets.only(top: TossSpacing.space2, bottom: TossSpacing.space4),
+                    width: 36,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: TossColors.gray200,
+                      borderRadius: BorderRadius.circular(TossBorderRadius.full),
                     ),
                   ),
-                    
-                    const SizedBox(height: TossSpacing.space4),
-                  ],
                 ),
-              ),
+                
+                // Title - Centered with better weight
+                Text(
+                  'Shift Details',
+                  style: TossTextStyles.h3.copyWith(
+                    color: TossColors.gray900,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                
+                const SizedBox(height: TossSpacing.space5),
+                
+                // Content with scroll
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space5),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Info Section Heading with expandable arrow
+                        InkWell(
+                          onTap: () {
+                            setState(() {
+                              isInfoExpanded = !isInfoExpanded;
+                            });
+                          },
+                          borderRadius: BorderRadius.circular(TossBorderRadius.sm),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: TossSpacing.space1),
+                            child: Row(
+                              children: [
+                                Text(
+                                  'Info',
+                                  style: TossTextStyles.body.copyWith(
+                                    color: TossColors.gray900,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                const SizedBox(width: TossSpacing.space2),
+                                Icon(
+                                  isInfoExpanded 
+                                    ? Icons.keyboard_arrow_up 
+                                    : Icons.keyboard_arrow_down,
+                                  size: 20,
+                                  color: TossColors.gray600,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        
+                        // Info section content (collapsible)
+                        if (isInfoExpanded) ...[
+                          const SizedBox(height: TossSpacing.space3),
+                          // Basic Information Section - Clean rows without Store
+                          _buildInfoRow('Date', '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}'),
+                          const SizedBox(height: TossSpacing.space4),
+                          
+                          _buildInfoRow('Shift Time', shiftTime),
+                          const SizedBox(height: TossSpacing.space4),
+                          
+                          // Work Status with proper detection
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                'Status',
+                                style: TossTextStyles.body.copyWith(
+                                  color: TossColors.gray500,
+                                ),
+                              ),
+                              Text(
+                                _getWorkStatusFromCard(cardData),
+                                style: TossTextStyles.body.copyWith(
+                                  color: _getWorkStatusColorFromCard(cardData),
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                          
+                          // Late info if exists
+                          if ((cardData['is_late'] ?? false) || (cardData['late_minutes'] ?? 0) > 0) ...[
+                            const SizedBox(height: TossSpacing.space4),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  'Late',
+                                  style: TossTextStyles.body.copyWith(
+                                    color: TossColors.error,
+                                  ),
+                                ),
+                                Text(
+                                  '${cardData['late_minutes'] ?? 0} minutes',
+                                  style: TossTextStyles.body.copyWith(
+                                    color: TossColors.error,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ],
+                        
+                        const SizedBox(height: TossSpacing.space6),
+                        
+                        // Actual Attendance Section Heading with expandable arrow
+                        InkWell(
+                          onTap: () {
+                            setState(() {
+                              isActualAttendanceExpanded = !isActualAttendanceExpanded;
+                            });
+                          },
+                          borderRadius: BorderRadius.circular(TossBorderRadius.sm),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: TossSpacing.space1),
+                            child: Row(
+                              children: [
+                                Text(
+                                  'Actual Attendance',
+                                  style: TossTextStyles.body.copyWith(
+                                    color: TossColors.gray900,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                const SizedBox(width: TossSpacing.space2),
+                                Icon(
+                                  isActualAttendanceExpanded 
+                                    ? Icons.keyboard_arrow_up 
+                                    : Icons.keyboard_arrow_down,
+                                  size: 20,
+                                  color: TossColors.gray600,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        
+                        // Actual Attendance section content (collapsible)
+                        if (isActualAttendanceExpanded) ...[
+                          const SizedBox(height: TossSpacing.space3),
+                          
+                          _buildInfoRow('Actual Check-in', _formatTime(cardData['actual_start_time'])),
+                          const SizedBox(height: TossSpacing.space3),
+                          _buildInfoRow('Actual Check-out', _formatTime(cardData['actual_end_time'])),
+                          
+                          const SizedBox(height: TossSpacing.space4),
+                          
+                          // Hours Section
+                          _buildInfoRow('Scheduled Hours', '${cardData['scheduled_hours'] ?? 0.0} hours'),
+                          const SizedBox(height: TossSpacing.space3),
+                          _buildInfoRow('Paid Hours', '${cardData['paid_hours'] ?? 0} hours'),
+                          
+                          const SizedBox(height: TossSpacing.space4),
+                          
+                          // Salary information
+                          _buildInfoRow('Salary Type', cardData['salary_type'] ?? 'hourly'),
+                          const SizedBox(height: TossSpacing.space3),
+                          _buildInfoRow('Salary per Hour', '$currencySymbol${_formatNumber(cardData['salary_amount'] ?? 0)}'),
+                        ],
+                        
+                        const SizedBox(height: TossSpacing.space6),
+                        
+                        // Confirmed Attendance - Simpler design with light background (Always visible)
+                        Container(
+                            padding: const EdgeInsets.all(TossSpacing.space4),
+                            decoration: BoxDecoration(
+                              color: TossColors.info.withOpacity(0.05),
+                              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Confirmed Attendance',
+                                  style: TossTextStyles.body.copyWith(
+                                    color: TossColors.info,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                const SizedBox(height: TossSpacing.space3),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      'Check-in',
+                                      style: TossTextStyles.bodySmall.copyWith(
+                                        color: TossColors.gray500,
+                                      ),
+                                    ),
+                                    Text(
+                                      _formatTime(cardData['confirm_start_time']),
+                                      style: TossTextStyles.body.copyWith(
+                                        color: TossColors.gray900,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: TossSpacing.space2),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      'Check-out',
+                                      style: TossTextStyles.bodySmall.copyWith(
+                                        color: TossColors.gray500,
+                                      ),
+                                    ),
+                                    Text(
+                                      _formatTime(cardData['confirm_end_time']),
+                                      style: TossTextStyles.body.copyWith(
+                                        color: TossColors.gray900,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                          
+                          const SizedBox(height: TossSpacing.space4),
+                          
+                          // Base Pay and Bonus Amount in blue box
+                          Container(
+                            padding: const EdgeInsets.all(TossSpacing.space4),
+                            decoration: BoxDecoration(
+                              color: TossColors.info.withOpacity(0.05),
+                              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      'Base Pay',
+                                      style: TossTextStyles.bodySmall.copyWith(
+                                        color: TossColors.gray500,
+                                      ),
+                                    ),
+                                    Text(
+                                      '$currencySymbol${_formatNumber(cardData['base_pay'] ?? 0)}',
+                                      style: TossTextStyles.body.copyWith(
+                                        color: TossColors.gray900,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: TossSpacing.space2),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      'Bonus Amount',
+                                      style: TossTextStyles.bodySmall.copyWith(
+                                        color: TossColors.gray500,
+                                      ),
+                                    ),
+                                    Text(
+                                      '$currencySymbol${_formatNumber(cardData['bonus_amount'] ?? 0)}',
+                                      style: TossTextStyles.body.copyWith(
+                                        color: TossColors.gray900,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                          
+                          const SizedBox(height: TossSpacing.space6),
+                          
+                          // Divider
+                          Container(
+                            height: 1,
+                            color: TossColors.gray100,
+                          ),
+                          
+                          const SizedBox(height: TossSpacing.space4),
+                          
+                          // Total Pay - More prominent
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                'Total Pay',
+                                style: TossTextStyles.body.copyWith(
+                                  color: TossColors.gray900,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              Text(
+                                '$currencySymbol${_formatNumber(cardData['total_pay_with_bonus'] ?? '0')}',
+                                style: TossTextStyles.h2.copyWith(
+                                  color: TossColors.info,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ],
+                          ),
+                          
+                          const SizedBox(height: TossSpacing.space5),
+                  
+                        // Show reported status if already reported
+                        if (cardData['is_reported'] ?? false) ...[
+                          Container(
+                            padding: const EdgeInsets.all(TossSpacing.space4),
+                            decoration: BoxDecoration(
+                              color: TossColors.warning.withOpacity(0.06),
+                              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+                              border: Border.all(
+                                color: TossColors.warning.withOpacity(0.15),
+                                width: 1,
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.info_outline_rounded,
+                                  color: TossColors.warning,
+                                  size: 20,
+                                ),
+                                const SizedBox(width: TossSpacing.space3),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Issue Reported',
+                                        style: TossTextStyles.body.copyWith(
+                                          color: TossColors.warning,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        (cardData['is_problem_solved'] ?? false)
+                                            ? 'Your report has been resolved'
+                                            : 'Your report is being reviewed',
+                                        style: TossTextStyles.bodySmall.copyWith(
+                                          color: TossColors.gray600,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: TossSpacing.space5),
+                        ],
+                        
+                        // Report Issue Button - Toss style with better visibility
+                        Container(
+                          width: double.infinity,
+                          height: 52,
+                          decoration: BoxDecoration(
+                            color: (cardData['is_reported'] ?? false) || !(cardData['is_approved'] ?? false)
+                                ? TossColors.gray50
+                                : TossColors.background,
+                            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+                            border: Border.all(
+                              color: (cardData['is_reported'] ?? false) || !(cardData['is_approved'] ?? false)
+                                  ? TossColors.gray100
+                                  : TossColors.gray200,
+                              width: 1,
+                            ),
+                          ),
+                          child: Material(
+                            color: TossColors.transparent,
+                            child: InkWell(
+                              onTap: (cardData['is_reported'] ?? false) || !(cardData['is_approved'] ?? false)
+                                  ? null  // Disable if already reported OR not approved
+                                  : () async {
+                                final shiftRequestId = cardData['shift_request_id'];
+                                if (shiftRequestId == null) {
+                                  // Show error if no shift request ID
+                                  if (mounted) {
+                                    ScaffoldMessenger.of(rootContext).showSnackBar(
+                                      SnackBar(
+                                        content: Text('Unable to report issue: Missing shift ID'),
+                                        backgroundColor: TossColors.error,
+                                      ),
+                                    );
+                                  }
+                                  return;
+                                }
+                                
+                                HapticFeedback.selectionClick();
+                                
+                                // Show the report issue dialog
+                                await _showReportIssueDialog(shiftRequestId, cardData);
+                              },
+                              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: TossSpacing.space3,
+                                ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      Icons.flag_outlined,
+                                      size: 20,
+                                      color: (cardData['is_reported'] ?? false) || !(cardData['is_approved'] ?? false)
+                                          ? TossColors.gray300
+                                          : TossColors.gray600,
+                                    ),
+                                    const SizedBox(width: TossSpacing.space2),
+                                    Text(
+                                      'Report Issue',
+                                      style: TossTextStyles.body.copyWith(
+                                        fontWeight: FontWeight.w500,
+                                        color: (cardData['is_reported'] ?? false) || !(cardData['is_approved'] ?? false)
+                                            ? TossColors.gray300
+                                            : TossColors.gray700,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        
+                        // Add safe area padding below Report Issue button
+                        SizedBox(height: MediaQuery.of(context).padding.bottom + TossSpacing.space5),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
-      ),
+          );
+          },
+        );
+      },
     );
   }
   
