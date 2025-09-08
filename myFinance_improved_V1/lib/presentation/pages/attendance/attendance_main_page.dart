@@ -88,12 +88,12 @@ class _AttendanceMainPageState extends State<AttendanceMainPage> with SingleTick
                           indicatorPadding: EdgeInsets.all(TossSpacing.space1 / 2),
                           dividerColor: TossColors.transparent,
                           labelColor: TossColors.gray900,
-                          unselectedLabelColor: TossColors.gray500,
-                          labelStyle: TossTextStyles.labelLarge.copyWith(
-                            fontWeight: FontWeight.w600,
+                          unselectedLabelColor: TossColors.gray600,
+                          labelStyle: TossTextStyles.bodySmall.copyWith(
+                            fontWeight: FontWeight.w700,
                           ),
-                          unselectedLabelStyle: TossTextStyles.labelLarge.copyWith(
-                            fontWeight: FontWeight.w400,
+                          unselectedLabelStyle: TossTextStyles.bodySmall.copyWith(
+                            fontWeight: FontWeight.w500,
                           ),
                           splashBorderRadius: BorderRadius.circular(TossBorderRadius.xxl),
                           tabs: const [
@@ -186,9 +186,11 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
   Future<void> fetchShiftMetadata(String storeId) async {
     if (storeId.isEmpty) return;
     
-    setState(() {
-      isLoadingMetadata = true;
-    });
+    if (mounted) {
+      setState(() {
+        isLoadingMetadata = true;
+      });
+    }
     
     try {
       final response = await Supabase.instance.client.rpc(
@@ -199,21 +201,25 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
       );
       
       
-      setState(() {
-        // Store the raw response directly - it should be a List of shift objects
-        if (response != null) {
-          shiftMetadata = response;
-        } else {
-          shiftMetadata = [];
-        }
-        isLoadingMetadata = false;
-      });
+      if (mounted) {
+        setState(() {
+          // Store the raw response directly - it should be a List of shift objects
+          if (response != null) {
+            shiftMetadata = response;
+          } else {
+            shiftMetadata = [];
+          }
+          isLoadingMetadata = false;
+        });
+      }
       
     } catch (e) {
-      setState(() {
-        isLoadingMetadata = false;
-        shiftMetadata = [];
-      });
+      if (mounted) {
+        setState(() {
+          isLoadingMetadata = false;
+          shiftMetadata = [];
+        });
+      }
     }
   }
   
@@ -298,7 +304,12 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
       if (!_scrollController.hasClients || !mounted) return;
       
       final currentPosition = _scrollController.position.pixels;
-      final targetPosition = _scrollController.position.maxScrollExtent;
+      // Calculate the proper target position without overscroll
+      // maxScrollExtent already represents the maximum scrollable position
+      // We'll clamp it to ensure we don't go beyond content bounds
+      final maxScroll = _scrollController.position.maxScrollExtent;
+      // Ensure target position doesn't exceed actual content bounds
+      final targetPosition = maxScroll.clamp(0.0, maxScroll);
       final scrollDistance = (targetPosition - currentPosition).abs();
       
       // Skip if already at bottom or very close
@@ -320,7 +331,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
         // For very long distances (>2.5x viewport), use progressive multi-stage scrolling
         if (scrollDistance > viewportHeight * 2.5) {
           // Stage 1: Accelerate to 60% of distance
-          final stage1Position = currentPosition + (scrollDistance * 0.6);
+          final stage1Position = (currentPosition + (scrollDistance * 0.6)).clamp(0.0, maxScroll);
           await _scrollController.animateTo(
             stage1Position,
             duration: Duration(milliseconds: (duration * 0.45).round()),
@@ -328,7 +339,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
           );
           
           // Stage 2: Continue to 90% with steady speed
-          final stage2Position = currentPosition + (scrollDistance * 0.9);
+          final stage2Position = (currentPosition + (scrollDistance * 0.9)).clamp(0.0, maxScroll);
           await _scrollController.animateTo(
             stage2Position,
             duration: Duration(milliseconds: (duration * 0.35).round()),
@@ -343,7 +354,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
           );
         } else if (scrollDistance > viewportHeight) {
           // For medium distances, use two-stage scrolling
-          final intermediatePosition = currentPosition + (scrollDistance * 0.75);
+          final intermediatePosition = (currentPosition + (scrollDistance * 0.75)).clamp(0.0, maxScroll);
           
           // First stage: smooth acceleration
           await _scrollController.animateTo(
@@ -669,14 +680,14 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
                       Navigator.pop(context);
                       
                       setState(() {
-                        selectedStoreId = store['store_id'];
+                        selectedStoreId = store['store_id']?.toString();
                         _resetSelections();
                       });
                       
                       // Update app state with the new store selection
-                      await ref.read(appStateProvider.notifier).setStoreChoosen(store['store_id']);
+                      await ref.read(appStateProvider.notifier).setStoreChoosen(store['store_id']?.toString() ?? '');
                       // Fetch shift metadata and monthly status for the new store
-                      await fetchShiftMetadata(store['store_id']);
+                      await fetchShiftMetadata(store['store_id']?.toString() ?? '');
                       await fetchMonthlyShiftStatus();
                     },
                     child: Container(
@@ -711,7 +722,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
                           const SizedBox(width: TossSpacing.space3),
                           Expanded(
                             child: Text(
-                              store['store_name'] ?? 'Unknown Store',
+                              store['store_name']?.toString() ?? 'Unknown Store',
                               style: TossTextStyles.body.copyWith(
                                 color: isSelected ? TossColors.primary : TossColors.gray900,
                                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
@@ -966,7 +977,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
                             ),
                             const SizedBox(height: TossSpacing.space1),
                             Text(
-                              shiftName,
+                              shiftName?.toString() ?? '',
                               style: TossTextStyles.h4.copyWith(
                                 color: TossColors.primary,
                                 fontWeight: FontWeight.w700,
@@ -1069,7 +1080,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
                                 shiftId: selectedShift!,
                                 userId: user.id,
                                 userName: userName,
-                                profileImage: profileImage,
+                                profileImage: profileImage?.toString() ?? '',
                                 requestDate: dateStr,
                               );
                               
@@ -1921,7 +1932,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
     
     // If selectedStoreId is null and stores are available, use the first store
     if (selectedStoreId == null && stores.isNotEmpty) {
-      selectedStoreId = stores.first['store_id'];
+      selectedStoreId = stores.first['store_id']?.toString();
       // Fetch metadata and monthly status for the auto-selected store
       if (shiftMetadata == null && !isLoadingMetadata) {
         fetchShiftMetadata(selectedStoreId!);
@@ -1983,15 +1994,15 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
                             'Store',
                             style: TossTextStyles.caption.copyWith(
                               color: TossColors.gray500,
-                              letterSpacing: 0,
+                              fontWeight: FontWeight.w500,
                             ),
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            stores.firstWhere(
+                            (stores.firstWhere(
                               (store) => store['store_id'] == selectedStoreId,
                               orElse: () => {'store_name': 'Select Store'},
-                            )['store_name'] ?? 'Select Store',
+                            )['store_name'] ?? 'Select Store').toString(),
                             style: TossTextStyles.body.copyWith(
                               color: TossColors.gray900,
                               fontWeight: FontWeight.w600,
@@ -2079,7 +2090,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
             Expanded(
               child: ListView(
                 controller: _scrollController,
-                physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+                physics: const ClampingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
                 padding: const EdgeInsets.only(bottom: 100), // Padding for floating button
                 children: [
                   // Calendar - Toss Style
@@ -2189,7 +2200,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
             weekDays[i],
             style: TossTextStyles.caption.copyWith(
               color: isWeekend ? TossColors.gray400 : TossColors.gray500,
-              fontWeight: FontWeight.w500,
+              fontWeight: FontWeight.w600,
             ),
           ),
         ),
@@ -2256,7 +2267,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
                                     : TossColors.gray900,
                         fontWeight: isSelected || isToday
                             ? FontWeight.w700
-                            : FontWeight.w400,
+                            : FontWeight.w500,
                       ),
                     ),
                     if (hasShift) ...[
@@ -2336,7 +2347,8 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
                     Text(
                       _getWeekdayFull(selectedDate.weekday),
                       style: TossTextStyles.caption.copyWith(
-                        color: TossColors.gray600,
+                        color: TossColors.gray500,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                     Text(
@@ -2406,7 +2418,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
                     'No shift registered for this date',
                     style: TossTextStyles.caption.copyWith(
                       color: TossColors.warning,
-                      fontWeight: FontWeight.w500,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ],
@@ -2430,7 +2442,8 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
         Text(
           '$label:',
           style: TossTextStyles.caption.copyWith(
-            color: TossColors.gray600,
+            color: TossColors.gray500,
+            fontWeight: FontWeight.w500,
           ),
         ),
         const SizedBox(width: TossSpacing.space2),
@@ -2510,9 +2523,9 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
                   children: [
                     Text(
                       _getWeekdayFull(selectedDate.weekday),
-                      style: TossTextStyles.caption.copyWith(
+                      style: TossTextStyles.small.copyWith(
                         color: TossColors.gray500,
-                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                     Text(
@@ -3093,7 +3106,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
                     'No shifts configured for this store',
                     style: TossTextStyles.caption.copyWith(
                       color: TossColors.warning,
-                      fontWeight: FontWeight.w500,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ],
@@ -3384,7 +3397,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
     
     // Find the first date with shift data in this month
     final monthShifts = allShiftCardsData.where((card) {
-      final date = card['request_date'] ?? '';
+      final date = card['request_date']?.toString() ?? '';
       return date.startsWith(monthKey);
     }).toList();
     
@@ -3392,8 +3405,8 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
     if (monthShifts.isNotEmpty) {
       // Sort by date to find the earliest shift
       monthShifts.sort((a, b) {
-        final dateA = a['request_date'] ?? '';
-        final dateB = b['request_date'] ?? '';
+        final dateA = a['request_date']?.toString() ?? '';
+        final dateB = b['request_date']?.toString() ?? '';
         return dateA.compareTo(dateB);
       });
       
@@ -3402,7 +3415,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
       final lastShiftDateStr = monthShifts.last['request_date'];
       
       if (firstShiftDateStr != null) {
-        final parts = firstShiftDateStr.split('-');
+        final parts = firstShiftDateStr.toString().split('-');
         if (parts.length == 3) {
           final firstShiftDate = DateTime(
             int.parse(parts[0]),
@@ -3451,8 +3464,8 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
         
         // Sort all cards by date (descending)
         allShiftCardsData.sort((a, b) {
-          final dateA = a['request_date'] ?? '';
-          final dateB = b['request_date'] ?? '';
+          final dateA = a['request_date']?.toString() ?? '';
+          final dateB = b['request_date']?.toString() ?? '';
           return dateB.compareTo(dateA);
         });
         
@@ -3709,12 +3722,16 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
         final actualEnd = shiftCard['confirm_end_time'];
         
         // Check approval status for all shifts
-        final hasApprovedShift = shiftsForDate.any((card) => 
-          card['is_approved'] ?? card['approval_status'] == 'approved' ?? false
-        );
-        final hasNonApprovedShift = shiftsForDate.any((card) => 
-          !(card['is_approved'] ?? card['approval_status'] == 'approved' ?? false)
-        );
+        final hasApprovedShift = shiftsForDate.any((card) {
+          final isApproved = card['is_approved'];
+          final approvalStatus = card['approval_status'];
+          return (isApproved == true) || (approvalStatus == 'approved');
+        });
+        final hasNonApprovedShift = shiftsForDate.any((card) {
+          final isApproved = card['is_approved'];
+          final approvalStatus = card['approval_status'];
+          return (isApproved != true) && (approvalStatus != 'approved');
+        });
         
         schedule.add({
           'date': date,
@@ -3867,7 +3884,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
     // Calculate total unique shifts from the shift cards data for the current month
     
     final currentMonthShifts = allShiftCardsData.where((card) {
-      final requestDate = card['request_date'] ?? '';
+      final requestDate = card['request_date']?.toString() ?? '';
       return requestDate.startsWith(currentDisplayedMonth ?? '');
     }).toList();
     
@@ -3876,7 +3893,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
     // Parse month and year from request_month (format: "2025-08")
     String monthDisplay = 'Current Month';
     if (requestMonth.isNotEmpty) {
-      final parts = requestMonth.split('-');
+      final parts = requestMonth.toString().split('-');
       if (parts.length == 2) {
         final year = parts[0];
         final month = int.tryParse(parts[1]) ?? DateTime.now().month;
@@ -3917,7 +3934,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                         monthDisplay,
                         style: TossTextStyles.h2.copyWith(
                           color: TossColors.gray900,
-                          fontWeight: FontWeight.w800,
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
                       const SizedBox(height: TossSpacing.space1),
@@ -3991,8 +4008,8 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                               Text(
                                 'Total Shifts',
                                 style: TossTextStyles.caption.copyWith(
-                                  color: TossColors.gray600,
-                                  fontWeight: FontWeight.w500,
+                                  color: TossColors.gray500,
+                                  fontWeight: FontWeight.w600,
                                 ),
                               ),
                             ],
@@ -4044,8 +4061,8 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                               Text(
                                 'Total Hours',
                                 style: TossTextStyles.caption.copyWith(
-                                  color: TossColors.gray600,
-                                  fontWeight: FontWeight.w500,
+                                  color: TossColors.gray500,
+                                  fontWeight: FontWeight.w600,
                                 ),
                               ),
                             ],
@@ -4103,8 +4120,8 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                               Text(
                                 'Overtime',
                                 style: TossTextStyles.caption.copyWith(
-                                  color: TossColors.gray600,
-                                  fontWeight: FontWeight.w500,
+                                  color: TossColors.gray500,
+                                  fontWeight: FontWeight.w600,
                                 ),
                               ),
                             ],
@@ -4156,8 +4173,8 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                               Text(
                                 'Late Deduct',
                                 style: TossTextStyles.caption.copyWith(
-                                  color: TossColors.gray600,
-                                  fontWeight: FontWeight.w500,
+                                  color: TossColors.gray500,
+                                  fontWeight: FontWeight.w600,
                                 ),
                               ),
                             ],
@@ -4238,7 +4255,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                             fontSize: 32,
                           ),
                         ),
-                        if (overtimeTotal > 0) ...[  
+                        if ((overtimeTotal ?? 0) > 0) ...[  
                           const SizedBox(height: TossSpacing.space1),
                           Row(
                             children: [
@@ -4355,7 +4372,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                     
                     // Check if at least one shift is approved
                     final hasApprovedShift = todayShifts.any((card) {
-                      return card['is_approved'] ?? false;
+                      return card['is_approved'] == true;
                     });
                     
                     if (!hasApprovedShift) {
@@ -4489,10 +4506,9 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
               Expanded(
                 child: Text(
                   label,
-                  style: TossTextStyles.caption.copyWith(
-                    color: TossColors.gray700,
-                    fontWeight: FontWeight.w500,
-                    fontSize: 11,
+                  style: TossTextStyles.small.copyWith(
+                    color: TossColors.gray600,
+                    fontWeight: FontWeight.w600,
                   ),
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -4514,10 +4530,9 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
               const SizedBox(width: TossSpacing.space1),
               Text(
                 suffix,
-                style: TossTextStyles.caption.copyWith(
-                  color: TossColors.gray600,
+                style: TossTextStyles.small.copyWith(
+                  color: TossColors.gray500,
                   fontWeight: FontWeight.w500,
-                  fontSize: 10,
                 ),
               ),
             ],
@@ -4705,12 +4720,11 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                           // Weekday
                           Text(
                             weekdayName,
-                            style: TossTextStyles.caption.copyWith(
+                            style: TossTextStyles.small.copyWith(
                               color: isSelected 
                                 ? TossColors.surface 
                                 : TossColors.gray500,
-                              fontWeight: FontWeight.w500,
-                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
                           const SizedBox(height: TossSpacing.space2),
@@ -4731,7 +4745,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                               width: 6,
                               height: 6,
                               decoration: BoxDecoration(
-                                color: hasApprovedShift
+                                color: (hasApprovedShift == true)
                                   ? (isSelected ? TossColors.surface : TossColors.success)
                                   : (isSelected ? TossColors.surface : TossColors.warning),
                                 shape: BoxShape.circle,
@@ -4740,11 +4754,10 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                           else
                             Text(
                               'off',
-                              style: TossTextStyles.caption.copyWith(
+                              style: TossTextStyles.small.copyWith(
                                 color: isSelected 
                                   ? TossColors.surface.withOpacity(0.8)
                                   : TossColors.gray400,
-                                fontSize: 10,
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
@@ -4928,9 +4941,9 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
             // Header
             Text(
               'Activity',
-              style: TossTextStyles.labelLarge.copyWith(
-                color: TossColors.gray700,
-                fontWeight: FontWeight.w600,
+              style: TossTextStyles.body.copyWith(
+                color: TossColors.gray900,
+                fontWeight: FontWeight.w700,
               ),
             ),
             const SizedBox(height: TossSpacing.space3),
@@ -6038,6 +6051,9 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
       return;
     }
     
+    // Capture the root context for ScaffoldMessenger
+    final rootContext = context;
+    
     // Parse date for better display
     final dateStr = cardData['request_date'] ?? '';
     final dateParts = dateStr.split('-');
@@ -6351,75 +6367,25 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                           onTap: (cardData['is_reported'] ?? false) || !(cardData['is_approved'] ?? false)
                               ? null  // Disable if already reported OR not approved
                               : () async {
-                          final shiftRequestId = cardData['shift_request_id'];
-                          if (shiftRequestId == null) {
-                            // Show error if no shift request ID
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text('Unable to report issue: Missing shift ID'),
-                                backgroundColor: TossColors.error,
-                              ),
-                            );
-                            return;
-                          }
-                          
-                          HapticFeedback.selectionClick();
-                          
-                          // Show loading indicator
-                          showDialog(
-                            context: context,
-                            barrierDismissible: true, // Allow dismissing loading dialogs
-                            builder: (context) => Center(
-                              child: Container(
-                                padding: const EdgeInsets.all(TossSpacing.space4),
-                                decoration: BoxDecoration(
-                                  color: TossColors.surface,
-                                  borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-                                ),
-                                child: const TossLoadingView(),
-                              ),
-                            ),
-                          );
-                          
-                          // Call the service to report the issue
-                          final service = ref.read(attendanceServiceProvider);
-                          final success = await service.reportShiftIssue(
-                            shiftRequestId: shiftRequestId,
-                          );
-                          
-                          // Dismiss loading
-                          Navigator.of(context).pop();
-                          
-                          if (success) {
-                            // Update the local card data to reflect the change
-                            cardData['is_reported'] = true;
-                            cardData['is_problem_solved'] = false;
+                            final shiftRequestId = cardData['shift_request_id'];
+                            if (shiftRequestId == null) {
+                              // Show error if no shift request ID
+                              if (mounted) {
+                                ScaffoldMessenger.of(rootContext).showSnackBar(
+                                  SnackBar(
+                                    content: Text('Unable to report issue: Missing shift ID'),
+                                    backgroundColor: TossColors.error,
+                                  ),
+                                );
+                              }
+                              return;
+                            }
                             
-                            // Show success message
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text('Issue reported successfully'),
-                                backgroundColor: TossColors.success,
-                              ),
-                            );
+                            HapticFeedback.selectionClick();
                             
-                            // Close the modal after a short delay
-                            Future.delayed(const Duration(milliseconds: 500), () {
-                              Navigator.of(context).pop();
-                            });
-                            
-                            // Refresh the main page data
-                            _fetchMonthData(selectedDate);
-                          } else {
-                            // Show error message
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text('Failed to report issue. Please try again.'),
-                                backgroundColor: TossColors.error,
-                              ),
-                            );
-                          }
-                        },
+                            // Show the report issue dialog
+                            await _showReportIssueDialog(shiftRequestId, cardData);
+                          },
                         borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                         child: Container(
                           padding: const EdgeInsets.symmetric(
@@ -6619,6 +6585,395 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
       }
       return '--:--';
     }
+  }
+
+  Future<void> _showReportIssueDialog(String shiftRequestId, Map<String, dynamic> cardData) async {
+    final TextEditingController reasonController = TextEditingController();
+    bool isSubmitting = false;
+
+    await showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext dialogContext) {
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setDialogState) {
+            return Dialog(
+              backgroundColor: TossColors.surface,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(TossBorderRadius.xl),
+              ),
+              child: Container(
+                padding: const EdgeInsets.all(TossSpacing.space5),
+                width: MediaQuery.of(context).size.width * 0.9,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Header
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(TossSpacing.space2),
+                          decoration: BoxDecoration(
+                            color: TossColors.error.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                          ),
+                          child: Icon(
+                            Icons.flag_outlined,
+                            color: TossColors.error,
+                            size: 24,
+                          ),
+                        ),
+                        const SizedBox(width: TossSpacing.space3),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Report Issue',
+                                style: TossTextStyles.h4.copyWith(
+                                  color: TossColors.gray900,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                'Please describe the problem',
+                                style: TossTextStyles.bodySmall.copyWith(
+                                  color: TossColors.gray600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        IconButton(
+                          onPressed: isSubmitting ? null : () => Navigator.of(dialogContext).pop(),
+                          icon: Icon(
+                            Icons.close_rounded,
+                            color: TossColors.gray600,
+                          ),
+                        ),
+                      ],
+                    ),
+                    
+                    const SizedBox(height: TossSpacing.space5),
+                    
+                    // Text field for reason
+                    Container(
+                      decoration: BoxDecoration(
+                        color: TossColors.gray50,
+                        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+                        border: Border.all(
+                          color: TossColors.gray200,
+                          width: 1,
+                        ),
+                      ),
+                      child: TextField(
+                        controller: reasonController,
+                        maxLines: 4,
+                        maxLength: 500,
+                        enabled: !isSubmitting,
+                        onChanged: (value) {
+                          // Update the dialog state to enable/disable the report button
+                          setDialogState(() {});
+                        },
+                        decoration: InputDecoration(
+                          hintText: 'Enter the reason for reporting this issue...',
+                          hintStyle: TossTextStyles.body.copyWith(
+                            color: TossColors.gray400,
+                          ),
+                          border: InputBorder.none,
+                          contentPadding: const EdgeInsets.all(TossSpacing.space4),
+                          counterStyle: TossTextStyles.bodySmall.copyWith(
+                            color: TossColors.gray500,
+                          ),
+                        ),
+                        style: TossTextStyles.body.copyWith(
+                          color: TossColors.gray900,
+                        ),
+                      ),
+                    ),
+                    
+                    const SizedBox(height: TossSpacing.space5),
+                    
+                    // Action buttons
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextButton(
+                            onPressed: isSubmitting ? null : () => Navigator.of(dialogContext).pop(),
+                            style: TextButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: TossSpacing.space3),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+                              ),
+                            ),
+                            child: Text(
+                              'Cancel',
+                              style: TossTextStyles.body.copyWith(
+                                color: TossColors.gray600,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: TossSpacing.space3),
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: isSubmitting || reasonController.text.trim().isEmpty
+                                ? null
+                                : () async {
+                                    final reason = reasonController.text.trim();
+                                    if (reason.isEmpty) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
+                                          content: Text('Please enter a reason'),
+                                          backgroundColor: TossColors.error,
+                                        ),
+                                      );
+                                      return;
+                                    }
+
+                                    setDialogState(() {
+                                      isSubmitting = true;
+                                    });
+
+                                    try {
+                                      // Update the shift_requests table with report details
+                                      final now = DateTime.now().toIso8601String();
+                                      await Supabase.instance.client
+                                          .from('shift_requests')
+                                          .update({
+                                            'is_reported': true,
+                                            'report_time': now,
+                                            'report_reason': reason,
+                                            'is_problem_solved': false,
+                                          })
+                                          .eq('shift_request_id', shiftRequestId);
+
+                                      // Update local card data
+                                      cardData['is_reported'] = true;
+                                      cardData['report_time'] = now;
+                                      cardData['report_reason'] = reason;
+                                      cardData['is_problem_solved'] = false;
+
+                                      // Close the report dialog
+                                      Navigator.of(dialogContext).pop();
+                                      
+                                      // Close the shift details bottom sheet
+                                      Navigator.of(context).pop();
+
+                                      // Refresh the main page data
+                                      _fetchMonthData(selectedDate);
+                                      
+                                      // Show centered success popup
+                                      if (mounted) {
+                                        showDialog(
+                                          context: context,
+                                          barrierDismissible: false,
+                                          builder: (BuildContext successContext) {
+                                            // Auto-dismiss after 2 seconds
+                                            Future.delayed(const Duration(seconds: 2), () {
+                                              if (Navigator.of(successContext).canPop()) {
+                                                Navigator.of(successContext).pop();
+                                              }
+                                            });
+                                            
+                                            return Dialog(
+                                              backgroundColor: TossColors.transparent,
+                                              elevation: 0,
+                                              child: Container(
+                                                padding: const EdgeInsets.all(TossSpacing.space5),
+                                                decoration: BoxDecoration(
+                                                  color: TossColors.surface,
+                                                  borderRadius: BorderRadius.circular(TossBorderRadius.xl),
+                                                  boxShadow: [
+                                                    BoxShadow(
+                                                      color: TossColors.black.withOpacity(0.1),
+                                                      blurRadius: 20,
+                                                      offset: const Offset(0, 10),
+                                                    ),
+                                                  ],
+                                                ),
+                                                child: Column(
+                                                  mainAxisSize: MainAxisSize.min,
+                                                  children: [
+                                                    // Success icon
+                                                    Container(
+                                                      width: 64,
+                                                      height: 64,
+                                                      decoration: BoxDecoration(
+                                                        color: TossColors.success.withOpacity(0.1),
+                                                        shape: BoxShape.circle,
+                                                      ),
+                                                      child: Icon(
+                                                        Icons.check_circle_rounded,
+                                                        color: TossColors.success,
+                                                        size: 36,
+                                                      ),
+                                                    ),
+                                                    const SizedBox(height: TossSpacing.space4),
+                                                    // Success title
+                                                    Text(
+                                                      'Report Submitted',
+                                                      style: TossTextStyles.h4.copyWith(
+                                                        color: TossColors.gray900,
+                                                        fontWeight: FontWeight.w700,
+                                                      ),
+                                                    ),
+                                                    const SizedBox(height: TossSpacing.space2),
+                                                    // Success message
+                                                    Text(
+                                                      'Your issue has been reported\nand will be reviewed soon',
+                                                      textAlign: TextAlign.center,
+                                                      style: TossTextStyles.body.copyWith(
+                                                        color: TossColors.gray600,
+                                                        height: 1.5,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            );
+                                          },
+                                        );
+                                      }
+                                    } catch (e) {
+                                      setDialogState(() {
+                                        isSubmitting = false;
+                                      });
+                                      
+                                      // Close the report dialog
+                                      Navigator.of(dialogContext).pop();
+                                      
+                                      if (mounted) {
+                                        // Show error popup
+                                        showDialog(
+                                          context: context,
+                                          barrierDismissible: true,
+                                          builder: (BuildContext errorContext) {
+                                            return Dialog(
+                                              backgroundColor: TossColors.transparent,
+                                              elevation: 0,
+                                              child: Container(
+                                                padding: const EdgeInsets.all(TossSpacing.space5),
+                                                decoration: BoxDecoration(
+                                                  color: TossColors.surface,
+                                                  borderRadius: BorderRadius.circular(TossBorderRadius.xl),
+                                                  boxShadow: [
+                                                    BoxShadow(
+                                                      color: TossColors.black.withOpacity(0.1),
+                                                      blurRadius: 20,
+                                                      offset: const Offset(0, 10),
+                                                    ),
+                                                  ],
+                                                ),
+                                                child: Column(
+                                                  mainAxisSize: MainAxisSize.min,
+                                                  children: [
+                                                    // Error icon
+                                                    Container(
+                                                      width: 64,
+                                                      height: 64,
+                                                      decoration: BoxDecoration(
+                                                        color: TossColors.error.withOpacity(0.1),
+                                                        shape: BoxShape.circle,
+                                                      ),
+                                                      child: Icon(
+                                                        Icons.error_outline_rounded,
+                                                        color: TossColors.error,
+                                                        size: 36,
+                                                      ),
+                                                    ),
+                                                    const SizedBox(height: TossSpacing.space4),
+                                                    // Error title
+                                                    Text(
+                                                      'Report Failed',
+                                                      style: TossTextStyles.h4.copyWith(
+                                                        color: TossColors.gray900,
+                                                        fontWeight: FontWeight.w700,
+                                                      ),
+                                                    ),
+                                                    const SizedBox(height: TossSpacing.space2),
+                                                    // Error message
+                                                    Text(
+                                                      'Failed to report issue.\nPlease try again later.',
+                                                      textAlign: TextAlign.center,
+                                                      style: TossTextStyles.body.copyWith(
+                                                        color: TossColors.gray600,
+                                                        height: 1.5,
+                                                      ),
+                                                    ),
+                                                    const SizedBox(height: TossSpacing.space4),
+                                                    // OK button
+                                                    ElevatedButton(
+                                                      onPressed: () {
+                                                        Navigator.of(errorContext).pop();
+                                                      },
+                                                      style: ElevatedButton.styleFrom(
+                                                        backgroundColor: TossColors.primary,
+                                                        padding: const EdgeInsets.symmetric(
+                                                          horizontal: TossSpacing.space6,
+                                                          vertical: TossSpacing.space3,
+                                                        ),
+                                                        shape: RoundedRectangleBorder(
+                                                          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+                                                        ),
+                                                      ),
+                                                      child: Text(
+                                                        'OK',
+                                                        style: TossTextStyles.body.copyWith(
+                                                          color: TossColors.surface,
+                                                          fontWeight: FontWeight.w600,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            );
+                                          },
+                                        );
+                                      }
+                                    }
+                                  },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: isSubmitting || reasonController.text.trim().isEmpty
+                                  ? TossColors.gray200
+                                  : TossColors.error,
+                              padding: const EdgeInsets.symmetric(vertical: TossSpacing.space3),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+                              ),
+                            ),
+                            child: isSubmitting
+                                ? SizedBox(
+                                    height: 20,
+                                    width: 20,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      valueColor: AlwaysStoppedAnimation<Color>(TossColors.gray400),
+                                    ),
+                                  )
+                                : Text(
+                                    'Report',
+                                    style: TossTextStyles.body.copyWith(
+                                      color: TossColors.surface,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
   }
 
   void _navigateToDate(DateTime date) {

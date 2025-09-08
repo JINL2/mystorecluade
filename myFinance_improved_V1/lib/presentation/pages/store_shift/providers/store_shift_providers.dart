@@ -178,7 +178,7 @@ final storeShiftsProvider = FutureProvider.autoDispose<List<Map<String, dynamic>
     // Query store_shifts table with filters
     final response = await supabase
         .from('store_shifts')
-        .select('shift_id, shift_name, start_time, end_time, is_active')
+        .select('shift_id, shift_name, start_time, end_time, shift_bonus, is_active')
         .eq('store_id', storeId)
         .eq('is_active', true)
         .order('start_time', ascending: true);

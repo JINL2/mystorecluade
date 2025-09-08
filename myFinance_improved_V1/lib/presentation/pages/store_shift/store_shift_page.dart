@@ -28,6 +28,8 @@ import '../../widgets/toss/toss_selection_bottom_sheet.dart';
 import '../../widgets/common/toss_empty_view.dart';
 import '../../../core/constants/icon_mapper.dart';
 import '../../../core/constants/ui_constants.dart';
+import '../../../core/utils/number_formatter.dart';
+import '../../../core/utils/number_formatter.dart';
 import '../../widgets/common/toss_scaffold.dart';
 import '../../../data/services/store_service.dart';
 import '../../widgets/toss/toss_bottom_sheet.dart';
@@ -1092,6 +1094,8 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
   void _showCreateShiftBottomSheet() {
     // State variables for the bottom sheet
     String shiftName = '';
+    String shiftBonus = '0'; // Add shift bonus state
+    bool shiftBonusUserModified = false; // Track if user actually typed in shift bonus field
     TimeOfDay? selectedStartTime;
     TimeOfDay? selectedEndTime;
     
@@ -1100,15 +1104,19 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
       isScrollControlled: true,
       backgroundColor: TossColors.transparent,
       builder: (context) => StatefulBuilder(
-        builder: (context, setState) => Container(
-          height: MediaQuery.of(context).size.height * 0.8,
-          decoration: const BoxDecoration(
-            color: TossColors.white,
-            borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(24),
-              topRight: Radius.circular(24),
+        builder: (context, setState) => GestureDetector(
+          onTap: () {
+            FocusScope.of(context).unfocus();
+          },
+          child: Container(
+            height: MediaQuery.of(context).size.height * 0.8,
+            decoration: const BoxDecoration(
+              color: TossColors.white,
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(24),
+                topRight: Radius.circular(24),
+              ),
             ),
-          ),
           child: Column(
             children: [
               // Handle bar
@@ -1150,6 +1158,36 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
                         onChanged: (value) {
                           setState(() {
                             shiftName = value;
+                          });
+                        },
+                      ),
+                      
+                      const SizedBox(height: TossSpacing.space6),
+                      
+                      // Shift Bonus Input Section
+                      TossTextField(
+                        label: 'Shift Bonus',
+                        hintText: '0',
+                        keyboardType: TextInputType.number,
+                        textInputAction: TextInputAction.next,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly,
+                          TextInputFormatter.withFunction((oldValue, newValue) {
+                            if (newValue.text.isNotEmpty) {
+                              final numericValue = int.tryParse(newValue.text.replaceAll(',', '')) ?? 0;
+                              final formattedValue = NumberFormatter.formatWithCommas(numericValue);
+                              return TextEditingValue(
+                                text: formattedValue,
+                                selection: TextSelection.collapsed(offset: formattedValue.length),
+                              );
+                            }
+                            return newValue;
+                          }),
+                        ],
+                        onChanged: (value) {
+                          setState(() {
+                            shiftBonus = value.isEmpty ? '0' : value;
+                            shiftBonusUserModified = true; // User has interacted with the field
                           });
                         },
                       ),
@@ -1322,6 +1360,8 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
                     _showCreateConfirmation(
                       context: context,
                       shiftName: shiftName,
+                      shiftBonus: shiftBonus,
+                      shiftBonusUserModified: shiftBonusUserModified,
                       startTime: selectedStartTime!.format(context),
                       endTime: selectedEndTime!.format(context),
                     );
@@ -1331,6 +1371,7 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
             ],
           ),
         ),
+      ),
       ),
     );
   }
@@ -1472,29 +1513,57 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
     final endTime = shift['end_time'] ?? '17:00';
     final shiftId = shift['shift_id'] ?? '';
     final existingShiftName = shift['shift_name'] ?? 'Unnamed Shift';
+    final existingShiftBonus = shift['shift_bonus'] ?? 0;
     
     // State variables for the bottom sheet
     String shiftName = existingShiftName;
     TimeOfDay selectedStartTime = _parseTimeOfDay(startTime);
     TimeOfDay selectedEndTime = _parseTimeOfDay(endTime);
+    String shiftBonus = NumberFormatter.formatWithCommas(existingShiftBonus);
+    bool shiftBonusUserModified = false; // Track if user actually modified shift bonus field
     
-    // Create a TextEditingController for the shift name
+    // Create TextEditingControllers, FocusNode, and ScrollController
     final shiftNameController = TextEditingController(text: existingShiftName);
+    final shiftBonusController = TextEditingController(text: shiftBonus);
+    final shiftBonusFocusNode = FocusNode();
+    final scrollController = ScrollController();
+    
+    // Add focus listener to auto-scroll when shift bonus field is focused
+    shiftBonusFocusNode.addListener(() {
+      if (shiftBonusFocusNode.hasFocus) {
+        Future.delayed(const Duration(milliseconds: 300), () {
+          if (scrollController.hasClients) {
+            scrollController.animateTo(
+              scrollController.position.maxScrollExtent,
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeInOut,
+            );
+          }
+        });
+      }
+    });
     
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: TossColors.transparent,
       builder: (context) => StatefulBuilder(
-        builder: (context, setState) => Container(
-          height: MediaQuery.of(context).size.height * 0.8,
-          decoration: const BoxDecoration(
-            color: TossColors.white,
-            borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(24),
-              topRight: Radius.circular(24),
-            ),
-          ),
+        builder: (context, setState) {
+          final keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
+          
+          return GestureDetector(
+            onTap: () {
+              FocusScope.of(context).unfocus();
+            },
+            child: Container(
+              height: MediaQuery.of(context).size.height * 0.8,
+              decoration: const BoxDecoration(
+                color: TossColors.white,
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(24),
+                  topRight: Radius.circular(24),
+                ),
+              ),
           child: Column(
             children: [
               // Handle bar
@@ -1524,7 +1593,13 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
               // Content
               Expanded(
                 child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(TossSpacing.space5),
+                  controller: scrollController,
+                  padding: EdgeInsets.only(
+                    left: TossSpacing.space5,
+                    right: TossSpacing.space5,
+                    top: TossSpacing.space5,
+                    bottom: TossSpacing.space5 + keyboardHeight,
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -1633,6 +1708,40 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
                       
                       const SizedBox(height: TossSpacing.space5),
                       
+                      // Shift Bonus Section
+                      TossTextField(
+                        label: 'Shift Bonus',
+                        hintText: '0',
+                        controller: shiftBonusController,
+                        focusNode: shiftBonusFocusNode,
+                        keyboardType: TextInputType.number,
+                        textInputAction: TextInputAction.done,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly,
+                        ],
+                        onChanged: (value) {
+                          setState(() {
+                            if (value.isNotEmpty) {
+                              final numericValue = _parseFormattedNumber(value);
+                              final formattedValue = NumberFormatter.formatWithCommas(numericValue.toInt());
+                              if (formattedValue != value) {
+                                shiftBonusController.value = TextEditingValue(
+                                  text: formattedValue,
+                                  selection: TextSelection.collapsed(offset: formattedValue.length),
+                                );
+                              }
+                              shiftBonus = formattedValue;
+                              shiftBonusUserModified = true; // User has interacted with the field
+                            } else {
+                              shiftBonus = '0';
+                              shiftBonusUserModified = true; // User has interacted with the field
+                            }
+                          });
+                        },
+                      ),
+                      
+                      const SizedBox(height: TossSpacing.space5),
+                      
                       // Duration Display - Matching Create Shift green styling
                       Container(
                         padding: const EdgeInsets.all(TossSpacing.space4),
@@ -1709,16 +1818,34 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
                       shiftName: shiftName,
                       startTime: selectedStartTime.format(context),
                       endTime: selectedEndTime.format(context),
+                      shiftBonus: shiftBonus,
+                      shiftBonusUserModified: shiftBonusUserModified,
                     );
                   } : null,
                 ),
               ),
             ],
           ),
-        ),
+            ),
+          );
+        },
       ),
-    );
+    ).whenComplete(() {
+      // Clean up controllers and focus node
+      shiftNameController.dispose();
+      shiftBonusController.dispose();
+      shiftBonusFocusNode.dispose();
+      scrollController.dispose();
+    });
     
+  }
+  
+  // Helper method to parse formatted number string back to numeric value
+  double _parseFormattedNumber(String formattedString) {
+    if (formattedString.isEmpty) return 0;
+    // Remove commas and parse as double
+    final cleanString = formattedString.replaceAll(',', '');
+    return double.tryParse(cleanString) ?? 0;
   }
   
   // Helper method to parse TimeOfDay from string
@@ -1786,6 +1913,8 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
     required String shiftName,
     required String startTime,
     required String endTime,
+    required String shiftBonus,
+    required bool shiftBonusUserModified,
   }) {
     showDialog(
       context: context,
@@ -1881,6 +2010,17 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
+                            if (shiftBonus != '0' && shiftBonus.isNotEmpty)
+                              Padding(
+                                padding: const EdgeInsets.only(top: TossSpacing.space1/2),
+                                child: Text(
+                                  'Bonus: $shiftBonus',
+                                  style: TossTextStyles.caption.copyWith(
+                                    color: TossColors.success,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
                           ],
                         ),
                       ),
@@ -1924,6 +2064,44 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
                       ],
                     ),
                   ),
+                  
+                  const SizedBox(height: TossSpacing.space3),
+                  
+                  // Shift Bonus info
+                  Container(
+                    padding: const EdgeInsets.all(TossSpacing.space3),
+                    decoration: BoxDecoration(
+                      color: TossColors.info.withValues(alpha: 0.05),
+                      borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+                      border: Border.all(
+                        color: TossColors.info.withValues(alpha: 0.2),
+                        width: TossSpacing.space1/4,
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          FontAwesomeIcons.moneyBill,
+                          color: TossColors.info,
+                          size: TossSpacing.iconSM,
+                        ),
+                        const SizedBox(width: TossSpacing.space2),
+                        Text(
+                          'Shift Bonus: ',
+                          style: TossTextStyles.caption.copyWith(
+                            color: TossColors.gray600,
+                          ),
+                        ),
+                        Text(
+                          shiftBonus,
+                          style: TossTextStyles.caption.copyWith(
+                            color: TossColors.gray900,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -1946,7 +2124,7 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
               Navigator.pop(context); // Close bottom sheet first
               // Small delay to ensure bottom sheet is closed before updating
               await Future.delayed(TossAnimations.quick);
-              await _updateShift(shiftId, shiftName, startTime, endTime);
+              await _updateShift(shiftId, shiftName, startTime, endTime, shiftBonus, shiftBonusUserModified);
             },
             child: Text(
               'OK',
@@ -1965,6 +2143,8 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
   void _showCreateConfirmation({
     required BuildContext context,
     required String shiftName,
+    required String shiftBonus,
+    required bool shiftBonusUserModified,
     required String startTime,
     required String endTime,
   }) {
@@ -2062,6 +2242,17 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
+                            if (shiftBonus != '0' && shiftBonus.isNotEmpty)
+                              Padding(
+                                padding: const EdgeInsets.only(top: TossSpacing.space1/2),
+                                child: Text(
+                                  'Bonus: $shiftBonus',
+                                  style: TossTextStyles.caption.copyWith(
+                                    color: TossColors.success,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
                           ],
                         ),
                       ),
@@ -2124,7 +2315,7 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
           TextButton(
             onPressed: () async {
               Navigator.pop(dialogContext); // Close confirmation dialog
-              await _createShift(shiftName, startTime, endTime);
+              await _createShift(shiftName, startTime, endTime, shiftBonus, shiftBonusUserModified);
               Navigator.pop(context); // Close bottom sheet
             },
             child: Text(
@@ -2141,7 +2332,7 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
   }
   
   // Create shift in database
-  Future<void> _createShift(String shiftName, String startTime, String endTime) async {
+  Future<void> _createShift(String shiftName, String startTime, String endTime, String shiftBonus, bool shiftBonusUserModified) async {
     try {
       final appState = ref.read(appStateProvider);
       final storeId = appState.storeChoosen;
@@ -2160,8 +2351,8 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
       
       final supabase = Supabase.instance.client;
       
-      // Insert new shift
-      await supabase.from('store_shifts').insert({
+      // Prepare base insert data
+      final insertData = <String, dynamic>{
         'store_id': storeId,
         'shift_name': shiftName,
         'start_time': formattedStartTime,
@@ -2170,7 +2361,15 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
         'created_at': timestamp,
         'updated_at': timestamp,
         'is_can_overtime': true,
-      });
+      };
+      
+      // Only include shift_bonus if user actually typed something
+      if (shiftBonusUserModified) {
+        insertData['shift_bonus'] = _parseFormattedNumber(shiftBonus).toInt();
+      }
+      
+      // Insert new shift
+      await supabase.from('store_shifts').insert(insertData);
       
       // Refresh the shifts list
       ref.invalidate(storeShiftsProvider);
@@ -2287,7 +2486,7 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
   }
   
   // Update shift in database
-  Future<void> _updateShift(String shiftId, String shiftName, String startTime, String endTime) async {
+  Future<void> _updateShift(String shiftId, String shiftName, String startTime, String endTime, String shiftBonus, bool shiftBonusUserModified) async {
     try {
       // Format times to 24-hour format (HH:mm:ss) for database
       final formattedStartTime = _formatTimeForDatabase(startTime);
@@ -2299,15 +2498,24 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage> with WidgetsBin
       
       final supabase = Supabase.instance.client;
       
+      // Prepare base update data
+      final updateData = <String, dynamic>{
+        'shift_name': shiftName,
+        'start_time': formattedStartTime,
+        'end_time': formattedEndTime,
+        'updated_at': timestamp,
+      };
+      
+      // Only include shift_bonus if user actually modified it
+      if (shiftBonusUserModified) {
+        final numericShiftBonus = _parseFormattedNumber(shiftBonus).toInt();
+        updateData['shift_bonus'] = numericShiftBonus;
+      }
+      
       // Update shift with proper column names
       await supabase
           .from('store_shifts')
-          .update({
-            'shift_name': shiftName,
-            'start_time': formattedStartTime,
-            'end_time': formattedEndTime,
-            'updated_at': timestamp,
-          })
+          .update(updateData)
           .eq('shift_id', shiftId);
       
       // Refresh the shifts list

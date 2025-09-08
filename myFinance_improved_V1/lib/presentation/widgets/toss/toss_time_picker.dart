@@ -36,6 +36,7 @@ class _TossSimpleWheelTimePickerState extends State<TossSimpleWheelTimePicker> {
     super.initState();
     _selectedTime = widget.initialTime ?? TimeOfDay.now();
     
+
     // Initialize scroll controllers with correct positions
     int hourIndex;
     if (widget.use24HourFormat) {
@@ -62,7 +63,6 @@ class _TossSimpleWheelTimePickerState extends State<TossSimpleWheelTimePicker> {
         initialItem: _selectedTime.period == DayPeriod.am ? 0 : 1,
       );
     }
-    
   }
 
   @override
@@ -120,11 +120,13 @@ class _TossSimpleWheelTimePickerState extends State<TossSimpleWheelTimePicker> {
   }
 
   Widget _buildWheelPickers() {
+
     return SizedBox(
       height: 200,
       child: Stack(
         alignment: Alignment.center,
         children: [
+
           // Selection background indicator - centered
           Positioned(
             left: 0,

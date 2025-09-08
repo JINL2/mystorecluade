@@ -176,16 +176,19 @@ class AttendanceService {
   /// Report an issue with a shift
   Future<bool> reportShiftIssue({
     required String shiftRequestId,
+    String? reportReason,
   }) async {
     try {
+      final now = DateTime.now().toIso8601String();
       
-      // Update the shift_requests table
-      // Set is_reported to TRUE and is_problem_solved to FALSE
+      // Update the shift_requests table with report details
       await _supabase
           .from('shift_requests')
           .update({
             'is_reported': true,
             'is_problem_solved': false,
+            'report_time': now,
+            'report_reason': reportReason ?? '',
           })
           .eq('shift_request_id', shiftRequestId);
       
