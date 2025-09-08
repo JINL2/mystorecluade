@@ -44,10 +44,20 @@ function getRouteForMenuItem(menuItem) {
 /**
  * Build the page URL for a given route
  * @param {string} route - The route name
- * @param {string} basePath - The base path for pages (default: '/pages/')
+ * @param {string} basePath - The base path for pages (auto-detected if not provided)
  * @returns {string} The full page URL
  */
-function buildPageUrl(route, basePath = '/mcparrange-main/myFinance_claude/website/pages/') {
+function buildPageUrl(route, basePath = null) {
+    // Auto-detect base path if not provided
+    if (!basePath) {
+        if (typeof window !== 'undefined' && window.pathResolver) {
+            basePath = window.pathResolver.resolvePagePath('').replace(/\/$/, '') + '/';
+        } else {
+            // Fallback for server-side or when pathResolver not available
+            basePath = '/pages/';
+        }
+    }
+    
     // Map routes to actual page paths
     const routeToPath = {
         // Dashboard

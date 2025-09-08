@@ -368,32 +368,24 @@ class NavBar {
      * @returns {string} The correct relative path to the asset
      */
     getAssetPath(filename) {
-        const currentPath = window.location.pathname;
-        
-        // Count how many directory levels deep we are from the website root
-        // Remove the base path and count remaining directory segments
-        const websiteBasePath = '/mcparrange-main/myFinance_claude/website/';
-        
-        if (currentPath.includes(websiteBasePath)) {
-            // Remove the base path and split by '/'
-            const relativePath = currentPath.replace(websiteBasePath, '');
-            const pathSegments = relativePath.split('/').filter(segment => segment.length > 0);
-            
-            // Remove the filename (last segment) to get directory depth
-            if (pathSegments.length > 0 && pathSegments[pathSegments.length - 1].includes('.')) {
-                pathSegments.pop();
-            }
-            
-            // Calculate how many levels up we need to go
-            const levelsUp = pathSegments.length;
-            const relativePrefixes = '../'.repeat(levelsUp);
-            
-            console.log(`Current path: ${currentPath}, Levels up: ${levelsUp}, Asset path: ${relativePrefixes}assets/${filename}`);
-            return `${relativePrefixes}assets/${filename}`;
+        // Use pathResolver if available for consistent path resolution
+        if (typeof window !== 'undefined' && window.pathResolver) {
+            return window.pathResolver.resolveAssetPath(filename);
         }
         
-        // Fallback for development or different environments
-        return `../../assets/${filename}`;
+        // Fallback to relative path calculation for backwards compatibility
+        const currentPath = window.location.pathname;
+        
+        // Count directory levels from current location
+        const pathSegments = currentPath.split('/').filter(segment => {
+            return segment.length > 0 && !segment.includes('.');
+        });
+        
+        const levelsUp = Math.max(0, pathSegments.length - 1);
+        const relativePrefixes = '../'.repeat(levelsUp);
+        
+        console.log(`NavBar asset path: ${currentPath}, Levels up: ${levelsUp}, Asset path: ${relativePrefixes}assets/${filename}`);
+        return `${relativePrefixes}assets/${filename}`;
     }
 
     
@@ -877,10 +869,15 @@ class NavBar {
         }
     }
     
-    // Get the absolute path prefix for XAMPP environment consistency
+    // Get the path prefix using smart path resolution
     static getRelativePathPrefix() {
-        // Always return absolute path to pages directory for XAMPP environment
-        return '/mcparrange-main/myFinance_claude/website/pages/';
+        // Use pathResolver if available for consistent path resolution
+        if (typeof window !== 'undefined' && window.pathResolver) {
+            return window.pathResolver.resolvePagePath('').replace(/\/$/, '') + '/';
+        }
+        
+        // Fallback to root pages directory
+        return '/pages/';
     }
     
     static toggleUserMenu() {
@@ -898,10 +895,12 @@ class NavBar {
         
         console.log('🔄 NavBar navigating from path:', currentPath);
         
-        // Use absolute path for XAMPP environment consistency
-        const loginPath = '/mcparrange-main/myFinance_claude/website/pages/auth/login.html';
+        // Use pathResolver for consistent login path
+        const loginPath = window.pathResolver ? 
+            window.pathResolver.getLoginPath() : 
+            '/pages/auth/login.html';
         
-        console.log('✅ Using absolute login path:', loginPath);
+        console.log('✅ Using login path:', loginPath);
         
         // Use replace to prevent back button issues
         window.location.replace(loginPath);
