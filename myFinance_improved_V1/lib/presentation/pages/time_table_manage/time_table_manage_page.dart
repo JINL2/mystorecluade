@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:intl/intl.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:myfinance_improved/core/themes/toss_colors.dart';
 import 'package:myfinance_improved/core/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/core/themes/toss_spacing.dart';
@@ -12,6 +14,45 @@ import '../../widgets/common/toss_loading_view.dart';
 import '../../widgets/toss/toss_time_picker.dart';
 import 'package:myfinance_improved/core/themes/index.dart';
 import 'package:myfinance_improved/core/themes/toss_border_radius.dart';
+
+// Custom formatter for number with comma separators
+class ThousandSeparatorInputFormatter extends TextInputFormatter {
+  final NumberFormat _formatter = NumberFormat('#,###');
+
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    if (newValue.text.isEmpty) {
+      return newValue;
+    }
+
+    // Remove all non-digit characters
+    String digitsOnly = newValue.text.replaceAll(RegExp(r'[^\d]'), '');
+    
+    if (digitsOnly.isEmpty) {
+      return const TextEditingValue(
+        text: '',
+        selection: TextSelection.collapsed(offset: 0),
+      );
+    }
+
+    // Parse the number
+    int number = int.tryParse(digitsOnly) ?? 0;
+    
+    // Format with commas
+    String formatted = _formatter.format(number);
+    
+    // Calculate new cursor position
+    int cursorPosition = formatted.length;
+    
+    return TextEditingValue(
+      text: formatted,
+      selection: TextSelection.collapsed(offset: cursorPosition),
+    );
+  }
+}
 class TimeTableManagePage extends ConsumerStatefulWidget {
   const TimeTableManagePage({super.key});
 
@@ -43,6 +84,30 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
   // Manager overview data - store by month key "YYYY-MM"
   Map<String, Map<String, dynamic>> managerOverviewDataByMonth = {};
   bool isLoadingOverview = false;
+  
+  // Preload profile images for faster loading
+  void _preloadProfileImages(List<dynamic> shiftData) {
+    for (var dayData in shiftData) {
+      final shifts = dayData['shifts'] as List<dynamic>? ?? [];
+      for (var shift in shifts) {
+        final pendingEmployees = shift['pending_employees'] as List<dynamic>? ?? [];
+        final approvedEmployees = shift['approved_employees'] as List<dynamic>? ?? [];
+        
+        for (var employee in [...pendingEmployees, ...approvedEmployees]) {
+          final profileImage = employee['profile_image'] as String?;
+          if (profileImage != null && profileImage.isNotEmpty) {
+            // Preload image using precacheImage
+            precacheImage(
+              CachedNetworkImageProvider(profileImage),
+              context,
+            ).catchError((error) {
+              // Ignore preload errors
+            });
+          }
+        }
+      }
+    }
+  }
   
   // Manage tab selected date for week view
   DateTime manageSelectedDate = DateTime.now();
@@ -111,47 +176,104 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
                       horizontal: TossSpacing.space5,
                       vertical: TossSpacing.space3,
                     ),
-                    height: 48,
-                    child: Stack(
-                      children: [
-                        // Background
-                        Container(
-                          decoration: BoxDecoration(
-                            color: TossColors.gray100,
-                            borderRadius: BorderRadius.circular(TossBorderRadius.xxxl),
-                          ),
-                        ),
-                        // Tab Bar
-                        TabBar(
-                          controller: _tabController,
-                          indicator: BoxDecoration(
-                            color: TossColors.background,
-                            borderRadius: BorderRadius.circular(TossBorderRadius.xxl),
-                            boxShadow: [
-                              BoxShadow(
-                                color: TossColors.black.withValues(alpha: 0.08),
-                                blurRadius: 4,
-                                offset: const Offset(0, 2),
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: TossColors.gray100,
+                      borderRadius: BorderRadius.circular(TossBorderRadius.xxl),
+                    ),
+                    padding: const EdgeInsets.all(2),
+                    child: AnimatedBuilder(
+                      animation: _tabController,
+                      builder: (context, child) {
+                        return Stack(
+                          children: [
+                            // Animated selection indicator
+                            AnimatedAlign(
+                              alignment: _tabController.index == 1 
+                                ? Alignment.centerRight 
+                                : Alignment.centerLeft,
+                              duration: Duration(milliseconds: 250),
+                              curve: Curves.easeInOut,
+                              child: FractionallySizedBox(
+                                widthFactor: 0.5,
+                                child: Container(
+                                  margin: EdgeInsets.symmetric(horizontal: 2),
+                                  decoration: BoxDecoration(
+                                    color: TossColors.white,
+                                    borderRadius: BorderRadius.circular(TossBorderRadius.xxl),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: TossColors.black.withValues(alpha: 0.08),
+                                        blurRadius: 8,
+                                        offset: Offset(0, 2),
+                                      ),
+                                    ],
+                                  ),
+                                ),
                               ),
-                            ],
-                          ),
-                          indicatorSize: TabBarIndicatorSize.tab,
-                          indicatorPadding: EdgeInsets.all(TossSpacing.space1 / 2),
-                          dividerColor: TossColors.transparent,
-                          labelColor: TossColors.gray900,
-                          unselectedLabelColor: TossColors.gray500,
-                          labelStyle: TossTextStyles.body.copyWith(
-                            fontWeight: FontWeight.w600,
-                          ),
-                          unselectedLabelStyle: TossTextStyles.body.copyWith(
-                            fontWeight: FontWeight.w400,
-                          ),
-                          tabs: const [
-                            Tab(text: 'Manage'),
-                            Tab(text: 'Schedule'),
+                            ),
+                            // Tab buttons
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      if (_tabController.index != 0) {
+                                        _tabController.animateTo(0);
+                                        HapticFeedback.lightImpact();
+                                      }
+                                    },
+                                    child: Container(
+                                      color: TossColors.transparent,
+                                      child: Center(
+                                        child: AnimatedDefaultTextStyle(
+                                          duration: Duration(milliseconds: 200),
+                                          style: TossTextStyles.bodySmall.copyWith(
+                                            color: _tabController.index == 0 
+                                              ? TossColors.gray900 
+                                              : TossColors.gray600,
+                                            fontWeight: _tabController.index == 0 
+                                              ? FontWeight.w700 
+                                              : FontWeight.w500,
+                                          ),
+                                          child: Text('Manage'),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                Expanded(
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      if (_tabController.index != 1) {
+                                        _tabController.animateTo(1);
+                                        HapticFeedback.lightImpact();
+                                      }
+                                    },
+                                    child: Container(
+                                      color: TossColors.transparent,
+                                      child: Center(
+                                        child: AnimatedDefaultTextStyle(
+                                          duration: Duration(milliseconds: 200),
+                                          style: TossTextStyles.bodySmall.copyWith(
+                                            color: _tabController.index == 1 
+                                              ? TossColors.gray900 
+                                              : TossColors.gray600,
+                                            fontWeight: _tabController.index == 1 
+                                              ? FontWeight.w700 
+                                              : FontWeight.w500,
+                                          ),
+                                          child: Text('Schedule'),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ],
-                        ),
-                      ],
+                        );
+                      },
                     ),
               ),
             ),
@@ -238,6 +360,9 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
           final existingDates = monthlyShiftData.map((item) => item['request_date']).toSet();
           final newData = response.where((item) => !existingDates.contains(item['request_date'])).toList();
           monthlyShiftData.addAll(newData);
+          
+          // Preload profile images for faster loading
+          _preloadProfileImages(newData);
           
           // Mark the months as loaded (current month and next month)
           loadedMonths.add(monthKey);
@@ -1059,6 +1184,7 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
                         'user_name': emp['user_name'] ?? 'Unknown',
                         'is_approved': false,
                         'shift_request_id': emp['shift_request_id'] ?? '',
+                        'profile_image': emp['profile_image'],
                       });
                     }
                     
@@ -1069,6 +1195,7 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
                         'user_name': emp['user_name'] ?? 'Unknown',
                         'is_approved': true,
                         'shift_request_id': emp['shift_request_id'] ?? '',
+                        'profile_image': emp['profile_image'],
                       });
                     }
                     break; // Found the matching shift
@@ -1183,6 +1310,7 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
                         final userName = empShift['user_name'] ?? 'Unknown Employee';
                         final isApproved = empShift['is_approved'] ?? false;
                         final shiftRequestIdFromData = empShift['shift_request_id'] ?? '';
+                        final profileImage = empShift['profile_image'] as String?;
                         
                         // Create unique identifier for this shift request
                         final shiftRequestId = '${shiftId}_$userName';
@@ -1253,15 +1381,48 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
                                             : TossColors.warning.withValues(alpha: 0.1)),
                                     shape: BoxShape.circle,
                                   ),
-                                  child: Icon(
-                                    isSelected ? Icons.check_circle : Icons.person_outline,
-                                    size: 16,
-                                    color: isSelected
-                                        ? TossColors.primary
-                                        : (isApproved 
-                                            ? TossColors.success 
-                                            : TossColors.warning),
-                                  ),
+                                  child: isSelected
+                                      ? Icon(
+                                          Icons.check_circle,
+                                          size: 16,
+                                          color: TossColors.primary,
+                                        )
+                                      : profileImage != null && profileImage.isNotEmpty
+                                          ? ClipOval(
+                                              child: CachedNetworkImage(
+                                                imageUrl: profileImage,
+                                                width: 32,
+                                                height: 32,
+                                                fit: BoxFit.cover,
+                                                memCacheWidth: 96, // 3x size for better quality on high-DPI displays
+                                                memCacheHeight: 96,
+                                                maxWidthDiskCache: 96,
+                                                maxHeightDiskCache: 96,
+                                                placeholder: (context, url) => Icon(
+                                                  Icons.person_outline,
+                                                  size: 16,
+                                                  color: isApproved 
+                                                      ? TossColors.success 
+                                                      : TossColors.warning,
+                                                ),
+                                                errorWidget: (context, url, error) => Icon(
+                                                  Icons.person_outline,
+                                                  size: 16,
+                                                  color: isApproved 
+                                                      ? TossColors.success 
+                                                      : TossColors.warning,
+                                                ),
+                                                fadeInDuration: const Duration(milliseconds: 200),
+                                                fadeOutDuration: const Duration(milliseconds: 100),
+                                              ),
+                                            )
+                                          : Icon(
+                                              Icons.person_outline,
+                                              size: 16,
+                                              color: isApproved 
+                                                  ? TossColors.success 
+                                                  : TossColors.warning,
+                                            ),
                                 ),
                                 const SizedBox(width: TossSpacing.space2),
                                 Expanded(
@@ -2645,16 +2806,16 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
   
   // Show shift details bottom sheet
   void _showShiftDetailsBottomSheet(Map<String, dynamic> card) async {
-    final result = await showModalBottomSheet<bool>(
+    final result = await showModalBottomSheet<dynamic>(
       context: context,
       backgroundColor: TossColors.transparent,
       isScrollControlled: true,
       builder: (context) => _ShiftDetailsBottomSheet(card: card),
     );
     
-    // If result is true, data was changed, so refresh
+    // Handle different types of results
     if (result == true) {
-      // Refresh both tabs data
+      // Regular update (non-bonus) - refresh data
       if (selectedStoreId != null) {
         // Clear cache to force refresh
         final monthKey = '${manageSelectedDate.year}-${manageSelectedDate.month.toString().padLeft(2, '0')}';
@@ -2669,6 +2830,106 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
         await fetchManagerOverview(forDate: manageSelectedDate, forceRefresh: true);
         await fetchManagerCards(forDate: manageSelectedDate, forceRefresh: true);
       }
+    } else if (result is Map && result['updated'] == true && result['bonus_amount'] != null) {
+      // Bonus update - update local state directly
+      final monthKey = '${manageSelectedDate.year}-${manageSelectedDate.month.toString().padLeft(2, '0')}';
+      final monthData = managerCardsDataByMonth[monthKey];
+      
+      if (monthData != null && monthData['stores'] != null) {
+        final stores = monthData['stores'] as List<dynamic>;
+        if (stores.isNotEmpty) {
+          final storeData = stores.first as Map<String, dynamic>;
+          final cards = storeData['cards'] as List<dynamic>? ?? [];
+          
+          // Find and update the specific card
+          for (var i = 0; i < cards.length; i++) {
+            if (cards[i]['shift_request_id'] == result['shift_request_id']) {
+              setState(() {
+                cards[i]['bonus_amount'] = result['bonus_amount'];
+              });
+              break;
+            }
+          }
+        }
+      }
+      
+      // Show success dialog
+      showDialog(
+        context: context,
+        barrierDismissible: true,
+        builder: (BuildContext context) {
+          return Dialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(TossBorderRadius.xxl),
+            ),
+            child: Container(
+              padding: const EdgeInsets.all(TossSpacing.space5),
+              decoration: BoxDecoration(
+                color: TossColors.white,
+                borderRadius: BorderRadius.circular(TossBorderRadius.xxl),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 60,
+                    height: 60,
+                    decoration: BoxDecoration(
+                      color: TossColors.success.withValues(alpha: 0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.check_circle_outline,
+                      color: TossColors.success,
+                      size: 36,
+                    ),
+                  ),
+                  const SizedBox(height: TossSpacing.space3),
+                  Text(
+                    'Success',
+                    style: TossTextStyles.h3.copyWith(
+                      color: TossColors.gray900,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: TossSpacing.space2),
+                  Text(
+                    'Bonus updated successfully',
+                    style: TossTextStyles.body.copyWith(
+                      color: TossColors.gray600,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: TossSpacing.space4),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: TossColors.primary,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: TossSpacing.space4,
+                          vertical: TossSpacing.space3,
+                        ),
+                      ),
+                      child: Text(
+                        'OK',
+                        style: TossTextStyles.body.copyWith(
+                          color: TossColors.white,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      );
     }
   }
   
@@ -2823,6 +3084,8 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<_ShiftDetailsBottomShe
   String? selectedTagType;
   String? tagContent;
   late bool isProblemSolved;
+  String bonusInputText = '';
+  late TextEditingController bonusController;
   
   // Original values to track changes
   String? originalStartTime;
@@ -2841,7 +3104,7 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<_ShiftDetailsBottomShe
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: 3, vsync: this);
     // Initialize with confirmed times
     editedStartTime = widget.card['confirm_start_time'];
     editedEndTime = widget.card['confirm_end_time'];
@@ -2852,6 +3115,15 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<_ShiftDetailsBottomShe
     // Tag values start as null
     selectedTagType = null;
     tagContent = null;
+    
+    // Initialize bonus controller - always start with empty text
+    bonusController = TextEditingController(text: '');
+    bonusInputText = bonusController.text;
+    bonusController.addListener(() {
+      setState(() {
+        bonusInputText = bonusController.text;
+      });
+    });
     
     // Initialize problem solved state
     final isProblem = widget.card['is_problem'] == true;
@@ -2888,7 +3160,208 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<_ShiftDetailsBottomShe
   @override
   void dispose() {
     _tabController.dispose();
+    bonusController.dispose();
     super.dispose();
+  }
+  
+  Future<void> _showBonusConfirmationDialog() async {
+    // Get current bonus from card
+    final dynamic rawBonusAmount = widget.card['bonus_amount'];
+    final num currentBonus = rawBonusAmount is String 
+        ? num.tryParse(rawBonusAmount) ?? 0 
+        : rawBonusAmount ?? 0;
+    
+    // Get typed bonus (remove commas for parsing)
+    String cleanInput = bonusInputText.replaceAll(',', '');
+    final num typedBonus = num.tryParse(cleanInput) ?? 0;
+    
+    // Format numbers for display
+    final formatter = NumberFormat('#,###');
+    
+    final result = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(TossBorderRadius.xxl),
+          ),
+          title: Text(
+            'Confirm Bonus',
+            style: TossTextStyles.h3.copyWith(
+              color: TossColors.gray900,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(TossSpacing.space4),
+                decoration: BoxDecoration(
+                  color: TossColors.gray50,
+                  borderRadius: BorderRadius.circular(TossBorderRadius.xl),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Current Bonus:',
+                          style: TossTextStyles.body.copyWith(
+                            color: TossColors.gray700,
+                          ),
+                        ),
+                        Text(
+                          currentBonus > 0 ? formatter.format(currentBonus) : '0',
+                          style: TossTextStyles.body.copyWith(
+                            color: TossColors.gray900,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: TossSpacing.space2),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'New Bonus:',
+                          style: TossTextStyles.body.copyWith(
+                            color: TossColors.gray700,
+                          ),
+                        ),
+                        Text(
+                          typedBonus > 0 ? formatter.format(typedBonus) : '0',
+                          style: TossTextStyles.body.copyWith(
+                            color: TossColors.info,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: TossSpacing.space4),
+              Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () => Navigator.of(context).pop(false),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: TossColors.gray200,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: TossSpacing.space4,
+                          vertical: TossSpacing.space3,
+                        ),
+                      ),
+                      child: Text(
+                        'Cancel',
+                        style: TossTextStyles.body.copyWith(
+                          color: TossColors.gray700,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: TossSpacing.space3),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () => Navigator.of(context).pop(true),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: TossColors.primary,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: TossSpacing.space4,
+                          vertical: TossSpacing.space3,
+                        ),
+                      ),
+                      child: Text(
+                        'OK',
+                        style: TossTextStyles.body.copyWith(
+                          color: TossColors.white,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          actions: [],
+        );
+      },
+    );
+    
+    if (result == true) {
+      await _updateBonusAmount(typedBonus);
+    }
+  }
+  
+  Future<void> _updateBonusAmount(num newBonus) async {
+    try {
+      // Show loading
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const Center(
+          child: CircularProgressIndicator(
+            color: TossColors.primary,
+          ),
+        ),
+      );
+      
+      // Get shift request ID from the card
+      final shiftRequestId = widget.card['shift_request_id'];
+      
+      if (shiftRequestId == null) {
+        throw Exception('Shift request ID not found');
+      }
+      
+      // Update the database
+      final supabase = Supabase.instance.client;
+      await supabase
+          .from('shift_requests')
+          .update({'bonus_amount': newBonus})
+          .eq('shift_request_id', shiftRequestId);
+      
+      // Close loading dialog
+      Navigator.of(context).pop();
+      
+      // Update the card in parent's state by returning the new bonus amount
+      Navigator.of(context).pop({'updated': true, 'bonus_amount': newBonus, 'shift_request_id': shiftRequestId});
+      
+    } catch (e) {
+      // Close loading dialog if open
+      if (Navigator.canPop(context)) {
+        Navigator.of(context).pop();
+      }
+      
+      // Show error message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Failed to update bonus: $e',
+            style: TossTextStyles.body.copyWith(color: TossColors.white),
+          ),
+          backgroundColor: TossColors.error,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+          ),
+        ),
+      );
+    }
   }
   
   Future<void> _showDeleteTagDialog(BuildContext context, String tagId, String content) async {
@@ -3373,47 +3846,133 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<_ShiftDetailsBottomShe
               horizontal: TossSpacing.space5,
               vertical: TossSpacing.space3,
             ),
-            height: 48,
-            child: Stack(
-              children: [
-                // Background
-                Container(
-                  decoration: BoxDecoration(
-                    color: TossColors.gray100,
-                    borderRadius: BorderRadius.circular(TossBorderRadius.xxxl),
-                  ),
-                ),
-                // Tab Bar
-                TabBar(
-                  controller: _tabController,
-                  indicator: BoxDecoration(
-                    color: TossColors.background,
-                    borderRadius: BorderRadius.circular(TossBorderRadius.xxl),
-                    boxShadow: [
-                      BoxShadow(
-                        color: TossColors.black.withValues(alpha: 0.08),
-                        blurRadius: 4,
-                        offset: const Offset(0, 2),
+            height: 44,
+            decoration: BoxDecoration(
+              color: TossColors.gray100,
+              borderRadius: BorderRadius.circular(TossBorderRadius.xxl),
+            ),
+            padding: const EdgeInsets.all(2),
+            child: AnimatedBuilder(
+              animation: _tabController,
+              builder: (context, child) {
+                return Stack(
+                  children: [
+                    // Animated selection indicator
+                    AnimatedAlign(
+                      alignment: _tabController.index == 0 
+                        ? Alignment.centerLeft 
+                        : _tabController.index == 1
+                          ? Alignment.center
+                          : Alignment.centerRight,
+                      duration: Duration(milliseconds: 250),
+                      curve: Curves.easeInOut,
+                      child: FractionallySizedBox(
+                        widthFactor: 1/3,
+                        child: Container(
+                          margin: EdgeInsets.symmetric(horizontal: 2),
+                          decoration: BoxDecoration(
+                            color: TossColors.white,
+                            borderRadius: BorderRadius.circular(TossBorderRadius.xxl),
+                            boxShadow: [
+                              BoxShadow(
+                                color: TossColors.black.withValues(alpha: 0.08),
+                                blurRadius: 8,
+                                offset: Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
-                    ],
-                  ),
-                  indicatorSize: TabBarIndicatorSize.tab,
-                  indicatorPadding: EdgeInsets.all(TossSpacing.space1 / 2),
-                  dividerColor: TossColors.transparent,
-                  labelColor: TossColors.gray900,
-                  unselectedLabelColor: TossColors.gray500,
-                  labelStyle: TossTextStyles.body.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                  unselectedLabelStyle: TossTextStyles.body.copyWith(
-                    fontWeight: FontWeight.w400,
-                  ),
-                  tabs: const [
-                    Tab(text: 'Info'),
-                    Tab(text: 'Manage'),
+                    ),
+                    // Tab buttons
+                    Row(
+                      children: [
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () {
+                              if (_tabController.index != 0) {
+                                _tabController.animateTo(0);
+                                HapticFeedback.lightImpact();
+                              }
+                            },
+                            child: Container(
+                              color: TossColors.transparent,
+                              child: Center(
+                                child: AnimatedDefaultTextStyle(
+                                  duration: Duration(milliseconds: 200),
+                                  style: TossTextStyles.bodySmall.copyWith(
+                                    color: _tabController.index == 0 
+                                      ? TossColors.gray900 
+                                      : TossColors.gray600,
+                                    fontWeight: _tabController.index == 0 
+                                      ? FontWeight.w700 
+                                      : FontWeight.w500,
+                                  ),
+                                  child: Text('Info'),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () {
+                              if (_tabController.index != 1) {
+                                _tabController.animateTo(1);
+                                HapticFeedback.lightImpact();
+                              }
+                            },
+                            child: Container(
+                              color: TossColors.transparent,
+                              child: Center(
+                                child: AnimatedDefaultTextStyle(
+                                  duration: Duration(milliseconds: 200),
+                                  style: TossTextStyles.bodySmall.copyWith(
+                                    color: _tabController.index == 1 
+                                      ? TossColors.gray900 
+                                      : TossColors.gray600,
+                                    fontWeight: _tabController.index == 1 
+                                      ? FontWeight.w700 
+                                      : FontWeight.w500,
+                                  ),
+                                  child: Text('Manage'),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () {
+                              if (_tabController.index != 2) {
+                                _tabController.animateTo(2);
+                                HapticFeedback.lightImpact();
+                              }
+                            },
+                            child: Container(
+                              color: TossColors.transparent,
+                              child: Center(
+                                child: AnimatedDefaultTextStyle(
+                                  duration: Duration(milliseconds: 200),
+                                  style: TossTextStyles.bodySmall.copyWith(
+                                    color: _tabController.index == 2 
+                                      ? TossColors.gray900 
+                                      : TossColors.gray600,
+                                    fontWeight: _tabController.index == 2 
+                                      ? FontWeight.w700 
+                                      : FontWeight.w500,
+                                  ),
+                                  child: Text('Bonus'),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ],
-                ),
-              ],
+                );
+              },
             ),
           ),
           const SizedBox(height: TossSpacing.space3),
@@ -3426,6 +3985,8 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<_ShiftDetailsBottomShe
                 _buildInfoTab(card, hasUnsolvedProblem),
                 // Manage Tab
                 _buildManageTab(card),
+                // Bonus Tab
+                _buildBonusTab(card),
               ],
             ),
           ),
@@ -3491,6 +4052,16 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<_ShiftDetailsBottomShe
                     const SizedBox(height: TossSpacing.space2),
                     Text(
                       card['problem_description'],
+                      style: TossTextStyles.bodySmall.copyWith(
+                        color: TossColors.gray700,
+                      ),
+                    ),
+                  ],
+                  // Display report reason if the problem has been reported
+                  if (card['is_reported'] == true && card['report_reason'] != null) ...[
+                    const SizedBox(height: TossSpacing.space2),
+                    Text(
+                      card['report_reason'],
                       style: TossTextStyles.bodySmall.copyWith(
                         color: TossColors.gray700,
                       ),
@@ -3757,15 +4328,24 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<_ShiftDetailsBottomShe
                     
                     // Location section (if available)
                     if (card['is_valid_checkin_location'] != null || card['is_valid_checkout_location'] != null) ...[
-                      _buildSectionTitle('Location'),
                       Container(
+                        margin: const EdgeInsets.symmetric(horizontal: TossSpacing.space5),
                         padding: const EdgeInsets.all(TossSpacing.space4),
                         decoration: BoxDecoration(
                           color: TossColors.gray50,
                           borderRadius: BorderRadius.circular(TossBorderRadius.xl),
                         ),
                         child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
+                            Text(
+                              'Location',
+                              style: TossTextStyles.body.copyWith(
+                                color: TossColors.gray900,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            const SizedBox(height: TossSpacing.space3),
                             if (card['is_valid_checkin_location'] != null)
                               _buildDetailRow('Check-in Location', 
                                 card['is_valid_checkin_location'] == true ? 'Valid' : 'Invalid',
@@ -3841,6 +4421,7 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<_ShiftDetailsBottomShe
               children: [
                 // Edit Confirmed Times Section
                 Container(
+                  width: double.infinity,
                   padding: const EdgeInsets.all(TossSpacing.space4),
                   decoration: BoxDecoration(
                     color: TossColors.gray50,
@@ -3925,6 +4506,7 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<_ShiftDetailsBottomShe
                 
                 // Problem Status Section
                 Container(
+                    width: double.infinity,
                     padding: const EdgeInsets.all(TossSpacing.space4),
                     decoration: BoxDecoration(
                       color: TossColors.gray50,
@@ -3977,7 +4559,7 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<_ShiftDetailsBottomShe
                                       color: isProblemSolved 
                                         ? TossColors.success 
                                         : TossColors.warning,
-                                      borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                                      borderRadius: BorderRadius.circular(TossBorderRadius.xxl),
                                       boxShadow: [
                                         BoxShadow(
                                           color: (isProblemSolved 
@@ -4038,6 +4620,7 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<_ShiftDetailsBottomShe
                 
                 // Add Tag Section
                 Container(
+                  width: double.infinity,
                   padding: const EdgeInsets.all(TossSpacing.space4),
                   decoration: BoxDecoration(
                     color: TossColors.gray50,
@@ -4150,6 +4733,7 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<_ShiftDetailsBottomShe
                 // Existing Tags Display - Always show the section for consistent layout
                 const SizedBox(height: TossSpacing.space4),
                 Container(
+                  width: double.infinity,
                   padding: const EdgeInsets.all(TossSpacing.space4),
                   decoration: BoxDecoration(
                     color: TossColors.gray50,
@@ -4687,6 +5271,159 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<_ShiftDetailsBottomShe
       ),
     );
   }
+  
+  // Build Bonus tab content
+  Widget _buildBonusTab(Map<String, dynamic> card) {
+    // Initialize with existing bonus amount from card data
+    // Convert to num first in case it's a string, then to double
+    final dynamic rawBonusAmount = card['bonus_amount'];
+    final num bonusAmount = rawBonusAmount is String 
+        ? num.tryParse(rawBonusAmount) ?? 0 
+        : rawBonusAmount ?? 0;
+    
+    return GestureDetector(
+      onTap: () {
+        // Dismiss keyboard when tapping outside
+        FocusScope.of(context).unfocus();
+      },
+      child: Column(
+        children: [
+          Expanded(
+            child: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              padding: const EdgeInsets.all(TossSpacing.space5),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                // Title
+                Text(
+                  'Set Bonus Amount',
+                  style: TossTextStyles.h3.copyWith(
+                    color: TossColors.gray900,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: TossSpacing.space2),
+                Text(
+                  'Enter the bonus amount for this shift',
+                  style: TossTextStyles.bodySmall.copyWith(
+                    color: TossColors.gray600,
+                  ),
+                ),
+                const SizedBox(height: TossSpacing.space5),
+                
+                // Current bonus amount display - Always show even if 0
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(TossSpacing.space4),
+                  decoration: BoxDecoration(
+                    color: TossColors.info.withValues(alpha: 0.05),
+                    borderRadius: BorderRadius.circular(TossBorderRadius.xl),
+                    border: Border.all(
+                      color: TossColors.info.withValues(alpha: 0.2),
+                      width: 1,
+                    ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Current Bonus',
+                        style: TossTextStyles.caption.copyWith(
+                          color: TossColors.gray600,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: TossSpacing.space1),
+                      Text(
+                        bonusAmount > 0 
+                            ? NumberFormat('#,###').format(bonusAmount.toInt())
+                            : '0',
+                        style: TossTextStyles.h2.copyWith(
+                          color: bonusAmount > 0 ? TossColors.info : TossColors.gray600,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: TossSpacing.space4),
+                
+                // Bonus input field
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: TossSpacing.space4,
+                    vertical: TossSpacing.space3,
+                  ),
+                  decoration: BoxDecoration(
+                    color: TossColors.gray50,
+                    borderRadius: BorderRadius.circular(TossBorderRadius.xl),
+                    border: Border.all(
+                      color: TossColors.gray200,
+                      width: 1,
+                    ),
+                  ),
+                  child: TextField(
+                    controller: bonusController,
+                    keyboardType: TextInputType.number,
+                    textAlign: TextAlign.center,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.digitsOnly,
+                      ThousandSeparatorInputFormatter(),
+                    ],
+                    style: TossTextStyles.h3.copyWith(
+                      color: TossColors.gray900,
+                      fontWeight: FontWeight.w700,
+                    ),
+                    decoration: InputDecoration(
+                      hintText: '0',
+                      hintStyle: TossTextStyles.h3.copyWith(
+                        color: TossColors.gray400,
+                        fontWeight: FontWeight.w700,
+                      ),
+                      border: InputBorder.none,
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        // Bottom button section
+        Container(
+          padding: const EdgeInsets.all(TossSpacing.space5),
+          decoration: BoxDecoration(
+            color: TossColors.background,
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(TossBorderRadius.xxl),
+              topRight: Radius.circular(TossBorderRadius.xxl),
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: TossColors.black.withValues(alpha: 0.05),
+                blurRadius: 10,
+                offset: const Offset(0, -2),
+              ),
+            ],
+          ),
+          child: SafeArea(
+            child: _buildBottomButton(
+              'Confirm Bonus',
+              TossColors.primary,
+              Icons.check_circle_outline,
+              () {
+                HapticFeedback.lightImpact();
+                _showBonusConfirmationDialog();
+              },
+              disabled: bonusInputText.isEmpty,
+            ),
+          ),
+        ),
+      ],
+      ),
+    );
+  }
 
   TimeOfDay? _parseTimeString(String? timeStr) {
     if (timeStr == null || timeStr == '--:--') return null;
@@ -4715,9 +5452,9 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<_ShiftDetailsBottomShe
         child: Center(
           child: AnimatedDefaultTextStyle(
             duration: Duration(milliseconds: 200),
-            style: TossTextStyles.body.copyWith(
-              color: isSelected ? TossColors.white : TossColors.gray600,
-              fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+            style: TossTextStyles.bodySmall.copyWith(
+              color: isSelected ? TossColors.white : TossColors.gray700,
+              fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
             ),
             child: Text(label),
           ),
