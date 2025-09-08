@@ -762,8 +762,8 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
                 if (!isSelected) ...[
                   const SizedBox(height: 2),
                   Container(
-                    width: 4,
-                    height: 4,
+                    width: 6,
+                    height: 6,
                     decoration: BoxDecoration(
                       // Priority: Problem (red) > Pending (orange) > Approved (green) > No shift (gray)
                       color: hasProblem 
@@ -1005,37 +1005,67 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
           final shifts = dayData['shifts'] as List? ?? [];
           final allShifts = shiftMetadata as List;
           
-          if (shifts.isEmpty) {
-            // No employees registered for any shift on this day
-            dotColor = TossColors.error;
-          } else {
-            // Check if ANY shift has pending employees FIRST
-            bool hasAnyPending = false;
-            
-            for (var shift in shifts) {
-              final pendingCount = shift['pending_count'] ?? 0;
-              if (pendingCount > 0) {
-                hasAnyPending = true;
-                break;
-              }
-            }
-            
-            // If there's at least one pending, show orange
-            if (hasAnyPending) {
-              dotColor = TossColors.warning;
-            } else {
-              // No pending, now check coverage
-              int totalShiftsNeeded = allShifts.length;
-              int shiftsWithEmployees = shifts.length;
+          // Priority 1: Check if ANY shift has 0 approved employees
+          // This includes checking if all required shifts have coverage
+          bool hasShiftWithNoApproved = false;
+          bool hasUnderStaffedShiftWithPending = false;
+          bool allShiftsFullyStaffed = true;
+          
+          // First, check all active shifts from metadata
+          Set<String> coveredShiftIds = {};
+          Map<String, Map<String, dynamic>> shiftDataMap = {};
+          
+          // Build a map of shift data for easy lookup
+          for (var shift in shifts) {
+            final shiftId = shift['shift_id'];
+            coveredShiftIds.add(shiftId);
+            shiftDataMap[shiftId] = shift;
+          }
+          
+          // Check each active shift from metadata
+          for (var metaShift in allShifts) {
+            if (metaShift['is_active'] == true) {
+              final shiftId = metaShift['shift_id'];
               
-              if (shiftsWithEmployees < totalShiftsNeeded) {
-                // Not all shifts are covered
-                dotColor = TossColors.error;
+              if (!coveredShiftIds.contains(shiftId)) {
+                // This shift has no employees at all (not in the shifts array)
+                hasShiftWithNoApproved = true;
+                break;
               } else {
-                // All shifts covered and all approved
-                dotColor = TossColors.success;
+                // Check the shift data
+                final shiftData = shiftDataMap[shiftId];
+                final approvedCount = shiftData?['approved_count'] ?? 0;
+                final requiredEmployees = shiftData?['required_employees'] ?? 1;
+                final pendingCount = shiftData?['pending_count'] ?? 0;
+                
+                if (approvedCount == 0) {
+                  // This shift has 0 approved employees
+                  hasShiftWithNoApproved = true;
+                  break;
+                } else if (approvedCount < requiredEmployees) {
+                  // Under-staffed
+                  allShiftsFullyStaffed = false;
+                  if (pendingCount > 0) {
+                    hasUnderStaffedShiftWithPending = true;
+                  }
+                }
               }
             }
+          }
+          
+          // Determine the dot color based on priorities
+          if (hasShiftWithNoApproved) {
+            // RED: Priority 1 - At least one shift has no approved employees
+            dotColor = TossColors.error;
+          } else if (hasUnderStaffedShiftWithPending) {
+            // ORANGE: Priority 2 - Under-staffed shifts with pending employees to approve
+            dotColor = TossColors.warning;
+          } else if (allShiftsFullyStaffed) {
+            // GREEN: Priority 3 - All shifts meet or exceed required employees
+            dotColor = TossColors.success;
+          } else {
+            // RED: Under-staffed but no pending employees (nothing to approve)
+            dotColor = TossColors.error;
           }
         } else {
           // No data for this date means no shifts registered
@@ -1099,8 +1129,8 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
                       if (dotColor != null)
                         Container(
                           margin: const EdgeInsets.only(top: 2),
-                          width: 4,
-                          height: 4,
+                          width: 6,
+                          height: 6,
                           decoration: BoxDecoration(
                             color: isSelected
                                 ? TossColors.white
