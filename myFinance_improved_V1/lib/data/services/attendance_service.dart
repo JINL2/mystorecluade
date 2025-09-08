@@ -210,7 +210,7 @@ class AttendanceService {
     try {
       // Call the RPC function
       final response = await _supabase.rpc(
-        'update_shift_requests_v3',
+        'update_shift_requests_v4',
         params: {
           'p_user_id': userId,
           'p_store_id': storeId,
@@ -282,7 +282,7 @@ class AttendanceService {
     } catch (e) {
       // Check if it's a specific Supabase/PostgreSQL error
       if (e.toString().contains('function') && e.toString().contains('does not exist')) {
-        throw Exception('RPC function update_shift_requests_v3 does not exist in database');
+        throw Exception('RPC function update_shift_requests_v4 does not exist in database');
       } else if (e.toString().contains('permission') || e.toString().contains('denied')) {
         throw Exception('Permission denied - please check RPC security settings');
       } else if (e.toString().contains('invalid') || e.toString().contains('malformed')) {

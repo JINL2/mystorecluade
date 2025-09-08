@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../../core/themes/toss_colors.dart';
 import '../../../core/themes/toss_text_styles.dart';
 import '../../../core/themes/toss_spacing.dart';
@@ -2894,67 +2895,62 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
                                 padding: const EdgeInsets.symmetric(vertical: 4),
                                 child: Row(
                                   children: [
-                                    // Status dot
-                                    Container(
-                                      width: 8,
-                                      height: 8,
-                                      decoration: BoxDecoration(
-                                        shape: BoxShape.circle,
-                                        color: TossColors.success,
-                                      ),
-                                    ),
-                                    const SizedBox(width: TossSpacing.space2),
                                     // Profile image
-                                    ClipOval(
-                                      child: Container(
-                                        width: 24,
-                                        height: 24,
-                                        decoration: BoxDecoration(
-                                          color: Colors.transparent,  // Make transparent to show parent color
-                                          border: Border.all(
-                                            color: TossColors.white,
-                                            width: 1.5,
-                                          ),
-                                          boxShadow: [
-                                            BoxShadow(
-                                              color: TossColors.black.withOpacity(0.1),
-                                              blurRadius: 2,
-                                              offset: const Offset(0, 1),
-                                            ),
-                                          ],
-                                        ),
-                                        child: employee['profile_image'] != null && 
-                                               employee['profile_image'].toString().isNotEmpty
-                                          ? Image.network(
-                                              employee['profile_image'].toString(),
+                                    Container(
+                                      width: 32,
+                                      height: 32,
+                                      decoration: BoxDecoration(
+                                        color: TossColors.success.withValues(alpha: 0.1),
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: employee['profile_image'] != null && 
+                                             employee['profile_image'].toString().isNotEmpty
+                                        ? ClipOval(
+                                            child: CachedNetworkImage(
+                                              imageUrl: employee['profile_image'].toString(),
+                                              width: 32,
+                                              height: 32,
                                               fit: BoxFit.cover,
-                                              errorBuilder: (context, error, stackTrace) {
-                                                return Center(
+                                              memCacheWidth: 96,
+                                              memCacheHeight: 96,
+                                              placeholder: (context, url) => Container(
+                                                width: 32,
+                                                height: 32,
+                                                decoration: BoxDecoration(
+                                                  color: TossColors.success.withValues(alpha: 0.1),
+                                                  shape: BoxShape.circle,
+                                                ),
+                                                child: Center(
                                                   child: Icon(
-                                                    Icons.person,
-                                                    size: 14,
-                                                    color: TossColors.gray500,
+                                                    Icons.person_outline,
+                                                    size: 16,
+                                                    color: TossColors.success,
                                                   ),
-                                                );
-                                              },
-                                            )
-                                          : Center(
-                                              child: Icon(
-                                                Icons.person,
-                                                size: 14,
-                                                color: TossColors.gray500,
+                                                ),
+                                              ),
+                                              errorWidget: (context, url, error) => Center(
+                                                child: Icon(
+                                                  Icons.person_outline,
+                                                  size: 16,
+                                                  color: TossColors.success,
+                                                ),
                                               ),
                                             ),
-                                      ),
+                                          )
+                                        : Icon(
+                                            Icons.person_outline,
+                                            size: 16,
+                                            color: TossColors.success,
+                                          ),
                                     ),
                                     const SizedBox(width: TossSpacing.space2),
                                     // Name
                                     Expanded(
                                       child: Text(
                                         (employee['user_name'] ?? 'Unknown').toString(),
-                                        style: TossTextStyles.caption.copyWith(
-                                          color: TossColors.gray700,
-                                          fontSize: 12,
+                                        style: TossTextStyles.body.copyWith(
+                                          color: TossColors.gray900,
+                                          fontWeight: FontWeight.w500,
                                         ),
                                         overflow: TextOverflow.ellipsis,
                                       ),
@@ -2978,67 +2974,62 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
                                 padding: const EdgeInsets.symmetric(vertical: 4),
                                 child: Row(
                                   children: [
-                                    // Status dot
-                                    Container(
-                                      width: 8,
-                                      height: 8,
-                                      decoration: BoxDecoration(
-                                        shape: BoxShape.circle,
-                                        color: TossColors.error,
-                                      ),
-                                    ),
-                                    const SizedBox(width: TossSpacing.space2),
                                     // Profile image
-                                    ClipOval(
-                                      child: Container(
-                                        width: 24,
-                                        height: 24,
-                                        decoration: BoxDecoration(
-                                          color: Colors.transparent,  // Make transparent to show parent color
-                                          border: Border.all(
-                                            color: TossColors.white,
-                                            width: 1.5,
-                                          ),
-                                          boxShadow: [
-                                            BoxShadow(
-                                              color: TossColors.black.withOpacity(0.1),
-                                              blurRadius: 2,
-                                              offset: const Offset(0, 1),
-                                            ),
-                                          ],
-                                        ),
-                                        child: employee['profile_image'] != null && 
-                                               employee['profile_image'].toString().isNotEmpty
-                                          ? Image.network(
-                                              employee['profile_image'].toString(),
+                                    Container(
+                                      width: 32,
+                                      height: 32,
+                                      decoration: BoxDecoration(
+                                        color: TossColors.warning.withValues(alpha: 0.1),
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: employee['profile_image'] != null && 
+                                             employee['profile_image'].toString().isNotEmpty
+                                        ? ClipOval(
+                                            child: CachedNetworkImage(
+                                              imageUrl: employee['profile_image'].toString(),
+                                              width: 32,
+                                              height: 32,
                                               fit: BoxFit.cover,
-                                              errorBuilder: (context, error, stackTrace) {
-                                                return Center(
+                                              memCacheWidth: 96,
+                                              memCacheHeight: 96,
+                                              placeholder: (context, url) => Container(
+                                                width: 32,
+                                                height: 32,
+                                                decoration: BoxDecoration(
+                                                  color: TossColors.warning.withValues(alpha: 0.1),
+                                                  shape: BoxShape.circle,
+                                                ),
+                                                child: Center(
                                                   child: Icon(
-                                                    Icons.person,
-                                                    size: 14,
-                                                    color: TossColors.gray500,
+                                                    Icons.person_outline,
+                                                    size: 16,
+                                                    color: TossColors.warning,
                                                   ),
-                                                );
-                                              },
-                                            )
-                                          : Center(
-                                              child: Icon(
-                                                Icons.person,
-                                                size: 14,
-                                                color: TossColors.gray500,
+                                                ),
+                                              ),
+                                              errorWidget: (context, url, error) => Center(
+                                                child: Icon(
+                                                  Icons.person_outline,
+                                                  size: 16,
+                                                  color: TossColors.warning,
+                                                ),
                                               ),
                                             ),
-                                      ),
+                                          )
+                                        : Icon(
+                                            Icons.person_outline,
+                                            size: 16,
+                                            color: TossColors.warning,
+                                          ),
                                     ),
                                     const SizedBox(width: TossSpacing.space2),
                                     // Name
                                     Expanded(
                                       child: Text(
                                         (employee['user_name'] ?? 'Unknown').toString(),
-                                        style: TossTextStyles.caption.copyWith(
-                                          color: TossColors.gray700,
-                                          fontSize: 12,
+                                        style: TossTextStyles.body.copyWith(
+                                          color: TossColors.gray900,
+                                          fontWeight: FontWeight.w500,
                                         ),
                                         overflow: TextOverflow.ellipsis,
                                       ),
