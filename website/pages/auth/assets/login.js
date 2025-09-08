@@ -30,20 +30,28 @@ function initializeIcons() {
     console.log('Icons initialization skipped - using image logo');
 }
 
-// Get correct dashboard path - COMPLETELY REWRITTEN FOR ABSOLUTE URLS
+// Get correct dashboard path using pathResolver
 function getDashboardPath() {
     // Get current location info
-    const origin = window.location.origin;  // http://localhost
-    const pathname = window.location.pathname;  // /mcparrange-main/myFinance_claude/website/pages/auth/login.html
+    const origin = window.location.origin;  // http://localhost or https://mystorecluade.onrender.com
+    const pathname = window.location.pathname;  // /pages/auth/login.html
     
     console.log('getDashboardPath - Origin:', origin);
     console.log('getDashboardPath - Pathname:', pathname);
     
-    // Build the FULL URL - no ambiguity possible
+    // Build the FULL URL using pathResolver if available
     let dashboardUrl = '';
     
-    // Primary path for XAMPP mcparrange-main structure - explicitly include index.html
-    dashboardUrl = origin + '/mcparrange-main/myFinance_claude/website/pages/dashboard/index.html';
+    if (typeof window !== 'undefined' && window.pathResolver) {
+        // Use pathResolver for consistent path resolution
+        dashboardUrl = origin + window.pathResolver.getDashboardPath();
+        console.log('getDashboardPath - Using pathResolver:', dashboardUrl);
+    } else {
+        // Fallback to simple path if pathResolver not available
+        dashboardUrl = origin + '/pages/dashboard/index.html';
+        console.log('getDashboardPath - Using fallback path:', dashboardUrl);
+    }
+    
     console.log('getDashboardPath - Built dashboard URL:', dashboardUrl);
     return dashboardUrl;
 }

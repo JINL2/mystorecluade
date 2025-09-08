@@ -135,6 +135,7 @@
     <script src="RELATIVE_PATH/components/feedback/toss-alert.js"></script>
     
     <!-- Core Scripts -->
+    <script src="RELATIVE_PATH/core/utils/path-resolver.js"></script>
     <script src="RELATIVE_PATH/core/constants/app-icons.js"></script>
     <script src="RELATIVE_PATH/core/config/supabase.js"></script>
     <script src="RELATIVE_PATH/core/utils/app-state.js"></script>
@@ -147,7 +148,7 @@
             
             if (!userData) {
                 // Redirect to login if no user data
-                window.location.href = '/mcparrange-main/myFinance_claude/website/pages/auth/login.html';
+                window.location.href = window.pathResolver.getLoginPath();
                 return;
             }
             
@@ -157,7 +158,7 @@
             if (!session) {
                 // Clear state and redirect to login if no session
                 appState.clearState();
-                window.location.href = '/mcparrange-main/myFinance_claude/website/pages/auth/login.html';
+                window.location.href = window.pathResolver.getLoginPath();
                 return;
             }
             

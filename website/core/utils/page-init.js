@@ -143,25 +143,11 @@ class PageInitializer {
                 
                 // Still no session, redirect to login
                 console.log('No session found after refresh, redirecting to login');
-                // Use proper path calculation for login redirect
-                const currentPath = window.location.pathname;
-                let loginPath;
                 
-                // Check if we're in the mcparrange-main project
-                if (currentPath.includes('/mcparrange-main/')) {
-                    // Extract the base path up to mcparrange-main
-                    const baseMatch = currentPath.match(/(.*\/mcparrange-main\/)/);
-                    if (baseMatch) {
-                        // Build the correct absolute path to login
-                        loginPath = baseMatch[1] + 'myFinance_claude/website/pages/auth/login.html';
-                    } else {
-                        // Fallback
-                        loginPath = '/mcparrange-main/myFinance_claude/website/pages/auth/login.html';
-                    }
-                } else {
-                    // Use absolute path for XAMPP environment consistency
-                    loginPath = '/mcparrange-main/myFinance_claude/website/pages/auth/login.html';
-                }
+                // Use pathResolver for consistent login path
+                const loginPath = window.pathResolver ? 
+                    window.pathResolver.getLoginPath() : 
+                    '/pages/auth/login.html';
                 
                 console.log('PageInitializer redirecting to login:', loginPath);
                 window.location.href = loginPath;

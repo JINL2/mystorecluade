@@ -205,7 +205,20 @@
                 statusDiv.innerHTML = '✅ All localStorage cleared! Redirecting to login page...';
                 
                 setTimeout(() => {
-                    window.location.href = '/mcparrange-main/myFinance_claude/website/pages/auth/login.html';
+                    // Redirect to login using relative path that works in different environments
+                    const hostname = window.location.hostname;
+                    const pathname = window.location.pathname;
+                    let loginPath = '../auth/login.html';
+                    
+                    // For localhost environments, detect the project structure
+                    if (hostname === 'localhost' || hostname === '127.0.0.1') {
+                        const projectMatch = pathname.match(/^(.*?\/mysite\/mystorecluade\/website)/);
+                        if (projectMatch) {
+                            loginPath = projectMatch[1] + '/pages/auth/login.html';
+                        }
+                    }
+                    
+                    window.location.href = loginPath;
                 }, 2000);
             }
         }
