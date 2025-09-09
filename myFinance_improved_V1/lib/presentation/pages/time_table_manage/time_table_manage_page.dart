@@ -2147,6 +2147,7 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
   // Build individual shift card
   Widget _buildShiftCard(Map<String, dynamic> card) {
     final userName = card['user_name'] ?? 'Unknown';
+    final profileImage = card['profile_image'] as String?;
     final shiftName = card['shift_name'] ?? 'Unknown Shift';
     final shiftTime = card['shift_time'] ?? '--:--';
     final isApproved = card['is_approved'] ?? false;
@@ -2226,21 +2227,41 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
             child: Row(
               children: [
                 // User avatar
-                Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: TossColors.primary.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(TossBorderRadius.xxl),
-                  ),
-                  child: Center(
-                    child: Text(
-                      userName.isNotEmpty ? userName[0].toUpperCase() : '?',
-                      style: TossTextStyles.body.copyWith(
-                        color: TossColors.primary,
-                        fontWeight: FontWeight.w700,
-                      ),
+                ClipOval(
+                  child: Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: TossColors.primary.withValues(alpha: 0.1),
                     ),
+                    child: profileImage != null && profileImage.isNotEmpty
+                        ? Image.network(
+                            profileImage,
+                            width: 40,
+                            height: 40,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) {
+                              // Fallback to initial letter if image fails to load
+                              return Center(
+                                child: Text(
+                                  userName.isNotEmpty ? userName[0].toUpperCase() : '?',
+                                  style: TossTextStyles.body.copyWith(
+                                    color: TossColors.primary,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              );
+                            },
+                          )
+                        : Center(
+                            child: Text(
+                              userName.isNotEmpty ? userName[0].toUpperCase() : '?',
+                              style: TossTextStyles.body.copyWith(
+                                color: TossColors.primary,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ),
                   ),
                 ),
                 const SizedBox(width: TossSpacing.space3),
