@@ -2861,7 +2861,12 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
       context: context,
       backgroundColor: TossColors.transparent,
       isScrollControlled: true,
-      builder: (context) => _ShiftDetailsBottomSheet(card: card),
+      builder: (context) => Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+        ),
+        child: _ShiftDetailsBottomSheet(card: card),
+      ),
     );
     
     // Handle different types of results
@@ -3222,9 +3227,19 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<_ShiftDetailsBottomShe
         ? num.tryParse(rawBonusAmount) ?? 0 
         : rawBonusAmount ?? 0;
     
+    // Get base pay
+    final dynamic rawBasePay = widget.card['base_pay'] ?? '0';
+    final num basePay = rawBasePay is String 
+        ? num.tryParse(rawBasePay.replaceAll(',', '')) ?? 0 
+        : rawBasePay ?? 0;
+    
     // Get typed bonus (remove commas for parsing)
     String cleanInput = bonusInputText.replaceAll(',', '');
     final num typedBonus = num.tryParse(cleanInput) ?? 0;
+    
+    // Calculate total pays
+    final num currentTotal = basePay + currentBonus;
+    final num newTotal = basePay + typedBonus;
     
     // Format numbers for display
     final formatter = NumberFormat('#,###');
@@ -3250,46 +3265,114 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<_ShiftDetailsBottomShe
               Container(
                 padding: const EdgeInsets.all(TossSpacing.space4),
                 decoration: BoxDecoration(
-                  color: TossColors.gray50,
+                  color: TossColors.info.withValues(alpha: 0.05),
                   borderRadius: BorderRadius.circular(TossBorderRadius.xl),
+                  border: Border.all(
+                    color: TossColors.info.withValues(alpha: 0.2),
+                    width: 1,
+                  ),
                 ),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // Header
+                    Text(
+                      'Payment Summary',
+                      style: TossTextStyles.body.copyWith(
+                        color: TossColors.gray900,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: TossSpacing.space3),
+                    
+                    // Base Pay
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          'Current Bonus:',
-                          style: TossTextStyles.body.copyWith(
-                            color: TossColors.gray700,
+                          'Base Pay',
+                          style: TossTextStyles.caption.copyWith(
+                            color: TossColors.gray600,
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
                         Text(
-                          currentBonus > 0 ? formatter.format(currentBonus) : '0',
+                          basePay != 0 ? formatter.format(basePay) : '0',
                           style: TossTextStyles.body.copyWith(
-                            color: TossColors.gray900,
+                            color: basePay < 0 ? TossColors.error : TossColors.gray700,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
                       ],
                     ),
                     const SizedBox(height: TossSpacing.space2),
+                    
+                    // Current Bonus with arrow to New Bonus
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          'New Bonus:',
+                          'Bonus',
+                          style: TossTextStyles.caption.copyWith(
+                            color: TossColors.gray600,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        Row(
+                          children: [
+                            Text(
+                              currentBonus > 0 ? '+ ${formatter.format(currentBonus)}' : '+ 0',
+                              style: TossTextStyles.body.copyWith(
+                                color: TossColors.gray500,
+                                fontWeight: FontWeight.w600,
+                                decoration: currentTotal != newTotal ? TextDecoration.lineThrough : null,
+                              ),
+                            ),
+                            if (currentTotal != newTotal) ...[
+                              const SizedBox(width: TossSpacing.space2),
+                              const Icon(
+                                Icons.arrow_forward,
+                                size: 14,
+                                color: TossColors.info,
+                              ),
+                              const SizedBox(width: TossSpacing.space2),
+                              Text(
+                                typedBonus > 0 ? '+ ${formatter.format(typedBonus)}' : '+ 0',
+                                style: TossTextStyles.body.copyWith(
+                                  color: TossColors.info,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ],
+                    ),
+                    
+                    // Divider
+                    Container(
+                      margin: const EdgeInsets.symmetric(vertical: TossSpacing.space2),
+                      height: 1,
+                      color: TossColors.info.withValues(alpha: 0.2),
+                    ),
+                    
+                    // Total Pay
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Total Pay',
                           style: TossTextStyles.body.copyWith(
                             color: TossColors.gray700,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                         Text(
-                          typedBonus > 0 ? formatter.format(typedBonus) : '0',
-                          style: TossTextStyles.body.copyWith(
-                            color: TossColors.info,
-                            fontWeight: FontWeight.w600,
+                          formatter.format(newTotal),
+                          style: TossTextStyles.h3.copyWith(
+                            color: newTotal < 0 ? TossColors.error : TossColors.info,
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
                       ],
@@ -3785,7 +3868,7 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<_ShiftDetailsBottomShe
     
     return Container(
       constraints: BoxConstraints(
-        maxHeight: MediaQuery.of(context).size.height * 0.8,
+        maxHeight: MediaQuery.of(context).size.height * 0.8 - MediaQuery.of(context).viewInsets.bottom,
       ),
       decoration: BoxDecoration(
         color: TossColors.background,
@@ -5325,12 +5408,37 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<_ShiftDetailsBottomShe
   
   // Build Bonus tab content
   Widget _buildBonusTab(Map<String, dynamic> card) {
-    // Initialize with existing bonus amount from card data
-    // Convert to num first in case it's a string, then to double
+    // Extract salary information from card data
+    final String salaryType = card['salary_type'] ?? 'hourly';
+    final String salaryAmountStr = card['salary_amount'] ?? '0';
+    final dynamic rawBasePay = card['base_pay'] ?? '0';
     final dynamic rawBonusAmount = card['bonus_amount'];
+    final dynamic rawTotalPay = card['total_pay_with_bonus'] ?? '0';
+    
+    // Parse numeric values
+    final num salaryAmount = num.tryParse(salaryAmountStr.replaceAll(',', '')) ?? 0;
+    final num basePay = rawBasePay is String 
+        ? num.tryParse(rawBasePay.replaceAll(',', '')) ?? 0 
+        : rawBasePay ?? 0;
     final num bonusAmount = rawBonusAmount is String 
         ? num.tryParse(rawBonusAmount) ?? 0 
         : rawBonusAmount ?? 0;
+    final num totalPay = rawTotalPay is String 
+        ? num.tryParse(rawTotalPay.replaceAll(',', '')) ?? 0 
+        : rawTotalPay ?? 0;
+    
+    // Helper function to format salary type display
+    String getSalaryTypeDisplay() {
+      if (salaryType == 'hourly') {
+        return 'Hourly Rate';
+      } else if (salaryType == 'monthly') {
+        return 'Monthly Salary';
+      }
+      return salaryType;
+    }
+    
+    // Create scroll controller for auto-scroll when keyboard appears
+    final ScrollController scrollController = ScrollController();
     
     return GestureDetector(
       onTap: () {
@@ -5341,14 +5449,20 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<_ShiftDetailsBottomShe
         children: [
           Expanded(
             child: SingleChildScrollView(
+              controller: scrollController,
               physics: const BouncingScrollPhysics(),
-              padding: const EdgeInsets.all(TossSpacing.space5),
+              padding: EdgeInsets.only(
+                left: TossSpacing.space5,
+                right: TossSpacing.space5,
+                top: TossSpacing.space5,
+                bottom: MediaQuery.of(context).viewInsets.bottom + TossSpacing.space5,
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                 // Title
                 Text(
-                  'Set Bonus Amount',
+                  'Salary & Bonus Information',
                   style: TossTextStyles.h3.copyWith(
                     color: TossColors.gray900,
                     fontWeight: FontWeight.w700,
@@ -5356,14 +5470,77 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<_ShiftDetailsBottomShe
                 ),
                 const SizedBox(height: TossSpacing.space2),
                 Text(
-                  'Enter the bonus amount for this shift',
+                  'View salary details and set bonus amount',
                   style: TossTextStyles.bodySmall.copyWith(
                     color: TossColors.gray600,
                   ),
                 ),
                 const SizedBox(height: TossSpacing.space5),
                 
-                // Current bonus amount display - Always show even if 0
+                // Salary Type and Amount
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(TossSpacing.space4),
+                  decoration: BoxDecoration(
+                    color: TossColors.gray50,
+                    borderRadius: BorderRadius.circular(TossBorderRadius.xl),
+                    border: Border.all(
+                      color: TossColors.gray200,
+                      width: 1,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            getSalaryTypeDisplay(),
+                            style: TossTextStyles.caption.copyWith(
+                              color: TossColors.gray600,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(height: TossSpacing.space1),
+                          Text(
+                            salaryAmount > 0 
+                                ? NumberFormat('#,###').format(salaryAmount.toInt())
+                                : '0',
+                            style: TossTextStyles.body.copyWith(
+                              color: TossColors.gray900,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ],
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: TossSpacing.space3,
+                          vertical: TossSpacing.space2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: salaryType == 'hourly' 
+                              ? TossColors.primary.withValues(alpha: 0.1)
+                              : TossColors.success.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                        ),
+                        child: Text(
+                          salaryType == 'hourly' ? 'Per Hour' : 'Per Month',
+                          style: TossTextStyles.caption.copyWith(
+                            color: salaryType == 'hourly' 
+                                ? TossColors.primary
+                                : TossColors.success,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: TossSpacing.space3),
+                
+                // Combined Payment Information Box with Blue Design
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(TossSpacing.space4),
@@ -5378,27 +5555,122 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<_ShiftDetailsBottomShe
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      // Header
                       Text(
-                        'Current Bonus',
-                        style: TossTextStyles.caption.copyWith(
-                          color: TossColors.gray600,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      const SizedBox(height: TossSpacing.space1),
-                      Text(
-                        bonusAmount > 0 
-                            ? NumberFormat('#,###').format(bonusAmount.toInt())
-                            : '0',
-                        style: TossTextStyles.h2.copyWith(
-                          color: bonusAmount > 0 ? TossColors.info : TossColors.gray600,
+                        'Payment Details',
+                        style: TossTextStyles.body.copyWith(
+                          color: TossColors.gray900,
                           fontWeight: FontWeight.w700,
                         ),
+                      ),
+                      const SizedBox(height: TossSpacing.space3),
+                      
+                      // Base Pay Row
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Base Pay',
+                            style: TossTextStyles.caption.copyWith(
+                              color: TossColors.gray600,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          Text(
+                            basePay != 0 
+                                ? NumberFormat('#,###').format(basePay.toInt())
+                                : '0',
+                            style: TossTextStyles.body.copyWith(
+                              color: basePay < 0 ? TossColors.error : TossColors.gray700,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: TossSpacing.space2),
+                      
+                      // Current Bonus Row
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Current Bonus',
+                            style: TossTextStyles.caption.copyWith(
+                              color: TossColors.gray600,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          Text(
+                            bonusAmount > 0 
+                                ? '+ ${NumberFormat('#,###').format(bonusAmount.toInt())}'
+                                : '+ 0',
+                            style: TossTextStyles.body.copyWith(
+                              color: TossColors.info,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                      
+                      // Divider
+                      Container(
+                        margin: const EdgeInsets.symmetric(vertical: TossSpacing.space2),
+                        height: 1,
+                        color: TossColors.info.withValues(alpha: 0.2),
+                      ),
+                      
+                      // Total Pay Row
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Total Pay',
+                            style: TossTextStyles.body.copyWith(
+                              color: TossColors.gray700,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          Text(
+                            totalPay != 0 
+                                ? NumberFormat('#,###').format(totalPay.toInt())
+                                : NumberFormat('#,###').format((basePay + bonusAmount).toInt()),
+                            style: TossTextStyles.h3.copyWith(
+                              color: (totalPay != 0 ? totalPay : (basePay + bonusAmount)) < 0 
+                                  ? TossColors.error 
+                                  : TossColors.info,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(height: TossSpacing.space4),
+                const SizedBox(height: TossSpacing.space5),
+                
+                // Divider
+                Container(
+                  height: 1,
+                  color: TossColors.gray200,
+                ),
+                const SizedBox(height: TossSpacing.space5),
+                
+                // New Bonus Section Title
+                Text(
+                  'Set New Bonus',
+                  style: TossTextStyles.body.copyWith(
+                    color: TossColors.gray900,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: TossSpacing.space2),
+                Text(
+                  'Enter a new bonus amount for this shift',
+                  style: TossTextStyles.caption.copyWith(
+                    color: TossColors.gray600,
+                  ),
+                ),
+                const SizedBox(height: TossSpacing.space3),
                 
                 // Bonus input field
                 Container(
@@ -5407,11 +5679,11 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<_ShiftDetailsBottomShe
                     vertical: TossSpacing.space3,
                   ),
                   decoration: BoxDecoration(
-                    color: TossColors.gray50,
+                    color: TossColors.white,
                     borderRadius: BorderRadius.circular(TossBorderRadius.xl),
                     border: Border.all(
-                      color: TossColors.gray200,
-                      width: 1,
+                      color: TossColors.gray300,
+                      width: 1.5,
                     ),
                   ),
                   child: TextField(
@@ -5435,8 +5707,22 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<_ShiftDetailsBottomShe
                       border: InputBorder.none,
                       contentPadding: EdgeInsets.zero,
                     ),
+                    onTap: () {
+                      // Auto-scroll to make the input field visible when keyboard appears
+                      Future.delayed(const Duration(milliseconds: 300), () {
+                        if (scrollController.hasClients) {
+                          scrollController.animateTo(
+                            scrollController.position.maxScrollExtent,
+                            duration: const Duration(milliseconds: 300),
+                            curve: Curves.easeInOut,
+                          );
+                        }
+                      });
+                    },
                   ),
                 ),
+                // Add extra padding at the bottom for keyboard
+                const SizedBox(height: TossSpacing.space10),
               ],
             ),
           ),
