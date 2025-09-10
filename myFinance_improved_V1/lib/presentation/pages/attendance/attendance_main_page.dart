@@ -2225,9 +2225,44 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
       final isWeekend = date.weekday >= 6;
       final hasShift = _hasShiftOnDate(date);
       final shiftData = _getShiftForDate(date);
-      // For manager view, check if there are any approved shifts
-      final hasApprovedShifts = shiftData != null && ((shiftData['total_approved'] ?? 0) as int) > 0;
-      final hasPendingShifts = shiftData != null && ((shiftData['total_pending'] ?? 0) as int) > 0;
+      
+      // Get current user ID from app state
+      final appState = ref.read(appStateProvider);
+      final currentUserId = appState.user['user_id'] ?? '';
+      
+      // Check user registration status for this date
+      bool userIsApproved = false;
+      bool userIsPending = false;
+      
+      if (shiftData != null && currentUserId.isNotEmpty) {
+        // Check all shifts for this date
+        final shifts = shiftData['shifts'] as List<dynamic>? ?? [];
+        
+        for (var shift in shifts) {
+          // Check approved employees
+          final approvedEmployees = shift['approved_employees'] as List<dynamic>? ?? [];
+          for (var employee in approvedEmployees) {
+            if (employee['user_id'] == currentUserId) {
+              userIsApproved = true;
+              break;
+            }
+          }
+          
+          // Check pending employees if not already approved
+          if (!userIsApproved) {
+            final pendingEmployees = shift['pending_employees'] as List<dynamic>? ?? [];
+            for (var employee in pendingEmployees) {
+              if (employee['user_id'] == currentUserId) {
+                userIsPending = true;
+                break;
+              }
+            }
+          }
+          
+          if (userIsApproved || userIsPending) break;
+        }
+      }
+      
       final isPast = date.isBefore(DateTime.now().subtract(const Duration(days: 1)));
       
       calendarDays.add(
@@ -2271,7 +2306,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
                             : FontWeight.w500,
                       ),
                     ),
-                    if (hasShift) ...[
+                    if (hasShift && (userIsApproved || userIsPending)) ...[
                       const SizedBox(height: 2),
                       Container(
                         width: 6,
@@ -2279,11 +2314,9 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
                         decoration: BoxDecoration(
                           color: isSelected
                               ? TossColors.white
-                              : hasApprovedShifts
-                                  ? TossColors.success  // Green for approved
-                                  : hasPendingShifts
-                                      ? TossColors.error  // Red for pending only
-                                      : TossColors.gray400,  // Gray if no registrations
+                              : userIsApproved
+                                  ? TossColors.success  // Green - user is approved
+                                  : TossColors.warning,  // Orange - user is pending
                           shape: BoxShape.circle,
                         ),
                       ),
