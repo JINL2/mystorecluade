@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyFinance - Order</title>
+    
+    <!-- Theme CSS -->
+    <link rel="stylesheet" href="../../../core/themes/toss-variables.css">
+    <link rel="stylesheet" href="../../../core/themes/toss-component-variables.css">
+    <link rel="stylesheet" href="../../../core/themes/toss-base.css">
+    <link rel="stylesheet" href="../../../core/themes/toss-typography.css">
+    
+    <!-- Component CSS -->
+    <link rel="stylesheet" href="../../../components/base/toss-button.css">
+    <link rel="stylesheet" href="../../../components/form/toss-input.css">
+    <link rel="stylesheet" href="../../../components/form/toss-select.css">
+    <link rel="stylesheet" href="../../../components/feedback/toss-alert.css">
+    <link rel="stylesheet" href="../../../components/navigation/navbar.css">
+    
+    <!-- Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- Page Specific Styles -->
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: var(--font-family);
+            background: var(--toss-gray-50);
+            min-height: 100vh;
+        }
+        
+        .page-container {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .page-content {
+            flex: 1;
+            padding: var(--space-6);
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+        }
+        
+        .page-header {
+            margin-bottom: var(--space-8);
+        }
+        
+        .page-title {
+            font-size: var(--font-h1);
+            font-weight: 700;
+            color: var(--text-primary);
+            margin: 0 0 var(--space-2) 0;
+        }
+        
+        .page-subtitle {
+            font-size: var(--font-large);
+            color: var(--text-secondary);
+            margin: 0;
+        }
+        
+        /* Main Content Card */
+        .main-card {
+            background: white;
+            border-radius: var(--radius-large);
+            padding: var(--space-6);
+            box-shadow: var(--shadow-card);
+        }
+        
+        .coming-soon {
+            text-align: center;
+            padding: var(--space-8) var(--space-6);
+        }
+        
+        .coming-soon-icon {
+            font-size: 64px;
+            margin-bottom: var(--space-4);
+        }
+        
+        .coming-soon-title {
+            font-size: var(--font-h2);
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0 0 var(--space-3) 0;
+        }
+        
+        .coming-soon-text {
+            font-size: var(--font-large);
+            color: var(--text-secondary);
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="page-container">
+        <!-- Navigation Bar -->
+        <div id="navbar-container"></div>
+        
+        <!-- Page Content -->
+        <main class="page-content">
+            <div class="page-header">
+                <h1 class="page-title">Order</h1>
+                <p class="page-subtitle">Manage product orders across stores</p>
+            </div>
+            
+            <!-- Main Content Card -->
+            <div class="main-card">
+                <div class="coming-soon">
+                    <div class="coming-soon-icon">📦</div>
+                    <h2 class="coming-soon-title">Order Management Coming Soon</h2>
+                    <p class="coming-soon-text">This feature is currently under development.</p>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <!-- Component Scripts -->
+    <script src="../../../components/base/toss-button.js"></script>
+    <script src="../../../components/form/toss-input.js"></script>
+    <script src="../../../components/form/toss-select.js"></script>
+    <script src="../../../components/navigation/navbar.js"></script>
+    <script src="../../../components/feedback/toss-alert.js"></script>
+    
+    <!-- Core Scripts -->
+    <script src="../../../core/constants/app-icons.js"></script>
+    <script src="../../../core/config/supabase.js"></script>
+    
+    <!-- App State Management -->
+    <script src="../../../core/utils/app-state.js"></script>
+    
+    <!-- Route Mapping -->
+    <script src="../../../core/config/route-mapping.js"></script>
+    
+    <!-- Page Initialization Utility -->
+    <script src="../../../core/utils/page-init.js"></script>
+    
+    <!-- Page Specific Scripts -->
+    <script>
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Order page loaded');
+            
+            // Initialize navbar with Order page active
+            if (typeof PageInitializer !== 'undefined') {
+                PageInitializer.init({
+                    pageName: 'Order',
+                    pageIcon: '📦',
+                    requireAuth: true,
+                    onReady: function() {
+                        console.log('Order page initialized');
+                        // Additional initialization can go here
+                    }
+                });
+            } else {
+                // Fallback if PageInitializer is not available
+                if (window.navbarInstance) {
+                    window.navbarInstance.setActiveItem('product');
+                }
+            }
+        });
+    </script>
+</body>
+</html>

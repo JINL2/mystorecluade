@@ -1,0 +1,263 @@
+/**
+ * Toss Typography System
+ * Based on 4px vertical rhythm
+ * Font: Inter (primary), Pretendard (Korean), JetBrains Mono (numbers)
+ */
+
+/* ==================== FONT IMPORTS ==================== */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+/* ==================== BASE TYPOGRAPHY ==================== */
+body {
+  font-family: var(--font-family);
+  font-size: var(--font-body);
+  font-weight: var(--font-regular);
+  line-height: var(--line-height-normal);
+  color: var(--toss-text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ==================== HEADINGS ==================== */
+.display {
+  font-size: var(--font-display);
+  font-weight: var(--font-extrabold);
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+  color: var(--toss-gray-900);
+}
+
+h1, .h1 {
+  font-size: var(--font-h1);
+  font-weight: var(--font-bold);
+  line-height: 1.286;
+  letter-spacing: -0.01em;
+  color: var(--toss-gray-900);
+}
+
+h2, .h2 {
+  font-size: var(--font-h2);
+  font-weight: var(--font-bold);
+  line-height: 1.333;
+  letter-spacing: -0.01em;
+  color: var(--toss-gray-900);
+}
+
+h3, .h3 {
+  font-size: var(--font-h3);
+  font-weight: var(--font-semibold);
+  line-height: 1.4;
+  letter-spacing: 0;
+  color: var(--toss-gray-900);
+}
+
+h4, .h4 {
+  font-size: var(--font-h4);
+  font-weight: var(--font-semibold);
+  line-height: 1.333;
+  letter-spacing: 0;
+  color: var(--toss-gray-900);
+}
+
+/* ==================== BODY TEXT ==================== */
+.text-body-large {
+  font-size: var(--font-body-large);
+  font-weight: var(--font-regular);
+  line-height: 1.5;
+  letter-spacing: 0;
+}
+
+.text-body {
+  font-size: var(--font-body);
+  font-weight: var(--font-regular);
+  line-height: 1.429;
+  letter-spacing: 0;
+}
+
+.text-body-small {
+  font-size: var(--font-body-small);
+  font-weight: var(--font-regular);
+  line-height: 1.385;
+  letter-spacing: 0;
+}
+
+/* ==================== UI LABELS ==================== */
+.text-button {
+  font-size: var(--font-body);
+  font-weight: var(--font-semibold);
+  line-height: 1.429;
+  letter-spacing: 0.02em;
+  text-transform: none;
+}
+
+.text-label-large {
+  font-size: var(--font-body);
+  font-weight: var(--font-medium);
+  line-height: 1.429;
+  letter-spacing: 0;
+}
+
+.text-label {
+  font-size: var(--font-label);
+  font-weight: var(--font-medium);
+  line-height: 1.333;
+  letter-spacing: 0.01em;
+}
+
+.text-caption {
+  font-size: var(--font-label);
+  font-weight: var(--font-regular);
+  line-height: 1.333;
+  letter-spacing: 0.01em;
+  color: var(--toss-text-secondary);
+}
+
+.text-small {
+  font-size: var(--font-small);
+  font-weight: var(--font-regular);
+  line-height: 1.455;
+  letter-spacing: 0.02em;
+  color: var(--toss-text-tertiary);
+}
+
+/* ==================== FINANCIAL TEXT ==================== */
+.amount-large {
+  font-family: var(--font-family-mono);
+  font-size: var(--font-h1);
+  font-weight: var(--font-bold);
+  line-height: 1.143;
+  letter-spacing: -0.02em;
+}
+
+.amount {
+  font-family: var(--font-family-mono);
+  font-size: var(--font-h3);
+  font-weight: var(--font-semibold);
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+
+.amount-small {
+  font-family: var(--font-family-mono);
+  font-size: var(--font-body);
+  font-weight: var(--font-medium);
+  line-height: 1.429;
+  letter-spacing: 0;
+}
+
+/* Profit/Loss Colors */
+.amount-profit {
+  color: var(--toss-profit);
+}
+
+.amount-loss {
+  color: var(--toss-loss);
+}
+
+.amount-neutral {
+  color: var(--toss-neutral);
+}
+
+/* ==================== SPECIAL STYLES ==================== */
+.text-link {
+  font-size: var(--font-body);
+  font-weight: var(--font-medium);
+  color: var(--toss-text-link);
+  text-decoration: none;
+  transition: opacity var(--transition-fast);
+}
+
+.text-link:hover {
+  opacity: 0.8;
+  text-decoration: underline;
+}
+
+.text-code {
+  font-family: var(--font-family-mono);
+  font-size: var(--font-body-small);
+  font-weight: var(--font-regular);
+  background: var(--toss-gray-100);
+  padding: 2px 6px;
+  border-radius: var(--radius-xs);
+}
+
+/* ==================== TEXT UTILITIES ==================== */
+
+/* Weight */
+.font-regular { font-weight: var(--font-regular); }
+.font-medium { font-weight: var(--font-medium); }
+.font-semibold { font-weight: var(--font-semibold); }
+.font-bold { font-weight: var(--font-bold); }
+.font-extrabold { font-weight: var(--font-extrabold); }
+
+/* Alignment */
+.text-left { text-align: left; }
+.text-center { text-align: center; }
+.text-right { text-align: right; }
+.text-justify { text-align: justify; }
+
+/* Colors */
+.text-primary { color: var(--toss-text-primary); }
+.text-secondary { color: var(--toss-text-secondary); }
+.text-tertiary { color: var(--toss-text-tertiary); }
+.text-disabled { color: var(--toss-text-disabled); }
+.text-inverse { color: var(--toss-text-inverse); }
+.text-brand { color: var(--toss-primary); }
+.text-success { color: var(--toss-success); }
+.text-error { color: var(--toss-error); }
+.text-warning { color: var(--toss-warning); }
+
+/* Transform */
+.text-uppercase { text-transform: uppercase; }
+.text-lowercase { text-transform: lowercase; }
+.text-capitalize { text-transform: capitalize; }
+
+/* Truncate */
+.text-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.text-truncate-2 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+/* Line Height */
+.leading-tight { line-height: var(--line-height-tight); }
+.leading-normal { line-height: var(--line-height-normal); }
+.leading-loose { line-height: var(--line-height-loose); }
+
+/* Letter Spacing */
+.tracking-tight { letter-spacing: -0.02em; }
+.tracking-normal { letter-spacing: 0; }
+.tracking-wide { letter-spacing: 0.02em; }
+
+/* ==================== RESPONSIVE TYPOGRAPHY ==================== */
+@media (min-width: 768px) {
+  .display {
+    font-size: 36px;
+  }
+  
+  h1, .h1 {
+    font-size: 32px;
+  }
+  
+  h2, .h2 {
+    font-size: 28px;
+  }
+  
+  h3, .h3 {
+    font-size: 24px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .display {
+    font-size: 40px;
+  }
+}

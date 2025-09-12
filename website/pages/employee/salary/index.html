@@ -1,0 +1,2122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyFinance - Salary Management</title>
+    
+    <!-- Theme CSS -->
+    <link rel="stylesheet" href="../../../core/themes/toss-variables.css">
+    <link rel="stylesheet" href="../../../core/themes/toss-component-variables.css">
+    <link rel="stylesheet" href="../../../core/themes/toss-base.css">
+    <link rel="stylesheet" href="../../../core/themes/toss-typography.css">
+    
+    <!-- Component CSS -->
+    <link rel="stylesheet" href="../../../components/base/toss-button.css">
+    <link rel="stylesheet" href="../../../components/form/toss-input.css">
+    <link rel="stylesheet" href="../../../components/form/toss-select.css">
+    <link rel="stylesheet" href="../../../components/feedback/toss-alert.css">
+    <link rel="stylesheet" href="../../../components/navigation/navbar.css">
+    
+    <!-- Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- Page Specific Styles -->
+    <style>
+        /* ==================== BASE STYLES ==================== */
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: var(--font-family);
+            background: var(--toss-gray-50);
+            min-height: 100vh;
+        }
+        
+        .page-container {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* ==================== PAGE LAYOUT ==================== */
+        .salary-container {
+            flex: 1;
+            padding: var(--space-6);
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+        }
+        
+        /* ==================== HEADER SECTION ==================== */
+        .salary-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--space-8);
+            flex-wrap: wrap;
+            gap: var(--space-4);
+        }
+        
+        .salary-title-section {
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        .salary-title {
+            font-size: var(--font-h1);
+            font-weight: 700;
+            color: var(--text-primary);
+            margin: 0;
+            line-height: 1.2;
+        }
+        
+        .salary-subtitle {
+            font-size: var(--font-base);
+            color: var(--text-secondary);
+            margin-top: var(--space-1);
+        }
+        
+        /* Period Selector */
+        .period-controls {
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+            background: var(--toss-white);
+            padding: var(--space-2);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-xs);
+        }
+        
+        .period-nav-btn {
+            width: 32px;
+            height: 32px;
+            border: none;
+            background: transparent;
+            color: var(--toss-gray-600);
+            cursor: pointer;
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+        
+        .period-nav-btn:hover {
+            background: var(--toss-gray-100);
+            color: var(--toss-gray-900);
+        }
+        
+        .period-display {
+            font-size: var(--font-base);
+            font-weight: 600;
+            color: var(--text-primary);
+            padding: 0 var(--space-3);
+            min-width: 100px;
+            text-align: center;
+        }
+        
+        /* ==================== STORE FILTER ==================== */
+        .controls-card {
+            background: transparent;
+            padding: 0;
+            margin-bottom: var(--space-4);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .control-section {
+            flex: 0 1 auto;
+            min-width: 200px;
+            max-width: 280px;
+            width: 280px;
+            display: flex;
+            align-items: center;
+            padding: 10px 14px;
+            cursor: pointer;
+            border-radius: 10px;
+            transition: all 0.2s ease;
+            gap: 10px;
+            position: relative;
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            background: white;
+            height: 44px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+            z-index: 10;
+            pointer-events: auto;
+        }
+        
+        .control-section:hover {
+            background: rgba(0, 0, 0, 0.02);
+            border-color: rgba(0, 0, 0, 0.12);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
+        }
+        
+        .control-section.dropdown-open {
+            background: white;
+            border-color: #0064FF;
+            box-shadow: 0 0 0 4px rgba(0, 100, 255, 0.08);
+        }
+        
+        .control-section.dropdown-open .control-label {
+            color: var(--toss-primary);
+        }
+        
+        .control-section.dropdown-open .control-dropdown {
+            color: var(--toss-primary);
+            transform: rotate(180deg);
+        }
+        
+        .control-icon {
+            width: 18px;
+            height: 18px;
+            flex-shrink: 0;
+            color: var(--toss-text-secondary);
+        }
+        
+        .control-label {
+            flex: 1;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--toss-text-primary);
+            user-select: none;
+        }
+        
+        .control-dropdown {
+            width: 18px;
+            height: 18px;
+            flex-shrink: 0;
+            color: var(--toss-text-secondary);
+            transition: transform 0.2s ease;
+            margin-left: auto;
+        }
+        
+        /* Store Filter Dropdown */
+        .store-filter-dropdown {
+            position: absolute;
+            top: calc(100% + 6px);
+            left: 0;
+            min-width: 100%;
+            width: max-content;
+            max-width: 380px;
+            background: white;
+            border-radius: 14px;
+            box-shadow: 
+                0 0 0 1px rgba(0, 0, 0, 0.04),
+                0 20px 25px -5px rgba(0, 0, 0, 0.1),
+                0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-8px) scale(0.96);
+            transition: all 200ms cubic-bezier(0.16, 1, 0.3, 1);
+            max-height: 380px;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 6px 0;
+        }
+        
+        .store-filter-dropdown.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0) scale(1);
+        }
+        
+        .store-filter-search {
+            width: calc(100% - 12px);
+            padding: 10px 16px;
+            border: none;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+            font-size: 14px;
+            outline: none;
+            background: rgba(0, 0, 0, 0.02);
+            color: #1a1a1a;
+            font-family: inherit;
+            margin: 0 6px 6px;
+            border-radius: 8px 8px 0 0;
+        }
+        
+        .store-filter-search:focus {
+            border-bottom-color: #0064FF;
+            background: white;
+            box-shadow: 0 0 0 1px rgba(0, 100, 255, 0.2);
+        }
+        
+        .store-filter-search::placeholder {
+            color: rgba(0, 0, 0, 0.4);
+        }
+        
+        .store-filter-divider {
+            height: 1px;
+            background: rgba(0, 0, 0, 0.06);
+            margin: 6px 12px;
+        }
+        
+        .store-filter-dropdown-option {
+            position: relative;
+            padding: 10px 16px;
+            margin: 0 6px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            transition: all 120ms ease-out;
+            font-size: 14px;
+            color: var(--toss-text-primary);
+            user-select: none;
+        }
+        
+        .store-filter-dropdown-option:hover {
+            background: rgba(0, 0, 0, 0.04);
+        }
+        
+        .store-filter-dropdown-option:active {
+            background: rgba(0, 0, 0, 0.08);
+            transform: scale(0.98);
+            transition-duration: 50ms;
+        }
+        
+        .store-filter-dropdown-option.selected {
+            background: rgba(0, 100, 255, 0.08);
+            color: #0064FF;
+            font-weight: 500;
+        }
+        
+        .store-filter-dropdown-option.selected:hover {
+            background: rgba(0, 100, 255, 0.12);
+        }
+        
+        .store-filter-dropdown-option-icon {
+            width: 16px;
+            height: 16px;
+            flex-shrink: 0;
+            color: currentColor;
+        }
+        
+        .store-filter-dropdown-option.selected .store-filter-dropdown-option-icon {
+            color: var(--toss-primary);
+        }
+        
+        .store-filter-dropdown-option-text {
+            font-size: 14px;
+            color: currentColor;
+            flex: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .store-filter-dropdown-option.selected .store-filter-dropdown-option-text {
+            color: var(--toss-primary);
+            font-weight: 500;
+        }
+        
+        .store-filter-dropdown-option-check {
+            width: 16px;
+            height: 16px;
+            color: var(--toss-primary);
+            margin-left: auto;
+            flex-shrink: 0;
+        }
+        
+        /* ==================== SUMMARY CARDS ==================== */
+        .summary-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: var(--space-4);
+            margin-bottom: var(--space-8);
+        }
+        
+        .summary-card {
+            background: var(--toss-white);
+            padding: var(--space-5);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-xs);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .summary-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .summary-label {
+            font-size: var(--font-small);
+            color: var(--text-secondary);
+            margin-bottom: var(--space-2);
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+        }
+        
+        .summary-value {
+            font-size: var(--font-h2);
+            font-weight: 700;
+            color: var(--text-primary);
+            margin: 0;
+        }
+        
+        .summary-change {
+            font-size: var(--font-small);
+            margin-top: var(--space-2);
+            display: flex;
+            align-items: center;
+            gap: var(--space-1);
+        }
+        
+        .summary-change.positive {
+            color: var(--toss-success);
+        }
+        
+        .summary-change.negative {
+            color: var(--toss-error);
+        }
+        
+        /* Icon styles for summary cards */
+        .summary-icon {
+            width: 16px;
+            height: 16px;
+            opacity: 0.6;
+        }
+        
+        /* Specific coloring for financial values */
+        .summary-value.total {
+            color: var(--toss-primary);
+        }
+        
+        .summary-value.problems {
+            color: var(--toss-warning);
+        }
+        
+        /* ==================== FILTER BAR ==================== */
+        .filter-bar {
+            background: var(--toss-white);
+            padding: var(--space-4);
+            border-radius: var(--radius-lg);
+            margin-bottom: var(--space-6);
+            box-shadow: var(--shadow-xs);
+            display: flex;
+            gap: var(--space-3);
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .search-box {
+            flex: 1;
+            min-width: 200px;
+            position: relative;
+        }
+        
+        .search-input {
+            width: 100%;
+            padding: var(--space-3) var(--space-4);
+            padding-left: var(--space-10);
+            border: 1px solid var(--toss-gray-200);
+            border-radius: var(--radius-md);
+            font-size: var(--font-base);
+            transition: border-color 0.2s;
+        }
+        
+        .search-input:focus {
+            outline: none;
+            border-color: var(--toss-primary);
+        }
+        
+        .search-icon {
+            position: absolute;
+            left: var(--space-3);
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--toss-gray-500);
+        }
+        
+        .filter-chip {
+            padding: var(--space-2) var(--space-3);
+            background: var(--toss-gray-100);
+            border: 1px solid transparent;
+            border-radius: var(--radius-full);
+            font-size: var(--font-small);
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        
+        .filter-chip:hover {
+            background: var(--toss-gray-200);
+        }
+        
+        .filter-chip.active {
+            background: var(--toss-primary-surface);
+            color: var(--toss-primary);
+            border-color: var(--toss-primary);
+        }
+        
+        /* ==================== EMPLOYEE LIST ==================== */
+        .employee-list {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-4);
+        }
+        
+        .employee-card {
+            background: var(--toss-white);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-xs);
+            transition: all 0.2s;
+            overflow: hidden;
+        }
+        
+        .employee-card:hover {
+            box-shadow: var(--shadow-sm);
+        }
+        
+        /* Employee Header */
+        .employee-header {
+            padding: var(--space-5);
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        .employee-header:hover {
+            background: var(--toss-gray-50);
+        }
+        
+        .employee-main-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: var(--space-3);
+        }
+        
+        .employee-identity {
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+        }
+        
+        .employee-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: var(--radius-full);
+            background: var(--toss-primary-surface);
+            color: var(--toss-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: var(--font-large);
+        }
+        
+        .employee-info {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-1);
+        }
+        
+        .employee-name {
+            font-size: var(--font-large);
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        
+        .employee-type {
+            display: inline-flex;
+            padding: var(--space-1) var(--space-2);
+            background: var(--toss-gray-100);
+            border-radius: var(--radius-sm);
+            font-size: var(--font-small);
+            color: var(--text-secondary);
+        }
+        
+        .employee-type.monthly {
+            background: var(--toss-primary-surface);
+            color: var(--toss-primary);
+        }
+        
+        .employee-type.hourly {
+            background: var(--toss-success-light);
+            color: var(--toss-success-dark);
+        }
+        
+        /* Salary Summary */
+        .employee-salary-summary {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: var(--space-1);
+        }
+        
+        .total-payment {
+            font-size: var(--font-h3);
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+        
+        .payment-breakdown {
+            font-size: var(--font-small);
+            color: var(--text-secondary);
+        }
+        
+        /* Store Badges */
+        .employee-stores {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--space-2);
+        }
+        
+        .store-badge {
+            padding: var(--space-1) var(--space-2);
+            background: var(--toss-gray-50);
+            border: 1px solid var(--toss-gray-200);
+            border-radius: var(--radius-sm);
+            font-size: var(--font-small);
+            color: var(--text-secondary);
+        }
+        
+        /* Quick Stats */
+        .employee-quick-stats {
+            display: flex;
+            gap: var(--space-6);
+            margin-top: var(--space-3);
+            padding-top: var(--space-3);
+            border-top: 1px solid var(--toss-gray-100);
+        }
+        
+        .quick-stat {
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+            font-size: var(--font-small);
+        }
+        
+        .quick-stat-label {
+            color: var(--text-secondary);
+        }
+        
+        .quick-stat-value {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        
+        .quick-stat-value.positive {
+            color: var(--toss-success);
+        }
+        
+        .quick-stat-value.negative {
+            color: var(--toss-error);
+        }
+        
+        .quick-stat-value.warning {
+            color: var(--toss-warning);
+        }
+        
+        /* Expand Icon */
+        .expand-icon {
+            margin-left: auto;
+            transition: transform 0.2s;
+            color: var(--toss-gray-400);
+        }
+        
+        .employee-card.expanded .expand-icon {
+            transform: rotate(180deg);
+        }
+        
+        /* ==================== EMPLOYEE DETAILS (Expandable) ==================== */
+        .employee-details {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+            background: var(--toss-gray-50);
+            border-top: 1px solid var(--toss-gray-100);
+        }
+        
+        .employee-card.expanded .employee-details {
+            max-height: 1000px;
+        }
+        
+        .details-content {
+            padding: var(--space-5);
+        }
+        
+        /* Detail Sections */
+        .detail-section {
+            margin-bottom: var(--space-5);
+        }
+        
+        .detail-section:last-child {
+            margin-bottom: 0;
+        }
+        
+        .detail-section-title {
+            font-size: var(--font-small);
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: var(--space-3);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        /* Salary Breakdown Table */
+        .salary-breakdown-table {
+            background: var(--toss-white);
+            border-radius: var(--radius-md);
+            overflow: hidden;
+        }
+        
+        .breakdown-row {
+            display: flex;
+            justify-content: space-between;
+            padding: var(--space-3) var(--space-4);
+            border-bottom: 1px solid var(--toss-gray-100);
+        }
+        
+        .breakdown-row:last-child {
+            border-bottom: none;
+            background: var(--toss-gray-50);
+            font-weight: 600;
+        }
+        
+        .breakdown-label {
+            color: var(--text-secondary);
+            font-size: var(--font-base);
+        }
+        
+        .breakdown-value {
+            color: var(--text-primary);
+            font-size: var(--font-base);
+            font-weight: 500;
+        }
+        
+        .breakdown-value.positive {
+            color: var(--toss-success);
+        }
+        
+        .breakdown-value.negative {
+            color: var(--toss-error);
+        }
+        
+        .breakdown-value.not-registered {
+            color: var(--toss-text-tertiary);
+            font-style: italic;
+        }
+        
+        /* Problems Section */
+        .problems-list {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-2);
+        }
+        
+        .problem-item {
+            background: var(--toss-white);
+            padding: var(--space-3);
+            border-radius: var(--radius-md);
+            border-left: 3px solid var(--toss-warning);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .problem-item.solved {
+            border-left-color: var(--toss-success);
+            opacity: 0.7;
+        }
+        
+        .problem-info {
+            display: flex;
+            gap: var(--space-3);
+            align-items: center;
+        }
+        
+        .problem-date {
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+        
+        .problem-type {
+            padding: var(--space-1) var(--space-2);
+            background: var(--toss-warning-light);
+            color: var(--toss-warning-dark);
+            border-radius: var(--radius-sm);
+            font-size: var(--font-small);
+        }
+        
+        .problem-late-minutes {
+            padding: var(--space-1) var(--space-2);
+            background: var(--toss-error-light);
+            color: var(--toss-error-dark);
+            border-radius: var(--radius-sm);
+            font-size: var(--font-small);
+            font-weight: 500;
+        }
+        
+        .problem-store {
+            color: var(--text-secondary);
+            font-size: var(--font-small);
+        }
+        
+        .problem-status {
+            padding: var(--space-1) var(--space-2);
+            border-radius: var(--radius-sm);
+            font-size: var(--font-small);
+            font-weight: 500;
+        }
+        
+        .problem-status.solved {
+            background: var(--toss-success-light);
+            color: var(--toss-success-dark);
+        }
+        
+        .problem-status.pending {
+            background: var(--toss-warning-light);
+            color: var(--toss-warning-dark);
+        }
+        
+        /* ==================== EMPTY STATE ==================== */
+        .empty-state {
+            text-align: center;
+            padding: var(--space-16) var(--space-6);
+            background: var(--toss-white);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-xs);
+        }
+        
+        .empty-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto var(--space-4);
+            background: var(--toss-gray-100);
+            border-radius: var(--radius-full);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--toss-gray-400);
+        }
+        
+        .empty-title {
+            font-size: var(--font-h3);
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0 0 var(--space-2) 0;
+        }
+        
+        .empty-text {
+            font-size: var(--font-base);
+            color: var(--text-secondary);
+            margin: 0;
+        }
+        
+        /* ==================== LOADING STATE ==================== */
+        .loading-skeleton {
+            background: var(--toss-white);
+            border-radius: var(--radius-lg);
+            padding: var(--space-5);
+            margin-bottom: var(--space-4);
+            box-shadow: var(--shadow-xs);
+        }
+        
+        .skeleton-line {
+            height: 16px;
+            background: linear-gradient(90deg, var(--toss-gray-100) 25%, var(--toss-gray-200) 50%, var(--toss-gray-100) 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
+            border-radius: var(--radius-sm);
+            margin-bottom: var(--space-3);
+        }
+        
+        .skeleton-line.title {
+            width: 40%;
+            height: 24px;
+        }
+        
+        .skeleton-line.short {
+            width: 60%;
+        }
+        
+        @keyframes loading {
+            0% {
+                background-position: 200% 0;
+            }
+            100% {
+                background-position: -200% 0;
+            }
+        }
+        
+        /* ==================== RESPONSIVE DESIGN ==================== */
+        @media (max-width: 768px) {
+            .salary-container {
+                padding: var(--space-4);
+            }
+            
+            .salary-header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .period-controls {
+                justify-content: center;
+            }
+            
+            .summary-section {
+                grid-template-columns: 1fr;
+            }
+            
+            .filter-bar {
+                flex-direction: column;
+            }
+            
+            .search-box {
+                width: 100%;
+            }
+            
+            .employee-main-info {
+                flex-direction: column;
+                gap: var(--space-3);
+            }
+            
+            .employee-salary-summary {
+                align-items: flex-start;
+                width: 100%;
+                padding-top: var(--space-3);
+                border-top: 1px solid var(--toss-gray-100);
+            }
+            
+            .employee-quick-stats {
+                flex-direction: column;
+                gap: var(--space-2);
+            }
+            
+            .total-payment {
+                font-size: var(--font-h4);
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .salary-title {
+                font-size: var(--font-h2);
+            }
+            
+            .summary-value {
+                font-size: var(--font-h3);
+            }
+            
+            .employee-stores {
+                display: none;
+            }
+            
+            .employee-card.expanded .employee-stores {
+                display: flex;
+            }
+        }
+        
+        /* ==================== UTILITY CLASSES ==================== */
+        .hidden {
+            display: none;
+        }
+        
+        .text-right {
+            text-align: right;
+        }
+        
+        .flex-center {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .gap-2 {
+            gap: var(--space-2);
+        }
+        
+        .mt-4 {
+            margin-top: var(--space-4);
+        }
+        
+        .mb-4 {
+            margin-bottom: var(--space-4);
+        }
+    </style>
+</head>
+<body>
+    <div class="page-container">
+        <!-- Navigation Bar -->
+        <div id="navbar-container"></div>
+        
+        <!-- Salary Management Content -->
+        <main class="salary-container">
+            <!-- Header Section -->
+            <div class="salary-header">
+                <div class="salary-title-section">
+                    <h1 class="salary-title">Salary Management</h1>
+                    <p class="salary-subtitle">Manage employee compensation and payroll</p>
+                </div>
+                
+                <div class="period-controls">
+                    <button class="period-nav-btn" id="prevPeriod">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
+                        </svg>
+                    </button>
+                    <div class="period-display" id="currentPeriod">2025-08</div>
+                    <button class="period-nav-btn" id="nextPeriod">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Store Filter Controls -->
+            <div class="controls-card">
+                <div class="control-section" id="storeFilterControl">
+                    <svg class="control-icon" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12,3L2,12H5V20H19V12H22L12,3M12,8.75A1.25,1.25 0 0,1 13.25,10A1.25,1.25 0 0,1 12,11.25A1.25,1.25 0 0,1 10.75,10A1.25,1.25 0 0,1 12,8.75Z"/>
+                    </svg>
+                    <span class="control-label" id="storeFilterLabel">All Stores</span>
+                    <svg class="control-dropdown" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M7.41,8.58L12,13.17L16.59,8.58L18,10L12,16L6,10L7.41,8.58Z"/>
+                    </svg>
+                    
+                    <!-- Store Filter Dropdown -->
+                    <div class="store-filter-dropdown" id="storeFilterDropdown">
+                        <div id="storeFilterOptions">
+                            <!-- Store filter options will be inserted here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Summary Cards -->
+            <div class="summary-section" id="summarySection">
+                <!-- Will be populated by JavaScript -->
+            </div>
+            
+            <!-- Filter Bar -->
+            <div class="filter-bar">
+                <div class="search-box">
+                    <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+                    </svg>
+                    <input type="text" class="search-input" placeholder="Search by employee name..." id="searchInput">
+                </div>
+                
+                <button class="filter-chip active" data-filter="all">All Employees</button>
+                <button class="filter-chip" data-filter="monthly">Monthly</button>
+                <button class="filter-chip" data-filter="hourly">Hourly</button>
+                <button class="filter-chip" data-filter="problems">Has Problems</button>
+                <button class="filter-chip" data-filter="overtime">Overtime</button>
+            </div>
+            
+            <!-- Employee List -->
+            <div class="employee-list" id="employeeList">
+                <!-- Will be populated dynamically by JavaScript -->
+            </div>
+            
+            <!-- Empty State (Hidden by default) -->
+            <div class="empty-state hidden" id="emptyState">
+                <div class="empty-icon">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z"/>
+                    </svg>
+                </div>
+                <h3 class="empty-title">No salary data available</h3>
+                <p class="empty-text">Salary information for this period will appear here once processed.</p>
+            </div>
+            
+            <!-- Loading State (Hidden by default) -->
+            <div class="hidden" id="loadingState">
+                <div class="loading-skeleton">
+                    <div class="skeleton-line title"></div>
+                    <div class="skeleton-line"></div>
+                    <div class="skeleton-line short"></div>
+                </div>
+                <div class="loading-skeleton">
+                    <div class="skeleton-line title"></div>
+                    <div class="skeleton-line"></div>
+                    <div class="skeleton-line short"></div>
+                </div>
+                <div class="loading-skeleton">
+                    <div class="skeleton-line title"></div>
+                    <div class="skeleton-line"></div>
+                    <div class="skeleton-line short"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <!-- Component JavaScript -->
+    <script src="../../../components/base/toss-button.js"></script>
+    <script src="../../../components/form/toss-input.js"></script>
+    <script src="../../../components/form/toss-select.js"></script>
+    <script src="../../../components/navigation/navbar.js"></script>
+    <script src="../../../components/feedback/toss-alert.js"></script>
+    
+    <!-- Core Scripts -->
+    <script src="../../../core/constants/app-icons.js"></script>
+    <script src="../../../core/config/supabase.js"></script>
+    
+    <!-- App State Management -->
+    <script src="../../../core/utils/app-state.js"></script>
+    
+    <!-- Route Mapping -->
+    <script src="../../../core/config/route-mapping.js"></script>
+    
+    <!-- Page Initialization Utility -->
+    <script src="../../../core/utils/page-init.js"></script>
+    
+    <script>
+        // Set flag immediately to prevent navbar auto-init
+        window.skipNavbarAutoInit = true;
+        
+        // Initialize page using standardized pattern
+        window.initializePage('employee', (companyId, company) => {
+            console.log('Company changed in salary management:', companyId);
+            
+            // Reset store filter when company changes
+            currentStoreFilter = null;
+            
+            // Update store filter dropdown with new company's stores
+            refreshStoreFilter();
+            
+            // Load salary data for the new company
+            loadSalaryData(companyId);
+        });
+        
+        // Current period state - initialize with current month
+        const now = new Date();
+        let currentPeriod = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+        let salaryData = null;
+        let filteredEmployees = [];
+        let currentFilter = 'all';
+        let searchTerm = '';
+        let currentStoreFilter = null; // null means "All Stores"
+        
+        // Toggle employee card expansion
+        function toggleEmployeeCard(element) {
+            const card = element.closest('.employee-card');
+            card.classList.toggle('expanded');
+        }
+        
+        // Format currency with symbol
+        function formatCurrency(amount, currencySymbol = '') {
+            if (amount === null || amount === undefined) return '0';
+            const formattedAmount = new Intl.NumberFormat('ko-KR', {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0
+            }).format(amount);
+            return currencySymbol ? `${currencySymbol}${formattedAmount}` : formattedAmount;
+        }
+        
+        // Format number
+        function formatNumber(number) {
+            if (number === null || number === undefined) return '0';
+            return new Intl.NumberFormat('ko-KR').format(number);
+        }
+        
+        // Update period display
+        function updatePeriodDisplay() {
+            const periodElement = document.getElementById('currentPeriod');
+            if (periodElement) {
+                periodElement.textContent = currentPeriod;
+            }
+        }
+        
+        // Get employee initials
+        function getInitials(name) {
+            if (!name) return '??';
+            const parts = name.split(' ');
+            if (parts.length === 1) {
+                return name.substring(0, 2).toUpperCase();
+            }
+            return parts.map(p => p[0]).join('').substring(0, 2).toUpperCase();
+        }
+        
+        // Load salary data using RPC
+        async function loadSalaryData(companyId) {
+            if (!companyId) {
+                console.error('No company ID available');
+                return;
+            }
+            
+            // Clear previous data when loading new company data
+            salaryData = null;
+            filteredEmployees = [];
+            
+            // Clear the employee list display
+            const employeeListElement = document.getElementById('employeeList');
+            if (employeeListElement) {
+                employeeListElement.innerHTML = '';
+            }
+            
+            // Show loading state
+            document.getElementById('loadingState').classList.remove('hidden');
+            document.getElementById('employeeList').classList.add('hidden');
+            document.getElementById('emptyState').classList.add('hidden');
+            
+            try {
+                console.log('Calling get_employee_salary with:', {
+                    p_company_id: companyId,
+                    p_month: currentPeriod
+                });
+                
+                // Initialize supabase client if not already done
+                if (!window.supabase) {
+                    console.error('Supabase not initialized');
+                    throw new Error('Supabase client not initialized. Please refresh the page.');
+                }
+                
+                // Call the RPC function
+                const { data, error } = await supabase.rpc('get_employee_salary', {
+                    p_company_id: companyId,
+                    p_month: currentPeriod
+                });
+                
+                console.log('Raw RPC response:', { data, error });
+                
+                if (error) {
+                    throw error;
+                }
+                
+                if (!data) {
+                    throw new Error('No data returned from get_employee_salary');
+                }
+                
+                console.log('Salary data received:', data);
+                console.log('Data structure check:');
+                console.log('- Has employees array:', Array.isArray(data.employees));
+                console.log('- Number of employees:', data.employees ? data.employees.length : 0);
+                console.log('- First employee:', data.employees ? data.employees[0] : null);
+                console.log('- Has summary:', data.summary ? true : false);
+                
+                salaryData = data;
+                
+                // Update UI
+                renderSalaryData();
+                
+            } catch (error) {
+                console.error('Error loading salary data:', error);
+                
+                // Show empty state with error message
+                const emptyState = document.getElementById('emptyState');
+                emptyState.classList.remove('hidden');
+                
+                const emptyTitle = emptyState.querySelector('.empty-title');
+                const emptyText = emptyState.querySelector('.empty-text');
+                
+                if (error.message && error.message.includes('not exist')) {
+                    emptyTitle.textContent = 'Function not available';
+                    emptyText.textContent = 'The salary calculation function is not yet deployed. Please check with your administrator.';
+                } else {
+                    emptyTitle.textContent = 'Error loading salary data';
+                    emptyText.textContent = error.message || 'Unable to load salary information. Please try again later.';
+                }
+            } finally {
+                document.getElementById('loadingState').classList.add('hidden');
+            }
+        }
+        
+        // Render salary data
+        function renderSalaryData() {
+            if (!salaryData) {
+                console.log('No salary data available');
+                return;
+            }
+            
+            console.log('Rendering salary data:', salaryData);
+            console.log('Number of employees:', salaryData.employees ? salaryData.employees.length : 0);
+            
+            // Update period display
+            document.getElementById('currentPeriod').textContent = salaryData.period || currentPeriod;
+            
+            // Update summary cards - pass null to use original summary for initial load
+            renderSummaryCards(null);
+            
+            // Store all employees for filtering (employees already in correct format)
+            filteredEmployees = salaryData.employees || [];
+            
+            console.log('Filtered employees set to:', filteredEmployees);
+            
+            // Apply current filter and search
+            applyFilters();
+        }
+        
+        // Calculate summary from filtered employees
+        function calculateFilteredSummary(employees) {
+            if (!employees || employees.length === 0) {
+                return {
+                    total_employees: 0,
+                    total_payment: 0,
+                    total_base_payment: 0,
+                    unsolved_problems: 0,
+                    total_problems: 0,
+                    employee_breakdown: {
+                        monthly: 0,
+                        hourly: 0
+                    }
+                };
+            }
+            
+            let summary = {
+                total_employees: employees.length,
+                total_payment: 0,
+                total_base_payment: 0,
+                unsolved_problems: 0,
+                total_problems: 0,
+                employee_breakdown: {
+                    monthly: 0,
+                    hourly: 0
+                }
+            };
+            
+            employees.forEach(employee => {
+                // Count employee types
+                if (employee.salary_type === 'monthly') {
+                    summary.employee_breakdown.monthly++;
+                } else if (employee.salary_type === 'hourly') {
+                    summary.employee_breakdown.hourly++;
+                }
+                
+                // Sum payments
+                const salaryInfo = employee.salary_info || {};
+                const baseInfo = salaryInfo.base_info || {};
+                summary.total_payment += salaryInfo.total_payment || 0;
+                summary.total_base_payment += baseInfo.base_payment || baseInfo.monthly_salary || 0;
+                
+                // Count problems
+                const problems = employee.problems || {};
+                const problemDetails = problems.problem_details || [];
+                summary.total_problems += problemDetails.length;
+                summary.unsolved_problems += problemDetails.filter(p => !p.is_solved).length;
+            });
+            
+            return summary;
+        }
+        
+        // Render summary cards
+        function renderSummaryCards(filteredEmployees = null) {
+            if (!salaryData || !salaryData.summary) return;
+            
+            // Use filtered summary if employees are filtered, otherwise use the original summary
+            let summary;
+            if (filteredEmployees && (currentStoreFilter || currentFilter !== 'all' || searchTerm)) {
+                summary = calculateFilteredSummary(filteredEmployees);
+            } else {
+                summary = salaryData.summary;
+            }
+            
+            const baseCurrency = salaryData.summary.base_currency || {};
+            const baseCurrencySymbol = baseCurrency.currency_symbol || '';
+            const summarySection = document.getElementById('summarySection');
+            
+            summarySection.innerHTML = `
+                <div class="summary-card">
+                    <div class="summary-label">
+                        <svg class="summary-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" opacity="0.6">
+                            <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5s-3 1.34-3 3 1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V18c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-1.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05.02.01.03.03.04.04 1.14.83 1.93 1.94 1.93 3.41V18c0 .35-.07.69-.18 1H22c.55 0 1-.45 1-1v-1.5c0-2.33-4.67-3.5-7-3.5z"/>
+                        </svg>
+                        Total Employees
+                    </div>
+                    <div class="summary-value">${formatNumber(summary.total_employees || 0)}</div>
+                    <div class="summary-change">
+                        <span>${summary.employee_breakdown ? `Monthly: ${summary.employee_breakdown.monthly || 0} | Hourly: ${summary.employee_breakdown.hourly || 0}` : ''}</span>
+                    </div>
+                </div>
+                
+                <div class="summary-card">
+                    <div class="summary-label">
+                        <svg class="summary-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" opacity="0.6">
+                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.31-8.86c-1.77-.45-2.34-.94-2.34-1.67 0-.84.79-1.43 2.1-1.43 1.38 0 1.9.66 1.94 1.64h1.71c-.05-1.34-.87-2.57-2.49-2.97V5H10.9v1.69c-1.51.32-2.72 1.3-2.72 2.81 0 1.79 1.49 2.69 3.66 3.21 1.95.46 2.34 1.15 2.34 1.87 0 .53-.39 1.39-2.1 1.39-1.6 0-2.23-.72-2.32-1.64H8.04c.1 1.7 1.36 2.66 2.86 2.97V19h2.34v-1.67c1.52-.29 2.72-1.16 2.73-2.77-.01-2.2-1.9-2.96-3.66-3.42z"/>
+                        </svg>
+                        Total Payment
+                    </div>
+                    <div class="summary-value total">${formatCurrency(summary.total_payment || 0, baseCurrencySymbol)}</div>
+                    <div class="summary-change">
+                        <span>Base: ${formatCurrency(summary.total_base_payment || 0, baseCurrencySymbol)}</span>
+                    </div>
+                </div>
+                
+                <div class="summary-card">
+                    <div class="summary-label">
+                        <svg class="summary-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" opacity="0.6">
+                            <path d="M12 5.99L19.53 19H4.47L12 5.99M12 2L1 21h22L12 2zm1 14h-2v2h2v-2zm0-6h-2v4h2v-4z"/>
+                        </svg>
+                        Problems
+                    </div>
+                    <div class="summary-value problems">${formatNumber(summary.unsolved_problems || 0)}</div>
+                    <div class="summary-change">
+                        <span>Total: ${formatNumber(summary.total_problems || 0)} | Solved: ${formatNumber((summary.total_problems || 0) - (summary.unsolved_problems || 0))}</span>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Render employee list
+        function renderEmployeeList(employees) {
+            console.log('renderEmployeeList called with', employees ? employees.length : 0, 'employees');
+            const employeeList = document.getElementById('employeeList');
+            
+            if (!employees || employees.length === 0) {
+                employeeList.innerHTML = '';
+                employeeList.classList.add('hidden');
+                document.getElementById('emptyState').classList.remove('hidden');
+                document.getElementById('emptyState').querySelector('.empty-title').textContent = 'No employees found';
+                document.getElementById('emptyState').querySelector('.empty-text').textContent = 'Try adjusting your filters or search terms.';
+                return;
+            }
+            
+            document.getElementById('emptyState').classList.add('hidden');
+            employeeList.classList.remove('hidden');
+            
+            employeeList.innerHTML = employees.map(employee => {
+                const salaryInfo = employee.salary_info || {};
+                const baseInfo = salaryInfo.base_info || {};
+                const deductions = salaryInfo.deductions || {};
+                const bonuses = salaryInfo.bonuses || {};
+                const overtime = salaryInfo.overtime || {};
+                const problems = employee.problems || {};
+                const currencyInfo = employee.currency_info || {};
+                const currencySymbol = currencyInfo.currency_symbol || '';
+                
+                // Use user_name directly from the response
+                const employeeName = employee.user_name || 'Unknown';
+                
+                // Determine salary display based on type - check both salary_type locations
+                const salaryType = employee.salary_type || salaryInfo.salary_type;
+                let salaryDisplay = '';
+                if (salaryType === 'hourly') {
+                    const hours = baseInfo.worked_hours || 0;
+                    const rate = baseInfo.hourly_rate || 0;
+                    salaryDisplay = `${formatNumber(hours)} hours × ${formatCurrency(rate, currencySymbol)}`;
+                } else {
+                    const baseSalary = baseInfo.monthly_salary || baseInfo.base_payment || 0;
+                    salaryDisplay = `Base: ${formatCurrency(baseSalary, currencySymbol)}`;
+                }
+                
+                // Create store badges HTML
+                const stores = employee.stores || [];
+                let storesHtml = '';
+                if (stores.length > 0) {
+                    const visibleStores = stores.slice(0, 2);
+                    const remainingCount = stores.length - 2;
+                    storesHtml = visibleStores.map(s => `<span class="store-badge">${s.store_name || 'Unknown'}</span>`).join('');
+                    if (remainingCount > 0) {
+                        storesHtml += `<span class="store-badge">+${remainingCount} more</span>`;
+                    }
+                }
+                
+                // Create problems list HTML
+                const problemDetails = problems.problem_details || [];
+                const lateDates = problems.late_dates || [];
+                let problemsHtml = '';
+                if (problemDetails.length > 0) {
+                    problemsHtml = `
+                        <div class="detail-section">
+                            <h3 class="detail-section-title">Attendance Problems (${problemDetails.length})</h3>
+                            <div class="problems-list">
+                                ${problemDetails.slice(0, 10).map(p => {
+                                    // Find late minutes for this problem if it's a late type
+                                    let lateMinutes = null;
+                                    if (p.problem_type === 'late') {
+                                        const lateDate = lateDates.find(ld => ld.date === p.date);
+                                        lateMinutes = lateDate ? lateDate.late_minutes : null;
+                                    }
+                                    
+                                    return `
+                                        <div class="problem-item ${p.is_solved ? 'solved' : ''}">
+                                            <div class="problem-info">
+                                                <span class="problem-date">${p.date || 'Unknown'}</span>
+                                                <span class="problem-type">${p.problem_type || 'Unknown'}</span>
+                                                ${lateMinutes !== null ? `<span class="problem-late-minutes">${lateMinutes} min late</span>` : ''}
+                                                <span class="problem-store">${p.store_name || 'Unknown'}</span>
+                                            </div>
+                                            <span class="problem-status ${p.is_solved ? 'solved' : 'pending'}">${p.is_solved ? 'Solved' : 'Pending'}</span>
+                                        </div>
+                                    `;
+                                }).join('')}
+                                ${problemDetails.length > 10 ? `<div style="text-align: center; padding: var(--space-2); color: var(--text-secondary);">... and ${problemDetails.length - 10} more</div>` : ''}
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                return `
+                    <div class="employee-card">
+                        <div class="employee-header" onclick="toggleEmployeeCard(this)">
+                            <div class="employee-main-info">
+                                <div class="employee-identity">
+                                    <div class="employee-avatar">${getInitials(employeeName)}</div>
+                                    <div class="employee-info">
+                                        <div class="employee-name">${employeeName}</div>
+                                        <span class="employee-type ${salaryType || 'unknown'}">${salaryType === 'monthly' ? 'Monthly' : salaryType === 'hourly' ? 'Hourly' : 'Unknown'}</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="employee-salary-summary">
+                                    <div class="total-payment">${formatCurrency(salaryInfo.total_payment || 0, currencySymbol)}</div>
+                                    <div class="payment-breakdown">${salaryDisplay}</div>
+                                </div>
+                            </div>
+                            
+                            <div class="employee-stores">
+                                ${storesHtml}
+                            </div>
+                            
+                            <div class="employee-quick-stats">
+                                <div class="quick-stat">
+                                    <span class="quick-stat-label">Late:</span>
+                                    <span class="quick-stat-value ${deductions.late_count > 0 ? 'warning' : ''}">${deductions.late_count || 0} times${lateDates.length > 0 ? ` (${lateDates.reduce((total, ld) => total + (ld.late_minutes || 0), 0)} min)` : ''}</span>
+                                </div>
+                                <div class="quick-stat">
+                                    <span class="quick-stat-label">Overtime:</span>
+                                    <span class="quick-stat-value">${overtime.overtime_count || 0} hours</span>
+                                </div>
+                                <div class="quick-stat">
+                                    <span class="quick-stat-label">${problemDetails.length > 0 ? 'Problems:' : 'Bonus:'}</span>
+                                    <span class="quick-stat-value ${problemDetails.length > 0 ? 'negative' : 'positive'}">${problemDetails.length > 0 ? problemDetails.length : formatCurrency(bonuses.bonus_amount || 0, currencySymbol)}</span>
+                                </div>
+                                <svg class="expand-icon" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M16.59 8.59L12 13.17 7.41 8.59 6 10l6 6 6-6z"/>
+                                </svg>
+                            </div>
+                        </div>
+                        
+                        <div class="employee-details">
+                            <div class="details-content">
+                                <!-- Salary Breakdown -->
+                                <div class="detail-section">
+                                    <h3 class="detail-section-title">Salary Breakdown</h3>
+                                    <div class="salary-breakdown-table">
+                                        <div class="breakdown-row">
+                                            <span class="breakdown-label">${salaryInfo.salary_type === 'hourly' ? `Base Payment (${baseInfo.worked_hours || 0}h × ${formatCurrency(baseInfo.hourly_rate || 0, currencySymbol)})` : 'Base Salary'}</span>
+                                            <span class="breakdown-value">${formatCurrency(baseInfo.base_payment || baseInfo.monthly_salary || 0, currencySymbol)}</span>
+                                        </div>
+                                        <div class="breakdown-row">
+                                            <span class="breakdown-label">Late Deduction${deductions.late_minutes ? ` (${deductions.late_minutes} min)` : ''}</span>
+                                            <span class="breakdown-value negative">-${formatCurrency(Math.abs(deductions.late_deduction_amount || 0), currencySymbol)}</span>
+                                        </div>
+                                        <div class="breakdown-row">
+                                            <span class="breakdown-label">Overtime Payment</span>
+                                            <span class="breakdown-value positive">+${formatCurrency(overtime.overtime_amount || 0, currencySymbol)}</span>
+                                        </div>
+                                        <div class="breakdown-row">
+                                            <span class="breakdown-label">Bonus</span>
+                                            <span class="breakdown-value positive">+${formatCurrency(bonuses.bonus_amount || 0, currencySymbol)}</span>
+                                        </div>
+                                        <div class="breakdown-row">
+                                            <span class="breakdown-label">Total Payment</span>
+                                            <span class="breakdown-value">${formatCurrency(salaryInfo.total_payment || 0, currencySymbol)}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Bank Information -->
+                                <div class="detail-section">
+                                    <h3 class="detail-section-title">Bank Information</h3>
+                                    <div class="salary-breakdown-table">
+                                        <div class="breakdown-row">
+                                            <span class="breakdown-label">Bank Name</span>
+                                            <span class="breakdown-value${!employee.user_bank_name ? ' not-registered' : ''}">${employee.user_bank_name || 'Not registered'}</span>
+                                        </div>
+                                        <div class="breakdown-row">
+                                            <span class="breakdown-label">Account Number</span>
+                                            <span class="breakdown-value${!employee.user_account_number ? ' not-registered' : ''}">${employee.user_account_number || 'Not registered'}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Store Assignments -->
+                                ${stores.length > 0 ? `
+                                <div class="detail-section">
+                                    <h3 class="detail-section-title">Store Assignments</h3>
+                                    <div class="employee-stores">
+                                        ${stores.map(s => `<span class="store-badge">${s.store_name || 'Unknown'}</span>`).join('')}
+                                    </div>
+                                </div>
+                                ` : ''}
+                                
+                                <!-- Problems Section -->
+                                ${problemsHtml}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        // Refresh store filter when company changes
+        function refreshStoreFilter() {
+            console.log('Refreshing store filter for new company');
+            
+            // Reset the store filter
+            currentStoreFilter = null;
+            
+            // Close any open dropdown
+            const storeFilterControl = document.getElementById('storeFilterControl');
+            const storeFilterDropdown = document.getElementById('storeFilterDropdown');
+            const storeFilterOptions = document.getElementById('storeFilterOptions');
+            
+            if (storeFilterControl) {
+                storeFilterControl.classList.remove('dropdown-open');
+            }
+            if (storeFilterDropdown) {
+                storeFilterDropdown.classList.remove('show');
+                storeFilterDropdown.classList.remove('active');
+            }
+            
+            // Clear the dropdown options to force rebuild on next open
+            if (storeFilterOptions) {
+                console.log('Clearing store dropdown options');
+                storeFilterOptions.innerHTML = '';
+            }
+            
+            // Update the label to show "All Stores" since we reset the filter
+            const label = document.getElementById('storeFilterLabel');
+            if (label) {
+                label.textContent = 'All Stores';
+            }
+            
+            // The dropdown contents will be rebuilt when it's next opened
+        }
+        
+        // Store filter functions
+        function setupStoreFilter() {
+            const storeFilterControl = document.getElementById('storeFilterControl');
+            
+            if (storeFilterControl) {
+                storeFilterControl.addEventListener('click', async (e) => {
+                    e.stopPropagation();
+                    await toggleStoreFilterDropdown();
+                });
+                
+                // Keyboard support
+                storeFilterControl.addEventListener('keydown', async (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        await toggleStoreFilterDropdown();
+                    }
+                });
+                
+                storeFilterControl.setAttribute('tabindex', '0');
+                storeFilterControl.setAttribute('role', 'button');
+                storeFilterControl.setAttribute('aria-label', 'Select store filter');
+            }
+            
+            // Close dropdown when clicking outside
+            document.addEventListener('click', (e) => {
+                if (!e.target.closest('.control-section') && !e.target.closest('.store-filter-dropdown')) {
+                    hideStoreFilterDropdown();
+                }
+            });
+        }
+        
+        async function toggleStoreFilterDropdown() {
+            const dropdown = document.getElementById('storeFilterDropdown');
+            
+            if (!dropdown) {
+                console.error('Dropdown element not found');
+                return;
+            }
+            
+            if (dropdown.classList.contains('active')) {
+                hideStoreFilterDropdown();
+            } else {
+                await showStoreFilterDropdown();
+            }
+        }
+        
+        async function showStoreFilterDropdown() {
+            const storeFilterDropdown = document.getElementById('storeFilterDropdown');
+            const storeFilterControl = document.getElementById('storeFilterControl');
+            const storeFilterOptions = document.getElementById('storeFilterOptions');
+            
+            if (!storeFilterDropdown || !storeFilterControl || !storeFilterOptions) {
+                console.error('Store filter dropdown elements not found');
+                return;
+            }
+            
+            if (typeof appState === 'undefined') {
+                console.error('appState is not defined');
+                return;
+            }
+            
+            // Get stores from app state - get fresh company data from navbar
+            const companyId = appState.getSelectedCompanyId();
+            console.log('Building store dropdown for company:', companyId);
+            let stores = null; // Use null to indicate not yet fetched
+            
+            // Try to get fresh data from navbar instance first
+            if (window.navbarInstance && window.navbarInstance.companySelector) {
+                try {
+                    // Get the currently selected option from navbar's company selector
+                    const selectedOption = window.navbarInstance.companySelector.getSelectedOption();
+                    if (selectedOption && selectedOption.data) {
+                        stores = selectedOption.data.stores || [];
+                        console.log('Got fresh stores from navbar selector:', stores);
+                    }
+                } catch (navbarError) {
+                    console.log('Could not get from navbar:', navbarError);
+                }
+            }
+            
+            // If navbar didn't work, try getting from fresh user data
+            if (stores === null) {
+                try {
+                    const userData = localStorage.getItem('user');
+                    if (userData) {
+                        const parsedData = JSON.parse(userData);
+                        const company = parsedData.companies?.find(c => c.company_id === companyId);
+                        if (company) {
+                            stores = company.stores || [];
+                            console.log('Got stores from fresh user data:', stores);
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error getting fresh user data:', error);
+                }
+            }
+            
+            // Final fallback to appState
+            if (stores === null) {
+                try {
+                    stores = appState.getCompanyStores();
+                    console.log('Got stores from appState (fallback):', stores);
+                } catch (fallbackError) {
+                    console.error('All methods failed:', fallbackError);
+                    stores = [];
+                }
+            }
+            
+            // Ensure stores is an array
+            if (!stores) {
+                stores = [];
+            }
+            
+            // Build store options HTML
+            let optionsHTML = `
+                <input 
+                    type="text" 
+                    placeholder="Search stores..." 
+                    class="store-filter-search" 
+                    id="storeFilterSearch" 
+                    autocomplete="off"
+                >
+                <div class="store-filter-divider"></div>
+            `;
+            
+            // Add "All Stores" option
+            optionsHTML += `
+                <div class="store-filter-dropdown-option${!currentStoreFilter ? ' selected' : ''}" data-store-filter="">
+                    <svg class="store-filter-dropdown-option-icon" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M19,3H5C3.89,3 3,3.89 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5C21,3.89 20.1,3 19,3M19,5V19H5V5H19Z"/>
+                    </svg>
+                    <span class="store-filter-dropdown-option-text">All Stores</span>
+                    ${!currentStoreFilter ? '<svg class="store-filter-dropdown-option-check" fill="currentColor" viewBox="0 0 24 24"><path d="M9,20.42L2.79,14.21L5.62,11.38L9,14.77L18.88,4.88L21.71,7.71L9,20.42Z"/></svg>' : ''}
+                </div>
+            `;
+            
+            // Add individual store options
+            stores.forEach(store => {
+                const isSelected = store.store_id === currentStoreFilter;
+                optionsHTML += `
+                    <div class="store-filter-dropdown-option${isSelected ? ' selected' : ''}" data-store-filter="${store.store_id}">
+                        <svg class="store-filter-dropdown-option-icon" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12,3L2,12H5V20H19V12H22L12,3M12,8.75A1.25,1.25 0 0,1 13.25,10A1.25,1.25 0 0,1 12,11.25A1.25,1.25 0 0,1 10.75,10A1.25,1.25 0 0,1 12,8.75Z"/>
+                        </svg>
+                        <span class="store-filter-dropdown-option-text">${store.store_name}</span>
+                        ${isSelected ? '<svg class="store-filter-dropdown-option-check" fill="currentColor" viewBox="0 0 24 24"><path d="M9,20.42L2.79,14.21L5.62,11.38L9,14.77L18.88,4.88L21.71,7.71L9,20.42Z"/></svg>' : ''}
+                    </div>
+                `;
+            });
+            
+            if (stores.length === 0) {
+                optionsHTML += `
+                    <div class="store-filter-dropdown-option" style="opacity: 0.6; pointer-events: none;">
+                        <svg class="store-filter-dropdown-option-icon" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,6A1.5,1.5 0 0,1 13.5,7.5A1.5,1.5 0 0,1 12,9A1.5,1.5 0 0,1 10.5,7.5A1.5,1.5 0 0,1 12,6M12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20M12,10C13.25,10 15.29,10.54 16.19,12.38C16.66,13.27 16.65,14.35 16.15,15.23C15.5,16.37 14.45,17 13.25,17H10.75C9.55,17 8.5,16.37 7.85,15.23C7.35,14.35 7.34,13.27 7.81,12.38C8.71,10.54 10.75,10 12,10Z"/>
+                        </svg>
+                        <span class="store-filter-dropdown-option-text">No stores available</span>
+                    </div>
+                `;
+            }
+            
+            storeFilterOptions.innerHTML = optionsHTML;
+            
+            // Setup search functionality
+            const searchInput = document.getElementById('storeFilterSearch');
+            if (searchInput) {
+                searchInput.addEventListener('input', (e) => {
+                    const searchTerm = e.target.value.toLowerCase();
+                    const options = storeFilterOptions.querySelectorAll('.store-filter-dropdown-option');
+                    
+                    options.forEach(option => {
+                        const text = option.querySelector('.store-filter-dropdown-option-text');
+                        if (text) {
+                            const storeName = text.textContent.toLowerCase();
+                            if (storeName.includes(searchTerm)) {
+                                option.style.display = 'flex';
+                            } else {
+                                option.style.display = 'none';
+                            }
+                        }
+                    });
+                });
+            }
+            
+            // Setup option click handlers
+            storeFilterOptions.querySelectorAll('.store-filter-dropdown-option').forEach(option => {
+                option.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const storeFilter = option.dataset.storeFilter;
+                    const storeName = option.querySelector('.store-filter-dropdown-option-text')?.textContent;
+                    
+                    currentStoreFilter = storeFilter || null;
+                    
+                    // Update the display immediately with the known store name
+                    const label = document.getElementById('storeFilterLabel');
+                    if (label && storeName) {
+                        label.textContent = storeName;
+                    }
+                    
+                    // Also run the full update (for consistency)
+                    updateStoreFilterDisplay();
+                    hideStoreFilterDropdown();
+                    
+                    // Apply filters to employee list and update summary
+                    applyFilters();
+                });
+            });
+            
+            storeFilterDropdown.classList.add('active');
+            storeFilterControl.classList.add('dropdown-open');
+            
+            // Focus search input
+            setTimeout(() => {
+                const searchInput = document.getElementById('storeFilterSearch');
+                if (searchInput) {
+                    searchInput.focus();
+                }
+            }, 100);
+        }
+        
+        function hideStoreFilterDropdown() {
+            const storeFilterDropdown = document.getElementById('storeFilterDropdown');
+            const storeFilterControl = document.getElementById('storeFilterControl');
+            
+            if (storeFilterDropdown) storeFilterDropdown.classList.remove('active');
+            if (storeFilterControl) storeFilterControl.classList.remove('dropdown-open');
+        }
+        
+        function updateStoreFilterDisplay() {
+            const label = document.getElementById('storeFilterLabel');
+            if (currentStoreFilter) {
+                const companyId = appState.getSelectedCompanyId();
+                let store = null;
+                
+                // Try multiple methods to find the store
+                // Method 1: Try getting from navbar instance first (most up-to-date)
+                if (window.navbarInstance && window.navbarInstance.companySelector) {
+                    try {
+                        const selectedOption = window.navbarInstance.companySelector.getSelectedOption();
+                        if (selectedOption && selectedOption.data && selectedOption.data.stores) {
+                            store = selectedOption.data.stores.find(s => s.store_id === currentStoreFilter);
+                        }
+                    } catch (navbarError) {
+                        console.log('Could not get store from navbar:', navbarError);
+                    }
+                }
+                
+                // Method 2: Try getting from fresh user data
+                if (!store) {
+                    try {
+                        const userData = localStorage.getItem('user');
+                        if (userData) {
+                            const parsedData = JSON.parse(userData);
+                            const company = parsedData.companies?.find(c => c.company_id === companyId);
+                            if (company && company.stores) {
+                                store = company.stores.find(s => s.store_id === currentStoreFilter);
+                            }
+                        }
+                    } catch (error) {
+                        console.error('Error getting store from user data:', error);
+                    }
+                }
+                
+                // Method 3: Try appState methods
+                if (!store) {
+                    try {
+                        const stores = appState.getCompanyStores();
+                        store = stores.find(s => s.store_id === currentStoreFilter);
+                    } catch (error) {
+                        console.error('Error getting store from appState:', error);
+                    }
+                }
+                
+                // Method 4: Final fallback - get from companies
+                if (!store) {
+                    try {
+                        const companies = appState.getUserCompanies();
+                        const company = companies.find(c => c.company_id === companyId);
+                        store = company?.stores?.find(s => s.store_id === currentStoreFilter);
+                    } catch (fallbackError) {
+                        console.error('Final fallback store lookup failed:', fallbackError);
+                    }
+                }
+                
+                label.textContent = store ? store.store_name : 'Store Not Found';
+            } else {
+                label.textContent = 'All Stores';
+            }
+        }
+        
+        // Apply filters to employee list
+        function applyFilters() {
+            if (!salaryData || !salaryData.employees) {
+                console.log('No salary data or employees to filter');
+                return;
+            }
+            
+            console.log('Applying filters. Total employees:', salaryData.employees.length);
+            console.log('Current store filter:', currentStoreFilter);
+            console.log('Current type filter:', currentFilter);
+            console.log('Search term:', searchTerm);
+            
+            let filtered = [...salaryData.employees];
+            console.log('Initial filtered array:', filtered);
+            
+            // Apply store filter
+            if (currentStoreFilter) {
+                console.log('Applying store filter for store ID:', currentStoreFilter);
+                filtered = filtered.filter(e => {
+                    const stores = e.stores || [];
+                    const hasStore = stores.some(s => s.store_id === currentStoreFilter);
+                    console.log(`Employee ${e.user_name} has store:`, hasStore);
+                    return hasStore;
+                });
+                console.log('After store filter:', filtered.length, 'employees');
+            }
+            
+            // Apply type filter
+            if (currentFilter !== 'all') {
+                switch (currentFilter) {
+                    case 'monthly':
+                        filtered = filtered.filter(e => e.salary_type === 'monthly');
+                        break;
+                    case 'hourly':
+                        filtered = filtered.filter(e => e.salary_type === 'hourly');
+                        break;
+                    case 'problems':
+                        filtered = filtered.filter(e => e.problems && e.problems.problem_details && e.problems.problem_details.length > 0);
+                        break;
+                    case 'overtime':
+                        filtered = filtered.filter(e => e.salary_info && e.salary_info.overtime && e.salary_info.overtime.overtime_count > 0);
+                        break;
+                }
+            }
+            
+            // Apply search filter
+            if (searchTerm) {
+                filtered = filtered.filter(e => 
+                    e.user_name && e.user_name.toLowerCase().includes(searchTerm.toLowerCase())
+                );
+            }
+            
+            // Sort employees: salary > 0 first (alphabetical), then salary = 0 (alphabetical)
+            filtered.sort((a, b) => {
+                const aSalary = a.salary_info?.total_payment || 0;
+                const bSalary = b.salary_info?.total_payment || 0;
+                const aName = a.user_name || '';
+                const bName = b.user_name || '';
+                
+                // If both have salary > 0 or both have salary = 0, sort alphabetically
+                if ((aSalary > 0 && bSalary > 0) || (aSalary === 0 && bSalary === 0)) {
+                    return aName.localeCompare(bName);
+                }
+                
+                // Employees with salary > 0 come first
+                if (aSalary > 0 && bSalary === 0) return -1;
+                if (aSalary === 0 && bSalary > 0) return 1;
+                
+                return 0;
+            });
+            
+            console.log('Final filtered and sorted employees count:', filtered.length);
+            console.log('Filtered employees:', filtered);
+            
+            // Update summary cards with filtered data
+            renderSummaryCards(filtered);
+            
+            // Render the employee list
+            renderEmployeeList(filtered);
+        }
+        
+        // Filter employees
+        function filterEmployees(filter) {
+            if (typeof filter === 'string' && filter.length > 0 && !['all', 'monthly', 'hourly', 'problems', 'overtime'].includes(filter)) {
+                // It's a search term
+                searchTerm = filter;
+            } else {
+                // It's a filter type
+                currentFilter = filter;
+            }
+            applyFilters();
+        }
+        
+        // Period navigation
+        document.getElementById('prevPeriod').addEventListener('click', () => {
+            // Navigate to previous period
+            const [year, month] = currentPeriod.split('-');
+            const date = new Date(year, parseInt(month) - 2);
+            currentPeriod = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+            updatePeriodDisplay();
+            
+            // Get current company ID from localStorage
+            const companyId = localStorage.getItem('companyChoosen') || appState.getSelectedCompanyId();
+            if (companyId) {
+                loadSalaryData(companyId);
+            }
+        });
+        
+        document.getElementById('nextPeriod').addEventListener('click', () => {
+            // Navigate to next period
+            const [year, month] = currentPeriod.split('-');
+            const date = new Date(year, parseInt(month));
+            currentPeriod = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+            updatePeriodDisplay();
+            
+            // Get current company ID from localStorage
+            const companyId = localStorage.getItem('companyChoosen') || appState.getSelectedCompanyId();
+            if (companyId) {
+                loadSalaryData(companyId);
+            }
+        });
+        
+        // Filter functionality
+        document.querySelectorAll('.filter-chip').forEach(chip => {
+            chip.addEventListener('click', function() {
+                // Toggle active state
+                document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+                this.classList.add('active');
+                
+                // Apply filter
+                const filter = this.dataset.filter;
+                currentFilter = filter;
+                searchTerm = ''; // Clear search when selecting a filter
+                document.getElementById('searchInput').value = '';
+                applyFilters();
+            });
+        });
+        
+        // Search functionality with debouncing
+        let searchTimeout;
+        document.getElementById('searchInput').addEventListener('input', function() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                searchTerm = this.value.toLowerCase();
+                // Reset filter to 'all' when searching
+                currentFilter = 'all';
+                document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+                document.querySelector('.filter-chip[data-filter="all"]').classList.add('active');
+                applyFilters();
+            }, 300);
+        });
+        
+        // Listen for company changes from navbar
+        window.addEventListener('companyChanged', function(event) {
+            console.log('Salary page: Company changed event received', event.detail);
+            if (event.detail && event.detail.companyId) {
+                // Reset store filter when company changes
+                currentStoreFilter = null;
+                
+                // Reset to current month when company changes
+                const now = new Date();
+                currentPeriod = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+                updatePeriodDisplay();
+                
+                // Update store filter dropdown with new company's stores
+                refreshStoreFilter();
+                
+                // Load salary data for the new company
+                loadSalaryData(event.detail.companyId);
+            }
+        });
+        
+        // Setup window.onCompanyChange for navbar compatibility
+        window.onCompanyChange = function(companyId) {
+            console.log('Salary page: onCompanyChange called with:', companyId);
+            
+            // Reset store filter when company changes
+            currentStoreFilter = null;
+            
+            // Reset to current month when company changes
+            const now = new Date();
+            currentPeriod = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+            updatePeriodDisplay();
+            
+            // Update store filter dropdown with new company's stores
+            refreshStoreFilter();
+            
+            // Load salary data for the new company
+            loadSalaryData(companyId);
+        };
+        
+        // Initial load
+        document.addEventListener('DOMContentLoaded', async () => {
+            console.log('🚀 Salary page DOM loaded - starting initialization...');
+            
+            // Initialize using PageInitializer pattern for correct navbar active state
+            const pageInit = new PageInitializer('employee');
+            await pageInit.initialize();
+            
+            // Setup store filter after navbar is ready
+            setupStoreFilter();
+            
+            // Update the period display to current period
+            updatePeriodDisplay();
+            
+            // Setup the page-specific initialization
+            console.log('🔍 Setting up salary page after navbar initialization');
+            
+            // The initializePage callback for legacy support
+            if (typeof window.initializePage === 'function') {
+                window.initializePage('employee', (companyId, company) => {
+                    console.log('Salary page initializePage callback:', companyId);
+                    
+                    // Reset store filter when company changes
+                    currentStoreFilter = null;
+                    
+                    // Update store filter dropdown with new company's stores
+                    refreshStoreFilter();
+                    
+                    // Load salary data for the new company
+                    loadSalaryData(companyId);
+                });
+            }
+            
+            // Wait for supabase to be initialized
+            setTimeout(() => {
+                // Initialize supabase if needed
+                if (typeof initializeSupabase === 'function' && !window.supabase) {
+                    initializeSupabase();
+                }
+                
+                // Get company from storage and load data
+                const companyId = localStorage.getItem('companyChoosen') || 
+                                localStorage.getItem('selectedCompanyId') || 
+                                appState.getSelectedCompanyId();
+                
+                if (companyId && companyId !== 'null' && companyId !== 'undefined') {
+                    console.log('Loading initial salary data for company:', companyId);
+                    loadSalaryData(companyId);
+                } else {
+                    console.log('No company selected, showing empty state');
+                    document.getElementById('loadingState').classList.add('hidden');
+                    document.getElementById('emptyState').classList.remove('hidden');
+                }
+            }, 200);
+        });
+    </script>
+</body>
+</html>

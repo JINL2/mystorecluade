@@ -1,0 +1,1240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Store Base - Dashboard</title>
+    
+    <!-- Theme CSS -->
+    <link rel="stylesheet" href="../../core/themes/toss-variables.css">
+    <link rel="stylesheet" href="../../core/themes/toss-component-variables.css">
+    <link rel="stylesheet" href="../../core/themes/toss-base.css">
+    <link rel="stylesheet" href="../../core/themes/toss-typography.css">
+    
+    <!-- Component CSS -->
+    <link rel="stylesheet" href="../../components/base/toss-button.css">
+    <link rel="stylesheet" href="../../components/feedback/toss-alert.css">
+    <link rel="stylesheet" href="../../components/form/toss-select.css">
+    <link rel="stylesheet" href="../../components/navigation/navbar.css">
+    
+    <!-- Chart.js for data visualization -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <style>
+        /* Modern Dashboard Styles - 2024 Design Standards */
+        .dashboard-container {
+            min-height: 100vh;
+            background: var(--toss-gray-50);
+            font-family: var(--font-family);
+        }
+        
+        /* Modern Layout */
+        .dashboard-layout {
+            min-height: 100vh;
+        }
+        
+        /* Remove old sidebar styles */
+        .sidebar {
+            display: none;
+        }
+        
+        /* Main Content Area */
+        .main-content {
+            background: var(--toss-gray-50);
+            min-height: calc(100vh - 120px);
+        }
+        
+        /* Page Header */
+        .page-header {
+            margin-bottom: var(--space-6);
+        }
+        
+        .header-title {
+            font-size: var(--font-h2);
+            font-weight: 700;
+            color: var(--text-primary);
+            margin: 0 0 var(--space-8) 0;
+        }
+        
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: var(--space-4);
+        }
+        
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+            padding: var(--space-2) var(--space-3);
+            border-radius: var(--radius-md);
+            transition: all var(--transition-fast);
+            cursor: pointer;
+        }
+        
+        .user-profile:hover {
+            background: var(--toss-gray-100);
+        }
+        
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            background: var(--toss-primary);
+            border-radius: var(--radius-full);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: var(--font-small);
+        }
+        
+        .user-info h4 {
+            font-size: var(--font-body);
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0;
+        }
+        
+        .user-info p {
+            font-size: var(--font-small);
+            color: var(--text-secondary);
+            margin: 0;
+        }
+        
+        /* Main Content */
+        .dashboard-main {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: var(--space-6) var(--space-8);
+            background: var(--toss-white);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-1);
+        }
+        
+        /* Financial Overview Cards */
+        .overview-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: var(--space-5);
+            margin-bottom: var(--space-8);
+        }
+        
+        .overview-card {
+            background: var(--toss-gray-50);
+            border-radius: var(--radius-lg);
+            padding: var(--space-6);
+            border: 1px solid var(--toss-border-light);
+            transition: all var(--transition-fast);
+            position: relative;
+            overflow: hidden;
+            min-height: 140px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        
+        .overview-card:hover {
+            background: var(--toss-gray-100);
+        }
+        
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: var(--space-4);
+            min-height: 24px;
+        }
+        
+        .card-title {
+            font-size: var(--font-body);
+            font-weight: 600;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+        }
+        
+        .card-icon {
+            width: 20px;
+            height: 20px;
+            color: var(--toss-primary);
+        }
+        
+        .card-value {
+            font-size: var(--font-h2);
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: var(--space-2);
+            min-height: 40px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .card-change {
+            font-size: var(--font-small);
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: var(--space-1);
+        }
+        
+        .change-positive {
+            color: var(--toss-success);
+        }
+        
+        .change-negative {
+            color: var(--toss-error);
+        }
+        
+        .change-neutral {
+            color: var(--text-tertiary);
+        }
+        
+        /* Content Sections */
+        .content-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: var(--space-6);
+            margin-bottom: var(--space-8);
+        }
+        
+        .content-section {
+            background: var(--toss-white);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--toss-border);
+            box-shadow: var(--shadow-1);
+        }
+        
+        .section-header {
+            padding: var(--space-5) var(--space-6);
+            border-bottom: 1px solid var(--toss-border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .section-title {
+            font-size: var(--font-large);
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0;
+        }
+        
+        .section-content {
+            padding: var(--space-6);
+        }
+        
+        /* Chart Container */
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-bottom: var(--space-4);
+        }
+        
+        /* Recent Transactions */
+        .transaction-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: var(--space-3) 0;
+            border-bottom: 1px solid var(--toss-border-light);
+            gap: var(--space-3);
+        }
+        
+        .transaction-item:last-child {
+            border-bottom: none;
+        }
+        
+        .transaction-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--toss-gray-100);
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: var(--space-3);
+            color: var(--text-secondary);
+            flex-shrink: 0;
+        }
+        
+        .transaction-details {
+            flex: 1;
+        }
+        
+        .transaction-title {
+            font-size: var(--font-body);
+            font-weight: 500;
+            color: var(--text-primary);
+            margin: 0 0 var(--space-1) 0;
+        }
+        
+        .transaction-subtitle {
+            font-size: var(--font-small);
+            color: var(--text-tertiary);
+            margin: 0;
+        }
+        
+        .transaction-amount {
+            font-size: var(--font-body);
+            font-weight: 600;
+            text-align: right;
+            min-width: 100px;
+            flex-shrink: 0;
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            padding-left: var(--space-3);
+        }
+        
+        .amount-positive {
+            color: var(--toss-success);
+        }
+        
+        .amount-negative {
+            color: var(--toss-error);
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 1400px) {
+            .overview-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        @media (max-width: 1200px) {
+            .content-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        @media (max-width: 968px) {
+            .header-nav {
+                flex-direction: column;
+                gap: var(--space-2);
+            }
+            
+            .nav-dropdown .dropdown-menu {
+                position: static;
+                opacity: 1;
+                visibility: visible;
+                transform: none;
+                box-shadow: none;
+                border: none;
+                margin-top: var(--space-1);
+                display: none;
+            }
+            
+            .nav-dropdown .dropdown-menu.show {
+                display: block;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .header-nav {
+                display: none;
+            }
+            
+            .dashboard-main {
+                padding: var(--space-4);
+                border-radius: 0;
+                box-shadow: none;
+            }
+            
+            .overview-grid {
+                grid-template-columns: 1fr;
+                gap: var(--space-4);
+            }
+            
+            .header-title {
+                font-size: var(--font-h3);
+                margin-bottom: var(--space-5);
+            }
+            
+            .overview-card {
+                min-height: 120px;
+                padding: var(--space-4);
+            }
+            
+        }
+        
+        /* Loading States */
+        .skeleton {
+            background: linear-gradient(90deg, var(--toss-gray-200) 25%, var(--toss-gray-100) 50%, var(--toss-gray-200) 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
+        }
+        
+        @keyframes loading {
+            0% {
+                background-position: 200% 0;
+            }
+            100% {
+                background-position: -200% 0;
+            }
+        }
+        
+        .skeleton-text {
+            height: 1em;
+            border-radius: var(--radius-sm);
+            margin-bottom: var(--space-2);
+        }
+        
+        .skeleton-title {
+            height: 1.5em;
+            width: 60%;
+        }
+        
+        .skeleton-value {
+            height: 2em;
+            width: 40%;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-layout">
+        <!-- Navigation Bar Container -->
+        <div id="navbar-container"></div>
+        
+        
+        <!-- Main Content Area -->
+        <div class="main-content">
+            <!-- Dashboard Content -->
+            <main class="dashboard-main">
+            <!-- Page Header -->
+            <header class="page-header">
+                <h1 class="header-title">Dashboard</h1>
+            </header>
+            <!-- Financial Overview Cards -->
+            <section class="overview-grid" id="overviewGrid">
+                <div class="overview-card">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <svg class="card-icon" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M7 15h2c0 1.08.81 2 2 2h2c1.19 0 2-.81 2-2s-.81-2-2-2h-2c-1.19 0-2-.81-2-2s.81-2 2-2h2c1.19 0 2 .92 2 2h2c0-1.08-.81-2-2-2V9h-2v2h-2c-1.19 0-2 .81-2 2s.81 2 2 2h2c1.19 0 2 .81 2 2s-.81 2-2 2h-2c-1.19 0-2-.92-2-2H7v2z"/>
+                            </svg>
+                            Today Revenue
+                        </div>
+                    </div>
+                    <div class="card-value" id="todayRevenueValue">Loading...</div>
+                    <div class="card-change" id="todayRevenueChange">
+                        <!-- Change indicator will be populated dynamically -->
+                    </div>
+                </div>
+                
+                <div class="overview-card">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <svg class="card-icon" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14H7v-2h5v2zm5-4H7v-2h10v2zm0-4H7V7h10v2z"/>
+                            </svg>
+                            Today Expense
+                        </div>
+                    </div>
+                    <div class="card-value" id="todayExpenseValue">Loading...</div>
+                    <div class="card-change" id="todayExpenseChange">
+                        <!-- Change indicator will be populated dynamically -->
+                    </div>
+                </div>
+                
+                <div class="overview-card">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <svg class="card-icon" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M7 15h2c0 1.08.81 2 2 2h2c1.19 0 2-.81 2-2s-.81-2-2-2h-2c-1.19 0-2-.81-2-2s.81-2 2-2h2c1.19 0 2 .92 2 2h2c0-1.08-.81-2-2-2V9h-2v2h-2c-1.19 0-2 .81-2 2s.81 2 2 2h2c1.19 0 2 .81 2 2s-.81 2-2 2h-2c-1.19 0-2-.92-2-2H7v2z"/>
+                            </svg>
+                            This Month Revenue
+                        </div>
+                    </div>
+                    <div class="card-value" id="thisMonthRevenueValue">Loading...</div>
+                    <div class="card-change" id="thisMonthRevenueChange">
+                        <!-- Change indicator will be populated dynamically -->
+                    </div>
+                </div>
+                
+                <div class="overview-card">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <svg class="card-icon" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M7 15h2c0 1.08.81 2 2 2h2c1.19 0 2-.81 2-2s-.81-2-2-2h-2c-1.19 0-2-.81-2-2s.81-2 2-2h2c1.19 0 2 .92 2 2h2c0-1.08-.81-2-2-2V9h-2v2h-2c-1.19 0-2 .81-2 2s.81 2 2 2h2c1.19 0 2 .81 2 2s-.81 2-2 2h-2c-1.19 0-2-.92-2-2H7v2z"/>
+                            </svg>
+                            Last Month Revenue
+                        </div>
+                    </div>
+                    <div class="card-value" id="lastMonthRevenueValue">Loading...</div>
+                    <div class="card-change" id="lastMonthRevenueChange">
+                        <!-- Change indicator will be populated dynamically -->
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Content Grid -->
+            <div class="content-grid">
+                <!-- Spending Overview Chart -->
+                <section class="content-section">
+                    <div class="section-header">
+                        <h2 class="section-title">This Month Expenses</h2>
+                    </div>
+                    <div class="section-content">
+                        <div class="chart-container">
+                            <canvas id="spendingChart"></canvas>
+                        </div>
+                        <div id="chartEmptyState" style="display: none; text-align: center; padding: 40px;">
+                            <p style="color: var(--text-tertiary); font-size: var(--font-body);">No expense data available for this month</p>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- Recent Transactions -->
+                <section class="content-section">
+                    <div class="section-header">
+                        <h2 class="section-title">Recent Activity</h2>
+                        <button class="toss-btn toss-btn-ghost toss-btn-sm" onclick="navigateToTransactionHistory()">
+                            View All
+                        </button>
+                    </div>
+                    <div class="section-content">
+                        <div id="transactionsList">
+                            <!-- Transactions will be loaded dynamically -->
+                        </div>
+                    </div>
+                </section>
+            </div>
+            
+        </main>
+    </div>
+    
+    <!-- Toast Container -->
+    <div id="toast-container" class="toss-toast-container"></div>
+    
+    <!-- Core Path Resolver (must be loaded first) -->
+    <script src="../../core/utils/path-resolver.js"></script>
+    
+    <!-- Component JavaScript -->
+    <script src="../../components/base/toss-button.js"></script>
+    <script src="../../components/feedback/toss-alert.js"></script>
+    <script src="../../components/form/toss-select.js"></script>
+    <script src="../../components/navigation/navbar.js"></script>
+    
+    <!-- App Icons -->
+    <script src="../../core/constants/app-icons.js"></script>
+    
+        <!-- Storage Manager -->
+    <script src="../../core/utils/storage-manager.js"></script>
+    
+<!-- Supabase Configuration -->
+    <script src="../../core/config/supabase.js"></script>
+    
+    <!-- App State Management -->
+    <script src="../../core/utils/app-state.js"></script>
+    
+    <!-- Route Mapping -->
+    <script src="../../core/config/route-mapping.js"></script>
+    
+    <!-- Page Initialization Utility -->
+    <script src="../../core/utils/page-init.js"></script>
+    
+    <script>
+        // Set flag immediately to prevent navbar auto-init
+        window.skipNavbarAutoInit = true;
+        
+        // Dashboard functionality with modern UX patterns
+        let spendingChart = null;
+        let isLoadingData = false; // Prevent multiple concurrent loads
+        
+        // Initialize page using standardized pattern
+        window.initializePage('dashboard', async (companyId, company) => {
+            console.log('Dashboard callback triggered with company:', companyId);
+            
+            if (companyId) {
+                // Company is selected, load data
+                if (!isLoadingData) {
+                    loadDashboardData(companyId);
+                }
+            } else {
+                console.warn('No company selected');
+                updateEmptyState();
+            }
+        });
+        
+        // Additional dashboard initialization after navbar is ready
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('🎯 Dashboard DOMContentLoaded at:', new Date().toISOString());
+            
+            // Initialize dashboard-specific features
+            initializeIcons();
+            
+            // Initialize chart with empty state
+            initializeSpendingChart(null);
+            
+            // Start data refresh timer
+            startDataRefresh();
+            
+            // Don't load data here - wait for window.initializePage callback
+        });
+        
+        // Keep the loadAppStateData function for backward compatibility but it won't be called anymore
+        async function loadAppStateData(session) {
+            try {
+                // Check if data already exists and is fresh
+                const existingUserData = appState.getUserData();
+                const existingCategories = appState.getCategoryFeatures();
+                
+                // Only fetch if data doesn't exist or needs refresh
+                if (!existingUserData || appState.needsRefresh()) {
+                    console.log('Loading user companies and stores...');
+                    
+                    // Call get_user_companies_and_stores RPC
+                    const { data: userData, error: userError } = await supabase.rpc('get_user_companies_and_stores', {
+                        p_user_id: session.user.id
+                    });
+                    
+                    if (userError) {
+                        console.error('Error fetching user companies:', userError);
+                        return; // Exit early on error
+                    } else if (userData) {
+                        // Store user data
+                        console.log('📥 Dashboard storing user data:', userData);
+                        console.log('📊 Companies in userData:', userData.companies?.length || 0);
+                        appState.setUserData(userData);
+                        console.log('✅ User data stored in localStorage');
+                        
+                        // Set first company as selected if none selected
+                        const selectedCompanyId = appState.getSelectedCompanyId();
+                        if (!selectedCompanyId && userData.companies && userData.companies.length > 0) {
+                            // This will also set the first store
+                            appState.setSelectedCompanyId(userData.companies[0].company_id);
+                        } else if (selectedCompanyId) {
+                            // Ensure store is also set for existing company selection
+                            const selectedCompany = userData.companies.find(c => c.company_id === selectedCompanyId);
+                            if (selectedCompany && !appState.getSelectedStoreId()) {
+                                if (selectedCompany.stores && selectedCompany.stores.length > 0) {
+                                    appState.setSelectedStoreId(selectedCompany.stores[0].store_id);
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                // Load categories with features if not exists
+                if (!existingCategories || appState.needsRefresh()) {
+                    console.log('Loading categories with features...');
+                    
+                    // Call get_categories_with_features RPC
+                    const { data: categoriesData, error: categoriesError } = await supabase.rpc('get_categories_with_features');
+                    
+                    if (categoriesError) {
+                        console.error('Error fetching categories:', categoriesError);
+                    } else if (categoriesData) {
+                        // Store categories data
+                        appState.setCategoryFeatures(categoriesData);
+                    }
+                }
+                
+                // Mark data as refreshed
+                appState.markRefreshed();
+                
+            } catch (error) {
+                console.error('Error loading app state data:', error);
+            }
+        }
+        
+        // Initialize icons with official app icons
+        function initializeIcons() {
+            if (typeof AppIcons !== 'undefined') {
+                const logoElement = document.getElementById('dashboardLogo');
+                if (logoElement) {
+                    logoElement.innerHTML = AppIcons.getSVG('wonSign', { 
+                        size: 20, 
+                        color: 'white' 
+                    });
+                }
+            }
+        }
+        
+        // Enhanced authentication check with better UX
+        async function checkAuthAndLoadUser() {
+            try {
+                const { data: { session }, error } = await supabase.auth.getSession();
+                
+                if (!session) {
+                    TossAlertUtils.showError('Authentication required. Redirecting to login...');
+                    setTimeout(() => {
+                        window.location.href = window.pathResolver.getLoginPath();
+                    }, 2000);
+                    return;
+                }
+                
+                // Load user information with better formatting
+                await loadUserInfo(session.user);
+                
+            } catch (error) {
+                console.error('Error checking authentication:', error);
+                TossAlertUtils.showError('Authentication error. Please sign in again.');
+                setTimeout(() => {
+                    window.location.href = window.pathResolver.getLoginPath();
+                }, 2000);
+            }
+        }
+        
+        // Enhanced user info loading
+        async function loadUserInfo(user) {
+            try {
+                // Extract user information
+                const displayName = user.user_metadata?.full_name || 
+                                  user.email.split('@')[0].replace(/[^a-zA-Z0-9]/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                
+                // Update UI elements
+                document.getElementById('userName').textContent = displayName;
+                document.getElementById('userEmail').textContent = user.email;
+                
+                // Set user avatar initial
+                const userAvatar = document.getElementById('userAvatar');
+                if (userAvatar) {
+                    userAvatar.textContent = displayName.charAt(0).toUpperCase();
+                }
+                
+                console.log('User loaded:', user.email);
+                
+            } catch (error) {
+                console.error('Error loading user info:', error);
+            }
+        }
+        
+        // Initialize modern spending chart with Chart.js
+        function initializeSpendingChart(expenseData = null) {
+            const ctx = document.getElementById('spendingChart');
+            const chartContainer = document.querySelector('.chart-container');
+            const emptyState = document.getElementById('chartEmptyState');
+            
+            if (!ctx) return;
+            
+            // Use actual data if provided, otherwise show placeholder
+            let spendingData;
+            if (expenseData && expenseData.length > 0) {
+                // Show chart, hide empty state
+                if (chartContainer) chartContainer.style.display = 'block';
+                if (emptyState) emptyState.style.display = 'none';
+                
+                const labels = expenseData.map(item => item.category);
+                const amounts = expenseData.map(item => item.amount);
+                const colors = generateChartColors(expenseData.length);
+                
+                spendingData = {
+                    labels: labels,
+                    datasets: [{
+                        data: amounts,
+                        backgroundColor: colors,
+                        borderWidth: 0,
+                        hoverOffset: 4
+                    }]
+                };
+            } else {
+                // Show empty state, hide chart
+                if (chartContainer) chartContainer.style.display = 'none';
+                if (emptyState) emptyState.style.display = 'block';
+                return; // Don't create chart for empty state
+            }
+            
+            // Destroy existing chart if it exists
+            if (spendingChart) {
+                spendingChart.destroy();
+            }
+            
+            spendingChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: spendingData,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            labels: {
+                                usePointStyle: true,
+                                font: {
+                                    family: 'Inter',
+                                    size: 14
+                                },
+                                color: '#495057',
+                                generateLabels: function(chart) {
+                                    const data = chart.data;
+                                    if (data.labels.length && data.datasets.length) {
+                                        return data.labels.map((label, i) => {
+                                            const dataset = data.datasets[0];
+                                            const value = dataset.data[i];
+                                            const percentage = expenseData && expenseData[i] ? expenseData[i].percentage : 0;
+                                            return {
+                                                text: `${label} (${percentage.toFixed(1)}%)`,
+                                                fillStyle: dataset.backgroundColor[i],
+                                                strokeStyle: dataset.backgroundColor[i],
+                                                lineWidth: 0,
+                                                hidden: false,
+                                                index: i
+                                            };
+                                        });
+                                    }
+                                    return [];
+                                }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const value = context.parsed || 0;
+                                    const percentage = expenseData && expenseData[context.dataIndex] ? 
+                                        expenseData[context.dataIndex].percentage : 0;
+                                    const symbol = window.dashboardCurrency || '₫';
+                                    return `${label}: ${symbol}${value.toLocaleString('en-US', {
+                                        minimumFractionDigits: 0,
+                                        maximumFractionDigits: 0
+                                    })} (${percentage.toFixed(1)}%)`;
+                                }
+                            }
+                        }
+                    },
+                    cutout: '65%',
+                    animation: {
+                        animateRotate: true,
+                        duration: 1000
+                    }
+                }
+            });
+        }
+        
+        // Generate chart colors based on number of categories
+        function generateChartColors(count) {
+            const baseColors = [
+                '#0064FF', // Blue
+                '#00C896', // Green
+                '#FF9500', // Orange
+                '#FF5847', // Red
+                '#6C757D', // Gray
+                '#8B4FC3', // Purple
+                '#00D2FF', // Cyan
+                '#FFD700', // Gold
+                '#FF69B4', // Pink
+                '#32CD32'  // Lime
+            ];
+            
+            // Return colors, cycling through if needed
+            const colors = [];
+            for (let i = 0; i < count; i++) {
+                colors.push(baseColors[i % baseColors.length]);
+            }
+            return colors;
+        }
+        
+        // Simulate real-time data updates (modern dashboard pattern)
+        function startDataRefresh() {
+            // Update data every 30 seconds (in real app, this would be WebSocket or polling)
+            setInterval(() => {
+                const companyId = appState.getSelectedCompanyId();
+                if (companyId && !isLoadingData) {
+                    loadDashboardData(companyId);
+                }
+            }, 30000);
+        }
+        
+        // Removed updateFinancialMetrics - no longer needed as we use real data from RPC
+        
+        // Animate number changes (modern UX pattern)
+        function animateValue(elementId, targetValue, prefix = '', isCurrency = false) {
+            const element = document.getElementById(elementId);
+            if (!element) return;
+            
+            const currentText = element.textContent.replace(/[^0-9.]/g, '');
+            const currentValue = parseFloat(currentText) || 0;
+            const difference = targetValue - currentValue;
+            const steps = 20;
+            const stepValue = difference / steps;
+            let currentStep = 0;
+            
+            const timer = setInterval(() => {
+                currentStep++;
+                const newValue = currentValue + (stepValue * currentStep);
+                
+                if (isCurrency) {
+                    element.textContent = `${prefix}${newValue.toLocaleString('en-US', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                    })}`;
+                } else {
+                    element.textContent = `${prefix}${Math.round(newValue).toLocaleString()}`;
+                }
+                
+                if (currentStep >= steps) {
+                    clearInterval(timer);
+                }
+            }, 50);
+        }
+        
+        // Load dashboard data for specific company
+        async function loadDashboardData(companyId) {
+            console.log('Loading dashboard data for company:', companyId);
+            
+            // Check if companyId is valid
+            if (!companyId) {
+                console.warn('No company ID provided for dashboard data loading');
+                updateEmptyState();
+                return;
+            }
+            
+            // Prevent multiple concurrent loads
+            if (isLoadingData) {
+                console.log('Already loading data, skipping...');
+                return;
+            }
+            
+            isLoadingData = true;
+            
+            // Show loading state
+            showLoadingState();
+            
+            try {
+                // Get current device time in ISO format
+                const currentDate = new Date().toISOString();
+                
+                // Call the RPC function to get dashboard data
+                const { data, error } = await supabase.rpc('get_dashboard_page', {
+                    p_company_id: companyId,
+                    p_date: currentDate
+                });
+                
+                if (error) {
+                    console.error('Error loading dashboard data:', error);
+                    TossAlertUtils.showError('Failed to load dashboard data');
+                    updateEmptyState(); // Clear loading states on error
+                    isLoadingData = false; // Clear loading flag
+                    return;
+                }
+                
+                if (data) {
+                    console.log('Dashboard data received:', data);
+                    updateDashboardUI(data);
+                }
+                
+                isLoadingData = false; // Clear loading flag on success
+            } catch (error) {
+                console.error('Error in loadDashboardData:', error);
+                TossAlertUtils.showError('Failed to load dashboard data');
+                updateEmptyState(); // Clear loading states on error
+                isLoadingData = false; // Clear loading flag on error
+            }
+        }
+        
+        // Update dashboard UI with fetched data
+        function updateDashboardUI(data) {
+            console.log('📊 Updating dashboard UI with data:', data);
+            
+            const currency = data.currency || {};
+            const symbol = currency.symbol || '$';
+            
+            // Store currency symbol globally for chart tooltip
+            window.dashboardCurrency = symbol;
+            
+            console.log('💰 Currency info:', { symbol, currency_code: currency.currency_code });
+            
+            // Format currency values
+            const formatCurrency = (value) => {
+                if (value === null || value === undefined) return `${symbol}0`;
+                return `${symbol}${parseFloat(value).toLocaleString('en-US', {
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 0
+                })}`;
+            };
+            
+            // Update financial values
+            console.log('💹 Financial data:', {
+                today_revenue: data.today_revenue,
+                today_expense: data.today_expense,
+                this_month_revenue: data.this_month_revenue,
+                last_month_revenue: data.last_month_revenue
+            });
+            
+            // Update Today Revenue
+            const todayRevenueEl = document.getElementById('todayRevenueValue');
+            if (todayRevenueEl) {
+                todayRevenueEl.textContent = formatCurrency(data.today_revenue);
+            }
+            
+            // Update Today Expense
+            const todayExpenseEl = document.getElementById('todayExpenseValue');
+            if (todayExpenseEl) {
+                todayExpenseEl.textContent = formatCurrency(data.today_expense);
+            }
+            
+            // Update This Month Revenue
+            const thisMonthRevenueEl = document.getElementById('thisMonthRevenueValue');
+            if (thisMonthRevenueEl) {
+                thisMonthRevenueEl.textContent = formatCurrency(data.this_month_revenue);
+            }
+            
+            // Update Last Month Revenue
+            const lastMonthRevenueEl = document.getElementById('lastMonthRevenueValue');
+            if (lastMonthRevenueEl) {
+                lastMonthRevenueEl.textContent = formatCurrency(data.last_month_revenue);
+            }
+            
+            // Calculate and display percentage changes
+            updatePercentageChanges(data);
+            
+            // Update Spending Chart with expense breakdown
+            if (data.expense_breakdown && data.expense_breakdown.length > 0) {
+                console.log('📊 Updating spending chart with expense breakdown:', data.expense_breakdown);
+                initializeSpendingChart(data.expense_breakdown);
+            } else {
+                console.log('📊 No expense data for chart');
+                initializeSpendingChart(null); // Show empty state
+            }
+            
+            // Update Recent Transactions
+            updateRecentTransactions(data.recent_transactions, symbol);
+        }
+        
+        // Calculate and display percentage changes
+        function updatePercentageChanges(data) {
+            // Calculate this month vs last month revenue change
+            if (data.last_month_revenue > 0) {
+                const changePercent = ((data.this_month_revenue - data.last_month_revenue) / data.last_month_revenue * 100).toFixed(1);
+                const changeEl = document.getElementById('thisMonthRevenueChange');
+                if (changeEl) {
+                    const isPositive = changePercent >= 0;
+                    changeEl.className = `card-change ${isPositive ? 'change-positive' : 'change-negative'}`;
+                    changeEl.innerHTML = `
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="${isPositive ? 'M7 14l5-5 5 5z' : 'M7 10l5 5 5-5z'}"/>
+                        </svg>
+                        ${isPositive ? '+' : ''}${changePercent}% vs last month
+                    `;
+                }
+            }
+        }
+        
+        // Update Recent Transactions section
+        function updateRecentTransactions(journalEntries, symbol) {
+            console.log('📋 Updating recent transactions with entries:', journalEntries);
+            
+            const transactionsList = document.getElementById('transactionsList');
+            if (!transactionsList || !journalEntries || journalEntries.length === 0) {
+                console.log('⚠️ No transactions to display');
+                if (transactionsList) {
+                    transactionsList.innerHTML = '<p style="text-align: center; color: var(--text-tertiary);">No recent transactions</p>';
+                }
+                return;
+            }
+            
+            // Get icon based on account type and amount
+            const getTransactionIcon = (accountType, isIncome) => {
+                const icons = {
+                    income: '<path d="M7 15h2c0 1.08.81 2 2 2h2c1.19 0 2-.81 2-2s-.81-2-2-2h-2c-1.19 0-2-.81-2-2s.81-2 2-2h2c1.19 0 2 .92 2 2h2c0-1.08-.81-2-2-2V9h-2v2h-2c-1.19 0-2 .81-2 2s.81 2 2 2h2c1.19 0 2 .81 2 2s-.81 2-2 2h-2c-1.19 0-2-.92-2-2H7v2z"/>',
+                    expense: '<path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14H7v-2h5v2zm5-4H7v-2h10v2zm0-4H7V7h10v2z"/>',
+                    asset: '<path d="M4 10v7h3v-7H4zm6 0v7h3v-7h-3zM2 22h19v-3H2v3zm14-12v7h3v-7h-3zm-4.5-9L2 6v2h19V6l-9.5-5z"/>',
+                    general: '<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>'
+                };
+                
+                if (isIncome || accountType === 'income') return icons.income;
+                if (accountType === 'asset') return icons.asset;
+                if (accountType === 'expense') return icons.expense;
+                return icons.general;
+            };
+            
+            // Format date and time
+            const formatDateTime = (dateStr) => {
+                const date = new Date(dateStr);
+                const today = new Date();
+                const yesterday = new Date(today);
+                yesterday.setDate(yesterday.getDate() - 1);
+                
+                let dateDisplay;
+                if (date.toDateString() === today.toDateString()) {
+                    dateDisplay = 'Today';
+                } else if (date.toDateString() === yesterday.toDateString()) {
+                    dateDisplay = 'Yesterday';
+                } else {
+                    dateDisplay = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                }
+                
+                const timeDisplay = date.toLocaleTimeString('en-US', { 
+                    hour: 'numeric', 
+                    minute: '2-digit',
+                    hour12: true 
+                });
+                
+                return `${dateDisplay}, ${timeDisplay}`;
+            };
+            
+            // Build transaction HTML from journal entries
+            const transactionsHTML = journalEntries.map(entry => {
+                // Analyze journal entry to determine display info
+                const amount = parseFloat(entry.total_amount) || 0;
+                
+                // Find the main account (usually the first non-Cash account or income/expense account)
+                const mainAccount = entry.lines.find(line => 
+                    line.account_type === 'income' || 
+                    line.account_type === 'expense' ||
+                    (line.account_name && line.account_name.toLowerCase() !== 'cash')
+                ) || entry.lines[0];
+                
+                // Determine if this is income or expense based on account types
+                const isIncome = entry.lines.some(line => line.account_type === 'income' && line.credit > 0) ||
+                               entry.lines.some(line => line.account_type === 'asset' && line.debit > 0);
+                
+                // Format the amount with proper sign
+                const formattedAmount = `${isIncome ? '+' : '-'}${symbol}${Math.abs(amount).toLocaleString('en-US', {
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 0
+                })}`;
+                
+                // Get transaction title (use description or main account name)
+                const transactionTitle = entry.description || 
+                                       mainAccount?.account_name || 
+                                       'Transaction';
+                
+                // Get subtitle with additional context
+                const subtitle = mainAccount?.description || 
+                               `${mainAccount?.account_name || 'General'}`;
+                
+                return `
+                    <div class="transaction-item">
+                        <div class="transaction-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                ${getTransactionIcon(mainAccount?.account_type, isIncome)}
+                            </svg>
+                        </div>
+                        <div class="transaction-details">
+                            <h4 class="transaction-title">${transactionTitle}</h4>
+                            <p class="transaction-subtitle">${formatDateTime(entry.created_at)}</p>
+                        </div>
+                        <div class="transaction-amount ${isIncome ? 'amount-positive' : 'amount-negative'}">
+                            ${formattedAmount}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            transactionsList.innerHTML = transactionsHTML;
+            console.log(`✅ Updated transactions list with ${journalEntries.length} entries`);
+        }
+        
+        // Generate placeholder values for development
+        function generateRandomValue(min, max) {
+            return Math.random() * (max - min) + min;
+        }
+        
+        // Show empty state when no company is selected
+        function updateEmptyState() {
+            // Update financial values to show no data
+            const elements = ['todayRevenueValue', 'todayExpenseValue', 'thisMonthRevenueValue', 'lastMonthRevenueValue'];
+            elements.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.textContent = 'No data';
+            });
+            
+            // Clear transactions
+            const transactionsList = document.getElementById('transactionsList');
+            if (transactionsList) {
+                transactionsList.innerHTML = '<div style="text-align: center; padding: 20px; color: var(--text-tertiary);">No company selected</div>';
+            }
+            
+            // Clear chart
+            if (spendingChart) {
+                spendingChart.destroy();
+                spendingChart = null;
+            }
+            
+            // Show empty state for chart
+            const chartContainer = document.querySelector('.chart-container');
+            const emptyState = document.getElementById('chartEmptyState');
+            if (chartContainer) chartContainer.style.display = 'none';
+            if (emptyState) emptyState.style.display = 'block';
+        }
+        
+        // Show loading state for dashboard elements
+        function showLoadingState() {
+            // Update financial values to show loading
+            const elements = ['todayRevenueValue', 'todayExpenseValue', 'thisMonthRevenueValue', 'lastMonthRevenueValue'];
+            elements.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.textContent = 'Loading...';
+            });
+            
+            // Show loading in transactions
+            const transactionsList = document.getElementById('transactionsList');
+            if (transactionsList) {
+                transactionsList.innerHTML = '<div style="text-align: center; padding: 20px; color: var(--text-tertiary);">Loading transactions...</div>';
+            }
+        }
+        
+        // Enhanced sign out with better UX
+        async function handleSignOut() {
+            try {
+                const result = await SupabaseAuth.signOut();
+                
+                if (result.success) {
+                    TossAlertUtils.showSuccess('Signing out...');
+                    setTimeout(() => {
+                        // Use NavBar's navigateToLogin method if available, otherwise fallback
+                        if (typeof NavBar !== 'undefined' && NavBar.navigateToLogin) {
+                            NavBar.navigateToLogin();
+                        } else {
+                            // Fallback navigation using pathResolver
+                            window.location.replace(window.pathResolver.getLoginPath());
+                        }
+                    }, 1000);
+                } else {
+                    TossAlertUtils.showError('Error signing out. Please try again.');
+                }
+            } catch (error) {
+                console.error('Sign out error:', error);
+                TossAlertUtils.showError('Error signing out. Please try again.');
+            }
+        }
+        
+        // Show coming soon with modern styling
+        function showComingSoon(featureName) {
+            TossAlertUtils.showInfo(`${featureName} is coming soon! This modern dashboard is currently in development.`);
+        }
+        
+        // Navigate to transaction history page
+        function navigateToTransactionHistory() {
+            // Navigate to the transaction history page using pathResolver
+            window.location.href = window.pathResolver.resolvePagePath('finance/transaction-history/index.html');
+        }
+        
+        // Toggle submenu function (removed since we're using hover)
+        function toggleSubmenu(menuId) {
+            // This function is no longer needed for hover menus
+            // Keeping it for backward compatibility
+            showComingSoon('Feature');
+        }
+        
+        // User menu toggle (modern pattern)
+        function toggleUserMenu() {
+            // In a real app, this would show a dropdown menu
+            showComingSoon('User Menu');
+        }
+        
+        // Listen for auth state changes
+        if (typeof supabase !== 'undefined') {
+            supabase.auth.onAuthStateChange((event, session) => {
+                if (event === 'SIGNED_OUT') {
+                    window.location.href = window.pathResolver.getLoginPath();
+                }
+            });
+        }
+        
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', () => {
+            if (spendingChart) {
+                spendingChart.destroy();
+            }
+        });
+    </script>
+</body>
+</html>

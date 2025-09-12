@@ -1,0 +1,528 @@
+/**
+ * Toss Select Component Styles
+ * Based on Toss design system - Select/Dropdown component
+ * Common reusable select component for consistent UI
+ */
+
+/* Base Select Container */
+.toss-select-container {
+    position: relative;
+    display: inline-block;
+    width: 100%;
+    max-width: 280px;
+}
+
+/* Force white background on all select buttons to fix black background issue */
+.toss-select-container .toss-select {
+    background-color: #FFFFFF !important;
+    background: #FFFFFF !important;
+    color: #212529 !important;
+}
+
+.toss-select-container .toss-select .toss-select-value {
+    color: #212529 !important;
+}
+
+.toss-select-container .toss-select .toss-select-arrow svg {
+    fill: #6C757D !important;
+}
+
+/* Select Button (Main Display) */
+.toss-select {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2, 8px);
+    width: 100%;
+    padding: var(--space-3, 12px) var(--space-4, 16px);
+    background: var(--input-bg, #FFFFFF) !important;
+    border: 1px solid var(--input-border, #E9ECEF) !important;
+    border-radius: var(--radius-input, 8px);
+    cursor: pointer;
+    transition: all var(--transition-fast, 0.15s ease);
+    font-family: var(--font-family, 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif);
+    font-size: var(--font-body, 16px);
+    font-weight: 500;
+    color: var(--text-primary, #212529) !important;
+    text-align: left;
+    outline: none;
+    user-select: none;
+}
+
+.toss-select:hover {
+    background: var(--bg-secondary, #F8F9FA) !important;
+    border-color: var(--toss-primary, #0064FF) !important;
+    color: var(--text-primary, #212529) !important;
+}
+
+.toss-select:focus {
+    background: var(--input-bg, #FFFFFF) !important;
+    border-color: var(--input-border-focus, #0064FF) !important;
+    box-shadow: 0 0 0 3px rgba(0, 100, 255, 0.08);
+    color: var(--text-primary, #212529) !important;
+}
+
+.toss-select.toss-select-active {
+    background: var(--input-bg, #FFFFFF) !important;
+    border-color: var(--toss-primary, #0064FF) !important;
+    box-shadow: 0 0 0 3px rgba(0, 100, 255, 0.08);
+    color: var(--text-primary, #212529) !important;
+}
+
+/* Select Value Display */
+.toss-select-value {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: inherit !important;
+}
+
+.toss-select-placeholder {
+    color: var(--input-placeholder, #6C757D) !important;
+}
+
+/* Select Arrow Icon */
+.toss-select-arrow {
+    flex-shrink: 0;
+    width: 12px;
+    height: 12px;
+    color: var(--text-secondary, #6C757D) !important;
+    transition: transform var(--transition-fast, 0.15s ease);
+}
+
+.toss-select.toss-select-active .toss-select-arrow {
+    transform: rotate(180deg);
+    color: var(--toss-primary, #0064FF) !important;
+}
+
+/* Select Dropdown Menu */
+.toss-select-menu {
+    position: absolute;
+    top: calc(100% + var(--space-1));
+    left: 0;
+    right: 0;
+    background: var(--bg-primary, #FFFFFF) !important;
+    border: 1px solid var(--input-border, #E9ECEF);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-8px);
+    transition: all var(--transition-fast);
+    z-index: 1100;
+    max-height: 320px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.toss-select-menu.toss-select-menu-show {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+/* Select Menu Header (Optional) */
+.toss-select-header {
+    padding: var(--space-3) var(--space-4);
+    border-bottom: 1px solid var(--border-secondary);
+    font-size: var(--font-small);
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    background: var(--bg-secondary);
+    flex-shrink: 0;
+}
+
+/* Select Options List */
+.toss-select-options {
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--space-2);
+}
+
+/* Select Option Item */
+.toss-select-option {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-3) var(--space-3);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    margin-bottom: var(--space-1);
+    background: transparent;
+    color: var(--text-primary, #212529) !important;
+}
+
+.toss-select-option:last-child {
+    margin-bottom: 0;
+}
+
+.toss-select-option:hover {
+    background: var(--toss-gray-100, #F1F3F5) !important;
+    color: var(--text-primary, #212529) !important;
+}
+
+.toss-select-option.toss-select-option-selected {
+    background: var(--toss-primary, #0064FF) !important;
+    font-weight: 500;
+    color: var(--toss-white, #FFFFFF) !important;
+}
+
+.toss-select-option.toss-select-option-disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+/* Option Content */
+.toss-select-option-content {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-05);
+}
+
+.toss-select-option-label {
+    font-size: var(--font-body);
+    color: inherit;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.toss-select-option-description {
+    font-size: var(--font-small);
+    color: inherit;
+    opacity: 0.8;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Option Check Icon */
+.toss-select-option-check {
+    flex-shrink: 0;
+    width: 16px;
+    height: 16px;
+    color: var(--toss-white, #FFFFFF);
+    opacity: 0;
+    transition: opacity var(--transition-fast);
+}
+
+.toss-select-option-selected .toss-select-option-check {
+    opacity: 1;
+}
+
+/* Enhanced focus and interaction states for better visibility */
+.toss-select-option:focus {
+    outline: none;
+    background: var(--toss-gray-100, #F1F3F5) !important;
+    color: var(--text-primary, #212529) !important;
+    box-shadow: inset 0 0 0 2px var(--toss-primary, #0064FF);
+}
+
+.toss-select-option.toss-select-option-selected:focus {
+    background: var(--toss-primary, #0064FF) !important;
+    color: var(--toss-white, #FFFFFF) !important;
+    box-shadow: inset 0 0 0 2px var(--toss-white, #FFFFFF);
+}
+
+/* Selected + Hover state for better visibility */
+.toss-select-option.toss-select-option-selected:hover {
+    background: var(--toss-primary-dark, #0050CC) !important;
+    color: var(--toss-white, #FFFFFF) !important;
+}
+
+.toss-select-option.toss-select-option-selected:focus {
+    outline: 2px solid var(--toss-white, #FFFFFF);
+    background: var(--toss-primary-dark, #0050CC) !important;
+    color: var(--toss-white, #FFFFFF) !important;
+}
+
+/* Select with Label */
+.toss-select-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    width: 100%;
+}
+
+.toss-select-label {
+    font-size: var(--font-small);
+    font-weight: 600;
+    color: var(--text-primary);
+    line-height: 1.4;
+}
+
+.toss-select-label.required::after {
+    content: "*";
+    color: var(--toss-error);
+    margin-left: var(--space-05);
+}
+
+/* Select Sizes */
+.toss-select-sm {
+    padding: var(--space-2) var(--space-3);
+    font-size: var(--font-small);
+}
+
+.toss-select-sm .toss-select-arrow {
+    width: 10px;
+    height: 10px;
+}
+
+.toss-select-lg {
+    padding: var(--space-4) var(--space-5);
+    font-size: var(--font-large);
+}
+
+.toss-select-lg .toss-select-arrow {
+    width: 14px;
+    height: 14px;
+}
+
+/* Select States */
+.toss-select-success {
+    border-color: var(--toss-success);
+}
+
+.toss-select-error {
+    border-color: var(--input-border-error);
+}
+
+.toss-select:disabled {
+    background-color: var(--input-bg-disabled);
+    color: var(--text-disabled);
+    border-color: var(--border-disabled);
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+/* Select Messages */
+.toss-select-message {
+    font-size: var(--font-small);
+    line-height: 1.4;
+    margin-top: var(--space-1);
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+}
+
+.toss-select-message-success {
+    color: var(--toss-success);
+}
+
+.toss-select-message-error {
+    color: var(--toss-error);
+}
+
+.toss-select-message-info {
+    color: var(--text-secondary);
+}
+
+/* Multiple Select Variant */
+.toss-select-multiple .toss-select-value {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-1);
+}
+
+.toss-select-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+    padding: var(--space-1) var(--space-2);
+    background: var(--toss-primary-surface);
+    border-radius: var(--radius-sm);
+    font-size: var(--font-small);
+    color: var(--toss-primary);
+    max-width: 100px;
+}
+
+.toss-select-tag-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.toss-select-tag-remove {
+    flex-shrink: 0;
+    width: 12px;
+    height: 12px;
+    cursor: pointer;
+    color: var(--toss-primary);
+    opacity: 0.7;
+    transition: opacity var(--transition-fast);
+}
+
+.toss-select-tag-remove:hover {
+    opacity: 1;
+}
+
+/* Search Input in Dropdown */
+.toss-select-search {
+    padding: var(--space-3) var(--space-4);
+    border-bottom: 1px solid var(--border-secondary);
+    flex-shrink: 0;
+}
+
+.toss-select-search-input {
+    width: 100%;
+    padding: var(--space-2) var(--space-3);
+    background: var(--input-bg);
+    border: 1px solid var(--input-border);
+    border-radius: var(--radius-input);
+    font-size: var(--font-body);
+    color: var(--text-primary);
+    outline: none;
+}
+
+.toss-select-search-input:focus {
+    border-color: var(--input-border-focus);
+}
+
+/* Empty State */
+.toss-select-empty {
+    padding: var(--space-6) var(--space-4);
+    text-align: center;
+    color: var(--text-tertiary);
+    font-size: var(--font-body);
+}
+
+/* Loading State */
+.toss-select-loading {
+    padding: var(--space-6) var(--space-4);
+    text-align: center;
+    color: var(--text-tertiary);
+    font-size: var(--font-body);
+}
+
+.toss-select-spinner {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--border-secondary);
+    border-top-color: var(--toss-primary);
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 767px) {
+    .toss-select {
+        font-size: 16px; /* Prevent zoom on iOS */
+    }
+    
+    .toss-select-menu {
+        max-height: 280px;
+    }
+}
+
+/* Position Variants */
+.toss-select-menu-top {
+    top: auto;
+    bottom: calc(100% + var(--space-1));
+    transform-origin: bottom;
+}
+
+.toss-select-menu-top.toss-select-menu-show {
+    transform: translateY(0);
+}
+
+/* Full Width Variant */
+.toss-select-container.toss-select-full {
+    max-width: none;
+}
+
+/* Inline Variant */
+.toss-select-container.toss-select-inline {
+    display: inline-block;
+    width: auto;
+    min-width: 200px;
+}
+
+/* High Contrast Mode */
+@media (prefers-contrast: high) {
+    .toss-select {
+        border-width: 2px;
+    }
+    
+    .toss-select:focus,
+    .toss-select.toss-select-active {
+        border-width: 3px;
+        box-shadow: none;
+    }
+}
+
+/* Select Footer Actions */
+.toss-select-footer {
+    padding: var(--space-2);
+    border-top: 1px solid var(--border-secondary);
+    flex-shrink: 0;
+    background: var(--bg-secondary);
+}
+
+.toss-select-action {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-3) var(--space-3);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    color: var(--toss-primary, #0064FF) !important;
+    font-weight: 500;
+    margin-bottom: var(--space-1);
+}
+
+.toss-select-action:last-child {
+    margin-bottom: 0;
+}
+
+.toss-select-action:hover {
+    background: var(--toss-primary-surface, #E6F3FF) !important;
+    color: var(--toss-primary-dark, #0050CC) !important;
+    transform: translateY(-1px);
+}
+
+.toss-select-action:active {
+    background: var(--toss-primary-light, #CCE7FF) !important;
+    transform: translateY(0);
+}
+
+.toss-select-action-icon {
+    flex-shrink: 0;
+    width: 16px;
+    height: 16px;
+    color: inherit;
+}
+
+.toss-select-action-label {
+    font-size: var(--font-body);
+    color: inherit;
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+    .toss-select {
+        background-color: var(--bg-primary-dark, #1a1a1a);
+        border-color: var(--border-secondary-dark, #333);
+        color: var(--text-primary-dark, #fff);
+    }
+    
+    .toss-select-menu {
+        background-color: var(--bg-primary-dark, #1a1a1a);
+        border-color: var(--border-secondary-dark, #333);
+    }
+}

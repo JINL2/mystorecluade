@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brand Select Example - Add Brand Functionality</title>
+    
+    <!-- CSS Dependencies -->
+    <link rel="stylesheet" href="../../core/themes/toss-variables.css">
+    <link rel="stylesheet" href="../../core/themes/toss-base.css">
+    <link rel="stylesheet" href="../layout/toss-modal.css">
+    <link rel="stylesheet" href="toss-input.css">
+    <link rel="stylesheet" href="toss-select.css">
+    <link rel="stylesheet" href="add-brand-modal.css">
+    <link rel="stylesheet" href="../feedback/toss-alert.css">
+    <link rel="stylesheet" href="../base/toss-button.css">
+    
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            padding: 2rem;
+            background: #f8f9fa;
+        }
+        
+        .demo-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+        }
+        
+        .demo-section {
+            margin-bottom: 2rem;
+        }
+        
+        .demo-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #212529;
+            margin-bottom: 0.5rem;
+        }
+        
+        .demo-description {
+            color: #6c757d;
+            margin-bottom: 1.5rem;
+            line-height: 1.5;
+        }
+        
+        .demo-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+        
+        .form-section {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .selected-info {
+            padding: 1rem;
+            background: #e6f3ff;
+            border-radius: 8px;
+            border-left: 4px solid #0064ff;
+            margin-top: 1rem;
+        }
+        
+        .selected-info h4 {
+            margin: 0 0 0.5rem 0;
+            color: #0064ff;
+            font-weight: 600;
+        }
+        
+        .selected-info pre {
+            background: white;
+            padding: 0.75rem;
+            border-radius: 6px;
+            border: 1px solid #cce7ff;
+            font-size: 0.875rem;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-container">
+        <div class="demo-section">
+            <h1 class="demo-title">Brand Select with Add Brand Feature</h1>
+            <p class="demo-description">
+                This demonstrates the enhanced TossSelect component with integrated "+ Add brand" functionality. 
+                Click on the brand dropdown to see the "+ Add brand" option at the bottom of the list.
+            </p>
+        </div>
+        
+        <div class="demo-form">
+            <div class="form-section">
+                <div id="company-select-container"></div>
+            </div>
+            
+            <div class="form-section">
+                <div id="brand-select-container"></div>
+            </div>
+            
+            <div id="selected-info" class="selected-info" style="display: none;">
+                <h4>Selected Values:</h4>
+                <pre id="selected-values-json"></pre>
+            </div>
+        </div>
+    </div>
+    
+    <!-- JavaScript Dependencies -->
+    <script src="../layout/toss-modal.js"></script>
+    <script src="toss-input.js"></script>
+    <script src="toss-select.js"></script>
+    <script src="add-brand-modal.js"></script>
+    
+    <script>
+        // Mock data for demonstration
+        const mockCompanies = [
+            { value: 1, label: 'Acme Corporation', description: 'Main company' },
+            { value: 2, label: 'Global Enterprises', description: 'Subsidiary' },
+            { value: 3, label: 'Tech Innovations Inc.', description: 'Technology division' }
+        ];
+        
+        const mockBrands = [
+            { value: 1, label: 'Premium Brand', description: 'Code: PREM' },
+            { value: 2, label: 'Economy Line', description: 'Code: ECON' },
+            { value: 3, label: 'Luxury Collection', description: 'Code: LUX' },
+            { value: 4, label: 'Standard Products', description: 'Code: STD' }
+        ];
+        
+        let selectedCompanyId = null;
+        let selectedBrandId = null;
+        
+        // Initialize company select
+        const companySelect = new TossSelect({
+            containerId: 'company-select-container',
+            name: 'company',
+            label: 'Company',
+            placeholder: 'Select a company',
+            required: true,
+            searchable: true,
+            options: mockCompanies,
+            onChange: (value, option) => {
+                selectedCompanyId = value;
+                console.log('Company selected:', option);
+                
+                // Enable brand select when company is selected
+                if (brandSelect) {
+                    brandSelect.enable();
+                }
+                
+                updateSelectedInfo();
+            }
+        });
+        
+        // Initialize brand select with add brand functionality
+        const brandSelect = new TossSelect({
+            containerId: 'brand-select-container',
+            name: 'brand',
+            label: 'Brand',
+            placeholder: 'Select a brand',
+            required: true,
+            searchable: true,
+            disabled: true, // Disabled until company is selected
+            options: mockBrands,
+            // Enable brand dropdown features
+            isBrandDropdown: true,
+            companyId: null, // Will be set when company is selected
+            onChange: (value, option) => {
+                selectedBrandId = value;
+                console.log('Brand selected:', option);
+                updateSelectedInfo();
+            },
+            onBrandAdded: (brandData, selectInstance) => {
+                console.log('New brand added:', brandData);
+                
+                // Show success message (you could use a toast notification here)
+                showSuccessMessage(`Brand "${brandData.brand_name}" has been created successfully!`);
+                
+                // Refresh metadata in a real application, you would call:
+                // await refreshInventoryMetadata();
+                
+                updateSelectedInfo();
+            }
+        });
+        
+        // Update company ID in brand select when company changes
+        companySelect.options.onChange = (value, option) => {
+            selectedCompanyId = value;
+            console.log('Company selected:', option);
+            
+            // Update brand select with company ID
+            brandSelect.options.companyId = value;
+            brandSelect.enable();
+            
+            updateSelectedInfo();
+        };
+        
+        // Initialize both selects
+        companySelect.init();
+        brandSelect.init();
+        
+        // Helper functions
+        function updateSelectedInfo() {
+            const infoDiv = document.getElementById('selected-info');
+            const jsonPre = document.getElementById('selected-values-json');
+            
+            const selectedData = {
+                company: {
+                    id: selectedCompanyId,
+                    name: selectedCompanyId ? mockCompanies.find(c => c.value === selectedCompanyId)?.label : null
+                },
+                brand: {
+                    id: selectedBrandId,
+                    name: selectedBrandId ? (
+                        // Check both mock brands and any dynamically added brands
+                        mockBrands.find(b => b.value === selectedBrandId)?.label || 
+                        brandSelect.options.options.find(b => b.value === selectedBrandId)?.label
+                    ) : null
+                }
+            };
+            
+            if (selectedCompanyId || selectedBrandId) {
+                jsonPre.textContent = JSON.stringify(selectedData, null, 2);
+                infoDiv.style.display = 'block';
+            } else {
+                infoDiv.style.display = 'none';
+            }
+        }
+        
+        function showSuccessMessage(message) {
+            // Create a temporary success message
+            const successDiv = document.createElement('div');
+            successDiv.className = 'toss-alert toss-alert-success';
+            successDiv.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                z-index: 10000;
+                min-width: 300px;
+                box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+                animation: slideInRight 0.3s ease-out;
+            `;
+            
+            successDiv.innerHTML = `
+                <div class="toss-alert-content">
+                    <div class="toss-alert-title">Success</div>
+                    <div class="toss-alert-message">${message}</div>
+                </div>
+            `;
+            
+            document.body.appendChild(successDiv);
+            
+            // Remove after 4 seconds
+            setTimeout(() => {
+                successDiv.style.animation = 'slideOutRight 0.3s ease-in';
+                setTimeout(() => {
+                    document.body.removeChild(successDiv);
+                }, 300);
+            }, 4000);
+        }
+        
+        // Add CSS for animations
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideInRight {
+                from {
+                    opacity: 0;
+                    transform: translateX(100%);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateX(0);
+                }
+            }
+            
+            @keyframes slideOutRight {
+                from {
+                    opacity: 1;
+                    transform: translateX(0);
+                }
+                to {
+                    opacity: 0;
+                    transform: translateX(100%);
+                }
+            }
+            
+            .toss-alert-success {
+                background: #f0f9f0;
+                border: 1px solid #4caf50;
+                color: #2e7d32;
+                padding: 1rem;
+                border-radius: 8px;
+            }
+            
+            .toss-alert-success .toss-alert-title {
+                font-weight: 600;
+                margin-bottom: 0.25rem;
+            }
+            
+            .toss-alert-success .toss-alert-message {
+                font-size: 0.875rem;
+            }
+        `;
+        document.head.appendChild(style);
+        
+        // Mock Supabase for development
+        if (typeof supabase === 'undefined') {
+            console.log('Creating mock Supabase client for demo purposes');
+            window.supabase = {
+                rpc: async (functionName, params) => {
+                    console.log(`Mock RPC call: ${functionName}`, params);
+                    
+                    // Simulate API delay
+                    await new Promise(resolve => setTimeout(resolve, 800));
+                    
+                    if (functionName === 'inventory_create_brand') {
+                        // Simulate duplicate error for testing
+                        if (params.p_brand_name.toLowerCase().includes('duplicate')) {
+                            return {
+                                data: null,
+                                error: {
+                                    code: 'P0001',
+                                    message: 'DUPLICATE_BRAND: A brand with this name already exists'
+                                }
+                            };
+                        }
+                        
+                        // Return successful creation
+                        return {
+                            data: {
+                                brand_id: Date.now(),
+                                brand_name: params.p_brand_name,
+                                brand_code: params.p_brand_code || 
+                                    params.p_brand_name.replace(/\s+/g, '_').toUpperCase().substring(0, 10),
+                                company_id: params.p_company_id,
+                                created_at: new Date().toISOString()
+                            },
+                            error: null
+                        };
+                    }
+                    
+                    return { data: null, error: { message: 'Unknown function' } };
+                }
+            };
+        }
+        
+        console.log('Brand Select Example loaded successfully!');
+        console.log('Try selecting a company first, then click on the brand dropdown to see the "+ Add brand" option.');
+    </script>
+</body>
+</html>

@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyFinance - Product Receive</title>
+    
+    <!-- Theme CSS -->
+    <link rel="stylesheet" href="../../../core/themes/toss-variables.css">
+    <link rel="stylesheet" href="../../../core/themes/toss-component-variables.css">
+    <link rel="stylesheet" href="../../../core/themes/toss-base.css">
+    <link rel="stylesheet" href="../../../core/themes/toss-typography.css">
+    
+    <!-- Component CSS -->
+    <link rel="stylesheet" href="../../../components/base/toss-button.css">
+    <link rel="stylesheet" href="../../../components/form/toss-input.css">
+    <link rel="stylesheet" href="../../../components/form/toss-select.css">
+    <link rel="stylesheet" href="../../../components/feedback/toss-alert.css">
+    <link rel="stylesheet" href="../../../components/navigation/navbar.css">
+    
+    <!-- Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- Page Specific Styles -->
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: var(--font-family);
+            background: var(--toss-gray-50);
+            min-height: 100vh;
+        }
+        
+        .page-container {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .page-content {
+            flex: 1;
+            padding: var(--space-6);
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+        }
+        
+        .page-header {
+            margin-bottom: var(--space-8);
+        }
+        
+        .page-title {
+            font-size: var(--font-h1);
+            font-weight: 700;
+            color: var(--text-primary);
+            margin: 0 0 var(--space-2) 0;
+        }
+        
+        .page-subtitle {
+            font-size: var(--font-large);
+            color: var(--text-secondary);
+            margin: 0;
+        }
+        
+        /* Store Filter Control Styles - Exact match to inventory */
+        .controls-card {
+            background: transparent;
+            padding: 0;
+            margin-bottom: var(--space-4);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .control-section {
+            flex: 0 1 auto;
+            min-width: 200px;
+            max-width: 280px;
+            width: 280px;
+            display: flex;
+            align-items: center;
+            padding: 10px 14px;
+            cursor: pointer;
+            border-radius: 10px;
+            transition: all 0.2s ease;
+            gap: 10px;
+            position: relative;
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            background: white;
+            height: 44px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+        }
+        
+        .control-section:hover {
+            background: rgba(0, 0, 0, 0.02);
+            border-color: rgba(0, 0, 0, 0.12);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
+        }
+        
+        .control-section.dropdown-open {
+            background: white;
+            border-color: #0064FF;
+            box-shadow: 0 0 0 4px rgba(0, 100, 255, 0.08);
+        }
+        
+        .control-section.dropdown-open .control-dropdown {
+            transform: rotate(180deg);
+            color: #0064FF;
+        }
+        
+        .control-section.dropdown-open .control-label {
+            color: #0064FF;
+            font-weight: 500;
+        }
+        
+        .control-section.dropdown-open .control-icon {
+            color: #0064FF;
+        }
+        
+        .control-icon {
+            width: 18px;
+            height: 18px;
+            color: rgba(0, 0, 0, 0.4);
+            flex-shrink: 0;
+        }
+        
+        .control-label {
+            font-size: 14px;
+            font-weight: 500;
+            color: #1a1a1a;
+            flex: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            line-height: 1.5;
+        }
+        
+        .control-dropdown {
+            width: 16px;
+            height: 16px;
+            color: rgba(0, 0, 0, 0.3);
+            transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            flex-shrink: 0;
+            margin-left: auto;
+        }
+        
+        /* Store Filter Dropdown Styles */
+        .store-filter-dropdown {
+            position: absolute;
+            top: calc(100% + 6px);
+            left: 0;
+            min-width: 100%;
+            width: max-content;
+            max-width: 380px;
+            background: white;
+            border-radius: 14px;
+            box-shadow: 
+                0 0 0 1px rgba(0, 0, 0, 0.04),
+                0 20px 25px -5px rgba(0, 0, 0, 0.1),
+                0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-8px) scale(0.96);
+            transition: all 200ms cubic-bezier(0.16, 1, 0.3, 1);
+            max-height: 380px;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 6px 0;
+        }
+        
+        .store-filter-dropdown.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0) scale(1);
+        }
+        
+        /* Search input for filterable dropdown */
+        .store-filter-search {
+            padding: 8px 16px;
+            margin: 0 6px 6px;
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            border-radius: 8px;
+            font-size: 14px;
+            background: rgba(0, 0, 0, 0.02);
+            transition: all 150ms ease;
+            width: calc(100% - 12px);
+            box-sizing: border-box;
+        }
+        
+        .store-filter-search:focus {
+            outline: none;
+            border-color: #0064FF;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(0, 100, 255, 0.1);
+        }
+        
+        .store-filter-search::placeholder {
+            color: rgba(0, 0, 0, 0.4);
+        }
+        
+        .store-filter-dropdown-option {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 20px;
+            cursor: pointer;
+            transition: all 150ms ease;
+            position: relative;
+            font-size: 15px;
+            line-height: 1.5;
+        }
+        
+        .store-filter-dropdown-option:hover {
+            background: var(--toss-gray-50);
+        }
+        
+        .store-filter-dropdown-option.focused {
+            background: var(--toss-gray-100);
+            transform: scale(0.98);
+        }
+        
+        .store-filter-dropdown-option.selected {
+            background: rgba(0, 100, 255, 0.08);
+            color: #0064FF;
+        }
+        
+        .store-filter-dropdown-option.selected:hover {
+            background: rgba(0, 100, 255, 0.12);
+        }
+        
+        .store-filter-dropdown-option-icon {
+            width: 20px;
+            height: 20px;
+            color: var(--text-tertiary);
+            flex-shrink: 0;
+            transition: color 150ms ease;
+        }
+        
+        .store-filter-dropdown-option.selected .store-filter-dropdown-option-icon {
+            color: #0064FF;
+        }
+        
+        .store-filter-dropdown-option-text {
+            flex: 1;
+            font-weight: 400;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .store-filter-dropdown-option.selected .store-filter-dropdown-option-text {
+            font-weight: 500;
+        }
+        
+        .store-filter-dropdown-option-check {
+            width: 18px;
+            height: 18px;
+            color: #0064FF;
+            margin-left: auto;
+            flex-shrink: 0;
+        }
+        
+        .content-card {
+            background: var(--toss-white);
+            border-radius: var(--radius-lg);
+            padding: var(--space-6);
+            box-shadow: var(--shadow-sm);
+            margin-bottom: var(--space-6);
+        }
+        
+        .receive-placeholder {
+            text-align: center;
+            padding: var(--space-12) var(--space-6);
+        }
+        
+        .receive-placeholder-icon {
+            width: 100px;
+            height: 100px;
+            margin: 0 auto var(--space-4);
+            background: var(--toss-gray-100);
+            border-radius: var(--radius-full);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-tertiary);
+        }
+        
+        .receive-placeholder-title {
+            font-size: var(--font-h3);
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0 0 var(--space-2) 0;
+        }
+        
+        .receive-placeholder-text {
+            font-size: var(--font-base);
+            color: var(--text-secondary);
+            margin: 0;
+        }
+        
+        /* Responsive Styles */
+        @media (max-width: 768px) {
+            .controls-card {
+                flex-direction: column;
+                gap: 12px;
+                align-items: stretch;
+            }
+            
+            .control-section {
+                max-width: none;
+                width: 100%;
+                min-width: unset;
+            }
+            
+            .store-filter-dropdown {
+                left: 0;
+                right: 0;
+                width: 100%;
+                max-width: none;
+                border-radius: 12px;
+            }
+            
+            .store-filter-dropdown-option {
+                padding: 14px 16px;
+                font-size: 16px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .page-content {
+                padding: var(--space-4);
+            }
+            
+            .store-filter-dropdown {
+                left: -12px;
+                right: -12px;
+                max-height: 250px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="page-container">
+        <!-- Navigation Bar -->
+        <div id="navbar-container"></div>
+        
+        <!-- Page Content -->
+        <main class="page-content">
+            <div class="page-header">
+                <h1 class="page-title">Product Receive</h1>
+                <p class="page-subtitle">Manage incoming product shipments and receiving</p>
+            </div>
+            
+            <!-- Store Filter Control -->
+            <div class="controls-card">
+                <div class="control-section" id="storeFilterControl">
+                    <svg class="control-icon" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12,3L2,12H5V20H19V12H22L12,3M12,8.75A1.25,1.25 0 0,1 13.25,10A1.25,1.25 0 0,1 12,11.25A1.25,1.25 0 0,1 10.75,10A1.25,1.25 0 0,1 12,8.75Z"/>
+                    </svg>
+                    <span class="control-label" id="storeFilterLabel">Loading...</span>
+                    <svg class="control-dropdown" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M7.41,8.58L12,13.17L16.59,8.58L18,10L12,16L6,10L7.41,8.58Z"/>
+                    </svg>
+                    
+                    <!-- Store Filter Dropdown -->
+                    <div class="store-filter-dropdown" id="storeFilterDropdown">
+                        <div id="storeFilterOptions">
+                            <!-- Store filter options will be inserted here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Product Receive Content -->
+            <div class="content-card" id="receiveContent">
+                <div class="receive-placeholder">
+                    <div class="receive-placeholder-icon">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12,2A3,3 0 0,1 15,5V11A3,3 0 0,1 12,14A3,3 0 0,1 9,11V5A3,3 0 0,1 12,2M19,11C19,14.53 16.39,17.44 13,17.93V21H11V17.93C7.61,17.44 5,14.53 5,11H7A5,5 0 0,0 12,16A5,5 0 0,0 17,11H19Z"/>
+                        </svg>
+                    </div>
+                    <h3 class="receive-placeholder-title">Select a Store</h3>
+                    <p class="receive-placeholder-text">Choose a store from the dropdown above to view its product receiving records</p>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <!-- Component JavaScript -->
+    <script src="../../../components/base/toss-button.js"></script>
+    <script src="../../../components/form/toss-input.js"></script>
+    <script src="../../../components/form/toss-select.js"></script>
+    <script src="../../../components/navigation/navbar.js"></script>
+    <script src="../../../components/feedback/toss-alert.js"></script>
+    
+    <!-- Core Scripts -->
+    <script src="../../../core/constants/app-icons.js"></script>
+    <script src="../../../core/config/supabase.js"></script>
+    
+    <!-- App State Management -->
+    <script src="../../../core/utils/app-state.js"></script>
+    
+    <!-- Route Mapping -->
+    <script src="../../../core/config/route-mapping.js"></script>
+    
+    <!-- Page Initialization Utility -->
+    <script src="../../../core/utils/page-init.js"></script>
+    
+    <script>
+        // Set flag immediately to prevent navbar auto-init
+        window.skipNavbarAutoInit = true;
+        
+        // Store filter management
+        class ProductReceiveManager {
+            constructor() {
+                this.currentStoreFilter = null;
+                this.dropdownOpen = false;
+                this.currentFocusIndex = -1;
+                this.stores = [];
+            }
+            
+            init() {
+                // Set up store filter control
+                const storeFilterControl = document.getElementById('storeFilterControl');
+                storeFilterControl.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    this.toggleStoreFilterDropdown();
+                });
+                
+                // Keyboard navigation for dropdown
+                storeFilterControl.addEventListener('keydown', (e) => {
+                    this.handleDropdownKeyboard(e);
+                });
+                
+                // Close dropdown when clicking outside
+                document.addEventListener('click', (e) => {
+                    if (!e.target.closest('.control-section') && !e.target.closest('.store-filter-dropdown')) {
+                        this.hideStoreFilterDropdown();
+                    }
+                });
+                
+                // Close dropdown on Escape key
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape' && this.dropdownOpen) {
+                        this.hideStoreFilterDropdown();
+                    }
+                });
+            }
+            
+            toggleStoreFilterDropdown() {
+                const dropdown = document.getElementById('storeFilterDropdown');
+                const isActive = dropdown.classList.contains('active');
+                
+                if (isActive) {
+                    this.hideStoreFilterDropdown();
+                } else {
+                    this.showStoreFilterDropdown();
+                }
+            }
+            
+            handleDropdownKeyboard(e) {
+                if (!this.dropdownOpen && (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowDown')) {
+                    e.preventDefault();
+                    this.showStoreFilterDropdown();
+                    return;
+                }
+                
+                if (!this.dropdownOpen) return;
+                
+                const options = document.querySelectorAll('.store-filter-dropdown-option');
+                const maxIndex = options.length - 1;
+                
+                switch (e.key) {
+                    case 'ArrowDown':
+                        e.preventDefault();
+                        this.currentFocusIndex = Math.min(this.currentFocusIndex + 1, maxIndex);
+                        this.updateFocusedOption();
+                        break;
+                        
+                    case 'ArrowUp':
+                        e.preventDefault();
+                        this.currentFocusIndex = Math.max(this.currentFocusIndex - 1, 0);
+                        this.updateFocusedOption();
+                        break;
+                        
+                    case 'Enter':
+                        e.preventDefault();
+                        if (this.currentFocusIndex >= 0) {
+                            const focusedOption = options[this.currentFocusIndex];
+                            if (focusedOption) {
+                                focusedOption.click();
+                            }
+                        }
+                        break;
+                        
+                    case 'Tab':
+                        // Allow tab to close dropdown and move to next element
+                        this.hideStoreFilterDropdown();
+                        break;
+                }
+            }
+            
+            updateFocusedOption() {
+                const options = document.querySelectorAll('.store-filter-dropdown-option');
+                options.forEach((option, index) => {
+                    if (index === this.currentFocusIndex) {
+                        option.classList.add('focused');
+                        option.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+                    } else {
+                        option.classList.remove('focused');
+                    }
+                });
+            }
+            
+            showStoreFilterDropdown() {
+                const storeFilterDropdown = document.getElementById('storeFilterDropdown');
+                const storeFilterControl = document.getElementById('storeFilterControl');
+                const storeFilterOptions = document.getElementById('storeFilterOptions');
+                
+                // Get stores from appState
+                if (typeof appState !== 'undefined' && typeof appState.getCompanyStores === 'function') {
+                    this.stores = appState.getCompanyStores();
+                } else {
+                    // Fallback to empty array if appState not available
+                    this.stores = [];
+                }
+                
+                // Build dropdown HTML
+                let optionsHTML = '';
+                
+                // Add search field if there are many stores
+                if (this.stores.length > 5) {
+                    optionsHTML += `
+                        <input type="text" 
+                            class="store-filter-search" 
+                            id="storeFilterSearch" 
+                            placeholder="Search stores..."
+                            autocomplete="off">
+                    `;
+                }
+                
+                // Removed "All Stores" option - first store will be default
+                
+                // Add individual store options
+                this.stores.forEach((store, index) => {
+                    // If no store is selected yet, select the first one
+                    const isSelected = this.currentStoreFilter ? 
+                        store.store_id === this.currentStoreFilter : 
+                        index === 0;
+                    optionsHTML += `
+                        <div class="store-filter-dropdown-option${isSelected ? ' selected' : ''}" data-store-filter="${store.store_id}">
+                            <svg class="store-filter-dropdown-option-icon" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12,3L2,12H5V20H19V12H22L12,3M12,8.75A1.25,1.25 0 0,1 13.25,10A1.25,1.25 0 0,1 12,11.25A1.25,1.25 0 0,1 10.75,10A1.25,1.25 0 0,1 12,8.75Z"/>
+                            </svg>
+                            <span class="store-filter-dropdown-option-text">${store.store_name}</span>
+                            ${isSelected ? '<svg class="store-filter-dropdown-option-check" fill="currentColor" viewBox="0 0 24 24"><path d="M9,20.42L2.79,14.21L5.62,11.38L9,14.77L18.88,4.88L21.71,7.71L9,20.42Z"/></svg>' : ''}
+                        </div>
+                    `;
+                });
+                
+                storeFilterOptions.innerHTML = optionsHTML;
+                
+                // Add search functionality if search input exists
+                const searchInput = document.getElementById('storeFilterSearch');
+                if (searchInput) {
+                    searchInput.addEventListener('input', (e) => {
+                        const searchTerm = e.target.value.toLowerCase();
+                        const options = storeFilterOptions.querySelectorAll('.store-filter-dropdown-option');
+                        
+                        options.forEach(option => {
+                            const textElement = option.querySelector('.store-filter-dropdown-option-text');
+                            if (textElement) {
+                                const text = textElement.textContent.toLowerCase();
+                                if (text.includes(searchTerm) || searchTerm === '') {
+                                    option.style.display = 'flex';
+                                } else {
+                                    option.style.display = 'none';
+                                }
+                            }
+                        });
+                    });
+                    
+                    // Focus search input when dropdown opens
+                    setTimeout(() => searchInput.focus(), 100);
+                }
+                
+                // Add click listeners
+                storeFilterOptions.querySelectorAll('.store-filter-dropdown-option').forEach((option, index) => {
+                    option.addEventListener('click', async () => {
+                        const storeFilter = option.dataset.storeFilter;
+                        this.currentStoreFilter = storeFilter;
+                        
+                        // Update label
+                        const labelElement = document.getElementById('storeFilterLabel');
+                        const store = this.stores.find(s => s.store_id === storeFilter);
+                        labelElement.textContent = store ? store.store_name : 'Unknown Store';
+                        
+                        // Load product receives for selected store
+                        await this.loadProductReceivesForStore(this.currentStoreFilter);
+                        
+                        this.hideStoreFilterDropdown();
+                    });
+                    
+                    // Add hover effect for keyboard navigation
+                    option.addEventListener('mouseenter', () => {
+                        this.currentFocusIndex = index;
+                        this.updateFocusedOption();
+                    });
+                });
+                
+                storeFilterDropdown.classList.add('active');
+                storeFilterControl.classList.add('dropdown-open');
+                this.dropdownOpen = true;
+                this.currentFocusIndex = -1;
+                
+                // Set initial focus based on current selection
+                const options = storeFilterOptions.querySelectorAll('.store-filter-dropdown-option');
+                options.forEach((option, index) => {
+                    if (option.classList.contains('selected')) {
+                        this.currentFocusIndex = index;
+                        this.updateFocusedOption();
+                    }
+                });
+            }
+            
+            hideStoreFilterDropdown() {
+                const storeFilterDropdown = document.getElementById('storeFilterDropdown');
+                const storeFilterControl = document.getElementById('storeFilterControl');
+                storeFilterDropdown.classList.remove('active');
+                storeFilterControl.classList.remove('dropdown-open');
+                this.dropdownOpen = false;
+                this.currentFocusIndex = -1;
+                
+                // Clear all focused states
+                const options = document.querySelectorAll('.store-filter-dropdown-option');
+                options.forEach(option => option.classList.remove('focused'));
+            }
+            
+            async loadProductReceivesForStore(storeId) {
+                const companyId = appState.getSelectedCompanyId();
+                const receiveContent = document.getElementById('receiveContent');
+                
+                if (!storeId) {
+                    // Show all stores placeholder
+                    receiveContent.innerHTML = `
+                        <div class="receive-placeholder">
+                            <div class="receive-placeholder-icon">
+                                <svg width="48" height="48" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M12,2A3,3 0 0,1 15,5V11A3,3 0 0,1 12,14A3,3 0 0,1 9,11V5A3,3 0 0,1 12,2M19,11C19,14.53 16.39,17.44 13,17.93V21H11V17.93C7.61,17.44 5,14.53 5,11H7A5,5 0 0,0 12,16A5,5 0 0,0 17,11H19Z"/>
+                                </svg>
+                            </div>
+                            <h3 class="receive-placeholder-title">All Stores View</h3>
+                            <p class="receive-placeholder-text">Viewing product receiving across all stores. Select a specific store for detailed view.</p>
+                        </div>
+                    `;
+                } else {
+                    const store = this.stores.find(s => s.store_id === storeId);
+                    const storeName = store ? store.store_name : 'Selected Store';
+                    
+                    // Show specific store placeholder
+                    receiveContent.innerHTML = `
+                        <div class="receive-placeholder">
+                            <div class="receive-placeholder-icon">
+                                <svg width="48" height="48" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M12,2A3,3 0 0,1 15,5V11A3,3 0 0,1 12,14A3,3 0 0,1 9,11V5A3,3 0 0,1 12,2M19,11C19,14.53 16.39,17.44 13,17.93V21H11V17.93C7.61,17.44 5,14.53 5,11H7A5,5 0 0,0 12,16A5,5 0 0,0 17,11H19Z"/>
+                                </svg>
+                            </div>
+                            <h3 class="receive-placeholder-title">${storeName} Product Receive</h3>
+                            <p class="receive-placeholder-text">Product receiving management for ${storeName} will be available soon.</p>
+                        </div>
+                    `;
+                }
+                
+                console.log('Loading product receives for store:', storeId, 'Company:', companyId);
+                // Future: Implement actual product receiving loading via RPC
+            }
+        }
+        
+        // Initialize product receive manager
+        const productReceiveManager = new ProductReceiveManager();
+        
+        // Initialize page using standardized pattern
+        window.initializePage('product', (companyId, company) => {
+            console.log('Company changed in product receive:', companyId);
+            // Reset store filter when company changes and set first store as default
+            const stores = appState.getCompanyStores();
+            if (stores && stores.length > 0) {
+                productReceiveManager.currentStoreFilter = stores[0].store_id;
+                document.getElementById('storeFilterLabel').textContent = stores[0].store_name;
+                productReceiveManager.loadProductReceivesForStore(stores[0].store_id);
+            } else {
+                productReceiveManager.currentStoreFilter = null;
+                document.getElementById('storeFilterLabel').textContent = 'No Stores';
+                productReceiveManager.loadProductReceivesForStore(null);
+            }
+        });
+        
+        // Additional page initialization after navbar is ready
+        document.addEventListener('DOMContentLoaded', () => {
+            productReceiveManager.init();
+            
+            // Wait for page initialization to complete, then initialize page-specific content
+            setTimeout(() => {
+                const companyId = appState.getSelectedCompanyId();
+                if (companyId) {
+                    const stores = appState.getCompanyStores();
+                    if (stores && stores.length > 0) {
+                        productReceiveManager.currentStoreFilter = stores[0].store_id;
+                        document.getElementById('storeFilterLabel').textContent = stores[0].store_name;
+                        productReceiveManager.loadProductReceivesForStore(stores[0].store_id);
+                    } else {
+                        productReceiveManager.loadProductReceivesForStore(null);
+                    }
+                }
+            }, 100);
+        });
+    </script>
+</body>
+</html>

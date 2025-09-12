@@ -1,0 +1,455 @@
+/**
+ * Toss Income Statement Table Component
+ * Clean, professional financial table styling with proper borders
+ * Based on Toss Design System
+ */
+
+/* Table Container */
+.toss-income-table-container {
+    background: var(--toss-white);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+    margin-bottom: var(--space-6);
+}
+
+/* Key Result Indicators */
+.toss-income-key-result {
+    position: relative;
+}
+
+.toss-income-key-result::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: var(--toss-primary);
+}
+
+.toss-income-final-result::before {
+    background: var(--toss-success);
+    width: 6px;
+}
+
+/* Table Header */
+.toss-income-table-header {
+    background: linear-gradient(180deg, var(--toss-gray-50) 0%, var(--toss-white) 100%);
+    padding: 20px 24px;
+    border-bottom: 2px solid var(--toss-gray-200);
+}
+
+.toss-income-table-header h3 {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--toss-text-primary);
+    margin: 0 0 4px 0;
+}
+
+.toss-income-table-period {
+    font-size: 12px;
+    color: var(--toss-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Main Table */
+.toss-income-table {
+    width: 100%;
+    border-collapse: collapse;
+    border-spacing: 0;
+    margin: 0;
+    padding: 0;
+}
+
+/* Table Column Headers */
+.toss-income-table thead th {
+    padding: 16px 24px;
+    text-align: left;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--toss-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid var(--toss-gray-200);
+    background: var(--toss-white);
+}
+
+.toss-income-table thead th:last-child {
+    text-align: right;
+}
+
+/* Section Headers - Light background with border */
+.toss-income-section-header {
+    background: var(--toss-gray-50);
+}
+
+.toss-income-section-header td {
+    background: var(--toss-gray-50);
+    color: var(--toss-primary);
+    font-weight: 600;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 10px 24px;
+    border-top: 1px solid var(--toss-gray-200);
+    border-bottom: 1px solid var(--toss-gray-200);
+}
+
+/* Section Header Variants - Subtle differentiation */
+.toss-income-section-header.revenue td {
+    background: var(--toss-gray-50);
+    color: var(--toss-text-primary);
+    border-left: 3px solid var(--toss-primary);
+}
+
+.toss-income-section-header.cost-of-goods-sold td,
+.toss-income-section-header.cogs td {
+    background: var(--toss-gray-50);
+    color: var(--toss-text-primary);
+    border-left: 3px solid var(--toss-warning);
+}
+
+.toss-income-section-header.expenses td {
+    background: var(--toss-gray-50);
+    color: var(--toss-text-primary);
+    border-left: 3px solid var(--toss-error);
+}
+
+.toss-income-section-header.net-income td {
+    background: var(--toss-gray-50);
+    color: var(--toss-text-primary);
+    font-weight: 600;
+    border-left: 3px solid var(--toss-success);
+}
+
+/* Subsection Headers - Very subtle */
+.toss-income-subsection-header td {
+    background: transparent;
+    font-weight: 500;
+    color: var(--toss-text-tertiary);
+    padding: 8px 24px;
+    padding-left: 32px;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border: none;
+}
+
+/* Regular Data Rows - Minimal emphasis */
+.toss-income-table tbody tr {
+    transition: background-color 0.15s;
+}
+
+.toss-income-table tbody tr:hover:not(.toss-income-section-header):not(.toss-income-subsection-header):not(.toss-income-total-row):not(.toss-income-section-total):not(.toss-income-grand-total) {
+    background: var(--toss-gray-50);
+}
+
+.toss-income-table tbody td {
+    padding: 10px 24px;
+    font-size: 13px;
+    color: var(--toss-text-secondary);
+    border-bottom: 1px solid var(--toss-gray-50);
+    font-weight: 400;
+}
+
+/* Account Names */
+.toss-income-account-name {
+    padding-left: 40px !important;
+    position: relative;
+    color: var(--toss-text-secondary);
+    font-size: 13px;
+    font-weight: 400;
+}
+
+.toss-income-account-name::before {
+    content: "";
+    position: absolute;
+    left: 32px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 3px;
+    height: 3px;
+    background: var(--toss-gray-400);
+    border-radius: 50%;
+}
+
+/* Amount Column */
+.toss-income-amount {
+    text-align: right;
+    font-family: var(--font-family-mono);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.5px;
+    font-weight: 400;
+}
+
+/* Amount in section totals */
+.toss-income-section-total .toss-income-amount {
+    font-weight: 700;
+    font-size: 15px;
+}
+
+/* Amount in grand total */
+.toss-income-grand-total .toss-income-amount {
+    font-weight: 700;
+    font-size: 18px;
+}
+
+/* Amount in subtotals */
+.toss-income-total-row .toss-income-amount {
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.toss-income-amount.negative {
+    color: var(--toss-error);
+}
+
+.toss-income-amount.zero {
+    color: var(--toss-gray-400);
+}
+
+/* Subtotal Rows - Moderate emphasis */
+.toss-income-total-row td {
+    font-weight: 600;
+    background: var(--toss-gray-100);
+    border-top: 1px solid var(--toss-gray-200);
+    border-bottom: 1px solid var(--toss-gray-200);
+    color: var(--toss-text-primary);
+    font-size: 14px;
+}
+
+/* Section Total Rows - Strong visual emphasis */
+.toss-income-section-total {
+    background: var(--toss-primary-surface) !important;
+    position: relative;
+}
+
+.toss-income-section-total td {
+    background: var(--toss-primary-surface) !important;
+    color: var(--toss-primary) !important;
+    font-weight: 700;
+    font-size: 15px;
+    padding: 14px 24px;
+    border-top: 2px solid var(--toss-primary);
+    border-bottom: 2px solid var(--toss-primary);
+    box-shadow: 0 2px 4px rgba(0, 100, 255, 0.1);
+    position: relative;
+}
+
+/* Remove icons to fix alignment issues */
+
+/* Ensure all text in section totals is visible */
+.toss-income-section-total td strong,
+.toss-income-section-total .toss-income-amount {
+    color: var(--toss-primary) !important;
+}
+
+/* Grand Total Row - Most prominent */
+.toss-income-grand-total {
+    background: var(--toss-success-light) !important;
+    position: relative;
+    margin-top: 8px;
+}
+
+.toss-income-grand-total td {
+    background: var(--toss-success-light) !important;
+    color: var(--toss-success-dark) !important;
+    font-weight: 700;
+    font-size: 18px;
+    padding: 18px 24px;
+    border-top: 2px solid var(--toss-success);
+    border-bottom: 2px solid var(--toss-success);
+    box-shadow: 0 2px 8px rgba(0, 200, 150, 0.2);
+    position: relative;
+}
+
+/* Remove icons to fix alignment issues */
+
+/* Ensure all text in grand total is visible */
+.toss-income-grand-total td strong,
+.toss-income-grand-total .toss-income-amount {
+    color: var(--toss-success-dark) !important;
+}
+
+/* Spacer Rows */
+.toss-income-spacer td {
+    height: 20px;
+    border: none;
+    background: transparent;
+    padding: 0;
+}
+
+/* Visual Hierarchy Helpers */
+.toss-income-emphasis-high {
+    background: var(--toss-primary) !important;
+    color: var(--toss-white) !important;
+}
+
+.toss-income-emphasis-medium {
+    background: var(--toss-primary-surface) !important;
+    color: var(--toss-primary) !important;
+}
+
+.toss-income-emphasis-low {
+    background: var(--toss-gray-100) !important;
+    color: var(--toss-text-primary) !important;
+}
+
+/* 12-Month Table Specific - Compact for full screen visibility */
+.toss-income-table-12month {
+    width: 100%;
+    min-width: 100%;
+    border-collapse: collapse;
+    border-spacing: 0;
+    table-layout: fixed;
+}
+
+.toss-income-table-12month thead th {
+    padding: 8px 4px;
+    text-align: center;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--toss-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    border-bottom: 2px solid var(--toss-gray-200);
+    white-space: nowrap;
+    vertical-align: middle;
+    background: var(--toss-white);
+    line-height: 1.2;
+}
+
+.toss-income-table-12month thead th:first-child {
+    text-align: left;
+    padding-left: 12px;
+    min-width: 180px;
+    width: 180px;
+}
+
+.toss-income-table-12month tbody td {
+    padding: 4px 2px;
+    font-size: 11px;
+    text-align: right;
+    white-space: nowrap;
+    line-height: 1.3;
+}
+
+.toss-income-table-12month tbody td:first-child {
+    text-align: left;
+    padding-left: 12px;
+    padding-right: 8px;
+    font-weight: 500;
+    min-width: 180px;
+    width: 180px;
+    white-space: normal;
+    word-wrap: break-word;
+}
+
+.toss-income-table-12month .toss-income-section-header td {
+    padding: 6px 2px;
+    padding-left: 12px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.toss-income-table-12month .toss-income-subsection-header td {
+    padding: 4px 2px;
+    padding-left: 20px;
+    font-size: 10px;
+}
+
+.toss-income-table-12month .toss-income-account-name {
+    padding-left: 28px !important;
+    padding-right: 8px !important;
+}
+
+.toss-income-table-12month .toss-income-account-name::before {
+    left: 22px;
+}
+
+.toss-income-table-12month .toss-income-total-row td {
+    padding: 5px 2px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.toss-income-table-12month .toss-income-total-row td:first-child {
+    padding-left: 12px;
+}
+
+.toss-income-table-12month .toss-income-section-total td {
+    padding: 6px 2px;
+    font-size: 11px;
+    background: var(--toss-primary-surface);
+    color: var(--toss-primary);
+    font-weight: 700;
+}
+
+.toss-income-table-12month .toss-income-section-total td:first-child {
+    padding-left: 12px;
+}
+
+.toss-income-table-12month .toss-income-grand-total td {
+    padding: 8px 2px;
+    font-size: 12px;
+    background: var(--toss-success-light);
+    color: var(--toss-success-dark);
+    font-weight: 700;
+}
+
+.toss-income-table-12month .toss-income-grand-total td:first-child {
+    padding-left: 12px;
+}
+
+/* Total Column in 12-Month */
+.toss-income-table-12month .total-column {
+    background: var(--toss-gray-50);
+    font-weight: 700;
+    padding-left: 4px !important;
+    padding-right: 4px !important;
+}
+
+/* Month columns specific width - smaller for compact view */
+.toss-income-table-12month thead th:not(:first-child):not(:last-child) {
+    width: calc((100% - 180px - 90px) / 12);
+    min-width: 60px;
+}
+
+/* Total column width */
+.toss-income-table-12month thead th:last-child {
+    width: 90px;
+    min-width: 90px;
+    font-weight: 800;
+}
+
+/* Responsive - Even more compact for smaller screens */
+@media (max-width: 1400px) {
+    .toss-income-table-12month thead th {
+        padding: 6px 2px;
+        font-size: 9px;
+    }
+    
+    .toss-income-table-12month tbody td {
+        padding: 3px 2px;
+        font-size: 10px;
+    }
+    
+    .toss-income-table-12month thead th:not(:first-child):not(:last-child) {
+        min-width: 50px;
+    }
+}
+
+/* Print Styles */
+@media print {
+    .toss-income-section-header,
+    .toss-income-section-header td,
+    .toss-income-section-total,
+    .toss-income-section-total td,
+    .toss-income-grand-total,
+    .toss-income-grand-total td {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+}

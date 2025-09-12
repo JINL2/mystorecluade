@@ -1,0 +1,747 @@
+// =====================================================
+// AUTONOMOUS CASH LOCATION SELECTOR
+// Truly reusable cash location selector using entity providers
+// =====================================================
+
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../data/models/selector_entities.dart';
+import '../../../../data/models/transaction_history_model.dart';
+import '../../../providers/entities/cash_location_provider.dart';
+import '../../../providers/app_state_provider.dart';
+import '../../toss/toss_bottom_sheet.dart';
+import '../../toss/toss_search_field.dart';
+import 'toss_base_selector.dart';
+import '../../../../core/themes/toss_colors.dart';
+import '../../../../core/themes/toss_text_styles.dart';
+import '../../../../core/themes/toss_spacing.dart';
+import '../../../../core/themes/toss_border_radius.dart';
+import 'package:myfinance_improved/core/themes/index.dart';
+
+/// Autonomous cash location selector with scope awareness
+/// Uses dedicated RPC function and entity providers
+/// Can fetch from current app state OR from provided company/store IDs
+class AutonomousCashLocationSelector extends ConsumerStatefulWidget {
+  final String? companyId; // Optional: Use specific company (e.g., for counterparty)
+  final String? storeId; // Optional: Use specific store (e.g., for counterparty)
+  final String? selectedLocationId;
+  final SingleSelectionCallback? onChanged;
+  final String? label;
+  final String? hint;
+  final String? errorText;
+  final bool showSearch;
+  final bool showTransactionCount;
+  final bool showScopeTabs; // Show Company/Store tabs
+  final TransactionScope? initialScope; // Current scope context (for reference)
+  final String? locationType; // Filter by specific location type
+
+  const AutonomousCashLocationSelector({
+    super.key,
+    this.companyId, // Optional company ID
+    this.storeId, // Optional store ID
+    this.selectedLocationId,
+    this.onChanged,
+    this.label,
+    this.hint,
+    this.errorText,
+    this.showSearch = true,
+    this.showTransactionCount = true,
+    this.showScopeTabs = true,
+    this.initialScope,
+    this.locationType,
+  });
+
+  @override
+  ConsumerState<AutonomousCashLocationSelector> createState() => _AutonomousCashLocationSelectorState();
+}
+
+class _AutonomousCashLocationSelectorState extends ConsumerState<AutonomousCashLocationSelector> 
+    with SingleTickerProviderStateMixin {
+  List<CashLocationData> _companyItems = [];
+  List<CashLocationData> _storeItems = [];
+  List<CashLocationData> _filteredItems = [];
+  String _searchQuery = '';
+  late TabController _tabController;
+  int _selectedTabIndex = 1; // Default to Store tab
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+    _tabController.index = _selectedTabIndex;
+    _tabController.addListener(() {
+      if (_tabController.index != _selectedTabIndex) {
+        setState(() {
+          _selectedTabIndex = _tabController.index;
+          _updateFilteredItems();
+        });
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  void _updateFilteredItems() {
+    final currentItems = _selectedTabIndex == 0 ? _companyItems : _storeItems;
+    
+    if (_searchQuery.isEmpty) {
+      _filteredItems = currentItems;
+    } else {
+      _filteredItems = currentItems.where((item) {
+        final nameLower = item.name.toLowerCase();
+        final typeLower = item.type.toLowerCase();
+        final queryLower = _searchQuery.toLowerCase();
+        return nameLower.contains(queryLower) || typeLower.contains(queryLower);
+      }).toList();
+    }
+  }
+
+  void _filterItems(String query) {
+    setState(() {
+      _searchQuery = query;
+      _updateFilteredItems();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // Determine which company/store to use
+    String? effectiveCompanyId = widget.companyId;
+    String? effectiveStoreId = widget.storeId;
+    
+    // If not provided, fall back to app state
+    if (effectiveCompanyId == null) {
+      final appStateNotifier = ref.read(appStateProvider.notifier);
+      effectiveCompanyId = appStateNotifier.selectedCompany?['company_id'] as String?;
+      effectiveStoreId = appStateNotifier.selectedStore?['store_id'] as String?;
+    }
+    
+    // If we still don't have a company ID, show empty state
+    if (effectiveCompanyId == null) {
+      return _buildEmptySelector();
+    }
+    
+    // Fetch cash locations for the specified or current company
+    final allLocationsAsync = widget.companyId != null
+        ? ref.watch(cashLocationListProvider(effectiveCompanyId, null, widget.locationType))
+        : ref.watch(companyCashLocationsProvider);
+
+    // Find selected location
+    CashLocationData? selectedLocation;
+    if (widget.selectedLocationId != null) {
+      allLocationsAsync.whenData((locations) {
+        try {
+          selectedLocation = locations.firstWhere((location) => location.id == widget.selectedLocationId);
+        } catch (e) {
+          selectedLocation = null;
+        }
+      });
+    }
+
+    // Organize locations by scope when data is available
+    allLocationsAsync.whenData((allLocations) {
+      // Company tab: Show ALL locations
+      _companyItems = allLocations;
+      
+      // Store tab: Filter to show only specified/current store's locations
+      if (effectiveStoreId != null) {
+        _storeItems = allLocations.where((location) => 
+          location.storeId == effectiveStoreId // Only locations for specified store
+        ).toList();
+      } else {
+        // If no store selected, show empty list
+        _storeItems = [];
+      }
+      
+      _updateFilteredItems();
+    });
+
+    // If scope tabs are disabled, use simple selector
+    if (!widget.showScopeTabs) {
+      return TossSingleSelector<CashLocationData>(
+        items: allLocationsAsync.maybeWhen(
+          data: (locations) => locations,
+          orElse: () => [],
+        ),
+        selectedItem: selectedLocation,
+        onChanged: widget.onChanged ?? (String? id) {},
+        isLoading: allLocationsAsync.isLoading,
+        config: SelectorConfig(
+          label: widget.label ?? 'Cash Location',
+          hint: widget.hint ?? 'All Locations',
+          errorText: widget.errorText,
+          showSearch: widget.showSearch,
+          showTransactionCount: widget.showTransactionCount,
+          icon: Icons.location_on,
+          emptyMessage: 'There is no Cash Location.\nGo to Cash and create Cash Location',
+          searchHint: 'Search cash locations',
+        ),
+        itemTitleBuilder: (location) => location.displayName,
+        itemSubtitleBuilder: (location) => widget.showTransactionCount ? location.subtitle : '',
+        itemIdBuilder: (location) => location.id,
+      );
+    }
+
+    // Custom selector with scope tabs
+    return _buildScopedSelector(context, allLocationsAsync.isLoading, selectedLocation);
+  }
+
+  Widget _buildScopedSelector(
+    BuildContext context, 
+    bool isLoading,
+    CashLocationData? selectedLocation,
+  ) {
+    final hasError = widget.errorText != null && widget.errorText!.isNotEmpty;
+    
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Label
+        Text(
+          widget.label ?? 'Cash Location',
+          style: TossTextStyles.caption.copyWith(
+            color: hasError ? TossColors.error : TossColors.gray600,
+            fontWeight: FontWeight.w600,
+          ),
+          overflow: TextOverflow.ellipsis,
+        ),
+        const SizedBox(height: TossSpacing.space2),
+        
+        // Selector Field
+        GestureDetector(
+          onTap: isLoading || widget.onChanged == null 
+            ? null 
+            : () => _showScopedSelectionBottomSheet(context),
+          behavior: HitTestBehavior.opaque,
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+              color: TossColors.white,
+              border: Border.all(
+                color: hasError
+                  ? TossColors.error
+                  : TossColors.gray200,
+                width: 1,
+              ),
+              boxShadow: null, // Remove shadow for consistency
+            ),
+            padding: const EdgeInsets.all(TossSpacing.space3),
+            child: Row(
+                  children: [
+                    // Icon
+                    Icon(
+                      Icons.location_on,
+                      size: TossSpacing.iconSM,
+                      color: widget.selectedLocationId != null
+                        ? TossColors.primary
+                        : TossColors.gray400,
+                    ),
+                    const SizedBox(width: TossSpacing.space2),
+                    
+                    // Selected value or hint
+                    Expanded(
+                      child: isLoading
+                        ? const SizedBox(
+                            height: TossSpacing.iconSM,
+                            width: TossSpacing.iconSM,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: TossColors.primary,
+                            ),
+                          )
+                        : Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                selectedLocation?.displayName ?? widget.hint ?? 'Select Location',
+                                style: TossTextStyles.body.copyWith(
+                                  color: widget.selectedLocationId != null
+                                    ? TossColors.gray900
+                                    : TossColors.gray400,
+                                  fontWeight: widget.selectedLocationId != null 
+                                    ? FontWeight.w600 
+                                    : FontWeight.w400,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 1,
+                              ),
+                              if (selectedLocation != null && widget.showTransactionCount) ...[ 
+                                const SizedBox(height: 2),
+                                Text(
+                                  selectedLocation.subtitle,
+                                  style: TossTextStyles.caption.copyWith(
+                                    color: TossColors.gray500,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 1,
+                                ),
+                              ],
+                            ],
+                          ),
+                    ),
+                    
+                    // Dropdown icon
+                    Icon(
+                      Icons.arrow_drop_down,
+                      color: widget.selectedLocationId != null
+                        ? TossColors.primary
+                        : TossColors.gray400,
+                    ),
+                  ],
+            ),
+          ),
+        ),
+        
+        // Error text
+        if (hasError) ...[ 
+          const SizedBox(height: TossSpacing.space2),
+          Text(
+            widget.errorText!,
+            style: TossTextStyles.caption.copyWith(
+              color: TossColors.error,
+            ),
+            overflow: TextOverflow.ellipsis,
+            maxLines: 2,
+          ),
+        ],
+      ],
+    );
+  }
+
+  void _showScopedSelectionBottomSheet(BuildContext context) {
+    // Determine which company/store to use
+    String? effectiveCompanyId = widget.companyId;
+    String? effectiveStoreId = widget.storeId;
+    
+    // If not provided, fall back to app state
+    if (effectiveCompanyId == null) {
+      final appStateNotifier = ref.read(appStateProvider.notifier);
+      effectiveCompanyId = appStateNotifier.selectedCompany?['company_id'] as String?;
+      effectiveStoreId = appStateNotifier.selectedStore?['store_id'] as String?;
+    }
+    
+    if (effectiveCompanyId == null) return;
+    
+    // Fetch cash locations for the specified or current company
+    final allLocationsAsync = widget.companyId != null
+        ? ref.watch(cashLocationListProvider(effectiveCompanyId, null, widget.locationType))
+        : ref.watch(companyCashLocationsProvider);
+    
+    // Update data organization when locations change
+    allLocationsAsync.whenData((allLocations) {
+      // Company tab: Show ALL locations
+      _companyItems = allLocations;
+      
+      // Store tab: Filter to show only specified/current store's locations
+      if (effectiveStoreId != null) {
+        _storeItems = allLocations.where((location) => 
+          location.storeId == effectiveStoreId
+        ).toList();
+      } else {
+        _storeItems = [];
+      }
+      
+      _updateFilteredItems();
+    });
+    
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: TossColors.transparent,
+      builder: (context) => TossBottomSheet(
+        content: StatefulBuilder(
+          builder: (context, setModalState) {
+            final screenHeight = MediaQuery.of(context).size.height;
+            
+            return Container(
+              constraints: BoxConstraints(
+                maxHeight: screenHeight * 0.7, // Limit to 70% of screen height
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Header
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Flexible(
+                        child: Text(
+                          'Select ${widget.label ?? 'Cash Location'}',
+                          style: TossTextStyles.h3.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.close, color: TossColors.gray500),
+                        onPressed: () => Navigator.pop(context),
+                      ),
+                    ],
+                  ),
+                  
+                  const SizedBox(height: TossSpacing.space4),
+                  
+                  // Tab Bar
+                  Container(
+                    decoration: BoxDecoration(
+                      color: TossColors.gray50,
+                      borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+                      border: Border.all(color: TossColors.gray200),
+                    ),
+                    child: Row(
+                      children: [
+                        _buildTabButton(setModalState, 0, 'Company', Icons.business),
+                        Container(width: 1, height: TossSpacing.space6, color: TossColors.gray200),
+                        _buildTabButton(setModalState, 1, 'Store', Icons.store),
+                      ],
+                    ),
+                  ),
+                  
+                  const SizedBox(height: TossSpacing.space4),
+                  
+                  // Search field
+                  if (widget.showSearch) ...[ 
+                    TossSearchField(
+                      hintText: 'Search ${_selectedTabIndex == 0 ? 'company' : 'store'} locations',
+                      onChanged: (value) {
+                        setModalState(() {
+                          _filterItems(value);
+                        });
+                      },
+                    ),
+                    const SizedBox(height: TossSpacing.space4),
+                  ],
+                  
+                  // Clear selection option
+                  if (widget.selectedLocationId != null)
+                    _buildClearOption(context),
+                  
+                  // Items list - use Flexible to prevent overflow
+                  Flexible(
+                child: allLocationsAsync.when(
+                  data: (locations) {
+                    final currentItems = _selectedTabIndex == 0 ? _companyItems : _storeItems;
+                    if (currentItems.isEmpty) {
+                      return Padding(
+                        padding: const EdgeInsets.all(TossSpacing.space6),
+                        child: Center(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                'There is no Cash Location.',
+                                style: TossTextStyles.body.copyWith(color: TossColors.gray500),
+                                textAlign: TextAlign.center,
+                              ),
+                              const SizedBox(height: TossSpacing.space2),
+                              Text(
+                                'Go to Cash and create Cash Location',
+                                style: TossTextStyles.caption.copyWith(
+                                  color: TossColors.primary,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    }
+                    return _filteredItems.isEmpty
+                    ? Padding(
+                        padding: const EdgeInsets.all(TossSpacing.space6),
+                        child: Center(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                _searchQuery.isEmpty
+                                  ? 'There is no Cash Location.'
+                                  : 'No results found',
+                                style: TossTextStyles.body.copyWith(color: TossColors.gray500),
+                                textAlign: TextAlign.center,
+                              ),
+                              if (_searchQuery.isEmpty) ...[ 
+                                const SizedBox(height: TossSpacing.space2),
+                                Text(
+                                  'Go to Cash and create Cash Location',
+                                  style: TossTextStyles.caption.copyWith(
+                                    color: TossColors.primary,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+                      )
+                    : ListView.separated(
+                        shrinkWrap: true,
+                        itemCount: _filteredItems.length,
+                        separatorBuilder: (context, index) => Container(
+                          height: 1,
+                          color: TossColors.gray100,
+                        ),
+                        itemBuilder: (context, index) {
+                          final item = _filteredItems[index];
+                          final isSelected = item.id == widget.selectedLocationId;
+                          
+                          return InkWell(
+                            onTap: () {
+                              widget.onChanged?.call(item.id);
+                              Navigator.pop(context);
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 12,
+                              ),
+                              color: isSelected ? TossColors.primary.withValues(alpha: 0.05) : null,
+                              child: Row(
+                                children: [
+                                  // Icon
+                                  Icon(
+                                    Icons.location_on,
+                                    size: TossSpacing.iconSM,
+                                    color: isSelected ? TossColors.primary : TossColors.gray500,
+                                  ),
+                                  const SizedBox(width: TossSpacing.space3),
+                                  
+                                  // Content
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          item.displayName,
+                                          style: TossTextStyles.body.copyWith(
+                                            color: isSelected ? TossColors.primary : TossColors.gray900,
+                                            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                                          ),
+                                          overflow: TextOverflow.ellipsis,
+                                          maxLines: 2,
+                                        ),
+                                        if (widget.showTransactionCount && item.subtitle.isNotEmpty) ...[ 
+                                          const SizedBox(height: 2),
+                                          Text(
+                                            item.subtitle,
+                                            style: TossTextStyles.small.copyWith(
+                                              color: TossColors.gray500,
+                                            ),
+                                            overflow: TextOverflow.ellipsis,
+                                            maxLines: 1,
+                                          ),
+                                        ],
+                                      ],
+                                    ),
+                                  ),
+                                  
+                                  // Check mark for selected
+                                  if (isSelected)
+                                    const Icon(
+                                      Icons.check,
+                                      size: TossSpacing.iconSM,
+                                      color: TossColors.primary,
+                                    ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      );
+                  },
+                  loading: () => const Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(TossSpacing.space6),
+                      child: CircularProgressIndicator(color: TossColors.primary),
+                    ),
+                  ),
+                  error: (error, stack) => Padding(
+                    padding: const EdgeInsets.all(TossSpacing.space6),
+                    child: Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            'Failed to load cash locations',
+                            style: TossTextStyles.body.copyWith(color: TossColors.error),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: TossSpacing.space2),
+                          Text(
+                            'Please try again',
+                            style: TossTextStyles.body.copyWith(
+                              color: TossColors.gray500,
+                              fontSize: 14,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                )),
+                ],
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTabButton(StateSetter setModalState, int index, String label, IconData icon) {
+    final isSelected = _selectedTabIndex == index;
+    return Expanded(
+      child: InkWell(
+        onTap: () => setModalState(() {
+          _selectedTabIndex = index;
+          _updateFilteredItems();
+        }),
+        borderRadius: BorderRadius.horizontal(
+          left: index == 0 ? const Radius.circular(11) : Radius.zero,
+          right: index == 1 ? const Radius.circular(11) : Radius.zero,
+        ),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: TossSpacing.space3),
+          decoration: BoxDecoration(
+            color: isSelected ? TossColors.white : TossColors.transparent,
+            borderRadius: BorderRadius.horizontal(
+              left: index == 0 ? const Radius.circular(11) : Radius.zero,
+              right: index == 1 ? const Radius.circular(11) : Radius.zero,
+            ),
+            border: isSelected ? Border.all(color: TossColors.primary) : null,
+          ),
+          child: Center(
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  icon,
+                  size: TossSpacing.iconXS,
+                  color: isSelected ? TossColors.primary : TossColors.gray500,
+                ),
+                const SizedBox(width: TossSpacing.space1),
+                Text(
+                  label,
+                  style: TossTextStyles.body.copyWith(
+                    color: isSelected ? TossColors.primary : TossColors.gray600,
+                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmptySelector() {
+    final hasError = widget.errorText != null && widget.errorText!.isNotEmpty;
+    
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Label
+        if (widget.label != null) ...[
+          Text(
+            widget.label!,
+            style: TossTextStyles.caption.copyWith(
+              color: hasError ? TossColors.error : TossColors.gray600,
+              fontWeight: FontWeight.w600,
+            ),
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: TossSpacing.space2),
+        ],
+        
+        // Empty state container
+        Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+            color: TossColors.gray50,
+            border: Border.all(
+              color: hasError ? TossColors.error : TossColors.gray200,
+              width: 1,
+            ),
+          ),
+          padding: const EdgeInsets.all(TossSpacing.space3),
+          child: Row(
+            children: [
+              Icon(
+                Icons.info_outline,
+                size: TossSpacing.iconSM,
+                color: TossColors.gray400,
+              ),
+              const SizedBox(width: TossSpacing.space2),
+              Expanded(
+                child: Text(
+                  widget.companyId != null 
+                    ? 'No cash locations available'
+                    : 'No company selected',
+                  style: TossTextStyles.body.copyWith(
+                    color: TossColors.gray400,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        
+        // Error text
+        if (hasError) ...[ 
+          const SizedBox(height: TossSpacing.space2),
+          Text(
+            widget.errorText!,
+            style: TossTextStyles.caption.copyWith(
+              color: TossColors.error,
+            ),
+            overflow: TextOverflow.ellipsis,
+            maxLines: 2,
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildClearOption(BuildContext context) {
+    return InkWell(
+      onTap: () {
+        widget.onChanged?.call(null);
+        Navigator.pop(context);
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 12,
+        ),
+        child: Row(
+          children: [
+            const Icon(
+              Icons.clear,
+              size: 20,
+              color: TossColors.gray500,
+            ),
+            const SizedBox(width: TossSpacing.space3),
+            Text(
+              'Clear selection',
+              style: TossTextStyles.body.copyWith(color: TossColors.gray500),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Remove this method as we're now handling data separately for each tab
+}
