@@ -2021,8 +2021,7 @@
                     is_internal: isInternal,
                     linked_company_id: linkedCompanyId,
                     is_deleted: false,
-                    created_at: localTimestamp, // Use local device time
-                    updated_at: localTimestamp  // Also set updated_at to current local time
+                    created_at: localTimestamp  // Only include created_at, NOT updated_at
                 };
                 
             } catch (error) {

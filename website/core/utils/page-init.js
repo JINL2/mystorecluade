@@ -57,13 +57,15 @@ class PageInitializer {
             if (hasStoredSession) {
                 console.log('Found stored session, waiting for Supabase to restore...');
                 
-                // Try multiple times with increasing delays
-                const maxRetries = 10;  // Increased retries
+                // Try a few times with shorter delays
+                const maxRetries = 3;  // Reduced from 10
                 let sessionRestored = false;
                 
                 for (let i = 0; i < maxRetries; i++) {
-                    // Wait progressively longer, but start with shorter delay
-                    await new Promise(resolve => setTimeout(resolve, 100 * (i + 1)));  // Start at 100ms
+                    // Use shorter, fixed delay
+                    if (i > 0) {
+                        await new Promise(resolve => setTimeout(resolve, 50));  // Fixed 50ms delay
+                    }
                     
                     const { data: { session }, error } = await supabase.auth.getSession();
                     
@@ -101,8 +103,8 @@ class PageInitializer {
                                 console.log('User just logged in, waiting for session to establish...');
                                 sessionStorage.removeItem('loginPageRedirecting');
                                 
-                                // Give it one more try after a delay
-                                await new Promise(resolve => setTimeout(resolve, 1000));
+                                // Give it one more try after a short delay
+                                await new Promise(resolve => setTimeout(resolve, 100));
                                 const { data: { session: retrySession } } = await supabase.auth.getSession();
                                 if (retrySession) {
                                     console.log('Session found after delay from login redirect');
@@ -120,11 +122,11 @@ class PageInitializer {
             // Check if we just came from login
             const loginRedirectFlag = sessionStorage.getItem('loginPageRedirecting');
             if (loginRedirectFlag === 'true') {
-                console.log('Just redirected from login, waiting for Supabase to restore session...');
+                console.log('Just redirected from login, checking for session...');
                 sessionStorage.removeItem('loginPageRedirecting');
                 
-                // Give Supabase more time to restore the session
-                await new Promise(resolve => setTimeout(resolve, 1000));
+                // Give Supabase a moment to restore the session
+                await new Promise(resolve => setTimeout(resolve, 100));
             }
             
             // Final check for session
@@ -193,8 +195,8 @@ class PageInitializer {
             // Check if NavBar class is available
             if (typeof window.NavBar === 'undefined') {
                 console.error('❌ NavBar class not available yet');
-                // Wait a bit and try again
-                await new Promise(resolve => setTimeout(resolve, 100));
+                // Wait a brief moment and try again
+                await new Promise(resolve => setTimeout(resolve, 20));
                 if (typeof window.NavBar === 'undefined') {
                     console.error('❌ NavBar class still not available');
                     return;
@@ -260,7 +262,7 @@ class PageInitializer {
                 window.refreshNavbarCompanySelector();
             }
         } else {
-            // If navbar instance doesn't exist yet, wait a moment and try again
+            // If navbar instance doesn't exist yet, wait a brief moment and try again
             setTimeout(async () => {
                 if (window.navbarInstance) {
                     window.navbarInstance.setActiveItem(this.activeItem);
@@ -273,7 +275,7 @@ class PageInitializer {
                         window.refreshNavbarCompanySelector();
                     }
                 }
-            }, 100);
+            }, 20);
         }
     }
 
@@ -292,54 +294,64 @@ class PageInitializer {
                              !existingUserData.companies || 
                              existingUserData.companies.length === 0;
             
+            // Load user data and categories in parallel for faster loading
+            const loadPromises = [];
+            
             if (needsData) {
                 console.log('Loading user companies and stores (data missing or incomplete)...');
+                loadPromises.push(
+                    supabase.rpc('get_user_companies_and_stores', {
+                        p_user_id: session.user.id
+                    }).then(({ data: userData, error: userError }) => {
+                        if (userError) {
+                            console.error('Error fetching user companies:', userError);
+                            return null;
+                        } else if (userData) {
+                            // Store user data
+                            console.log(`📥 ${this.activeItem} storing user data:`, userData);
+                            console.log('📊 Companies in userData:', userData.companies?.length || 0);
+                            appState.setUserData(userData);
+                            console.log('✅ User data stored in localStorage');
 
-                // Call get_user_companies_and_stores RPC
-                const { data: userData, error: userError } = await supabase.rpc('get_user_companies_and_stores', {
-                    p_user_id: session.user.id
-                });
-
-                if (userError) {
-                    console.error('Error fetching user companies:', userError);
-                    return; // Exit early on error
-                } else if (userData) {
-                    // Store user data
-                    console.log(`📥 ${this.activeItem} storing user data:`, userData);
-                    console.log('📊 Companies in userData:', userData.companies?.length || 0);
-                    appState.setUserData(userData);
-                    console.log('✅ User data stored in localStorage');
-
-                    // Set first company as selected if none selected
-                    const selectedCompanyId = appState.getSelectedCompanyId();
-                    if (!selectedCompanyId && userData.companies && userData.companies.length > 0) {
-                        // This will also set the first store
-                        appState.setSelectedCompanyId(userData.companies[0].company_id);
-                    } else if (selectedCompanyId) {
-                        // Ensure store is also set for existing company selection
-                        const selectedCompany = userData.companies.find(c => c.company_id === selectedCompanyId);
-                        if (selectedCompany && !appState.getSelectedStoreId()) {
-                            if (selectedCompany.stores && selectedCompany.stores.length > 0) {
-                                appState.setSelectedStoreId(selectedCompany.stores[0].store_id);
+                            // Set first company as selected if none selected
+                            const selectedCompanyId = appState.getSelectedCompanyId();
+                            if (!selectedCompanyId && userData.companies && userData.companies.length > 0) {
+                                // This will also set the first store
+                                appState.setSelectedCompanyId(userData.companies[0].company_id);
+                            } else if (selectedCompanyId) {
+                                // Ensure store is also set for existing company selection
+                                const selectedCompany = userData.companies.find(c => c.company_id === selectedCompanyId);
+                                if (selectedCompany && !appState.getSelectedStoreId()) {
+                                    if (selectedCompany.stores && selectedCompany.stores.length > 0) {
+                                        appState.setSelectedStoreId(selectedCompany.stores[0].store_id);
+                                    }
+                                }
                             }
                         }
-                    }
-                }
+                        return userData;
+                    })
+                );
             }
 
             // Load categories with features if not exists
             if (!existingCategories || appState.needsRefresh()) {
                 console.log('Loading categories with features...');
+                loadPromises.push(
+                    supabase.rpc('get_categories_with_features').then(({ data: categoriesData, error: categoriesError }) => {
+                        if (categoriesError) {
+                            console.error('Error fetching categories:', categoriesError);
+                        } else if (categoriesData) {
+                            // Store categories data
+                            appState.setCategoryFeatures(categoriesData);
+                        }
+                        return categoriesData;
+                    })
+                );
+            }
 
-                // Call get_categories_with_features RPC
-                const { data: categoriesData, error: categoriesError } = await supabase.rpc('get_categories_with_features');
-
-                if (categoriesError) {
-                    console.error('Error fetching categories:', categoriesError);
-                } else if (categoriesData) {
-                    // Store categories data
-                    appState.setCategoryFeatures(categoriesData);
-                }
+            // Wait for all data to load in parallel
+            if (loadPromises.length > 0) {
+                await Promise.all(loadPromises);
             }
 
             // Mark data as refreshed
@@ -380,14 +392,14 @@ window.initializePage = function(activeItem, onCompanyChange) {
                 initializer.setupCompanyChangeListener(onCompanyChange);
                 
                 // Trigger callback with initial company ID after initialization
-                // Wait a bit to ensure navbar has loaded
+                // Brief wait to ensure navbar has loaded
                 setTimeout(() => {
                     const currentCompanyId = appState.getSelectedCompanyId();
                     const userData = appState.getUserData();
                     const currentCompany = userData?.companies?.find(c => c.company_id === currentCompanyId);
                     console.log('Triggering initial callback with company:', currentCompanyId);
                     onCompanyChange(currentCompanyId, currentCompany);
-                }, 500);
+                }, 50);
             }
         });
     } else {
@@ -400,14 +412,14 @@ window.initializePage = function(activeItem, onCompanyChange) {
                 initializer.setupCompanyChangeListener(onCompanyChange);
                 
                 // Trigger callback with initial company ID after initialization
-                // Wait a bit to ensure navbar has loaded
+                // Brief wait to ensure navbar has loaded
                 setTimeout(() => {
                     const currentCompanyId = appState.getSelectedCompanyId();
                     const userData = appState.getUserData();
                     const currentCompany = userData?.companies?.find(c => c.company_id === currentCompanyId);
                     console.log('Triggering initial callback with company:', currentCompanyId);
                     onCompanyChange(currentCompanyId, currentCompany);
-                }, 500);
+                }, 50);
             }
         })();
     }

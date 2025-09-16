@@ -21,8 +21,8 @@ const RouteMapping = {
     
     // Product routes
     'Inventory': 'inventory',
-    'Order': 'order',
     'Invoice': 'invoice',
+    'Order': 'order',
     'Product Receive': 'productReceive',
     'Tracking': 'tracking',
     
@@ -82,8 +82,8 @@ function buildPageUrl(route, basePath = null) {
         
         // Product pages
         'inventory': 'product/inventory',
-        'order': 'product/order',
         'invoice': 'product/invoice',
+        'order': 'product/order',
         'productReceive': 'product/product recieve',
         'tracking': 'product/tracking',
         

@@ -21,8 +21,7 @@
     <!-- Supabase CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
-    <!-- ExcelJS CDN for Excel Export/Import with Styling Support -->
-    <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
+    <!-- ExcelJS will be lazy-loaded when needed for Export/Import -->
     
     <!-- Page Specific Styles -->
     <style>
@@ -2656,6 +2655,10 @@
                 
                 // TossSelect instances for dropdowns
                 this.metadataSelects = {};
+                
+                // ExcelJS lazy loading state
+                this.excelJSLoaded = false;
+                this.excelJSLoading = null; // Promise to track loading state
             }
             
             init() {
@@ -2684,6 +2687,43 @@
                         this.hideStoreFilterDropdown();
                     }
                 });
+            }
+            
+            // Lazy load ExcelJS library only when needed
+            async loadExcelJS() {
+                // If already loaded, return immediately
+                if (this.excelJSLoaded) {
+                    return true;
+                }
+                
+                // If currently loading, wait for the existing promise
+                if (this.excelJSLoading) {
+                    return this.excelJSLoading;
+                }
+                
+                // Start loading
+                this.excelJSLoading = new Promise((resolve, reject) => {
+                    const script = document.createElement('script');
+                    script.src = 'https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js';
+                    script.async = true;
+                    
+                    script.onload = () => {
+                        this.excelJSLoaded = true;
+                        this.excelJSLoading = null;
+                        console.log('ExcelJS loaded successfully');
+                        resolve(true);
+                    };
+                    
+                    script.onerror = () => {
+                        this.excelJSLoading = null;
+                        console.error('Failed to load ExcelJS');
+                        reject(new Error('Failed to load ExcelJS library'));
+                    };
+                    
+                    document.head.appendChild(script);
+                });
+                
+                return this.excelJSLoading;
             }
             
             toggleStoreFilterDropdown() {
@@ -2922,9 +2962,6 @@
                     this.currentStoreId = storeId;
                     this.currentCompanyId = companyId;
                     
-                    // Load metadata if not already loaded
-                    await this.loadInventoryMetadata();
-                    
                     // Reset page to 1 when changing stores
                     this.currentPage = 1;
                     
@@ -2932,8 +2969,19 @@
                     this.showInventoryInterface();
                     this.showLoadingState();
                     
-                    // Load actual inventory data from Supabase
-                    await this.loadInventoryData(1); // Always start with page 1 for new store
+                    // Load metadata and inventory data in parallel for faster page load
+                    const [metadataResult, inventoryResult] = await Promise.all([
+                        this.loadInventoryMetadata().catch(err => {
+                            console.error('Error loading metadata:', err);
+                            return null;
+                        }),
+                        this.loadInventoryData(1).catch(err => {
+                            console.error('Error loading inventory:', err);
+                            return null;
+                        })
+                    ]);
+                    
+                    // Setup functionality after data loads
                     this.setupSearchFunctionality();
                     this.setupCheckboxFunctionality();
                     this.setupAddProductModal();
@@ -4839,13 +4887,15 @@
                         `;
                     }
                     
+                    // Load ExcelJS library if not already loaded
+                    await this.loadExcelJS();
+                    
                     // Create a new workbook using ExcelJS
                     const workbook = new ExcelJS.Workbook();
                     const worksheet = workbook.addWorksheet('Inventory');
                     
                     // Define columns with headers and widths
                     worksheet.columns = [
-                        { header: 'Product ID (Do Not Edit)', key: 'product_id', width: 36 },
                         { header: 'Product Code (SKU)', key: 'sku', width: 18 },
                         { header: 'Barcode', key: 'barcode', width: 15 },
                         { header: 'Product Name', key: 'product_name', width: 30 },
@@ -4865,7 +4915,6 @@
                     // If no products, the Excel will only contain headers for template reference
                     this.currentProducts.forEach(product => {
                         worksheet.addRow({
-                            product_id: product.product_id || '',
                             sku: product.sku || '',
                             barcode: product.barcode || '',
                             product_name: product.product_name || '',
@@ -5099,6 +5148,12 @@
                 
                 try {
                     // Show loading overlay
+                    this.showImportLoading('Loading Excel processor...');
+                    
+                    // Load ExcelJS library if not already loaded
+                    await this.loadExcelJS();
+                    
+                    // Update loading message
                     this.showImportLoading('Processing Excel file...');
                     
                     // Parse Excel file using ExcelJS
@@ -5112,33 +5167,27 @@
                     worksheet.eachRow((row, rowNumber) => {
                         if (rowNumber === 1) return; // Skip header row
                         
-                        // Get cell values by column number
+                        // Get cell values by column number (product_id removed from Excel columns)
                         const productData = {
-                            product_id: row.getCell(1).value || null,           // Column A - Product ID
-                            sku: row.getCell(2).value || null,                  // Column B - SKU
-                            barcode: row.getCell(3).value || null,              // Column C - Barcode
-                            product_name: row.getCell(4).value || '',           // Column D - Product Name
-                            category: row.getCell(5).value || null,             // Column E - Category
-                            brand: row.getCell(6).value || null,                // Column F - Brand
-                            unit: row.getCell(7).value || 'piece',              // Column G - Unit
-                            cost_price: parseFloat(row.getCell(8).value) || 0,         // Column H - Cost Price
-                            selling_price: parseFloat(row.getCell(9).value) || 0,      // Column I - Selling Price
-                            current_stock: parseFloat(row.getCell(10).value) || 0,     // Column J - Current Stock
-                            min_stock: parseFloat(row.getCell(11).value) || 0,         // Column K - Min Stock
-                            max_stock: parseFloat(row.getCell(12).value) || 0,         // Column L - Max Stock
-                            reorder_point: parseFloat(row.getCell(13).value) || 0,     // Column M - Reorder Point
-                            status: row.getCell(14).value || 'Active'           // Column N - Status
+                            product_id: null,                                    // Not read from Excel, set to null
+                            sku: row.getCell(1).value || null,                  // Column A - SKU
+                            barcode: row.getCell(2).value || null,              // Column B - Barcode
+                            product_name: row.getCell(3).value || '',           // Column C - Product Name
+                            category: row.getCell(4).value || null,             // Column D - Category
+                            brand: row.getCell(5).value || null,                // Column E - Brand
+                            unit: row.getCell(6).value || 'piece',              // Column F - Unit
+                            cost_price: parseFloat(row.getCell(7).value) || 0,         // Column G - Cost Price
+                            selling_price: parseFloat(row.getCell(8).value) || 0,      // Column H - Selling Price
+                            current_stock: parseFloat(row.getCell(9).value) || 0,      // Column I - Current Stock
+                            min_stock: parseFloat(row.getCell(10).value) || 0,         // Column J - Min Stock
+                            max_stock: parseFloat(row.getCell(11).value) || 0,         // Column K - Max Stock
+                            reorder_point: parseFloat(row.getCell(12).value) || 0,     // Column L - Reorder Point
+                            status: row.getCell(13).value || 'Active'           // Column M - Status
                         };
                         
                         // Data validation and cleaning
-                        if (productData.product_name || productData.product_id) {
-                            // Validate UUID format for product_id
-                            if (productData.product_id && typeof productData.product_id === 'string') {
-                                const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-                                if (!uuidRegex.test(productData.product_id)) {
-                                    productData.product_id = null; // Invalid UUID becomes null
-                                }
-                            }
+                        if (productData.product_name) {
+                            // product_id is always null from Excel import (not read from file)
                             
                             // Convert all string fields to proper strings
                             if (productData.sku !== null) productData.sku = String(productData.sku).trim();
@@ -6271,32 +6320,30 @@
         document.addEventListener('DOMContentLoaded', () => {
             inventoryManager.init();
             
-            // Wait for page initialization to complete, then initialize page-specific content
-            setTimeout(() => {
-                let companyId = null;
-                if (typeof appState !== 'undefined' && typeof appState.getSelectedCompanyId === 'function') {
-                    companyId = appState.getSelectedCompanyId();
+            // Initialize page-specific content immediately (removed unnecessary setTimeout)
+            let companyId = null;
+            if (typeof appState !== 'undefined' && typeof appState.getSelectedCompanyId === 'function') {
+                companyId = appState.getSelectedCompanyId();
+            }
+            
+            // Store the company ID if available
+            if (companyId && !inventoryManager.currentCompanyId) {
+                inventoryManager.currentCompanyId = companyId;
+            }
+            
+            if (companyId) {
+                let stores = [];
+                if (typeof appState !== 'undefined' && typeof appState.getCompanyStores === 'function') {
+                    stores = appState.getCompanyStores();
                 }
-                
-                // Store the company ID if available
-                if (companyId && !inventoryManager.currentCompanyId) {
-                    inventoryManager.currentCompanyId = companyId;
+                if (stores && stores.length > 0) {
+                    inventoryManager.currentStoreFilter = stores[0].store_id;
+                    document.getElementById('storeFilterLabel').textContent = stores[0].store_name;
+                    inventoryManager.loadInventoryForStore(stores[0].store_id);
+                } else {
+                    inventoryManager.loadInventoryForStore(null);
                 }
-                
-                if (companyId) {
-                    let stores = [];
-                    if (typeof appState !== 'undefined' && typeof appState.getCompanyStores === 'function') {
-                        stores = appState.getCompanyStores();
-                    }
-                    if (stores && stores.length > 0) {
-                        inventoryManager.currentStoreFilter = stores[0].store_id;
-                        document.getElementById('storeFilterLabel').textContent = stores[0].store_name;
-                        inventoryManager.loadInventoryForStore(stores[0].store_id);
-                    } else {
-                        inventoryManager.loadInventoryForStore(null);
-                    }
-                }
-            }, 100);
+            }
         });
     </script>
 </body>

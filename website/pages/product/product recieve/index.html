@@ -16,6 +16,7 @@
     <link rel="stylesheet" href="../../../components/form/toss-input.css">
     <link rel="stylesheet" href="../../../components/form/toss-select.css">
     <link rel="stylesheet" href="../../../components/feedback/toss-alert.css">
+    <link rel="stylesheet" href="../../../components/layout/toss-modal.css">
     <link rel="stylesheet" href="../../../components/navigation/navbar.css">
     
     <!-- Supabase CDN -->
@@ -298,6 +299,520 @@
             margin: 0;
         }
         
+        /* Two-column layout for product receive */
+        .receive-main-content {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: var(--space-6);
+            margin-bottom: var(--space-6);
+        }
+        
+        /* Order Details Card (Left Column) */
+        .order-details-card {
+            background: var(--toss-white);
+            border-radius: var(--radius-lg);
+            padding: var(--space-6);
+            box-shadow: var(--shadow-sm);
+            height: fit-content;
+            position: sticky;
+            top: var(--space-6);
+        }
+        
+        .order-summary {
+            margin-bottom: var(--space-6);
+            padding-bottom: var(--space-4);
+            border-bottom: 1px solid var(--toss-border);
+        }
+        
+        .order-summary-title {
+            font-size: var(--font-h3);
+            font-weight: var(--font-bold);
+            color: var(--text-primary);
+            margin: 0 0 var(--space-2) 0;
+        }
+        
+        .order-summary-info {
+            display: flex;
+            align-items: center;
+            gap: var(--space-4);
+            margin-bottom: var(--space-4);
+        }
+        
+        .progress-ring {
+            position: relative;
+            width: 60px;
+            height: 60px;
+            flex-shrink: 0;
+        }
+        
+        .progress-ring svg {
+            transform: rotate(-90deg);
+        }
+        
+        .progress-ring-circle {
+            stroke: var(--toss-gray-200);
+            stroke-width: 6;
+            fill: transparent;
+            r: 24;
+            cx: 30;
+            cy: 30;
+        }
+        
+        .progress-ring-progress {
+            stroke: var(--toss-primary);
+            stroke-width: 6;
+            stroke-linecap: round;
+            fill: transparent;
+            r: 24;
+            cx: 30;
+            cy: 30;
+            stroke-dasharray: 150.8;
+            stroke-dashoffset: 150.8;
+            transition: stroke-dashoffset 0.5s ease;
+        }
+        
+        .progress-ring-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: var(--font-small);
+            font-weight: var(--font-bold);
+            color: var(--text-primary);
+        }
+        
+        .progress-stats {
+            flex: 1;
+        }
+        
+        .progress-stat {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: var(--space-1);
+            font-size: var(--font-body-small);
+        }
+        
+        .progress-stat-label {
+            color: var(--text-secondary);
+        }
+        
+        .progress-stat-value {
+            font-weight: var(--font-semibold);
+            color: var(--text-primary);
+        }
+        
+        /* Product List */
+        .product-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .product-list-title {
+            font-size: var(--font-body);
+            font-weight: var(--font-semibold);
+            color: var(--text-primary);
+            margin: 0 0 var(--space-3) 0;
+        }
+        
+        /* Product Search */
+        .product-search-container {
+            margin-bottom: var(--space-3);
+        }
+        
+        .product-search-input {
+            font-size: var(--font-small);
+            height: 36px;
+            padding: var(--space-2) var(--space-3);
+        }
+        
+        .product-search-input:focus {
+            border-color: var(--toss-primary);
+            box-shadow: 0 0 0 3px rgba(0, 100, 255, 0.1);
+        }
+        
+        .product-search-no-results {
+            text-align: center;
+            padding: var(--space-4);
+            color: var(--text-tertiary);
+            font-size: var(--font-small);
+            font-style: italic;
+        }
+        
+        .product-item {
+            display: flex;
+            align-items: center;
+            padding: var(--space-3) var(--space-4);
+            border-radius: var(--radius-md);
+            transition: all var(--transition-fast);
+            margin-bottom: var(--space-2);
+            border: 1px solid transparent;
+        }
+        
+        .product-item:hover {
+            background: var(--toss-gray-50);
+        }
+        
+        .product-item.complete {
+            background: rgba(0, 200, 150, 0.08);
+            border-color: var(--toss-success);
+        }
+        
+        .product-item.over {
+            background: rgba(255, 149, 0, 0.08);
+            border-color: var(--toss-warning);
+        }
+        
+        .product-item.under {
+            background: rgba(255, 88, 71, 0.08);
+            border-color: var(--toss-error);
+        }
+        
+        .product-info {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .product-name {
+            font-size: var(--font-body-small);
+            font-weight: var(--font-medium);
+            color: var(--text-primary);
+            margin: 0 0 var(--space-1) 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .product-sku {
+            font-size: var(--font-small);
+            color: var(--text-secondary);
+            margin: 0;
+            font-family: var(--font-family-mono);
+        }
+        
+        .product-quantity {
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+            font-size: var(--font-body-small);
+            font-weight: var(--font-semibold);
+            white-space: nowrap;
+        }
+        
+        .quantity-received {
+            color: var(--toss-primary);
+            font-size: var(--font-body);
+            min-width: 20px;
+            text-align: center;
+        }
+        
+        .quantity-separator {
+            color: var(--text-tertiary);
+        }
+        
+        .quantity-total {
+            color: var(--text-secondary);
+        }
+        
+        /* Scanning Area (Right Column) */
+        .scanning-area {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-4);
+        }
+        
+        /* SKU Input Section */
+        .sku-input-section {
+            background: var(--toss-white);
+            border-radius: var(--radius-lg);
+            padding: var(--space-6);
+            box-shadow: var(--shadow-sm);
+            position: relative;
+        }
+        
+        .sku-input-title {
+            font-size: var(--font-h4);
+            font-weight: var(--font-bold);
+            color: var(--text-primary);
+            margin: 0 0 var(--space-4) 0;
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+        }
+        
+        .sku-input-icon {
+            width: 24px;
+            height: 24px;
+            color: var(--toss-primary);
+        }
+        
+        .sku-input-field {
+            font-size: var(--font-h3);
+            padding: var(--space-5) var(--space-6);
+            height: 60px;
+            border: 2px solid var(--toss-gray-200);
+            border-radius: var(--radius-lg);
+            width: 100%;
+            text-align: center;
+            font-weight: var(--font-medium);
+            background: var(--toss-white);
+            transition: all var(--transition-fast);
+            outline: none;
+            box-sizing: border-box;
+        }
+        
+        .sku-input-field:focus {
+            border-color: var(--toss-primary);
+            box-shadow: 0 0 0 4px rgba(0, 100, 255, 0.12);
+        }
+        
+        .sku-input-field::placeholder {
+            color: var(--text-tertiary);
+            font-weight: var(--font-regular);
+        }
+        
+        .sku-input-field.success {
+            border-color: var(--toss-success);
+            background: rgba(0, 200, 150, 0.05);
+            animation: successPulse 0.3s ease-out;
+        }
+        
+        .sku-input-field.error {
+            border-color: var(--toss-error);
+            background: rgba(255, 88, 71, 0.05);
+            animation: errorShake 0.4s ease-out;
+        }
+        
+        @keyframes successPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+            100% { transform: scale(1); }
+        }
+        
+        @keyframes errorShake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-8px); }
+            75% { transform: translateX(8px); }
+        }
+        
+        .sku-input-instructions {
+            font-size: var(--font-body-small);
+            color: var(--text-secondary);
+            text-align: center;
+            margin-top: var(--space-3);
+        }
+        
+        .keyboard-shortcut {
+            display: inline-block;
+            background: var(--toss-gray-100);
+            padding: var(--space-1) var(--space-2);
+            border-radius: var(--radius-sm);
+            font-family: var(--font-family-mono);
+            font-size: var(--font-small);
+            margin: 0 var(--space-1);
+        }
+        
+        /* Scanned Items */
+        .scanned-items-card {
+            background: var(--toss-white);
+            border-radius: var(--radius-lg);
+            padding: var(--space-6);
+            box-shadow: var(--shadow-sm);
+            flex: 1;
+        }
+        
+        .scanned-items-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: var(--space-4);
+        }
+        
+        .scanned-items-title {
+            font-size: var(--font-h4);
+            font-weight: var(--font-bold);
+            color: var(--text-primary);
+            margin: 0;
+        }
+        
+        .scanned-items-count {
+            font-size: var(--font-body-small);
+            color: var(--text-secondary);
+            background: var(--toss-gray-100);
+            padding: var(--space-2) var(--space-3);
+            border-radius: var(--radius-full);
+            font-weight: var(--font-medium);
+        }
+        
+        .scanned-items-list {
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid var(--toss-border);
+            border-radius: var(--radius-md);
+            background: var(--toss-gray-50);
+        }
+        
+        .scanned-items-empty {
+            text-align: center;
+            padding: var(--space-8) var(--space-4);
+            color: var(--text-tertiary);
+            font-size: var(--font-body-small);
+        }
+        
+        .scanned-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: var(--space-3) var(--space-4);
+            background: var(--toss-white);
+            border-bottom: 1px solid var(--toss-border);
+            transition: all var(--transition-fast);
+            animation: slideInFromTop 0.3s ease-out;
+        }
+        
+        .scanned-item:last-child {
+            border-bottom: none;
+        }
+        
+        .scanned-item:hover {
+            background: var(--toss-gray-50);
+        }
+        
+        @keyframes slideInFromTop {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .scanned-item-info {
+            flex: 1;
+        }
+        
+        .scanned-item-sku {
+            font-family: var(--font-family-mono);
+            font-size: var(--font-body);
+            font-weight: var(--font-medium);
+            color: var(--text-primary);
+            margin: 0 0 var(--space-1) 0;
+        }
+        
+        .scanned-item-time {
+            font-size: var(--font-small);
+            color: var(--text-tertiary);
+            margin: 0;
+        }
+        
+        .scanned-item-quantity {
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+        }
+        
+        .quantity-controls {
+            display: flex;
+            align-items: center;
+            gap: var(--space-1);
+            background: var(--toss-gray-50);
+            border-radius: var(--radius-md);
+            padding: var(--space-1);
+        }
+        
+        .quantity-btn {
+            background: var(--toss-white);
+            border: 1px solid var(--toss-gray-200);
+            border-radius: var(--radius-sm);
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            color: var(--text-secondary);
+            font-size: var(--font-large);
+            font-weight: var(--font-bold);
+            line-height: 1;
+        }
+        
+        .quantity-btn:hover {
+            background: var(--toss-primary);
+            color: var(--toss-white);
+            border-color: var(--toss-primary);
+            transform: scale(1.05);
+        }
+        
+        .quantity-btn:active {
+            transform: scale(0.95);
+        }
+        
+        .quantity-btn:disabled {
+            background: var(--toss-gray-100);
+            color: var(--text-disabled);
+            border-color: var(--toss-gray-200);
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .quantity-btn:disabled:hover {
+            background: var(--toss-gray-100);
+            color: var(--text-disabled);
+            border-color: var(--toss-gray-200);
+            transform: none;
+        }
+        
+        .scanned-item-count {
+            font-size: var(--font-body);
+            font-weight: var(--font-bold);
+            color: var(--toss-primary);
+            min-width: 30px;
+            text-align: center;
+            padding: 0 var(--space-2);
+        }
+        
+        .scanned-item-remove {
+            background: none;
+            border: none;
+            color: var(--text-tertiary);
+            cursor: pointer;
+            padding: var(--space-2);
+            border-radius: var(--radius-sm);
+            transition: all var(--transition-fast);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .scanned-item-remove:hover {
+            background: var(--toss-error-light);
+            color: var(--toss-error);
+        }
+        
+        /* Action Buttons */
+        .receive-actions {
+            display: flex;
+            gap: var(--space-3);
+            margin-top: var(--space-6);
+        }
+        
+        .btn-review {
+            flex: 1;
+        }
+        
+        .btn-clear {
+            background: var(--toss-gray-100);
+            color: var(--text-secondary);
+            border: 1px solid var(--toss-gray-200);
+        }
+        
+        .btn-clear:hover {
+            background: var(--toss-gray-200);
+            color: var(--text-primary);
+        }
+        
         /* Responsive Styles */
         @media (max-width: 768px) {
             .controls-card {
@@ -351,7 +866,7 @@
                 <p class="page-subtitle">Manage incoming product shipments and receiving</p>
             </div>
             
-            <!-- Store Filter Control -->
+            <!-- Store & Order Controls -->
             <div class="controls-card">
                 <div class="control-section" id="storeFilterControl">
                     <svg class="control-icon" fill="currentColor" viewBox="0 0 24 24">
@@ -369,18 +884,179 @@
                         </div>
                     </div>
                 </div>
+                
+                <!-- Order Selection Control -->
+                <div class="control-section" id="orderFilterControl" style="display: none;">
+                    <svg class="control-icon" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M19,3H5A2,2 0 0,0 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5A2,2 0 0,0 19,3M19,19H5V5H19V19M17,17H7V15H17V17M17,13H7V11H17V13M17,9H7V7H17V9Z"/>
+                    </svg>
+                    <span class="control-label" id="orderFilterLabel">Select Order...</span>
+                    <svg class="control-dropdown" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M7.41,8.58L12,13.17L16.59,8.58L18,10L12,16L6,10L7.41,8.58Z"/>
+                    </svg>
+                    
+                    <!-- Order Filter Dropdown -->
+                    <div class="store-filter-dropdown" id="orderFilterDropdown">
+                        <div id="orderFilterOptions">
+                            <!-- Order filter options will be inserted here -->
+                        </div>
+                    </div>
+                </div>
             </div>
             
             <!-- Product Receive Content -->
-            <div class="content-card" id="receiveContent">
-                <div class="receive-placeholder">
-                    <div class="receive-placeholder-icon">
-                        <svg width="48" height="48" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M12,2A3,3 0 0,1 15,5V11A3,3 0 0,1 12,14A3,3 0 0,1 9,11V5A3,3 0 0,1 12,2M19,11C19,14.53 16.39,17.44 13,17.93V21H11V17.93C7.61,17.44 5,14.53 5,11H7A5,5 0 0,0 12,16A5,5 0 0,0 17,11H19Z"/>
-                        </svg>
+            <div id="receiveContent">
+                <!-- Initial state placeholder -->
+                <div class="content-card" id="receivePlaceholder">
+                    <div class="receive-placeholder">
+                        <div class="receive-placeholder-icon">
+                            <svg width="48" height="48" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12,2A3,3 0 0,1 15,5V11A3,3 0 0,1 12,14A3,3 0 0,1 9,11V5A3,3 0 0,1 12,2M19,11C19,14.53 16.39,17.44 13,17.93V21H11V17.93C7.61,17.44 5,14.53 5,11H7A5,5 0 0,0 12,16A5,5 0 0,0 17,11H19Z"/>
+                            </svg>
+                        </div>
+                        <h3 class="receive-placeholder-title">Select a Store and Order</h3>
+                        <p class="receive-placeholder-text">Choose a store and purchase order to begin product receiving</p>
                     </div>
-                    <h3 class="receive-placeholder-title">Select a Store</h3>
-                    <p class="receive-placeholder-text">Choose a store from the dropdown above to view its product receiving records</p>
+                </div>
+                
+                <!-- Main receive interface (hidden initially) -->
+                <div class="receive-main-content" id="receiveInterface" style="display: none;">
+                    <!-- Order Details (Left Column) -->
+                    <div class="order-details-card">
+                        <div class="order-summary">
+                            <h3 class="order-summary-title" id="orderTitle">Order Details</h3>
+                            <div class="order-summary-info">
+                                <div class="progress-ring">
+                                    <svg width="60" height="60">
+                                        <circle class="progress-ring-circle"></circle>
+                                        <circle class="progress-ring-progress" id="progressRingCircle"></circle>
+                                    </svg>
+                                    <div class="progress-ring-text" id="progressRingText">0%</div>
+                                </div>
+                                <div class="progress-stats">
+                                    <div class="progress-stat">
+                                        <span class="progress-stat-label">Received:</span>
+                                        <span class="progress-stat-value" id="receivedCount">0</span>
+                                    </div>
+                                    <div class="progress-stat">
+                                        <span class="progress-stat-label">Remaining:</span>
+                                        <span class="progress-stat-value" id="remainingCount">0</span>
+                                    </div>
+                                    <div class="progress-stat">
+                                        <span class="progress-stat-label">Total:</span>
+                                        <span class="progress-stat-value" id="totalCount">0</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="product-list">
+                            <h4 class="product-list-title">Products in Order</h4>
+                            
+                            <!-- Product Search -->
+                            <div class="product-search-container">
+                                <input type="text" 
+                                       class="toss-input product-search-input" 
+                                       id="productSearchInput"
+                                       placeholder="Search by SKU or product name..."
+                                       autocomplete="off">
+                            </div>
+                            
+                            <div id="productListContainer">
+                                <!-- Products will be loaded here -->
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Scanning Area (Right Column) -->
+                    <div class="scanning-area">
+                        <!-- SKU Input Section -->
+                        <div class="sku-input-section">
+                            <h3 class="sku-input-title">
+                                <svg class="sku-input-icon" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M4,6H6V8H4V6M7,6V8H14V6H7M4,11H6V13H4V11M7,11V13H14V11H7M4,16H6V18H4V16M7,16V18H14V16H7M15,6H22V8H15V6M15,16H22V18H15V16M15,11H22V13H15V11Z"/>
+                                </svg>
+                                Scan Product
+                            </h3>
+                            <input type="text" 
+                                   id="skuInputField" 
+                                   class="sku-input-field" 
+                                   placeholder="Scan or type SKU code" 
+                                   autocomplete="off"
+                                   aria-label="Enter SKU or scan barcode"
+                                   aria-describedby="skuInstructions">
+                            <div class="sku-input-instructions" id="skuInstructions">
+                                Press <span class="keyboard-shortcut">Enter</span> to add
+                            </div>
+                        </div>
+                        
+                        <!-- Scanned Items Display -->
+                        <div class="scanned-items-card">
+                            <div class="scanned-items-header">
+                                <h3 class="scanned-items-title">Scanned Items</h3>
+                                <span class="scanned-items-count" id="scannedItemsCount">0 items</span>
+                            </div>
+                            <div class="scanned-items-list" id="scannedItemsList">
+                                <div class="scanned-items-empty" id="scannedItemsEmpty">
+                                    No items scanned yet. Use the input above to scan products.
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Action Buttons -->
+                        <div class="receive-actions">
+                            <button class="toss-btn toss-btn-primary btn-review" id="reviewBtn" disabled>
+                                Submit
+                            </button>
+                            <button class="toss-btn btn-clear" id="clearBtn">
+                                Clear All
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Review Modal -->
+            <div class="toss-modal-overlay" id="reviewModal">
+                <div class="toss-modal toss-modal-lg">
+                    <div class="toss-modal-header">
+                        <div class="toss-modal-header-content">
+                            <div class="toss-modal-icon primary">
+                                <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M9,20.42L2.79,14.21L5.62,11.38L9,14.77L18.88,4.88L21.71,7.71L9,20.42Z"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <h2 class="toss-modal-title">Review Receipt</h2>
+                                <p class="toss-modal-subtitle">Confirm the received quantities before recording</p>
+                            </div>
+                        </div>
+                        <button class="toss-modal-close" id="reviewModalClose">
+                            <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"/>
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <div class="toss-modal-body">
+                        <div id="reviewTableContainer">
+                            <!-- Review table will be inserted here -->
+                        </div>
+                        
+                        <div class="toss-input-group" style="margin-top: var(--space-6);">
+                            <label class="toss-label" for="receiptNotes">Notes (Optional)</label>
+                            <textarea class="toss-textarea" id="receiptNotes" rows="3" placeholder="Add any notes about this receipt..."></textarea>
+                        </div>
+                    </div>
+                    
+                    <div class="toss-modal-footer">
+                        <button class="toss-btn toss-btn-secondary" id="reviewModalCancel">
+                            Continue Scanning
+                        </button>
+                        <button class="toss-btn toss-btn-primary" id="reviewModalConfirm">
+                            Record Receipt
+                        </button>
+                    </div>
                 </div>
             </div>
         </main>
@@ -417,6 +1093,21 @@
                 this.dropdownOpen = false;
                 this.currentFocusIndex = -1;
                 this.stores = [];
+                
+                // Initialize order-related properties
+                this.currentOrder = null;
+                this.currentOrderItems = [];
+                this.orderProducts = [];
+                this.scannedItems = new Map();
+                this.totalScannedCount = 0;
+                this.availableOrders = [];
+                
+                // Initialize product search
+                this.productSearchTerm = '';
+                this.filteredProducts = [];
+                
+                // Initialize sounds (optional audio feedback)
+                this.sounds = null; // Can be set later if audio feedback is needed
             }
             
             init() {
@@ -427,15 +1118,64 @@
                     this.toggleStoreFilterDropdown();
                 });
                 
+                // Set up order filter control
+                const orderFilterControl = document.getElementById('orderFilterControl');
+                orderFilterControl.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    this.toggleOrderFilterDropdown();
+                });
+                
                 // Keyboard navigation for dropdown
                 storeFilterControl.addEventListener('keydown', (e) => {
                     this.handleDropdownKeyboard(e);
                 });
                 
+                // Set up SKU input Enter key functionality
+                const skuInputField = document.getElementById('skuInputField');
+                skuInputField.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        this.processSKUInput();
+                    }
+                    if (e.key === 'Escape') {
+                        e.preventDefault();
+                        skuInputField.value = '';
+                    }
+                });
+                
+                // Set up action buttons
+                const submitBtn = document.getElementById('reviewBtn'); // Still using reviewBtn ID but changed to Submit
+                submitBtn.addEventListener('click', () => {
+                    this.submitReceipt();
+                });
+                
+                const clearBtn = document.getElementById('clearBtn');
+                clearBtn.addEventListener('click', () => {
+                    this.clearAllScanned();
+                });
+                
+                // Set up product search functionality
+                const productSearchInput = document.getElementById('productSearchInput');
+                if (productSearchInput) {
+                    productSearchInput.addEventListener('input', (e) => {
+                        this.filterProducts(e.target.value);
+                    });
+                }
+                
+                // Set up modal handlers
+                const reviewModalClose = document.getElementById('reviewModalClose');
+                const reviewModalCancel = document.getElementById('reviewModalCancel');
+                const reviewModalConfirm = document.getElementById('reviewModalConfirm');
+                
+                reviewModalClose.addEventListener('click', () => this.closeReviewModal());
+                reviewModalCancel.addEventListener('click', () => this.closeReviewModal());
+                reviewModalConfirm.addEventListener('click', () => this.confirmReceipt());
+                
                 // Close dropdown when clicking outside
                 document.addEventListener('click', (e) => {
                     if (!e.target.closest('.control-section') && !e.target.closest('.store-filter-dropdown')) {
                         this.hideStoreFilterDropdown();
+                        this.hideOrderFilterDropdown();
                     }
                 });
                 
@@ -443,6 +1183,9 @@
                 document.addEventListener('keydown', (e) => {
                     if (e.key === 'Escape' && this.dropdownOpen) {
                         this.hideStoreFilterDropdown();
+                    }
+                    if (e.key === 'Escape' && this.orderFilterDropdownOpen) {
+                        this.hideOrderFilterDropdown();
                     }
                 });
             }
@@ -596,7 +1339,7 @@
                         labelElement.textContent = store ? store.store_name : 'Unknown Store';
                         
                         // Load product receives for selected store
-                        await this.loadProductReceivesForStore(this.currentStoreFilter);
+                        await this.loadOrdersForStore(this.currentStoreFilter);
                         
                         this.hideStoreFilterDropdown();
                     });
@@ -636,43 +1379,380 @@
                 options.forEach(option => option.classList.remove('focused'));
             }
             
-            async loadProductReceivesForStore(storeId) {
+            hideOrderDropdown() {
+                const orderDropdown = document.getElementById('orderDropdown');
+                const orderSelect = document.getElementById('orderSelect');
+                if (orderDropdown) orderDropdown.classList.remove('active');
+                if (orderSelect) orderSelect.classList.remove('dropdown-open');
+                this.orderDropdownOpen = false;
+            }
+            
+            hideOrderFilterDropdown() {
+                const orderFilterDropdown = document.getElementById('orderFilterDropdown');
+                const orderFilterControl = document.getElementById('orderFilterControl');
+                if (orderFilterDropdown) orderFilterDropdown.classList.remove('active');
+                if (orderFilterControl) orderFilterControl.classList.remove('dropdown-open');
+                this.orderFilterDropdownOpen = false;
+            }
+            
+            showOrderFilterDropdown() {
+                const orderFilterDropdown = document.getElementById('orderFilterDropdown');
+                const orderFilterControl = document.getElementById('orderFilterControl');
+                if (orderFilterDropdown) orderFilterDropdown.classList.add('active');
+                if (orderFilterControl) orderFilterControl.classList.add('dropdown-open');
+                this.orderFilterDropdownOpen = true;
+            }
+            
+            toggleOrderFilterDropdown() {
+                if (this.orderFilterDropdownOpen) {
+                    this.hideOrderFilterDropdown();
+                } else {
+                    this.showOrderFilterDropdown();
+                }
+            }
+            
+            async loadOrdersForStore(storeId) {
                 const companyId = appState.getSelectedCompanyId();
-                const receiveContent = document.getElementById('receiveContent');
+                
+                // Get interface elements
+                const receivePlaceholder = document.getElementById('receivePlaceholder');
+                const receiveInterface = document.getElementById('receiveInterface');
+                const orderSelect = document.getElementById('orderSelect');
+                const orderSummary = document.getElementById('orderSummary');
                 
                 if (!storeId) {
-                    // Show all stores placeholder
-                    receiveContent.innerHTML = `
-                        <div class="receive-placeholder">
-                            <div class="receive-placeholder-icon">
-                                <svg width="48" height="48" viewBox="0 0 24 24" fill="currentColor">
-                                    <path d="M12,2A3,3 0 0,1 15,5V11A3,3 0 0,1 12,14A3,3 0 0,1 9,11V5A3,3 0 0,1 12,2M19,11C19,14.53 16.39,17.44 13,17.93V21H11V17.93C7.61,17.44 5,14.53 5,11H7A5,5 0 0,0 12,16A5,5 0 0,0 17,11H19Z"/>
-                                </svg>
-                            </div>
-                            <h3 class="receive-placeholder-title">All Stores View</h3>
-                            <p class="receive-placeholder-text">Viewing product receiving across all stores. Select a specific store for detailed view.</p>
-                        </div>
-                    `;
+                    // Show placeholder for all stores view
+                    if (receivePlaceholder) {
+                        receivePlaceholder.style.display = 'block';
+                        const placeholderTitle = receivePlaceholder.querySelector('.receive-placeholder-title');
+                        const placeholderText = receivePlaceholder.querySelector('.receive-placeholder-text');
+                        if (placeholderTitle) placeholderTitle.textContent = 'All Stores View';
+                        if (placeholderText) placeholderText.textContent = 'Select a specific store to manage product receiving.';
+                    }
+                    if (receiveInterface) receiveInterface.style.display = 'none';
                 } else {
-                    const store = this.stores.find(s => s.store_id === storeId);
-                    const storeName = store ? store.store_name : 'Selected Store';
+                    // Hide placeholder and show actual interface
+                    if (receivePlaceholder) receivePlaceholder.style.display = 'none';
+                    if (receiveInterface) receiveInterface.style.display = 'block';
                     
-                    // Show specific store placeholder
-                    receiveContent.innerHTML = `
-                        <div class="receive-placeholder">
-                            <div class="receive-placeholder-icon">
-                                <svg width="48" height="48" viewBox="0 0 24 24" fill="currentColor">
-                                    <path d="M12,2A3,3 0 0,1 15,5V11A3,3 0 0,1 12,14A3,3 0 0,1 9,11V5A3,3 0 0,1 12,2M19,11C19,14.53 16.39,17.44 13,17.93V21H11V17.93C7.61,17.44 5,14.53 5,11H7A5,5 0 0,0 12,16A5,5 0 0,0 17,11H19Z"/>
-                                </svg>
-                            </div>
-                            <h3 class="receive-placeholder-title">${storeName} Product Receive</h3>
-                            <p class="receive-placeholder-text">Product receiving management for ${storeName} will be available soon.</p>
-                        </div>
-                    `;
+                    // Load real orders from RPC
+                    await this.loadOrdersForReceiving(storeId);
                 }
                 
-                console.log('Loading product receives for store:', storeId, 'Company:', companyId);
-                // Future: Implement actual product receiving loading via RPC
+                console.log('Loading orders for store:', storeId, 'Company:', companyId);
+            }
+            
+            async loadOrdersForReceiving(storeId) {
+                const store = this.stores.find(s => s.store_id === storeId);
+                const storeName = store ? store.store_name : 'Selected Store';
+                
+                try {
+                    // Get company ID from app state
+                    const companyId = appState.getSelectedCompanyId();
+                    if (!companyId) {
+                        console.error('No company selected');
+                        this.showOrderLoadError('Please select a company first');
+                        return;
+                    }
+                    
+                    console.log('Loading orders for company:', companyId);
+                    
+                    // Call RPC to get inventory order list
+                    const { data: responseData, error } = await supabase.rpc('get_inventory_order_list', {
+                        p_company_id: companyId
+                    });
+                    
+                    if (error) {
+                        console.error('Error loading orders:', error);
+                        this.showOrderLoadError('Failed to load orders. Please try again.');
+                        return;
+                    }
+                    
+                    if (!responseData || !responseData.orders || responseData.orders.length === 0) {
+                        this.showNoOrdersMessage();
+                        return;
+                    }
+                    
+                    console.log('Loaded orders:', responseData.orders);
+                    this.availableOrders = responseData.orders;
+                    
+                    // Filter orders to only show pending and partial status
+                    const receivableOrders = responseData.orders.filter(order => 
+                        order.status === 'pending' || order.status === 'partial'
+                    );
+                    
+                    if (receivableOrders.length === 0) {
+                        this.showNoReceivableOrdersMessage();
+                        return;
+                    }
+                    
+                    // Show the order selection control
+                    const orderFilterControl = document.getElementById('orderFilterControl');
+                    if (orderFilterControl) {
+                        orderFilterControl.style.display = 'flex';
+                    }
+                    
+                    // Populate order dropdown with real order data
+                    this.populateOrderFilterDropdown(receivableOrders);
+                    
+                    // Auto-select first order if available
+                    if (receivableOrders.length > 0) {
+                        this.selectOrder(receivableOrders[0]);
+                    }
+                    
+                } catch (error) {
+                    console.error('Unexpected error loading orders:', error);
+                    this.showOrderLoadError('An unexpected error occurred. Please refresh the page.');
+                }
+            }
+            
+            populateOrderFilterDropdown(orders) {
+                const orderFilterOptions = document.getElementById('orderFilterOptions');
+                const orderLabel = document.getElementById('orderFilterLabel');
+                
+                if (orderFilterOptions) {
+                    orderFilterOptions.innerHTML = orders.map((order, index) => {
+                        const isSelected = index === 0; // Auto-select first order
+                        return `
+                            <div class="store-filter-dropdown-option${isSelected ? ' selected' : ''}" data-order-id="${order.order_id}">
+                                <svg class="store-filter-dropdown-option-icon" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M19,3H5A2,2 0 0,0 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5A2,2 0 0,0 19,3M19,19H5V5H19V19M17,17H7V15H17V17M17,13H7V11H17V13M17,9H7V7H17V9Z"/>
+                                </svg>
+                                <span class="store-filter-dropdown-option-text">${order.order_number} - ${order.supplier_name}</span>
+                                ${isSelected ? '<svg class="store-filter-dropdown-option-check" fill="currentColor" viewBox="0 0 24 24"><path d="M9,20.42L2.79,14.21L5.62,11.38L9,14.77L18.88,4.88L21.71,7.71L9,20.42Z"/></svg>' : ''}
+                            </div>
+                        `;
+                    }).join('');
+                    
+                    // Add click handlers for order selection
+                    orderFilterOptions.querySelectorAll('.store-filter-dropdown-option').forEach(option => {
+                        option.addEventListener('click', () => {
+                            const orderId = option.dataset.orderId;
+                            const order = orders.find(o => o.order_id === orderId);
+                            if (order && orderLabel) {
+                                // Update all options selection state
+                                orderFilterOptions.querySelectorAll('.store-filter-dropdown-option').forEach(opt => {
+                                    opt.classList.remove('selected');
+                                    const checkmark = opt.querySelector('.store-filter-dropdown-option-check');
+                                    if (checkmark) checkmark.remove();
+                                });
+                                
+                                // Add selected state to clicked option
+                                option.classList.add('selected');
+                                option.innerHTML += '<svg class="store-filter-dropdown-option-check" fill="currentColor" viewBox="0 0 24 24"><path d="M9,20.42L2.79,14.21L5.62,11.38L9,14.77L18.88,4.88L21.71,7.71L9,20.42Z"/></svg>';
+                                
+                                orderLabel.textContent = `${order.order_number} - ${order.supplier_name}`;
+                                this.hideOrderFilterDropdown();
+                                this.selectOrder(order);
+                            }
+                        });
+                    });
+                }
+                
+                // Set initial order label
+                if (orders.length > 0 && orderLabel) {
+                    const firstOrder = orders[0];
+                    orderLabel.textContent = `${firstOrder.order_number} - ${firstOrder.supplier_name}`;
+                }
+            }
+            
+            populateOrderDropdown(orders) {
+                const orderDropdown = document.getElementById('orderDropdown');
+                const orderLabel = document.getElementById('orderSelectLabel');
+                
+                if (orderDropdown) {
+                    orderDropdown.innerHTML = orders.map(order => `
+                        <div class="order-option" data-order-id="${order.order_id}">
+                            <div class="order-option-header">
+                                <span class="order-id">${order.order_number}</span>
+                                <span class="order-status ${order.status}">${order.status}</span>
+                            </div>
+                            <div class="order-option-details">
+                                <span class="supplier">${order.supplier_name}</span>
+                                <span class="item-count">${order.summary.total_products} items</span>
+                                <span class="amount">$${order.total_amount.toFixed(2)}</span>
+                            </div>
+                        </div>
+                    `).join('');
+                    
+                    // Add click handlers for order selection
+                    orderDropdown.querySelectorAll('.order-option').forEach(option => {
+                        option.addEventListener('click', () => {
+                            const orderId = option.dataset.orderId;
+                            const order = orders.find(o => o.order_id === orderId);
+                            if (order && orderLabel) {
+                                orderLabel.textContent = `${order.order_number} - ${order.supplier_name}`;
+                                this.hideOrderDropdown();
+                                this.selectOrder(order);
+                            }
+                        });
+                    });
+                }
+            }
+            
+            selectOrder(order) {
+                console.log('Selected order:', order);
+                this.currentOrder = order;
+                
+                // Update order filter label
+                const orderFilterLabel = document.getElementById('orderFilterLabel');
+                if (orderFilterLabel) {
+                    orderFilterLabel.textContent = `${order.order_number} - ${order.supplier_name}`;
+                }
+                
+                // Load order details into the interface
+                this.loadOrderDetails(order);
+                
+                // Show the main receive interface
+                const receivePlaceholder = document.getElementById('receivePlaceholder');
+                const receiveInterface = document.getElementById('receiveInterface');
+                
+                if (receivePlaceholder) receivePlaceholder.style.display = 'none';
+                if (receiveInterface) receiveInterface.style.display = 'grid';
+            }
+            
+            showOrderLoadError(message) {
+                const receiveInterface = document.getElementById('receiveInterface');
+                const receivePlaceholder = document.getElementById('receivePlaceholder');
+                
+                if (receiveInterface) receiveInterface.style.display = 'none';
+                if (receivePlaceholder) {
+                    receivePlaceholder.style.display = 'block';
+                    const placeholderTitle = receivePlaceholder.querySelector('.receive-placeholder-title');
+                    const placeholderText = receivePlaceholder.querySelector('.receive-placeholder-text');
+                    if (placeholderTitle) placeholderTitle.textContent = 'Error Loading Orders';
+                    if (placeholderText) placeholderText.textContent = message;
+                }
+            }
+            
+            showNoOrdersMessage() {
+                const receiveInterface = document.getElementById('receiveInterface');
+                const receivePlaceholder = document.getElementById('receivePlaceholder');
+                
+                if (receiveInterface) receiveInterface.style.display = 'none';
+                if (receivePlaceholder) {
+                    receivePlaceholder.style.display = 'block';
+                    const placeholderTitle = receivePlaceholder.querySelector('.receive-placeholder-title');
+                    const placeholderText = receivePlaceholder.querySelector('.receive-placeholder-text');
+                    if (placeholderTitle) placeholderTitle.textContent = 'No Orders Found';
+                    if (placeholderText) placeholderText.textContent = 'No orders found for this company.';
+                }
+            }
+            
+            showNoReceivableOrdersMessage() {
+                const receiveInterface = document.getElementById('receiveInterface');
+                const receivePlaceholder = document.getElementById('receivePlaceholder');
+                
+                if (receiveInterface) receiveInterface.style.display = 'none';
+                if (receivePlaceholder) {
+                    receivePlaceholder.style.display = 'block';
+                    const placeholderTitle = receivePlaceholder.querySelector('.receive-placeholder-title');
+                    const placeholderText = receivePlaceholder.querySelector('.receive-placeholder-text');
+                    if (placeholderTitle) placeholderTitle.textContent = 'No Orders Available for Receiving';
+                    if (placeholderText) placeholderText.textContent = 'All orders are either completed or cancelled. No pending or partial orders available.';
+                }
+            }
+            
+            loadOrderDetails(order) {
+                console.log('Loading order details for:', order.order_number);
+                
+                // Update order title
+                const orderTitle = document.getElementById('orderTitle');
+                if (orderTitle) {
+                    orderTitle.textContent = `${order.order_number} - ${order.supplier_name}`;
+                }
+                
+                // Extract items from order and provide fallbacks
+                const orderItems = order.items || [];
+                
+                // Map items to match expected structure for existing methods
+                this.orderProducts = orderItems.map(item => ({
+                    product_id: item.product_id,
+                    product_name: item.product_name,
+                    sku: item.sku,
+                    barcode: item.barcode,
+                    quantity_ordered: item.quantity_ordered || 0,
+                    quantity_received: item.quantity_received_total || 0,
+                    unit_price: item.unit_price || 0,
+                    total_amount: item.total_amount || 0
+                }));
+                
+                // Calculate progress based on quantity received vs quantity ordered with safety checks
+                const totalOrdered = order.summary?.total_ordered || (orderItems.length > 0 ? orderItems.reduce((sum, item) => sum + (item.quantity_ordered || 0), 0) : 0);
+                const totalReceived = order.summary?.total_received || (orderItems.length > 0 ? orderItems.reduce((sum, item) => sum + (item.quantity_received_total || 0), 0) : 0);
+                
+                // Update progress display
+                this.updateProgress(totalReceived, totalOrdered);
+                this.updateOrderSummary(order.summary);
+                
+                // Store current order and items for scanning
+                this.currentOrder = order;
+                this.currentOrderItems = orderItems;
+                this.scannedItems = new Map(); // Initialize as Map for existing methods
+                
+                // Update product list display
+                this.updateProductList();
+                
+                // Clear previous scanned items and reset interface
+                this.updateScannedItemsDisplay();
+                
+                // Clear SKU input
+                const skuInput = document.getElementById('skuInputField');
+                if (skuInput) {
+                    skuInput.value = '';
+                    skuInput.focus(); // Auto-focus for immediate scanning
+                }
+                
+                // Update action buttons to ensure correct state
+                this.updateActionButtons();
+                
+                console.log('Order loaded with', orderItems.length, 'items, mapped to orderProducts:', this.orderProducts.length);
+                
+                // Reset product search when new order is loaded
+                this.resetProductSearch();
+            }
+            
+            filterProducts(searchTerm) {
+                this.productSearchTerm = searchTerm.toLowerCase().trim();
+                
+                if (!this.productSearchTerm) {
+                    // If search is empty, show all products
+                    this.filteredProducts = [];
+                } else {
+                    // Filter products by SKU or product name
+                    this.filteredProducts = this.orderProducts.filter(product => {
+                        const matchesSKU = product.sku && product.sku.toLowerCase().includes(this.productSearchTerm);
+                        const matchesName = product.product_name && product.product_name.toLowerCase().includes(this.productSearchTerm);
+                        return matchesSKU || matchesName;
+                    });
+                }
+                
+                // Update the display
+                this.updateProductList();
+            }
+            
+            resetProductSearch() {
+                this.productSearchTerm = '';
+                this.filteredProducts = [];
+                
+                // Clear search input
+                const searchInput = document.getElementById('productSearchInput');
+                if (searchInput) {
+                    searchInput.value = '';
+                }
+            }
+            
+            updateOrderSummary(summary) {
+                if (!summary) return;
+                
+                // Update order details display with correct IDs
+                const receivedElement = document.getElementById('receivedCount');
+                const remainingElement = document.getElementById('remainingCount'); 
+                const totalElement = document.getElementById('totalCount');
+                
+                if (receivedElement) receivedElement.textContent = summary.total_received || 0;
+                if (remainingElement) remainingElement.textContent = (summary.total_ordered - summary.total_received) || 0;
+                if (totalElement) totalElement.textContent = summary.total_ordered || 0;
             }
         }
         
@@ -687,11 +1767,11 @@
             if (stores && stores.length > 0) {
                 productReceiveManager.currentStoreFilter = stores[0].store_id;
                 document.getElementById('storeFilterLabel').textContent = stores[0].store_name;
-                productReceiveManager.loadProductReceivesForStore(stores[0].store_id);
+                productReceiveManager.loadOrdersForStore(stores[0].store_id);
             } else {
                 productReceiveManager.currentStoreFilter = null;
                 document.getElementById('storeFilterLabel').textContent = 'No Stores';
-                productReceiveManager.loadProductReceivesForStore(null);
+                productReceiveManager.loadOrdersForStore(null);
             }
         });
         
@@ -707,13 +1787,502 @@
                     if (stores && stores.length > 0) {
                         productReceiveManager.currentStoreFilter = stores[0].store_id;
                         document.getElementById('storeFilterLabel').textContent = stores[0].store_name;
-                        productReceiveManager.loadProductReceivesForStore(stores[0].store_id);
+                        productReceiveManager.loadOrdersForStore(stores[0].store_id);
                     } else {
-                        productReceiveManager.loadProductReceivesForStore(null);
+                        productReceiveManager.loadOrdersForStore(null);
                     }
                 }
             }, 100);
         });
+        
+        // Essential methods to make the interface functional
+        ProductReceiveManager.prototype.showOrderFilterDropdown = function() {
+            const dropdown = document.getElementById('orderFilterDropdown');
+            const control = document.getElementById('orderFilterControl');
+            const options = document.getElementById('orderFilterOptions');
+            
+            let html = '';
+            this.availableOrders.forEach(order => {
+                const selected = this.currentOrder?.order_id === order.order_id ? ' selected' : '';
+                html += `
+                    <div class="store-filter-dropdown-option${selected}" data-order-id="${order.order_id}">
+                        <svg class="store-filter-dropdown-option-icon" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M19,3H5A2,2 0 0,0 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5A2,2 0 0,0 19,3Z"/>
+                        </svg>
+                        <span class="store-filter-dropdown-option-text">${order.order_number} | ${order.supplier_name}</span>
+                        ${selected ? '<svg class="store-filter-dropdown-option-check" fill="currentColor" viewBox="0 0 24 24"><path d="M9,20.42L2.79,14.21L5.62,11.38L9,14.77L18.88,4.88L21.71,7.71L9,20.42Z"/></svg>' : ''}
+                    </div>
+                `;
+            });
+            
+            options.innerHTML = html;
+            
+            options.querySelectorAll('.store-filter-dropdown-option').forEach(option => {
+                option.addEventListener('click', () => {
+                    const orderId = option.dataset.orderId;
+                    const order = this.availableOrders.find(o => o.order_id === orderId);
+                    if (order) {
+                        this.currentOrder = order;
+                        this.orderProducts = order.products || [];
+                        document.getElementById('orderFilterLabel').textContent = order.order_number;
+                        this.loadOrderInterface();
+                        this.hideOrderFilterDropdown();
+                    }
+                });
+            });
+            
+            dropdown.classList.add('active');
+            control.classList.add('dropdown-open');
+            this.orderDropdownOpen = true;
+        };
+        
+        ProductReceiveManager.prototype.loadOrderInterface = function() {
+            document.getElementById('receivePlaceholder').style.display = 'none';
+            document.getElementById('receiveInterface').style.display = 'grid';
+            
+            this.scannedItems.clear();
+            this.totalScannedCount = 0;
+            
+            document.getElementById('orderTitle').textContent = this.currentOrder.order_number;
+            this.updateProductList();
+            this.updateProgress();
+            this.updateScannedItemsDisplay();
+            
+            setTimeout(() => this.focusSKUInput(), 100);
+        };
+        
+        ProductReceiveManager.prototype.updateProductList = function() {
+            const container = document.getElementById('productListContainer');
+            if (!container) return;
+            
+            // Use filtered products if search is active, otherwise use all products
+            const productsToShow = this.productSearchTerm ? this.filteredProducts : this.orderProducts;
+            
+            let html = '';
+            if (productsToShow.length === 0 && this.productSearchTerm) {
+                html = '<div class="product-search-no-results">No products found matching "' + this.productSearchTerm + '"</div>';
+            } else {
+                productsToShow.forEach(product => {
+                    const scannedCount = this.scannedItems.get(product.sku)?.count || 0;
+                    const total = product.quantity_received + scannedCount;
+                    let status = total >= product.quantity_ordered ? 'complete' : 'under';
+                    
+                    html += `
+                        <div class="product-item ${status}">
+                            <div class="product-info">
+                                <div class="product-name">${product.product_name}</div>
+                                <div class="product-sku">${product.sku}</div>
+                            </div>
+                            <div class="product-quantity">
+                                <span class="quantity-received">${total}</span>
+                                <span class="quantity-separator">/</span>
+                                <span class="quantity-total">${product.quantity_ordered}</span>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+            container.innerHTML = html;
+        };
+        
+        ProductReceiveManager.prototype.updateProgress = function(receivedParam = null, totalParam = null) {
+            // Use provided parameters or calculate from orderProducts
+            let total, received;
+            
+            if (totalParam !== null && receivedParam !== null) {
+                // Use provided parameters
+                total = totalParam;
+                received = receivedParam;
+            } else {
+                // Calculate from orderProducts (existing behavior)
+                if (!this.orderProducts || !Array.isArray(this.orderProducts)) {
+                    console.warn('orderProducts not available for progress calculation');
+                    total = 0;
+                    received = 0;
+                } else {
+                    total = this.orderProducts.reduce((sum, p) => sum + (p.quantity_ordered || 0), 0);
+                    received = this.orderProducts.reduce((sum, p) => {
+                        return sum + (p.quantity_received || 0) + (this.scannedItems?.get(p.sku)?.count || 0);
+                    }, 0);
+                }
+            }
+            
+            const percent = total > 0 ? Math.round((received / total) * 100) : 0;
+            
+            const circle = document.getElementById('progressRingCircle');
+            if (circle) {
+                const circumference = 2 * Math.PI * 24;
+                circle.style.strokeDashoffset = circumference - (percent / 100) * circumference;
+            }
+            
+            const elements = {
+                'progressRingText': `${percent}%`,
+                'receivedCount': received,
+                'remainingCount': total - received,
+                'totalCount': total
+            };
+            
+            Object.entries(elements).forEach(([id, value]) => {
+                const el = document.getElementById(id);
+                if (el) el.textContent = value;
+            });
+        };
+        
+        ProductReceiveManager.prototype.processSKUInput = function() {
+            const input = document.getElementById('skuInputField');
+            const sku = input.value.trim().toUpperCase();
+            if (!sku) return;
+            
+            // Safety checks
+            if (!this.orderProducts || !Array.isArray(this.orderProducts)) {
+                console.warn('No order products available for SKU processing');
+                this.showError('No order selected. Please select an order first.');
+                return;
+            }
+            
+            const product = this.orderProducts.find(p => p && p.sku && p.sku.toUpperCase() === sku);
+            
+            if (product) {
+                // Initialize scannedItems if needed
+                if (!this.scannedItems || !(this.scannedItems instanceof Map)) {
+                    this.scannedItems = new Map();
+                }
+                
+                const current = this.scannedItems.get(sku) || { count: 0, timestamps: [] };
+                current.count++;
+                current.timestamps.push(new Date());
+                this.scannedItems.set(sku, current);
+                this.totalScannedCount = (this.totalScannedCount || 0) + 1;
+                
+                this.updateProductList();
+                this.updateProgress();
+                this.updateScannedItemsDisplay();
+                this.updateActionButtons();
+                this.showSuccess();
+                if (this.sounds && this.sounds.success) this.sounds.success();
+            } else {
+                this.showError();
+                if (this.sounds && this.sounds.error) this.sounds.error();
+            }
+            
+            input.value = '';
+            input.focus();
+        };
+        
+        ProductReceiveManager.prototype.updateScannedItemsDisplay = function() {
+            const container = document.getElementById('scannedItemsList');
+            const counter = document.getElementById('scannedItemsCount');
+            
+            // Initialize scannedItems if not already done
+            if (!this.scannedItems || !(this.scannedItems instanceof Map)) {
+                this.scannedItems = new Map();
+            }
+            
+            if (counter) counter.textContent = `${this.totalScannedCount || 0} items`;
+            if (!container) return;
+            
+            if (this.scannedItems.size === 0) {
+                container.innerHTML = '<div class="scanned-items-empty">No items scanned yet. Use the input above to scan products.</div>';
+                return;
+            }
+            
+            let html = '';
+            this.scannedItems.forEach((data, sku) => {
+                const time = data.timestamps[data.timestamps.length - 1];
+                html += `
+                    <div class="scanned-item">
+                        <div class="scanned-item-info">
+                            <div class="scanned-item-sku">${sku}</div>
+                            <div class="scanned-item-time">${time.toLocaleTimeString()}</div>
+                        </div>
+                        <div class="scanned-item-quantity">
+                            <div class="quantity-controls">
+                                <button class="quantity-btn" onclick="productReceiveManager.decreaseQuantity('${sku}')" ${data.count <= 1 ? 'disabled' : ''}>
+                                    -
+                                </button>
+                                <span class="scanned-item-count">×${data.count}</span>
+                                <button class="quantity-btn" onclick="productReceiveManager.increaseQuantity('${sku}')">
+                                    +
+                                </button>
+                            </div>
+                            <button class="scanned-item-remove" onclick="productReceiveManager.removeScannedItem('${sku}')">
+                                <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        };
+        
+        ProductReceiveManager.prototype.removeScannedItem = function(sku) {
+            const item = this.scannedItems.get(sku);
+            if (item) {
+                this.totalScannedCount -= item.count;
+                this.scannedItems.delete(sku);
+                this.updateProductList();
+                this.updateProgress();
+                this.updateScannedItemsDisplay();
+                this.updateActionButtons();
+            }
+        };
+        
+        ProductReceiveManager.prototype.increaseQuantity = function(sku) {
+            const item = this.scannedItems.get(sku);
+            if (item) {
+                item.count++;
+                item.timestamps.push(new Date());
+                this.totalScannedCount++;
+                this.scannedItems.set(sku, item);
+                
+                this.updateProductList();
+                this.updateProgress();
+                this.updateScannedItemsDisplay();
+                this.updateActionButtons();
+                this.showSuccess();
+            }
+        };
+        
+        ProductReceiveManager.prototype.decreaseQuantity = function(sku) {
+            const item = this.scannedItems.get(sku);
+            if (item && item.count > 1) {
+                item.count--;
+                item.timestamps.pop(); // Remove last timestamp
+                this.totalScannedCount--;
+                this.scannedItems.set(sku, item);
+                
+                this.updateProductList();
+                this.updateProgress();
+                this.updateScannedItemsDisplay();
+                this.updateActionButtons();
+            } else if (item && item.count === 1) {
+                // If quantity would go to 0, remove the item entirely
+                this.removeScannedItem(sku);
+            }
+        };
+        
+        ProductReceiveManager.prototype.updateActionButtons = function() {
+            const submitBtn = document.getElementById('reviewBtn');
+            if (submitBtn) {
+                submitBtn.disabled = this.scannedItems.size === 0;
+                // Update button text to ensure it shows Submit
+                if (submitBtn.textContent.trim() === 'Review Receipt') {
+                    submitBtn.textContent = 'Submit';
+                }
+            }
+        };
+        
+        ProductReceiveManager.prototype.showSuccess = function() {
+            const input = document.getElementById('skuInputField');
+            if (input) {
+                input.classList.add('success');
+                setTimeout(() => input.classList.remove('success'), 300);
+            }
+        };
+        
+        ProductReceiveManager.prototype.showError = function() {
+            const input = document.getElementById('skuInputField');
+            if (input) {
+                input.classList.add('error');
+                setTimeout(() => input.classList.remove('error'), 400);
+            }
+        };
+        
+        ProductReceiveManager.prototype.focusSKUInput = function() {
+            const input = document.getElementById('skuInputField');
+            if (input && this.currentOrder) input.focus();
+        };
+        
+        ProductReceiveManager.prototype.openReviewModal = function() {
+            if (this.scannedItems.size === 0) return;
+            
+            const modal = document.getElementById('reviewModal');
+            const container = document.getElementById('reviewTableContainer');
+            
+            let html = '<table style="width:100%; border-collapse:collapse;"><thead><tr style="background:#f8f9fa;"><th style="padding:12px; text-align:left;">Product</th><th style="padding:12px; text-align:center;">Receiving</th></tr></thead><tbody>';
+            
+            this.scannedItems.forEach((data, sku) => {
+                const product = this.orderProducts.find(p => p.sku === sku);
+                if (product) {
+                    html += `<tr><td style="padding:12px; border-bottom:1px solid #e9ecef;">${product.product_name}<br><small style="color:#6c757d;">${sku}</small></td><td style="padding:12px; border-bottom:1px solid #e9ecef; text-align:center; font-weight:bold; color:#0064ff;">${data.count}</td></tr>`;
+                }
+            });
+            
+            html += '</tbody></table>';
+            container.innerHTML = html;
+            modal.classList.add('show');
+        };
+        
+        ProductReceiveManager.prototype.closeReviewModal = function() {
+            const modal = document.getElementById('reviewModal');
+            if (modal) modal.classList.remove('show');
+            this.focusSKUInput();
+        };
+        
+        ProductReceiveManager.prototype.confirmReceipt = function() {
+            alert('Receipt recorded successfully! (Demo)');
+            this.scannedItems.clear();
+            this.totalScannedCount = 0;
+            this.updateProductList();
+            this.updateProgress();
+            this.updateScannedItemsDisplay();
+            this.updateActionButtons();
+            this.closeReviewModal();
+            this.focusSKUInput();
+        };
+        
+        ProductReceiveManager.prototype.clearAllScanned = function() {
+            if (this.scannedItems.size === 0) return;
+            
+            if (confirm('Are you sure you want to clear all scanned items?')) {
+                this.scannedItems.clear();
+                this.totalScannedCount = 0;
+                this.updateProductList();
+                this.updateProgress();
+                this.updateScannedItemsDisplay();
+                this.updateActionButtons();
+                this.focusSKUInput();
+            }
+        };
+        
+        ProductReceiveManager.prototype.submitReceipt = async function() {
+            // Validate that we have scanned items
+            if (this.scannedItems.size === 0) {
+                alert('No items scanned yet. Please scan some items before submitting.');
+                return;
+            }
+            
+            // Validate required data
+            if (!this.currentOrder) {
+                alert('No order selected. Please select an order first.');
+                return;
+            }
+            
+            try {
+                // Get required parameters
+                const companyId = appState.getSelectedCompanyId();
+                const storeId = this.currentStoreFilter;
+                const orderId = this.currentOrder.order_id;
+                
+                // Get user ID from session
+                const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+                if (sessionError || !session?.user?.id) {
+                    throw new Error('User not authenticated. Please login again.');
+                }
+                const userId = session.user.id;
+                
+                // Validate all required IDs
+                if (!companyId) {
+                    throw new Error('No company selected. Please select a company.');
+                }
+                if (!storeId) {
+                    throw new Error('No store selected. Please select a store.');
+                }
+                
+                console.log('Submitting receipt with:', {
+                    companyId,
+                    storeId, 
+                    orderId,
+                    userId,
+                    itemsCount: this.scannedItems.size
+                });
+                
+                // Build items array from scanned items
+                const items = [];
+                this.scannedItems.forEach((data, sku) => {
+                    // Find the product info from orderProducts
+                    const product = this.orderProducts.find(p => p.sku === sku);
+                    if (product) {
+                        items.push({
+                            product_id: product.product_id,
+                            quantity_received: data.count
+                        });
+                    } else {
+                        console.warn(`Product not found for SKU: ${sku}`);
+                    }
+                });
+                
+                if (items.length === 0) {
+                    throw new Error('No valid items found to submit.');
+                }
+                
+                // Show loading state
+                const submitBtn = document.getElementById('reviewBtn');
+                const originalText = submitBtn.textContent;
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Submitting...';
+                
+                // Call the RPC
+                const { data: response, error } = await supabase.rpc('inventory_order_receive', {
+                    p_company_id: companyId,
+                    p_store_id: storeId,
+                    p_order_id: orderId,
+                    p_user_id: userId,
+                    p_items: items,
+                    p_notes: null // Could add notes functionality later
+                });
+                
+                // Restore button state
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalText;
+                
+                if (error) {
+                    throw new Error(`RPC Error: ${error.message}`);
+                }
+                
+                // Handle response
+                if (response && response.success) {
+                    // Success case
+                    console.log('Receipt submitted successfully:', response);
+                    
+                    let successMessage = `Receipt created successfully!\n`;
+                    successMessage += `Receipt Number: ${response.receipt_number}\n`;
+                    successMessage += `Total Items: ${response.total_items_received}`;
+                    
+                    // Show warnings if any
+                    if (response.warnings && response.warnings.length > 0) {
+                        successMessage += '\n\nWarnings:';
+                        response.warnings.forEach(warning => {
+                            successMessage += `\n- ${warning.message}`;
+                        });
+                    }
+                    
+                    alert(successMessage);
+                    
+                    // Clear scanned items and refresh interface
+                    this.scannedItems.clear();
+                    this.totalScannedCount = 0;
+                    this.updateProductList();
+                    this.updateProgress();
+                    this.updateScannedItemsDisplay();
+                    this.updateActionButtons();
+                    this.focusSKUInput();
+                    
+                    // Reload the order to get updated quantities
+                    if (this.currentOrder) {
+                        await this.loadOrdersForStore(this.currentStoreFilter);
+                    }
+                    
+                } else {
+                    // Error case
+                    const errorMsg = response?.error || 'Unknown error occurred';
+                    throw new Error(errorMsg);
+                }
+                
+            } catch (error) {
+                console.error('Error submitting receipt:', error);
+                
+                // Restore button state
+                const submitBtn = document.getElementById('reviewBtn');
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Submit';
+                
+                // Show error to user
+                alert(`Failed to submit receipt: ${error.message}`);
+            }
+        };
     </script>
 </body>
 </html>

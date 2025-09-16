@@ -32,8 +32,8 @@ class NavBar {
                         section: 'Product Management',
                         items: [
                             { label: 'Inventory', href: '#', action: 'Inventory' },
-                            { label: 'Order', href: '#', action: 'Order' },
                             { label: 'Invoice', href: '#', action: 'Invoice' },
+                            { label: 'Order', href: '#', action: 'Order' },
                             { label: 'Product Receive', href: '#', action: 'Product Receive' },
                             { label: 'Tracking', href: '#', action: 'Tracking' }
                         ]
@@ -120,15 +120,20 @@ class NavBar {
      */
     detectCurrentPageAction() {
         const currentPath = window.location.pathname;
+        // Decode URL to handle spaces and special characters
+        const decodedPath = decodeURIComponent(currentPath);
         console.log('🔍 Detecting current page action from path:', currentPath);
+        console.log('🔍 Decoded path:', decodedPath);
         
         // Map URL patterns to menu actions (more flexible matching)
         // Updated with better patterns and additional mappings
         const pathMappings = {
             'product/inventory': 'Inventory',
+            'product/invoice': 'Invoice',
             'product/order': 'Order',
-            'product/invoice': 'Invoice', 
             'product/product recieve': 'Product Receive',
+            'product/product%20recieve': 'Product Receive', // Handle URL encoded version
+            'product recieve': 'Product Receive', // Handle without product/ prefix
             'product/tracking': 'Tracking',
             'finance/balance-sheet': 'Balance Sheet',
             'finance/income-statement': 'Income Statement',
@@ -153,15 +158,16 @@ class NavBar {
             '/currency': 'Currency'
         };
         
-        // Find matching path - check for exact matches first, then partial matches
+        // Find matching path - check both original and decoded paths
         for (const [pathPattern, action] of Object.entries(pathMappings)) {
-            if (currentPath.includes(pathPattern)) {
+            if (currentPath.includes(pathPattern) || decodedPath.includes(pathPattern)) {
                 console.log('✅ Detected page action:', action, 'from pattern:', pathPattern);
+                console.log('📝 Matched against:', currentPath.includes(pathPattern) ? 'original path' : 'decoded path');
                 return action;
             }
         }
         
-        console.log('⚠️ No page action detected for path:', currentPath);
+        console.log('⚠️ No page action detected for paths:', { currentPath, decodedPath });
         return null;
     }
     
@@ -174,27 +180,27 @@ class NavBar {
         this.currentPageAction = this.detectCurrentPageAction();
         console.log('🔄 NavBar init - detected current page action:', this.currentPageAction);
         
-        // Highlight active dropdown item after initial render with multiple attempts
+        // Highlight active dropdown item after initial render with quick attempts
         // to ensure DOM is fully ready
         setTimeout(() => {
             this.highlightActiveDropdownItem();
-        }, 100);
+        }, 10);
         
         setTimeout(() => {
             this.highlightActiveDropdownItem();
-        }, 300);
+        }, 30);
         
         setTimeout(() => {
             this.highlightActiveDropdownItem();
-        }, 500);
+        }, 50);
         
         // Load companies after render to ensure DOM is ready
         // Use multiple attempts to ensure data is loaded
         this.loadCompaniesWithRetry();
     }
     
-    loadCompaniesWithRetry(attempts = 0, maxAttempts = 5) {
-        const delay = attempts * 200; // Increase delay with each attempt
+    loadCompaniesWithRetry(attempts = 0, maxAttempts = 2) {
+        const delay = 50; // Fixed short delay
         
         setTimeout(async () => {
             console.log(`Attempt ${attempts + 1} to load companies`);
@@ -206,7 +212,7 @@ class NavBar {
                 console.log('User data found, loading companies');
                 await this.loadUserCompanies();
             } else if (attempts < maxAttempts) {
-                console.log(`No user data found, retrying in ${delay + 200}ms...`);
+                console.log(`No user data found, retrying in ${delay}ms...`);
                 this.loadCompaniesWithRetry(attempts + 1, maxAttempts);
             } else {
                 console.log('Max attempts reached, company selector may not be available');
@@ -317,11 +323,11 @@ class NavBar {
     }
     
     autoInitializeCompanySelector() {
-        // Automatically initialize company selector with multiple attempts
+        // Automatically initialize company selector with limited attempts
         console.log('🔄 autoInitializeCompanySelector called');
         let attempts = 0;
-        const maxAttempts = 20; // Increased for RPC loading time
-        const baseDelay = 200; // Increased delay to allow for data loading
+        const maxAttempts = 3; // Reduced from 20
+        const baseDelay = 50; // Fixed short delay
         
         const tryInitialize = () => {
             attempts++;
@@ -332,7 +338,7 @@ class NavBar {
             if (!container) {
                 console.log('Company selector container not found yet');
                 if (attempts < maxAttempts) {
-                    setTimeout(tryInitialize, baseDelay * attempts);
+                    setTimeout(tryInitialize, baseDelay);
                 }
                 return;
             }
@@ -406,8 +412,8 @@ class NavBar {
             
             // Retry if we haven't reached max attempts
             if (attempts < maxAttempts) {
-                console.log(`⏳ Retrying in ${baseDelay * attempts}ms... (attempt ${attempts}/${maxAttempts})`);
-                setTimeout(tryInitialize, baseDelay * attempts);
+                console.log(`⏳ Retrying in ${baseDelay}ms... (attempt ${attempts}/${maxAttempts})`);
+                setTimeout(tryInitialize, baseDelay);
             } else {
                 console.log('🚨 Max attempts reached - company selector initialization failed');
                 console.log('Final localStorage check:', localStorage.getItem('user'));
@@ -921,7 +927,7 @@ class NavBar {
                         console.warn('⚠️ Selected option not found for ID:', selectedId);
                     }
                 }
-            }, 100);
+            }, 20);
         } catch (error) {
             console.error('Error initializing TossSelect:', error);
             this.createFallbackSelector(container, options, selectedId);
