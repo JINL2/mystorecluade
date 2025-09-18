@@ -4,15 +4,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:intl/intl.dart';
-import '../../../core/themes/toss_colors.dart';
-import '../../../core/themes/toss_text_styles.dart';
-import '../../../core/themes/toss_spacing.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/attendance_provider.dart';
 import '../../widgets/common/toss_scaffold.dart';
 import '../../widgets/common/toss_loading_view.dart';
 import 'package:myfinance_improved/core/themes/index.dart';
-import 'package:myfinance_improved/core/themes/toss_border_radius.dart';
 class QRScannerPage extends ConsumerStatefulWidget {
   const QRScannerPage({super.key});
 

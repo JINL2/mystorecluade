@@ -202,11 +202,13 @@ class SessionManagerNotifier extends StateNotifier<SessionState> {
 
   /// Force expire cache (for manual refresh)
   Future<void> expireCache() async {
+    debugPrint('🔴 [SessionManager] Expiring cache - forcing fresh data fetch');
     state = state.copyWith(
       userDataCacheExpiry: DateTime.now().subtract(Duration(seconds: 1)),
       featuresCacheExpiry: DateTime.now().subtract(Duration(seconds: 1)),
     );
     await _saveToStorage();
+    debugPrint('🔴 [SessionManager] Cache expired successfully');
   }
 }
 

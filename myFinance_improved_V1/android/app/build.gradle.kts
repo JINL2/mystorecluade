@@ -8,37 +8,51 @@ plugins {
 android {
     namespace = "com.storebase.myfinance_improved"
     compileSdk = flutter.compileSdkVersion
-    ndkVersion = flutter.ndkVersion
+
+    // 🔧 NDK를 27로 고정 (플러그인 요구 버전)
+    ndkVersion = "27.0.12077973"
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        // 🔧 Java 17 + desugaring 활성화
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+        isCoreLibraryDesugaringEnabled = true
     }
 
     kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_11.toString()
+        // 🔧 Kotlin도 17 타깃
+        jvmTarget = "17"
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId = "com.storebase.myfinance_improved"
-        // You can update the following values to match your application needs.
-        // For more information, see: https://flutter.dev/to/review-gradle-config.
-        minSdk = flutter.minSdkVersion
+        minSdk = 23  // Firebase Analytics 및 flutter_local_notifications 요구사항
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+        multiDexEnabled = true  // 멀티덱스 활성화
     }
 
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
+            // 지금은 디버그 키로 서명 (릴리스 준비되면 keystore 연결로 교체)
             signingConfig = signingConfigs.getByName("debug")
+            // 필요 시 최적화 옵션 추가 가능
+            // shrinkResources = true
+            // isMinifyEnabled = true
+            // proguardFiles(
+            //     getDefaultProguardFile("proguard-android-optimize.txt"),
+            //     "proguard-rules.pro"
+            // )
         }
     }
 }
 
 flutter {
     source = "../.."
+}
+
+// 🔧 desugaring 라이브러리 추가 (Kotlin DSL 문법)
+dependencies {
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
 }

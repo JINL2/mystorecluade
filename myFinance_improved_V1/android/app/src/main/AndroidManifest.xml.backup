@@ -1,20 +1,4 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-    
-    <!-- Location permissions required for attendance QR scanner -->
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-    
-    <!-- Camera permission for QR code scanning -->
-    <uses-permission android:name="android.permission.CAMERA" />
-    
-    <!-- Camera features - marked as not required for compatibility -->
-    <uses-feature android:name="android.hardware.camera" android:required="false" />
-    <uses-feature android:name="android.hardware.camera.autofocus" android:required="false" />
-    
-    <!-- Network permissions for API communication -->
-    <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    
     <application
         android:label="myfinance_improved"
         android:name="${applicationName}"

@@ -3,9 +3,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import '../../../core/themes/toss_colors.dart';
-import '../../../core/themes/toss_text_styles.dart';
-import '../../../core/themes/toss_spacing.dart';
 import '../../providers/attendance_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/app_state_provider.dart';
@@ -14,7 +11,6 @@ import '../../widgets/common/toss_scaffold.dart';
 import '../../widgets/common/toss_app_bar.dart';
 import '../../widgets/common/toss_loading_view.dart';
 import 'package:myfinance_improved/core/themes/index.dart';
-import 'package:myfinance_improved/core/themes/toss_border_radius.dart';
 class AttendanceMainPage extends StatefulWidget {
   const AttendanceMainPage({super.key});
 

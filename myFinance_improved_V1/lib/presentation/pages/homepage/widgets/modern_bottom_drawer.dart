@@ -7,6 +7,7 @@ import '../../../../core/themes/toss_spacing.dart';
 import '../../../../core/themes/toss_border_radius.dart';
 import '../../../providers/app_state_provider.dart';
 import '../../../providers/auth_provider.dart';
+import '../../../providers/session_manager_provider.dart';
 import '../../../widgets/toss/toss_primary_button.dart';
 import '../../../widgets/toss/toss_dropdown.dart';
 import '../../../../data/services/enhanced_company_service.dart';
@@ -17,6 +18,7 @@ import '../../../widgets/common/toss_dialog.dart';
 import '../../../../data/services/unified_join_service.dart';
 import '../../../../core/navigation/safe_navigation.dart';
 import 'package:myfinance_improved/core/themes/index.dart';
+import 'package:flutter/foundation.dart';
 
 // Provider for unified join service
 final unifiedJoinServiceProvider = Provider<UnifiedJoinService>((ref) {
@@ -98,7 +100,7 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
           height: TossSpacing.space1,
           margin: const EdgeInsets.only(top: TossSpacing.space2, bottom: TossSpacing.space4),
           decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.3),
+            color: Theme.of(context).colorScheme.outline.withOpacity(0.3),
             borderRadius: BorderRadius.circular(TossBorderRadius.xs),
           ),
         ),
@@ -120,7 +122,7 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
         border: Border(
-          bottom: BorderSide(color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.2), width: 1),
+          bottom: BorderSide(color: Theme.of(context).colorScheme.outline.withOpacity(0.2), width: 1),
         ),
       ),
       child: Row(
@@ -141,13 +143,13 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
                     // Profile Image
                     CircleAvatar(
                       radius: TossSpacing.paddingXL,
-                      backgroundImage: userData != null && (userData['profile_image'] ?? '').isNotEmpty
-                          ? NetworkImage(userData['profile_image'])
+                      backgroundImage: userData != null && ((userData['profile_image'] ?? '') as String).isNotEmpty
+                          ? NetworkImage(userData['profile_image'] as String)
                           : null,
-                      backgroundColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.2),
-                      child: userData == null || (userData['profile_image'] ?? '').isEmpty
+                      backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.2),
+                      child: userData == null || ((userData['profile_image'] ?? '') as String).isEmpty
                           ? Text(
-                              userData != null && (userData['user_first_name'] ?? '').isNotEmpty ? userData['user_first_name'][0] : 'U',
+                              userData != null && ((userData['user_first_name'] ?? '') as String).isNotEmpty ? (userData['user_first_name'] as String)[0] : 'U',
                               style: TossTextStyles.h3.copyWith(
                                 color: Theme.of(context).colorScheme.primary,
                                 fontWeight: FontWeight.w700,
@@ -258,7 +260,7 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
                 // Remove any duplicate companies by ID
                 final uniqueCompanies = <String, dynamic>{};
                 for (final company in companies) {
-                  uniqueCompanies[company['company_id']] = company;
+                  uniqueCompanies[company['company_id'] as String] = company;
                 }
                 
                 final companiesList = uniqueCompanies.values.toList();
@@ -296,7 +298,7 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
             color: Theme.of(context).colorScheme.surface,
             border: Border(
               top: BorderSide(
-                color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
+                color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
                 width: 1,
               ),
             ),
@@ -330,8 +332,8 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
         borderRadius: BorderRadius.circular(TossBorderRadius.lg),
         border: Border.all(
           color: isSelected 
-            ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.3) 
-            : Theme.of(context).colorScheme.outline.withValues(alpha: 0.1),
+            ? Theme.of(context).colorScheme.primary.withOpacity(0.3) 
+            : Theme.of(context).colorScheme.outline.withOpacity(0.1),
           width: 1,
         ),
       ),
@@ -350,11 +352,11 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
                       // Always select the company and its first store
                       final stores = company['stores'] as List<dynamic>? ?? [];
                       
-                      await ref.read(appStateProvider.notifier).setCompanyChoosen(company['company_id']);
+                      await ref.read(appStateProvider.notifier).setCompanyChoosen(company['company_id'] as String);
                       
                       if (stores.isNotEmpty) {
                         // Select the first store
-                        await ref.read(appStateProvider.notifier).setStoreChoosen(stores[0]['store_id']);
+                        await ref.read(appStateProvider.notifier).setStoreChoosen(stores[0]['store_id'] as String);
                       }
                       
                       // Navigate to dashboard
@@ -390,7 +392,7 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                company['company_name'] ?? '',
+                                (company['company_name'] ?? '') as String,
                                 style: TossTextStyles.bodyLarge.copyWith(
                                   fontWeight: FontWeight.w600,
                                   color: Theme.of(context).colorScheme.onSurface,
@@ -414,7 +416,7 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
                                   ),
                                   const SizedBox(width: TossSpacing.space2),
                                   Text(
-                                    company['role']?['role_name'] ?? '',
+                                    (company['role']?['role_name'] ?? '') as String,
                                     style: TossTextStyles.caption.copyWith(
                                       color: Theme.of(context).colorScheme.onSurfaceVariant,
                                     ),
@@ -436,21 +438,21 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
                     onTap: () {
                       // Only toggle expand/collapse, don't select company
                       setState(() {
-                        _expandedCompanies[company['company_id']] = !(_expandedCompanies[company['company_id']] ?? isSelected);
+                        _expandedCompanies[company['company_id'] as String] = !(_expandedCompanies[company['company_id'] as String] ?? isSelected);
                       });
                     },
                     borderRadius: BorderRadius.circular(TossBorderRadius.full),
                     child: Container(
                       padding: const EdgeInsets.all(TossSpacing.space2),
                       decoration: BoxDecoration(
-                        color: (_expandedCompanies[company['company_id']] ?? isSelected) 
-                          ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.1)
+                        color: (_expandedCompanies[company['company_id'] as String] ?? isSelected) 
+                          ? Theme.of(context).colorScheme.primary.withOpacity(0.1)
                           : TossColors.transparent,
                         borderRadius: BorderRadius.circular(TossBorderRadius.full),
                       ),
                       child: Icon(
-                        (_expandedCompanies[company['company_id']] ?? isSelected) ? Icons.expand_less : Icons.expand_more,
-                        color: (_expandedCompanies[company['company_id']] ?? isSelected)
+                        (_expandedCompanies[company['company_id'] as String] ?? isSelected) ? Icons.expand_less : Icons.expand_more,
+                        color: (_expandedCompanies[company['company_id'] as String] ?? isSelected)
                           ? Theme.of(context).colorScheme.primary
                           : Theme.of(context).colorScheme.onSurfaceVariant,
                         size: TossSpacing.iconMD,
@@ -463,7 +465,7 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
           ),
           
           // Stores Section (show if expanded)
-          if (_expandedCompanies[company['company_id']] ?? isSelected) ...[
+          if (_expandedCompanies[company['company_id'] as String] ?? isSelected) ...[
             // Stores Container
             Container(
               padding: const EdgeInsets.fromLTRB(TossSpacing.space4, 0, TossSpacing.space4, TossSpacing.space4),
@@ -476,7 +478,7 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
                     
                     final uniqueStores = <String, dynamic>{};
                     for (final store in stores) {
-                      uniqueStores[store['store_id']] = store;
+                      uniqueStores[store['store_id'] as String] = store;
                     }
                     
                     return uniqueStores.values.map((store) => _buildStoreItem(
@@ -506,8 +508,8 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
         child: InkWell(
           onTap: () async {
             // Set both company and store when selecting a store
-            await ref.read(appStateProvider.notifier).setCompanyChoosen(company['company_id']);
-            await ref.read(appStateProvider.notifier).setStoreChoosen(store['store_id']);
+            await ref.read(appStateProvider.notifier).setCompanyChoosen(company['company_id'] as String);
+            await ref.read(appStateProvider.notifier).setStoreChoosen(store['store_id'] as String);
             if (context.mounted) {
               Navigator.of(context).pop();
             }
@@ -534,7 +536,7 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
                 // Store Name
                 Expanded(
                   child: Text(
-                    store['store_name'] ?? '',
+                    (store['store_name'] ?? '') as String,
                     style: TossTextStyles.body.copyWith(
                       fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
                       color: Theme.of(context).colorScheme.onSurface,
@@ -568,7 +570,7 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space3, vertical: TossSpacing.space3/2),
             decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+              color: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.5),
               borderRadius: BorderRadius.circular(TossBorderRadius.md),
             ),
             child: Row(
@@ -608,7 +610,7 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
               color: Theme.of(context).colorScheme.surface,
               borderRadius: BorderRadius.circular(TossBorderRadius.md),
               border: Border.all(
-                color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
+                color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
               ),
             ),
             child: Row(
@@ -662,7 +664,7 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
               height: TossSpacing.space1,
               margin: const EdgeInsets.only(top: TossSpacing.space2, bottom: TossSpacing.paddingXL),
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.3),
+                color: Theme.of(context).colorScheme.outline.withOpacity(0.3),
                 borderRadius: BorderRadius.circular(TossBorderRadius.xs),
               ),
             ),
@@ -750,7 +752,7 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
               height: TossSpacing.space1,
               margin: const EdgeInsets.only(top: TossSpacing.space2, bottom: TossSpacing.paddingXL),
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.3),
+                color: Theme.of(context).colorScheme.outline.withOpacity(0.3),
                 borderRadius: BorderRadius.circular(TossBorderRadius.xs),
               ),
             ),
@@ -771,7 +773,7 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
                         ),
                       ),
                       Text(
-                        'For ${company['company_name'] ?? ''}',
+                        'For ${(company['company_name'] ?? '') as String}',
                         style: TossTextStyles.caption.copyWith(
                           color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
@@ -802,7 +804,7 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
                     context,
                     icon: Icons.store,
                     title: 'Create Store',
-                    subtitle: 'Add a new store to ${company['company_name'] ?? ''}',
+                    subtitle: 'Add a new store to ${(company['company_name'] ?? '') as String}',
                     onTap: () => _handleCreateStore(context, ref, company),
                   ),
                   
@@ -845,7 +847,7 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
             color: Theme.of(context).colorScheme.surface,
             borderRadius: BorderRadius.circular(TossBorderRadius.lg),
             border: Border.all(
-              color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
+              color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
             ),
           ),
           child: Row(
@@ -854,7 +856,7 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
                 width: TossSpacing.inputHeightLG,
                 height: TossSpacing.inputHeightLG,
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+                  color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                 ),
                 child: Icon(
@@ -974,7 +976,7 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
                 height: TossSpacing.space1,
                 margin: const EdgeInsets.only(top: TossSpacing.space2, bottom: TossSpacing.paddingXL),
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.3),
+                  color: Theme.of(context).colorScheme.outline.withOpacity(0.3),
                   borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                 ),
               ),
@@ -1113,7 +1115,7 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
                   height: 4,
                   margin: const EdgeInsets.only(top: TossSpacing.space2, bottom: TossSpacing.paddingXL),
                   decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.3),
+                    color: Theme.of(context).colorScheme.outline.withOpacity(0.3),
                     borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                   ),
                 ),
@@ -1134,7 +1136,7 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
                             ),
                           ),
                           Text(
-                            'For ${company['company_name'] ?? ''}',
+                            'For ${(company['company_name'] ?? '') as String}',
                             style: TossTextStyles.caption.copyWith(
                               color: Theme.of(context).colorScheme.onSurfaceVariant,
                             ),
@@ -1307,7 +1309,7 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
                   height: 4,
                   margin: const EdgeInsets.only(top: TossSpacing.space2, bottom: TossSpacing.paddingXL),
                   decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.3),
+                    color: Theme.of(context).colorScheme.outline.withOpacity(0.3),
                     borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                   ),
                 ),
@@ -1518,9 +1520,12 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
       _dismissSnackBar(scaffoldMessenger);
       
       if (result.isSuccess) {
+        debugPrint('🟢 [CreateCompany] Company created successfully: ${result.companyName}');
+        
         // Select the new company in app state FIRST
         final appStateNotifier = ref.read(appStateProvider.notifier);
         if (result.companyId != null) {
+          debugPrint('🟢 [CreateCompany] Setting new company as selected: ${result.companyId}');
           await appStateNotifier.setCompanyChoosen(result.companyId!);
         }
         
@@ -1532,6 +1537,7 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
           navigator.pop(); // Close the drawer
         }
         
+        debugPrint('🟢 [CreateCompany] Navigating to dashboard with fresh data fetch...');
         // Navigate to dashboard with state refresh
         await _navigateToDashboard(context, ref);
         
@@ -1639,6 +1645,9 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
         // Force comprehensive data refresh for immediate UI update
         await Future.delayed(Duration(milliseconds: 300));
         
+        // Expire cache to ensure fresh data is fetched
+        await ref.read(sessionManagerProvider.notifier).expireCache();
+        
         // Invalidate all company-related providers for real-time update
         ref.invalidate(userCompaniesProvider);
         ref.invalidate(forceRefreshUserCompaniesProvider);
@@ -1656,7 +1665,7 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
         // Set the new company as selected if company_id is returned
         if (result['company_id'] != null) {
           final appStateNotifier = ref.read(appStateProvider.notifier);
-          await appStateNotifier.setCompanyChoosen(result['company_id']);
+          await appStateNotifier.setCompanyChoosen(result['company_id'] as String);
           
           // Auto-select first store of the joined company if available
           try {
@@ -1671,7 +1680,7 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
               final stores = joinedCompany['stores'] as List? ?? [];
               if (stores.isNotEmpty) {
                 final firstStore = stores.first;
-                await appStateNotifier.setStoreChoosen(firstStore['store_id']);
+                await appStateNotifier.setStoreChoosen(firstStore['store_id'] as String);
               }
             }
           } catch (e) {
@@ -1681,13 +1690,13 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
         
         // Navigate to dashboard to show the new company/store immediately
         if (context.mounted) {
-          final companyName = result['company_name'] ?? result['entity_name'] ?? 'the company';
+          final companyName = (result['company_name'] ?? result['entity_name'] ?? 'the company') as String;
           
           // Show success dialog with proper navigation
           await TossSuccessDialogs.showBusinessJoined(
             context: context,
             companyName: companyName,
-            roleName: result['role_assigned'] ?? 'Member',
+            roleName: (result['role_assigned'] ?? 'Member') as String,
             onContinue: () {
               Navigator.of(context).pop(); // Close dialog
               context.safeGo('/'); // Navigate to dashboard
@@ -1748,7 +1757,7 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
       final storeService = ref.read(enhancedStoreServiceProvider);
       final result = await storeService.createStoreEnhanced(
         storeName: name,
-        companyId: company['company_id'],
+        companyId: company['company_id'] as String,
         storeAddress: address,
         storePhone: phone,
       );
@@ -1900,23 +1909,23 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
         
         // Set company first if provided
         if (result['company_id'] != null) {
-          await appStateNotifier.setCompanyChoosen(result['company_id']);
+          await appStateNotifier.setCompanyChoosen(result['company_id'] as String);
         }
         
         // Then set the store if provided  
         if (result['store_id'] != null) {
-          await appStateNotifier.setStoreChoosen(result['store_id']);
+          await appStateNotifier.setStoreChoosen(result['store_id'] as String);
         }
         
         // Navigate to dashboard to show the new store/company immediately
         if (context.mounted) {
-          final entityName = result['store_name'] ?? result['company_name'] ?? result['entity_name'] ?? 'the organization';
+          final entityName = (result['store_name'] ?? result['company_name'] ?? result['entity_name'] ?? 'the organization') as String;
           
           // Show success dialog
           await TossSuccessDialogs.showBusinessJoined(
             context: context,
             companyName: entityName,
-            roleName: result['role_assigned'] ?? 'Member',
+            roleName: (result['role_assigned'] ?? 'Member') as String?,
             onContinue: () => Navigator.of(context).pop(true),
           );
           
@@ -1984,7 +1993,7 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
               height: TossSpacing.space1,
               margin: const EdgeInsets.only(top: TossSpacing.space2, bottom: TossSpacing.paddingXL),
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.3),
+                color: Theme.of(context).colorScheme.outline.withOpacity(0.3),
                 borderRadius: BorderRadius.circular(TossBorderRadius.xs),
               ),
             ),
@@ -2031,10 +2040,10 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
                     _buildCodeItem(
                       context: context,
                       icon: Icons.business,
-                      title: company['company_name'] ?? '',
+                      title: (company['company_name'] ?? '') as String,
                       subtitle: 'Company Code',
-                      code: company['company_code'] ?? '',
-                      onCopy: () => _copyToClipboard(context, company['company_code'] ?? '', 'Company code'),
+                      code: (company['company_code'] ?? '') as String,
+                      onCopy: () => _copyToClipboard(context, (company['company_code'] ?? '') as String, 'Company code'),
                     ),
                     
                     if (stores.isNotEmpty) ...[
@@ -2046,10 +2055,10 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
                         child: _buildCodeItem(
                           context: context,
                           icon: Icons.store_outlined,
-                          title: store['store_name'] ?? '',
+                          title: (store['store_name'] ?? '') as String,
                           subtitle: 'Store Code',
-                          code: store['store_code'] ?? '',
-                          onCopy: () => _copyToClipboard(context, store['store_code'] ?? '', 'Store code'),
+                          code: (store['store_code'] ?? '') as String,
+                          onCopy: () => _copyToClipboard(context, (store['store_code'] ?? '') as String, 'Store code'),
                         ),
                       )),
                     ],
@@ -2079,10 +2088,10 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
         child: Container(
           padding: const EdgeInsets.all(TossSpacing.paddingMD),
           decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+            color: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.3),
             borderRadius: BorderRadius.circular(TossBorderRadius.lg),
             border: Border.all(
-              color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.1),
+              color: Theme.of(context).colorScheme.outline.withOpacity(0.1),
             ),
           ),
           child: Row(
@@ -2091,7 +2100,7 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
                 width: TossSpacing.iconXL,
                 height: TossSpacing.iconXL,
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+                  color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(TossBorderRadius.md),
                 ),
                 child: Icon(
@@ -2136,7 +2145,7 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space2, vertical: TossSpacing.space1),
                     decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+                      color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                     ),
                     child: Row(
@@ -2264,14 +2273,32 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
   
   /// Navigate to dashboard with proper state refresh
   Future<void> _navigateToDashboard(BuildContext context, WidgetRef ref) async {
+    debugPrint('🔄 [NavigateToDashboard] Starting dashboard navigation with data refresh...');
+    
+    // First expire the cache to ensure fresh data
+    await ref.read(sessionManagerProvider.notifier).expireCache();
+    
     // Invalidate providers to force refresh
+    debugPrint('🔄 [NavigateToDashboard] Invalidating all data providers...');
     ref.invalidate(userCompaniesProvider);
     ref.invalidate(forceRefreshUserCompaniesProvider);
     ref.invalidate(categoriesWithFeaturesProvider);
     ref.invalidate(forceRefreshCategoriesProvider);
-    ref.invalidate(appStateProvider);
+    
+    // Force immediate fetch of fresh data
+    // This ensures the new company/store is included
+    debugPrint('🔄 [NavigateToDashboard] Forcing immediate data fetch...');
+    try {
+      await ref.read(forceRefreshUserCompaniesProvider.future);
+      await ref.read(forceRefreshCategoriesProvider.future);
+      debugPrint('✅ [NavigateToDashboard] Fresh data fetched successfully');
+    } catch (e) {
+      // Continue even if fetch fails - navigation should still work
+      debugPrint('❌ [NavigateToDashboard] Error fetching fresh data: $e');
+    }
     
     // Navigate
+    debugPrint('🔄 [NavigateToDashboard] Navigating to homepage...');
     context.safeGo('/');
   }
 }

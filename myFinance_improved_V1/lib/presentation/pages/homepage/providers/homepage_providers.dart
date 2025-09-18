@@ -76,20 +76,27 @@ final userCompaniesProvider = FutureProvider<dynamic>((ref) async {
   // Read app state WITHOUT watching to avoid rebuilds
   final appState = ref.read(appStateProvider);
   final appStateNotifier = ref.read(appStateProvider.notifier);
+  final sessionManager = ref.read(sessionManagerProvider.notifier);
   
-  // Check if we have cached data
+  // Check if we have cached data AND if it's still valid
   final hasCache = appStateNotifier.hasUserData;
+  final shouldUseCachedData = hasCache && !sessionManager.shouldFetchUserData();
   
-  debugPrint('🔵 [userCompaniesProvider] Cache check - hasCache: $hasCache');
+  debugPrint('🔵 [userCompaniesProvider] Cache check - hasCache: $hasCache, shouldUseCachedData: $shouldUseCachedData');
   
-  // Use cached data if available
-  if (hasCache) {
+  // Use cached data ONLY if it exists AND is not expired
+  if (shouldUseCachedData) {
     final cachedData = appState.user;
     if (cachedData != null && cachedData is Map && cachedData.isNotEmpty) {
-      debugPrint('🔵 [userCompaniesProvider] Returning cached data from app state');
-      // Return cached data immediately
+      debugPrint('🔵 [userCompaniesProvider] Returning valid cached data from app state');
+      // Return cached data only when it's not expired
       return cachedData;
     }
+  }
+  
+  // If cache is expired or doesn't exist, we'll fetch fresh data
+  if (hasCache && !shouldUseCachedData) {
+    debugPrint('🔵 [userCompaniesProvider] Cache expired, fetching fresh data...');
   }
   
   // Fetch fresh data from API using RPC function
@@ -295,11 +302,20 @@ final categoriesWithFeaturesProvider = FutureProvider.autoDispose<dynamic>((ref)
   // Smart caching decision based on session state
   final shouldFetch = sessionManager.shouldFetchFeatures();
   final hasCache = appStateNotifier.hasCategoryFeatures;
+  final shouldUseCachedData = hasCache && !shouldFetch;
+  
+  debugPrint('🔵 [categoriesWithFeaturesProvider] Cache check - hasCache: $hasCache, shouldUseCachedData: $shouldUseCachedData');
   
   // Use cached data if available and fresh (read state to avoid watching)
-  if (hasCache && !shouldFetch) {
+  if (shouldUseCachedData) {
+    debugPrint('🔵 [categoriesWithFeaturesProvider] Returning valid cached data from app state');
     final currentState = ref.read(appStateProvider);
     return currentState.categoryFeatures;
+  }
+  
+  // If cache is expired or doesn't exist, we'll fetch fresh data
+  if (hasCache && !shouldUseCachedData) {
+    debugPrint('🔵 [categoriesWithFeaturesProvider] Cache expired, fetching fresh data...');
   }
   
   // Get selected company from app state (read to avoid watching)

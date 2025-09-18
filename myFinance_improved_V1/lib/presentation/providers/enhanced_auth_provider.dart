@@ -97,6 +97,15 @@ class EnhancedAuthService {
       ref.invalidate(userCompaniesProvider);
       ref.invalidate(categoriesWithFeaturesProvider);
       
+      // Also invalidate the force refresh providers to ensure they run
+      ref.invalidate(forceRefreshUserCompaniesProvider);
+      ref.invalidate(forceRefreshCategoriesProvider);
+      
+      // Force immediate fetch by reading the providers
+      // This ensures the data is fetched right away, not lazily
+      await ref.read(forceRefreshUserCompaniesProvider.future);
+      await ref.read(forceRefreshCategoriesProvider.future);
+      
       
     } catch (e) {
       rethrow;
