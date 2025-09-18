@@ -48,7 +48,7 @@ dependencies:
   font_awesome_flutter: ^10.6.0
   
   # QR Code Scanner & Generator
-  mobile_scanner: ^5.2.3
+  mobile_scanner: ^7.0.0
   qr_flutter: ^4.1.0
   
   # Image Saving to Gallery
