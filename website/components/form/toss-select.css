@@ -12,41 +12,61 @@
     max-width: 280px;
 }
 
+/* Force white background on all select buttons to fix black background issue */
+.toss-select-container .toss-select {
+    background-color: #FFFFFF !important;
+    background: #FFFFFF !important;
+    color: #212529 !important;
+}
+
+.toss-select-container .toss-select .toss-select-value {
+    color: #212529 !important;
+}
+
+.toss-select-container .toss-select .toss-select-arrow svg {
+    fill: #6C757D !important;
+}
+
 /* Select Button (Main Display) */
 .toss-select {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: var(--space-2);
+    gap: var(--space-2, 8px);
     width: 100%;
-    padding: var(--space-3) var(--space-4);
-    background: var(--input-bg);
-    border: 1px solid var(--input-border);
-    border-radius: var(--radius-input);
+    padding: var(--space-3, 12px) var(--space-4, 16px);
+    background: var(--input-bg, #FFFFFF) !important;
+    border: 1px solid var(--input-border, #E9ECEF) !important;
+    border-radius: var(--radius-input, 8px);
     cursor: pointer;
-    transition: all var(--transition-fast);
-    font-family: var(--font-family);
-    font-size: var(--font-body);
+    transition: all var(--transition-fast, 0.15s ease);
+    font-family: var(--font-family, 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif);
+    font-size: var(--font-body, 16px);
     font-weight: 500;
-    color: var(--text-primary);
+    color: var(--text-primary, #212529) !important;
     text-align: left;
     outline: none;
     user-select: none;
 }
 
 .toss-select:hover {
-    background: var(--bg-secondary);
-    border-color: var(--toss-primary);
+    background: var(--bg-secondary, #F8F9FA) !important;
+    border-color: var(--toss-primary, #0064FF) !important;
+    color: var(--text-primary, #212529) !important;
 }
 
 .toss-select:focus {
-    border-color: var(--input-border-focus);
+    background: var(--input-bg, #FFFFFF) !important;
+    border-color: var(--input-border-focus, #0064FF) !important;
     box-shadow: 0 0 0 3px rgba(0, 100, 255, 0.08);
+    color: var(--text-primary, #212529) !important;
 }
 
 .toss-select.toss-select-active {
-    border-color: var(--toss-primary);
+    background: var(--input-bg, #FFFFFF) !important;
+    border-color: var(--toss-primary, #0064FF) !important;
     box-shadow: 0 0 0 3px rgba(0, 100, 255, 0.08);
+    color: var(--text-primary, #212529) !important;
 }
 
 /* Select Value Display */
@@ -55,10 +75,11 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    color: inherit !important;
 }
 
 .toss-select-placeholder {
-    color: var(--input-placeholder);
+    color: var(--input-placeholder, #6C757D) !important;
 }
 
 /* Select Arrow Icon */
@@ -66,13 +87,13 @@
     flex-shrink: 0;
     width: 12px;
     height: 12px;
-    color: var(--text-secondary);
-    transition: transform var(--transition-fast);
+    color: var(--text-secondary, #6C757D) !important;
+    transition: transform var(--transition-fast, 0.15s ease);
 }
 
 .toss-select.toss-select-active .toss-select-arrow {
     transform: rotate(180deg);
-    color: var(--toss-primary);
+    color: var(--toss-primary, #0064FF) !important;
 }
 
 /* Select Dropdown Menu */
@@ -81,8 +102,8 @@
     top: calc(100% + var(--space-1));
     left: 0;
     right: 0;
-    background: var(--bg-primary);
-    border: 1px solid var(--input-border);
+    background: var(--bg-primary, #FFFFFF) !important;
+    border: 1px solid var(--input-border, #E9ECEF);
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-lg);
     opacity: 0;
@@ -133,7 +154,7 @@
     transition: all var(--transition-fast);
     margin-bottom: var(--space-1);
     background: transparent;
-    color: var(--text-primary);
+    color: var(--text-primary, #212529) !important;
 }
 
 .toss-select-option:last-child {
@@ -141,13 +162,14 @@
 }
 
 .toss-select-option:hover {
-    background: var(--toss-gray-50);
+    background: var(--toss-gray-100, #F1F3F5) !important;
+    color: var(--text-primary, #212529) !important;
 }
 
 .toss-select-option.toss-select-option-selected {
-    background: var(--toss-primary-surface);
+    background: var(--toss-primary, #0064FF) !important;
     font-weight: 500;
-    color: var(--toss-primary);
+    color: var(--toss-white, #FFFFFF) !important;
 }
 
 .toss-select-option.toss-select-option-disabled {
@@ -167,7 +189,7 @@
 
 .toss-select-option-label {
     font-size: var(--font-body);
-    color: var(--text-primary);
+    color: inherit;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -175,7 +197,8 @@
 
 .toss-select-option-description {
     font-size: var(--font-small);
-    color: var(--text-tertiary);
+    color: inherit;
+    opacity: 0.8;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -186,13 +209,39 @@
     flex-shrink: 0;
     width: 16px;
     height: 16px;
-    color: var(--toss-primary);
+    color: var(--toss-white, #FFFFFF);
     opacity: 0;
     transition: opacity var(--transition-fast);
 }
 
 .toss-select-option-selected .toss-select-option-check {
     opacity: 1;
+}
+
+/* Enhanced focus and interaction states for better visibility */
+.toss-select-option:focus {
+    outline: none;
+    background: var(--toss-gray-100, #F1F3F5) !important;
+    color: var(--text-primary, #212529) !important;
+    box-shadow: inset 0 0 0 2px var(--toss-primary, #0064FF);
+}
+
+.toss-select-option.toss-select-option-selected:focus {
+    background: var(--toss-primary, #0064FF) !important;
+    color: var(--toss-white, #FFFFFF) !important;
+    box-shadow: inset 0 0 0 2px var(--toss-white, #FFFFFF);
+}
+
+/* Selected + Hover state for better visibility */
+.toss-select-option.toss-select-option-selected:hover {
+    background: var(--toss-primary-dark, #0050CC) !important;
+    color: var(--toss-white, #FFFFFF) !important;
+}
+
+.toss-select-option.toss-select-option-selected:focus {
+    outline: 2px solid var(--toss-white, #FFFFFF);
+    background: var(--toss-primary-dark, #0050CC) !important;
+    color: var(--toss-white, #FFFFFF) !important;
 }
 
 /* Select with Label */
@@ -414,6 +463,54 @@
         border-width: 3px;
         box-shadow: none;
     }
+}
+
+/* Select Footer Actions */
+.toss-select-footer {
+    padding: var(--space-2);
+    border-top: 1px solid var(--border-secondary);
+    flex-shrink: 0;
+    background: var(--bg-secondary);
+}
+
+.toss-select-action {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-3) var(--space-3);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    color: var(--toss-primary, #0064FF) !important;
+    font-weight: 500;
+    margin-bottom: var(--space-1);
+}
+
+.toss-select-action:last-child {
+    margin-bottom: 0;
+}
+
+.toss-select-action:hover {
+    background: var(--toss-primary-surface, #E6F3FF) !important;
+    color: var(--toss-primary-dark, #0050CC) !important;
+    transform: translateY(-1px);
+}
+
+.toss-select-action:active {
+    background: var(--toss-primary-light, #CCE7FF) !important;
+    transform: translateY(0);
+}
+
+.toss-select-action-icon {
+    flex-shrink: 0;
+    width: 16px;
+    height: 16px;
+    color: inherit;
+}
+
+.toss-select-action-label {
+    font-size: var(--font-body);
+    color: inherit;
 }
 
 /* Dark Mode Support */

@@ -6,13 +6,14 @@
 
 /* ==================== THEME IMPORTS ==================== */
 /* CSS Variables - Must be loaded first */
-@import url('theme/toss-variables.css');
+@import url('../../core/themes/toss-variables.css');
+@import url('../../core/themes/toss-component-variables.css');
 
 /* Base styles and utilities */
-@import url('theme/toss-base.css');
+@import url('../../core/themes/toss-base.css');
 
 /* Typography system */
-@import url('theme/toss-typography.css');
+@import url('../../core/themes/toss-typography.css');
 
 /* ==================== COMPONENT IMPORTS ==================== */
 /* Base Components */
@@ -22,8 +23,8 @@
 @import url('../components/navigation/toss-navbar.css');
 
 /* Form Components */
-/* @import url('../components/form/toss-input.css'); */
-/* @import url('../components/form/toss-select.css'); */
+@import url('../../components/form/toss-input.css');
+@import url('../../components/form/toss-select.css');
 /* @import url('../components/form/toss-checkbox.css'); */
 /* @import url('../components/form/toss-radio.css'); */
 /* @import url('../components/form/toss-search.css'); */

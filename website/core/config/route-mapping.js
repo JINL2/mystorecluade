@@ -21,6 +21,10 @@ const RouteMapping = {
     
     // Product routes
     'Inventory': 'inventory',
+    'Invoice': 'invoice',
+    'Order': 'order',
+    'Product Receive': 'productReceive',
+    'Tracking': 'tracking',
     
     // Marketing routes
     'Marketing Plan': 'conetentsCreation',  // Note: keeping original spelling from features
@@ -78,6 +82,10 @@ function buildPageUrl(route, basePath = null) {
         
         // Product pages
         'inventory': 'product/inventory',
+        'invoice': 'product/invoice',
+        'order': 'product/order',
+        'productReceive': 'product/product recieve',
+        'tracking': 'product/tracking',
         
         // Marketing pages
         'conetentsCreation': 'marketing/marketing-plan',

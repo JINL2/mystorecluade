@@ -107,12 +107,44 @@
     background: var(--toss-gray-50);
 }
 
+/* Override the global selected state for navbar */
+#navbar-company-selector .toss-select-option.toss-select-option-selected {
+    background: var(--toss-white) !important;
+    color: var(--text-primary) !important;
+    font-weight: 600;
+    position: relative;
+}
+
+#navbar-company-selector .toss-select-option.toss-select-option-selected:hover {
+    background: var(--toss-gray-50) !important;
+    color: var(--text-primary) !important;
+}
+
+/* Add checkmark for selected items */
+#navbar-company-selector .toss-select-option-selected .toss-select-option-check {
+    opacity: 1;
+    color: var(--toss-primary);
+}
+
+/* Override focus states for selected items */
+#navbar-company-selector .toss-select-option.toss-select-option-selected:focus {
+    background: var(--toss-gray-100) !important;
+    color: var(--text-primary) !important;
+    outline: 2px solid var(--toss-primary);
+    outline-offset: -2px;
+}
+
 #navbar-company-selector .toss-select-option-label {
     color: var(--text-primary);
 }
 
 #navbar-company-selector .toss-select-option-description {
     color: var(--text-secondary);
+}
+
+/* Ensure description text is visible in selected items */
+#navbar-company-selector .toss-select-option-selected .toss-select-option-description {
+    color: var(--text-secondary) !important;
 }
 
 /* Navigation Menu */
@@ -206,6 +238,30 @@
 }
 
 .navbar-dropdown-link:hover {
+    background: var(--toss-primary-surface);
+    color: var(--toss-primary);
+}
+
+/* Active dropdown item styles */
+.navbar-dropdown-link.active {
+    background: var(--toss-primary-surface);
+    color: var(--toss-primary);
+    font-weight: 600;
+    position: relative;
+}
+
+.navbar-dropdown-link.active::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: var(--toss-primary);
+    border-radius: 0 2px 2px 0;
+}
+
+.navbar-dropdown-link.active:hover {
     background: var(--toss-primary-surface);
     color: var(--toss-primary);
 }

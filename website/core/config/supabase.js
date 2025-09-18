@@ -21,6 +21,10 @@ function initializeSupabase() {
                 storage: window.localStorage  // 명시적으로 localStorage 사용
             }
         });
+        
+        // Make supabase client globally available
+        window.supabaseClient = supabase;
+        
         console.log('Supabase initialized successfully with persistence');
         return supabase;
     } else {

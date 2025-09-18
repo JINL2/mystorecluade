@@ -13,9 +13,6 @@ class NavBar {
             ...options
         };
         
-        // Track current page for dropdown highlighting
-        this.currentPageAction = this.detectCurrentPageAction();
-        
         this.navItems = [
             {
                 id: 'dashboard',
@@ -31,11 +28,7 @@ class NavBar {
                     {
                         section: 'Product Management',
                         items: [
-                            { label: 'Inventory', href: '#', action: 'Inventory' },
-                            { label: 'Invoice', href: '#', action: 'Invoice' },
-                            { label: 'Order', href: '#', action: 'Order' },
-                            { label: 'Product Receive', href: '#', action: 'Product Receive' },
-                            { label: 'Tracking', href: '#', action: 'Tracking' }
+                            { label: 'Inventory', href: '#', action: 'Inventory' }
                         ]
                     }
                 ]
@@ -114,93 +107,17 @@ class NavBar {
         ];
     }
     
-    /**
-     * Detect the current page action based on URL path
-     * @returns {string} The detected page action or null
-     */
-    detectCurrentPageAction() {
-        const currentPath = window.location.pathname;
-        // Decode URL to handle spaces and special characters
-        const decodedPath = decodeURIComponent(currentPath);
-        console.log('🔍 Detecting current page action from path:', currentPath);
-        console.log('🔍 Decoded path:', decodedPath);
-        
-        // Map URL patterns to menu actions (more flexible matching)
-        // Updated with better patterns and additional mappings
-        const pathMappings = {
-            'product/inventory': 'Inventory',
-            'product/invoice': 'Invoice',
-            'product/order': 'Order',
-            'product/product recieve': 'Product Receive',
-            'product/product%20recieve': 'Product Receive', // Handle URL encoded version
-            'product recieve': 'Product Receive', // Handle without product/ prefix
-            'product/tracking': 'Tracking',
-            'finance/balance-sheet': 'Balance Sheet',
-            'finance/income-statement': 'Income Statement',
-            'finance/journal-input': 'Journal Input',
-            'finance/transaction-history': 'Transaction History',
-            'finance/cash-ending': 'Cash Ending',
-            'employee/schedule': 'Schedule',
-            'employee/employee-setting': 'Employee Setting',
-            'employee/salary': 'Salary',
-            'marketing/marketing-plan': 'Marketing Plan',
-            'settings/currency': 'Currency',
-            'settings/store-setting': 'Company & Store Setting',
-            'settings/account-mapping': 'Account Mapping',
-            'settings/counterparty': 'Counterparty',
-            'dashboard': 'Dashboard',
-            // Additional fallback patterns for different URL structures
-            '/inventory': 'Inventory',
-            '/invoice': 'Invoice',
-            '/balance-sheet': 'Balance Sheet',
-            '/income-statement': 'Income Statement',
-            '/schedule': 'Schedule',
-            '/currency': 'Currency'
-        };
-        
-        // Find matching path - check both original and decoded paths
-        for (const [pathPattern, action] of Object.entries(pathMappings)) {
-            if (currentPath.includes(pathPattern) || decodedPath.includes(pathPattern)) {
-                console.log('✅ Detected page action:', action, 'from pattern:', pathPattern);
-                console.log('📝 Matched against:', currentPath.includes(pathPattern) ? 'original path' : 'decoded path');
-                return action;
-            }
-        }
-        
-        console.log('⚠️ No page action detected for paths:', { currentPath, decodedPath });
-        return null;
-    }
-    
     init() {
         this.render();
         this.attachEventListeners();
         this.updateUserInfo();
-        
-        // Ensure current page action is detected
-        this.currentPageAction = this.detectCurrentPageAction();
-        console.log('🔄 NavBar init - detected current page action:', this.currentPageAction);
-        
-        // Highlight active dropdown item after initial render with quick attempts
-        // to ensure DOM is fully ready
-        setTimeout(() => {
-            this.highlightActiveDropdownItem();
-        }, 10);
-        
-        setTimeout(() => {
-            this.highlightActiveDropdownItem();
-        }, 30);
-        
-        setTimeout(() => {
-            this.highlightActiveDropdownItem();
-        }, 50);
-        
         // Load companies after render to ensure DOM is ready
         // Use multiple attempts to ensure data is loaded
         this.loadCompaniesWithRetry();
     }
     
-    loadCompaniesWithRetry(attempts = 0, maxAttempts = 2) {
-        const delay = 50; // Fixed short delay
+    loadCompaniesWithRetry(attempts = 0, maxAttempts = 5) {
+        const delay = attempts * 200; // Increase delay with each attempt
         
         setTimeout(async () => {
             console.log(`Attempt ${attempts + 1} to load companies`);
@@ -212,7 +129,7 @@ class NavBar {
                 console.log('User data found, loading companies');
                 await this.loadUserCompanies();
             } else if (attempts < maxAttempts) {
-                console.log(`No user data found, retrying in ${delay}ms...`);
+                console.log(`No user data found, retrying in ${delay + 200}ms...`);
                 this.loadCompaniesWithRetry(attempts + 1, maxAttempts);
             } else {
                 console.log('Max attempts reached, company selector may not be available');
@@ -306,28 +223,23 @@ class NavBar {
         return dropdown.map(section => `
             <div class="navbar-dropdown-section">
                 <div class="navbar-dropdown-title">${section.section}</div>
-                ${section.items.map(item => {
-                    const isActiveDropdownItem = this.currentPageAction === item.action;
-                    const activeClass = isActiveDropdownItem ? ' active' : '';
-                    console.log('🎯 Dropdown item:', item.label, 'action:', item.action, 'current:', this.currentPageAction, 'isActive:', isActiveDropdownItem);
-                    return `
-                        <a href="${item.href}" 
-                           class="navbar-dropdown-link${activeClass}" 
-                           onclick="NavBar.handleDropdownClick('${item.action}')">
-                            ${item.label}
-                        </a>
-                    `;
-                }).join('')}
+                ${section.items.map(item => `
+                    <a href="${item.href}" 
+                       class="navbar-dropdown-link" 
+                       onclick="NavBar.handleDropdownClick('${item.action}')">
+                        ${item.label}
+                    </a>
+                `).join('')}
             </div>
         `).join('');
     }
     
     autoInitializeCompanySelector() {
-        // Automatically initialize company selector with limited attempts
+        // Automatically initialize company selector with multiple attempts
         console.log('🔄 autoInitializeCompanySelector called');
         let attempts = 0;
-        const maxAttempts = 3; // Reduced from 20
-        const baseDelay = 50; // Fixed short delay
+        const maxAttempts = 20; // Increased for RPC loading time
+        const baseDelay = 200; // Increased delay to allow for data loading
         
         const tryInitialize = () => {
             attempts++;
@@ -338,7 +250,7 @@ class NavBar {
             if (!container) {
                 console.log('Company selector container not found yet');
                 if (attempts < maxAttempts) {
-                    setTimeout(tryInitialize, baseDelay);
+                    setTimeout(tryInitialize, baseDelay * attempts);
                 }
                 return;
             }
@@ -412,8 +324,8 @@ class NavBar {
             
             // Retry if we haven't reached max attempts
             if (attempts < maxAttempts) {
-                console.log(`⏳ Retrying in ${baseDelay}ms... (attempt ${attempts}/${maxAttempts})`);
-                setTimeout(tryInitialize, baseDelay);
+                console.log(`⏳ Retrying in ${baseDelay * attempts}ms... (attempt ${attempts}/${maxAttempts})`);
+                setTimeout(tryInitialize, baseDelay * attempts);
             } else {
                 console.log('🚨 Max attempts reached - company selector initialization failed');
                 console.log('Final localStorage check:', localStorage.getItem('user'));
@@ -455,47 +367,25 @@ class NavBar {
      * @param {string} filename - The asset filename
      * @returns {string} The correct relative path to the asset
      */
-    /**
-     * Calculate the correct relative path to assets based on current page location
-     * @param {string} filename - The asset filename
-     * @returns {string} The correct relative path to the asset
-     */
     getAssetPath(filename) {
         // Use pathResolver if available for consistent path resolution
         if (typeof window !== 'undefined' && window.pathResolver) {
-            // PathResolver should return absolute path from website root
-            const assetPath = window.pathResolver.resolveAssetPath(filename);
-            console.log(`NavBar: Using pathResolver for asset: ${filename} -> ${assetPath}`);
-            return assetPath;
+            return window.pathResolver.resolveAssetPath(filename);
         }
         
-        // Fallback: Calculate relative path from current location to website root
+        // Fallback to relative path calculation for backwards compatibility
         const currentPath = window.location.pathname;
         
-        // For localhost, extract the path after the website root
-        if (currentPath.includes('/mysite/mystorecluade/website/')) {
-            // Find the relative path from current location to website root
-            const websiteIndex = currentPath.indexOf('/mysite/mystorecluade/website/');
-            const pathAfterWebsite = currentPath.substring(websiteIndex + '/mysite/mystorecluade/website/'.length);
-            
-            // Count directory levels from website root
-            const segments = pathAfterWebsite.split('/').filter(s => s && !s.includes('.'));
-            const levelsDeep = segments.length;
-            
-            // Build relative path to go back to website root
-            const relativePath = levelsDeep > 0 ? '../'.repeat(levelsDeep) : './';
-            const fullPath = relativePath + 'assets/' + filename;
-            
-            console.log(`NavBar: Current path: ${currentPath}`);
-            console.log(`NavBar: Levels deep: ${levelsDeep}`);
-            console.log(`NavBar: Asset path: ${fullPath}`);
-            
-            return fullPath;
-        }
+        // Count directory levels from current location
+        const pathSegments = currentPath.split('/').filter(segment => {
+            return segment.length > 0 && !segment.includes('.');
+        });
         
-        // Default fallback
-        console.log(`NavBar: Using default asset path for: ${filename}`);
-        return `/assets/${filename}`;
+        const levelsUp = Math.max(0, pathSegments.length - 1);
+        const relativePrefixes = '../'.repeat(levelsUp);
+        
+        console.log(`NavBar asset path: ${currentPath}, Levels up: ${levelsUp}, Asset path: ${relativePrefixes}assets/${filename}`);
+        return `${relativePrefixes}assets/${filename}`;
     }
 
     
@@ -600,100 +490,19 @@ class NavBar {
         });
     }
     
-    /**
-     * Highlight the active dropdown item based on current page
-     */
-    highlightActiveDropdownItem() {
-        console.log('🎯 highlightActiveDropdownItem called with currentPageAction:', this.currentPageAction);
-        
-        if (!this.currentPageAction) {
-            console.log('⚠️ No current page action detected, skipping highlight');
-            return;
-        }
-        
-        // Remove existing active classes from dropdown items
-        document.querySelectorAll('.navbar-dropdown-link').forEach(link => {
-            link.classList.remove('active');
-        });
-        
-        let highlighted = false;
-        
-        // Find and highlight the matching dropdown item
-        document.querySelectorAll('.navbar-dropdown-link').forEach(link => {
-            // Extract action from onclick attribute
-            const onclickAttr = link.getAttribute('onclick');
-            if (onclickAttr) {
-                const actionMatch = onclickAttr.match(/handleDropdownClick\('([^']+)'\)/);
-                if (actionMatch && actionMatch[1] === this.currentPageAction) {
-                    link.classList.add('active');
-                    highlighted = true;
-                    console.log('✅ Highlighted dropdown item:', actionMatch[1]);
-                    
-                    // Also ensure the parent nav item is active
-                    const navItem = link.closest('.navbar-nav-item');
-                    if (navItem) {
-                        const navLink = navItem.querySelector('.navbar-nav-link');
-                        if (navLink && !navLink.classList.contains('active')) {
-                            // Remove active from all nav links first
-                            document.querySelectorAll('.navbar-nav-link').forEach(nl => nl.classList.remove('active'));
-                            // Add active to the parent nav link
-                            navLink.classList.add('active');
-                            console.log('✅ Also highlighted parent nav item:', navLink.textContent.trim());
-                        }
-                    }
-                }
-            }
-        });
-        
-        if (!highlighted) {
-            console.log('⚠️ No dropdown item found matching action:', this.currentPageAction);
-            // Log available actions for debugging
-            const availableActions = [];
-            document.querySelectorAll('.navbar-dropdown-link').forEach(link => {
-                const onclickAttr = link.getAttribute('onclick');
-                if (onclickAttr) {
-                    const actionMatch = onclickAttr.match(/handleDropdownClick\('([^']+)'\)/);
-                    if (actionMatch) {
-                        availableActions.push(actionMatch[1]);
-                    }
-                }
-            });
-            console.log('📋 Available dropdown actions:', availableActions);
-        }
-    }
-    
     setActiveItem(itemId) {
-        // Remove active class from all nav links
+        // Remove active class from all items
         document.querySelectorAll('.navbar-nav-link').forEach(link => {
             link.classList.remove('active');
         });
         
-        // Remove active class from all dropdown links
-        document.querySelectorAll('.navbar-dropdown-link').forEach(link => {
-            link.classList.remove('active');
-        });
-        
-        // Add active class to specified nav item
+        // Add active class to specified item
         const activeLink = document.querySelector(`[data-nav-id="${itemId}"]`);
         if (activeLink) {
             activeLink.classList.add('active');
         }
         
-        // Re-detect current page action and highlight dropdown item
-        this.currentPageAction = this.detectCurrentPageAction();
-        this.highlightActiveDropdownItem();
-        
         this.options.activeItem = itemId;
-    }
-    
-    /**
-     * Refresh the navbar highlighting - can be called externally
-     */
-    refreshHighlighting() {
-        console.log('🔄 Refreshing navbar highlighting...');
-        this.currentPageAction = this.detectCurrentPageAction();
-        this.highlightActiveDropdownItem();
-        return this.currentPageAction;
     }
     
     updateUser(user) {
@@ -927,7 +736,7 @@ class NavBar {
                         console.warn('⚠️ Selected option not found for ID:', selectedId);
                     }
                 }
-            }, 20);
+            }, 100);
         } catch (error) {
             console.error('Error initializing TossSelect:', error);
             this.createFallbackSelector(container, options, selectedId);
@@ -1303,16 +1112,3 @@ window.refreshNavbarUserInfo = async function() {
 
 // Make NavBar class available globally
 window.NavBar = NavBar;
-
-// Global function to refresh navbar highlighting (can be called from any page)
-window.refreshNavbarHighlighting = function() {
-    console.log('🔄 refreshNavbarHighlighting called');
-    if (window.navbarInstance && window.navbarInstance.refreshHighlighting) {
-        const action = window.navbarInstance.refreshHighlighting();
-        console.log('✅ Navbar highlighting refreshed, current action:', action);
-        return action;
-    } else {
-        console.log('❌ Navbar instance not found');
-        return null;
-    }
-};

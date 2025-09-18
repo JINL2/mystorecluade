@@ -36,6 +36,18 @@ class TossSelect {
             onSearch: options.onSearch || null,
             onOpen: options.onOpen || null,
             onClose: options.onClose || null,
+            // New option for custom footer actions (like "+ Add brand")
+            footerActions: options.footerActions || [],
+            // Brand dropdown specific options
+            isBrandDropdown: options.isBrandDropdown || false,
+            companyId: options.companyId || null,
+            onBrandAdded: options.onBrandAdded || null,
+            // Category dropdown specific options
+            isCategoryDropdown: options.isCategoryDropdown || false,
+            onCategoryAdded: options.onCategoryAdded || null,
+            // Allow clearing selected value
+            allowClear: options.allowClear || false,
+            clearText: options.clearText || '× Clear',
             ...options
         };
         
@@ -93,6 +105,9 @@ class TossSelect {
                         <span class="toss-select-value ${!displayValue ? 'toss-select-placeholder' : ''}">
                             ${displayValue || this.options.placeholder}
                         </span>
+                        ${this.options.allowClear && this.selectedValue ? `
+                            <span class="toss-select-clear" data-action="clear">×</span>
+                        ` : ''}
                         <svg class="toss-select-arrow" viewBox="0 0 24 24" fill="currentColor">
                             <path d="M7 10l5 5 5-5z"/>
                         </svg>
@@ -118,6 +133,8 @@ class TossSelect {
                         <div class="toss-select-options" id="${this.options.name}-options">
                             ${this.renderOptions()}
                         </div>
+                        
+                        ${this.renderFooterActions()}
                     </div>
                 </div>
                 
@@ -178,10 +195,66 @@ class TossSelect {
         }).join('');
     }
     
+    renderFooterActions() {
+        // Auto-add brand option for brand dropdown
+        if (this.options.isBrandDropdown) {
+            return `
+                <div class="toss-select-footer">
+                    <div class="toss-select-action" data-action="add-brand">
+                        <svg class="toss-select-action-icon" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"/>
+                        </svg>
+                        <span class="toss-select-action-label">Add brand</span>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Auto-add category option for category dropdown
+        if (this.options.isCategoryDropdown) {
+            return `
+                <div class="toss-select-footer">
+                    <div class="toss-select-action" data-action="add-category">
+                        <svg class="toss-select-action-icon" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"/>
+                        </svg>
+                        <span class="toss-select-action-label">Add category</span>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Render custom footer actions
+        if (this.options.footerActions.length === 0) {
+            return '';
+        }
+        
+        const actionsHTML = this.options.footerActions.map((action, index) => `
+            <div class="toss-select-action" data-action-index="${index}">
+                ${action.icon ? action.icon : ''}
+                <span class="toss-select-action-label">${action.label}</span>
+            </div>
+        `).join('');
+        
+        return `
+            <div class="toss-select-footer">
+                ${actionsHTML}
+            </div>
+        `;
+    }
+    
     attachEventListeners() {
         // Toggle dropdown
         if (this.selectButton) {
-            this.selectButton.addEventListener('click', () => this.toggle());
+            this.selectButton.addEventListener('click', (event) => {
+                // Handle clear button click
+                if (event.target.classList.contains('toss-select-clear')) {
+                    event.stopPropagation();
+                    this.clearSelection();
+                    return;
+                }
+                this.toggle();
+            });
         }
         
         // Handle option selection
@@ -192,6 +265,14 @@ class TossSelect {
                 if (!option.classList.contains('toss-select-option-disabled')) {
                     this.selectOption(value);
                 }
+                return;
+            }
+            
+            // Handle footer actions
+            const action = event.target.closest('.toss-select-action');
+            if (action && action.closest(`#${this.options.name}-menu`)) {
+                event.stopPropagation();
+                this.handleFooterAction(action);
             }
         });
         
@@ -278,7 +359,7 @@ class TossSelect {
     }
     
     selectOption(value) {
-        const option = this.options.options.find(opt => opt.value === value);
+        const option = this.options.options.find(opt => String(opt.value) === String(value));
         
         if (this.options.multiple) {
             // Handle multiple selection
@@ -308,10 +389,14 @@ class TossSelect {
         const selectedOption = this.getSelectedOption();
         const displayValue = this.getDisplayValue(selectedOption);
         
-        const valueElement = this.selectButton.querySelector('.toss-select-value');
-        if (valueElement) {
-            valueElement.textContent = displayValue || this.options.placeholder;
-            valueElement.classList.toggle('toss-select-placeholder', !displayValue);
+        // Re-query the button element to ensure we have the latest reference
+        const button = document.getElementById(`${this.options.name}-button`);
+        if (button) {
+            const valueElement = button.querySelector('.toss-select-value');
+            if (valueElement) {
+                valueElement.textContent = displayValue || this.options.placeholder;
+                valueElement.classList.toggle('toss-select-placeholder', !displayValue);
+            }
         }
         
         // Update options display
@@ -435,6 +520,107 @@ class TossSelect {
             this.selectButton.disabled = true;
         }
         this.close();
+    }
+    
+    handleFooterAction(actionElement) {
+        const actionType = actionElement.dataset.action;
+        const actionIndex = actionElement.dataset.actionIndex;
+        
+        if (actionType === 'add-brand' && this.options.isBrandDropdown) {
+            this.openAddBrandModal();
+        } else if (actionType === 'add-category' && this.options.isCategoryDropdown) {
+            this.openAddCategoryModal();
+        } else if (actionIndex !== undefined) {
+            const action = this.options.footerActions[parseInt(actionIndex)];
+            if (action && action.onClick) {
+                action.onClick(this);
+            }
+        }
+    }
+    
+    openAddBrandModal() {
+        if (!this.options.companyId) {
+            console.error('Company ID is required for adding brands');
+            return;
+        }
+        
+        // Create and open the add brand modal
+        this.addBrandModal = new AddBrandModal({
+            companyId: this.options.companyId,
+            onBrandAdded: (brandData) => {
+                // Close the select dropdown
+                this.close();
+                
+                // Add new brand to options
+                const newOption = {
+                    value: brandData.brand_id,
+                    label: brandData.brand_name,
+                    description: brandData.brand_code ? `Code: ${brandData.brand_code}` : null
+                };
+                
+                this.options.options.push(newOption);
+                this.filteredOptions = [...this.options.options];
+                
+                // Select the new brand
+                this.setValue(brandData.brand_id);
+                
+                // Call the external callback if provided
+                if (this.options.onBrandAdded) {
+                    this.options.onBrandAdded(brandData, this);
+                }
+                
+                this.updateDisplay();
+            }
+        });
+        
+        this.addBrandModal.open();
+    }
+    
+    openAddCategoryModal() {
+        if (!this.options.companyId) {
+            console.error('Company ID is required for adding categories');
+            return;
+        }
+        
+        // Create and open the add category modal
+        this.addCategoryModal = new AddCategoryModal({
+            companyId: this.options.companyId,
+            onCategoryAdded: (categoryData) => {
+                // Close the select dropdown
+                this.close();
+                
+                // Add new category to options
+                const newOption = {
+                    value: categoryData.category_id,
+                    label: categoryData.category_name,
+                    description: categoryData.description || ''
+                };
+                this.options.options.push(newOption);
+                
+                // Set the new category as selected
+                this.setValue(categoryData.category_id);
+                
+                // Call the callback if provided
+                if (this.options.onCategoryAdded) {
+                    this.options.onCategoryAdded(categoryData, this);
+                }
+                
+                this.updateDisplay();
+            }
+        });
+        
+        this.addCategoryModal.open();
+    }
+    
+    clearSelection() {
+        this.selectedValue = null;
+        this.selectedValues = [];
+        this.updateDisplay();
+        
+        // Trigger onChange with null value
+        if (this.options.onChange) {
+            this.options.onChange(null, null);
+        }
     }
     
     destroy() {

@@ -2521,6 +2521,59 @@
             opacity: 0.8;
             transform: rotate(5deg);
         }
+
+        /* ==================== WEEKLY HOURS SUMMARY COLLAPSIBLE STYLES ==================== */
+        
+        .weekly-summary-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            user-select: none;
+            padding: 8px 0;
+            transition: all 0.2s ease;
+        }
+
+        .weekly-summary-header:hover {
+            opacity: 0.8;
+        }
+
+        .weekly-summary-title-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .weekly-summary-arrow {
+            width: 20px;
+            height: 20px;
+            transition: transform 0.3s ease;
+            color: #6C757D;
+        }
+
+        .weekly-summary-arrow.expanded {
+            transform: rotate(180deg);
+        }
+
+        .weekly-summary-content {
+            overflow: hidden;
+            transition: max-height 0.3s ease, opacity 0.3s ease, padding 0.3s ease;
+            max-height: 0;
+            opacity: 0;
+            padding: 0;
+        }
+
+        .weekly-summary-content.expanded {
+            max-height: 2000px; /* Large enough for content */
+            opacity: 1;
+            padding-top: 20px;
+        }
+
+        .weekly-summary-collapsed-info {
+            font-size: 14px;
+            color: #6C757D;
+            font-weight: normal;
+        }
     </style>
 </head>
 <body>
@@ -4666,7 +4719,7 @@
                         // Get the current date for this day column
                         const currentDate = new Date(this.currentWeek);
                         currentDate.setDate(currentDate.getDate() + day);
-                        const dateString = currentDate.toISOString().split('T')[0]; // Format: YYYY-MM-DD
+                        const dateString = this.formatDateForAPI(currentDate); // Format: YYYY-MM-DD (local timezone)
                         
                         // Log date checking for debugging
                         if (slotIndex === 0) {
@@ -5143,7 +5196,9 @@
                 if (this.scheduleByDate && this.scheduleByDate.size > 0) {
                     this.scheduleByDate.forEach((shiftsForDate, dateKey) => {
                         // Filter to only include dates in current week
-                        const checkDate = new Date(dateKey + 'T12:00:00');
+                        // Parse date components to avoid timezone issues
+                        const [year, month, day] = dateKey.split('-');
+                        const checkDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day), 12, 0, 0);
                         if (checkDate < weekStart || checkDate > weekEnd) {
                             return; // Skip dates outside current week
                         }
@@ -5345,32 +5400,83 @@
                 const sortedEmployees = Array.from(employeeWeeklyHours.entries())
                     .sort((a, b) => b[1].totalHours - a[1].totalHours);
                 
-                // Simple employee hours display - just name and total
+                // Calculate totals for the collapsed view
+                const totalEmployees = sortedEmployees.length;
+                const totalHours = sortedEmployees.reduce((sum, [_, data]) => sum + data.totalHours, 0);
+                const totalShifts = sortedEmployees.reduce((sum, [_, data]) => sum + data.shifts.length, 0);
+                
+                // Create the collapsible employee hours display
                 const employeeSection = document.createElement('div');
                 employeeSection.innerHTML = `
                     <div style="background: white; border-radius: 12px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
-                        <h3 style="margin: 0 0 20px 0; font-size: 18px; font-weight: 600; color: #212529;">
-                            Weekly Hours Summary
-                        </h3>
-                        ${sortedEmployees.map(([name, data]) => `
-                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #f1f3f5;">
-                                <span style="font-size: 16px; color: #212529; font-weight: 500;">${name}</span>
-                                <div style="text-align: right;">
-                                    <span style="font-size: 18px; font-weight: 700; color: #0064FF;">
-                                        ${data.totalHours.toFixed(1)} hours
-                                    </span>
-                                    <span style="font-size: 14px; color: #6C757D; margin-left: 8px;">
-                                        (${data.shifts.length} shifts)
-                                    </span>
-                                </div>
+                        <div class="weekly-summary-header" onclick="scheduleManager.toggleWeeklySummary()">
+                            <div class="weekly-summary-title-wrapper">
+                                <svg class="weekly-summary-arrow" id="weekly-summary-arrow" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M7.41,8.58L12,13.17L16.59,8.58L18,10L12,16L6,10L7.41,8.58Z"/>
+                                </svg>
+                                <h3 style="margin: 0; font-size: 18px; font-weight: 600; color: #212529;">
+                                    Weekly Hours Summary
+                                </h3>
+                                <span class="weekly-summary-collapsed-info" id="weekly-summary-info">
+                                    (${totalEmployees} employees, ${totalHours.toFixed(1)} total hours)
+                                </span>
                             </div>
-                        `).join('')}
+                        </div>
+                        <div class="weekly-summary-content" id="weekly-summary-content">
+                            ${sortedEmployees.map(([name, data]) => `
+                                <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #f1f3f5;">
+                                    <span style="font-size: 16px; color: #212529; font-weight: 500;">${name}</span>
+                                    <div style="text-align: right;">
+                                        <span style="font-size: 18px; font-weight: 700; color: #0064FF;">
+                                            ${data.totalHours.toFixed(1)} hours
+                                        </span>
+                                        <span style="font-size: 14px; color: #6C757D; margin-left: 8px;">
+                                            (${data.shifts.length} shifts)
+                                        </span>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
                     </div>
                 `;
                 summaryContent.appendChild(employeeSection);
                 
-                // Show the summary
+                // Show the summary container
                 summaryContainer.style.display = 'block';
+                
+                // Initialize collapsed state (default is collapsed)
+                const isExpanded = localStorage.getItem('weeklySummaryExpanded') === 'true';
+                if (isExpanded) {
+                    this.toggleWeeklySummary();
+                }
+            }
+            
+            toggleWeeklySummary() {
+                const arrow = document.getElementById('weekly-summary-arrow');
+                const content = document.getElementById('weekly-summary-content');
+                const info = document.getElementById('weekly-summary-info');
+                
+                if (!arrow || !content) {
+                    console.error('Weekly summary elements not found');
+                    return;
+                }
+                
+                // Toggle expanded class
+                const isExpanded = content.classList.contains('expanded');
+                
+                if (isExpanded) {
+                    // Collapse
+                    content.classList.remove('expanded');
+                    arrow.classList.remove('expanded');
+                    if (info) info.style.display = 'inline';
+                    localStorage.setItem('weeklySummaryExpanded', 'false');
+                } else {
+                    // Expand
+                    content.classList.add('expanded');
+                    arrow.classList.add('expanded');
+                    if (info) info.style.display = 'none';
+                    localStorage.setItem('weeklySummaryExpanded', 'true');
+                }
             }
             
             isToday(date) {
