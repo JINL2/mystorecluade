@@ -681,6 +681,42 @@
             width: 15%;
         }
         
+        /* Actions Column */
+        .actions-cell {
+            min-width: 100px;
+            width: 100px;
+            text-align: center;
+        }
+        
+        .edit-product-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 6px 12px;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--toss-primary);
+            background: var(--toss-white);
+            border: 1px solid var(--toss-primary);
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+        
+        .edit-product-btn:hover {
+            background: var(--toss-primary);
+            color: var(--toss-white);
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0, 100, 255, 0.15);
+        }
+        
+        .edit-product-btn svg {
+            width: 14px;
+            height: 14px;
+        }
+        
         /* Status Badge */
         .status-badge {
             display: inline-flex;
@@ -1059,6 +1095,23 @@
             .barcode-cell {
                 justify-content: flex-start;
                 margin-bottom: var(--space-3);
+            }
+            
+            /* Actions cell in mobile view */
+            .actions-cell {
+                justify-content: center !important;
+                padding-top: var(--space-3) !important;
+                border-top: 1px solid var(--toss-border-light);
+                margin-top: var(--space-2);
+            }
+            
+            .actions-cell:before {
+                display: none !important;
+            }
+            
+            .edit-product-btn {
+                width: 100%;
+                max-width: 200px;
             }
         }
         
@@ -1857,7 +1910,6 @@
         
         /* Clickable Row Styles */
         .inventory-table tbody .product-row {
-            cursor: pointer;
             transition: background-color 0.2s ease;
         }
         
@@ -2394,14 +2446,6 @@
                                     <!-- TossSelect will be inserted here -->
                                 </div>
                             </div>
-                            
-                            <!-- Location Dropdown -->
-                            <div class="detail-item">
-                                <label class="detail-label">Location</label>
-                                <div class="detail-select-container" id="detailLocationContainer">
-                                    <!-- TossSelect will be inserted here -->
-                                </div>
-                            </div>
                         </div>
                     </div>
                     
@@ -2646,7 +2690,6 @@
                     brands: [],
                     product_types: [],
                     units: [],
-                    locations: [],
                     stock_status_levels: [],
                     currency: null,
                     validation_rules: null,
@@ -3120,7 +3163,6 @@
                         this.metadata.brands = data.data.brands || [];
                         this.metadata.product_types = data.data.product_types || [];
                         this.metadata.units = data.data.units || [];
-                        this.metadata.locations = data.data.locations || [];
                         this.metadata.stock_status_levels = data.data.stock_status_levels || [];
                         this.metadata.currency = data.data.currency || null;
                         this.metadata.validation_rules = data.data.validation_rules || null;
@@ -3162,10 +3204,6 @@
                 if (this.metadataSelects.unit) {
                     this.metadataSelects.unit.destroy();
                     this.metadataSelects.unit = null;
-                }
-                if (this.metadataSelects.location) {
-                    this.metadataSelects.location.destroy();
-                    this.metadataSelects.location = null;
                 }
                 
                 try {
@@ -3251,22 +3289,6 @@
                         this.metadataSelects.unit.init();
                     }
                     
-                    // Create Location Select
-                    this.metadataSelects.location = new TossSelect({
-                        containerId: 'detailLocationContainer',
-                        name: 'detailLocation',
-                        placeholder: 'Select location',
-                        options: this.metadata.locations.map(location => ({
-                            value: location.location_code,
-                            label: location.location_code,
-                            description: location.description
-                        })),
-                        onChange: (value, option) => {
-                            this.detectChanges();
-                        }
-                    });
-                    this.metadataSelects.location.init();
-                    
                 } catch (err) {
                     console.error('Error creating metadata selects:', err);
                 }
@@ -3305,14 +3327,6 @@
                             this.metadataSelects.unit.setValue(product.unit);
                         } else {
                             this.metadataSelects.unit.setValue('');
-                        }
-                    }
-                    
-                    if (this.metadataSelects.location) {
-                        if (product.stock?.location || product.location_code) {
-                            this.metadataSelects.location.setValue(product.stock?.location || product.location_code);
-                        } else {
-                            this.metadataSelects.location.setValue('');
                         }
                     }
                     
@@ -3443,6 +3457,14 @@
                                     ${statusText.toUpperCase()}
                                 </span>
                             </td>
+                            <td class="actions-cell" data-label="Actions">
+                                <button class="edit-product-btn" data-product-id="${product.product_id}">
+                                    <svg fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+                                    </svg>
+                                    Edit
+                                </button>
+                            </td>
                         </tr>
                     `;
                 }).join('');
@@ -3542,6 +3564,7 @@
                                     <th class="price-cell" id="priceHeader">Price</th>
                                     <th class="cost-cell" id="costHeader">Cost</th>
                                     <th class="status-cell">Status</th>
+                                    <th class="actions-cell">Actions</th>
                                 </tr>
                             </thead>
                             <tbody id="inventoryTableBody">
@@ -4683,17 +4706,13 @@
             
             // Product Detail Modal Functions
             setupProductRowClickHandlers() {
-                const productRows = document.querySelectorAll('.product-row');
+                // Set up click handlers for edit buttons only
+                const editButtons = document.querySelectorAll('.edit-product-btn');
                 
-                productRows.forEach(row => {
-                    row.addEventListener('click', (e) => {
-                        // Don't trigger if clicking on checkbox
-                        if (e.target.classList.contains('product-checkbox') || 
-                            e.target.closest('.checkbox-cell')) {
-                            return;
-                        }
-                        
-                        const productId = row.dataset.productId;
+                editButtons.forEach(button => {
+                    button.addEventListener('click', (e) => {
+                        e.stopPropagation(); // Prevent event bubbling
+                        const productId = button.dataset.productId;
                         this.showProductDetailModal(productId);
                     });
                 });
@@ -5423,7 +5442,6 @@
                 const currentBrand = this.metadataSelects.brand?.getValue() || '';
                 const currentProductType = this.metadataSelects.productType?.getValue() || '';
                 const currentUnit = this.metadataSelects.unit?.getValue() || '';
-                const currentLocation = this.metadataSelects.location?.getValue() || '';
                 
                 // Get original values for existing fields
                 const originalName = this.originalProductData.product_name || '';
@@ -5436,7 +5454,6 @@
                 const originalBrand = this.originalProductData.brand_id || '';
                 const originalProductType = this.originalProductData.product_type || '';
                 const originalUnit = this.originalProductData.unit || '';
-                const originalLocation = this.originalProductData.location_code || '';
                 
                 const hasChanges = (
                     currentName !== originalName ||
@@ -5446,8 +5463,7 @@
                     currentCategory !== originalCategory ||
                     currentBrand !== originalBrand ||
                     currentProductType !== originalProductType ||
-                    currentUnit !== originalUnit ||
-                    currentLocation !== originalLocation
+                    currentUnit !== originalUnit
                 );
                 
                 this.hasUnsavedChanges = hasChanges;

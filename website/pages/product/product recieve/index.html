@@ -601,6 +601,79 @@
             margin-top: var(--space-3);
         }
         
+        /* SKU Autocomplete Dropdown */
+        .sku-autocomplete-wrapper {
+            position: relative;
+        }
+        
+        .sku-autocomplete-dropdown {
+            position: absolute;
+            top: calc(100% + 4px);
+            left: 0;
+            right: 0;
+            max-height: 240px;
+            overflow-y: auto;
+            background: var(--toss-white);
+            border: 1px solid var(--toss-gray-200);
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-md);
+            z-index: 1000;
+            display: none;
+        }
+        
+        .sku-autocomplete-dropdown.active {
+            display: block;
+        }
+        
+        .sku-autocomplete-item {
+            padding: var(--space-3) var(--space-4);
+            cursor: pointer;
+            border-bottom: 1px solid var(--toss-gray-100);
+            transition: background var(--transition-fast);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .sku-autocomplete-item:last-child {
+            border-bottom: none;
+        }
+        
+        .sku-autocomplete-item:hover,
+        .sku-autocomplete-item.highlighted {
+            background: var(--toss-gray-50);
+        }
+        
+        .sku-autocomplete-item-info {
+            flex: 1;
+        }
+        
+        .sku-autocomplete-item-name {
+            font-size: var(--font-body);
+            font-weight: var(--font-medium);
+            color: var(--text-primary);
+            margin-bottom: var(--space-1);
+        }
+        
+        .sku-autocomplete-item-sku {
+            font-size: var(--font-small);
+            color: var(--text-secondary);
+            font-family: var(--font-family-mono);
+        }
+        
+        .sku-autocomplete-item-quantity {
+            text-align: right;
+            font-size: var(--font-small);
+            color: var(--text-tertiary);
+        }
+        
+        .sku-autocomplete-empty {
+            padding: var(--space-4);
+            text-align: center;
+            color: var(--text-tertiary);
+            font-size: var(--font-small);
+        }
+        
         .keyboard-shortcut {
             display: inline-block;
             background: var(--toss-gray-100);
@@ -852,9 +925,162 @@
                 max-height: 250px;
             }
         }
+        
+        /* Success Modal Popup */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .success-modal {
+            background: var(--toss-white);
+            border-radius: var(--radius-lg);
+            padding: var(--space-6);
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+        }
+        
+        .modal-overlay.active .success-modal {
+            transform: scale(1);
+        }
+        
+        .success-modal-icon {
+            width: 64px;
+            height: 64px;
+            margin: 0 auto var(--space-4);
+            background: var(--toss-success-light);
+            border-radius: var(--radius-full);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: successPulse 0.6s ease;
+        }
+        
+        @keyframes successPulse {
+            0% { transform: scale(0); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        
+        .success-modal-icon svg {
+            width: 32px;
+            height: 32px;
+            color: var(--toss-success);
+        }
+        
+        .success-modal-title {
+            font-size: var(--font-h3);
+            font-weight: var(--font-bold);
+            color: var(--text-primary);
+            text-align: center;
+            margin-bottom: var(--space-3);
+        }
+        
+        .success-modal-content {
+            text-align: center;
+            margin-bottom: var(--space-5);
+        }
+        
+        .success-modal-receipt {
+            font-size: var(--font-body);
+            color: var(--text-primary);
+            font-weight: var(--font-medium);
+            margin-bottom: var(--space-2);
+        }
+        
+        .success-modal-items {
+            font-size: var(--font-body-small);
+            color: var(--text-secondary);
+        }
+        
+        .success-modal-warnings {
+            background: var(--toss-warning-light);
+            border-left: 3px solid var(--toss-warning);
+            padding: var(--space-3);
+            margin: var(--space-4) 0;
+            border-radius: var(--radius-sm);
+            text-align: left;
+        }
+        
+        .success-modal-warnings-title {
+            font-size: var(--font-body-small);
+            font-weight: var(--font-semibold);
+            color: var(--toss-warning-dark);
+            margin-bottom: var(--space-2);
+        }
+        
+        .success-modal-warnings-list {
+            font-size: var(--font-body-small);
+            color: var(--text-secondary);
+            padding-left: var(--space-4);
+            margin: 0;
+        }
+        
+        .success-modal-button {
+            width: 100%;
+            padding: var(--space-3) var(--space-5);
+            background: var(--toss-primary);
+            color: var(--toss-white);
+            border: none;
+            border-radius: var(--radius-md);
+            font-size: var(--font-body);
+            font-weight: var(--font-semibold);
+            cursor: pointer;
+            transition: all var(--transition-fast);
+        }
+        
+        .success-modal-button:hover {
+            background: var(--toss-primary-dark);
+            transform: translateY(-1px);
+        }
+        
+        .success-modal-button:active {
+            transform: translateY(0);
+        }
     </style>
 </head>
 <body>
+    <!-- Success Modal Popup -->
+    <div class="modal-overlay" id="successModal">
+        <div class="success-modal">
+            <div class="success-modal-icon">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/>
+                </svg>
+            </div>
+            <h2 class="success-modal-title">Receipt created successfully!</h2>
+            <div class="success-modal-content" id="modalContent">
+                <div class="success-modal-receipt" id="modalReceipt">Receipt Number: -</div>
+                <div class="success-modal-items" id="modalItems">Total Items: -</div>
+                <div class="success-modal-warnings" id="modalWarnings" style="display: none;">
+                    <div class="success-modal-warnings-title">Warnings:</div>
+                    <ul class="success-modal-warnings-list" id="modalWarningsList"></ul>
+                </div>
+            </div>
+            <button class="success-modal-button" onclick="closeSuccessModal()">확인</button>
+        </div>
+    </div>
+    
     <div class="page-container">
         <!-- Navigation Bar -->
         <div id="navbar-container"></div>
@@ -978,13 +1204,18 @@
                                 </svg>
                                 Scan Product
                             </h3>
-                            <input type="text" 
-                                   id="skuInputField" 
-                                   class="sku-input-field" 
-                                   placeholder="Scan or type SKU code" 
-                                   autocomplete="off"
-                                   aria-label="Enter SKU or scan barcode"
-                                   aria-describedby="skuInstructions">
+                            <div class="sku-autocomplete-wrapper">
+                                <input type="text" 
+                                       id="skuInputField" 
+                                       class="sku-input-field" 
+                                       placeholder="Scan or type SKU code" 
+                                       autocomplete="off"
+                                       aria-label="Enter SKU or scan barcode"
+                                       aria-describedby="skuInstructions">
+                                <div class="sku-autocomplete-dropdown" id="skuAutocompleteDropdown">
+                                    <!-- Autocomplete items will be inserted here -->
+                                </div>
+                            </div>
                             <div class="sku-input-instructions" id="skuInstructions">
                                 Press <span class="keyboard-shortcut">Enter</span> to add
                             </div>
@@ -1062,25 +1293,19 @@
         </main>
     </div>
     
+    <!-- Core Scripts (Load First) -->
+    <script src="../../../core/constants/app-icons.js"></script>
+    <script src="../../../core/config/supabase.js"></script>
+    <script src="../../../core/utils/app-state.js"></script>
+    <script src="../../../core/config/route-mapping.js"></script>
+    <script src="../../../core/utils/page-init.js"></script>
+    
     <!-- Component JavaScript -->
+    <script src="../../../components/navigation/navbar.js"></script>
     <script src="../../../components/base/toss-button.js"></script>
     <script src="../../../components/form/toss-input.js"></script>
     <script src="../../../components/form/toss-select.js"></script>
-    <script src="../../../components/navigation/navbar.js"></script>
     <script src="../../../components/feedback/toss-alert.js"></script>
-    
-    <!-- Core Scripts -->
-    <script src="../../../core/constants/app-icons.js"></script>
-    <script src="../../../core/config/supabase.js"></script>
-    
-    <!-- App State Management -->
-    <script src="../../../core/utils/app-state.js"></script>
-    
-    <!-- Route Mapping -->
-    <script src="../../../core/config/route-mapping.js"></script>
-    
-    <!-- Page Initialization Utility -->
-    <script src="../../../core/utils/page-init.js"></script>
     
     <script>
         // Set flag immediately to prevent navbar auto-init
@@ -1106,6 +1331,11 @@
                 this.productSearchTerm = '';
                 this.filteredProducts = [];
                 
+                // Initialize autocomplete
+                this.autocompleteResults = [];
+                this.autocompleteHighlightedIndex = -1;
+                this.autocompleteOpen = false;
+                
                 // Initialize sounds (optional audio feedback)
                 this.sounds = null; // Can be set later if audio feedback is needed
             }
@@ -1130,16 +1360,52 @@
                     this.handleDropdownKeyboard(e);
                 });
                 
-                // Set up SKU input Enter key functionality
+                // Set up SKU input autocomplete and keyboard functionality
                 const skuInputField = document.getElementById('skuInputField');
+                
+                // Handle input changes for autocomplete
+                skuInputField.addEventListener('input', (e) => {
+                    this.handleAutocompleteInput(e.target.value);
+                });
+                
+                // Show autocomplete on focus if there's text
+                skuInputField.addEventListener('focus', (e) => {
+                    if (e.target.value.trim()) {
+                        this.handleAutocompleteInput(e.target.value);
+                    }
+                });
+                
+                // Handle keyboard navigation
                 skuInputField.addEventListener('keydown', (e) => {
                     if (e.key === 'Enter') {
                         e.preventDefault();
-                        this.processSKUInput();
-                    }
-                    if (e.key === 'Escape') {
+                        
+                        // If autocomplete is open and has results, select the first or highlighted item
+                        if (this.autocompleteOpen && this.autocompleteResults.length > 0) {
+                            const indexToSelect = this.autocompleteHighlightedIndex >= 0 ? 
+                                this.autocompleteHighlightedIndex : 0;
+                            this.selectAutocompleteItem(this.autocompleteResults[indexToSelect]);
+                        } else {
+                            // Otherwise, process as normal SKU input
+                            this.processSKUInput();
+                        }
+                    } else if (e.key === 'ArrowDown') {
                         e.preventDefault();
+                        this.navigateAutocomplete('down');
+                    } else if (e.key === 'ArrowUp') {
+                        e.preventDefault();
+                        this.navigateAutocomplete('up');
+                    } else if (e.key === 'Escape') {
+                        e.preventDefault();
+                        this.closeAutocomplete();
                         skuInputField.value = '';
+                    }
+                });
+                
+                // Close autocomplete when clicking outside
+                document.addEventListener('click', (e) => {
+                    if (!e.target.closest('.sku-autocomplete-wrapper')) {
+                        this.closeAutocomplete();
                     }
                 });
                 
@@ -1710,6 +1976,127 @@
                 
                 // Reset product search when new order is loaded
                 this.resetProductSearch();
+                
+                // Close autocomplete if open
+                this.closeAutocomplete();
+            }
+            
+            handleAutocompleteInput(value) {
+                const searchTerm = value.trim().toLowerCase();
+                
+                if (!searchTerm || searchTerm.length < 1) {
+                    this.closeAutocomplete();
+                    return;
+                }
+                
+                // Filter products based on SKU or product name
+                this.autocompleteResults = this.orderProducts.filter(product => {
+                    const matchesSKU = product.sku && product.sku.toLowerCase().includes(searchTerm);
+                    const matchesName = product.product_name && product.product_name.toLowerCase().includes(searchTerm);
+                    return matchesSKU || matchesName;
+                });
+                
+                // Sort results to prioritize SKU matches at the beginning
+                this.autocompleteResults.sort((a, b) => {
+                    const aSkuMatch = a.sku && a.sku.toLowerCase().startsWith(searchTerm);
+                    const bSkuMatch = b.sku && b.sku.toLowerCase().startsWith(searchTerm);
+                    
+                    if (aSkuMatch && !bSkuMatch) return -1;
+                    if (!aSkuMatch && bSkuMatch) return 1;
+                    
+                    // Then sort by SKU alphabetically
+                    return (a.sku || '').localeCompare(b.sku || '');
+                });
+                
+                // Limit to top 10 results
+                this.autocompleteResults = this.autocompleteResults.slice(0, 10);
+                
+                // Show the dropdown with results
+                this.populateAutocompleteDropdown();
+            }
+            
+            populateAutocompleteDropdown() {
+                const dropdown = document.getElementById('skuAutocompleteDropdown');
+                if (!dropdown) return;
+                
+                if (this.autocompleteResults.length === 0) {
+                    dropdown.innerHTML = '<div class="sku-autocomplete-empty">No products found</div>';
+                } else {
+                    let html = '';
+                    this.autocompleteResults.forEach((product, index) => {
+                        const scannedCount = this.scannedItems.get(product.sku)?.count || 0;
+                        const totalReceived = product.quantity_received + scannedCount;
+                        const remaining = product.quantity_ordered - totalReceived;
+                        
+                        html += `
+                            <div class="sku-autocomplete-item ${index === this.autocompleteHighlightedIndex ? 'highlighted' : ''}" 
+                                 data-index="${index}"
+                                 onclick="productReceiveManager.selectAutocompleteItem(productReceiveManager.autocompleteResults[${index}])">
+                                <div class="sku-autocomplete-item-info">
+                                    <div class="sku-autocomplete-item-name">${product.product_name}</div>
+                                    <div class="sku-autocomplete-item-sku">${product.sku}</div>
+                                </div>
+                                <div class="sku-autocomplete-item-quantity">
+                                    ${remaining > 0 ? `${remaining} remaining` : 'Complete'}
+                                </div>
+                            </div>
+                        `;
+                    });
+                    dropdown.innerHTML = html;
+                }
+                
+                // Show the dropdown
+                dropdown.classList.add('active');
+                this.autocompleteOpen = true;
+                this.autocompleteHighlightedIndex = -1; // Reset highlight
+            }
+            
+            navigateAutocomplete(direction) {
+                if (!this.autocompleteOpen || this.autocompleteResults.length === 0) return;
+                
+                const maxIndex = this.autocompleteResults.length - 1;
+                
+                if (direction === 'down') {
+                    this.autocompleteHighlightedIndex = Math.min(this.autocompleteHighlightedIndex + 1, maxIndex);
+                } else if (direction === 'up') {
+                    this.autocompleteHighlightedIndex = Math.max(this.autocompleteHighlightedIndex - 1, -1);
+                }
+                
+                // Update highlighted item in dropdown
+                const items = document.querySelectorAll('.sku-autocomplete-item');
+                items.forEach((item, index) => {
+                    if (index === this.autocompleteHighlightedIndex) {
+                        item.classList.add('highlighted');
+                    } else {
+                        item.classList.remove('highlighted');
+                    }
+                });
+            }
+            
+            selectAutocompleteItem(product) {
+                if (!product) return;
+                
+                // Set the SKU in the input field
+                const input = document.getElementById('skuInputField');
+                if (input) {
+                    input.value = product.sku;
+                    
+                    // Close autocomplete
+                    this.closeAutocomplete();
+                    
+                    // Process the SKU
+                    this.processSKUInput();
+                }
+            }
+            
+            closeAutocomplete() {
+                const dropdown = document.getElementById('skuAutocompleteDropdown');
+                if (dropdown) {
+                    dropdown.classList.remove('active');
+                }
+                this.autocompleteOpen = false;
+                this.autocompleteHighlightedIndex = -1;
+                this.autocompleteResults = [];
             }
             
             filterProducts(searchTerm) {
@@ -1756,8 +2143,9 @@
             }
         }
         
-        // Initialize product receive manager
-        const productReceiveManager = new ProductReceiveManager();
+        // Initialize product receive manager globally
+        window.productReceiveManager = new ProductReceiveManager();
+        const productReceiveManager = window.productReceiveManager; // For local reference
         
         // Initialize page using standardized pattern
         window.initializePage('product', (companyId, company) => {
@@ -1766,31 +2154,63 @@
             const stores = appState.getCompanyStores();
             if (stores && stores.length > 0) {
                 productReceiveManager.currentStoreFilter = stores[0].store_id;
-                document.getElementById('storeFilterLabel').textContent = stores[0].store_name;
-                productReceiveManager.loadOrdersForStore(stores[0].store_id);
+                const storeLabel = document.getElementById('storeFilterLabel');
+                if (storeLabel) {
+                    storeLabel.textContent = stores[0].store_name;
+                }
+                // Only call if method exists
+                if (productReceiveManager.loadOrdersForStore) {
+                    productReceiveManager.loadOrdersForStore(stores[0].store_id);
+                }
             } else {
                 productReceiveManager.currentStoreFilter = null;
-                document.getElementById('storeFilterLabel').textContent = 'No Stores';
-                productReceiveManager.loadOrdersForStore(null);
+                const storeLabel = document.getElementById('storeFilterLabel');
+                if (storeLabel) {
+                    storeLabel.textContent = 'No Stores';
+                }
+                // Only call if method exists
+                if (productReceiveManager.loadOrdersForStore) {
+                    productReceiveManager.loadOrdersForStore(null);
+                }
             }
         });
         
         // Additional page initialization after navbar is ready
         document.addEventListener('DOMContentLoaded', () => {
-            productReceiveManager.init();
+            // Initialize the manager
+            if (productReceiveManager && productReceiveManager.init) {
+                productReceiveManager.init();
+            }
             
             // Wait for page initialization to complete, then initialize page-specific content
             setTimeout(() => {
+                // Check if appState is available
+                if (typeof appState === 'undefined') {
+                    console.error('appState not available');
+                    return;
+                }
+                
                 const companyId = appState.getSelectedCompanyId();
                 if (companyId) {
                     const stores = appState.getCompanyStores();
                     if (stores && stores.length > 0) {
                         productReceiveManager.currentStoreFilter = stores[0].store_id;
-                        document.getElementById('storeFilterLabel').textContent = stores[0].store_name;
-                        productReceiveManager.loadOrdersForStore(stores[0].store_id);
+                        const storeLabel = document.getElementById('storeFilterLabel');
+                        if (storeLabel) {
+                            storeLabel.textContent = stores[0].store_name;
+                        }
+                        // Only call if method exists
+                        if (productReceiveManager.loadOrdersForStore) {
+                            productReceiveManager.loadOrdersForStore(stores[0].store_id);
+                        }
                     } else {
-                        productReceiveManager.loadOrdersForStore(null);
+                        // Only call if method exists
+                        if (productReceiveManager.loadOrdersForStore) {
+                            productReceiveManager.loadOrdersForStore(null);
+                        }
                     }
+                } else {
+                    console.log('No company selected yet');
                 }
             }, 100);
         });
@@ -1932,6 +2352,9 @@
             const input = document.getElementById('skuInputField');
             const sku = input.value.trim().toUpperCase();
             if (!sku) return;
+            
+            // Close autocomplete dropdown if open
+            this.closeAutocomplete();
             
             // Safety checks
             if (!this.orderProducts || !Array.isArray(this.orderProducts)) {
@@ -2168,9 +2591,29 @@
                 
                 // Get user ID from session
                 const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-                if (sessionError || !session?.user?.id) {
-                    throw new Error('User not authenticated. Please login again.');
+                
+                console.log('Session check:', {
+                    hasSession: !!session,
+                    hasUser: !!session?.user,
+                    hasUserId: !!session?.user?.id,
+                    userId: session?.user?.id,
+                    sessionError: sessionError
+                });
+                
+                if (sessionError) {
+                    console.error('Session error:', sessionError);
+                    throw new Error(`Session error: ${sessionError.message}`);
                 }
+                
+                if (!session) {
+                    throw new Error('No session found. Please login again.');
+                }
+                
+                if (!session.user || !session.user.id) {
+                    console.error('Session user data:', session.user);
+                    throw new Error('User ID not found in session. Please login again.');
+                }
+                
                 const userId = session.user.id;
                 
                 // Validate all required IDs
@@ -2181,12 +2624,13 @@
                     throw new Error('No store selected. Please select a store.');
                 }
                 
-                console.log('Submitting receipt with:', {
-                    companyId,
-                    storeId, 
-                    orderId,
-                    userId,
-                    itemsCount: this.scannedItems.size
+                console.log('Submitting receipt with parameters:', {
+                    p_company_id: companyId,
+                    p_store_id: storeId, 
+                    p_order_id: orderId,
+                    p_user_id: userId,
+                    p_items_count: this.scannedItems.size,
+                    p_notes: null
                 });
                 
                 // Build items array from scanned items
@@ -2214,21 +2658,42 @@
                 submitBtn.disabled = true;
                 submitBtn.textContent = 'Submitting...';
                 
-                // Call the RPC
-                const { data: response, error } = await supabase.rpc('inventory_order_receive', {
+                // Log the exact RPC parameters being sent
+                // ONLY use the documented parameters - NO p_session_id!
+                const rpcParams = {
                     p_company_id: companyId,
                     p_store_id: storeId,
                     p_order_id: orderId,
                     p_user_id: userId,
                     p_items: items,
                     p_notes: null // Could add notes functionality later
+                };
+                
+                console.log('Calling RPC inventory_order_receive with parameters:', rpcParams);
+                console.log('Parameter details:', {
+                    company_id: companyId,
+                    store_id: storeId,
+                    order_id: orderId,
+                    user_id: userId,
+                    items_count: items.length,
+                    items: items
                 });
+                
+                // Call the RPC with ONLY the documented parameters
+                const { data: response, error } = await supabase.rpc('inventory_order_receive', rpcParams);
                 
                 // Restore button state
                 submitBtn.disabled = false;
                 submitBtn.textContent = originalText;
                 
                 if (error) {
+                    console.error('RPC Error Details:', {
+                        message: error.message,
+                        details: error.details,
+                        hint: error.hint,
+                        code: error.code,
+                        fullError: error
+                    });
                     throw new Error(`RPC Error: ${error.message}`);
                 }
                 
@@ -2237,19 +2702,8 @@
                     // Success case
                     console.log('Receipt submitted successfully:', response);
                     
-                    let successMessage = `Receipt created successfully!\n`;
-                    successMessage += `Receipt Number: ${response.receipt_number}\n`;
-                    successMessage += `Total Items: ${response.total_items_received}`;
-                    
-                    // Show warnings if any
-                    if (response.warnings && response.warnings.length > 0) {
-                        successMessage += '\n\nWarnings:';
-                        response.warnings.forEach(warning => {
-                            successMessage += `\n- ${warning.message}`;
-                        });
-                    }
-                    
-                    alert(successMessage);
+                    // Show custom success modal instead of alert
+                    this.showSuccessModal(response);
                     
                     // Clear scanned items and refresh interface
                     this.scannedItems.clear();
@@ -2283,6 +2737,53 @@
                 alert(`Failed to submit receipt: ${error.message}`);
             }
         };
+        
+        ProductReceiveManager.prototype.showSuccessModal = function(response) {
+            const modal = document.getElementById('successModal');
+            const receiptElement = document.getElementById('modalReceipt');
+            const itemsElement = document.getElementById('modalItems');
+            const warningsDiv = document.getElementById('modalWarnings');
+            const warningsList = document.getElementById('modalWarningsList');
+            
+            // Update modal content
+            receiptElement.textContent = `Receipt Number: ${response.receipt_number}`;
+            itemsElement.textContent = `Total Items: ${response.total_items_received}`;
+            
+            // Handle warnings
+            if (response.warnings && response.warnings.length > 0) {
+                warningsDiv.style.display = 'block';
+                warningsList.innerHTML = '';
+                response.warnings.forEach(warning => {
+                    const li = document.createElement('li');
+                    li.textContent = warning.message;
+                    warningsList.appendChild(li);
+                });
+            } else {
+                warningsDiv.style.display = 'none';
+            }
+            
+            // Show modal with animation
+            modal.classList.add('active');
+            
+            // Play success sound if available
+            if (this.sounds && this.sounds.success) {
+                this.sounds.success.cloneNode().play();
+            }
+        };
+    
+    // Global functions for modal
+    function closeSuccessModal() {
+        const modal = document.getElementById('successModal');
+        modal.classList.remove('active');
+        
+        // Refocus on SKU input after closing modal
+        setTimeout(() => {
+            const skuInput = document.getElementById('skuInputField');
+            if (skuInput) {
+                skuInput.focus();
+            }
+        }, 300);
+    }
     </script>
 </body>
 </html>

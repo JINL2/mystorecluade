@@ -101,7 +101,7 @@
             flex-shrink: 0;
             width: 20px;
             height: 20px;
-            stroke: var(--toss-blue-500);
+            stroke: var(--toss-primary);
         }
         
         .tab-item:hover {
@@ -110,7 +110,7 @@
         }
         
         .tab-item.active {
-            color: var(--toss-blue-500);
+            color: var(--toss-primary);
             background: var(--toss-blue-50);
         }
         
@@ -121,7 +121,7 @@
             left: 0;
             right: 0;
             height: 2px;
-            background: var(--toss-blue-500);
+            background: var(--toss-primary);
         }
         
         .tab-badge {
@@ -136,7 +136,7 @@
         }
         
         .tab-item.active .tab-badge {
-            background: var(--toss-blue-500);
+            background: var(--toss-primary);
             color: white;
         }
         
@@ -238,7 +238,7 @@
         
         .form-input:focus {
             outline: none;
-            border-color: var(--toss-blue-500);
+            border-color: var(--toss-primary);
             box-shadow: 0 0 0 3px rgba(0, 100, 255, 0.1);
         }
         
@@ -482,8 +482,8 @@
             margin-top: var(--space-4);
             padding: var(--space-3) var(--space-4);
             background: transparent;
-            color: var(--toss-blue-500);
-            border: 1px dashed var(--toss-blue-500);
+            color: var(--toss-primary);
+            border: 1px dashed var(--toss-primary);
             border-radius: var(--radius-medium);
             cursor: pointer;
             font-weight: 500;
@@ -550,7 +550,7 @@
         .summary-total-value {
             font-size: var(--font-h3);
             font-weight: 700;
-            color: var(--toss-blue-500);
+            color: var(--toss-primary);
         }
         
         /* Action Buttons */
@@ -583,7 +583,7 @@
         }
         
         .btn-primary {
-            background: var(--toss-blue-500);
+            background: var(--toss-primary);
             color: white;
         }
         
@@ -624,7 +624,7 @@
         
         .order-number {
             font-weight: 600;
-            color: var(--toss-blue-500);
+            color: var(--toss-primary);
             cursor: pointer;
         }
         
@@ -681,14 +681,29 @@
         
         .progress-fill {
             height: 100%;
-            background: var(--toss-blue-500);
+            background: var(--toss-primary);
+            transition: width 0.3s ease;
+        }
+        
+        .progress-bar-large {
+            width: 100%;
+            height: 8px;
+            background: var(--toss-gray-200);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: var(--space-3);
+        }
+        
+        .progress-fill-large {
+            height: 100%;
+            background: var(--toss-primary);
             transition: width 0.3s ease;
         }
         
         .action-btn {
             padding: var(--space-2) var(--space-3);
             background: var(--toss-blue-50);
-            color: var(--toss-blue-500);
+            color: var(--toss-primary);
             border: none;
             border-radius: var(--radius-small);
             font-size: var(--font-small);
@@ -805,7 +820,7 @@
             width: 40px;
             height: 40px;
             border: 3px solid var(--toss-gray-200);
-            border-top-color: var(--toss-blue-500);
+            border-top-color: var(--toss-primary);
             border-radius: 50%;
             animation: spin 1s linear infinite;
         }
@@ -868,8 +883,8 @@
         }
         
         .supplier-tab.active {
-            color: var(--toss-blue-500);
-            border-bottom-color: var(--toss-blue-500);
+            color: var(--toss-primary);
+            border-bottom-color: var(--toss-primary);
         }
         
         .supplier-tab-content {
@@ -904,7 +919,7 @@
         }
         
         .dropdown-header.active {
-            border-color: var(--toss-blue-500);
+            border-color: var(--toss-primary);
             background: white;
             box-shadow: 0 0 0 3px rgba(0, 102, 255, 0.1);
         }
@@ -966,7 +981,7 @@
         
         .dropdown-option.selected {
             background: var(--toss-blue-50);
-            color: var(--toss-blue-500);
+            color: var(--toss-primary);
         }
         
         .dropdown-option.placeholder {
@@ -994,7 +1009,7 @@
         }
         
         .dropdown-option.selected .supplier-name {
-            color: var(--toss-blue-500);
+            color: var(--toss-primary);
         }
         
         /* Dropdown scrollbar styling */
