@@ -37,6 +37,7 @@ class HomePageRedesigned extends ConsumerStatefulWidget {
 class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with WidgetsBindingObserver {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   bool _isNavigating = false; // Add flag to prevent multiple navigations
+  bool _isSalaryExpanded = false; // Track salary breakdown expansion state
 
   @override
   void initState() {
@@ -391,37 +392,143 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
                         fontSize: 36,
                       ),
                     ),
-                        const SizedBox(height: TossSpacing.space3),
-                        
-                        // Quick stats row
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    
+                    // Expandable arrow button - only show if there are stores with non-zero salary
+                    if (shiftData.salaryStores.isNotEmpty) ...[
+                      const SizedBox(height: TossSpacing.space2),
+                      GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            _isSalaryExpanded = !_isSalaryExpanded;
+                          });
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            vertical: TossSpacing.space1,
+                            horizontal: TossSpacing.space2,
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                _isSalaryExpanded ? 'See less' : 'See more',
+                                style: TossTextStyles.caption.copyWith(
+                                  color: TossColors.white.withOpacity(0.9),
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              const SizedBox(width: TossSpacing.space1),
+                              Icon(
+                                _isSalaryExpanded 
+                                  ? Icons.keyboard_arrow_up 
+                                  : Icons.keyboard_arrow_down,
+                                color: TossColors.white.withOpacity(0.9),
+                                size: 28,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                    
+                    // Store salary breakdown (expandable section)
+                    AnimatedContainer(
+                      duration: TossAnimations.normal,
+                      curve: Curves.easeInOut,
+                      height: _isSalaryExpanded ? null : 0,
+                      child: AnimatedOpacity(
+                        duration: TossAnimations.normal,
+                        opacity: _isSalaryExpanded ? 1.0 : 0.0,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            _buildShiftStat(
-                              'Work Shifts',
-                              '${shiftData.actualWorkDays}',
-                              Icons.calendar_today,
-                            ),
-                            _buildShiftStat(
-                              'Work Hours',
-                              '${shiftData.actualWorkHours.toStringAsFixed(1)}',
-                              Icons.access_time,
-                            ),
-                            _buildShiftStat(
-                              'Overtime',
-                              '${shiftData.overtimeTotal.toInt()}',
-                              Icons.trending_up,
-                            ),
+                            if (_isSalaryExpanded) ...[
+                              const SizedBox(height: TossSpacing.space3),
+                              Container(
+                                padding: const EdgeInsets.all(TossSpacing.space3),
+                                decoration: BoxDecoration(
+                                  color: TossColors.white.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Store Breakdown',
+                                      style: TossTextStyles.caption.copyWith(
+                                        color: TossColors.white.withOpacity(0.8),
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                    const SizedBox(height: TossSpacing.space2),
+                                    ...shiftData.salaryStores.map((store) => 
+                                      Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                          vertical: TossSpacing.space1,
+                                        ),
+                                        child: Row(
+                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Expanded(
+                                              child: Text(
+                                                store.storeName,
+                                                style: TossTextStyles.body.copyWith(
+                                                  color: TossColors.white,
+                                                ),
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ),
+                                            Text(
+                                              '${shiftData.currencySymbol}${_formatCurrency(store.estimatedSalary.toInt())}',
+                                              style: TossTextStyles.body.copyWith(
+                                                color: TossColors.white,
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ).toList(),
+                                  ],
+                                ),
+                              ),
+                            ],
                           ],
                         ),
+                      ),
+                    ),
+                    
+                    const SizedBox(height: TossSpacing.space3),
+                    
+                    // Quick stats row
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        _buildShiftStat(
+                          'Work Shifts',
+                          '${shiftData.actualWorkDays}',
+                          Icons.calendar_today,
+                        ),
+                        _buildShiftStat(
+                          'Work Hours',
+                          '${shiftData.actualWorkHours.toStringAsFixed(1)}',
+                          Icons.access_time,
+                        ),
+                        _buildShiftStat(
+                          'Overtime',
+                          '${shiftData.overtimeTotal.toInt()}',
+                          Icons.trending_up,
+                        ),
                       ],
-                    );
-                  },
-                  loading: () => _buildLoadingSalary(),
-                  error: (error, _) => _buildErrorSalary(),
-                ),
-              ],
+                    ),
+                  ],
+                );
+              },
+              loading: () => _buildLoadingSalary(),
+              error: (error, _) => _buildErrorSalary(),
             ),
+          ],
+        ),
       ),
     );
   }

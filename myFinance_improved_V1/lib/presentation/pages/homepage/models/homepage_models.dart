@@ -231,6 +231,38 @@ class StoreSelected extends CompanySelectionEvent {
 }
 
 /// User shift overview data for salary estimation
+class SalaryStore {
+  const SalaryStore({
+    required this.storeId,
+    required this.storeName,
+    required this.estimatedSalary,
+  });
+
+  final String storeId;
+  final String storeName;
+  final double estimatedSalary;
+
+  factory SalaryStore.fromJson(Map<String, dynamic> json) {
+    // Parse estimated_salary which comes as a string with commas
+    double parsedEstimatedSalary = 0.0;
+    final estimatedSalaryValue = json['estimated_salary'];
+    if (estimatedSalaryValue != null) {
+      if (estimatedSalaryValue is String) {
+        // Remove commas and parse as double
+        parsedEstimatedSalary = double.tryParse(estimatedSalaryValue.replaceAll(',', '')) ?? 0.0;
+      } else if (estimatedSalaryValue is num) {
+        parsedEstimatedSalary = estimatedSalaryValue.toDouble();
+      }
+    }
+    
+    return SalaryStore(
+      storeId: json['store_id'] as String? ?? '',
+      storeName: json['store_name'] as String? ?? '',
+      estimatedSalary: parsedEstimatedSalary,
+    );
+  }
+}
+
 class UserShiftOverview {
   const UserShiftOverview({
     required this.requestMonth,
@@ -242,6 +274,7 @@ class UserShiftOverview {
     required this.salaryType,
     required this.lateDeductionTotal,
     required this.overtimeTotal,
+    required this.salaryStores,
   });
 
   final String requestMonth;
@@ -253,6 +286,7 @@ class UserShiftOverview {
   final String salaryType;
   final double lateDeductionTotal;
   final double overtimeTotal;
+  final List<SalaryStore> salaryStores;
 
   factory UserShiftOverview.fromJson(Map<String, dynamic> json) {
     // Parse estimated_salary which comes as a string with commas
@@ -267,6 +301,16 @@ class UserShiftOverview {
       }
     }
     
+    // Parse salary_stores array
+    List<SalaryStore> salaryStores = [];
+    final salaryStoresData = json['salary_stores'];
+    if (salaryStoresData != null && salaryStoresData is List) {
+      salaryStores = salaryStoresData
+          .map((storeJson) => SalaryStore.fromJson(storeJson as Map<String, dynamic>))
+          .where((store) => store.estimatedSalary > 0) // Filter out stores with 0 salary
+          .toList();
+    }
+    
     return UserShiftOverview(
       requestMonth: json['request_month'] as String? ?? '',
       actualWorkDays: json['actual_work_days'] as int? ?? 0,
@@ -277,6 +321,7 @@ class UserShiftOverview {
       salaryType: json['salary_type'] as String? ?? '',
       lateDeductionTotal: (json['late_deduction_total'] as num?)?.toDouble() ?? 0.0,
       overtimeTotal: (json['overtime_total'] as num?)?.toDouble() ?? 0.0,
+      salaryStores: salaryStores,
     );
   }
 
@@ -291,6 +336,11 @@ class UserShiftOverview {
       'salary_type': salaryType,
       'late_deduction_total': lateDeductionTotal,
       'overtime_total': overtimeTotal,
+      'salary_stores': salaryStores.map((store) => {
+        'store_id': store.storeId,
+        'store_name': store.storeName,
+        'estimated_salary': store.estimatedSalary.toString(),
+      }).toList(),
     };
   }
 }
