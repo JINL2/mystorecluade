@@ -10,6 +10,10 @@ import '../../widgets/toss/toss_search_field.dart';
 import '../../helpers/navigation_helper.dart';
 import 'models/product_model.dart';
 import 'package:myfinance_improved/core/themes/toss_border_radius.dart';
+import 'providers/inventory_providers.dart';
+import '../../../data/models/inventory_models.dart';
+import '../../providers/app_state_provider.dart';
+import 'dart:async';
 
 /// V2 of Inventory Management Page with safe widget migration
 /// 
@@ -26,85 +30,118 @@ class _InventoryManagementPageV2State extends ConsumerState<InventoryManagementP
   static const String _pageName = 'inventory_management';
   
   final TextEditingController _searchController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
+  Timer? _searchDebounce;
   
   // Filters
-  StockStatus? _selectedStockStatus;
-  ProductCategory? _selectedCategory;
+  String? _selectedStockStatus;
+  String? _selectedCategory;
+  String? _selectedBrand;
   
   // Sorting
-  SortOption _currentSort = SortOption.nameAsc;
-  bool _sortAscending = true;
-  
-  // Sample data (replace with actual data source)
-  List<Product> _products = _generateDiverseSampleProducts();
-  List<Product> _filteredProducts = [];
+  String _sortBy = 'name';
+  String _sortDirection = 'asc';
 
   @override
   void initState() {
     super.initState();
-    _filteredProducts = _products;
-    _applyFiltersAndSort();
     
     // Log migration status in debug mode
     WidgetMigrationHelper.logStatus(_pageName);
+    
+    // Setup scroll listener for pagination
+    _scrollController.addListener(_onScroll);
+    
+    // Add search listener with debounce
+    _searchController.addListener(_onSearchChanged);
+  }
+  
+  void _onScroll() {
+    if (_isBottom) {
+      ref.read(inventoryPageProvider.notifier).loadNextPage();
+    }
+  }
+  
+  bool get _isBottom {
+    if (!_scrollController.hasClients) return false;
+    final maxScroll = _scrollController.position.maxScrollExtent;
+    final currentScroll = _scrollController.offset;
+    return currentScroll >= (maxScroll * 0.9);
+  }
+  
+  void _onSearchChanged() {
+    if (_searchDebounce?.isActive ?? false) _searchDebounce!.cancel();
+    _searchDebounce = Timer(const Duration(milliseconds: 500), () {
+      ref.read(inventoryPageProvider.notifier).setSearchQuery(_searchController.text);
+    });
   }
 
   @override
   void dispose() {
     _searchController.dispose();
+    _scrollController.dispose();
+    _searchDebounce?.cancel();
     super.dispose();
   }
 
-  void _applyFiltersAndSort() {
+  void _applyFilter(String filterType, String? value) {
+    final notifier = ref.read(inventoryPageProvider.notifier);
+    
+    switch (filterType) {
+      case 'category':
+        _selectedCategory = value;
+        notifier.setCategory(value);
+        break;
+      case 'brand':
+        _selectedBrand = value;
+        notifier.setBrand(value);
+        break;
+      case 'stockStatus':
+        _selectedStockStatus = value;
+        notifier.setStockStatus(value);
+        break;
+    }
+  }
+  
+  void _applySorting(String sortBy, String sortDirection) {
     setState(() {
-      // Apply search
-      _filteredProducts = _products.where((product) {
-        final searchLower = _searchController.text.toLowerCase();
-        return product.name.toLowerCase().contains(searchLower) ||
-               product.sku.toLowerCase().contains(searchLower) ||
-               (product.barcode?.toLowerCase().contains(searchLower) ?? false);
-      }).toList();
-      
-      // Apply filters
-      if (_selectedStockStatus != null) {
-        _filteredProducts = _filteredProducts
-            .where((p) => p.stockStatus == _selectedStockStatus)
-            .toList();
-      }
-      
-      if (_selectedCategory != null) {
-        _filteredProducts = _filteredProducts
-            .where((p) => p.category == _selectedCategory)
-            .toList();
-      }
-      
-      // Apply sorting
-      switch (_currentSort) {
-        case SortOption.nameAsc:
-        case SortOption.nameDesc:
-          _filteredProducts.sort((a, b) => 
-              _sortAscending ? a.name.compareTo(b.name) : b.name.compareTo(a.name));
-          break;
-        case SortOption.priceAsc:
-        case SortOption.priceDesc:
-          _filteredProducts.sort((a, b) => 
-              _sortAscending ? a.salePrice.compareTo(b.salePrice) : b.salePrice.compareTo(a.salePrice));
-          break;
-        case SortOption.stockAsc:
-        case SortOption.stockDesc:
-          _filteredProducts.sort((a, b) => 
-              _sortAscending ? a.onHand.compareTo(b.onHand) : b.onHand.compareTo(a.onHand));
-          break;
-        case SortOption.valueDesc:
-          _filteredProducts.sort((a, b) => 
-              b.inventoryValue.compareTo(a.inventoryValue));
-          break;
-      }
+      _sortBy = sortBy;
+      _sortDirection = sortDirection;
     });
+    ref.read(inventoryPageProvider.notifier).setSorting(sortBy, sortDirection);
+  }
+  
+  bool _hasActiveFilters() {
+    return _selectedCategory != null || 
+           _selectedBrand != null || 
+           _selectedStockStatus != null;
+  }
+  
+  int _getActiveFilterCount() {
+    int count = 0;
+    if (_selectedCategory != null) count++;
+    if (_selectedBrand != null) count++;
+    if (_selectedStockStatus != null) count++;
+    return count;
   }
 
   @override
   Widget build(BuildContext context) {
+    final currentAppState = ref.watch(appStateProvider);
+    final inventoryState = ref.watch(inventoryPageProvider);
+    final metadataAsync = ref.watch(inventoryMetadataProvider);
+    
+    // Debug: Log current app state
+    // print('🏢 [INVENTORY_PAGE] Company: ${currentAppState.companyChoosen}');
+    // print('🏬 [INVENTORY_PAGE] Store: ${currentAppState.storeChoosen}');
+    final appState = ref.watch(appStateProvider);
+    
+    // Debug app state (commented out to reduce noise)
+    // print('🎯 [INVENTORY_PAGE_V2] App State Debug:');
+    // print('🏢 [INVENTORY_PAGE_V2] Company Choosen: "${appState.companyChoosen}" (${appState.companyChoosen.runtimeType})');
+    // print('🏪 [INVENTORY_PAGE_V2] Store Choosen: "${appState.storeChoosen}" (${appState.storeChoosen.runtimeType})');
+    // print('📊 [INVENTORY_PAGE_V2] Inventory State: isLoading=${inventoryState.isLoading}, error="${inventoryState.error}", products=${inventoryState.products.length}');
+    
     return TossScaffold(
       backgroundColor: TossColors.gray100,
       // Use helper for AppBar with IconButton
@@ -117,18 +154,21 @@ class _InventoryManagementPageV2State extends ConsumerState<InventoryManagementP
         ),
         pageName: _pageName,
       ),
-      body: _buildSimpleProductList(),
+      body: RefreshIndicator(
+        onRefresh: () async {
+          await ref.read(inventoryPageProvider.notifier).refresh();
+        },
+        child: _buildBody(inventoryState, metadataAsync),
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
           final result = await NavigationHelper.navigateTo(
             context,
             '/inventoryManagement/addProduct',
           );
-          if (result != null && result is Product) {
-            setState(() {
-              _products.add(result);
-              _applyFiltersAndSort();
-            });
+          if (result != null) {
+            // Refresh the list after adding a new product
+            ref.read(inventoryPageProvider.notifier).refresh();
           }
         },
         backgroundColor: TossColors.primary,
@@ -136,8 +176,276 @@ class _InventoryManagementPageV2State extends ConsumerState<InventoryManagementP
       ),
     );
   }
+  
+  Widget _buildBody(InventoryPageState state, AsyncValue<InventoryMetadata?> metadataAsync) {
+    if (state.isLoading && state.products.isEmpty) {
+      return const Center(
+        child: CircularProgressIndicator(),
+      );
+    }
+    
+    if (state.error != null && state.products.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.error_outline, size: 64, color: TossColors.gray400),
+            SizedBox(height: TossSpacing.space3),
+            Text(
+              'Error loading products',
+              style: TossTextStyles.bodyLarge,
+            ),
+            SizedBox(height: TossSpacing.space2),
+            Text(
+              state.error!,
+              style: TossTextStyles.body.copyWith(color: TossColors.gray600),
+              textAlign: TextAlign.center,
+            ),
+            SizedBox(height: TossSpacing.space4),
+            ElevatedButton(
+              onPressed: () => ref.read(inventoryPageProvider.notifier).refresh(),
+              child: const Text('Retry'),
+            ),
+            SizedBox(height: TossSpacing.space2),
+            // Debug button to help with setup
+            _buildDebugButtons(state),
+          ],
+        ),
+      );
+    }
+    
+    return _buildProductList(state, metadataAsync.value);
+  }
 
-  Widget _buildSearchFilterSection() {
+  Widget _buildDebugButtons(InventoryPageState state) {
+    final appState = ref.watch(appStateProvider);
+    
+    return Container(
+      padding: EdgeInsets.all(TossSpacing.space3),
+      margin: EdgeInsets.symmetric(horizontal: TossSpacing.space4),
+      decoration: BoxDecoration(
+        color: TossColors.gray100,
+        borderRadius: BorderRadius.circular(TossBorderRadius.md),
+        border: Border.all(color: TossColors.gray300),
+      ),
+      child: Column(
+        children: [
+          Text(
+            'Debug Info:',
+            style: TossTextStyles.labelLarge.copyWith(fontWeight: FontWeight.bold),
+          ),
+          SizedBox(height: TossSpacing.space2),
+          Container(
+            padding: EdgeInsets.all(TossSpacing.space2),
+            decoration: BoxDecoration(
+              color: TossColors.white,
+              borderRadius: BorderRadius.circular(TossBorderRadius.sm),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(
+                      appState.companyChoosen.isEmpty ? Icons.warning : Icons.check_circle,
+                      size: 16,
+                      color: appState.companyChoosen.isEmpty ? TossColors.warning : TossColors.success,
+                    ),
+                    SizedBox(width: TossSpacing.space1),
+                    Text(
+                      'Company: ',
+                      style: TossTextStyles.caption.copyWith(fontWeight: FontWeight.w600),
+                    ),
+                    Expanded(
+                      child: Text(
+                        appState.companyChoosen.isEmpty ? 'NOT SELECTED' : appState.companyChoosen,
+                        style: TossTextStyles.caption.copyWith(
+                          color: appState.companyChoosen.isEmpty ? TossColors.error : TossColors.gray700,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: TossSpacing.space1),
+                Row(
+                  children: [
+                    Icon(
+                      appState.storeChoosen.isEmpty ? Icons.warning : Icons.check_circle,
+                      size: 16,
+                      color: appState.storeChoosen.isEmpty ? TossColors.warning : TossColors.success,
+                    ),
+                    SizedBox(width: TossSpacing.space1),
+                    Text(
+                      'Store: ',
+                      style: TossTextStyles.caption.copyWith(fontWeight: FontWeight.w600),
+                    ),
+                    Expanded(
+                      child: Text(
+                        appState.storeChoosen.isEmpty ? 'NOT SELECTED' : appState.storeChoosen,
+                        style: TossTextStyles.caption.copyWith(
+                          color: appState.storeChoosen.isEmpty ? TossColors.error : TossColors.gray700,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+                if (state.error != null) ...[
+                  SizedBox(height: TossSpacing.space2),
+                  Divider(height: 1, color: TossColors.gray200),
+                  SizedBox(height: TossSpacing.space2),
+                  Text(
+                    'Error Details:',
+                    style: TossTextStyles.caption.copyWith(fontWeight: FontWeight.w600, color: TossColors.error),
+                  ),
+                  SizedBox(height: TossSpacing.space1),
+                  Text(
+                    state.error!,
+                    style: TossTextStyles.caption.copyWith(color: TossColors.error),
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ],
+            ),
+          ),
+          SizedBox(height: TossSpacing.space3),
+          if (appState.companyChoosen.isEmpty || appState.storeChoosen.isEmpty)
+            ElevatedButton.icon(
+              onPressed: () async {
+                // Auto-select first company and store
+                final user = appState.user;
+                if (user != null && user is Map) {
+                  final companies = user['companies'] as List?;
+                  if (companies != null && companies.isNotEmpty) {
+                    final firstCompany = companies.first;
+                    final companyId = firstCompany['company_id']?.toString() ?? '';
+                    
+                    if (companyId.isNotEmpty) {
+                      await ref.read(appStateProvider.notifier).setCompanyChoosen(companyId);
+                      
+                      final stores = firstCompany['stores'] as List?;
+                      if (stores != null && stores.isNotEmpty) {
+                        final firstStore = stores.first;
+                        final storeId = firstStore['store_id']?.toString() ?? '';
+                        if (storeId.isNotEmpty) {
+                          await ref.read(appStateProvider.notifier).setStoreChoosen(storeId);
+                          
+                          // Show success message
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Selected: ${firstCompany['name']} - ${firstStore['name']}'),
+                              backgroundColor: TossColors.success,
+                            ),
+                          );
+                          
+                          // Refresh the inventory data
+                          ref.read(inventoryPageProvider.notifier).refresh();
+                        }
+                      }
+                    }
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('No companies found in user data'),
+                        backgroundColor: TossColors.error,
+                      ),
+                    );
+                  }
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('User data not available'),
+                      backgroundColor: TossColors.error,
+                    ),
+                  );
+                }
+              },
+              icon: Icon(Icons.auto_fix_high),
+              label: Text('Auto-Select Company & Store'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: TossColors.primary,
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  // Helper method for auto-selecting company and store
+  Future<void> _autoSelectCompanyStore() async {
+    final appState = ref.read(appStateProvider);
+    final appStateNotifier = ref.read(appStateProvider.notifier);
+    
+    print('🎯 [AUTO_SELECT] Starting auto-selection process...');
+    print('🔍 [AUTO_SELECT] User data type: ${appState.user.runtimeType}');
+    print('🔍 [AUTO_SELECT] User data: ${appState.user}');
+    
+    if (appState.user is Map) {
+      final userMap = appState.user as Map;
+      print('🔑 [AUTO_SELECT] User map keys: ${userMap.keys.toList()}');
+      
+      if (userMap.containsKey('companies')) {
+        final companies = userMap['companies'] as List?;
+        print('🏢 [AUTO_SELECT] Companies found: ${companies?.length ?? 0}');
+        
+        if (companies != null && companies.isNotEmpty) {
+          final firstCompany = companies.first;
+          final companyId = firstCompany['company_id']?.toString() ?? '';
+          final companyName = firstCompany['name']?.toString() ?? 'Unknown';
+          
+          print('🏢 [AUTO_SELECT] First company: $companyName ($companyId)');
+          
+          if (companyId.isNotEmpty) {
+            await appStateNotifier.setCompanyChoosen(companyId);
+            print('✅ [AUTO_SELECT] Company set: $companyId');
+            
+            if (firstCompany['stores'] != null) {
+              final stores = firstCompany['stores'] as List?;
+              print('🏬 [AUTO_SELECT] Stores found: ${stores?.length ?? 0}');
+              
+              if (stores != null && stores.isNotEmpty) {
+                final firstStore = stores.first;
+                final storeId = firstStore['store_id']?.toString() ?? '';
+                final storeName = firstStore['name']?.toString() ?? 'Unknown';
+                
+                print('🏬 [AUTO_SELECT] First store: $storeName ($storeId)');
+                
+                if (storeId.isNotEmpty) {
+                  await appStateNotifier.setStoreChoosen(storeId);
+                  print('✅ [AUTO_SELECT] Store set: $storeId');
+                  
+                  // Show success message
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Auto-selected: $companyName - $storeName'),
+                        backgroundColor: TossColors.success,
+                        duration: const Duration(seconds: 3),
+                      ),
+                    );
+                  }
+                }
+              }
+            }
+            
+            // Refresh the inventory page
+            print('🔄 [AUTO_SELECT] Refreshing inventory data...');
+            ref.read(inventoryPageProvider.notifier).refresh();
+          }
+        } else {
+          print('⚠️ [AUTO_SELECT] No companies found in user data');
+        }
+      } else {
+        print('⚠️ [AUTO_SELECT] No companies key in user data');
+      }
+    } else {
+      print('❌ [AUTO_SELECT] User data is not a Map');
+    }
+  }
+
+  Widget _buildSearchFilterSection(InventoryMetadata? metadata) {
     return Column(
       children: [
         // Use helper for Card replacement
@@ -161,7 +469,8 @@ class _InventoryManagementPageV2State extends ConsumerState<InventoryManagementP
                 child: InkWell(
                   onTap: () {
                     HapticFeedback.lightImpact();
-                    _showFilterOptionsSheet();
+                    final metadata = ref.read(inventoryMetadataProvider).value;
+                    _showFilterOptionsSheet(metadata);
                   },
                   borderRadius: BorderRadius.circular(TossBorderRadius.sm),
                   child: Container(
@@ -249,7 +558,7 @@ class _InventoryManagementPageV2State extends ConsumerState<InventoryManagementP
                         Icon(
                           Icons.sort_rounded,
                           size: 22,
-                          color: _currentSort != SortOption.nameAsc ? TossColors.primary : TossColors.gray600,
+                          color: (_sortBy != 'name' || _sortDirection != 'asc') ? TossColors.primary : TossColors.gray600,
                         ),
                         SizedBox(width: TossSpacing.space2),
                         Expanded(
@@ -262,9 +571,9 @@ class _InventoryManagementPageV2State extends ConsumerState<InventoryManagementP
                           ),
                         ),
                         // Show sort direction indicator
-                        if (_currentSort != SortOption.nameAsc)
+                        if (_sortBy != 'name' || _sortDirection != 'asc')
                           Icon(
-                            _sortAscending
+                            _sortDirection == 'asc'
                               ? Icons.arrow_upward_rounded 
                               : Icons.arrow_downward_rounded,
                             size: 16,
@@ -297,7 +606,7 @@ class _InventoryManagementPageV2State extends ConsumerState<InventoryManagementP
             controller: _searchController,
             hintText: 'Search products...',
             onChanged: (value) {
-              _applyFiltersAndSort();
+              // Handled by listener with debounce
             },
           ),
         ),
@@ -305,126 +614,136 @@ class _InventoryManagementPageV2State extends ConsumerState<InventoryManagementP
     );
   }
 
-  Widget _buildSimpleProductList() {
-    return SingleChildScrollView(
-      child: Column(
-        children: [
-          // Search and Filter Section (scrolls with content)
-          _buildSearchFilterSection(),
-          
-          // Products content
-          if (_filteredProducts.isEmpty)
-            Container(
-              height: MediaQuery.of(context).size.height * 0.5,
-              child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.inventory_2,
-                      size: 64,
-                      color: TossColors.gray400,
+  Widget _buildProductList(InventoryPageState state, InventoryMetadata? metadata) {
+    return ListView(
+      controller: _scrollController,
+      children: [
+        // Search and Filter Section (scrolls with content)
+        _buildSearchFilterSection(metadata),
+        
+        // Products content
+        if (state.products.isEmpty && !state.isLoading)
+          Container(
+            height: MediaQuery.of(context).size.height * 0.5,
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.inventory_2,
+                    size: 64,
+                    color: TossColors.gray400,
+                  ),
+                  const SizedBox(height: TossSpacing.space3),
+                  Text(
+                    'No products found',
+                    style: TossTextStyles.bodyLarge.copyWith(
+                      color: TossColors.gray600,
                     ),
-                    const SizedBox(height: TossSpacing.space3),
-                    Text(
-                      'No products found',
-                      style: TossTextStyles.bodyLarge.copyWith(
-                        color: TossColors.gray600,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            )
-          else
-            Container(
-              margin: EdgeInsets.all(TossSpacing.space4),
-              child: TossWhiteCard(
-                padding: EdgeInsets.zero,
-                child: Column(
-                  children: [
-                    // Section Header - using helper for inner card styling
-                    Container(
-                      padding: EdgeInsets.all(TossSpacing.space4),
-                      decoration: BoxDecoration(
-                        border: Border(
-                          bottom: BorderSide(
-                            color: TossColors.gray100,
-                            width: 1,
-                          ),
-                        ),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.inventory_2_rounded,
-                            color: TossColors.primary,
-                            size: 20,
-                          ),
-                          SizedBox(width: TossSpacing.space2),
-                          Text(
-                            'Products',
-                            style: TossTextStyles.bodyLarge.copyWith(
-                              fontWeight: FontWeight.w700,
-                              color: TossColors.gray900,
-                            ),
-                          ),
-                          Spacer(),
-                          Container(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: TossSpacing.space2,
-                              vertical: TossSpacing.space1,
-                            ),
-                            decoration: BoxDecoration(
-                              color: TossColors.primary.withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(TossBorderRadius.sm),
-                            ),
-                            child: Text(
-                              '${_filteredProducts.length} items',
-                              style: TossTextStyles.caption.copyWith(
-                                color: TossColors.primary,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    
-                    // Product List
-                    ..._filteredProducts.asMap().entries.map((entry) {
-                      final index = entry.key;
-                      final product = entry.value;
-                      
-                      return Column(
-                        children: [
-                          _buildProductListTile(product),
-                          if (index < _filteredProducts.length - 1)
-                            Divider(
-                              height: 1,
-                              color: TossColors.gray100,
-                              indent: TossSpacing.space4,
-                              endIndent: TossSpacing.space4,
-                            ),
-                        ],
-                      );
-                    }).toList(),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
-          
-          // Bottom padding to prevent FAB overlap
-          SizedBox(height: 80),
-        ],
-      ),
+          )
+        else
+          Container(
+            margin: EdgeInsets.all(TossSpacing.space4),
+            child: TossWhiteCard(
+              padding: EdgeInsets.zero,
+              child: Column(
+                children: [
+                  // Section Header
+                  Container(
+                    padding: EdgeInsets.all(TossSpacing.space4),
+                    decoration: BoxDecoration(
+                      border: Border(
+                        bottom: BorderSide(
+                          color: TossColors.gray100,
+                          width: 1,
+                        ),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.inventory_2_rounded,
+                          color: TossColors.primary,
+                          size: 20,
+                        ),
+                        SizedBox(width: TossSpacing.space2),
+                        Text(
+                          'Products',
+                          style: TossTextStyles.bodyLarge.copyWith(
+                            fontWeight: FontWeight.w700,
+                            color: TossColors.gray900,
+                          ),
+                        ),
+                        Spacer(),
+                        Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: TossSpacing.space2,
+                            vertical: TossSpacing.space1,
+                          ),
+                          decoration: BoxDecoration(
+                            color: TossColors.primary.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(TossBorderRadius.sm),
+                          ),
+                          child: Text(
+                            '${state.totalProducts} items',
+                            style: TossTextStyles.caption.copyWith(
+                              color: TossColors.primary,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  
+                  // Product List
+                  ...state.products.asMap().entries.map((entry) {
+                    final index = entry.key;
+                    final product = entry.value;
+                    
+                    return Column(
+                      children: [
+                        _buildInventoryProductTile(product, state.currency),
+                        if (index < state.products.length - 1)
+                          Divider(
+                            height: 1,
+                            color: TossColors.gray100,
+                            indent: TossSpacing.space4,
+                            endIndent: TossSpacing.space4,
+                          ),
+                      ],
+                    );
+                  }).toList(),
+                  
+                  // Loading indicator for pagination
+                  if (state.isLoadingMore)
+                    Container(
+                      padding: EdgeInsets.all(TossSpacing.space4),
+                      child: Center(
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ),
+        
+        // Bottom padding to prevent FAB overlap
+        SizedBox(height: 80),
+      ],
     );
   }
 
-  Widget _buildProductListTile(Product product) {
+  Widget _buildInventoryProductTile(InventoryProduct product, Currency? currency) {
     return TossListTile(
       title: product.name,
-      subtitle: product.sku,
+      subtitle: product.sku ?? product.barcode ?? '',
       showDivider: false,
       leading: Container(
         width: 48,
@@ -433,11 +752,11 @@ class _InventoryManagementPageV2State extends ConsumerState<InventoryManagementP
           color: TossColors.gray100,
           borderRadius: BorderRadius.circular(TossBorderRadius.md),
         ),
-        child: product.images.isNotEmpty
+        child: product.imageUrl != null
             ? ClipRRect(
                 borderRadius: BorderRadius.circular(TossBorderRadius.md),
                 child: Image.network(
-                  product.images.first,
+                  product.imageUrl!,
                   fit: BoxFit.cover,
                   errorBuilder: (context, error, stackTrace) =>
                       Icon(Icons.inventory_2, color: TossColors.gray400, size: 24),
@@ -450,7 +769,7 @@ class _InventoryManagementPageV2State extends ConsumerState<InventoryManagementP
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            _formatCurrency(product.salePrice),
+            '${currency?.symbol ?? '₩'}${_formatCurrency(product.price)}',
             style: TossTextStyles.bodyLarge.copyWith(
               fontWeight: FontWeight.w600,
               color: TossColors.gray900,
@@ -458,9 +777,9 @@ class _InventoryManagementPageV2State extends ConsumerState<InventoryManagementP
           ),
           SizedBox(height: 2),
           Text(
-            product.onHand.toString(),
+            product.stock.toString(),
             style: TossTextStyles.body.copyWith(
-              color: _getStockColor(product),
+              color: _getInventoryStockColor(product),
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -475,58 +794,58 @@ class _InventoryManagementPageV2State extends ConsumerState<InventoryManagementP
       },
     );
   }
-
-  // All helper methods remain the same...
-  Color _getStockColor(Product product) {
-    if (product.onHand == 0) return TossColors.error;
-    switch (product.stockStatus) {
-      case StockStatus.critical:
+  
+  Color _getInventoryStockColor(InventoryProduct product) {
+    final statusColor = product.getStockStatusColor();
+    switch (statusColor) {
+      case '#FF0000':
         return TossColors.error;
-      case StockStatus.low:
+      case '#FFA500':
         return TossColors.warning;
-      case StockStatus.optimal:
-        return TossColors.success;
-      case StockStatus.excess:
+      case '#0000FF':
         return TossColors.info;
+      default:
+        return TossColors.success;
     }
   }
 
   String _getSortLabel() {
-    switch (_currentSort) {
-      case SortOption.nameAsc:
-      case SortOption.nameDesc:
-        return _sortAscending ? 'Name (A-Z)' : 'Name (Z-A)';
-      case SortOption.priceAsc:
-      case SortOption.priceDesc:
-        return _sortAscending ? 'Price (Low to High)' : 'Price (High to Low)';
-      case SortOption.stockAsc:
-      case SortOption.stockDesc:
-        return _sortAscending ? 'Stock (Low to High)' : 'Stock (High to Low)';
-      case SortOption.valueDesc:
-        return 'Value (High to Low)';
+    String label = '';
+    switch (_sortBy) {
+      case 'name':
+        label = 'Name';
+        break;
+      case 'price':
+        label = 'Price';
+        break;
+      case 'stock':
+        label = 'Stock';
+        break;
+      case 'created_at':
+        label = 'Date';
+        break;
+      default:
+        label = 'Name';
     }
-  }
-
-  bool _hasActiveFilters() {
-    return _selectedStockStatus != null || _selectedCategory != null;
-  }
-
-  int _getActiveFilterCount() {
-    int count = 0;
-    if (_selectedStockStatus != null) count++;
-    if (_selectedCategory != null) count++;
-    return count;
+    
+    if (_sortDirection == 'asc') {
+      label += _sortBy == 'name' ? ' (A-Z)' : ' (Low to High)';
+    } else {
+      label += _sortBy == 'name' ? ' (Z-A)' : ' (High to Low)';
+    }
+    
+    return label;
   }
 
   // Modal sheets remain the same but with helper usage where applicable
-  void _showFilterOptionsSheet() {
+  void _showFilterOptionsSheet(InventoryMetadata? metadata) {
     showModalBottomSheet(
       context: context,
       backgroundColor: TossColors.transparent,
       isScrollControlled: true,
       isDismissible: true,
       enableDrag: true,
-      builder: (context) => _buildFilterSheet(),
+      builder: (context) => _buildFilterSheet(metadata),
     );
   }
 
@@ -540,10 +859,10 @@ class _InventoryManagementPageV2State extends ConsumerState<InventoryManagementP
     );
   }
 
-  // Filter and Sort sheets code remains the same...
-  Widget _buildFilterSheet() {
-    // Same implementation as original
-    return Container(
+  Widget _buildFilterSheet(InventoryMetadata? metadata) {
+    return StatefulBuilder(
+      builder: (context, setModalState) {
+        return Container(
       constraints: BoxConstraints(
         maxHeight: MediaQuery.of(context).size.height * 0.8,
       ),
@@ -580,53 +899,287 @@ class _InventoryManagementPageV2State extends ConsumerState<InventoryManagementP
                   ),
                 ),
                 Spacer(),
-                if (_hasActiveFilters())
-                  WidgetMigrationHelper.secondaryButton(
-                    text: 'Clear All',
-                    onPressed: () {
-                      setState(() {
-                        _selectedStockStatus = null;
-                        _selectedCategory = null;
-                        _applyFiltersAndSort();
-                      });
-                      Navigator.pop(context);
-                    },
-                    pageName: _pageName,
-                  ),
+                TextButton(
+                  onPressed: () {
+                    setModalState(() {
+                      _selectedCategory = null;
+                      _selectedBrand = null;
+                      _selectedStockStatus = null;
+                    });
+                    ref.read(inventoryPageProvider.notifier).clearFilters();
+                  },
+                  child: Text('Clear All'),
+                ),
               ],
             ),
           ),
           
-          // Rest of filter sheet implementation...
-          // (Same as original)
+          Expanded(
+            child: ListView(
+              padding: EdgeInsets.symmetric(horizontal: TossSpacing.space4),
+              children: [
+                // Category Filter
+                if (metadata?.categories != null && metadata!.categories.isNotEmpty)
+                  _buildFilterSection(
+                    'Category',
+                    metadata.categories.map((c) => {'id': c.id, 'name': c.name}).toList(),
+                    _selectedCategory,
+                    (value) {
+                      setModalState(() {
+                        _selectedCategory = value;
+                      });
+                      _applyFilter('category', value);
+                    },
+                  ),
+                
+                // Brand Filter
+                if (metadata?.brands != null && metadata!.brands.isNotEmpty)
+                  _buildFilterSection(
+                    'Brand',
+                    metadata.brands.map((b) => {'id': b.id, 'name': b.name}).toList(),
+                    _selectedBrand,
+                    (value) {
+                      setModalState(() {
+                        _selectedBrand = value;
+                      });
+                      _applyFilter('brand', value);
+                    },
+                  ),
+                
+                // Stock Status Filter
+                if (metadata?.stockStatusLevels != null && metadata!.stockStatusLevels.isNotEmpty)
+                  _buildFilterSection(
+                    'Stock Status',
+                    metadata.stockStatusLevels.map((s) => {'id': s.level, 'name': s.label}).toList(),
+                    _selectedStockStatus,
+                    (value) {
+                      setModalState(() {
+                        _selectedStockStatus = value;
+                      });
+                      _applyFilter('stockStatus', value);
+                    },
+                  ),
+                
+                SizedBox(height: TossSpacing.space4),
+              ],
+            ),
+          ),
+          
+          // Apply Button
+          Container(
+            padding: EdgeInsets.all(TossSpacing.space4),
+            child: ElevatedButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: TossColors.primary,
+                minimumSize: Size(double.infinity, 48),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                ),
+              ),
+              child: Text(
+                'Apply Filters',
+                style: TossTextStyles.bodyLarge.copyWith(
+                  color: TossColors.white,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ),
         ],
+      ),
+    );
+      },
+    );
+  }
+
+  Widget _buildFilterSection(
+    String title,
+    List<Map<String, String>> options,
+    String? selectedValue,
+    ValueChanged<String?> onChanged,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: EdgeInsets.symmetric(vertical: TossSpacing.space3),
+          child: Text(
+            title,
+            style: TossTextStyles.labelLarge.copyWith(
+              fontWeight: FontWeight.w600,
+              color: TossColors.gray900,
+            ),
+          ),
+        ),
+        Wrap(
+          spacing: TossSpacing.space2,
+          runSpacing: TossSpacing.space2,
+          children: [
+            _buildFilterChip(
+              'All',
+              null,
+              selectedValue,
+              onChanged,
+            ),
+            ...options.map((option) => _buildFilterChip(
+              option['name']!,
+              option['id'],
+              selectedValue,
+              onChanged,
+            )),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFilterChip(
+    String label,
+    String? value,
+    String? selectedValue,
+    ValueChanged<String?> onChanged,
+  ) {
+    final isSelected = value == selectedValue;
+    return InkWell(
+      onTap: () {
+        onChanged(value);
+      },
+      borderRadius: BorderRadius.circular(TossBorderRadius.full),
+      child: Container(
+        padding: EdgeInsets.symmetric(
+          horizontal: TossSpacing.space3,
+          vertical: TossSpacing.space2,
+        ),
+        decoration: BoxDecoration(
+          color: isSelected ? TossColors.primary : TossColors.white,
+          borderRadius: BorderRadius.circular(TossBorderRadius.full),
+          border: Border.all(
+            color: isSelected ? TossColors.primary : TossColors.gray300,
+          ),
+        ),
+        child: Text(
+          label,
+          style: TossTextStyles.body.copyWith(
+            color: isSelected ? TossColors.white : TossColors.gray700,
+            fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+          ),
+        ),
       ),
     );
   }
 
-  Widget _buildFilterSection<T>(
-    String title,
-    List<T> options,
-    T? selectedValue,
-    ValueChanged<T?> onChanged,
-  ) {
-    // Same implementation as original
-    return Container();
-  }
-
-  Widget _buildFilterOption<T>(
-    String label,
-    T? value,
-    T? selectedValue,
-    ValueChanged<T?> onChanged,
-  ) {
-    // Same implementation as original
-    return Container();
-  }
-
   Widget _buildSortSheet() {
-    // Same implementation as original
-    return Container();
+    return StatefulBuilder(
+      builder: (context, setModalState) {
+        return Container(
+          decoration: BoxDecoration(
+            color: TossColors.surface,
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(TossBorderRadius.xl),
+              topRight: Radius.circular(TossBorderRadius.xl),
+            ),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Handle
+              Container(
+                width: 48,
+                height: 4,
+                margin: EdgeInsets.only(top: TossSpacing.space3),
+                decoration: BoxDecoration(
+                  color: TossColors.gray300,
+                  borderRadius: BorderRadius.circular(TossBorderRadius.xs),
+                ),
+              ),
+              
+              // Title
+              Container(
+                padding: EdgeInsets.all(TossSpacing.space4),
+                child: Row(
+                  children: [
+                    Text(
+                      'Sort Products',
+                      style: TossTextStyles.h3.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              
+              // Sort Options
+              ListView(
+                shrinkWrap: true,
+                padding: EdgeInsets.symmetric(horizontal: TossSpacing.space4),
+                children: [
+                  _buildSortOption('Name', 'name', setModalState),
+                  _buildSortOption('Price', 'price', setModalState),
+                  _buildSortOption('Stock', 'stock', setModalState),
+                  _buildSortOption('Date Added', 'created_at', setModalState),
+                ],
+              ),
+              
+              SizedBox(height: TossSpacing.space4),
+            ],
+          ),
+        );
+      },
+    );
+  }
+  
+  Widget _buildSortOption(String label, String sortBy, StateSetter setModalState) {
+    final isSelected = _sortBy == sortBy;
+    return ListTile(
+      title: Text(
+        label,
+        style: TossTextStyles.body.copyWith(
+          color: isSelected ? TossColors.primary : TossColors.gray700,
+          fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+        ),
+      ),
+      trailing: isSelected
+          ? Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  icon: Icon(
+                    Icons.arrow_upward,
+                    color: _sortDirection == 'asc' ? TossColors.primary : TossColors.gray400,
+                  ),
+                  onPressed: () {
+                    setModalState(() {
+                      _sortDirection = 'asc';
+                    });
+                    _applySorting(sortBy, 'asc');
+                  },
+                ),
+                IconButton(
+                  icon: Icon(
+                    Icons.arrow_downward,
+                    color: _sortDirection == 'desc' ? TossColors.primary : TossColors.gray400,
+                  ),
+                  onPressed: () {
+                    setModalState(() {
+                      _sortDirection = 'desc';
+                    });
+                    _applySorting(sortBy, 'desc');
+                  },
+                ),
+              ],
+            )
+          : null,
+      onTap: () {
+        setModalState(() {
+          _sortBy = sortBy;
+        });
+        _applySorting(sortBy, _sortDirection);
+        Navigator.pop(context);
+      },
+    );
   }
 
   String _formatCurrency(double value) {
@@ -636,34 +1189,4 @@ class _InventoryManagementPageV2State extends ConsumerState<InventoryManagementP
     );
   }
 
-  static List<Product> _generateDiverseSampleProducts() {
-    // Same sample data as original
-    return [
-      Product(
-        id: '1',
-        sku: '1194GZ2BA745',
-        name: '고야드 가방 - GOYARD Bag',
-        category: ProductCategory.accessories,
-        productType: ProductType.simple,
-        brand: 'GOYARD',
-        costPrice: 3500000,
-        salePrice: 5100000,
-        onHand: 5,
-        reorderPoint: 2,
-        location: 'A-1-3',
-        images: ['https://example.com/goyard1.jpg'],
-      ),
-      // ... rest of products
-    ];
-  }
-}
-
-enum SortOption {
-  nameAsc,
-  nameDesc,
-  priceAsc,
-  priceDesc,
-  stockAsc,
-  stockDesc,
-  valueDesc,
 }

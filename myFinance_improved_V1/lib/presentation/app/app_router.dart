@@ -33,6 +33,13 @@ import '../pages/cash_location/account_detail_page.dart';
 import '../pages/transactions/transaction_history_page.dart';
 import '../pages/transaction_template/transaction_template_page.dart';
 import '../pages/inventory_management/inventory_management.dart';
+import '../pages/inventory_management/inventory_management_page_v2.dart';
+import '../pages/inventory_management/models/product_model.dart';
+import '../pages/inventory_management/products/product_detail_page.dart';
+import '../pages/inventory_management/products/edit_product_page.dart';
+import '../pages/inventory_management/products/add_product_page.dart';
+import '../pages/inventory_management/reports/inventory_count_page.dart';
+import '../../data/models/inventory_models.dart' as inv_models;
 import '../pages/inventory_analysis/supply_chain_dashboard.dart';
 import '../pages/sales_invoice/sales_invoice_page.dart';
 import '../pages/sales_invoice/create_invoice_page.dart';
@@ -585,7 +592,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           // Inventory Management
           GoRoute(
             path: 'inventoryManagement',
-            builder: (context, state) => const InventoryManagementPage(),
+            builder: (context, state) => const InventoryManagementPageV2(),
             routes: [
               GoRoute(
                 path: 'addProduct',
@@ -605,13 +612,41 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   // final productId = state.pathParameters['productId'] ?? '';
                   // Could use productId to fetch from database in the future
                   final extra = state.extra as Map<String, dynamic>?;
-                  final product = extra?['product'] as Product?;
-                  if (product != null) {
-                    return ProductDetailPage(product: product);
+                  
+                  // Handle both InventoryProduct (from V2) and Product (from V1)
+                  if (extra?['product'] != null) {
+                    final productData = extra!['product'];
+                    
+                    // Check if it's an InventoryProduct (has the new structure)
+                    if (productData is inv_models.InventoryProduct) {
+                      // Convert InventoryProduct to Product for compatibility
+                      // For now, create a simple Product with available data
+                      final product = Product(
+                        id: productData.id,
+                        sku: productData.sku ?? 'SKU-UNKNOWN',
+                        name: productData.name,
+                        barcode: productData.barcode,
+                        category: ProductCategory.other,
+                        productType: ProductType.simple,
+                        costPrice: productData.cost ?? 0,
+                        salePrice: productData.price,
+                        onHand: productData.stock,
+                        available: productData.quantityAvailable ?? productData.stock,
+                        reserved: productData.quantityReserved ?? 0,
+                        brand: productData.brandName,
+                        unit: productData.unit ?? 'piece',
+                      );
+                      return ProductDetailPage(product: product);
+                    }
+                    // Handle old Product type
+                    else if (productData is Product) {
+                      return ProductDetailPage(product: productData);
+                    }
                   }
+                  
                   // If no product passed, could fetch from database using productId
                   // For now, return to inventory management
-                  return const InventoryManagementPage();
+                  return const InventoryManagementPageV2();
                 },
               ),
               GoRoute(

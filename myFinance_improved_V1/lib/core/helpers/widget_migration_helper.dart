@@ -89,7 +89,7 @@ class WidgetMigrationHelper {
       
       final card = TossCard(
         child: child,
-        padding: padding,
+        padding: padding as EdgeInsets?,
         borderRadius: borderRadius?.topLeft.x ?? TossBorderRadius.md,
       );
       
@@ -136,7 +136,7 @@ class WidgetMigrationHelper {
       return TossPrimaryButton(
         text: text,
         onPressed: onPressed,
-        icon: icon,
+        leadingIcon: icon != null ? Icon(icon) : null,
         isLoading: isLoading,
         isEnabled: isEnabled,
       );
@@ -185,7 +185,7 @@ class WidgetMigrationHelper {
       return TossSecondaryButton(
         text: text,
         onPressed: onPressed,
-        icon: icon,
+        leadingIcon: icon != null ? Icon(icon) : null,
       );
     }
     
@@ -206,7 +206,9 @@ class WidgetMigrationHelper {
   
   /// Check if migration is active for a page
   static bool isMigrationActive(String pageName) {
-    return WidgetMigrationConfig.getMigrationStatus()['pages']?[pageName] ?? false;
+    final status = WidgetMigrationConfig.getMigrationStatus();
+    final pages = status['pages'] as Map<String, dynamic>?;
+    return pages?[pageName] as bool? ?? false;
   }
   
   /// Log migration status for monitoring

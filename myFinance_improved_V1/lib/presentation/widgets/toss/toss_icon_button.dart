@@ -285,7 +285,7 @@ class TossIconButton extends StatelessWidget {
       padding: effectivePadding,
       splashRadius: splashRadius,
       autofocus: autofocus,
-      enableFeedback: enableFeedback,
+      enableFeedback: enableFeedback ?? true,
       tooltip: tooltip,
     );
 
@@ -315,7 +315,7 @@ class TossIconButton extends StatelessWidget {
       padding: iconButton.padding,
       splashRadius: iconButton.splashRadius,
       autofocus: iconButton.autofocus,
-      enableFeedback: iconButton.enableFeedback,
+      enableFeedback: iconButton.enableFeedback ?? true,
     );
   }
 }
@@ -339,7 +339,7 @@ extension IconButtonMigration on IconButton {
       padding: padding,
       splashRadius: splashRadius,
       autofocus: autofocus,
-      enableFeedback: enableFeedback,
+      enableFeedback: enableFeedback ?? true,
     );
   }
 }
