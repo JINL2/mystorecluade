@@ -283,11 +283,12 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
       }
       
       
-      // Query currency_denominations table
+      // Query currency_denominations table - only get active (non-deleted) denominations
       final response = await Supabase.instance.client
           .from('currency_denominations')
           .select('*')
           .eq('company_id', companyId)
+          .eq('is_deleted', false)
           .order('value', ascending: false);
       
       if (response.isNotEmpty) {
@@ -4544,11 +4545,12 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
         Map<String, Map<String, dynamic>> currencyData = {};
         
         for (var currencyId in transactionByCurrency.keys) {
-          // Fetch denominations for this currency
+          // Fetch denominations for this currency - only get active (non-deleted) denominations
           final denomResponse = await Supabase.instance.client
               .from('currency_denominations')
               .select('*')
               .eq('currency_id', currencyId)
+              .eq('is_deleted', false)
               .order('value', ascending: false);
           
           if (denomResponse != null) {

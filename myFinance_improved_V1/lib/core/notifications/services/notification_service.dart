@@ -1,7 +1,8 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'package:firebase_messaging/firebase_messaging.dart';
+// import 'package:firebase_messaging/firebase_messaging.dart';
+import '../firebase_stub.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 // import 'package:logger/logger.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';

@@ -1,29 +1,29 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
+// import 'package:firebase_core/firebase_core.dart';
+// import 'package:firebase_messaging/firebase_messaging.dart';
 // import 'package:logger/logger.dart';
-import 'core/notifications/config/firebase_options.dart';
+// import 'core/notifications/config/firebase_options.dart';
 import 'presentation/app/app.dart';
 
-// Background message handler - must be top-level function
-@pragma('vm:entry-point')
-Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  // Initialize Firebase if not already initialized
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+// // Background message handler - must be top-level function
+// @pragma('vm:entry-point')
+// Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+//   // Initialize Firebase if not already initialized
+//   await Firebase.initializeApp(
+//     options: DefaultFirebaseOptions.currentPlatform,
+//   );
   
-  // Background message received:
-  // Message ID: ${message.messageId}
-  // Title: ${message.notification?.title}
-  // Body: ${message.notification?.body}
-  // Data: ${message.data}
+//   // Background message received:
+//   // Message ID: ${message.messageId}
+//   // Title: ${message.notification?.title}
+//   // Body: ${message.notification?.body}
+//   // Data: ${message.data}
   
-  // Handle background message here
-  // Note: You can't update UI directly from here
-}
+//   // Handle background message here
+//   // Note: You can't update UI directly from here
+// }
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -34,6 +34,8 @@ Future<void> main() async {
   // This prevents crashes when Firebase is not properly configured
   bool firebaseEnabled = false;
   
+  // Temporarily disable Firebase
+  /*
   try {
     // Check if Firebase can be initialized
     if (Firebase.apps.isEmpty) {
@@ -84,6 +86,7 @@ Future<void> main() async {
   } catch (e) {
     // Firebase initialization skipped: ${e.toString()}
   }
+  */
   
   if (!firebaseEnabled) {
     // Push notifications disabled - Firebase not available

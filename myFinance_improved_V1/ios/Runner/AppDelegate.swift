@@ -1,7 +1,7 @@
 import Flutter
 import UIKit
-import Firebase
-import FirebaseMessaging
+// import Firebase
+// import FirebaseMessaging
 
 @main
 @objc class AppDelegate: FlutterAppDelegate {
@@ -19,10 +19,10 @@ import FirebaseMessaging
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
     // Safe Firebase initialization
-    if Bundle.main.path(forResource: "GoogleService-Info", ofType: "plist") != nil {
-      FirebaseApp.configure()
-      Messaging.messaging().delegate = self
-    }
+    // if Bundle.main.path(forResource: "GoogleService-Info", ofType: "plist") != nil {
+    //   FirebaseApp.configure()
+    //   Messaging.messaging().delegate = self
+    // }
     
     UNUserNotificationCenter.current().delegate = self
     UNUserNotificationCenter.current().requestAuthorization(
@@ -38,9 +38,9 @@ import FirebaseMessaging
   
   override func application(_ application: UIApplication,
                           didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
-    if FirebaseApp.app() != nil {
-      Messaging.messaging().apnsToken = deviceToken
-    }
+    // if FirebaseApp.app() != nil {
+    //   Messaging.messaging().apnsToken = deviceToken
+    // }
     super.application(application, didRegisterForRemoteNotificationsWithDeviceToken: deviceToken)
   }
   
@@ -53,13 +53,13 @@ import FirebaseMessaging
 }
 
 // MARK: - MessagingDelegate
-extension AppDelegate: MessagingDelegate {
-  func messaging(_ messaging: Messaging, didReceiveRegistrationToken fcmToken: String?) {
-    guard let token = fcmToken else { return }
-    UserDefaults.standard.set(token, forKey: "FCMToken")
+// extension AppDelegate: MessagingDelegate {
+//   func messaging(_ messaging: Messaging, didReceiveRegistrationToken fcmToken: String?) {
+//     guard let token = fcmToken else { return }
+//     UserDefaults.standard.set(token, forKey: "FCMToken")
     
-    #if DEBUG
-    print("FCM Token: \(token)")
-    #endif
-  }
-}
+//     #if DEBUG
+//     print("FCM Token: \(token)")
+//     #endif
+//   }
+// }
