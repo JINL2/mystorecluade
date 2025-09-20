@@ -10,6 +10,7 @@ import '../../../core/themes/toss_shadows.dart';
 import '../../../core/themes/toss_colors.dart';
 import '../../providers/app_state_provider.dart';
 import '../../../data/services/cash_location_service.dart';
+import '../../providers/entities/cash_location_provider.dart';
 import '../../widgets/common/toss_scaffold.dart';
 import '../../widgets/common/toss_app_bar.dart';
 import '../../widgets/common/toss_loading_view.dart';
@@ -667,6 +668,9 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage>
                 if (success) {
                   // Invalidate cache to refresh the list
                   ref.invalidate(allCashLocationsProvider);
+                  // Also invalidate the RPC-based provider if it exists
+                  ref.invalidate(cashLocationListProvider);
+                  ref.invalidate(currentCashLocationsProvider);
                   
                   // Show success message
                   if (mounted) {
@@ -959,22 +963,41 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage>
   
   Future<bool> _deleteCashLocation() async {
     try {
-      // Soft delete by setting is_deleted = true
+      // Call RPC to delete cash location
       if (widget.locationId.isNotEmpty) {
-        await _supabase
-            .from('cash_locations')
-            .update({'is_deleted': true})
-            .eq('cash_location_id', widget.locationId);
+        // Use RPC to delete the cash location
+        await _supabase.rpc(
+          'delete_cash_location',
+          params: {
+            'p_cash_location_id': widget.locationId,
+          },
+        );
       } else {
-        // Fallback: Delete using name and other identifying fields
+        // If no locationId, we need to find it first
         final appState = ref.read(appStateProvider);
-        await _supabase
+        
+        // Query to get the cash_location_id
+        final response = await _supabase
             .from('cash_locations')
-            .update({'is_deleted': true})
+            .select('cash_location_id')
             .eq('location_name', _currentAccountName)
             .eq('location_type', widget.locationType)
             .eq('company_id', appState.companyChoosen)
-            .eq('store_id', appState.storeChoosen);
+            .eq('store_id', appState.storeChoosen)
+            .eq('is_deleted', false)
+            .single();
+        
+        if (response != null && response['cash_location_id'] != null) {
+          // Call RPC with the found cash_location_id
+          await _supabase.rpc(
+            'delete_cash_location',
+            params: {
+              'p_cash_location_id': response['cash_location_id'],
+            },
+          );
+        } else {
+          throw Exception('Cash location not found');
+        }
       }
       
       // Don't show success message here, it will be shown after dialog closes
