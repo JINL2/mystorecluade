@@ -1,8 +1,9 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:firebase_core/firebase_core.dart';
+// import 'package:firebase_messaging/firebase_messaging.dart';
+// import 'package:firebase_core/firebase_core.dart';
+import '../../../core/notifications/firebase_stub.dart';
 import '../../widgets/common/toss_loading_view.dart';
 import '../../widgets/toss/toss_card.dart';
 import '../../../core/themes/toss_colors.dart';
