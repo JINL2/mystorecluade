@@ -30,8 +30,8 @@ class _InventoryManagementPageV2State extends ConsumerState<InventoryManagementP
   static const String _pageName = 'inventory_management';
   
   final TextEditingController _searchController = TextEditingController();
+  final FocusNode _searchFocusNode = FocusNode();
   final ScrollController _scrollController = ScrollController();
-  Timer? _searchDebounce;
   
   // Filters
   String? _selectedStockStatus;
@@ -52,8 +52,8 @@ class _InventoryManagementPageV2State extends ConsumerState<InventoryManagementP
     // Setup scroll listener for pagination
     _scrollController.addListener(_onScroll);
     
-    // Add search listener with debounce
-    _searchController.addListener(_onSearchChanged);
+    // Search is handled directly by TossSearchField's onChanged callback
+    // No need for controller listener to avoid double debouncing
   }
   
   void _onScroll() {
@@ -69,18 +69,17 @@ class _InventoryManagementPageV2State extends ConsumerState<InventoryManagementP
     return currentScroll >= (maxScroll * 0.9);
   }
   
-  void _onSearchChanged() {
-    if (_searchDebounce?.isActive ?? false) _searchDebounce!.cancel();
-    _searchDebounce = Timer(const Duration(milliseconds: 500), () {
-      ref.read(inventoryPageProvider.notifier).setSearchQuery(_searchController.text);
-    });
+  void _onSearchChanged(String value) {
+    // Directly call provider without additional debouncing
+    // TossSearchField already handles debouncing internally
+    ref.read(inventoryPageProvider.notifier).setSearchQuery(value.isEmpty ? null : value);
   }
 
   @override
   void dispose() {
     _searchController.dispose();
+    _searchFocusNode.dispose();
     _scrollController.dispose();
-    _searchDebounce?.cancel();
     super.dispose();
   }
 
@@ -127,20 +126,8 @@ class _InventoryManagementPageV2State extends ConsumerState<InventoryManagementP
 
   @override
   Widget build(BuildContext context) {
-    final currentAppState = ref.watch(appStateProvider);
-    final inventoryState = ref.watch(inventoryPageProvider);
+    // Only watch metadata for filters, NOT inventory state to prevent search bar rebuilds
     final metadataAsync = ref.watch(inventoryMetadataProvider);
-    
-    // Debug: Log current app state
-    // print('🏢 [INVENTORY_PAGE] Company: ${currentAppState.companyChoosen}');
-    // print('🏬 [INVENTORY_PAGE] Store: ${currentAppState.storeChoosen}');
-    final appState = ref.watch(appStateProvider);
-    
-    // Debug app state (commented out to reduce noise)
-    // print('🎯 [INVENTORY_PAGE_V2] App State Debug:');
-    // print('🏢 [INVENTORY_PAGE_V2] Company Choosen: "${appState.companyChoosen}" (${appState.companyChoosen.runtimeType})');
-    // print('🏪 [INVENTORY_PAGE_V2] Store Choosen: "${appState.storeChoosen}" (${appState.storeChoosen.runtimeType})');
-    // print('📊 [INVENTORY_PAGE_V2] Inventory State: isLoading=${inventoryState.isLoading}, error="${inventoryState.error}", products=${inventoryState.products.length}');
     
     return TossScaffold(
       backgroundColor: TossColors.gray100,
@@ -158,13 +145,17 @@ class _InventoryManagementPageV2State extends ConsumerState<InventoryManagementP
         onRefresh: () async {
           await ref.read(inventoryPageProvider.notifier).refresh();
         },
-        child: _buildBody(inventoryState, metadataAsync),
+        child: _buildStableBody(metadataAsync),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
+          // Get inventory metadata before navigating
+          final metadata = await ref.read(inventoryMetadataProvider.future);
+          
           final result = await NavigationHelper.navigateTo(
             context,
             '/inventoryManagement/addProduct',
+            extra: {'metadata': metadata},
           );
           if (result != null) {
             // Refresh the list after adding a new product
@@ -177,44 +168,185 @@ class _InventoryManagementPageV2State extends ConsumerState<InventoryManagementP
     );
   }
   
-  Widget _buildBody(InventoryPageState state, AsyncValue<InventoryMetadata?> metadataAsync) {
+  // New stable body that doesn't rebuild search bar
+  Widget _buildStableBody(AsyncValue<InventoryMetadata?> metadataAsync) {
+    return ListView(
+      controller: _scrollController,
+      children: [
+        // Search and Filter Section (stable - doesn't rebuild with inventory state)
+        _buildSearchFilterSection(metadataAsync.value),
+        
+        // Only the product results watch inventory state and rebuild
+        Consumer(
+          builder: (context, ref, child) {
+            final inventoryState = ref.watch(inventoryPageProvider);
+            return _buildProductResults(inventoryState);
+          },
+        ),
+        
+        // Bottom padding to prevent FAB overlap
+        SizedBox(height: 80),
+      ],
+    );
+  }
+  
+  // Separated product results that can rebuild independently
+  Widget _buildProductResults(InventoryPageState state) {
     if (state.isLoading && state.products.isEmpty) {
-      return const Center(
-        child: CircularProgressIndicator(),
-      );
-    }
-    
-    if (state.error != null && state.products.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.error_outline, size: 64, color: TossColors.gray400),
-            SizedBox(height: TossSpacing.space3),
-            Text(
-              'Error loading products',
-              style: TossTextStyles.bodyLarge,
-            ),
-            SizedBox(height: TossSpacing.space2),
-            Text(
-              state.error!,
-              style: TossTextStyles.body.copyWith(color: TossColors.gray600),
-              textAlign: TextAlign.center,
-            ),
-            SizedBox(height: TossSpacing.space4),
-            ElevatedButton(
-              onPressed: () => ref.read(inventoryPageProvider.notifier).refresh(),
-              child: const Text('Retry'),
-            ),
-            SizedBox(height: TossSpacing.space2),
-            // Debug button to help with setup
-            _buildDebugButtons(state),
-          ],
+      return Container(
+        height: MediaQuery.of(context).size.height * 0.5,
+        child: const Center(
+          child: CircularProgressIndicator(),
         ),
       );
     }
     
-    return _buildProductList(state, metadataAsync.value);
+    if (state.error != null && state.products.isEmpty) {
+      return Container(
+        height: MediaQuery.of(context).size.height * 0.5,
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.error_outline, size: 64, color: TossColors.gray400),
+              SizedBox(height: TossSpacing.space3),
+              Text(
+                'Error loading products',
+                style: TossTextStyles.bodyLarge,
+              ),
+              SizedBox(height: TossSpacing.space2),
+              Text(
+                state.error!,
+                style: TossTextStyles.body.copyWith(color: TossColors.gray600),
+                textAlign: TextAlign.center,
+              ),
+              SizedBox(height: TossSpacing.space4),
+              ElevatedButton(
+                onPressed: () => ref.read(inventoryPageProvider.notifier).refresh(),
+                child: const Text('Retry'),
+              ),
+              SizedBox(height: TossSpacing.space2),
+              // Debug button to help with setup
+              _buildDebugButtons(state),
+            ],
+          ),
+        ),
+      );
+    }
+    
+    // Products list content
+    if (state.products.isEmpty && !state.isLoading) {
+      return Container(
+        height: MediaQuery.of(context).size.height * 0.5,
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.inventory_2,
+                size: 64,
+                color: TossColors.gray400,
+              ),
+              const SizedBox(height: TossSpacing.space3),
+              Text(
+                'No products found',
+                style: TossTextStyles.bodyLarge.copyWith(
+                  color: TossColors.gray600,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+    
+    return Container(
+      margin: EdgeInsets.all(TossSpacing.space4),
+      child: TossWhiteCard(
+        padding: EdgeInsets.zero,
+        child: Column(
+          children: [
+            // Section Header
+            Container(
+              padding: EdgeInsets.all(TossSpacing.space4),
+              decoration: BoxDecoration(
+                border: Border(
+                  bottom: BorderSide(
+                    color: TossColors.gray100,
+                    width: 1,
+                  ),
+                ),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.inventory_2_rounded,
+                    color: TossColors.primary,
+                    size: 20,
+                  ),
+                  SizedBox(width: TossSpacing.space2),
+                  Text(
+                    'Products',
+                    style: TossTextStyles.bodyLarge.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: TossColors.gray900,
+                    ),
+                  ),
+                  Spacer(),
+                  Container(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: TossSpacing.space2,
+                      vertical: TossSpacing.space1,
+                    ),
+                    decoration: BoxDecoration(
+                      color: TossColors.primary.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(TossBorderRadius.sm),
+                    ),
+                    child: Text(
+                      '${state.totalProducts} items',
+                      style: TossTextStyles.caption.copyWith(
+                        color: TossColors.primary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            
+            // Product List
+            ...state.products.asMap().entries.map((entry) {
+              final index = entry.key;
+              final product = entry.value;
+              
+              return Column(
+                children: [
+                  _buildInventoryProductTile(product, state.currency),
+                  if (index < state.products.length - 1)
+                    Divider(
+                      height: 1,
+                      color: TossColors.gray100,
+                      indent: TossSpacing.space4,
+                      endIndent: TossSpacing.space4,
+                    ),
+                ],
+              );
+            }).toList(),
+            
+            // Loading indicator for pagination
+            if (state.isLoadingMore)
+              Container(
+                padding: EdgeInsets.all(TossSpacing.space4),
+                child: Center(
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
   }
 
   Widget _buildDebugButtons(InventoryPageState state) {
@@ -604,141 +736,16 @@ class _InventoryManagementPageV2State extends ConsumerState<InventoryManagementP
           ),
           child: TossSearchField(
             controller: _searchController,
+            focusNode: _searchFocusNode,
             hintText: 'Search products...',
-            onChanged: (value) {
-              // Handled by listener with debounce
-            },
+            onChanged: _onSearchChanged,
           ),
         ),
       ],
     );
   }
 
-  Widget _buildProductList(InventoryPageState state, InventoryMetadata? metadata) {
-    return ListView(
-      controller: _scrollController,
-      children: [
-        // Search and Filter Section (scrolls with content)
-        _buildSearchFilterSection(metadata),
-        
-        // Products content
-        if (state.products.isEmpty && !state.isLoading)
-          Container(
-            height: MediaQuery.of(context).size.height * 0.5,
-            child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.inventory_2,
-                    size: 64,
-                    color: TossColors.gray400,
-                  ),
-                  const SizedBox(height: TossSpacing.space3),
-                  Text(
-                    'No products found',
-                    style: TossTextStyles.bodyLarge.copyWith(
-                      color: TossColors.gray600,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          )
-        else
-          Container(
-            margin: EdgeInsets.all(TossSpacing.space4),
-            child: TossWhiteCard(
-              padding: EdgeInsets.zero,
-              child: Column(
-                children: [
-                  // Section Header
-                  Container(
-                    padding: EdgeInsets.all(TossSpacing.space4),
-                    decoration: BoxDecoration(
-                      border: Border(
-                        bottom: BorderSide(
-                          color: TossColors.gray100,
-                          width: 1,
-                        ),
-                      ),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.inventory_2_rounded,
-                          color: TossColors.primary,
-                          size: 20,
-                        ),
-                        SizedBox(width: TossSpacing.space2),
-                        Text(
-                          'Products',
-                          style: TossTextStyles.bodyLarge.copyWith(
-                            fontWeight: FontWeight.w700,
-                            color: TossColors.gray900,
-                          ),
-                        ),
-                        Spacer(),
-                        Container(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: TossSpacing.space2,
-                            vertical: TossSpacing.space1,
-                          ),
-                          decoration: BoxDecoration(
-                            color: TossColors.primary.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(TossBorderRadius.sm),
-                          ),
-                          child: Text(
-                            '${state.totalProducts} items',
-                            style: TossTextStyles.caption.copyWith(
-                              color: TossColors.primary,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  
-                  // Product List
-                  ...state.products.asMap().entries.map((entry) {
-                    final index = entry.key;
-                    final product = entry.value;
-                    
-                    return Column(
-                      children: [
-                        _buildInventoryProductTile(product, state.currency),
-                        if (index < state.products.length - 1)
-                          Divider(
-                            height: 1,
-                            color: TossColors.gray100,
-                            indent: TossSpacing.space4,
-                            endIndent: TossSpacing.space4,
-                          ),
-                      ],
-                    );
-                  }).toList(),
-                  
-                  // Loading indicator for pagination
-                  if (state.isLoadingMore)
-                    Container(
-                      padding: EdgeInsets.all(TossSpacing.space4),
-                      child: Center(
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-            ),
-          ),
-        
-        // Bottom padding to prevent FAB overlap
-        SizedBox(height: 80),
-      ],
-    );
-  }
+  // This method is no longer needed - replaced by _buildStableBody and _buildProductResults
 
   Widget _buildInventoryProductTile(InventoryProduct product, Currency? currency) {
     return TossListTile(
@@ -789,7 +796,10 @@ class _InventoryManagementPageV2State extends ConsumerState<InventoryManagementP
         NavigationHelper.navigateTo(
           context,
           '/inventoryManagement/product/${product.id}',
-          extra: {'product': product},
+          extra: {
+            'product': product,
+            'currency': currency,
+          },
         );
       },
     );

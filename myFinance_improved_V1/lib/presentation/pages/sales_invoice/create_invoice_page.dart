@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:intl/intl.dart';
 import '../../../core/constants/app_icons_fa.dart';
 import '../../../core/themes/toss_colors.dart';
 import '../../../core/themes/toss_text_styles.dart';
@@ -12,7 +13,9 @@ import '../../widgets/common/toss_white_card.dart';
 import '../../widgets/toss/toss_text_field.dart';
 import '../../widgets/toss/toss_search_field.dart';
 import '../../helpers/navigation_helper.dart';
-import '../inventory_management/models/product_model.dart';
+import 'models/invoice_models.dart';
+import 'providers/invoice_provider.dart';
+import 'payment_method_page.dart';
 
 class CreateInvoicePage extends ConsumerStatefulWidget {
   const CreateInvoicePage({Key? key}) : super(key: key);
@@ -24,58 +27,40 @@ class CreateInvoicePage extends ConsumerStatefulWidget {
 class _CreateInvoicePageState extends ConsumerState<CreateInvoicePage> {
   final _formKey = GlobalKey<FormState>();
   final _searchController = TextEditingController();
-  final _notesController = TextEditingController();
-  
-  // Selected products with actual count
-  final Map<Product, int> _selectedProducts = {};
-  
-  // Sample products list (replace with actual data source)
-  final List<Product> _allProducts = _generateSampleProducts();
-  List<Product> _filteredProducts = [];
+  final currencyFormat = NumberFormat.currency(symbol: '', decimalDigits: 0);
   
   bool _isLoading = false;
-  DateTime _selectedDate = DateTime.now();
   
   @override
   void initState() {
     super.initState();
-    _filteredProducts = _allProducts;
+    // Initialize products load when page loads
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(createInvoiceProvider.notifier).loadProducts();
+    });
   }
   
   @override
   void dispose() {
     _searchController.dispose();
-    _notesController.dispose();
     super.dispose();
   }
   
   void _filterProducts(String query) {
-    setState(() {
-      if (query.isEmpty) {
-        _filteredProducts = _allProducts;
-      } else {
-        _filteredProducts = _allProducts.where((product) {
-          final searchLower = query.toLowerCase();
-          return product.name.toLowerCase().contains(searchLower) ||
-                 product.sku.toLowerCase().contains(searchLower) ||
-                 (product.barcode?.toLowerCase().contains(searchLower) ?? false);
-        }).toList();
-      }
-    });
+    ref.read(createInvoiceProvider.notifier).searchProducts(query);
   }
   
-  void _updateProductCount(Product product, int count) {
-    setState(() {
-      if (count > 0) {
-        _selectedProducts[product] = count;
-      } else {
-        _selectedProducts.remove(product);
-      }
-    });
+  void _updateProductCount(SalesProduct product, int count) {
+    print('🔧 [CREATE_INVOICE] Updating product count: ${product.productName} → $count');
+    print('🔧 [CREATE_INVOICE] Product ID: ${product.productId}');
+    print('🔧 [CREATE_INVOICE] Available stock: ${product.availableQuantity}');
+    ref.read(createInvoiceProvider.notifier).updateProductCount(product, count);
   }
   
   Future<void> _saveInvoice() async {
-    if (_selectedProducts.isEmpty) {
+    final createInvoiceState = ref.read(createInvoiceProvider);
+    
+    if (createInvoiceState.selectedProducts.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Please add at least one product'),
@@ -89,7 +74,7 @@ class _CreateInvoicePageState extends ConsumerState<CreateInvoicePage> {
     
     try {
       // TODO: Implement actual save logic
-      await Future.delayed(const Duration(seconds: 1));
+      await Future<void>.delayed(const Duration(seconds: 1));
       
       if (mounted) {
         NavigationHelper.safeGoBack(context);
@@ -108,114 +93,47 @@ class _CreateInvoicePageState extends ConsumerState<CreateInvoicePage> {
       appBar: TossAppBar(
         title: 'Create Invoice',
         backgroundColor: TossColors.gray100,
-        primaryActionText: _isLoading ? null : 'Save',
-        onPrimaryAction: _isLoading ? null : _saveInvoice,
         leading: IconButton(
           icon: const Icon(Icons.close, size: TossSpacing.iconMD),
           onPressed: () => NavigationHelper.safeGoBack(context),
         ),
       ),
-      body: Form(
-        key: _formKey,
-        child: Column(
-          children: [
-            // Invoice Info Section
-            _buildInvoiceInfoSection(),
-            
-            // Search Field
-            _buildSearchSection(),
-            
-            // Selected Products Summary
-            if (_selectedProducts.isNotEmpty) _buildSelectedProductsSummary(),
-            
-            // Product List
-            Expanded(
-              child: _buildProductList(),
-            ),
-          ],
+      body: SafeArea(
+        child: Form(
+          key: _formKey,
+          child: Column(
+            children: [
+              // Search Field
+              _buildSearchSection(),
+              
+              // Added Items Section
+              Consumer(
+                builder: (context, ref, child) {
+                  final createInvoiceState = ref.watch(createInvoiceProvider);
+                  if (createInvoiceState.selectedProducts.isNotEmpty) {
+                    return _buildAddedItemsSection();
+                  }
+                  return const SizedBox.shrink();
+                },
+              ),
+              
+              // Product List with bottom padding for button
+              Expanded(
+                child: Container(
+                  padding: EdgeInsets.only(bottom: 80), // Space for bottom button
+                  child: _buildProductList(),
+                ),
+              ),
+              
+              // Fixed Bottom Button
+              _buildBottomButton(),
+            ],
+          ),
         ),
       ),
     );
   }
   
-  Widget _buildInvoiceInfoSection() {
-    final now = DateTime.now();
-    final invoiceId = 'IV${now.year}${now.month.toString().padLeft(2, '0')}${now.day.toString().padLeft(2, '0')}-${(_allProducts.length + 1).toString().padLeft(3, '0')}';
-    
-    return Container(
-      margin: EdgeInsets.all(TossSpacing.space4),
-      child: TossWhiteCard(
-        padding: EdgeInsets.all(TossSpacing.space4),
-        child: Column(
-          children: [
-            // Invoice ID and Date
-            Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Invoice ID',
-                        style: TossTextStyles.caption.copyWith(
-                          color: TossColors.gray600,
-                        ),
-                      ),
-                      SizedBox(height: TossSpacing.space1),
-                      Text(
-                        invoiceId,
-                        style: TossTextStyles.body.copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: TossColors.gray900,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Container(
-                  width: 1,
-                  height: 40,
-                  color: TossColors.gray200,
-                  margin: EdgeInsets.symmetric(horizontal: TossSpacing.space4),
-                ),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Date',
-                        style: TossTextStyles.caption.copyWith(
-                          color: TossColors.gray600,
-                        ),
-                      ),
-                      SizedBox(height: TossSpacing.space1),
-                      Text(
-                        '${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}',
-                        style: TossTextStyles.body.copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: TossColors.gray900,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            
-            SizedBox(height: TossSpacing.space4),
-            
-            // Notes Field
-            TossTextField(
-              label: 'Notes (Optional)',
-              hintText: 'Add any notes about this inventory count',
-              controller: _notesController,
-              maxLines: 2,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
   
   Widget _buildSearchSection() {
     return Container(
@@ -228,315 +146,642 @@ class _CreateInvoicePageState extends ConsumerState<CreateInvoicePage> {
     );
   }
   
-  Widget _buildSelectedProductsSummary() {
-    final totalProducts = _selectedProducts.length;
-    final totalItems = _selectedProducts.values.fold(0, (sum, count) => sum + count);
+  Widget _buildAddedItemsSection() {
+    final createInvoiceState = ref.watch(createInvoiceProvider);
+    final selectedProducts = createInvoiceState.selectedProducts;
+    final totalItems = createInvoiceState.totalSelectedItems;
+    
+    if (selectedProducts.isEmpty) return const SizedBox.shrink();
+    
+    // Get selected product details
+    final selectedProductsList = <SalesProduct>[];
+    if (createInvoiceState.productData != null) {
+      for (final productId in selectedProducts.keys) {
+        try {
+          final product = createInvoiceState.productData!.products
+              .firstWhere((p) => p.productId == productId);
+          selectedProductsList.add(product);
+        } catch (e) {
+          // Product not found, skip it
+          print('Warning: Product with ID $productId not found in product list');
+        }
+      }
+    }
     
     return Container(
       margin: EdgeInsets.all(TossSpacing.space4),
-      padding: EdgeInsets.all(TossSpacing.space3),
-      decoration: BoxDecoration(
-        color: TossColors.primary.withOpacity(0.05),
-        borderRadius: BorderRadius.circular(TossBorderRadius.md),
-        border: Border.all(
-          color: TossColors.primary.withOpacity(0.2),
-          width: 1,
-        ),
-      ),
-      child: Row(
-        children: [
-          FaIcon(
-            AppIcons.inventory,
-            color: TossColors.primary,
-            size: TossSpacing.iconSM,
-          ),
-          SizedBox(width: TossSpacing.space2),
-          Text(
-            '$totalProducts products',
-            style: TossTextStyles.body.copyWith(
-              color: TossColors.primary,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          Text(
-            ' • ',
-            style: TossTextStyles.body.copyWith(
-              color: TossColors.primary.withOpacity(0.5),
-            ),
-          ),
-          Text(
-            '$totalItems total items',
-            style: TossTextStyles.body.copyWith(
-              color: TossColors.primary,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-  
-  Widget _buildProductList() {
-    if (_filteredProducts.isEmpty) {
-      return Center(
+      child: TossWhiteCard(
+        padding: EdgeInsets.all(TossSpacing.space4),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(
-              Icons.search_off,
-              size: 64,
-              color: TossColors.gray400,
-            ),
-            SizedBox(height: TossSpacing.space3),
-            Text(
-              'No products found',
-              style: TossTextStyles.bodyLarge.copyWith(
-                color: TossColors.gray600,
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-    
-    return ListView.builder(
-      padding: EdgeInsets.all(TossSpacing.space4),
-      itemCount: _filteredProducts.length,
-      itemBuilder: (context, index) {
-        final product = _filteredProducts[index];
-        final currentCount = _selectedProducts[product] ?? 0;
-        
-        return Container(
-          margin: EdgeInsets.only(bottom: TossSpacing.space3),
-          child: TossWhiteCard(
-            padding: EdgeInsets.all(TossSpacing.space3),
-            child: Row(
+            // Header
+            Row(
               children: [
-                // Product Image
-                Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    color: TossColors.gray100,
-                    borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                  ),
-                  child: product.images.isNotEmpty
-                      ? ClipRRect(
-                          borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                          child: Image.network(
-                            product.images.first,
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) =>
-                                Icon(Icons.inventory_2, color: TossColors.gray400, size: 24),
-                          ),
-                        )
-                      : Icon(Icons.inventory_2, color: TossColors.gray400, size: 24),
+                FaIcon(
+                  AppIcons.cart,
+                  color: TossColors.primary,
+                  size: TossSpacing.iconSM,
                 ),
-                
-                SizedBox(width: TossSpacing.space3),
-                
-                // Product Info
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        product.name,
-                        style: TossTextStyles.body.copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: TossColors.gray900,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+                SizedBox(width: TossSpacing.space2),
+                Text(
+                  'Added Items',
+                  style: TossTextStyles.bodyLarge.copyWith(
+                    color: TossColors.gray900,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                Spacer(),
+                Text(
+                  '$totalItems items',
+                  style: TossTextStyles.caption.copyWith(
+                    color: TossColors.gray600,
+                  ),
+                ),
+              ],
+            ),
+            
+            SizedBox(height: TossSpacing.space3),
+            
+            // Selected Products List
+            ...selectedProductsList.map((product) {
+              final quantity = selectedProducts[product.productId] ?? 0;
+              return Container(
+                margin: EdgeInsets.only(bottom: TossSpacing.space2),
+                padding: EdgeInsets.all(TossSpacing.space3),
+                decoration: BoxDecoration(
+                  color: TossColors.primary.withOpacity(0.05),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.sm),
+                  border: Border.all(
+                    color: TossColors.primary.withOpacity(0.1),
+                    width: 1,
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    // Product Image
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: TossColors.gray100,
+                        borderRadius: BorderRadius.circular(TossBorderRadius.sm),
                       ),
-                      SizedBox(height: TossSpacing.space1),
-                      Row(
+                      child: product.images.mainImage != null
+                          ? ClipRRect(
+                              borderRadius: BorderRadius.circular(TossBorderRadius.sm),
+                              child: Image.network(
+                                product.images.mainImage!,
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) =>
+                                    Icon(Icons.inventory_2, color: TossColors.gray400, size: 20),
+                              ),
+                            )
+                          : Icon(Icons.inventory_2, color: TossColors.gray400, size: 20),
+                    ),
+                    
+                    SizedBox(width: TossSpacing.space3),
+                    
+                    // Product Info
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          Text(
+                            product.productName,
+                            style: TossTextStyles.body.copyWith(
+                              fontWeight: FontWeight.w600,
+                              color: TossColors.gray900,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          SizedBox(height: TossSpacing.space1),
                           Text(
                             product.sku,
                             style: TossTextStyles.caption.copyWith(
                               color: TossColors.gray600,
                             ),
                           ),
-                          if (product.location != null) ...[
-                            Text(
-                              ' • ',
-                              style: TossTextStyles.caption.copyWith(
-                                color: TossColors.gray400,
-                              ),
-                            ),
-                            Text(
-                              product.location!,
-                              style: TossTextStyles.caption.copyWith(
-                                color: TossColors.gray600,
-                              ),
-                            ),
-                          ],
+                          SizedBox(height: TossSpacing.space1),
+                          Row(
+                            children: [
+                              if (product.sellingPrice != null && product.sellingPrice! > 0) ...[
+                                Text(
+                                  '${createInvoiceState.productData?.company.currency.symbol ?? ''}${currencyFormat.format(product.sellingPrice!)}',
+                                  style: TossTextStyles.caption.copyWith(
+                                    color: TossColors.primary,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                Text(
+                                  ' × $quantity',
+                                  style: TossTextStyles.caption.copyWith(
+                                    color: TossColors.gray600,
+                                  ),
+                                ),
+                                Text(
+                                  ' = ',
+                                  style: TossTextStyles.caption.copyWith(
+                                    color: TossColors.gray400,
+                                  ),
+                                ),
+                                Text(
+                                  '${createInvoiceState.productData?.company.currency.symbol ?? ''}${currencyFormat.format(product.sellingPrice! * quantity)}',
+                                  style: TossTextStyles.caption.copyWith(
+                                    color: TossColors.gray900,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ] else ...[
+                                Text(
+                                  'Price not set',
+                                  style: TossTextStyles.caption.copyWith(
+                                    color: TossColors.gray500,
+                                    fontStyle: FontStyle.italic,
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
                         ],
                       ),
-                    ],
+                    ),
+                    
+                    // Quantity Controls
+                    Container(
+                      decoration: BoxDecoration(
+                        color: TossColors.white,
+                        borderRadius: BorderRadius.circular(TossBorderRadius.sm),
+                        border: Border.all(
+                          color: TossColors.primary.withOpacity(0.2),
+                          width: 1,
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          // Decrease Button
+                          InkWell(
+                            onTap: quantity > 0
+                                ? () => _updateProductCount(product, quantity - 1)
+                                : null,
+                            borderRadius: BorderRadius.only(
+                              topLeft: Radius.circular(TossBorderRadius.sm),
+                              bottomLeft: Radius.circular(TossBorderRadius.sm),
+                            ),
+                            child: Container(
+                              padding: EdgeInsets.all(TossSpacing.space2),
+                              child: Icon(
+                                Icons.remove,
+                                size: 16,
+                                color: quantity > 0 ? TossColors.primary : TossColors.gray400,
+                              ),
+                            ),
+                          ),
+                          
+                          // Quantity Display
+                          Container(
+                            width: 40,
+                            padding: EdgeInsets.symmetric(vertical: TossSpacing.space2),
+                            decoration: BoxDecoration(
+                              border: Border(
+                                left: BorderSide(
+                                  color: TossColors.primary.withOpacity(0.2),
+                                  width: 1,
+                                ),
+                                right: BorderSide(
+                                  color: TossColors.primary.withOpacity(0.2),
+                                  width: 1,
+                                ),
+                              ),
+                            ),
+                            child: Text(
+                              quantity.toString(),
+                              style: TossTextStyles.body.copyWith(
+                                fontWeight: FontWeight.w600,
+                                color: TossColors.primary,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                          
+                          // Increase Button
+                          InkWell(
+                            onTap: () {
+                              print('🔧 [ADDED_ITEMS] + button clicked for: ${product.productName}');
+                              _updateProductCount(product, quantity + 1);
+                            },
+                            borderRadius: BorderRadius.only(
+                              topRight: Radius.circular(TossBorderRadius.sm),
+                              bottomRight: Radius.circular(TossBorderRadius.sm),
+                            ),
+                            child: Container(
+                              padding: EdgeInsets.all(TossSpacing.space2),
+                              child: Icon(
+                                Icons.add,
+                                size: 16,
+                                color: TossColors.primary,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    
+                    SizedBox(width: TossSpacing.space2),
+                    
+                    // Remove Button
+                    InkWell(
+                      onTap: () => _updateProductCount(product, 0),
+                      child: Container(
+                        padding: EdgeInsets.all(TossSpacing.space2),
+                        decoration: BoxDecoration(
+                          color: TossColors.error.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(TossBorderRadius.sm),
+                        ),
+                        child: Icon(
+                          Icons.close,
+                          size: 16,
+                          color: TossColors.error,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }).toList(),
+            
+            // Total Summary
+            if (selectedProductsList.isNotEmpty) ...[
+              SizedBox(height: TossSpacing.space3),
+              Container(
+                padding: EdgeInsets.all(TossSpacing.space3),
+                decoration: BoxDecoration(
+                  color: TossColors.primary.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.sm),
+                  border: Border.all(
+                    color: TossColors.primary.withOpacity(0.2),
+                    width: 1,
                   ),
                 ),
-                
-                // Count Input
-                Container(
-                  decoration: BoxDecoration(
-                    color: currentCount > 0 ? TossColors.primary.withOpacity(0.05) : TossColors.gray50,
-                    borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                    border: Border.all(
-                      color: currentCount > 0 ? TossColors.primary.withOpacity(0.3) : TossColors.gray200,
-                      width: 1,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Total',
+                      style: TossTextStyles.bodyLarge.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: TossColors.gray900,
+                      ),
                     ),
-                  ),
-                  child: Row(
-                    children: [
-                      // Decrease Button
-                      InkWell(
-                        onTap: currentCount > 0
-                            ? () => _updateProductCount(product, currentCount - 1)
-                            : null,
-                        borderRadius: BorderRadius.only(
-                          topLeft: Radius.circular(TossBorderRadius.md),
-                          bottomLeft: Radius.circular(TossBorderRadius.md),
-                        ),
-                        child: Container(
-                          padding: EdgeInsets.all(TossSpacing.space2),
-                          child: Icon(
-                            Icons.remove,
-                            size: TossSpacing.iconSM,
-                            color: currentCount > 0 ? TossColors.primary : TossColors.gray400,
-                          ),
-                        ),
+                    Text(
+                      '${createInvoiceState.productData?.company.currency.symbol ?? ''}${currencyFormat.format(_calculateTotalAmount(selectedProductsList, selectedProducts))}',
+                      style: TossTextStyles.h3.copyWith(
+                        fontWeight: FontWeight.w700,
+                        color: TossColors.primary,
                       ),
-                      
-                      // Count Display
-                      Container(
-                        width: 50,
-                        padding: EdgeInsets.symmetric(vertical: TossSpacing.space2),
-                        decoration: BoxDecoration(
-                          border: Border(
-                            left: BorderSide(
-                              color: currentCount > 0 
-                                  ? TossColors.primary.withOpacity(0.3) 
-                                  : TossColors.gray200,
-                              width: 1,
-                            ),
-                            right: BorderSide(
-                              color: currentCount > 0 
-                                  ? TossColors.primary.withOpacity(0.3) 
-                                  : TossColors.gray200,
-                              width: 1,
-                            ),
-                          ),
-                        ),
-                        child: Text(
-                          currentCount.toString(),
-                          style: TossTextStyles.body.copyWith(
-                            fontWeight: FontWeight.w600,
-                            color: currentCount > 0 ? TossColors.primary : TossColors.gray600,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                      
-                      // Increase Button
-                      InkWell(
-                        onTap: () => _updateProductCount(product, currentCount + 1),
-                        borderRadius: BorderRadius.only(
-                          topRight: Radius.circular(TossBorderRadius.md),
-                          bottomRight: Radius.circular(TossBorderRadius.md),
-                        ),
-                        child: Container(
-                          padding: EdgeInsets.all(TossSpacing.space2),
-                          child: Icon(
-                            Icons.add,
-                            size: TossSpacing.iconSM,
-                            color: TossColors.primary,
-                          ),
-                        ),
-                      ),
-                    ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+  
+  Widget _buildProductList() {
+    return Consumer(
+      builder: (context, ref, child) {
+        final createInvoiceState = ref.watch(createInvoiceProvider);
+        
+        // Show loading state
+        if (createInvoiceState.isLoading) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                CircularProgressIndicator(color: TossColors.primary),
+                SizedBox(height: TossSpacing.space3),
+                Text(
+                  'Loading products...',
+                  style: TossTextStyles.body.copyWith(
+                    color: TossColors.gray600,
                   ),
                 ),
               ],
             ),
-          ),
+          );
+        }
+        
+        // Show error state
+        if (createInvoiceState.error != null) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.error_outline,
+                  size: 64,
+                  color: TossColors.error,
+                ),
+                SizedBox(height: TossSpacing.space3),
+                Text(
+                  createInvoiceState.error!,
+                  style: TossTextStyles.bodyLarge.copyWith(
+                    color: TossColors.error,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                SizedBox(height: TossSpacing.space3),
+                ElevatedButton(
+                  onPressed: () => ref.read(createInvoiceProvider.notifier).refresh(),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: TossColors.primary,
+                    foregroundColor: TossColors.white,
+                  ),
+                  child: Text('Retry'),
+                ),
+              ],
+            ),
+          );
+        }
+        
+        // Show empty state
+        if (createInvoiceState.sortedFilteredProducts.isEmpty) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.search_off,
+                  size: 64,
+                  color: TossColors.gray400,
+                ),
+                SizedBox(height: TossSpacing.space3),
+                Text(
+                  createInvoiceState.searchQuery.isNotEmpty 
+                      ? 'No products found for "${createInvoiceState.searchQuery}"'
+                      : 'No products available',
+                  style: TossTextStyles.bodyLarge.copyWith(
+                    color: TossColors.gray600,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          );
+        }
+        
+        return ListView.builder(
+          padding: EdgeInsets.all(TossSpacing.space4),
+          itemCount: createInvoiceState.sortedFilteredProducts.length,
+          itemBuilder: (context, index) {
+            final product = createInvoiceState.sortedFilteredProducts[index];
+            
+            return Container(
+              margin: EdgeInsets.only(bottom: TossSpacing.space3),
+              child: InkWell(
+                onTap: () {
+                  print('🔧 [CREATE_INVOICE] Product card clicked: ${product.productName}');
+                  final currentCount = ref.read(createInvoiceProvider.notifier).getProductCount(product.productId);
+                  _updateProductCount(product, currentCount + 1);
+                },
+                borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                child: TossWhiteCard(
+                  padding: EdgeInsets.all(TossSpacing.space3),
+                  child: Row(
+                    children: [
+                      // Product Image
+                      Container(
+                        width: 48,
+                        height: 48,
+                        decoration: BoxDecoration(
+                          color: TossColors.gray100,
+                          borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                        ),
+                        child: product.images.mainImage != null
+                            ? ClipRRect(
+                                borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                                child: Image.network(
+                                  product.images.mainImage!,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) =>
+                                      Icon(Icons.inventory_2, color: TossColors.gray400, size: 24),
+                                ),
+                              )
+                            : Icon(Icons.inventory_2, color: TossColors.gray400, size: 24),
+                      ),
+                      
+                      SizedBox(width: TossSpacing.space3),
+                      
+                      // Product Info
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              product.productName,
+                              style: TossTextStyles.body.copyWith(
+                                fontWeight: FontWeight.w600,
+                                color: TossColors.gray900,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            SizedBox(height: TossSpacing.space1),
+                            Row(
+                              children: [
+                                Text(
+                                  product.sku,
+                                  style: TossTextStyles.caption.copyWith(
+                                    color: TossColors.gray600,
+                                  ),
+                                ),
+                                if (product.firstStoreStock?.storeName != null) ...[
+                                  Text(
+                                    ' • ',
+                                    style: TossTextStyles.caption.copyWith(
+                                      color: TossColors.gray400,
+                                    ),
+                                  ),
+                                  Text(
+                                    '${product.availableQuantity} available',
+                                    style: TossTextStyles.caption.copyWith(
+                                      color: product.hasAvailableStock 
+                                          ? TossColors.success 
+                                          : TossColors.error,
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            ),
+                            SizedBox(height: TossSpacing.space1),
+                            // Product Price
+                            Consumer(
+                              builder: (context, ref, child) {
+                                final createInvoiceState = ref.watch(createInvoiceProvider);
+                                final currency = createInvoiceState.productData?.company.currency;
+                                final price = product.sellingPrice;
+                                
+                                if (price != null && price > 0) {
+                                  return Text(
+                                    '${currency?.symbol ?? ''}${currencyFormat.format(price)}',
+                                    style: TossTextStyles.body.copyWith(
+                                      color: TossColors.primary,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  );
+                                } else {
+                                  return Text(
+                                    'Price not set',
+                                    style: TossTextStyles.caption.copyWith(
+                                      color: TossColors.gray500,
+                                      fontStyle: FontStyle.italic,
+                                    ),
+                                  );
+                                }
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                      
+                      // Add indicator icon for selected items
+                      Consumer(
+                        builder: (context, ref, child) {
+                          final currentCount = ref.watch(createInvoiceProvider.notifier).getProductCount(product.productId);
+                          if (currentCount > 0) {
+                            return Container(
+                              padding: EdgeInsets.all(TossSpacing.space2),
+                              decoration: BoxDecoration(
+                                color: TossColors.primary,
+                                borderRadius: BorderRadius.circular(TossBorderRadius.sm),
+                              ),
+                              child: Text(
+                                currentCount.toString(),
+                                style: TossTextStyles.caption.copyWith(
+                                  color: TossColors.white,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            );
+                          }
+                          return Icon(
+                            Icons.add_circle_outline,
+                            color: TossColors.primary,
+                            size: TossSpacing.iconMD,
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
         );
       },
     );
   }
   
-  static List<Product> _generateSampleProducts() {
-    return [
-      Product(
-        id: '1',
-        sku: '1194GZ2BA745',
-        name: '고야드 가방 - GOYARD Bag',
-        category: ProductCategory.accessories,
-        productType: ProductType.simple,
-        brand: 'GOYARD',
-        costPrice: 3500000,
-        salePrice: 5100000,
-        onHand: 5,
-        reorderPoint: 2,
-        location: 'A-1-3',
-        images: [],
+  Widget _buildBottomButton() {
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.all(TossSpacing.space4),
+      decoration: BoxDecoration(
+        color: TossColors.white,
+        boxShadow: [
+          BoxShadow(
+            color: TossColors.gray300.withOpacity(0.3),
+            offset: Offset(0, -2),
+            blurRadius: 8,
+            spreadRadius: 0,
+          ),
+        ],
       ),
-      Product(
-        id: '2',
-        sku: '1193GZ2BA744',
-        name: '고야드 가방 - GOYARD Bag',
-        category: ProductCategory.accessories,
-        productType: ProductType.simple,
-        brand: 'GOYARD',
-        costPrice: 3200000,
-        salePrice: 4900000,
-        onHand: 0,
-        reorderPoint: 3,
-        location: 'A-1-4',
-        images: [],
+      child: Consumer(
+        builder: (context, ref, child) {
+          final createInvoiceState = ref.watch(createInvoiceProvider);
+          final hasSelectedItems = createInvoiceState.selectedProducts.isNotEmpty;
+          
+          return ElevatedButton(
+            onPressed: hasSelectedItems ? _proceedToNext : null,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: hasSelectedItems ? TossColors.primary : TossColors.gray300,
+              foregroundColor: TossColors.white,
+              padding: EdgeInsets.symmetric(vertical: TossSpacing.space3),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(TossBorderRadius.md),
+              ),
+              elevation: 0,
+            ),
+            child: Text(
+              'Next',
+              style: TossTextStyles.bodyLarge.copyWith(
+                fontWeight: FontWeight.w600,
+                color: TossColors.white,
+              ),
+            ),
+          );
+        },
       ),
-      Product(
-        id: '3',
-        sku: 'EL001',
-        name: 'iPhone 15 Pro Max',
-        category: ProductCategory.electronics,
-        productType: ProductType.simple,
-        brand: 'Apple',
-        costPrice: 1200000,
-        salePrice: 1590000,
-        onHand: 15,
-        reorderPoint: 5,
-        location: 'B-1-1',
-        images: [],
-      ),
-      Product(
-        id: '4',
-        sku: 'CL001',
-        name: '에르메스 실크 스카프',
-        category: ProductCategory.clothing,
-        productType: ProductType.simple,
-        brand: 'Hermes',
-        costPrice: 380000,
-        salePrice: 520000,
-        onHand: 3,
-        reorderPoint: 2,
-        location: 'C-1-1',
-        images: [],
-      ),
-      Product(
-        id: '5',
-        sku: 'SH001',
-        name: '로이스 레더 구두',
-        category: ProductCategory.shoes,
-        productType: ProductType.simple,
-        brand: 'Loyce',
-        costPrice: 250000,
-        salePrice: 380000,
-        onHand: 7,
-        reorderPoint: 3,
-        location: 'D-1-1',
-        images: [],
-      ),
-    ];
+    );
   }
+  
+  // Calculate total amount for selected products
+  double _calculateTotalAmount(List<SalesProduct> selectedProducts, Map<String, int> quantities) {
+    double total = 0.0;
+    for (final product in selectedProducts) {
+      final quantity = quantities[product.productId] ?? 0;
+      final price = product.sellingPrice ?? 0.0;
+      total += price * quantity;
+    }
+    return total;
+  }
+
+  void _proceedToNext() {
+    final createInvoiceState = ref.read(createInvoiceProvider);
+    
+    if (createInvoiceState.selectedProducts.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Please add at least one product'),
+          backgroundColor: TossColors.error,
+        ),
+      );
+      return;
+    }
+    
+    print('🚀 [CREATE_INVOICE] Proceeding to next step with ${createInvoiceState.totalSelectedItems} items');
+    print('📦 [CREATE_INVOICE] Selected products: ${createInvoiceState.selectedProducts}');
+    
+    // Get selected products and their quantities
+    final selectedProducts = <SalesProduct>[];
+    final productQuantities = Map<String, int>.from(createInvoiceState.selectedProducts);
+    
+    if (createInvoiceState.productData != null) {
+      for (final productId in createInvoiceState.selectedProducts.keys) {
+        try {
+          final product = createInvoiceState.productData!.products
+              .firstWhere((p) => p.productId == productId);
+          selectedProducts.add(product);
+        } catch (e) {
+          print('Warning: Product with ID $productId not found in product list');
+        }
+      }
+    }
+    
+    // Navigate to payment method selection page
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => PaymentMethodPage(
+          selectedProducts: selectedProducts,
+          productQuantities: productQuantities,
+        ),
+      ),
+    );
+  }
+  
 }

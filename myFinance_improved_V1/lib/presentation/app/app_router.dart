@@ -34,12 +34,13 @@ import '../pages/transactions/transaction_history_page.dart';
 import '../pages/transaction_template/transaction_template_page.dart';
 import '../pages/inventory_management/inventory_management.dart';
 import '../pages/inventory_management/inventory_management_page_v2.dart';
-import '../pages/inventory_management/models/product_model.dart';
+import '../pages/inventory_management/models/product_model.dart' as product_models;
 import '../pages/inventory_management/products/product_detail_page.dart';
 import '../pages/inventory_management/products/edit_product_page.dart';
 import '../pages/inventory_management/products/add_product_page.dart';
 import '../pages/inventory_management/reports/inventory_count_page.dart';
 import '../../data/models/inventory_models.dart' as inv_models;
+import '../../data/models/inventory_models.dart';
 import '../pages/inventory_analysis/supply_chain_dashboard.dart';
 import '../pages/sales_invoice/sales_invoice_page.dart';
 import '../pages/sales_invoice/create_invoice_page.dart';
@@ -596,7 +597,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: 'addProduct',
-                builder: (context, state) => const AddProductPage(),
+                builder: (context, state) {
+                  final metadata = state.extra is Map
+                      ? (state.extra as Map)['metadata'] as InventoryMetadata?
+                      : null;
+                  return AddProductPage(metadata: metadata);
+                },
               ),
               GoRoute(
                 path: 'editProduct',
@@ -613,6 +619,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   // Could use productId to fetch from database in the future
                   final extra = state.extra as Map<String, dynamic>?;
                   
+                  // Extract currency data from extra
+                  final currency = extra?['currency'] as inv_models.Currency?;
+                  
                   // Handle both InventoryProduct (from V2) and Product (from V1)
                   if (extra?['product'] != null) {
                     final productData = extra!['product'];
@@ -621,13 +630,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                     if (productData is inv_models.InventoryProduct) {
                       // Convert InventoryProduct to Product for compatibility
                       // For now, create a simple Product with available data
-                      final product = Product(
+                      final product = product_models.Product(
                         id: productData.id,
                         sku: productData.sku ?? 'SKU-UNKNOWN',
                         name: productData.name,
                         barcode: productData.barcode,
-                        category: ProductCategory.other,
-                        productType: ProductType.simple,
+                        category: product_models.ProductCategory.other,
+                        productType: product_models.ProductType.simple,
                         costPrice: productData.cost ?? 0,
                         salePrice: productData.price,
                         onHand: productData.stock,
@@ -636,11 +645,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                         brand: productData.brandName,
                         unit: productData.unit ?? 'piece',
                       );
-                      return ProductDetailPage(product: product);
+                      return ProductDetailPage(product: product, currency: currency);
                     }
                     // Handle old Product type
                     else if (productData is Product) {
-                      return ProductDetailPage(product: productData);
+                      return ProductDetailPage(product: productData, currency: currency);
                     }
                   }
                   

@@ -169,6 +169,35 @@ class LocationSummary {
   }
 }
 
+class CounterAccount {
+  final String accountId;
+  final String accountName;
+  final String accountType;
+  final double debit;
+  final double credit;
+  final String description;
+
+  CounterAccount({
+    required this.accountId,
+    required this.accountName,
+    required this.accountType,
+    required this.debit,
+    required this.credit,
+    required this.description,
+  });
+
+  factory CounterAccount.fromJson(Map<String, dynamic> json) {
+    return CounterAccount(
+      accountId: json['account_id']?.toString() ?? '',
+      accountName: json['account_name']?.toString() ?? '',
+      accountType: json['account_type']?.toString() ?? '',
+      debit: (json['debit'] ?? 0).toDouble(),
+      credit: (json['credit'] ?? 0).toDouble(),
+      description: json['description']?.toString() ?? '',
+    );
+  }
+}
+
 class JournalFlow {
   final String flowId;
   final String createdAt;
@@ -182,6 +211,7 @@ class JournalFlow {
   final String accountId;
   final String accountName;
   final CreatedBy createdBy;
+  final CounterAccount? counterAccount;
 
   JournalFlow({
     required this.flowId,
@@ -196,6 +226,7 @@ class JournalFlow {
     required this.accountId,
     required this.accountName,
     required this.createdBy,
+    this.counterAccount,
   });
 
   factory JournalFlow.fromJson(Map<String, dynamic> json) {
@@ -207,11 +238,14 @@ class JournalFlow {
       flowAmount: (json['flow_amount'] ?? 0).toDouble(),
       balanceAfter: (json['balance_after'] ?? 0).toDouble(),
       journalId: json['journal_id'] ?? '',
-      journalDescription: json['journal_description'] ?? '',
+      journalDescription: json['journal_description'] != null ? json['journal_description'].toString() : '',
       journalType: json['journal_type'] ?? '',
       accountId: json['account_id'] ?? '',
       accountName: json['account_name'] ?? '',
       createdBy: CreatedBy.fromJson(json['created_by'] ?? {}),
+      counterAccount: json['counter_account'] != null && json['counter_account'] is Map<String, dynamic>
+          ? CounterAccount.fromJson(json['counter_account'] as Map<String, dynamic>) 
+          : null,
     );
   }
 

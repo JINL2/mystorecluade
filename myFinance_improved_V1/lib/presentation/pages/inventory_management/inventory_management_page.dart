@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -8,6 +9,7 @@ import '../../widgets/toss/toss_list_tile.dart';
 import '../../widgets/toss/toss_search_field.dart';
 import '../../helpers/navigation_helper.dart';
 import 'models/product_model.dart';
+import 'providers/inventory_providers.dart';
 import 'package:myfinance_improved/core/themes/toss_border_radius.dart';
 class InventoryManagementPage extends ConsumerStatefulWidget {
   const InventoryManagementPage({Key? key}) : super(key: key);
@@ -18,6 +20,7 @@ class InventoryManagementPage extends ConsumerStatefulWidget {
 
 class _InventoryManagementPageState extends ConsumerState<InventoryManagementPage> {
   final TextEditingController _searchController = TextEditingController();
+  Timer? _searchDebounceTimer;
   
   // Filters
   StockStatus? _selectedStockStatus;
@@ -41,7 +44,18 @@ class _InventoryManagementPageState extends ConsumerState<InventoryManagementPag
   @override
   void dispose() {
     _searchController.dispose();
+    _searchDebounceTimer?.cancel();
     super.dispose();
+  }
+
+  void _onSearchChanged() {
+    // Cancel previous timer if it exists
+    _searchDebounceTimer?.cancel();
+    
+    // Start new timer for debouncing (300ms delay)
+    _searchDebounceTimer = Timer(const Duration(milliseconds: 300), () {
+      _applyFiltersAndSort();
+    });
   }
 
   void _applyFiltersAndSort() {
@@ -117,9 +131,13 @@ class _InventoryManagementPageState extends ConsumerState<InventoryManagementPag
       body: _buildSimpleProductList(),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
+          // Get inventory metadata before navigating
+          final metadata = await ref.read(inventoryMetadataProvider.future);
+          
           final result = await NavigationHelper.navigateTo(
             context,
             '/inventoryManagement/addProduct',
+            extra: {'metadata': metadata},
           );
           if (result != null && result is Product) {
             setState(() {
@@ -304,7 +322,7 @@ class _InventoryManagementPageState extends ConsumerState<InventoryManagementPag
             controller: _searchController,
             hintText: 'Search products...',
             onChanged: (value) {
-              _applyFiltersAndSort();
+              _onSearchChanged();
             },
           ),
         ),

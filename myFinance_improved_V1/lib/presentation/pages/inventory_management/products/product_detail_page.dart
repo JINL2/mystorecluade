@@ -16,11 +16,13 @@ import '../../../widgets/toss/toss_badge.dart';
 import '../../../widgets/toss/toss_list_tile.dart';
 import '../../../helpers/navigation_helper.dart';
 import '../models/product_model.dart';
+import '../../../../data/models/inventory_models.dart';
 import 'package:myfinance_improved/core/themes/toss_border_radius.dart';
 class ProductDetailPage extends ConsumerStatefulWidget {
   final Product product;
+  final Currency? currency;
 
-  const ProductDetailPage({Key? key, required this.product}) : super(key: key);
+  const ProductDetailPage({Key? key, required this.product, this.currency}) : super(key: key);
 
   @override
   ConsumerState<ProductDetailPage> createState() => _ProductDetailPageState();
@@ -43,7 +45,7 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
       extra: {'product': _product},
     );
     
-    if (result != null) {
+    if (result != null && result is Product) {
       setState(() {
         _product = result;
       });
@@ -767,7 +769,8 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
   }
 
   String _formatCurrency(double value) {
-    return '₩${value.toStringAsFixed(0).replaceAllMapped(
+    final currencySymbol = widget.currency?.symbol ?? '₩';
+    return '$currencySymbol${value.toStringAsFixed(0).replaceAllMapped(
       RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
       (Match m) => '${m[1]},',
     )}';

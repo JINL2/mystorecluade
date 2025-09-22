@@ -286,6 +286,225 @@ class InventoryService {
     }
   }
 
+  // Create new product
+  Future<Map<String, dynamic>?> createProduct({
+    required String companyId,
+    required String productName,
+    required String storeId,
+    String? sku,
+    String? barcode,
+    String? categoryId,
+    String? brandId,
+    String? unit,
+    double? costPrice,
+    double? sellingPrice,
+    int? initialQuantity,
+    String? imageUrl,
+    String? thumbnailUrl,
+    List<String>? imageUrls,
+  }) async {
+    try {
+      print('🔍 [INVENTORY_SERVICE] Starting createProduct');
+      print('📋 [INVENTORY_SERVICE] Params: companyId=$companyId, productName=$productName, storeId=$storeId');
+      
+      // Check Supabase client auth
+      final user = _client.auth.currentUser;
+      print('🔐 [INVENTORY_SERVICE] Auth user: ${user?.id}');
+      
+      final params = {
+        'p_company_id': companyId,
+        'p_product_name': productName,
+        'p_store_id': storeId,
+        'p_sku': sku,
+        'p_barcode': barcode,
+        'p_category_id': categoryId,
+        'p_brand_id': brandId,
+        'p_unit': unit,
+        'p_cost_price': costPrice,
+        'p_selling_price': sellingPrice,
+        'p_initial_quantity': initialQuantity,
+        'p_image_url': imageUrl,
+        'p_thumbnail_url': thumbnailUrl,
+        'p_image_urls': imageUrls,
+      };
+      print('📤 [INVENTORY_SERVICE] RPC params: $params');
+      
+      final response = await _client.rpc(
+        'inventory_create_product',
+        params: params,
+      ).single();
+
+      print('📥 [INVENTORY_SERVICE] Raw response: $response');
+      print('📊 [INVENTORY_SERVICE] Response type: ${response.runtimeType}');
+      
+      if (response != null) {
+        print('✅ [INVENTORY_SERVICE] Response is not null');
+        print('🔍 [INVENTORY_SERVICE] Response keys: ${response.keys.toList()}');
+        
+        // Check if response has a success wrapper or is direct data
+        if (response.containsKey('success')) {
+          // Response is wrapped with success/data structure
+          print('📦 [INVENTORY_SERVICE] Response has success wrapper');
+          if (response['success'] == true) {
+            print('✅ [INVENTORY_SERVICE] Product created successfully');
+            return response['data'] ?? response;
+          } else {
+            print('❌ [INVENTORY_SERVICE] Product creation failed');
+            if (response.containsKey('error')) {
+              print('❌ [INVENTORY_SERVICE] Error in response: ${response['error']}');
+            }
+            return null;
+          }
+        } else {
+          // Response is direct data (RPC returns data directly)
+          print('📦 [INVENTORY_SERVICE] Response is direct data (no success wrapper)');
+          return response;
+        }
+      } else {
+        print('❌ [INVENTORY_SERVICE] Response is null');
+      }
+      return null;
+    } catch (e, stackTrace) {
+      print('❌ [INVENTORY_SERVICE] Error creating product: $e');
+      print('📋 [INVENTORY_SERVICE] Stack trace: $stackTrace');
+      return null;
+    }
+  }
+
+  // Create new category
+  Future<Map<String, dynamic>?> createCategory({
+    required String companyId,
+    required String categoryName,
+    String? parentCategoryId,
+  }) async {
+    try {
+      print('🔍 [INVENTORY_SERVICE] Starting createCategory');
+      print('📋 [INVENTORY_SERVICE] Params: companyId=$companyId, categoryName=$categoryName, parentCategoryId=$parentCategoryId');
+      
+      // Check Supabase client auth
+      final user = _client.auth.currentUser;
+      print('🔐 [INVENTORY_SERVICE] Auth user: ${user?.id}');
+      
+      final params = {
+        'p_company_id': companyId,
+        'p_category_name': categoryName,
+        'p_parent_category_id': parentCategoryId,
+      };
+      print('📤 [INVENTORY_SERVICE] RPC params: $params');
+      
+      final response = await _client.rpc(
+        'inventory_create_category',
+        params: params,
+      ).single();
+
+      print('📥 [INVENTORY_SERVICE] Raw response: $response');
+      print('📊 [INVENTORY_SERVICE] Response type: ${response.runtimeType}');
+      
+      if (response != null) {
+        print('✅ [INVENTORY_SERVICE] Response is not null');
+        print('🔍 [INVENTORY_SERVICE] Response keys: ${response.keys.toList()}');
+        
+        // Check if response has a success wrapper or is direct data
+        if (response.containsKey('success')) {
+          // Response is wrapped with success/data structure
+          print('📦 [INVENTORY_SERVICE] Response has success wrapper');
+          if (response['success'] == true) {
+            print('✅ [INVENTORY_SERVICE] Category created successfully');
+            return response['data'] ?? response;
+          } else {
+            print('❌ [INVENTORY_SERVICE] Category creation failed');
+            if (response.containsKey('error')) {
+              print('❌ [INVENTORY_SERVICE] Error in response: ${response['error']}');
+            }
+            return null;
+          }
+        } else {
+          // Response is direct data (RPC returns data directly)
+          print('📦 [INVENTORY_SERVICE] Response is direct data (no success wrapper)');
+          return response;
+        }
+      } else {
+        print('❌ [INVENTORY_SERVICE] Response is null');
+      }
+      return null;
+    } catch (e, stackTrace) {
+      print('❌ [INVENTORY_SERVICE] Error creating category: $e');
+      print('📋 [INVENTORY_SERVICE] Stack trace: $stackTrace');
+      return null;
+    }
+  }
+
+  // Create new brand
+  Future<Map<String, dynamic>?> createBrand({
+    required String companyId,
+    required String brandName,
+    String? brandCode,
+  }) async {
+    try {
+      print('🔍 [INVENTORY_SERVICE] Starting createBrand');
+      print('📋 [INVENTORY_SERVICE] Params: companyId=$companyId, brandName=$brandName, brandCode=$brandCode');
+      
+      // Check Supabase client auth
+      final user = _client.auth.currentUser;
+      print('🔐 [INVENTORY_SERVICE] Auth user: ${user?.id}');
+      
+      final params = {
+        'p_company_id': companyId,
+        'p_brand_name': brandName,
+        'p_brand_code': brandCode,
+      };
+      print('📤 [INVENTORY_SERVICE] RPC params: $params');
+      
+      final response = await _client.rpc(
+        'inventory_create_brand',
+        params: params,
+      ).single();
+
+      print('📥 [INVENTORY_SERVICE] Raw response: $response');
+      print('📊 [INVENTORY_SERVICE] Response type: ${response.runtimeType}');
+      
+      if (response != null) {
+        print('✅ [INVENTORY_SERVICE] Response is not null');
+        print('🔍 [INVENTORY_SERVICE] Response keys: ${response.keys.toList()}');
+        
+        // Check if response has a success wrapper or is direct data
+        if (response.containsKey('success')) {
+          // Response is wrapped with success/data structure
+          print('📦 [INVENTORY_SERVICE] Response has success wrapper');
+          if (response['success'] == true) {
+            print('✅ [INVENTORY_SERVICE] Brand created successfully');
+            return response['data'] ?? response;
+          } else {
+            print('❌ [INVENTORY_SERVICE] Brand creation failed');
+            if (response.containsKey('error')) {
+              print('❌ [INVENTORY_SERVICE] Error in response: ${response['error']}');
+              // Return error details for UI to display
+              return {
+                'success': false,
+                'error': response['error'],
+              };
+            }
+            return {
+              'success': false,
+              'error': {'message': 'Unknown error occurred'},
+            };
+          }
+        } else {
+          // Response is direct data (RPC returns data directly)
+          print('📦 [INVENTORY_SERVICE] Response is direct data (no success wrapper)');
+          return response;
+        }
+      } else {
+        print('❌ [INVENTORY_SERVICE] Response is null');
+      }
+      return null;
+    } catch (e, stackTrace) {
+      print('❌ [INVENTORY_SERVICE] Error creating brand: $e');
+      print('📋 [INVENTORY_SERVICE] Stack trace: $stackTrace');
+      return null;
+    }
+  }
+
   // Update product stock
   Future<bool> updateProductStock({
     required String productId,
@@ -310,6 +529,216 @@ class InventoryService {
     } catch (e) {
       print('Error updating product stock: $e');
       return false;
+    }
+  }
+
+  // Get inventory product list for company (for sales invoice)
+  Future<Map<String, dynamic>?> getInventoryProductListCompany({
+    required String companyId,
+  }) async {
+    try {
+      print('🔍 [INVENTORY_SERVICE] Starting getInventoryProductListCompany');
+      print('📋 [INVENTORY_SERVICE] Params: companyId=$companyId');
+      
+      // Check Supabase client auth
+      final user = _client.auth.currentUser;
+      print('🔐 [INVENTORY_SERVICE] Auth user: ${user?.id}');
+      
+      final params = {
+        'p_company_id': companyId,
+      };
+      print('📤 [INVENTORY_SERVICE] RPC params: $params');
+      
+      final response = await _client.rpc(
+        'get_inventory_product_list_company',
+        params: params,
+      ).single();
+
+      print('📥 [INVENTORY_SERVICE] Raw response: $response');
+      print('📊 [INVENTORY_SERVICE] Response type: ${response.runtimeType}');
+      
+      if (response != null) {
+        print('✅ [INVENTORY_SERVICE] Response is not null');
+        print('🔍 [INVENTORY_SERVICE] Response keys: ${response.keys.toList()}');
+        
+        // Log sample product structure for debugging
+        if (response.containsKey('data') && response['data'] != null) {
+          final data = response['data'];
+          if (data.containsKey('products') && data['products'] is List && (data['products'] as List).isNotEmpty) {
+            final firstProduct = (data['products'] as List).first;
+            print('🔬 [INVENTORY_SERVICE] First product structure: $firstProduct');
+            print('🔬 [INVENTORY_SERVICE] First product type: ${firstProduct.runtimeType}');
+            if (firstProduct is Map && firstProduct.containsKey('images')) {
+              print('🔬 [INVENTORY_SERVICE] Images field: ${firstProduct['images']}');
+              print('🔬 [INVENTORY_SERVICE] Images type: ${firstProduct['images'].runtimeType}');
+            }
+          }
+        }
+        
+        // Check if response has a success wrapper or is direct data
+        if (response.containsKey('success')) {
+          // Response is wrapped with success/data structure
+          print('📦 [INVENTORY_SERVICE] Response has success wrapper');
+          if (response['success'] == true) {
+            print('✅ [INVENTORY_SERVICE] Success flag is true');
+            return response['data'] ?? response;
+          } else {
+            print('❌ [INVENTORY_SERVICE] Success flag is false');
+            if (response.containsKey('error')) {
+              print('❌ [INVENTORY_SERVICE] Error in response: ${response['error']}');
+            }
+            return null;
+          }
+        } else {
+          // Response is direct data (RPC returns data directly)
+          print('📦 [INVENTORY_SERVICE] Response is direct data (no success wrapper)');
+          return response;
+        }
+      } else {
+        print('❌ [INVENTORY_SERVICE] Response is null');
+      }
+      return null;
+    } catch (e, stackTrace) {
+      print('❌ [INVENTORY_SERVICE] Error fetching inventory product list: $e');
+      print('📋 [INVENTORY_SERVICE] Stack trace: $stackTrace');
+      return null;
+    }
+  }
+
+  // Get base currency and company currencies for payment methods
+  Future<Map<String, dynamic>?> getBaseCurrency({
+    required String companyId,
+  }) async {
+    try {
+      print('🔍 [INVENTORY_SERVICE] Starting getBaseCurrency');
+      print('📋 [INVENTORY_SERVICE] Params: companyId=$companyId');
+      
+      // Get current user
+      final user = _client.auth.currentUser;
+      if (user == null) {
+        print('❌ [INVENTORY_SERVICE] No authenticated user');
+        return null;
+      }
+
+      print('🔐 [INVENTORY_SERVICE] Auth user: ${user.id}');
+      
+      // Call RPC function
+      final rpcParams = {
+        'p_company_id': companyId,
+      };
+      
+      print('📤 [INVENTORY_SERVICE] RPC params: $rpcParams');
+      
+      final response = await _client.rpc(
+        'get_base_currency',
+        params: rpcParams,
+      ).single();
+      
+      print('📥 [INVENTORY_SERVICE] Raw response: $response');
+      print('📊 [INVENTORY_SERVICE] Response type: ${response.runtimeType}');
+      
+      if (response != null) {
+        print('✅ [INVENTORY_SERVICE] Response is not null');
+        print('🔍 [INVENTORY_SERVICE] Response keys: ${response is Map ? response.keys.toList() : 'Not a map'}');
+
+        // Check if response is a map and has the expected structure
+        if (response is Map<String, dynamic>) {
+          // Check if it has success wrapper
+          if (response.containsKey('success')) {
+            print('📦 [INVENTORY_SERVICE] Response has success wrapper');
+            if (response['success'] == true) {
+              print('✅ [INVENTORY_SERVICE] Success flag is true');
+              return response['data'] as Map<String, dynamic>? ?? response;
+            } else {
+              print('❌ [INVENTORY_SERVICE] Success flag is false');
+              print('📝 [INVENTORY_SERVICE] Error message: ${response['message'] ?? response['error']}');
+              return null;
+            }
+          } else {
+            // Response is direct data (RPC returns data directly)
+            print('📦 [INVENTORY_SERVICE] Response is direct data (no success wrapper)');
+            return response;
+          }
+        } else {
+          print('❌ [INVENTORY_SERVICE] Response is not a Map');
+          return null;
+        }
+      } else {
+        print('❌ [INVENTORY_SERVICE] Response is null');
+      }
+      return null;
+    } catch (e, stackTrace) {
+      print('❌ [INVENTORY_SERVICE] Error fetching base currency: $e');
+      print('📋 [INVENTORY_SERVICE] Stack trace: $stackTrace');
+      return null;
+    }
+  }
+
+  // Get cash locations for payment methods
+  Future<List<Map<String, dynamic>>?> getCashLocations({
+    required String companyId,
+    required String storeId,
+  }) async {
+    try {
+      print('🔍 [INVENTORY_SERVICE] Starting getCashLocations');
+      print('📋 [INVENTORY_SERVICE] Params: companyId=$companyId, storeId=$storeId');
+      
+      // Get current user
+      final user = _client.auth.currentUser;
+      if (user == null) {
+        print('❌ [INVENTORY_SERVICE] No authenticated user');
+        return null;
+      }
+
+      print('🔐 [INVENTORY_SERVICE] Auth user: ${user.id}');
+      
+      // Call RPC function
+      final rpcParams = {
+        'p_company_id': companyId,
+        'p_store_id': storeId,
+      };
+      
+      print('📤 [INVENTORY_SERVICE] RPC params: $rpcParams');
+      
+      final response = await _client.rpc(
+        'get_cash_locations',
+        params: rpcParams,
+      ).select();
+      
+      print('📥 [INVENTORY_SERVICE] Raw response: $response');
+      print('📊 [INVENTORY_SERVICE] Response type: ${response.runtimeType}');
+      
+      if (response != null) {
+        print('✅ [INVENTORY_SERVICE] Response is not null');
+        print('📊 [INVENTORY_SERVICE] Response type: ${response.runtimeType}');
+
+        // The RPC with .select() should return a List
+        if (response is List) {
+          print('📦 [INVENTORY_SERVICE] Response is a List');
+          print('📋 [INVENTORY_SERVICE] Cash locations count: ${response.length}');
+          
+          // Convert each item to Map<String, dynamic>
+          final List<Map<String, dynamic>> locations = [];
+          for (var item in response) {
+            if (item is Map<String, dynamic>) {
+              locations.add(item);
+            }
+          }
+          return locations;
+        } else {
+          print('❌ [INVENTORY_SERVICE] Unexpected response type: ${response.runtimeType}');
+          print('📝 [INVENTORY_SERVICE] Response: $response');
+          // Return empty list for unexpected types
+          return [];
+        }
+      } else {
+        print('❌ [INVENTORY_SERVICE] Response is null');
+      }
+      return null;
+    } catch (e, stackTrace) {
+      print('❌ [INVENTORY_SERVICE] Error fetching cash locations: $e');
+      print('📋 [INVENTORY_SERVICE] Stack trace: $stackTrace');
+      return null;
     }
   }
 }

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../data/services/inventory_service.dart';
 import '../../../../data/models/inventory_models.dart';
@@ -140,9 +141,16 @@ class InventoryPageState {
 class InventoryPageNotifier extends StateNotifier<InventoryPageState> {
   final Ref ref;
   final InventoryService _service;
+  Timer? _searchDebounceTimer;
   
   InventoryPageNotifier(this.ref, this._service) : super(InventoryPageState()) {
     _initialize();
+  }
+
+  @override
+  void dispose() {
+    _searchDebounceTimer?.cancel();
+    super.dispose();
   }
 
   Future<void> _initialize() async {
@@ -319,7 +327,15 @@ class InventoryPageNotifier extends StateNotifier<InventoryPageState> {
   void setSearchQuery(String? query) {
     if (state.searchQuery != query) {
       state = state.copyWith(searchQuery: query);
-      refresh();
+      
+      // Cancel previous timer if it exists
+      _searchDebounceTimer?.cancel();
+      
+      // Use shorter debounce since TossSearchField already debounces
+      // This provides a quick response while preventing excessive API calls
+      _searchDebounceTimer = Timer(const Duration(milliseconds: 100), () {
+        refresh();
+      });
     }
   }
 
