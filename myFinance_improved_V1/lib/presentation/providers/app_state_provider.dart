@@ -43,12 +43,20 @@ class AppState {
   }
 
   factory AppState.fromJson(Map<String, dynamic> json) {
+    // Handle both String and Map types for backward compatibility
+    String extractId(dynamic value, String idKey) {
+      if (value == null) return '';
+      if (value is String) return value;
+      if (value is Map) return value[idKey]?.toString() ?? '';
+      return value.toString();
+    }
+    
     return AppState(
       categoryFeatures: json['categoryFeatures'] ?? [],
       user: json['user'] ?? {},
       // Load persisted values or default to empty string
-      companyChoosen: (json['companyChoosen'] ?? '').toString(),
-      storeChoosen: (json['storeChoosen'] ?? '').toString(),
+      companyChoosen: extractId(json['companyChoosen'], 'company_id'),
+      storeChoosen: extractId(json['storeChoosen'], 'store_id'),
     );
   }
 }

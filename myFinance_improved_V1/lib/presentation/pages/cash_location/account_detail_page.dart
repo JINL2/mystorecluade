@@ -415,6 +415,26 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
     return '$symbol${formatter.format(amount.round())}';
   }
   
+  String _getJournalDisplayText(JournalFlow flow) {
+    // Priority: 1. Counter account name (always show if available)
+    // 2. Journal description (fallback if no counter account)
+    // 3. Default text if neither available
+    
+    if (flow.counterAccount != null && 
+        flow.counterAccount!.accountName.isNotEmpty) {
+      // Always show counter account name when available
+      return flow.counterAccount!.accountName;
+    }
+    
+    // Fallback to description if no counter account
+    if (flow.journalDescription.isNotEmpty) {
+      return flow.journalDescription;
+    }
+    
+    // Default fallback
+    return 'Transaction';
+  }
+  
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -1812,7 +1832,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  flow.journalDescription,
+                  _getJournalDisplayText(flow),
                   style: TossTextStyles.body.copyWith(
                     fontWeight: FontWeight.w600,
                     fontSize: 16,
@@ -2102,7 +2122,11 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              flow.journalDescription,
+                              flow.journalDescription.isNotEmpty 
+                                  ? flow.journalDescription
+                                  : (flow.counterAccount?.description?.isNotEmpty == true
+                                      ? flow.counterAccount!.description
+                                      : 'No description'),
                               style: TossTextStyles.body.copyWith(
                                 fontWeight: FontWeight.w600,
                                 fontSize: 16,
@@ -2142,6 +2166,10 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
                       
                       // Transaction details
                       _buildDetailRow('Account', flow.accountName),
+                      if (flow.counterAccount != null) ...[
+                        _buildDetailRow('Counter Account', flow.counterAccount!.accountName),
+                        _buildDetailRow('Account Type', flow.counterAccount!.accountType),
+                      ],
                       _buildDetailRow('Type', flow.journalType),
                       _buildDetailRow('Created By', flow.createdBy.fullName),
                       _buildDetailRow('Date', DateFormat('MMM d, yyyy').format(DateTime.parse(flow.createdAt))),

@@ -656,7 +656,7 @@
         
         .price-value {
             font-weight: 600;
-            color: var(--text-primary);
+            color: var(--toss-primary);
             text-align: center;
             display: inline-block;
         }
@@ -3447,10 +3447,10 @@
                                 <span class="quantity-value ${quantityClass}">${quantity}</span>
                             </td>
                             <td class="price-cell" data-label="Price">
-                                <div class="price-value">${this.currencySymbol}${this.formatPrice(price)}</div>
+                                <div class="price-value">${this.formatPrice(price)}</div>
                             </td>
                             <td class="cost-cell" data-label="Cost">
-                                <div class="cost-value">${this.currencySymbol}${this.formatPrice(cost)}</div>
+                                <div class="cost-value">${this.formatPrice(cost)}</div>
                             </td>
                             <td class="status-cell" data-label="Status">
                                 <span class="status-badge ${statusClass}">
@@ -3710,11 +3710,18 @@
             }
             
             formatPrice(price, includeCurrency = false) {
-                // Remove decimal places and add comma separators
-                // Convert to integer to remove decimals, then format with commas
-                const formattedNumber = Math.floor(price).toLocaleString();
+                // Convert price to number and handle zero values
+                const numericPrice = parseFloat(price) || 0;
                 
-                // Add currency symbol if requested
+                // For zero values, return just "0"
+                if (numericPrice === 0) {
+                    return '0';
+                }
+                
+                // For non-zero values, remove decimal places and add comma separators
+                const formattedNumber = Math.floor(numericPrice).toLocaleString();
+                
+                // Add currency symbol if requested (legacy support)
                 if (includeCurrency) {
                     return `${this.currencySymbol}${formattedNumber}`;
                 }

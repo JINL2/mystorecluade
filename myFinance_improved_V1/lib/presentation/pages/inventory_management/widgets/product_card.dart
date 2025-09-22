@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../core/themes/index.dart';
 import '../models/product_model.dart';
+import '../../../../data/models/inventory_models.dart';
 import 'package:myfinance_improved/core/themes/toss_border_radius.dart';
 class ProductCard extends StatelessWidget {
   final Product product;
@@ -8,6 +9,7 @@ class ProductCard extends StatelessWidget {
   final bool isSelectionMode;
   final VoidCallback onTap;
   final VoidCallback onLongPress;
+  final Currency? currency;
 
   const ProductCard({
     Key? key,
@@ -16,6 +18,7 @@ class ProductCard extends StatelessWidget {
     this.isSelectionMode = false,
     required this.onTap,
     required this.onLongPress,
+    this.currency,
   }) : super(key: key);
 
   @override
@@ -177,7 +180,7 @@ class ProductCard extends StatelessWidget {
   Widget _buildPlaceholder() {
     return Container(
       decoration: BoxDecoration(
-        color: TossColors.gray500[200],
+        color: TossColors.gray200,
         borderRadius: const BorderRadius.vertical(
           top: Radius.circular(12),
         ),
@@ -250,12 +253,13 @@ class ProductCard extends StatelessWidget {
   }
 
   String _formatCurrency(double value) {
+    final currencySymbol = currency?.symbol ?? '₩';
     if (value >= 1000000) {
-      return '₩${(value / 1000000).toStringAsFixed(1)}M';
+      return '$currencySymbol${(value / 1000000).toStringAsFixed(1)}M';
     } else if (value >= 1000) {
-      return '₩${(value / 1000).toStringAsFixed(0)}K';
+      return '$currencySymbol${(value / 1000).toStringAsFixed(0)}K';
     }
-    return '₩${value.toStringAsFixed(0)}';
+    return '$currencySymbol${value.toStringAsFixed(0)}';
   }
 }
 
@@ -265,6 +269,7 @@ class ProductListTile extends StatelessWidget {
   final bool isSelectionMode;
   final VoidCallback onTap;
   final VoidCallback onLongPress;
+  final Currency? currency;
 
   const ProductListTile({
     Key? key,
@@ -273,6 +278,7 @@ class ProductListTile extends StatelessWidget {
     this.isSelectionMode = false,
     required this.onTap,
     required this.onLongPress,
+    this.currency,
   }) : super(key: key);
 
   @override
@@ -389,11 +395,12 @@ class ProductListTile extends StatelessWidget {
   }
 
   String _formatCurrency(double value) {
+    final currencySymbol = currency?.symbol ?? '₩';
     if (value >= 1000000) {
-      return '₩${(value / 1000000).toStringAsFixed(1)}M';
+      return '$currencySymbol${(value / 1000000).toStringAsFixed(1)}M';
     } else if (value >= 1000) {
-      return '₩${(value / 1000).toStringAsFixed(0)}K';
+      return '$currencySymbol${(value / 1000).toStringAsFixed(0)}K';
     }
-    return '₩${value.toStringAsFixed(0)}';
+    return '$currencySymbol${value.toStringAsFixed(0)}';
   }
 }

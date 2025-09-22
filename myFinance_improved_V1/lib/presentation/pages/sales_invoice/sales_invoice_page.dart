@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:intl/intl.dart';
 import '../../../core/constants/app_icons_fa.dart';
 import '../../../core/themes/toss_colors.dart';
 import '../../../core/themes/toss_text_styles.dart';
@@ -12,6 +13,8 @@ import '../../widgets/common/toss_white_card.dart';
 import '../../widgets/toss/toss_search_field.dart';
 import '../../helpers/navigation_helper.dart';
 import 'package:myfinance_improved/core/themes/index.dart';
+import 'models/invoice_models.dart';
+import 'providers/invoice_provider.dart';
 
 class SalesInvoicePage extends ConsumerStatefulWidget {
   const SalesInvoicePage({Key? key}) : super(key: key);
@@ -22,13 +25,16 @@ class SalesInvoicePage extends ConsumerStatefulWidget {
 
 class _SalesInvoicePageState extends ConsumerState<SalesInvoicePage> {
   final TextEditingController _searchController = TextEditingController();
-  
-  // Filter states
-  String _selectedPeriod = 'This month';
-  
-  // Sorting
-  String _sortBy = 'Date';
-  bool _sortAscending = false;
+  final currencyFormat = NumberFormat.currency(symbol: '', decimalDigits: 0);
+
+  @override
+  void initState() {
+    super.initState();
+    // Load invoices when page loads
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(invoicePageProvider.notifier).loadInvoices();
+    });
+  }
 
   @override
   void dispose() {
@@ -38,6 +44,7 @@ class _SalesInvoicePageState extends ConsumerState<SalesInvoicePage> {
 
   @override
   Widget build(BuildContext context) {
+    final invoiceState = ref.watch(invoicePageProvider);
     return TossScaffold(
       backgroundColor: TossColors.gray100,
       appBar: AppBar(
@@ -46,7 +53,7 @@ class _SalesInvoicePageState extends ConsumerState<SalesInvoicePage> {
           onPressed: () => NavigationHelper.safeGoBack(context),
         ),
         title: Text(
-          'Inventory count',
+          'Sales Invoice',
           style: TossTextStyles.h3.copyWith(
             fontWeight: FontWeight.bold,
           ),
@@ -72,26 +79,87 @@ class _SalesInvoicePageState extends ConsumerState<SalesInvoicePage> {
   }
 
   Widget _buildBody() {
-    return SingleChildScrollView(
-      child: Column(
-        children: [
-          // Search and Filter Section
-          _buildSearchFilterSection(),
-          
-          // This month section with voucher count
-          _buildVoucherCountSection(),
-          
-          // Invoice list grouped by date
-          _buildInvoiceList(),
-          
-          // Bottom padding for FAB
-          SizedBox(height: 80),
-        ],
+    final invoiceState = ref.watch(invoicePageProvider);
+    
+    if (invoiceState.isLoading && invoiceState.response == null) {
+      return Center(
+        child: CircularProgressIndicator(
+          valueColor: AlwaysStoppedAnimation<Color>(TossColors.primary),
+        ),
+      );
+    }
+    
+    if (invoiceState.error != null) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.error_outline,
+              size: 64,
+              color: TossColors.error,
+            ),
+            SizedBox(height: TossSpacing.space3),
+            Text(
+              'Error loading invoices',
+              style: TossTextStyles.bodyLarge.copyWith(
+                color: TossColors.gray600,
+              ),
+            ),
+            SizedBox(height: TossSpacing.space2),
+            Text(
+              invoiceState.error!,
+              style: TossTextStyles.caption.copyWith(
+                color: TossColors.gray500,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            SizedBox(height: TossSpacing.space4),
+            ElevatedButton(
+              onPressed: () {
+                ref.read(invoicePageProvider.notifier).loadInvoices();
+              },
+              child: Text('Retry'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: TossColors.primary,
+                foregroundColor: TossColors.white,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+    
+    return RefreshIndicator(
+      onRefresh: () => ref.read(invoicePageProvider.notifier).refresh(),
+      color: TossColors.primary,
+      child: SingleChildScrollView(
+        physics: AlwaysScrollableScrollPhysics(),
+        child: Column(
+          children: [
+            // Search and Filter Section
+            _buildSearchFilterSection(),
+            
+            // This month section with invoice count
+            _buildVoucherCountSection(),
+            
+            // Invoice list grouped by date
+            _buildInvoiceList(),
+            
+            // Pagination controls
+            if (invoiceState.response != null) _buildPaginationControls(),
+            
+            // Bottom padding for FAB
+            SizedBox(height: 80),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildSearchFilterSection() {
+    final invoiceState = ref.watch(invoicePageProvider);
+    
     return Column(
       children: [
         // Filter and Sort Controls
@@ -143,7 +211,7 @@ class _SalesInvoicePageState extends ConsumerState<SalesInvoicePage> {
                         SizedBox(width: TossSpacing.space2),
                         Expanded(
                           child: Text(
-                            _selectedPeriod,
+                            invoiceState.selectedPeriod.displayName,
                             style: TossTextStyles.labelLarge.copyWith(
                               color: TossColors.gray700,
                             ),
@@ -191,16 +259,16 @@ class _SalesInvoicePageState extends ConsumerState<SalesInvoicePage> {
                         SizedBox(width: TossSpacing.space2),
                         Expanded(
                           child: Text(
-                            _sortBy,
+                            invoiceState.sortBy.displayName,
                             style: TossTextStyles.labelLarge.copyWith(
                               color: TossColors.gray700,
                             ),
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        if (_sortBy != 'Date')
+                        if (invoiceState.sortBy != InvoiceSortOption.date)
                           Icon(
-                            _sortAscending
+                            invoiceState.sortAscending
                               ? Icons.arrow_upward_rounded
                               : Icons.arrow_downward_rounded,
                             size: 16,
@@ -233,7 +301,7 @@ class _SalesInvoicePageState extends ConsumerState<SalesInvoicePage> {
             controller: _searchController,
             hintText: 'Search invoices...',
             onChanged: (value) {
-              // Handle search
+              ref.read(invoicePageProvider.notifier).updateSearch(value);
             },
           ),
         ),
@@ -242,6 +310,14 @@ class _SalesInvoicePageState extends ConsumerState<SalesInvoicePage> {
   }
 
   Widget _buildVoucherCountSection() {
+    final invoiceState = ref.watch(invoicePageProvider);
+    final summary = invoiceState.response?.summary;
+    final currency = invoiceState.response?.currency;
+    
+    if (summary == null) {
+      return SizedBox.shrink();
+    }
+    
     return Container(
       margin: EdgeInsets.symmetric(horizontal: TossSpacing.space4),
       child: TossWhiteCard(
@@ -271,19 +347,29 @@ class _SalesInvoicePageState extends ConsumerState<SalesInvoicePage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'This month',
+                    invoiceState.selectedPeriod.displayName,
                     style: TossTextStyles.caption.copyWith(
                       color: TossColors.gray600,
                     ),
                   ),
                   SizedBox(height: TossSpacing.space1),
                   Text(
-                    '581 vouchers',
+                    '${summary.periodTotal.invoiceCount} invoices',
                     style: TossTextStyles.h3.copyWith(
                       fontWeight: FontWeight.w700,
                       color: TossColors.gray900,
                     ),
                   ),
+                  if (summary.periodTotal.totalAmount > 0) ...[
+                    SizedBox(height: TossSpacing.space1),
+                    Text(
+                      '${currency?.symbol ?? ''}${currencyFormat.format(summary.periodTotal.totalAmount)}',
+                      style: TossTextStyles.body.copyWith(
+                        color: TossColors.primary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -300,50 +386,44 @@ class _SalesInvoicePageState extends ConsumerState<SalesInvoicePage> {
   }
 
   Widget _buildInvoiceList() {
-    // Sample data structure
-    final invoiceGroups = [
-      {
-        'date': 'Today, 31/08/2025',
-        'invoices': [
-          {
-            'id': 'IV20250831-001',
-            'time': '15:30',
-            'user': 'Phương Quyên',
-            'products': 58,
-            'completed': true,
-          },
-          {
-            'id': 'IV20250831-002',
-            'time': '14:00',
-            'user': 'Nguyễn Văn A',
-            'products': 45,
-            'completed': true,
-          },
-        ],
-      },
-      {
-        'date': 'Thursday, 28/08/2025',
-        'invoices': [
-          {
-            'id': 'IV20250828-001',
-            'time': '16:45',
-            'user': 'Trần Thị B',
-            'products': 72,
-            'completed': true,
-          },
-          {
-            'id': 'IV20250828-002',
-            'time': '10:30',
-            'user': 'Lê Văn C',
-            'products': 33,
-            'completed': false,
-          },
-        ],
-      },
-    ];
+    final invoiceState = ref.watch(invoicePageProvider);
+    final groupedInvoices = invoiceState.groupedInvoices;
+    
+    if (groupedInvoices.isEmpty) {
+      return Container(
+        margin: EdgeInsets.all(TossSpacing.space4),
+        padding: EdgeInsets.all(TossSpacing.space8),
+        child: Column(
+          children: [
+            Icon(
+              Icons.receipt_long_outlined,
+              size: 64,
+              color: TossColors.gray400,
+            ),
+            SizedBox(height: TossSpacing.space3),
+            Text(
+              'No invoices found',
+              style: TossTextStyles.bodyLarge.copyWith(
+                color: TossColors.gray600,
+              ),
+            ),
+            SizedBox(height: TossSpacing.space2),
+            Text(
+              'Create your first invoice to get started',
+              style: TossTextStyles.caption.copyWith(
+                color: TossColors.gray500,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
 
     return Column(
-      children: invoiceGroups.map((group) {
+      children: groupedInvoices.entries.map((entry) {
+        final dateKey = entry.key;
+        final invoices = entry.value;
+        
         return Container(
           margin: EdgeInsets.only(
             left: TossSpacing.space4,
@@ -374,7 +454,7 @@ class _SalesInvoicePageState extends ConsumerState<SalesInvoicePage> {
                       ),
                       SizedBox(width: TossSpacing.space2),
                       Text(
-                        group['date'] as String,
+                        dateKey,
                         style: TossTextStyles.body.copyWith(
                           fontWeight: FontWeight.w600,
                           color: TossColors.gray900,
@@ -385,13 +465,10 @@ class _SalesInvoicePageState extends ConsumerState<SalesInvoicePage> {
                 ),
                 
                 // Invoice items
-                ...(group['invoices'] as List<Map<String, dynamic>>)
-                    .asMap()
-                    .entries
-                    .map((entry) {
+                ...invoices.asMap().entries.map((entry) {
                   final index = entry.key;
                   final invoice = entry.value;
-                  final isLast = index == (group['invoices'] as List).length - 1;
+                  final isLast = index == invoices.length - 1;
                   
                   return Column(
                     children: [
@@ -414,10 +491,15 @@ class _SalesInvoicePageState extends ConsumerState<SalesInvoicePage> {
     );
   }
 
-  Widget _buildInvoiceItem(Map<String, dynamic> invoice) {
+  Widget _buildInvoiceItem(Invoice invoice) {
+    final currency = ref.watch(invoicePageProvider).response?.currency;
     return InkWell(
       onTap: () {
         // Navigate to invoice detail
+        // NavigationHelper.navigateTo(
+        //   context,
+        //   '/salesInvoice/detail/${invoice.invoiceId}',
+        // );
       },
       child: Container(
         padding: EdgeInsets.all(TossSpacing.space4),
@@ -427,7 +509,7 @@ class _SalesInvoicePageState extends ConsumerState<SalesInvoicePage> {
             Container(
               width: 50,
               child: Text(
-                invoice['time'],
+                invoice.timeString,
                 style: TossTextStyles.caption.copyWith(
                   color: TossColors.gray600,
                 ),
@@ -440,18 +522,33 @@ class _SalesInvoicePageState extends ConsumerState<SalesInvoicePage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    invoice['id'],
-                    style: TossTextStyles.body.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: TossColors.gray900,
-                    ),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          invoice.invoiceNumber,
+                          style: TossTextStyles.body.copyWith(
+                            fontWeight: FontWeight.w600,
+                            color: TossColors.gray900,
+                          ),
+                        ),
+                      ),
+                      if (invoice.amounts.totalAmount > 0) ...[
+                        Text(
+                          '${currency?.symbol ?? ''}${currencyFormat.format(invoice.amounts.totalAmount)}',
+                          style: TossTextStyles.body.copyWith(
+                            color: TossColors.primary,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ],
                   ),
                   SizedBox(height: TossSpacing.space1),
                   Row(
                     children: [
                       Text(
-                        invoice['user'],
+                        invoice.customer?.name ?? invoice.createdBy?.name ?? 'Walk-in',
                         style: TossTextStyles.caption.copyWith(
                           color: TossColors.gray600,
                         ),
@@ -465,7 +562,7 @@ class _SalesInvoicePageState extends ConsumerState<SalesInvoicePage> {
                       ),
                       SizedBox(width: TossSpacing.space2),
                       Text(
-                        '${invoice['products']} products',
+                        '${invoice.itemsSummary.itemCount} products',
                         style: TossTextStyles.caption.copyWith(
                           color: TossColors.gray600,
                         ),
@@ -476,8 +573,10 @@ class _SalesInvoicePageState extends ConsumerState<SalesInvoicePage> {
               ),
             ),
             
+            SizedBox(width: TossSpacing.space2),
+            
             // Status icon
-            if (invoice['completed'] == true)
+            if (invoice.isCompleted)
               Container(
                 width: 24,
                 height: 24,
@@ -491,7 +590,7 @@ class _SalesInvoicePageState extends ConsumerState<SalesInvoicePage> {
                   color: TossColors.success,
                 ),
               )
-            else
+            else if (invoice.isDraft)
               Container(
                 width: 24,
                 height: 24,
@@ -504,6 +603,20 @@ class _SalesInvoicePageState extends ConsumerState<SalesInvoicePage> {
                   size: 16,
                   color: TossColors.warning,
                 ),
+              )
+            else if (invoice.isCancelled)
+              Container(
+                width: 24,
+                height: 24,
+                decoration: BoxDecoration(
+                  color: TossColors.error.withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.close,
+                  size: 16,
+                  color: TossColors.error,
+                ),
               ),
           ],
         ),
@@ -511,7 +624,65 @@ class _SalesInvoicePageState extends ConsumerState<SalesInvoicePage> {
     );
   }
 
+  Widget _buildPaginationControls() {
+    final invoiceState = ref.watch(invoicePageProvider);
+    final pagination = invoiceState.response?.pagination;
+    
+    if (pagination == null || pagination.totalPages <= 1) {
+      return SizedBox.shrink();
+    }
+    
+    return Container(
+      margin: EdgeInsets.all(TossSpacing.space4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          // Previous button
+          IconButton(
+            onPressed: pagination.hasPrev
+                ? () => ref.read(invoicePageProvider.notifier).previousPage()
+                : null,
+            icon: Icon(Icons.chevron_left),
+            color: TossColors.primary,
+            disabledColor: TossColors.gray400,
+          ),
+          
+          // Page indicator
+          Container(
+            padding: EdgeInsets.symmetric(
+              horizontal: TossSpacing.space4,
+              vertical: TossSpacing.space2,
+            ),
+            decoration: BoxDecoration(
+              color: TossColors.primary.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(TossBorderRadius.sm),
+            ),
+            child: Text(
+              'Page ${pagination.page} of ${pagination.totalPages}',
+              style: TossTextStyles.body.copyWith(
+                color: TossColors.primary,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          
+          // Next button
+          IconButton(
+            onPressed: pagination.hasNext
+                ? () => ref.read(invoicePageProvider.notifier).nextPage()
+                : null,
+            icon: Icon(Icons.chevron_right),
+            color: TossColors.primary,
+            disabledColor: TossColors.gray400,
+          ),
+        ],
+      ),
+    );
+  }
+
   void _showFilterSheet() {
+    final invoiceState = ref.read(invoicePageProvider);
+    
     showModalBottomSheet(
       context: context,
       backgroundColor: TossColors.transparent,
@@ -549,11 +720,12 @@ class _SalesInvoicePageState extends ConsumerState<SalesInvoicePage> {
             ),
             
             // Filter options
-            _buildFilterOption('Today', _selectedPeriod == 'Today'),
-            _buildFilterOption('This week', _selectedPeriod == 'This week'),
-            _buildFilterOption('This month', _selectedPeriod == 'This month'),
-            _buildFilterOption('Last month', _selectedPeriod == 'Last month'),
-            _buildFilterOption('All time', _selectedPeriod == 'All time'),
+            for (final period in InvoicePeriod.values)
+              _buildFilterOption(
+                period.displayName, 
+                invoiceState.selectedPeriod == period,
+                () => ref.read(invoicePageProvider.notifier).updatePeriod(period),
+              ),
             
             SizedBox(height: MediaQuery.of(context).padding.bottom + TossSpacing.space4),
           ],
@@ -563,6 +735,8 @@ class _SalesInvoicePageState extends ConsumerState<SalesInvoicePage> {
   }
 
   void _showSortSheet() {
+    final invoiceState = ref.read(invoicePageProvider);
+    
     showModalBottomSheet(
       context: context,
       backgroundColor: TossColors.transparent,
@@ -600,10 +774,13 @@ class _SalesInvoicePageState extends ConsumerState<SalesInvoicePage> {
             ),
             
             // Sort options
-            _buildSortOption('Date', Icons.calendar_today, _sortBy == 'Date'),
-            _buildSortOption('Invoice ID', Icons.tag, _sortBy == 'Invoice ID'),
-            _buildSortOption('User', Icons.person, _sortBy == 'User'),
-            _buildSortOption('Products', Icons.inventory_2, _sortBy == 'Products'),
+            for (final sortOption in InvoiceSortOption.values)
+              _buildSortOption(
+                sortOption.displayName, 
+                sortOption.icon, 
+                invoiceState.sortBy == sortOption,
+                () => ref.read(invoicePageProvider.notifier).updateSort(sortOption),
+              ),
             
             SizedBox(height: MediaQuery.of(context).padding.bottom + TossSpacing.space4),
           ],
@@ -612,14 +789,12 @@ class _SalesInvoicePageState extends ConsumerState<SalesInvoicePage> {
     );
   }
 
-  Widget _buildFilterOption(String title, bool isSelected) {
+  Widget _buildFilterOption(String title, bool isSelected, VoidCallback onTap) {
     return Material(
       color: TossColors.transparent,
       child: InkWell(
         onTap: () {
-          setState(() {
-            _selectedPeriod = title;
-          });
+          onTap();
           Navigator.pop(context);
         },
         child: Container(
@@ -651,19 +826,14 @@ class _SalesInvoicePageState extends ConsumerState<SalesInvoicePage> {
     );
   }
 
-  Widget _buildSortOption(String title, IconData icon, bool isSelected) {
+  Widget _buildSortOption(String title, IconData icon, bool isSelected, VoidCallback onTap) {
+    final invoiceState = ref.read(invoicePageProvider);
+    
     return Material(
       color: TossColors.transparent,
       child: InkWell(
         onTap: () {
-          setState(() {
-            if (_sortBy == title) {
-              _sortAscending = !_sortAscending;
-            } else {
-              _sortBy = title;
-              _sortAscending = false;
-            }
-          });
+          onTap();
           Navigator.pop(context);
         },
         child: Container(
@@ -690,7 +860,7 @@ class _SalesInvoicePageState extends ConsumerState<SalesInvoicePage> {
               ),
               if (isSelected) ...[
                 Icon(
-                  _sortAscending
+                  invoiceState.sortAscending
                     ? Icons.arrow_upward_rounded
                     : Icons.arrow_downward_rounded,
                   size: 16,

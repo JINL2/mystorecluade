@@ -255,16 +255,20 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
                   // Pinned Hello Section
                   _buildPinnedHelloSection(context, userData, selectedCompany, selectedStore),
                   
-                  // Revenue Card Section (only show if store is selected AND user has revenue feature)
+                  // Revenue Card Section (only show if store is selected AND user has revenue feature AND user has companies)
                   if (ref.watch(appStateProvider).storeChoosen.isNotEmpty && 
-                      _hasRevenueFeature(ref))
+                      _hasRevenueFeature(ref) &&
+                      userData != null && 
+                      (userData['companies'] as List<dynamic>? ?? []).isNotEmpty)
                     SliverToBoxAdapter(
                       child: const RevenueCard(),
                     ),
                   
-                  // Shift Overview Card Section (show if store selected but NO revenue feature)
+                  // Shift Overview Card Section (show if store selected but NO revenue feature AND user has companies)
                   if (ref.watch(appStateProvider).storeChoosen.isNotEmpty && 
-                      !_hasRevenueFeature(ref))
+                      !_hasRevenueFeature(ref) &&
+                      userData != null && 
+                      (userData['companies'] as List<dynamic>? ?? []).isNotEmpty)
                     SliverToBoxAdapter(
                       child: _buildShiftOverviewCard(ref),
                     ),

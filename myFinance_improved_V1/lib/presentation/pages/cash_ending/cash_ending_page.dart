@@ -311,7 +311,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
         if (!controllers.containsKey(currencyId)) {
           controllers[currencyId] = {};
         }
-        final denomValue = denom['value'].toString();
+        final denomValue = (denom['value'] ?? 0).toString();
         if (!controllers[currencyId]!.containsKey(denomValue)) {
           controllers[currencyId]![denomValue] = TextEditingController();
         }
@@ -1746,7 +1746,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
         ),
         const SizedBox(height: TossSpacing.space5),
         ...denominations.map((denom) {
-          final denomValue = denom['value'].toString();
+          final denomValue = (denom['value'] ?? 0).toString();
           final controller = controllers[denomValue] ?? TextEditingController();
           return _buildDenominationInput(
             denomination: denom,
@@ -1944,7 +1944,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
           Flexible(
             flex: 3,
             child: Text(
-              _calculateSubtotal(denomination['value'].toString(), controller.text, currencySymbol),
+              _calculateSubtotal(_getDenominationValueAsString(denomination), controller.text, currencySymbol),
               style: TossTextStyles.body.copyWith(
                 fontWeight: FontWeight.w600,
                 color: TossColors.gray900,
@@ -2073,8 +2073,6 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
                   const SizedBox(height: TossSpacing.space8),
                   _buildBankAmountInput(),
                   const SizedBox(height: TossSpacing.space6),
-                  _buildBankCurrencySelector(),
-                  const SizedBox(height: TossSpacing.space6),
                   _buildBankSaveButton(),
                 ],
               ],
@@ -2194,12 +2192,14 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
     final hasCurrency = selectedBankCurrencyType != null;
     final isEnabled = hasAmount && hasCurrency;
     
-    return TossPrimaryButton(
-      text: 'Save Bank Balance',
-      onPressed: isEnabled ? () async {
-        await _saveBankBalance();
-      } : null,
-      isLoading: false,
+    return Center(
+      child: TossPrimaryButton(
+        text: 'Save Bank Balance',
+        onPressed: isEnabled ? () async {
+          await _saveBankBalance();
+        } : null,
+        isLoading: false,
+      ),
     );
   }
   
@@ -3598,9 +3598,16 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
     );
   }
   
+  String _getDenominationValueAsString(Map<String, dynamic> denomination) {
+    final amountRaw = denomination['value'] ?? 0;
+    final amount = amountRaw is int ? amountRaw : (amountRaw as num).toInt();
+    return amount.toString();
+  }
+
   String _calculateSubtotal(String denomination, String quantity, String currencySymbol) {
-    final denom = int.tryParse(denomination) ?? 0;
-    final qty = int.tryParse(quantity) ?? 0;
+    // Parse denomination and quantity values
+    final denom = int.tryParse(denomination.trim()) ?? 0;
+    final qty = int.tryParse(quantity.trim()) ?? 0;
     final subtotal = denom * qty;
     return '$currencySymbol${NumberFormat('#,###').format(subtotal)}';
   }
@@ -3646,7 +3653,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
     final denominations = currencyDenominations[selectedCurrencyId] ?? [];
     
     for (var denom in denominations) {
-      final denomValue = denom['value'].toString();
+      final denomValue = (denom['value'] ?? 0).toString();
       final controller = controllers[denomValue];
       if (controller != null) {
         final value = ((denom['value'] ?? 0) as num).toInt();
@@ -3670,7 +3677,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
           final denominations = currencyDenominations[currencyId] ?? [];
           
           for (var denom in denominations) {
-            final denomValue = denom['value'].toString();
+            final denomValue = (denom['value'] ?? 0).toString();
             final controller = controllers[denomValue];
             if (controller != null) {
               final value = ((denom['value'] ?? 0) as num).toInt();
@@ -3699,7 +3706,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
       final denominations = currencyDenominations[selectedCurrencyId] ?? [];
       
       for (var denom in denominations) {
-        final denomValue = denom['value'].toString();
+        final denomValue = (denom['value'] ?? 0).toString();
         final controller = controllers[denomValue];
         if (controller != null) {
           final value = ((denom['value'] ?? 0) as num).toInt();
@@ -3747,7 +3754,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
         
         for (var denom in denominations) {
           final denomId = denom['denomination_id']?.toString() ?? denom['id']?.toString() ?? '';
-          final denomValue = denom['value'].toString();
+          final denomValue = (denom['value'] ?? 0).toString();
           final controller = controllers[denomValue];
           
           if (controller != null && controller.text.isNotEmpty) {
@@ -3879,7 +3886,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
             // Iterate through denominations and add ONLY those with quantity > 0
             for (var denomination in denominationsForCurrency) {
               final denominationId = denomination['denomination_id']?.toString();
-              final denominationValue = denomination['value']?.toString();
+              final denominationValue = (denomination['value'] ?? 0).toString();
               
               if (denominationValue != null && controllers.containsKey(denominationValue)) {
                 final controller = controllers[denominationValue];
@@ -3926,7 +3933,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
           // Iterate through denominations and add ONLY those with quantity > 0
           for (var denomination in denominationsForCurrency) {
             final denominationId = denomination['denomination_id']?.toString();
-            final denominationValue = denomination['value']?.toString();
+            final denominationValue = (denomination['value'] ?? 0).toString();
             
             if (denominationValue != null && controllers.containsKey(denominationValue)) {
               final controller = controllers[denominationValue];
