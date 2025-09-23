@@ -15,6 +15,7 @@ import '../../helpers/navigation_helper.dart';
 import 'package:myfinance_improved/core/themes/index.dart';
 import 'models/invoice_models.dart';
 import 'providers/invoice_provider.dart';
+import '../sale_product/sale_product_page.dart';
 
 class SalesInvoicePage extends ConsumerStatefulWidget {
   const SalesInvoicePage({Key? key}) : super(key: key);
@@ -66,10 +67,13 @@ class _SalesInvoicePageState extends ConsumerState<SalesInvoicePage> {
       body: _buildBody(),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          // Navigate to create invoice page
-          NavigationHelper.navigateTo(
+          print('🔵 FAB clicked - Navigating to SaleProductPage');
+          // Navigate to sales product page
+          Navigator.push(
             context,
-            '/salesInvoice/create',
+            MaterialPageRoute(
+              builder: (context) => const SaleProductPage(),
+            ),
           );
         },
         backgroundColor: TossColors.primary,

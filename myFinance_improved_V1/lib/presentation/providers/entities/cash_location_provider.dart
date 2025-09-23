@@ -26,12 +26,12 @@ class CashLocationList extends _$CashLocationList {
     final supabase = ref.read(supabaseServiceProvider);
     
     try {
+      // Only pass company_id to get ALL locations for the company
       final response = await supabase.client.rpc(
         'get_cash_locations',
         params: {
           'p_company_id': companyId,
-          'p_location_type': locationType,
-          'p_store_id': storeId,
+          // Don't pass p_store_id or p_location_type - we'll filter client-side
         },
       );
 
@@ -99,7 +99,8 @@ Future<List<CashLocationData>> companyCashLocations(CompanyCashLocationsRef ref)
   
   if (companyId == null) return [];
   
-  // Pass null for storeId to get ALL company locations
+  // Only pass company_id to get ALL locations for the company
+  // Store filtering will be done in the UI widget
   return ref.watch(cashLocationListProvider(companyId, null).future);
 }
 

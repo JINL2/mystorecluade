@@ -12,6 +12,7 @@ import '../../widgets/common/toss_white_card.dart';
 import '../../helpers/navigation_helper.dart';
 import 'models/invoice_models.dart';
 import 'providers/payment_providers.dart';
+import '../debt_control/providers/currency_provider.dart';
 
 class PaymentMethodPage extends ConsumerStatefulWidget {
   final List<SalesProduct> selectedProducts;
@@ -28,8 +29,6 @@ class PaymentMethodPage extends ConsumerStatefulWidget {
 }
 
 class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
-  PaymentCurrency? selectedCurrency;
-  CashLocation? selectedCashLocation;
   
   // Stable controllers to prevent text clearing
   late TextEditingController _amountController;
@@ -86,6 +85,9 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
               child: _buildPaymentMethodSelection(),
             ),
           ),
+          
+          // Cart Total Display
+          _buildCartTotalDisplay(),
           
           // Fixed Bottom Button with safe area below
           SafeArea(
@@ -176,34 +178,43 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
   }
 
   Widget _buildPaymentMethodSelection() {
-    return SingleChildScrollView(
-      padding: EdgeInsets.symmetric(horizontal: TossSpacing.space4),
-      physics: BouncingScrollPhysics(), // Better scroll behavior
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Cash Location Selection
-          _buildCashLocationSection(),
-          
-          SizedBox(height: TossSpacing.space4),
-          
-          // Currency Selection
-          _buildCurrencySection(),
-          
-          SizedBox(height: TossSpacing.space4),
-          
-          // Discount Section
-          _buildDiscountSection(),
-          
-          SizedBox(height: TossSpacing.space4),
-          
-          // Total Section
-          _buildTotalSection(),
-          
-          // Minimal bottom padding to match compact design
-          SizedBox(height: TossSpacing.space2),
-        ],
-      ),
+    return Consumer(
+      builder: (context, ref, child) {
+        final paymentState = ref.watch(paymentMethodProvider);
+        
+        return SingleChildScrollView(
+          padding: EdgeInsets.symmetric(horizontal: TossSpacing.space4),
+          physics: BouncingScrollPhysics(), // Better scroll behavior
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Cash Location Selection
+              _buildCashLocationSection(),
+              
+              // Only show currency section after cash location is selected
+              if (paymentState.selectedCashLocation != null) ...[
+                SizedBox(height: TossSpacing.space4),
+                
+                // Currency Selection
+                _buildCurrencySection(),
+                
+                SizedBox(height: TossSpacing.space4),
+                
+                // Discount Section
+                _buildDiscountSection(),
+                
+                SizedBox(height: TossSpacing.space4),
+                
+                // Total Section
+                _buildTotalSection(),
+              ],
+              
+              // Minimal bottom padding to match compact design
+              SizedBox(height: TossSpacing.space2),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -329,22 +340,22 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                     padding: EdgeInsets.all(TossSpacing.space3),
                     decoration: BoxDecoration(
                       border: Border.all(
-                        color: selectedCashLocation != null ? TossColors.primary : TossColors.gray300,
+                        color: paymentState.selectedCashLocation != null ? TossColors.primary : TossColors.gray300,
                         width: 1,
                       ),
                       borderRadius: BorderRadius.circular(TossBorderRadius.md),
                     ),
                     child: Row(
                       children: [
-                        if (selectedCashLocation != null) ...[
-                          _getCashLocationIcon(selectedCashLocation!.type),
+                        if (paymentState.selectedCashLocation != null) ...[
+                          _getCashLocationIcon(paymentState.selectedCashLocation!.type),
                           SizedBox(width: TossSpacing.space2),
                         ],
                         Expanded(
                           child: Text(
-                            selectedCashLocation?.displayName ?? 'Select cash location...',
+                            paymentState.selectedCashLocation?.displayName ?? 'Select cash location...',
                             style: TossTextStyles.body.copyWith(
-                              color: selectedCashLocation != null 
+                              color: paymentState.selectedCashLocation != null 
                                   ? TossColors.gray900 
                                   : TossColors.gray500,
                             ),
@@ -413,15 +424,13 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                 spacing: TossSpacing.space2,
                 runSpacing: TossSpacing.space2,
                 children: paymentState.currencyResponse!.companyCurrencies.map((currency) {
-                  final isSelected = selectedCurrency?.currencyId == currency.currencyId;
+                  final isSelected = paymentState.selectedCurrency?.currencyId == currency.currencyId;
                   final hasAmount = paymentState.currencyAmounts.containsKey(currency.currencyId);
                   final amount = paymentState.currencyAmounts[currency.currencyId];
                   
                   return InkWell(
                     onTap: () {
-                      setState(() {
-                        selectedCurrency = currency;
-                      });
+                      ref.read(paymentMethodProvider.notifier).selectCurrency(currency);
                       notifier.updateCurrency(currency);
                     },
                     borderRadius: BorderRadius.circular(TossBorderRadius.md),
@@ -1040,8 +1049,8 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
         final paymentState = ref.watch(paymentMethodProvider);
         final hasValidAmounts = paymentState.currencyAmounts.isNotEmpty && 
                                 paymentState.currencyAmounts.values.any((amount) => amount > 0);
-        final canProceed = selectedCashLocation != null && 
-                          selectedCurrency != null && 
+        final canProceed = paymentState.selectedCashLocation != null && 
+                          paymentState.selectedCurrency != null && 
                           hasValidAmounts;
         
         return Container(
@@ -1125,9 +1134,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
               ...locations.map((location) {
                 return InkWell(
                   onTap: () {
-                    setState(() {
-                      selectedCashLocation = location;
-                    });
+                    ref.read(paymentMethodProvider.notifier).selectCashLocation(location);
                     Navigator.of(context).pop();
                   },
                   child: Container(
@@ -1233,8 +1240,9 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
 
   void _proceedToInvoice() {
     print('🚀 [PAYMENT_METHOD] Creating invoice with:');
-    print('📍 Cash Location: ${selectedCashLocation?.displayName}');
-    print('💰 Currency: ${selectedCurrency?.currencyCode}');
+    final paymentState = ref.read(paymentMethodProvider);
+    print('📍 Cash Location: ${paymentState.selectedCashLocation?.displayName}');
+    print('💰 Currency: ${paymentState.selectedCurrency?.currencyCode}');
     print('📦 Products: ${widget.selectedProducts.length}');
     
     // TODO: Navigate to invoice creation/summary page or complete the flow
@@ -1248,5 +1256,90 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
     // For now, go back to the main invoice page
     NavigationHelper.safeGoBack(context);
     NavigationHelper.safeGoBack(context);
+  }
+
+  Widget _buildCartTotalDisplay() {
+    final currencySymbol = ref.watch(currencyProvider);
+    final totalItems = widget.productQuantities.values.fold<int>(0, (sum, count) => sum + count);
+    
+    // Calculate cart total from selected products
+    double cartTotal = 0;
+    for (final product in widget.selectedProducts) {
+      final quantity = widget.productQuantities[product.productId] ?? 0;
+      final price = product.pricing?.sellingPrice ?? 0;
+      cartTotal += price * quantity;
+    }
+    
+    return Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: TossSpacing.space4,
+        vertical: TossSpacing.space2,
+      ),
+      decoration: BoxDecoration(
+        color: TossColors.white,
+        border: Border(
+          top: BorderSide(
+            color: TossColors.gray200,
+            width: 1,
+          ),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: TossColors.black.withOpacity(0.04),
+            blurRadius: 8,
+            offset: const Offset(0, -2),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Row(
+            children: [
+              Text(
+                'Items in Cart',
+                style: TossTextStyles.body.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: TossColors.gray900,
+                ),
+              ),
+              SizedBox(width: TossSpacing.space2),
+              Container(
+                padding: EdgeInsets.symmetric(
+                  horizontal: TossSpacing.space2,
+                  vertical: TossSpacing.space1,
+                ),
+                decoration: BoxDecoration(
+                  color: TossColors.primary.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.sm),
+                ),
+                child: Text(
+                  '$totalItems',
+                  style: TossTextStyles.caption.copyWith(
+                    color: TossColors.primary,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          Text(
+            '$currencySymbol${_formatNumber(cartTotal.round())}',
+            style: TossTextStyles.bodyLarge.copyWith(
+              fontWeight: FontWeight.w700,
+              color: TossColors.gray900,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+  
+  String _formatNumber(int value) {
+    // Always show exact numbers with commas, no K or M abbreviations
+    return value.toString().replaceAllMapped(
+      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+      (Match m) => '${m[1]},',
+    );
   }
 }

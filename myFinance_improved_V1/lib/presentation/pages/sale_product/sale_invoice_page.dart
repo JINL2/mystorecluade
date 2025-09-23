@@ -15,6 +15,7 @@ import '../../widgets/toss/toss_search_field.dart';
 import '../../helpers/navigation_helper.dart';
 import 'sale_product_page.dart';
 import 'models/sale_product_models.dart';
+import '../sales_invoice/models/invoice_models.dart'; // Import SalesProduct
 import 'package:myfinance_improved/core/themes/index.dart';
 
 class SaleInvoicePage extends ConsumerStatefulWidget {
@@ -42,9 +43,10 @@ class _SaleInvoicePageState extends ConsumerState<SaleInvoicePage> {
 
   @override
   Widget build(BuildContext context) {
-    final cart = ref.watch(cartProvider);
-    final subtotal = ref.read(cartProvider.notifier).subtotal;
-    final totalItems = ref.read(cartProvider.notifier).totalItems;
+    // TODO: Update to use selectedProductsProvider
+    final cart = <SalesProduct>[]; // ref.watch(cartProvider);
+    final subtotal = 0.0; // ref.read(cartProvider.notifier).subtotal;
+    final totalItems = 0; // ref.read(cartProvider.notifier).totalItems;
     final formatter = NumberFormat('#,###');
 
     if (cart.isEmpty) {
@@ -251,23 +253,24 @@ class _SaleInvoicePageState extends ConsumerState<SaleInvoicePage> {
                     ),
                     
                     // Cart Items List
-                    ...cart.asMap().entries.map((entry) {
-                      final index = entry.key;
-                      final item = entry.value;
-                      
-                      return Column(
-                        children: [
-                          _buildInvoiceItem(item, index),
-                          if (index < cart.length - 1)
-                            Divider(
-                              height: 1,
-                              color: TossColors.gray100,
-                              indent: TossSpacing.space4 + TossSpacing.space12 + TossSpacing.space2,
-                              endIndent: TossSpacing.space4,
-                            ),
-                        ],
-                      );
-                    }).toList(),
+                    // TODO: Update to work with SalesProduct instead of CartItem
+                    // ...cart.asMap().entries.map((entry) {
+                    //   final index = entry.key;
+                    //   final item = entry.value;
+                    //   
+                    //   return Column(
+                    //     children: [
+                    //       _buildInvoiceItem(item, index),
+                    //       if (index < cart.length - 1)
+                    //         Divider(
+                    //           height: 1,
+                    //           color: TossColors.gray100,
+                    //           indent: TossSpacing.space4 + TossSpacing.space12 + TossSpacing.space2,
+                    //           endIndent: TossSpacing.space4,
+                    //         ),
+                    //     ],
+                    //   );
+                    // }).toList(),
                   ],
                 ),
               ),
@@ -535,12 +538,12 @@ class _SaleInvoicePageState extends ConsumerState<SaleInvoicePage> {
                     compactMode: true,
                     onQuantityChanged: (newQuantity) {
                       if (newQuantity <= 0) {
-                        ref.read(cartProvider.notifier).removeItem(item.id);
+                        // ref.read(cartProvider.notifier).removeItem(item.id);
                       } else {
-                        ref.read(cartProvider.notifier).updateQuantity(
-                          item.id,
-                          newQuantity,
-                        );
+                        // ref.read(cartProvider.notifier).updateQuantity(
+                        //   item.id,
+                        //   newQuantity,
+                        // );
                       }
                     },
                     semanticLabel: 'Quantity for ${item.name}',
@@ -609,12 +612,17 @@ class _SaleInvoicePageState extends ConsumerState<SaleInvoicePage> {
   }
 
   String _formatCurrency(double value) {
-    if (value >= 1000000) {
-      return '${(value / 1000000).toStringAsFixed(1)}M';
-    } else if (value >= 1000) {
-      return '${(value / 1000).toStringAsFixed(0)}K';
+    // Format with commas for exact numbers, no K or M abbreviations
+    final formatter = NumberFormat('#,##0', 'en_US');
+    
+    // For zero values, you can return a dash or just 0
+    if (value == 0) {
+      return '0';
     }
-    return '${value.toStringAsFixed(0)}';
+    
+    // Format the value with commas
+    String formatted = formatter.format(value.round());
+    return formatted;
   }
 
   String _getProductInitial(String name) {

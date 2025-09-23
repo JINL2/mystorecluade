@@ -63,16 +63,25 @@ final journalCounterpartyCashLocationsProvider = FutureProvider.family<List<Map<
     
     final supabase = Supabase.instance.client;
     
-    // Query ALL cash locations for the company (including those with and without store_id)
-    // This gives flexibility when company has no stores or when we want company-level cash locations
-    final response = await supabase
-        .from('cash_locations')
-        .select('cash_location_id, location_name, location_type, store_id')
-        .eq('company_id', linkedCompanyId)
-        .eq('is_deleted', false)  // Filter out deleted cash locations
-        .order('location_name');
+    // Use RPC to get ALL cash locations for the company (no store filter)
+    final response = await supabase.rpc(
+      'get_cash_locations',
+      params: {
+        'p_company_id': linkedCompanyId,
+      },
+    );
     
-    return List<Map<String, dynamic>>.from(response);
+    // Convert RPC response to the expected format for backward compatibility
+    final locations = (response as List).map((item) {
+      return {
+        'cash_location_id': item['id'],
+        'location_name': item['name'],
+        'location_type': item['type'],
+        'store_id': item['storeId'],
+      };
+    }).toList();
+    
+    return locations;
   } catch (e) {
     throw Exception('Failed to fetch counterparty cash locations: $e');
   }
@@ -85,16 +94,29 @@ final journalCounterpartyStoreCashLocationsProvider = FutureProvider.family<List
     }
     
     final supabase = Supabase.instance.client;
+    final appState = ref.watch(appStateProvider);
     
-    // Query cash locations filtered by the store_id
-    final response = await supabase
-        .from('cash_locations')
-        .select('cash_location_id, location_name, location_type')
-        .eq('store_id', storeId)
-        .eq('is_deleted', false)  // Filter out deleted cash locations
-        .order('location_name');
+    // Use RPC to get ALL cash locations for the company
+    final response = await supabase.rpc(
+      'get_cash_locations',
+      params: {
+        'p_company_id': appState.companyChoosen,
+      },
+    );
     
-    return List<Map<String, dynamic>>.from(response);
+    // Convert RPC response to the expected format for backward compatibility
+    // Filter to show only locations for the specific store
+    final locations = (response as List)
+        .where((item) => item['storeId'] == storeId)
+        .map((item) {
+      return {
+        'cash_location_id': item['id'],
+        'location_name': item['name'],
+        'location_type': item['type'],
+      };
+    }).toList();
+    
+    return locations;
   } catch (e) {
     throw Exception('Failed to fetch counterparty store cash locations: $e');
   }

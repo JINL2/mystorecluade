@@ -1031,15 +1031,21 @@ class CashLocation {
   });
 
   factory CashLocation.fromJson(Map<String, dynamic> json) {
+    // Support both RPC response and direct model fields
+    final locationSummary = json['location_summary'] as Map<String, dynamic>?;
+    final isRpcResponse = locationSummary != null;
+    
+    final data = isRpcResponse ? locationSummary : json;
+    
     return CashLocation(
-      id: json['id']?.toString() ?? '',
-      name: json['name']?.toString() ?? '',
-      type: json['type']?.toString() ?? 'cash',
-      storeId: json['store_id']?.toString() ?? '',
-      isCompanyWide: (json['is_company_wide'] as bool?) ?? false,
-      currencyCode: json['currency_code']?.toString() ?? 'VND',
-      bankAccount: json['bank_account']?.toString(),
-      bankName: json['bank_name']?.toString(),
+      id: data['cash_location_id']?.toString() ?? data['id']?.toString() ?? '',
+      name: data['location_name']?.toString() ?? data['name']?.toString() ?? '',
+      type: data['location_type']?.toString() ?? data['type']?.toString() ?? 'cash',
+      storeId: data['store_id']?.toString() ?? '',
+      isCompanyWide: (data['is_company_wide'] as bool?) ?? false,
+      currencyCode: data['currency_code']?.toString() ?? 'VND',
+      bankAccount: data['bank_account']?.toString(),
+      bankName: data['bank_name']?.toString(),
     );
   }
 

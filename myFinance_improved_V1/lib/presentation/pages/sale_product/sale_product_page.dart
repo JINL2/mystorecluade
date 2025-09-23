@@ -1,21 +1,23 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
-import '../../../core/themes/toss_colors.dart';
-import '../../../core/themes/toss_text_styles.dart';
-import '../../../core/themes/toss_spacing.dart';
-import '../../../core/themes/toss_border_radius.dart';
+import 'package:intl/intl.dart';
 import '../../widgets/common/toss_scaffold.dart';
 import '../../widgets/common/toss_white_card.dart';
-import '../../widgets/common/enhanced_quantity_selector.dart';
 import '../../widgets/toss/toss_list_tile.dart';
 import '../../widgets/toss/toss_search_field.dart';
 import '../../helpers/navigation_helper.dart';
 import '../inventory_management/models/product_model.dart';
+import '../sales_invoice/models/invoice_models.dart';
+import '../sales_invoice/payment_method_page.dart';
 import 'models/sale_product_models.dart';
 import 'widgets/cart_summary_bar.dart';
 import 'package:myfinance_improved/core/themes/index.dart';
+import '../debt_control/providers/currency_provider.dart';
+import '../../../data/services/inventory_service.dart';
+import '../../../data/models/inventory_models.dart';
+import '../../providers/app_state_provider.dart';
 
 // Sort Options for Product List
 enum SortOption {
@@ -35,8 +37,8 @@ final cartProvider = StateNotifierProvider<CartNotifier, List<CartItem>>((ref) {
 class CartNotifier extends StateNotifier<List<CartItem>> {
   CartNotifier() : super([]);
 
-  void addItem(Product product) {
-    final existingIndex = state.indexWhere((item) => item.productId == product.id);
+  void addItem(SalesProduct product) {
+    final existingIndex = state.indexWhere((item) => item.productId == product.productId);
     
     if (existingIndex >= 0) {
       // Increase quantity if item already exists
@@ -47,20 +49,22 @@ class CartNotifier extends StateNotifier<List<CartItem>> {
       state = updatedItems;
     } else {
       // Add new item
+      print('🛒 Adding product to cart: ${product.productName}, Price: ${product.pricing.sellingPrice}');
       state = [
         ...state,
         CartItem(
           id: DateTime.now().millisecondsSinceEpoch.toString(),
-          productId: product.id,
+          productId: product.productId,
           sku: product.sku,
-          name: product.name,
-          image: product.images.isNotEmpty ? product.images.first : null,
-          price: product.salePrice,
+          name: product.productName,
+          image: product.images.mainImage,
+          price: product.pricing.sellingPrice ?? 0,
           quantity: 1,
-          available: product.available,
+          available: product.totalStockSummary.totalQuantityAvailable,
           customerOrdered: 0,
         ),
       ];
+      print('🛒 Cart subtotal: $subtotal, Items: $totalItems');
     }
   }
 
@@ -90,80 +94,195 @@ class CartNotifier extends StateNotifier<List<CartItem>> {
   int get totalItems => state.fold(0, (sum, item) => sum + item.quantity);
 }
 
-// Mock Products Provider
-final productsProvider = Provider<List<Product>>((ref) {
-  return [
-    Product(
-      id: '1',
-      sku: '10002',
-      name: '비쌈옷',
-      category: ProductCategory.clothing,
-      productType: ProductType.simple,
-      costPrice: 1500000,
-      salePrice: 2300000,
-      onHand: 10,
-      available: 10,
+// Sales Product Provider State
+class SalesProductState {
+  final List<SalesProduct> products;
+  final bool isLoading;
+  final String? error;
+  final String searchQuery;
+  final int currentPage;
+  final bool hasNextPage;
+  
+  const SalesProductState({
+    this.products = const [],
+    this.isLoading = false,
+    this.error,
+    this.searchQuery = '',
+    this.currentPage = 1,
+    this.hasNextPage = false,
+  });
+  
+  SalesProductState copyWith({
+    List<SalesProduct>? products,
+    bool? isLoading,
+    String? error,
+    String? searchQuery,
+    int? currentPage,
+    bool? hasNextPage,
+  }) {
+    return SalesProductState(
+      products: products ?? this.products,
+      isLoading: isLoading ?? this.isLoading,
+      error: error ?? this.error,
+      searchQuery: searchQuery ?? this.searchQuery,
+      currentPage: currentPage ?? this.currentPage,
+      hasNextPage: hasNextPage ?? this.hasNextPage,
+    );
+  }
+}
+
+// Convert InventoryProduct to SalesProduct
+SalesProduct _convertInventoryToSalesProduct(InventoryProduct inventoryProduct) {
+  return SalesProduct(
+    productId: inventoryProduct.id,
+    productName: inventoryProduct.name,
+    sku: inventoryProduct.sku ?? '',
+    barcode: inventoryProduct.barcode ?? '',
+    productType: 'simple',
+    pricing: ProductPricing(
+      sellingPrice: inventoryProduct.price,
+      costPrice: inventoryProduct.cost ?? 0,
+      minPrice: inventoryProduct.cost ?? 0,
+      profitAmount: (inventoryProduct.price - (inventoryProduct.cost ?? 0)),
+      profitMargin: inventoryProduct.cost != null && inventoryProduct.cost! > 0 
+          ? ((inventoryProduct.price - inventoryProduct.cost!) / inventoryProduct.price)
+          : 0,
     ),
-    Product(
-      id: '2',
-      sku: '10000-3NT0628',
-      name: 'Ami 터셔츠 - Ami T-shirts',
-      category: ProductCategory.clothing,
-      productType: ProductType.simple,
-      costPrice: 800000,
-      salePrice: 1500000,
-      onHand: 5,
-      available: 5,
+    totalStockSummary: TotalStockSummary(
+      storeCount: 1,
+      totalValue: inventoryProduct.price * inventoryProduct.stock,
+      totalQuantityOnHand: inventoryProduct.stock,
+      totalQuantityAvailable: inventoryProduct.quantityAvailable ?? inventoryProduct.stock,
+      totalQuantityReserved: inventoryProduct.quantityReserved ?? 0,
     ),
-    Product(
-      id: '3',
-      sku: '3043GZ2PQ1065',
-      name: 'BOTTEGA',
-      category: ProductCategory.bags,
-      productType: ProductType.simple,
-      costPrice: 900000,
-      salePrice: 1700000,
-      onHand: 3,
-      available: 3,
-      images: ['https://via.placeholder.com/150/FF6B6B/FFFFFF?text=Bag1'],
+    images: ProductImages(
+      thumbnail: inventoryProduct.imageUrl,
+      mainImage: inventoryProduct.imageUrl,
+      additionalImages: [],
     ),
-    Product(
-      id: '4',
-      sku: '3030GZ2PQ1052',
-      name: 'BOTTEGA',
-      category: ProductCategory.bags,
-      productType: ProductType.simple,
-      costPrice: 2200000,
-      salePrice: 4400000,
-      onHand: 2,
-      available: 2,
-      images: ['https://via.placeholder.com/150/4ECDC4/FFFFFF?text=Bag2'],
+    status: ProductStatus(
+      isActive: inventoryProduct.isActive,
+      createdAt: inventoryProduct.createdAt ?? DateTime.now(),
+      isDeleted: false,
+      updatedAt: inventoryProduct.updatedAt ?? DateTime.now(),
     ),
-    Product(
-      id: '5',
-      sku: '3029GZ2PQ1051',
-      name: 'BOTTEGA',
-      category: ProductCategory.bags,
-      productType: ProductType.simple,
-      costPrice: 2100000,
-      salePrice: 4200000,
-      onHand: 4,
-      available: 4,
-      images: ['https://via.placeholder.com/150/45B7D1/FFFFFF?text=Bag3'],
+    attributes: ProductAttributes(),
+    storeStocks: [],
+    stockSettings: StockSettings(
+      minStock: inventoryProduct.minStock ?? 0,
+      maxStock: inventoryProduct.maxStock ?? 100,
+      reorderPoint: inventoryProduct.minStock ?? 5,
+      reorderQuantity: 20,
     ),
-    Product(
-      id: '6',
-      sku: '3028GZ2PQ1050',
-      name: 'BOTTEGA',
-      category: ProductCategory.bags,
-      productType: ProductType.simple,
-      costPrice: 2100000,
-      salePrice: 4200000,
-      onHand: 1,
-      available: 1,
-      images: ['https://via.placeholder.com/150/96CEB4/FFFFFF?text=Bag4'],
-    ),
-  ];
+    unit: inventoryProduct.unit,
+    brand: inventoryProduct.brandName,
+    category: inventoryProduct.categoryName,
+  );
+}
+
+// Sales Product Notifier
+class SalesProductNotifier extends StateNotifier<SalesProductState> {
+  final Ref ref;
+  final InventoryService _service;
+  
+  SalesProductNotifier(this.ref, this._service) : super(const SalesProductState()) {
+    loadProducts();
+  }
+  
+  Future<void> loadProducts({String? search}) async {
+    print('🔍 [SALES_PRODUCT] Loading products with search: $search');
+    
+    state = state.copyWith(isLoading: true, error: null);
+    
+    try {
+      final appState = ref.read(appStateProvider);
+      final companyId = appState.companyChoosen;
+      final storeId = appState.storeChoosen;
+      
+      print('📋 [SALES_PRODUCT] Company: $companyId, Store: $storeId');
+      
+      if (companyId.isEmpty || storeId.isEmpty) {
+        print('❌ [SALES_PRODUCT] No company or store selected');
+        state = state.copyWith(
+          isLoading: false,
+          error: 'Please select a company and store first',
+          products: [],
+        );
+        return;
+      }
+      
+      final result = await _service.getInventoryPage(
+        companyId: companyId,
+        storeId: storeId,
+        page: 1,
+        limit: 100, // Load more products for sales
+        search: search ?? state.searchQuery,
+      );
+      
+      if (result != null) {
+        print('✅ [SALES_PRODUCT] Products loaded: ${result.products.length}');
+        
+        // Convert inventory products to sales products
+        final salesProducts = result.products
+            .map(_convertInventoryToSalesProduct)
+            .toList();
+        
+        state = state.copyWith(
+          products: salesProducts,
+          isLoading: false,
+          searchQuery: search ?? state.searchQuery,
+          currentPage: result.pagination.page,
+          hasNextPage: result.pagination.hasNext,
+        );
+      } else {
+        print('❌ [SALES_PRODUCT] Failed to load products');
+        state = state.copyWith(
+          isLoading: false,
+          error: 'Failed to load products',
+          products: [],
+        );
+      }
+    } catch (e) {
+      print('❌ [SALES_PRODUCT] Error loading products: $e');
+      state = state.copyWith(
+        isLoading: false,
+        error: 'Error loading products: $e',
+        products: [],
+      );
+    }
+  }
+  
+  void search(String query) {
+    print('🔍 [SALES_PRODUCT] Searching for: $query');
+    loadProducts(search: query);
+  }
+  
+  void refresh() {
+    print('🔄 [SALES_PRODUCT] Refreshing products');
+    loadProducts();
+  }
+}
+
+// Inventory Service Provider
+final salesInventoryServiceProvider = Provider<InventoryService>((ref) {
+  return InventoryService();
+});
+
+// Sales Product Provider
+final salesProductProvider = StateNotifierProvider<SalesProductNotifier, SalesProductState>((ref) {
+  final service = ref.watch(salesInventoryServiceProvider);
+  
+  // Watch for company/store changes and trigger reload
+  ref.watch(appStateProvider.select((state) => state.companyChoosen));
+  ref.watch(appStateProvider.select((state) => state.storeChoosen));
+  
+  return SalesProductNotifier(ref, service);
+});
+
+// Legacy compatibility - provides just the products list
+final productsProvider = Provider<List<SalesProduct>>((ref) {
+  final salesState = ref.watch(salesProductProvider);
+  return salesState.products;
 });
 
 class SaleProductPage extends ConsumerStatefulWidget {
@@ -176,25 +295,41 @@ class SaleProductPage extends ConsumerStatefulWidget {
 class _SaleProductPageState extends ConsumerState<SaleProductPage> {
   final TextEditingController _searchController = TextEditingController();
   String searchQuery = '';
-  bool showBarcodeScanner = false;
-  
-  // Filters
-  StockStatus? _selectedStockStatus;
-  ProductCategory? _selectedCategory;
+  Timer? _searchDebounceTimer;
   
   // Sorting
   SortOption _currentSort = SortOption.nameAsc;
   bool _sortAscending = true;
 
   @override
+  void initState() {
+    super.initState();
+    // Clear cart when page loads to ensure fresh data
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(cartProvider.notifier).clearCart();
+    });
+  }
+
+  @override
   void dispose() {
     _searchController.dispose();
+    _searchDebounceTimer?.cancel();
     super.dispose();
   }
 
-  void _applyFiltersAndSort() {
+  void _onSearchChanged(String value) {
     setState(() {
-      searchQuery = _searchController.text;
+      searchQuery = value;
+    });
+    
+    // Cancel previous timer
+    _searchDebounceTimer?.cancel();
+    
+    // Start new timer for debounced search
+    _searchDebounceTimer = Timer(const Duration(milliseconds: 500), () {
+      if (mounted) {
+        ref.read(salesProductProvider.notifier).search(value.trim());
+      }
     });
   }
   
@@ -210,101 +345,6 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage> {
       case SortOption.stockDesc:
         return _sortAscending ? 'Stock (Low to High)' : 'Stock (High to Low)';
     }
-  }
-  
-  bool _hasActiveFilters() {
-    return _selectedStockStatus != null || _selectedCategory != null;
-  }
-  
-  int _getActiveFilterCount() {
-    int count = 0;
-    if (_selectedStockStatus != null) count++;
-    if (_selectedCategory != null) count++;
-    return count;
-  }
-  
-  void _showFilterOptionsSheet() {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: TossColors.transparent,
-      isScrollControlled: true,
-      isDismissible: true,
-      builder: (context) => Container(
-        decoration: BoxDecoration(
-          color: TossColors.surface,
-          borderRadius: BorderRadius.vertical(
-            top: Radius.circular(TossBorderRadius.lg),
-          ),
-        ),
-        child: Padding(
-          padding: EdgeInsets.all(TossSpacing.space4),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Filter Products',
-                style: TossTextStyles.h4.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              SizedBox(height: TossSpacing.space4),
-              Text('Stock Status'),
-              SizedBox(height: TossSpacing.space2),
-              Wrap(
-                spacing: TossSpacing.space2,
-                children: StockStatus.values.map((status) {
-                  return FilterChip(
-                    label: Text(_getStockStatusLabel(status)),
-                    selected: _selectedStockStatus == status,
-                    onSelected: (selected) {
-                      setState(() {
-                        _selectedStockStatus = selected ? status : null;
-                        _applyFiltersAndSort();
-                      });
-                      Navigator.pop(context);
-                    },
-                  );
-                }).toList(),
-              ),
-              SizedBox(height: TossSpacing.space4),
-              Text('Category'),
-              SizedBox(height: TossSpacing.space2),
-              Wrap(
-                spacing: TossSpacing.space2,
-                children: ProductCategory.values.map((category) {
-                  return FilterChip(
-                    label: Text(_getCategoryLabel(category)),
-                    selected: _selectedCategory == category,
-                    onSelected: (selected) {
-                      setState(() {
-                        _selectedCategory = selected ? category : null;
-                        _applyFiltersAndSort();
-                      });
-                      Navigator.pop(context);
-                    },
-                  );
-                }).toList(),
-              ),
-              if (_hasActiveFilters()) ...[
-                SizedBox(height: TossSpacing.space4),
-                TextButton(
-                  onPressed: () {
-                    setState(() {
-                      _selectedStockStatus = null;
-                      _selectedCategory = null;
-                      _applyFiltersAndSort();
-                    });
-                    Navigator.pop(context);
-                  },
-                  child: Text('Clear All'),
-                ),
-              ],
-            ],
-          ),
-        ),
-      ),
-    );
   }
   
   void _showSortOptionsSheet() {
@@ -348,7 +388,7 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage> {
                         _currentSort = option;
                         _sortAscending = true;
                       }
-                      _applyFiltersAndSort();
+                      // Sorting is now handled locally in build method
                     });
                     Navigator.pop(context);
                   },
@@ -386,86 +426,103 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage> {
         return option;
     }
   }
-  
-  String _getStockStatusLabel(StockStatus status) {
-    switch (status) {
-      case StockStatus.critical:
-        return 'Critical';
-      case StockStatus.low:
-        return 'Low';
-      case StockStatus.optimal:
-        return 'Optimal';
-      case StockStatus.excess:
-        return 'Excess';
-    }
-  }
-  
-  String _getCategoryLabel(ProductCategory category) {
-    switch (category) {
-      case ProductCategory.electronics:
-        return 'Electronics';
-      case ProductCategory.clothing:
-        return 'Clothing';
-      case ProductCategory.accessories:
-        return 'Accessories';
-      case ProductCategory.bags:
-        return 'Bags';
-      case ProductCategory.shoes:
-        return 'Shoes';
-      case ProductCategory.jewelry:
-        return 'Jewelry';
-      case ProductCategory.food:
-        return 'Food';
-      case ProductCategory.beverages:
-        return 'Beverages';
-      case ProductCategory.household:
-        return 'Household';
-      case ProductCategory.beauty:
-        return 'Beauty';
-      case ProductCategory.sports:
-        return 'Sports';
-      case ProductCategory.books:
-        return 'Books';
-      case ProductCategory.other:
-        return 'Other';
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
+    print('🟢 Building SaleProductPage - Title should be "Sales"');
     final cart = ref.watch(cartProvider);
-    final products = ref.watch(productsProvider);
+    final salesState = ref.watch(salesProductProvider);
+    final products = salesState.products;
+    final currencySymbol = ref.watch(currencyProvider);
+    print('💰 Currency symbol: $currencySymbol');
     
-    // Filter and sort products
-    var filteredProducts = products.where((product) {
-      final searchLower = _searchController.text.toLowerCase();
-      final matchesSearch = searchLower.isEmpty || 
-                          product.name.toLowerCase().contains(searchLower) ||
-                          product.sku.toLowerCase().contains(searchLower) ||
-                          (product.barcode?.toLowerCase().contains(searchLower) ?? false);
-      
-      final matchesStockStatus = _selectedStockStatus == null || product.stockStatus == _selectedStockStatus;
-      final matchesCategory = _selectedCategory == null || product.category == _selectedCategory;
-      
-      return matchesSearch && matchesStockStatus && matchesCategory;
-    }).toList();
+    // Handle loading and error states
+    if (salesState.isLoading && products.isEmpty) {
+      return TossScaffold(
+        backgroundColor: TossColors.gray100,
+        appBar: AppBar(
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () => NavigationHelper.safeGoBack(context),
+          ),
+          title: Text(
+            'Sales',
+            style: TossTextStyles.h3,
+          ),
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          surfaceTintColor: Colors.transparent,
+          titleTextStyle: TossTextStyles.h3,
+        ),
+        body: const Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+    
+    if (salesState.error != null && products.isEmpty) {
+      return TossScaffold(
+        backgroundColor: TossColors.gray100,
+        appBar: AppBar(
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () => NavigationHelper.safeGoBack(context),
+          ),
+          title: Text(
+            'Sales',
+            style: TossTextStyles.h3,
+          ),
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          surfaceTintColor: Colors.transparent,
+          titleTextStyle: TossTextStyles.h3,
+        ),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.error_outline, size: 48, color: TossColors.gray400),
+              SizedBox(height: TossSpacing.space3),
+              Text(
+                salesState.error!,
+                textAlign: TextAlign.center,
+                style: TossTextStyles.body.copyWith(color: TossColors.gray600),
+              ),
+              SizedBox(height: TossSpacing.space3),
+              ElevatedButton(
+                onPressed: () => ref.read(salesProductProvider.notifier).refresh(),
+                child: const Text('Retry'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+    
+    // Apply local sorting only (search is handled by RPC)
+    var filteredProducts = List<SalesProduct>.from(products);
     
     // Apply sorting
     switch (_currentSort) {
       case SortOption.nameAsc:
       case SortOption.nameDesc:
         filteredProducts.sort((a, b) => 
-            _sortAscending ? a.name.compareTo(b.name) : b.name.compareTo(a.name));
+            _sortAscending ? a.productName.compareTo(b.productName) : b.productName.compareTo(a.productName));
         break;
       case SortOption.priceAsc:
       case SortOption.priceDesc:
-        filteredProducts.sort((a, b) => 
-            _sortAscending ? a.salePrice.compareTo(b.salePrice) : b.salePrice.compareTo(a.salePrice));
+        filteredProducts.sort((a, b) {
+          final aPrice = a.pricing.sellingPrice ?? 0;
+          final bPrice = b.pricing.sellingPrice ?? 0;
+          return _sortAscending ? aPrice.compareTo(bPrice) : bPrice.compareTo(aPrice);
+        });
         break;
       case SortOption.stockAsc:
       case SortOption.stockDesc:
         filteredProducts.sort((a, b) => 
-            _sortAscending ? a.onHand.compareTo(b.onHand) : b.onHand.compareTo(a.onHand));
+            _sortAscending 
+              ? a.totalStockSummary.totalQuantityOnHand.compareTo(b.totalStockSummary.totalQuantityOnHand) 
+              : b.totalStockSummary.totalQuantityOnHand.compareTo(a.totalStockSummary.totalQuantityOnHand));
         break;
     }
 
@@ -488,7 +545,10 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage> {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            // Filter and Sort Controls
+            // Added Items Section (shown when cart has items)
+            if (cart.isNotEmpty) _buildAddedItemsSection(cart, currencySymbol),
+            
+            // Sort Control (simplified - no filter for now)
             Container(
               margin: EdgeInsets.fromLTRB(
                 TossSpacing.space4,
@@ -496,150 +556,60 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage> {
                 TossSpacing.space4,
                 TossSpacing.space2,
               ),
-              padding: EdgeInsets.symmetric(
-                horizontal: TossSpacing.space3,
-                vertical: TossSpacing.space2,
-              ),
-              decoration: BoxDecoration(
-                color: TossColors.surface,
-                borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                boxShadow: [
-                  BoxShadow(
-                    color: TossColors.black.withValues(alpha: 0.02),
-                    blurRadius: 2,
-                    offset: const Offset(0, 1),
+              child: InkWell(
+                onTap: () {
+                  HapticFeedback.lightImpact();
+                  _showSortOptionsSheet();
+                },
+                child: Container(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: TossSpacing.space3,
+                    vertical: TossSpacing.space2,
                   ),
-                ],
-              ),
-              child: Row(
-                children: [
-                  // Filter Section - 50% space
-                  Expanded(
-                    flex: 50,
-                    child: InkWell(
-                      onTap: () {
-                        HapticFeedback.lightImpact();
-                        _showFilterOptionsSheet();
-                      },
-                      borderRadius: BorderRadius.circular(TossBorderRadius.sm),
-                      child: Container(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: TossSpacing.space3,
-                          vertical: TossSpacing.space2,
-                        ),
-                        child: Row(
-                          children: [
-                            Stack(
-                              clipBehavior: Clip.none,
-                              children: [
-                                Icon(
-                                  Icons.filter_list_rounded,
-                                  size: 22,
-                                  color: _hasActiveFilters() ? TossColors.primary : TossColors.gray600,
-                                ),
-                                if (_hasActiveFilters())
-                                  Positioned(
-                                    right: -4,
-                                    top: -4,
-                                    child: Container(
-                                      width: 16,
-                                      height: 16,
-                                      decoration: BoxDecoration(
-                                        color: TossColors.primary,
-                                        shape: BoxShape.circle,
-                                      ),
-                                      child: Center(
-                                        child: Text(
-                                          '${_getActiveFilterCount()}',
-                                          style: TossTextStyles.small.copyWith(
-                                            color: TossColors.white,
-                                            fontWeight: FontWeight.w700,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                              ],
-                            ),
-                            SizedBox(width: TossSpacing.space2),
-                            Expanded(
-                              child: Text(
-                                _hasActiveFilters() ? '${_getActiveFilterCount()} filters active' : 'Filters',
-                                style: TossTextStyles.labelLarge.copyWith(
-                                  color: TossColors.gray700,
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                            Icon(
-                              Icons.keyboard_arrow_down_rounded,
-                              size: 20,
-                              color: TossColors.gray500,
-                            ),
-                          ],
+                  decoration: BoxDecoration(
+                    color: TossColors.surface,
+                    borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                    boxShadow: [
+                      BoxShadow(
+                        color: TossColors.black.withValues(alpha: 0.02),
+                        blurRadius: 2,
+                        offset: const Offset(0, 1),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.sort_rounded,
+                        size: 22,
+                        color: _currentSort != SortOption.nameAsc ? TossColors.primary : TossColors.gray600,
+                      ),
+                      SizedBox(width: TossSpacing.space2),
+                      Expanded(
+                        child: Text(
+                          _getSortLabel(),
+                          style: TossTextStyles.labelLarge.copyWith(
+                            color: TossColors.gray700,
+                          ),
                         ),
                       ),
-                    ),
-                  ),
-                  
-                  Container(
-                    width: 1,
-                    height: 20,
-                    color: TossColors.gray200,
-                  ),
-                  
-                  // Sort Section - 50% space
-                  Expanded(
-                    flex: 50,
-                    child: InkWell(
-                      onTap: () {
-                        HapticFeedback.lightImpact();
-                        _showSortOptionsSheet();
-                      },
-                      borderRadius: BorderRadius.circular(TossBorderRadius.sm),
-                      child: Container(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: TossSpacing.space3,
-                          vertical: TossSpacing.space2,
+                      if (_currentSort != SortOption.nameAsc)
+                        Icon(
+                          _sortAscending
+                            ? Icons.arrow_upward_rounded 
+                            : Icons.arrow_downward_rounded,
+                          size: 16,
+                          color: TossColors.primary,
                         ),
-                        child: Row(
-                          children: [
-                            Icon(
-                              Icons.sort_rounded,
-                              size: 22,
-                              color: _currentSort != SortOption.nameAsc ? TossColors.primary : TossColors.gray600,
-                            ),
-                            SizedBox(width: TossSpacing.space2),
-                            Expanded(
-                              child: Text(
-                                _getSortLabel(),
-                                style: TossTextStyles.labelLarge.copyWith(
-                                  color: TossColors.gray700,
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                            // Show sort direction indicator
-                            if (_currentSort != SortOption.nameAsc)
-                              Icon(
-                                _sortAscending
-                                  ? Icons.arrow_upward_rounded 
-                                  : Icons.arrow_downward_rounded,
-                                size: 16,
-                                color: TossColors.primary,
-                              ),
-                            SizedBox(width: TossSpacing.space1),
-                            Icon(
-                              Icons.keyboard_arrow_down_rounded,
-                              size: 20,
-                              color: TossColors.gray500,
-                            ),
-                          ],
-                        ),
+                      SizedBox(width: TossSpacing.space1),
+                      Icon(
+                        Icons.keyboard_arrow_down_rounded,
+                        size: 20,
+                        color: TossColors.gray500,
                       ),
-                    ),
+                    ],
                   ),
-                ],
+                ),
               ),
             ),
             
@@ -655,9 +625,7 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage> {
                 controller: _searchController,
                 hintText: 'Search products...',
                 prefixIcon: Icons.search,
-                onChanged: (value) {
-                  _applyFiltersAndSort();
-                },
+                onChanged: _onSearchChanged,
               ),
             ),
 
@@ -744,7 +712,7 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage> {
                         final index = entry.key;
                         final product = entry.value;
                         final cartItem = cart.firstWhere(
-                          (item) => item.productId == product.id,
+                          (item) => item.productId == product.productId,
                           orElse: () => CartItem(
                             id: '',
                             productId: '',
@@ -758,7 +726,7 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage> {
                         
                         return Column(
                           children: [
-                            _buildProductListTile(product, cartItem),
+                            _buildProductListTile(product, cartItem, currencySymbol),
                             if (index < filteredProducts.length - 1)
                               Divider(
                                 height: 1,
@@ -785,105 +753,98 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage> {
           ? CartSummaryBar(
               itemCount: ref.read(cartProvider.notifier).totalItems,
               subtotal: ref.read(cartProvider.notifier).subtotal,
+              currencySymbol: currencySymbol,
               onReset: () {
                 ref.read(cartProvider.notifier).clearCart();
               },
               onDone: () {
-                context.push('/saleProduct/invoice');
+                // Navigate to payment method page with cart items
+                final cartItems = ref.read(cartProvider);
+                final products = ref.read(productsProvider);
+                
+                // Convert cart items to SalesProduct list
+                final selectedProductsList = cartItems.map((cartItem) {
+                  return products.firstWhere((p) => p.productId == cartItem.productId);
+                }).toList();
+                
+                // Convert to the map format for quantities
+                final productQuantities = <String, int>{};
+                for (var item in cartItems) {
+                  productQuantities[item.productId] = item.quantity;
+                }
+                
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => PaymentMethodPage(
+                      selectedProducts: selectedProductsList,
+                      productQuantities: productQuantities,
+                    ),
+                  ),
+                );
               },
             )
           : null,
     );
   }
 
-  Widget _buildProductListTile(Product product, CartItem cartItem) {
-    return TossListTile(
-      title: product.name,
+  Widget _buildProductListTile(SalesProduct product, CartItem cartItem, String currencySymbol) {
+    final isSelected = cartItem.quantity > 0;
+    
+    return Container(
+      decoration: BoxDecoration(
+        color: isSelected ? Colors.green.withValues(alpha: 0.08) : Colors.transparent,
+        border: isSelected ? Border.all(
+          color: Colors.green.withValues(alpha: 0.4),
+          width: 1.5,
+        ) : null,
+        borderRadius: isSelected ? BorderRadius.circular(TossBorderRadius.sm) : null,
+      ),
+      child: TossListTile(
+      title: product.productName,
       subtitle: product.sku,
       showDivider: false,
       leading: Stack(
-        clipBehavior: Clip.none,  // Allow badge to extend outside bounds
+        clipBehavior: Clip.none,
         children: [
           Container(
-            width: TossSpacing.space12,  // 48px using core spacing
-            height: TossSpacing.space12,  // 48px using core spacing
+            width: TossSpacing.space12,
+            height: TossSpacing.space12,
             decoration: BoxDecoration(
               color: TossColors.gray100,
               borderRadius: BorderRadius.circular(TossBorderRadius.md),
             ),
-            child: product.images.isNotEmpty && product.images.first.isNotEmpty
+            child: product.images.mainImage != null && product.images.mainImage!.isNotEmpty
                 ? ClipRRect(
                     borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                    child: _buildProductImage(product.images.first),
+                    child: _buildProductImage(product.images.mainImage!),
                   )
                 : Icon(Icons.inventory_2, color: TossColors.gray400, size: TossSpacing.iconMD),
           ),
-          // Cart quantity badge - properly positioned
-          if (cartItem.quantity > 0)
-            Positioned(
-              right: -TossSpacing.space2,  // -8px for proper overlap
-              top: -TossSpacing.space1,     // -4px for proper overlap
-              child: Container(
-                padding: EdgeInsets.symmetric(
-                  horizontal: cartItem.quantity >= 10 ? TossSpacing.space1 : TossSpacing.space1 + 2,
-                  vertical: TossSpacing.space1,
-                ),
-                decoration: BoxDecoration(
-                  color: TossColors.primary,
-                  borderRadius: BorderRadius.circular(TossBorderRadius.full),
-                  border: Border.all(
-                    color: TossColors.white,
-                    width: 2,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: TossColors.black.withValues(alpha: 0.1),
-                      blurRadius: 4,
-                      offset: Offset(0, 2),
-                    ),
-                  ],
-                ),
-                constraints: BoxConstraints(
-                  minWidth: TossSpacing.space5,  // 20px minimum width
-                  minHeight: TossSpacing.space5, // 20px minimum height
-                ),
-                child: Center(
-                  child: Text(
-                    '${cartItem.quantity}',
-                    style: TossTextStyles.caption.copyWith(
-                      color: TossColors.white,
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold,
-                      height: 1,
-                    ),
-                  ),
-                ),
-              ),
-            ),
         ],
       ),
       trailing: Container(
-        width: 150,  // Wider to accommodate enhanced selector
+        width: 150,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.end,
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Price - always in same position
+            // Price
             Text(
-              _formatCurrency(product.salePrice),
+              _formatCurrency(product.pricing.sellingPrice ?? 0, currencySymbol),
               style: TossTextStyles.bodyLarge.copyWith(
                 fontWeight: FontWeight.w600,
                 color: TossColors.gray900,
               ),
             ),
             SizedBox(height: TossSpacing.space1),
-            // Clean state or quantity selector with smooth animations
+            // Quantity selector or stock info
             AnimatedSwitcher(
               duration: Duration(milliseconds: 300),
               transitionBuilder: (child, animation) {
                 return SlideTransition(
                   position: Tween<Offset>(
-                    begin: Offset(1.0, 0.0), // Slide from right
+                    begin: Offset(1.0, 0.0),
                     end: Offset.zero,
                   ).animate(CurvedAnimation(
                     parent: animation,
@@ -896,33 +857,40 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage> {
                 );
               },
               child: cartItem.quantity > 0
-                  ? EnhancedQuantitySelector(
-                      key: ValueKey('selector-${product.id}'),
-                      quantity: cartItem.quantity,
-                      maxQuantity: product.available,
-                      compactMode: true,
-                      onQuantityChanged: (newQuantity) {
-                        if (newQuantity <= 0) {
-                          ref.read(cartProvider.notifier).removeItem(cartItem.id);
-                        } else {
-                          ref.read(cartProvider.notifier).updateQuantity(
-                            cartItem.id,
-                            newQuantity,
-                          );
-                        }
-                      },
-                      semanticLabel: 'Quantity for ${product.name}',
-                      decrementSemanticLabel: 'Decrease ${product.name} quantity',
-                      incrementSemanticLabel: 'Increase ${product.name} quantity',
+                  ? Container(
+                      key: ValueKey('quantity-${product.productId}'),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: TossSpacing.space3,
+                        vertical: TossSpacing.space2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.green.withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(TossBorderRadius.sm),
+                        border: Border.all(
+                          color: Colors.green.withValues(alpha: 0.4),
+                          width: 1.5,
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            '${cartItem.quantity}',
+                            style: TossTextStyles.body.copyWith(
+                              color: Colors.green[700],
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
                     )
                   : Row(
-                      key: ValueKey('clean-${product.id}'),
+                      key: ValueKey('clean-${product.productId}'),
                       mainAxisSize: MainAxisSize.min,
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
-                        // Only show stock info in clean state - no buttons
                         Text(
-                          'Stock: ${product.onHand}',
+                          'Stock: ${product.totalStockSummary.totalQuantityOnHand}',
                           style: TossTextStyles.caption.copyWith(
                             color: _getStockColor(product),
                             fontWeight: FontWeight.w600,
@@ -934,39 +902,43 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage> {
           ],
         ),
       ),
-      // Always enable tap to reveal quantity selector
       onTap: () {
         HapticFeedback.lightImpact();
         if (cartItem.quantity == 0) {
-          // Add first item to reveal selector
+          // Add first item to cart
           ref.read(cartProvider.notifier).addItem(product);
+        } else {
+          // Increase quantity when tapped
+          ref.read(cartProvider.notifier).updateQuantity(
+            cartItem.id,
+            cartItem.quantity + 1,
+          );
         }
-      },
+        },
+      ),
     );
   }
 
-  Color _getStockColor(Product product) {
-    if (product.onHand == 0) return TossColors.error;
-    switch (product.stockStatus) {
-      case StockStatus.critical:
-        return TossColors.error;
-      case StockStatus.low:
-        return TossColors.warning;
-      case StockStatus.optimal:
-        return TossColors.success;
-      case StockStatus.excess:
-        return TossColors.info;
-    }
+  Color _getStockColor(SalesProduct product) {
+    final stock = product.totalStockSummary.totalQuantityOnHand;
+    if (stock == 0) return TossColors.error;
+    if (stock <= 5) return TossColors.warning;
+    if (stock <= 20) return TossColors.info;
+    return TossColors.success;
   }
 
-
-  String _formatCurrency(double value) {
-    if (value >= 1000000) {
-      return '₩${(value / 1000000).toStringAsFixed(1)}M';
-    } else if (value >= 1000) {
-      return '₩${(value / 1000).toStringAsFixed(0)}K';
+  String _formatCurrency(double value, String currencySymbol) {
+    // Format with commas for exact numbers, no K or M abbreviations
+    final formatter = NumberFormat('#,##0', 'en_US');
+    
+    // For zero values, you can return a dash or just 0
+    if (value == 0) {
+      return '${currencySymbol}0';
     }
-    return '₩${value.toStringAsFixed(0)}';
+    
+    // Format the value with commas
+    String formatted = formatter.format(value.round());
+    return '$currencySymbol$formatted';
   }
   
   Widget _buildProductImage(String imageUrl) {
@@ -992,5 +964,250 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage> {
     else {
       return Icon(Icons.inventory_2, color: TossColors.gray400, size: TossSpacing.iconMD);
     }
+  }
+
+  Widget _buildAddedItemsSection(List<CartItem> cartItems, String currencySymbol) {
+    final totalAmount = ref.read(cartProvider.notifier).subtotal;
+    final totalItems = ref.read(cartProvider.notifier).totalItems;
+    
+    return Container(
+      margin: EdgeInsets.all(TossSpacing.space4),
+      child: TossWhiteCard(
+        padding: EdgeInsets.all(TossSpacing.space4),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header
+            Row(
+              children: [
+                Icon(
+                  Icons.shopping_cart,
+                  color: TossColors.primary,
+                  size: TossSpacing.iconSM,
+                ),
+                SizedBox(width: TossSpacing.space2),
+                Text(
+                  'Added Items',
+                  style: TossTextStyles.bodyLarge.copyWith(
+                    color: TossColors.gray900,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                Spacer(),
+                Text(
+                  '$totalItems items',
+                  style: TossTextStyles.caption.copyWith(
+                    color: TossColors.gray600,
+                  ),
+                ),
+              ],
+            ),
+            
+            SizedBox(height: TossSpacing.space3),
+            
+            // Cart Items List
+            ...cartItems.map((item) {
+              return Container(
+                margin: EdgeInsets.only(bottom: TossSpacing.space2),
+                padding: EdgeInsets.all(TossSpacing.space3),
+                decoration: BoxDecoration(
+                  color: TossColors.primary.withOpacity(0.05),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.sm),
+                  border: Border.all(
+                    color: TossColors.primary.withOpacity(0.1),
+                    width: 1,
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    // Product Image
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: TossColors.gray100,
+                        borderRadius: BorderRadius.circular(TossBorderRadius.sm),
+                      ),
+                      child: item.image != null && item.image!.isNotEmpty
+                          ? ClipRRect(
+                              borderRadius: BorderRadius.circular(TossBorderRadius.sm),
+                              child: _buildProductImage(item.image!),
+                            )
+                          : Icon(Icons.inventory_2, color: TossColors.gray400, size: 20),
+                    ),
+                    
+                    SizedBox(width: TossSpacing.space3),
+                    
+                    // Product Info
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            item.name,
+                            style: TossTextStyles.body.copyWith(
+                              fontWeight: FontWeight.w600,
+                              color: TossColors.gray900,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          SizedBox(height: TossSpacing.space1),
+                          Text(
+                            item.sku,
+                            style: TossTextStyles.caption.copyWith(
+                              color: TossColors.gray600,
+                            ),
+                          ),
+                          SizedBox(height: TossSpacing.space1),
+                          Row(
+                            children: [
+                              Text(
+                                _formatCurrency(item.price, currencySymbol),
+                                style: TossTextStyles.caption.copyWith(
+                                  color: TossColors.primary,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              Text(
+                                ' × ${item.quantity}',
+                                style: TossTextStyles.caption.copyWith(
+                                  color: TossColors.gray600,
+                                ),
+                              ),
+                              SizedBox(width: TossSpacing.space2),
+                              Text(
+                                _formatCurrency(item.subtotal, currencySymbol),
+                                style: TossTextStyles.caption.copyWith(
+                                  color: TossColors.gray900,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    
+                    // Quantity Controls
+                    Container(
+                      decoration: BoxDecoration(
+                        color: TossColors.white,
+                        borderRadius: BorderRadius.circular(TossBorderRadius.sm),
+                        border: Border.all(
+                          color: TossColors.primary.withOpacity(0.2),
+                          width: 1,
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          // Decrease Button
+                          InkWell(
+                            onTap: item.quantity > 0
+                                ? () => ref.read(cartProvider.notifier).updateQuantity(item.id, item.quantity - 1)
+                                : null,
+                            borderRadius: BorderRadius.only(
+                              topLeft: Radius.circular(TossBorderRadius.sm),
+                              bottomLeft: Radius.circular(TossBorderRadius.sm),
+                            ),
+                            child: Container(
+                              padding: EdgeInsets.all(TossSpacing.space2),
+                              child: Icon(
+                                Icons.remove,
+                                size: 16,
+                                color: item.quantity > 0 ? TossColors.primary : TossColors.gray400,
+                              ),
+                            ),
+                          ),
+                          
+                          // Quantity Display
+                          Container(
+                            width: 40,
+                            padding: EdgeInsets.symmetric(vertical: TossSpacing.space2),
+                            decoration: BoxDecoration(
+                              border: Border.symmetric(
+                                vertical: BorderSide(
+                                  color: TossColors.gray200,
+                                  width: 1,
+                                ),
+                              ),
+                            ),
+                            child: Text(
+                              '${item.quantity}',
+                              style: TossTextStyles.body.copyWith(
+                                color: TossColors.gray900,
+                                fontWeight: FontWeight.w600,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                          
+                          // Increase Button
+                          InkWell(
+                            onTap: () => ref.read(cartProvider.notifier).updateQuantity(item.id, item.quantity + 1),
+                            borderRadius: BorderRadius.only(
+                              topRight: Radius.circular(TossBorderRadius.sm),
+                              bottomRight: Radius.circular(TossBorderRadius.sm),
+                            ),
+                            child: Container(
+                              padding: EdgeInsets.all(TossSpacing.space2),
+                              child: Icon(
+                                Icons.add,
+                                size: 16,
+                                color: TossColors.primary,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    
+                    // Remove Button
+                    SizedBox(width: TossSpacing.space2),
+                    InkWell(
+                      onTap: () => ref.read(cartProvider.notifier).removeItem(item.id),
+                      child: Icon(
+                        Icons.close,
+                        size: 20,
+                        color: TossColors.error,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }).toList(),
+            
+            // Total Section
+            SizedBox(height: TossSpacing.space3),
+            Container(
+              padding: EdgeInsets.all(TossSpacing.space3),
+              decoration: BoxDecoration(
+                color: TossColors.gray50,
+                borderRadius: BorderRadius.circular(TossBorderRadius.sm),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Total',
+                    style: TossTextStyles.bodyLarge.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: TossColors.gray900,
+                    ),
+                  ),
+                  Text(
+                    _formatCurrency(totalAmount, currencySymbol),
+                    style: TossTextStyles.bodyLarge.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: TossColors.primary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
