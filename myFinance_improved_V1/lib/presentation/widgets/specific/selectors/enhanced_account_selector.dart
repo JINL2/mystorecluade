@@ -96,6 +96,16 @@ class _EnhancedAccountSelectorState extends ConsumerState<EnhancedAccountSelecto
         ? ref.watch(currentAccountsByTypeProvider(widget.accountType!))
         : ref.watch(currentAccountsProvider);
 
+    // Handle loading state
+    if (accountsAsync.isLoading) {
+      return _buildLoadingSelector();
+    }
+
+    // Handle error state
+    if (accountsAsync.hasError) {
+      return _buildErrorSelector(accountsAsync.error.toString());
+    }
+
     // Update filtered accounts
     final allAccounts = accountsAsync.maybeWhen(
       data: (accounts) => accounts,
@@ -946,7 +956,7 @@ class _EnhancedAccountSelectorState extends ConsumerState<EnhancedAccountSelecto
   }
 
   Widget _buildQuickAccountItem(Map<String, dynamic> quickAccount) {
-    final accountName = quickAccount['account_name'] ?? 'Unknown Account';
+    final accountName = (quickAccount['account_name'] ?? 'Unknown Account') as String;
     final accountId = quickAccount['account_id'] as String?;
     final usageCount = quickAccount['usage_count'] as int? ?? 0;
     final isSelected = accountId == widget.selectedAccountId;
@@ -1018,6 +1028,100 @@ class _EnhancedAccountSelectorState extends ConsumerState<EnhancedAccountSelecto
       ref,
       quickAccount,
       contextType: widget.contextType,
+    );
+  }
+
+  Widget _buildLoadingSelector() {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: TossSpacing.space4,
+        vertical: TossSpacing.space3,
+      ),
+      decoration: BoxDecoration(
+        color: TossColors.gray50,
+        borderRadius: BorderRadius.circular(TossBorderRadius.md),
+        border: Border.all(
+          color: TossColors.border,
+          width: 1,
+        ),
+      ),
+      child: Row(
+        children: [
+          SizedBox(
+            width: 16,
+            height: 16,
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              valueColor: AlwaysStoppedAnimation<Color>(TossColors.gray400),
+            ),
+          ),
+          const SizedBox(width: TossSpacing.space3),
+          Text(
+            'Loading accounts...',
+            style: TossTextStyles.body.copyWith(
+              color: TossColors.gray500,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildErrorSelector(String error) {
+    return GestureDetector(
+      onTap: () {
+        // Try to refresh the data
+        ref.invalidate(currentAccountsProvider);
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: TossSpacing.space4,
+          vertical: TossSpacing.space3,
+        ),
+        decoration: BoxDecoration(
+          color: TossColors.errorLight,
+          borderRadius: BorderRadius.circular(TossBorderRadius.md),
+          border: Border.all(
+            color: TossColors.error,
+            width: 1,
+          ),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              Icons.error_outline,
+              size: TossSpacing.iconSM,
+              color: TossColors.error,
+            ),
+            const SizedBox(width: TossSpacing.space3),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Failed to load accounts',
+                    style: TossTextStyles.body.copyWith(
+                      color: TossColors.error,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  Text(
+                    'Tap to retry',
+                    style: TossTextStyles.caption.copyWith(
+                      color: TossColors.error,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              Icons.refresh,
+              size: TossSpacing.iconSM,
+              color: TossColors.error,
+            ),
+          ],
+        ),
+      ),
     );
   }
 

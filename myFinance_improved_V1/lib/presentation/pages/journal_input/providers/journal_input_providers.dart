@@ -21,9 +21,18 @@ final journalAccountsProvider = FutureProvider<List<Map<String, dynamic>>>((ref)
         .select('account_id, account_name, category_tag')
         .order('account_name');
     
-    return List<Map<String, dynamic>>.from(response);
+    if (response == null) {
+      // Handle null response gracefully
+      return [];
+    }
+    
+    final accounts = List<Map<String, dynamic>>.from(response);
+    return accounts;
   } catch (e) {
-    throw Exception('Failed to fetch accounts: $e');
+    print('Error fetching accounts: $e');
+    // Return empty list instead of throwing to prevent UI crash
+    // The UI will show the error state
+    throw Exception('Network error: Please check your connection and try again');
   }
 });
 
