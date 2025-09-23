@@ -2275,12 +2275,6 @@
             opacity: 1;
         }
         
-        /* Add Payment Modal Specific Styles */
-        #addPaymentModal.active {
-            opacity: 1 !important;
-            visibility: visible !important;
-            display: flex !important;
-        }
         
         /* Modal Container */
         .modal-container {
@@ -3967,92 +3961,103 @@
                             </div>
                         </div>
 
-                        <!-- Payment Methods Section -->
+                        <!-- Payment Details Section -->
                         <div class="form-section">
-                            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
-                                <label class="form-label">
-                                    <svg class="form-label-icon" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                                        <path d="M12,11.5A2.5,2.5 0 0,1 9.5,9A2.5,2.5 0 0,1 12,6.5A2.5,2.5 0 0,1 14.5,9A2.5,2.5 0 0,1 12,11.5M12,2A7,7 0 0,0 5,9C5,14.25 12,22 12,22C12,22 19,14.25 19,9A7,7 0 0,0 12,2Z"/>
-                                    </svg>
-                                    Payment Methods <span style="color: var(--toss-error);">*</span>
-                                </label>
-                                <button type="button" class="btn-add-payment" onclick="console.log('=== Add Payment button clicked ===', new Date().toISOString()); event.stopPropagation(); if (window.newInvoiceModal) { console.log('newInvoiceModal exists, calling showAddPaymentModal...'); window.newInvoiceModal.showAddPaymentModal(); } else { console.error('window.newInvoiceModal not found!'); }"
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                                        <path d="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z"/>
-                                    </svg>
-                                    Add Payment
-                                </button>
-                            </div>
-                            
-                            <!-- Payment Methods List -->
-                            <div id="paymentMethodsList" class="payment-methods-list">
-                                <div class="no-payments-message" id="noPaymentsMessage">
-                                    <svg width="48" height="48" viewBox="0 0 24 24" fill="var(--toss-gray-400)">
-                                        <path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,17A1.5,1.5 0 0,1 10.5,15.5A1.5,1.5 0 0,1 12,14A1.5,1.5 0 0,1 13.5,15.5A1.5,1.5 0 0,1 12,17M12,10.5A1.5,1.5 0 0,1 10.5,9A1.5,1.5 0 0,1 12,7.5A1.5,1.5 0 0,1 13.5,9A1.5,1.5 0 0,1 12,10.5Z"/>
-                                    </svg>
-                                    <p>No payment methods added yet</p>
-                                    <p style="font-size: 12px; color: var(--toss-gray-500);">Click "Add Payment" to add payment methods</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Currency and Amount Selection (for cash/vault locations) -->
-                        <div class="form-section" id="currencyDenominationSection" style="display: none;">
                             <label class="form-label">
                                 <svg class="form-label-icon" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                                    <path d="M7,15H9C9,16.08 10.37,17 12,17C13.63,17 15,16.08 15,15C15,13.9 13.96,13.5 11.76,12.97C9.64,12.44 7,11.78 7,9C7,7.21 8.47,5.69 10.5,5.18V3H13.5V5.18C15.53,5.69 17,7.21 17,9H15C15,7.92 13.63,7 12,7C10.37,7 9,7.92 9,9C9,10.1 10.04,10.5 12.24,11.03C14.36,11.56 17,12.22 17,15C17,16.79 15.53,18.31 13.5,18.82V21H10.5V18.82C8.47,18.31 7,16.79 7,15Z"/>
+                                    <path d="M12,11.5A2.5,2.5 0 0,1 9.5,9A2.5,2.5 0 0,1 12,6.5A2.5,2.5 0 0,1 14.5,9A2.5,2.5 0 0,1 12,11.5M12,2A7,7 0 0,0 5,9C5,14.25 12,22 12,22C12,22 19,14.25 19,9A7,7 0 0,0 12,2Z"/>
                                 </svg>
-                                Amount Received
+                                Payment Details <span style="color: var(--toss-error);">*</span>
                             </label>
                             
-                            <!-- Currency Selection -->
-                            <div class="currency-selector" id="currencySelector" style="margin-bottom: 12px;">
-                                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                                    <!-- Currency buttons will be added here dynamically -->
+                            <!-- Cash Location Selection -->
+                            <div class="form-group" style="margin-bottom: 16px;">
+                                <label class="form-label" style="font-size: 14px; margin-bottom: 8px;">Cash Location</label>
+                                <div class="toss-select-container">
+                                    <button type="button" class="toss-select" id="paymentCashLocationSelect" onclick="window.newInvoiceModal.openPaymentCashLocationSearch()">
+                                        <span class="toss-select-value toss-select-placeholder">TEST 우리은행 계좌</span>
+                                        <svg class="toss-select-arrow" viewBox="0 0 24 24" fill="currentColor">
+                                            <path d="M7,10L12,15L17,10H7Z"/>
+                                        </svg>
+                                    </button>
                                 </div>
                             </div>
                             
-                            <!-- Amount Input for Selected Currency -->
-                            <div class="currency-amount-input" id="currencyAmountSection">
-                                <label class="form-label" for="currencyAmount">
-                                    <span>Amount in </span>
-                                    <span class="currency-amount-label" id="currencyAmountLabel">VND</span>
-                                </label>
-                                <div style="position: relative;">
+                            <!-- Currency Selection -->
+                            <div class="form-group" style="margin-bottom: 16px;">
+                                <label class="form-label" style="font-size: 14px; margin-bottom: 8px;">Currency Amounts</label>
+                                <div id="paymentCurrencies" class="add-payment-currencies">
+                                    <!-- Currency buttons -->
+                                    <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px;">
+                                        <button type="button" class="currency-btn active" data-currency="AED" onclick="window.newInvoiceModal.selectPaymentCurrency('AED')">
+                                            🇦🇪 AED د.إ
+                                        </button>
+                                        <button type="button" class="currency-btn" data-currency="ARS" onclick="window.newInvoiceModal.selectPaymentCurrency('ARS')">
+                                            🇦🇷 ARS $
+                                        </button>
+                                        <button type="button" class="currency-btn" data-currency="AUD" onclick="window.newInvoiceModal.selectPaymentCurrency('AUD')">
+                                            🇦🇺 AUD $
+                                        </button>
+                                        <button type="button" class="currency-btn" data-currency="KRW" onclick="window.newInvoiceModal.selectPaymentCurrency('KRW')">
+                                            🇰🇷 KRW ₩
+                                        </button>
+                                        <button type="button" class="currency-btn" data-currency="THB" onclick="window.newInvoiceModal.selectPaymentCurrency('THB')">
+                                            🇹🇭 THB ฿
+                                        </button>
+                                        <button type="button" class="currency-btn" data-currency="TRY" onclick="window.newInvoiceModal.selectPaymentCurrency('TRY')">
+                                            🇹🇷 TRY ₺
+                                        </button>
+                                        <button type="button" class="currency-btn" data-currency="TWD" onclick="window.newInvoiceModal.selectPaymentCurrency('TWD')">
+                                            🇹🇼 TWD NT$
+                                        </button>
+                                        <button type="button" class="currency-btn" data-currency="UAH" onclick="window.newInvoiceModal.selectPaymentCurrency('UAH')">
+                                            🇺🇦 UAH ₴
+                                        </button>
+                                        <button type="button" class="currency-btn" data-currency="USD" onclick="window.newInvoiceModal.selectPaymentCurrency('USD')">
+                                            🇺🇸 USD $
+                                        </button>
+                                        <button type="button" class="currency-btn" data-currency="VND" onclick="window.newInvoiceModal.selectPaymentCurrency('VND')">
+                                            🇻🇳 VND ₫
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <!-- Amount Input for Selected Currency -->
+                                <div class="payment-amount-input" id="paymentAmountSection">
+                                    <label class="form-label" style="font-size: 14px; margin-bottom: 8px;">
+                                        Amount in <span id="paymentCurrencyLabel">AED</span>
+                                    </label>
                                     <input 
                                         type="text" 
                                         class="form-input" 
-                                        id="currencyAmount" 
-                                        placeholder="Enter amount received"
-                                        oninput="window.newInvoiceModal.formatCurrencyInput(this)"
-                                        onblur="window.newInvoiceModal.updateCurrencyAmount(this.value)">
+                                        id="paymentAmount" 
+                                        placeholder="Enter amount in AED"
+                                        oninput="window.newInvoiceModal.formatPaymentAmount(this)"
+                                        onblur="window.newInvoiceModal.updatePaymentAmount(this.value)"
+                                        required>
                                     <div class="input-hint" style="font-size: 12px; color: var(--toss-gray-600); margin-top: 4px;">
                                         Enter the amount received from the customer
+                                    </div>
+                                    <div id="paymentAmountConversion" class="currency-conversion-display" style="font-size: 12px; color: var(--toss-primary); margin-top: 4px; font-weight: 600; display: none;">
+                                        <!-- Real-time conversion will appear here -->
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Amount Received Section -->
-                        <div class="form-section" id="amountReceivedSection" style="display: none;">
-                            <label class="form-label" for="amountReceived">
-                                <svg class="form-label-icon" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                                    <path d="M7,15H9C9,16.08 10.37,17 12,17C13.63,17 15,16.08 15,15C15,13.9 13.96,13.5 11.76,12.97C9.64,12.44 7,11.78 7,9C7,7.21 8.47,5.69 10.5,5.18V3H13.5V5.18C15.53,5.69 17,7.21 17,9H15C15,7.92 13.63,7 12,7C10.37,7 9,7.92 9,9C9,10.1 10.04,10.5 12.24,11.03C14.36,11.56 17,12.22 17,15C17,16.79 15.53,18.31 13.5,18.82V21H10.5V18.82C8.47,18.31 7,16.79 7,15Z"/>
-                                </svg>
-                                Amount Received
-                            </label>
-                            <div class="form-input-container">
-                                <input 
-                                    type="text" 
-                                    class="form-input amount-input" 
-                                    id="amountReceived" 
-                                    placeholder="0"
-                                    oninput="window.newInvoiceModal.formatBankAmountInput(this)"
-                                    onblur="window.newInvoiceModal.updateBankAmount(this.value)"
-                                    required>
+                        <!-- Multi-Currency Total Display -->
+                        <div id="multiCurrencyTotalContainer" class="multi-currency-total" style="display: none; padding: 12px; background: #f5f5f5; border-radius: 8px; margin-bottom: 12px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <span style="font-size: 14px; color: #666;">Multi-Currency Total:</span>
+                                <span id="multiCurrencyTotal" style="font-size: 16px; font-weight: 600; color: var(--toss-primary);">-</span>
                             </div>
-                            <div class="form-help-text">
-                                Enter the amount received from the customer
+                        </div>
+                        
+                        <!-- Discount Display -->
+                        <div id="discountDisplayContainer" class="discount-display" style="display: none; padding: 12px; background: #fef3c7; border-radius: 8px; margin-bottom: 12px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <span style="font-size: 14px; color: #92400e;">Discount Applied:</span>
+                                <span id="discountTotalDisplay" style="font-size: 16px; font-weight: 600; color: #dc2626;">-</span>
                             </div>
                         </div>
 
@@ -4266,81 +4271,6 @@
                 </div>
             </div>
             
-            <!-- Add Payment Method Modal -->
-            <div class="modal-overlay" id="addPaymentModal" style="display: none; z-index: 10001; position: fixed; opacity: 1; visibility: visible;">
-                <div class="modal-container" style="max-width: 600px;">
-                    <div class="modal-header">
-                        <h2 class="modal-title">Add Payment Method</h2>
-                        <button class="modal-close-btn" onclick="window.newInvoiceModal.closeAddPaymentModal()">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"/>
-                            </svg>
-                        </button>
-                    </div>
-                    
-                    <div class="modal-content" style="padding: 24px;">
-                        <!-- Payment Type Display (Auto-determined) -->
-                        <div class="form-section" id="paymentTypeSection" style="display: none;">
-                            <label class="form-label">Payment Type</label>
-                            <div id="paymentTypeDisplay" class="payment-type-display">
-                                <!-- Payment type will be shown here based on selected cash location -->
-                            </div>
-                        </div>
-                        
-                        <!-- Cash Location Selection -->
-                        <div class="form-section" id="cashLocationSection">
-                            <label class="form-label">Cash Location</label>
-                            <div class="toss-select-container">
-                                <button type="button" class="toss-select" id="addPaymentCashLocationSelect" onclick="window.newInvoiceModal.openAddPaymentCashLocationSearch()">
-                                    <span class="toss-select-value toss-select-placeholder">Select cash location...</span>
-                                    <svg class="toss-select-arrow" viewBox="0 0 24 24" fill="currentColor">
-                                        <path d="M7,10L12,15L17,10H7Z"/>
-                                    </svg>
-                                </button>
-                            </div>
-                        </div>
-                        
-                        <!-- Bank Details -->
-                        <div class="form-section" id="bankDetailsSection" style="display: none;">
-                            <label class="form-label">Bank Transfer</label>
-                            <p style="color: var(--toss-gray-600); font-size: 14px; margin: 0;">
-                                Direct bank transfer payment
-                            </p>
-                        </div>
-                        
-                        <!-- Currency Amounts -->
-                        <div class="form-section" id="currencyAmountsSection" style="display: none;">
-                            <label class="form-label">Currency Amounts</label>
-                            <div id="addPaymentCurrencies" class="add-payment-currencies">
-                                <!-- Currency buttons will be added here -->
-                            </div>
-                            
-                            <!-- Total Display -->
-                            <div id="currencyTotalDisplay" class="currency-total-display" style="display: none;">
-                                <div class="currency-total-label">Total in Base Currency</div>
-                                <div class="currency-total-amount" id="currencyTotalAmount">₫0</div>
-                            </div>
-                            
-                            <div class="add-payment-amount-input" id="addPaymentAmountSection" style="display: none;">
-                                <label class="form-label">
-                                    Amount in <span id="addPaymentCurrencyLabel">VND</span>
-                                </label>
-                                <input 
-                                    type="text" 
-                                    class="form-input" 
-                                    id="addPaymentAmount" 
-                                    placeholder="Enter amount"
-                                    oninput="window.newInvoiceModal.formatAddPaymentAmount(this); window.newInvoiceModal.updateAddPaymentCurrencyTotal()">
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="modal-footer">
-                        <button class="modal-btn secondary" onclick="window.newInvoiceModal.closeAddPaymentModal()">Cancel</button>
-                        <button class="modal-btn primary" id="addPaymentBtn" onclick="console.log('=== ADD PAYMENT BUTTON CLICKED ==='); window.newInvoiceModal.savePaymentMethod()" disabled>Add Payment</button>
-                    </div>
-                </div>
-            </div>
             
             <!-- Invoice Content Container -->
             <div id="invoiceContent">
@@ -5098,14 +5028,13 @@
             }
             
             formatCurrency(amount, currency) {
-                // For zero values, return with currency symbol if available
-                if (amount === 0) {
-                    const symbol = currentCurrencyInfo?.symbol || '';
-                    return symbol ? `${symbol}0` : '0';
+                // For zero values, return dash to hide zero amounts
+                if (amount === 0 || amount === null || amount === undefined) {
+                    return '-';
                 }
                 
-                // For non-zero values, format with currency symbol
-                const formatted = new Intl.NumberFormat('ko-KR', {
+                // For non-zero values, format with exact numbers and commas
+                const formatted = new Intl.NumberFormat('en-US', {
                     minimumFractionDigits: 0,
                     maximumFractionDigits: amount % 1 === 0 ? 0 : 2
                 }).format(amount);
@@ -5362,7 +5291,10 @@
                 
                 // Local formatNumber function for this method
                 const formatNumber = (num) => {
-                    return new Intl.NumberFormat('en-US').format(num || 0);
+                    if (num === 0 || num === null || num === undefined) {
+                        return '-';
+                    }
+                    return new Intl.NumberFormat('en-US').format(num);
                 };
                 
                 modalTitle.textContent = `Invoice ${invoice.invoice_number || 'Unknown'}`;
@@ -5676,6 +5608,10 @@
                 this.discountType = 'amount'; // 'amount' or 'percent'
                 this.discountAmount = 0;
                 this.discountPercent = 0;
+                
+                // Currency selection property
+                this.currentSelectedCurrency = 'AED'; // Default to AED as per HTML
+                this.paymentCurrencyAmounts = {}; // Track amounts for each currency
                 
                 // Initialize modal functionality only if modal exists
                 if (this.modal) {
@@ -6184,7 +6120,7 @@
                 
                 const cashLocationSelect = isForAddPayment ? 
                     document.getElementById('addPaymentCashLocationSelect') : 
-                    document.getElementById('cashLocationSelect');
+                    (document.getElementById('paymentCashLocationSelect') || document.getElementById('cashLocationSelect'));
                 if (!cashLocationSelect) {
                     console.error('Cash location select element not found');
                     return;
@@ -6430,22 +6366,31 @@
                     return;
                 }
                 
-                // Handle main form (legacy)
-                const cashLocationSelect = document.getElementById('cashLocationSelect');
+                // Handle main form (including Payment Details modal)
+                const cashLocationSelect = document.getElementById('paymentCashLocationSelect') || document.getElementById('cashLocationSelect');
                 const cashLocationInput = document.getElementById('cashLocation');
                 const paymentMethodInfo = document.getElementById('paymentMethodInfo');
                 const paymentMethodText = document.getElementById('paymentMethodText');
                 
-                if (cashLocationSelect && cashLocationInput) {
+                if (cashLocationSelect) {
                     const valueSpan = cashLocationSelect.querySelector('.toss-select-value');
                     
-                    // Set the display value with type badge
-                    const typeText = location.type?.toUpperCase() || 'UNKNOWN';
-                    valueSpan.textContent = `${location.name} (${typeText})`;
-                    valueSpan.classList.remove('toss-select-placeholder');
+                    if (valueSpan) {
+                        // For Payment Details modal, just show the name without type
+                        // For other modals, show name with type badge
+                        if (cashLocationSelect.id === 'paymentCashLocationSelect') {
+                            valueSpan.textContent = location.name;
+                        } else {
+                            const typeText = location.type?.toUpperCase() || 'UNKNOWN';
+                            valueSpan.textContent = `${location.name} (${typeText})`;
+                        }
+                        valueSpan.classList.remove('toss-select-placeholder');
+                    }
                     
-                    // Set the hidden input value
-                    cashLocationInput.value = location.id;
+                    // Set the hidden input value if it exists
+                    if (cashLocationInput) {
+                        cashLocationInput.value = location.id;
+                    }
                     
                     // Store selected location
                     this.selectedCashLocation = location;
@@ -6690,6 +6635,9 @@
             
             // Helper method for formatting numbers in invoice detail display
             formatNumber(number) {
+                if (number === 0 || number === null || number === undefined) {
+                    return '-';
+                }
                 return new Intl.NumberFormat('en-US').format(number);
             }
             
@@ -7730,14 +7678,13 @@
             }
             
             formatAmount(amount) {
-                // For zero values, return with currency symbol if available
-                if (amount === 0) {
-                    const symbol = currentCurrencyInfo?.symbol || '';
-                    return symbol ? `${symbol}0` : '0';
+                // For zero values, return empty string or dash to hide zero prices
+                if (amount === 0 || amount === null || amount === undefined) {
+                    return '-';
                 }
                 
-                // For non-zero values, format with commas and currency symbol
-                const formatted = new Intl.NumberFormat('ko-KR', {
+                // For non-zero values, format with exact numbers and commas
+                const formatted = new Intl.NumberFormat('en-US', {
                     minimumFractionDigits: 0,
                     maximumFractionDigits: amount % 1 === 0 ? 0 : 2
                 }).format(amount);
@@ -7747,14 +7694,13 @@
             }
             
             formatCurrency(amount, currency) {
-                // For zero values, return with currency symbol if available
-                if (amount === 0) {
-                    const symbol = currentCurrencyInfo?.symbol || '';
-                    return symbol ? `${symbol}0` : '0';
+                // For zero values, return dash to hide zero amounts
+                if (amount === 0 || amount === null || amount === undefined) {
+                    return '-';
                 }
                 
-                // For non-zero values, format with currency symbol
-                const formatted = new Intl.NumberFormat('ko-KR', {
+                // For non-zero values, format with exact numbers and commas
+                const formatted = new Intl.NumberFormat('en-US', {
                     minimumFractionDigits: 0,
                     maximumFractionDigits: amount % 1 === 0 ? 0 : 2
                 }).format(amount);
@@ -7816,21 +7762,44 @@
                         Creating...
                     `;
                     
-                    // Prepare invoice data
+                    // Calculate amount received from multi-currency payments
                     let amountReceived = 0;
                     
-                    // Use appropriate amount based on location type
-                    if (this.selectedCashLocation) {
-                        if (this.selectedCashLocation.type === 'bank') {
-                            // For bank locations, use amount received input
-                            amountReceived = parseFloat(document.getElementById('amountReceived').value) || 0;
+                    // Calculate total from paymentCurrencyAmounts if available
+                    if (this.paymentCurrencyAmounts && Object.keys(this.paymentCurrencyAmounts).length > 0) {
+                        // Use multi-currency payment amounts
+                        for (const [currencyCode, amount] of Object.entries(this.paymentCurrencyAmounts)) {
+                            const numericAmount = parseFloat(amount);
+                            if (numericAmount > 0) {
+                                // If this is the base currency, add directly
+                                if (currentCurrencyInfo && currencyCode === currentCurrencyInfo.currency_code) {
+                                    amountReceived += numericAmount;
+                                } else {
+                                    // Find the currency to get exchange rate
+                                    const currency = companyCurrencies.find(c => c.currency_code === currencyCode);
+                                    if (currency && currency.exchange_rate_to_base) {
+                                        // Convert to base currency
+                                        const convertedAmount = numericAmount * currency.exchange_rate_to_base;
+                                        amountReceived += convertedAmount;
+                                    }
+                                }
+                            }
+                        }
+                        console.log('Amount received from multi-currency payments:', amountReceived);
+                    } else {
+                        // Fallback to old method if needed
+                        if (this.selectedCashLocation) {
+                            if (this.selectedCashLocation.type === 'bank') {
+                                // For bank locations, use amount received input
+                                amountReceived = parseFloat(document.getElementById('amountReceived').value) || 0;
+                            } else {
+                                // For all non-bank locations, use grand total from all currencies
+                                amountReceived = this.calculateGrandTotalFromAllCurrencies();
+                            }
                         } else {
-                            // For all non-bank locations, use grand total from all currencies
+                            // Even without cash location, use currency data if available
                             amountReceived = this.calculateGrandTotalFromAllCurrencies();
                         }
-                    } else {
-                        // Even without cash location, use currency data if available
-                        amountReceived = this.calculateGrandTotalFromAllCurrencies();
                     }
                     
                     // Get required parameters for RPC call
@@ -7865,17 +7834,13 @@
                         primaryPaymentMethod = this.paymentMethods[0].type || 'cash';
                     }
                     
-                    // Calculate discount amount for RPC
-                    const productsSubtotal = this.selectedProducts.reduce((total, product) => {
-                        return total + (product.price * product.quantity);
-                    }, 0);
+                    // Get customer if selected
+                    const customerSelect = document.getElementById('customerSelect');
+                    const customerId = customerSelect?.value || null;
                     
-                    let discountAmount = 0;
-                    if (this.discountType === 'amount') {
-                        discountAmount = this.discountAmount || 0;
-                    } else if (this.discountType === 'percent') {
-                        discountAmount = productsSubtotal * ((this.discountPercent || 0) / 100);
-                    }
+                    // Get tax rate from input
+                    const taxRateInput = document.getElementById('taxRateInput');
+                    const taxRate = taxRateInput ? (parseFloat(taxRateInput.value) || 0) / 100 : 0;
                     
                     // Prepare RPC parameters
                     const rpcParams = {
@@ -7883,19 +7848,72 @@
                         p_store_id: storeId,
                         p_created_by: userId,
                         p_sale_date: new Date().toISOString(),
-                        p_items: this.selectedProducts.map(product => ({
+                        p_payment_method: primaryPaymentMethod,
+                        p_tax_rate: taxRate
+                    };
+                    
+                    // Add customer if selected
+                    if (customerId) {
+                        rpcParams.p_customer_id = customerId;
+                    }
+                    
+                    // Handle discounts based on type
+                    if (this.currentDiscountType === 'item') {
+                        // Item-level discounts - add discount to each item
+                        rpcParams.p_items = this.selectedProducts.map(product => {
+                            const item = {
+                                product_id: product.id,
+                                quantity: product.quantity,
+                                unit_price: product.price
+                            };
+                            // Add discount_amount if product has discount
+                            if (product.discount && product.discount > 0) {
+                                item.discount_amount = product.discount;
+                            }
+                            return item;
+                        });
+                        // Do NOT add p_discount_amount when using item discounts
+                    } else if (this.currentDiscountType === 'invoice') {
+                        // Invoice-level discount
+                        rpcParams.p_items = this.selectedProducts.map(product => ({
                             product_id: product.id,
                             quantity: product.quantity,
                             unit_price: product.price
-                        })),
-                        p_payment_method: primaryPaymentMethod,
-                        p_tax_rate: 0, // Default tax rate
-                        p_notes: `Multi-payment invoice. Total received: ${amountReceived}`
-                    };
+                            // NO discount_amount in items when using invoice discount
+                        }));
+                        
+                        // Add invoice discount if present
+                        const invoiceDiscountInput = document.getElementById('invoiceDiscountInput');
+                        const invoiceDiscount = invoiceDiscountInput ? parseFloat(invoiceDiscountInput.value) || 0 : 0;
+                        if (invoiceDiscount > 0) {
+                            rpcParams.p_discount_amount = invoiceDiscount;
+                        }
+                    } else {
+                        // No discount
+                        rpcParams.p_items = this.selectedProducts.map(product => ({
+                            product_id: product.id,
+                            quantity: product.quantity,
+                            unit_price: product.price
+                        }));
+                    }
                     
-                    // Add discount if applicable (cannot use both total discount and item discounts)
-                    if (discountAmount > 0) {
-                        rpcParams.p_discount_amount = discountAmount;
+                    // Build notes with payment details
+                    let notesArray = [];
+                    if (Object.keys(this.paymentCurrencyAmounts).length > 0) {
+                        const currencyDetails = [];
+                        for (const [currencyCode, amount] of Object.entries(this.paymentCurrencyAmounts)) {
+                            if (parseFloat(amount) > 0) {
+                                currencyDetails.push(`${currencyCode}: ${amount}`);
+                            }
+                        }
+                        if (currencyDetails.length > 0) {
+                            notesArray.push(`Payments received: ${currencyDetails.join(', ')}`);
+                        }
+                    }
+                    notesArray.push(`Total received: ${amountReceived.toFixed(2)} ${currentCurrencyInfo?.currency_code || 'VND'}`);
+                    
+                    if (notesArray.length > 0) {
+                        rpcParams.p_notes = notesArray.join('. ');
                     }
                     
                     console.log('Creating invoice with RPC params:', rpcParams);
@@ -8131,6 +8149,9 @@
                 this.paymentMethods = [];
                 this.currentAddPaymentType = 'cash';
                 this.currentAddPaymentLocation = null;
+                
+                // Reset currency selection - AED is default active in HTML
+                this.currentSelectedCurrency = 'AED';
                 this.currentAddPaymentCurrencies = {};
                 this.renderPaymentMethodsList();
                 
@@ -8305,7 +8326,29 @@
                 if (!summaryContainer) return;
 
                 const currency = currentCurrencyInfo?.symbol || '$';
-                const formatNumber = (num) => new Intl.NumberFormat('ko-KR').format(num);
+                const currencyCode = currentCurrencyInfo?.currency_code || 'VND';
+                const formatNumber = (num) => {
+                    if (num === 0 || num === null || num === undefined) {
+                        return '-';
+                    }
+                    return new Intl.NumberFormat('en-US').format(num);
+                };
+
+                // Calculate total discount
+                const totalDiscount = itemDiscount + invoiceDiscount;
+
+                // Update discount display container
+                const discountDisplayContainer = document.getElementById('discountDisplayContainer');
+                const discountTotalDisplay = document.getElementById('discountTotalDisplay');
+                
+                if (discountDisplayContainer && discountTotalDisplay) {
+                    if (totalDiscount > 0) {
+                        discountTotalDisplay.innerHTML = `-${currency}${formatNumber(totalDiscount)} ${currencyCode}`;
+                        discountDisplayContainer.style.display = 'block';
+                    } else {
+                        discountDisplayContainer.style.display = 'none';
+                    }
+                }
 
                 // Show summary if there are products
                 if (this.selectedProducts.length > 0) {
@@ -8328,6 +8371,10 @@
                     this.updateDiscountRows(itemDiscount, invoiceDiscount, currency, formatNumber);
                 } else {
                     summaryContainer.style.display = 'none';
+                    // Also hide discount display when no products
+                    if (discountDisplayContainer) {
+                        discountDisplayContainer.style.display = 'none';
+                    }
                 }
             }
 
@@ -8668,6 +8715,273 @@
             openAddPaymentCashLocationSearch() {
                 // Reuse existing cash location search functionality
                 this.openCashLocationSearch(true); // Pass flag to indicate this is for add payment
+            }
+            
+            openPaymentCashLocationSearch() {
+                // Open cash location search for main payment form
+                this.openCashLocationSearch(false); // Pass flag to indicate this is for main payment
+            }
+
+            // === INTEGRATED PAYMENT FORM FUNCTIONS ===
+            
+            selectPaymentCurrency(currencyCode) {
+                console.log('=== selectPaymentCurrency() called ===', currencyCode);
+                
+                // Save current currency amount before switching
+                const currentAmountInput = document.getElementById('paymentAmount');
+                if (this.currentSelectedCurrency && currentAmountInput && currentAmountInput.value) {
+                    this.paymentCurrencyAmounts[this.currentSelectedCurrency] = currentAmountInput.value;
+                    console.log(`Saved ${this.currentSelectedCurrency} amount: ${currentAmountInput.value}`);
+                }
+                
+                // Store new selected currency
+                this.currentSelectedCurrency = currencyCode;
+                
+                // Update active currency button and indicators
+                const currencyButtons = document.querySelectorAll('#paymentCurrencies .currency-btn');
+                currencyButtons.forEach(btn => {
+                    btn.classList.remove('active');
+                    
+                    // Add/remove has-data class based on saved amounts
+                    const btnCurrency = btn.dataset.currency;
+                    const hasAmount = this.paymentCurrencyAmounts[btnCurrency] && 
+                                     parseFloat(this.paymentCurrencyAmounts[btnCurrency]) > 0;
+                    
+                    if (hasAmount) {
+                        btn.classList.add('has-data');
+                    } else {
+                        btn.classList.remove('has-data');
+                    }
+                    
+                    if (btnCurrency === currencyCode) {
+                        btn.classList.add('active');
+                    }
+                });
+                
+                // Update currency label
+                const currencyLabel = document.getElementById('paymentCurrencyLabel');
+                if (currencyLabel) {
+                    currencyLabel.textContent = currencyCode;
+                }
+                
+                // Update placeholder and restore saved amount
+                const amountInput = document.getElementById('paymentAmount');
+                if (amountInput) {
+                    amountInput.placeholder = `Enter amount in ${currencyCode}`;
+                    
+                    // Restore previously saved amount for this currency
+                    const savedAmount = this.paymentCurrencyAmounts[currencyCode] || '';
+                    amountInput.value = savedAmount;
+                }
+                
+                // Update conversion display and total
+                this.updatePaymentConversion();
+                this.updateMultiCurrencyTotal();
+                
+                // Update summary to ensure discount display is updated
+                this.calculateSummary();
+                
+                console.log('Currency selected:', currencyCode);
+                console.log('All currency amounts:', this.paymentCurrencyAmounts);
+            }
+            
+            formatPaymentAmount(input) {
+                // Simple number formatting for amount input
+                let value = input.value.replace(/[^\d.]/g, '');
+                
+                // Allow only one decimal point
+                const parts = value.split('.');
+                if (parts.length > 2) {
+                    value = parts[0] + '.' + parts.slice(1).join('');
+                }
+                
+                input.value = value;
+                
+                // Save amount for current currency
+                const currentCurrency = this.currentSelectedCurrency || this.getCurrentSelectedCurrency();
+                if (currentCurrency) {
+                    if (value && parseFloat(value) > 0) {
+                        this.paymentCurrencyAmounts[currentCurrency] = value;
+                    } else {
+                        // Remove from tracking if amount is cleared
+                        delete this.paymentCurrencyAmounts[currentCurrency];
+                    }
+                    
+                    // Update green indicator for current currency button
+                    const currentBtn = document.querySelector(`#paymentCurrencies .currency-btn[data-currency="${currentCurrency}"]`);
+                    if (currentBtn) {
+                        if (value && parseFloat(value) > 0) {
+                            currentBtn.classList.add('has-data');
+                        } else {
+                            currentBtn.classList.remove('has-data');
+                        }
+                    }
+                }
+                
+                // Update real-time conversion display
+                this.updatePaymentConversion();
+                
+                // Update multi-currency total
+                this.updateMultiCurrencyTotal();
+                
+                // Also update summary to reflect any discount changes
+                this.calculateSummary();
+            }
+            
+            updatePaymentAmount(value) {
+                console.log('Payment amount updated:', value);
+                // Here you could add validation or additional processing
+                // For now, just log the value
+                
+                // Update any related calculations if needed
+                this.calculateSummary();
+                
+                // Update conversion display
+                this.updatePaymentConversion();
+            }
+            
+            updatePaymentConversion() {
+                const amountInput = document.getElementById('paymentAmount');
+                const conversionDisplay = document.getElementById('paymentAmountConversion');
+                
+                if (!amountInput || !conversionDisplay) return;
+                
+                const amount = parseFloat(amountInput.value) || 0;
+                const selectedCurrency = this.currentSelectedCurrency || this.getCurrentSelectedCurrency();
+                
+                // Hide conversion if no amount or no currency selected
+                if (!amount || !selectedCurrency) {
+                    conversionDisplay.style.display = 'none';
+                    return;
+                }
+                
+                // Don't show conversion if selected currency is the base currency
+                if (currentCurrencyInfo && selectedCurrency === currentCurrencyInfo.currency_code) {
+                    conversionDisplay.style.display = 'none';
+                    return;
+                }
+                
+                // Find the currency in companyCurrencies to get exchange rate
+                const currency = companyCurrencies.find(c => c.currency_code === selectedCurrency);
+                if (!currency || !currency.exchange_rate_to_base) {
+                    conversionDisplay.style.display = 'none';
+                    return;
+                }
+                
+                // Calculate base currency equivalent
+                const baseCurrencyAmount = amount * currency.exchange_rate_to_base;
+                const baseCurrencySymbol = currentCurrencyInfo ? currentCurrencyInfo.symbol : '₫';
+                const baseCurrencyCode = currentCurrencyInfo ? currentCurrencyInfo.currency_code : 'VND';
+                
+                // Format the number with appropriate commas
+                const formattedAmount = new Intl.NumberFormat('en-US', {
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 2
+                }).format(baseCurrencyAmount);
+                
+                // Show conversion
+                conversionDisplay.innerHTML = `≈ ${baseCurrencySymbol}${formattedAmount} ${baseCurrencyCode}`;
+                conversionDisplay.style.display = 'block';
+            }
+            
+            getCurrentSelectedCurrency() {
+                // Get currently active currency button
+                const activeButton = document.querySelector('#paymentCurrencies .currency-btn.active');
+                return activeButton ? activeButton.dataset.currency : 'USD';
+            }
+            
+            updateMultiCurrencyTotal() {
+                console.log('=== updateMultiCurrencyTotal() called ===');
+                console.log('Current payment amounts:', this.paymentCurrencyAmounts);
+                
+                // Calculate total in base currency
+                let totalInBaseCurrency = 0;
+                let hasAnyAmount = false;
+                
+                // Loop through all currency amounts
+                for (const [currencyCode, amount] of Object.entries(this.paymentCurrencyAmounts)) {
+                    const numericAmount = parseFloat(amount);
+                    
+                    if (numericAmount > 0) {
+                        hasAnyAmount = true;
+                        
+                        // If this is the base currency, add directly
+                        if (currentCurrencyInfo && currencyCode === currentCurrencyInfo.currency_code) {
+                            totalInBaseCurrency += numericAmount;
+                        } else {
+                            // Find the currency to get exchange rate
+                            const currency = companyCurrencies.find(c => c.currency_code === currencyCode);
+                            if (currency && currency.exchange_rate_to_base) {
+                                // Convert to base currency
+                                const convertedAmount = numericAmount * currency.exchange_rate_to_base;
+                                totalInBaseCurrency += convertedAmount;
+                                console.log(`  ${currencyCode}: ${numericAmount} * ${currency.exchange_rate_to_base} = ${convertedAmount}`);
+                            }
+                        }
+                    }
+                }
+                
+                // Update display
+                const totalContainer = document.getElementById('multiCurrencyTotalContainer');
+                const totalElement = document.getElementById('multiCurrencyTotal');
+                
+                if (totalContainer && totalElement) {
+                    if (hasAnyAmount) {
+                        // Format the total
+                        const baseCurrencySymbol = currentCurrencyInfo ? currentCurrencyInfo.symbol : '₫';
+                        const baseCurrencyCode = currentCurrencyInfo ? currentCurrencyInfo.currency_code : 'VND';
+                        const formattedTotal = new Intl.NumberFormat('en-US', {
+                            minimumFractionDigits: 0,
+                            maximumFractionDigits: 2
+                        }).format(totalInBaseCurrency);
+                        
+                        totalElement.innerHTML = `${baseCurrencySymbol}${formattedTotal} ${baseCurrencyCode}`;
+                        totalContainer.style.display = 'block';
+                        console.log(`  Total displayed: ${baseCurrencySymbol}${formattedTotal} ${baseCurrencyCode}`);
+                    } else {
+                        // Hide if no amounts
+                        totalContainer.style.display = 'none';
+                        console.log('  No amounts to display, hiding container');
+                    }
+                }
+                
+                // Also update the Total Received row in the invoice summary if visible
+                const totalReceivedRow = document.getElementById('totalReceivedRow');
+                const totalReceivedAmount = document.getElementById('totalReceivedAmount');
+                if (totalReceivedRow && totalReceivedAmount && hasAnyAmount) {
+                    const baseCurrencySymbol = currentCurrencyInfo ? currentCurrencyInfo.symbol : '₫';
+                    const formattedTotal = new Intl.NumberFormat('en-US', {
+                        minimumFractionDigits: 0,
+                        maximumFractionDigits: 2
+                    }).format(totalInBaseCurrency);
+                    
+                    totalReceivedAmount.textContent = `${baseCurrencySymbol}${formattedTotal}`;
+                    totalReceivedRow.style.display = 'flex';
+                    
+                    // Calculate and show change if there's a total amount
+                    const totalAmountEl = document.getElementById('totalAmount');
+                    if (totalAmountEl) {
+                        // Extract numeric value from total amount
+                        const totalAmountText = totalAmountEl.textContent.replace(/[^0-9.-]/g, '');
+                        const totalAmount = parseFloat(totalAmountText) || 0;
+                        const change = totalInBaseCurrency - totalAmount;
+                        
+                        const changeRow = document.getElementById('changeRow');
+                        const changeAmount = document.getElementById('changeAmount');
+                        if (changeRow && changeAmount && change > 0) {
+                            const formattedChange = new Intl.NumberFormat('en-US', {
+                                minimumFractionDigits: 0,
+                                maximumFractionDigits: 2
+                            }).format(change);
+                            changeAmount.textContent = `${baseCurrencySymbol}${formattedChange}`;
+                            changeRow.style.display = 'flex';
+                        } else if (changeRow) {
+                            changeRow.style.display = 'none';
+                        }
+                    }
+                }
+                
+                console.log('=== updateMultiCurrencyTotal() completed ===');
             }
             
             populateAddPaymentCurrencies() {

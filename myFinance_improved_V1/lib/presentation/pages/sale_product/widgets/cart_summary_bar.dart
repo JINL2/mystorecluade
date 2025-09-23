@@ -11,6 +11,7 @@ class CartSummaryBar extends StatelessWidget {
   final double subtotal;
   final VoidCallback onReset;
   final VoidCallback onDone;
+  final String currencySymbol;
 
   const CartSummaryBar({
     super.key,
@@ -18,6 +19,7 @@ class CartSummaryBar extends StatelessWidget {
     required this.subtotal,
     required this.onReset,
     required this.onDone,
+    this.currencySymbol = '₩',
   });
 
   @override
@@ -81,7 +83,7 @@ class CartSummaryBar extends StatelessWidget {
                   ],
                 ),
                 Text(
-                  '₩${formatter.format(subtotal.round())}',
+                  '$currencySymbol${formatter.format(subtotal.round())}',
                   style: TossTextStyles.bodyLarge.copyWith(
                     fontWeight: FontWeight.w700,
                     color: TossColors.gray900,

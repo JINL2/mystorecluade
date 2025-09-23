@@ -143,10 +143,11 @@ class _SalePaymentPageState extends ConsumerState<SalePaymentPage> {
 
   @override
   Widget build(BuildContext context) {
-    final cart = ref.watch(cartProvider);
+    // TODO: Update to use selectedProductsProvider
+    final cart = <String, int>{}; // ref.watch(cartProvider);
     final paymentState = ref.watch(paymentStateProvider);
-    final subtotal = ref.read(cartProvider.notifier).subtotal;
-    final totalItems = ref.read(cartProvider.notifier).totalItems;
+    final subtotal = 0.0; // ref.read(cartProvider.notifier).subtotal;
+    final totalItems = 0; // ref.read(cartProvider.notifier).totalItems;
     final formatter = NumberFormat('#,###');
 
     if (cart.isEmpty) {
@@ -322,7 +323,8 @@ class _SalePaymentPageState extends ConsumerState<SalePaymentPage> {
                     InkWell(
                       onTap: () {
                         HapticFeedback.lightImpact();
-                        _showOrderDetails(context, cart, formatter);
+                        // TODO: Update to work with new cart type
+                        // _showOrderDetails(context, cart, formatter);
                       },
                       child: Text(
                         'View order details ▼',
@@ -1089,7 +1091,7 @@ class _SalePaymentPageState extends ConsumerState<SalePaymentPage> {
                       onPressed: () {
                         HapticFeedback.mediumImpact();
                         // Clear cart and start new sale
-                        ref.read(cartProvider.notifier).clearCart();
+                        // ref.read(cartProvider.notifier).clearCart();
                         Navigator.pop(context);
                         context.go('/saleProduct');
                       },
@@ -1120,12 +1122,17 @@ class _SalePaymentPageState extends ConsumerState<SalePaymentPage> {
   }
 
   String _formatCurrency(double value) {
-    if (value >= 1000000) {
-      return '${(value / 1000000).toStringAsFixed(1)}M';
-    } else if (value >= 1000) {
-      return '${(value / 1000).toStringAsFixed(0)}K';
+    // Format with commas for exact numbers, no K or M abbreviations
+    final formatter = NumberFormat('#,##0', 'en_US');
+    
+    // For zero values, you can return a dash or just 0
+    if (value == 0) {
+      return '0';
     }
-    return '${value.toStringAsFixed(0)}';
+    
+    // Format the value with commas
+    String formatted = formatter.format(value.round());
+    return formatted;
   }
 
 }

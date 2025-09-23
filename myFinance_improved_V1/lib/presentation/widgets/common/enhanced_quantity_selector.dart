@@ -27,8 +27,8 @@ class EnhancedQuantitySelector extends StatefulWidget {
   /// Callback fired when quantity changes
   final ValueChanged<int> onQuantityChanged;
   
-  /// Maximum allowed quantity (default: 999)
-  final int maxQuantity;
+  /// Maximum allowed quantity (null for no limit, default: 999)
+  final int? maxQuantity;
   
   /// Minimum allowed quantity (default: 0)
   final int minQuantity;
@@ -199,7 +199,7 @@ class _EnhancedQuantitySelectorState extends State<EnhancedQuantitySelector>
   }
 
   void _handleIncrement() {
-    if (!widget.enabled || _pendingQuantity >= widget.maxQuantity) return;
+    if (!widget.enabled || (widget.maxQuantity != null && _pendingQuantity >= widget.maxQuantity!)) return;
     
     HapticFeedback.lightImpact();
     _incrementAnimationController.forward().then((_) {
@@ -211,7 +211,9 @@ class _EnhancedQuantitySelectorState extends State<EnhancedQuantitySelector>
 
   void _debouncedQuantityChange(int newQuantity) {
     _debounceTimer?.cancel();
-    _pendingQuantity = newQuantity.clamp(widget.minQuantity, widget.maxQuantity);
+    _pendingQuantity = widget.maxQuantity != null 
+        ? newQuantity.clamp(widget.minQuantity, widget.maxQuantity!)
+        : newQuantity.clamp(widget.minQuantity, double.maxFinite.toInt());
     
     setState(() {}); // Update UI immediately
     
@@ -245,7 +247,7 @@ class _EnhancedQuantitySelectorState extends State<EnhancedQuantitySelector>
             ? currentQuantity + widget.step 
             : currentQuantity - widget.step;
             
-        if (newQuantity < widget.minQuantity || newQuantity > widget.maxQuantity) {
+        if (newQuantity < widget.minQuantity || (widget.maxQuantity != null && newQuantity > widget.maxQuantity!)) {
           HapticFeedback.heavyImpact(); // Indicate limit reached
           timer.cancel();
           _isLongPressing = false;
@@ -333,7 +335,7 @@ class _EnhancedQuantitySelectorState extends State<EnhancedQuantitySelector>
           onLongPressEnd: _endLongPress,
           icon: Icons.add,
           semanticLabel: widget.incrementSemanticLabel ?? 'Increase quantity',
-          enabled: widget.enabled && _pendingQuantity < widget.maxQuantity,
+          enabled: widget.enabled && (widget.maxQuantity == null || _pendingQuantity < widget.maxQuantity!),
           animation: _incrementScaleAnimation,
         ),
       ],
@@ -378,7 +380,7 @@ class _EnhancedQuantitySelectorState extends State<EnhancedQuantitySelector>
         _buildCompactButton(
           onPressed: _handleIncrement,
           icon: Icons.add,
-          enabled: widget.enabled && _pendingQuantity < widget.maxQuantity,
+          enabled: widget.enabled && (widget.maxQuantity == null || _pendingQuantity < widget.maxQuantity!),
         ),
       ],
     );
@@ -477,10 +479,10 @@ class _EnhancedQuantitySelectorState extends State<EnhancedQuantitySelector>
               color: _backgroundColor,
               borderRadius: BorderRadius.circular(TossBorderRadius.md),
               border: Border.all(
-                color: _pendingQuantity >= widget.maxQuantity 
+                color: (widget.maxQuantity != null && _pendingQuantity >= widget.maxQuantity!) 
                     ? TossColors.warning
                     : TossColors.gray200,
-                width: _pendingQuantity >= widget.maxQuantity ? 2 : 1,
+                width: (widget.maxQuantity != null && _pendingQuantity >= widget.maxQuantity!) ? 2 : 1,
               ),
             ),
             child: Column(
@@ -490,12 +492,12 @@ class _EnhancedQuantitySelectorState extends State<EnhancedQuantitySelector>
                   '$_pendingQuantity',
                   style: TossTextStyles.bodyLarge.copyWith(
                     fontWeight: FontWeight.bold,
-                    color: _pendingQuantity >= widget.maxQuantity 
+                    color: (widget.maxQuantity != null && _pendingQuantity >= widget.maxQuantity!) 
                         ? TossColors.warning
                         : TossColors.gray900,
                   ),
                 ),
-                if (_pendingQuantity >= widget.maxQuantity)
+                if (widget.maxQuantity != null && _pendingQuantity >= widget.maxQuantity!)
                   Text(
                     'max',
                     style: TossTextStyles.small.copyWith(

@@ -47,7 +47,7 @@ final transactionFilterOptionsProvider =
 typedef TransactionFilterOptionsRef
     = AutoDisposeFutureProviderRef<TransactionFilterOptions>;
 String _$transactionHistoryHash() =>
-    r'bf4ca9a40bd351f8397620d9653c1df3e5947772';
+    r'db2970a10b9b852a94194e8d9bcf821de3d3cd35';
 
 /// See also [TransactionHistory].
 @ProviderFor(TransactionHistory)

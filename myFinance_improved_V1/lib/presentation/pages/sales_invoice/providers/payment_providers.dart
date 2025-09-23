@@ -197,6 +197,22 @@ class PaymentMethodNotifier extends StateNotifier<PaymentMethodState> {
     print('💰 [PAYMENT_METHOD] Updated discount amount: $amount');
   }
 
+  // Select a cash location
+  void selectCashLocation(CashLocation? location) {
+    state = state.copyWith(
+      selectedCashLocation: location,
+      // Clear currency selection when cash location changes
+      selectedCurrency: null,
+      currencyAmounts: {},
+      clearFocusedCurrencyId: true,
+    );
+  }
+
+  // Select a payment currency
+  void selectCurrency(PaymentCurrency? currency) {
+    state = state.copyWith(selectedCurrency: currency);
+  }
+
   // Clear selections
   void clearSelections() {
     state = state.copyWith(

@@ -125,7 +125,7 @@ class _AutonomousCashLocationSelectorState extends ConsumerState<AutonomousCashL
       return _buildEmptySelector();
     }
     
-    // Fetch cash locations for the specified or current company
+    // Fetch cash locations for the specified or current company (only company_id)
     final allLocationsAsync = widget.companyId != null
         ? ref.watch(cashLocationListProvider(effectiveCompanyId, null, widget.locationType))
         : ref.watch(companyCashLocationsProvider);
@@ -144,20 +144,30 @@ class _AutonomousCashLocationSelectorState extends ConsumerState<AutonomousCashL
 
     // Organize locations by scope when data is available
     allLocationsAsync.whenData((allLocations) {
-      // Company tab: Show ALL locations
-      _companyItems = allLocations;
-      
-      // Store tab: Filter to show only specified/current store's locations
-      if (effectiveStoreId != null) {
-        _storeItems = allLocations.where((location) => 
-          location.storeId == effectiveStoreId // Only locations for specified store
-        ).toList();
-      } else {
-        // If no store selected, show empty list
-        _storeItems = [];
-      }
-      
-      _updateFilteredItems();
+      // Use post-frame callback to ensure setState is called after build
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          setState(() {
+            // Company tab: Show ALL locations for the company (no additional filtering needed)
+            _companyItems = allLocations;
+            
+            // Store tab: Show company-wide locations AND store-specific locations
+            if (effectiveStoreId != null) {
+              _storeItems = allLocations.where((location) => 
+                location.isCompanyWide || // Include company-wide locations (accessible from any store)
+                location.storeId == effectiveStoreId // Include store-specific locations
+              ).toList();
+            } else {
+              // If no store selected, show only company-wide locations
+              _storeItems = allLocations.where((location) => 
+                location.isCompanyWide
+              ).toList();
+            }
+            
+            _updateFilteredItems();
+          });
+        }
+      });
     });
 
     // If scope tabs are disabled, use simple selector
@@ -327,23 +337,27 @@ class _AutonomousCashLocationSelectorState extends ConsumerState<AutonomousCashL
     
     if (effectiveCompanyId == null) return;
     
-    // Fetch cash locations for the specified or current company
+    // Fetch cash locations for the specified or current company (only company_id)
     final allLocationsAsync = widget.companyId != null
         ? ref.watch(cashLocationListProvider(effectiveCompanyId, null, widget.locationType))
         : ref.watch(companyCashLocationsProvider);
     
     // Update data organization when locations change
     allLocationsAsync.whenData((allLocations) {
-      // Company tab: Show ALL locations
+      // Company tab: Show ALL locations for the company (no additional filtering needed)
       _companyItems = allLocations;
       
-      // Store tab: Filter to show only specified/current store's locations
+      // Store tab: Show company-wide locations AND store-specific locations
       if (effectiveStoreId != null) {
         _storeItems = allLocations.where((location) => 
-          location.storeId == effectiveStoreId
+          location.isCompanyWide || // Include company-wide locations (accessible from any store)
+          location.storeId == effectiveStoreId // Include store-specific locations
         ).toList();
       } else {
-        _storeItems = [];
+        // If no store selected, show only company-wide locations
+        _storeItems = allLocations.where((location) => 
+          location.isCompanyWide
+        ).toList();
       }
       
       _updateFilteredItems();

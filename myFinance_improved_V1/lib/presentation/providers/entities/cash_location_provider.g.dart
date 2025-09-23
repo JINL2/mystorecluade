@@ -29,7 +29,7 @@ final currentCashLocationsProvider =
 typedef CurrentCashLocationsRef
     = AutoDisposeFutureProviderRef<List<CashLocationData>>;
 String _$companyCashLocationsHash() =>
-    r'8c75009bb24fb6cf651873387d42c2e1e6d3dc12';
+    r'be57cb1e036854437869ebaccbaccaf793f4da0b';
 
 /// Company-wide cash locations (no store filtering)
 ///
