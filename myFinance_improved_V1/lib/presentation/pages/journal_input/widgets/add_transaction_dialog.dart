@@ -48,6 +48,7 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
   String? _selectedAccountName;
   String? _selectedCategoryTag;
   String? _selectedCounterpartyId;
+  bool _hasMultipleCurrencies = false;  // Track if multiple currencies exist
   String? _selectedCounterpartyName;
   String? _selectedCounterpartyStoreId;
   String? _selectedCounterpartyStoreName;
@@ -87,6 +88,9 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
   @override
   void initState() {
     super.initState();
+    
+    // Check for multiple currencies
+    _checkForMultipleCurrencies();
     
     // Initialize with existing line data if editing
     if (widget.existingLine != null) {
@@ -139,6 +143,40 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
         final formatter = NumberFormat('#,##0.##', 'en_US');
         _amountController.text = formatter.format(widget.suggestedAmount);
       }
+    }
+  }
+  
+  Future<void> _checkForMultipleCurrencies() async {
+    final appState = ref.read(appStateProvider);
+    final companyId = appState.companyChoosen;
+    
+    if (companyId.isEmpty) {
+      setState(() {
+        _hasMultipleCurrencies = false;
+      });
+      return;
+    }
+    
+    try {
+      // Use the existing provider to get exchange rates
+      final exchangeRatesData = await ref.read(exchangeRatesProvider(companyId).future);
+      
+      if (exchangeRatesData != null) {
+        final exchangeRates = exchangeRatesData['exchange_rates'] as List? ?? [];
+        // Show calculator only if there are multiple currencies (more than just base currency)
+        setState(() {
+          _hasMultipleCurrencies = exchangeRates.length > 1;
+        });
+      } else {
+        setState(() {
+          _hasMultipleCurrencies = false;
+        });
+      }
+    } catch (e) {
+      // If there's an error, hide the calculator button
+      setState(() {
+        _hasMultipleCurrencies = false;
+      });
     }
   }
   
@@ -1077,35 +1115,37 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
                             ),
                           ),
                         ),
-                        SizedBox(width: TossSpacing.space2),
-                        Container(
-                          decoration: BoxDecoration(
-                            color: TossColors.primary,
-                            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-                            boxShadow: [
-                              BoxShadow(
-                                color: TossColors.primary.withValues(alpha: 0.25),
-                                blurRadius: 8,
-                                offset: Offset(0, 2),
-                              ),
-                            ],
-                          ),
-                          child: Material(
-                            color: TossColors.transparent,
-                            child: InkWell(
-                              onTap: _showExchangeRateCalculator,
+                        if (_hasMultipleCurrencies) ...[
+                          SizedBox(width: TossSpacing.space2),
+                          Container(
+                            decoration: BoxDecoration(
+                              color: TossColors.primary,
                               borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-                              child: Container(
-                                padding: EdgeInsets.all(TossSpacing.space3),
-                                child: Icon(
-                                  Icons.calculate_outlined,
-                                  color: TossColors.white,
-                                  size: 24,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: TossColors.primary.withValues(alpha: 0.25),
+                                  blurRadius: 8,
+                                  offset: Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: Material(
+                              color: TossColors.transparent,
+                              child: InkWell(
+                                onTap: _showExchangeRateCalculator,
+                                borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+                                child: Container(
+                                  padding: EdgeInsets.all(TossSpacing.space3),
+                                  child: Icon(
+                                    Icons.calculate_outlined,
+                                    color: TossColors.white,
+                                    size: 24,
+                                  ),
                                 ),
                               ),
                             ),
                           ),
-                        ),
+                        ],
                       ],
                     ),
                     

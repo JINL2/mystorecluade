@@ -34,6 +34,7 @@ import '../../../providers/app_state_provider.dart';
 import '../../../providers/auth_provider.dart';
 import '../providers/counterparty_providers.dart';
 import '../providers/transaction_template_providers.dart';
+import '../../journal_input/providers/journal_input_providers.dart';
 import '../../../../data/services/supabase_service.dart';
 import 'package:myfinance_improved/core/themes/index.dart';
 import '../../journal_input/widgets/exchange_rate_calculator.dart';
@@ -287,6 +288,9 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
   // Store linked company ID for internal counterparties
   String? _linkedCompanyId;
   
+  // Track if multiple currencies exist
+  bool _hasMultipleCurrencies = false;
+  
   // Form validation helper
   bool get _isFormValid {
     // Description is optional - no validation needed
@@ -399,6 +403,9 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
     // Initialize linked company ID if available in template
     // This will be overridden when fetching counterparty details
     _linkedCompanyId = null;
+    
+    // Check for multiple currencies on page load
+    _checkForMultipleCurrencies();
   }
   
   @override
@@ -443,6 +450,39 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
     );
     
     _previousValue = formatted;
+  }
+  
+  Future<void> _checkForMultipleCurrencies() async {
+    final appState = ref.read(appStateProvider);
+    final companyId = appState.companyChoosen;
+    
+    if (companyId.isEmpty) {
+      setState(() {
+        _hasMultipleCurrencies = false;
+      });
+      return;
+    }
+    
+    try {
+      final exchangeRatesData = await ref.read(exchangeRatesProvider(companyId).future);
+      if (exchangeRatesData != null) {
+        final exchangeRates = exchangeRatesData['exchange_rates'] as List? ?? [];
+        // Only show calculator if there's more than 1 currency (base + at least one other)
+        setState(() {
+          _hasMultipleCurrencies = exchangeRates.length > 1;
+        });
+      } else {
+        // No exchange rate data means only base currency
+        setState(() {
+          _hasMultipleCurrencies = false;
+        });
+      }
+    } catch (e) {
+      // On error, assume only base currency
+      setState(() {
+        _hasMultipleCurrencies = false;
+      });
+    }
   }
   
   void _showExchangeRateCalculator() {
@@ -716,31 +756,34 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
                         ),
                       ),
                   ),
-                  SizedBox(width: TossSpacing.space2),
-                  // Calculator button
-                  Container(
-                    height: 56, // Match text field height
-                    width: 56,
-                    decoration: BoxDecoration(
-                      color: TossColors.primary,
-                      borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-                    ),
-                    child: Material(
-                      color: TossColors.transparent,
-                      child: InkWell(
-                        onTap: _showExchangeRateCalculator,
+                  // Only show calculator if multiple currencies exist
+                  if (_hasMultipleCurrencies) ...[
+                    SizedBox(width: TossSpacing.space2),
+                    // Calculator button
+                    Container(
+                      height: 56, // Match text field height
+                      width: 56,
+                      decoration: BoxDecoration(
+                        color: TossColors.primary,
                         borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-                        child: Container(
-                          padding: EdgeInsets.all(TossSpacing.space3),
-                          child: Icon(
-                            Icons.calculate_outlined,
-                            color: TossColors.white,
-                            size: 24,
+                      ),
+                      child: Material(
+                        color: TossColors.transparent,
+                        child: InkWell(
+                          onTap: _showExchangeRateCalculator,
+                          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+                          child: Container(
+                            padding: EdgeInsets.all(TossSpacing.space3),
+                            child: Icon(
+                              Icons.calculate_outlined,
+                              color: TossColors.white,
+                              size: 24,
+                            ),
                           ),
                         ),
                       ),
                     ),
-                  ),
+                  ],
                 ],
               ),
             ],
