@@ -134,22 +134,22 @@ class _TossSearchFieldState extends State<TossSearchField> {
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(TossBorderRadius.md),
             borderSide: BorderSide(
-              color: TossColors.borderLight,
-              width: 1,
+              color: TossColors.primary.withOpacity(0.4),
+              width: 1.5,
             ),
           ),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(TossBorderRadius.md),
             borderSide: BorderSide(
-              color: isFocused ? TossColors.primary : TossColors.borderLight,
-              width: isFocused ? 2 : 1,
+              color: TossColors.primary.withOpacity(0.4),
+              width: 1.5,
             ),
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(TossBorderRadius.md),
             borderSide: BorderSide(
               color: TossColors.primary,
-              width: 2,
+              width: 1.5,
             ),
           ),
           errorBorder: OutlineInputBorder(
@@ -169,8 +169,8 @@ class _TossSearchFieldState extends State<TossSearchField> {
           disabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(TossBorderRadius.md),
             borderSide: BorderSide(
-              color: TossColors.borderLight,
-              width: 1,
+              color: TossColors.primary.withOpacity(0.5),
+              width: 1.5,
             ),
           ),
           contentPadding: const EdgeInsets.symmetric(
