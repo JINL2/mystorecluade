@@ -46,10 +46,16 @@ class _JournalInputPageState extends ConsumerState<JournalInputPage>
     );
     _animationController.forward();
     
-    // Initialize journal entry with company/store from app state
+    // Clear and reinitialize journal entry with company/store from app state
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final appState = ref.read(appStateProvider);
       final journalEntry = ref.read(journalEntryProvider);
+      
+      // Clear any existing data first
+      journalEntry.clear();
+      _descriptionController.clear();
+      
+      // Then set the company and store from app state
       journalEntry.setSelectedCompany(appState.companyChoosen);
       journalEntry.setSelectedStore(appState.storeChoosen);
     });
@@ -101,6 +107,12 @@ class _JournalInputPageState extends ConsumerState<JournalInputPage>
       }
     }
     
+    // Get already used cash locations
+    final usedCashLocations = journalEntry.transactionLines
+        .where((line) => line.categoryTag == 'cash' && line.cashLocationId != null)
+        .map((line) => line.cashLocationId!)
+        .toSet();
+    
     final result = await showModalBottomSheet<TransactionLine>(
       context: context,
       isScrollControlled: true,
@@ -113,6 +125,7 @@ class _JournalInputPageState extends ConsumerState<JournalInputPage>
         child: AddTransactionDialog(
           initialIsDebit: defaultIsDebit,
           suggestedAmount: suggestedAmount,
+          blockedCashLocationIds: usedCashLocations,
         ),
       ),
     );
@@ -132,6 +145,16 @@ class _JournalInputPageState extends ConsumerState<JournalInputPage>
     final journalEntry = ref.read(journalEntryProvider);
     final existingLine = journalEntry.transactionLines[index];
     
+    // Get already used cash locations, excluding the current line being edited
+    final usedCashLocations = journalEntry.transactionLines
+        .asMap()
+        .entries
+        .where((entry) => entry.key != index && 
+               entry.value.categoryTag == 'cash' && 
+               entry.value.cashLocationId != null)
+        .map((entry) => entry.value.cashLocationId!)
+        .toSet();
+    
     final result = await showModalBottomSheet<TransactionLine>(
       context: context,
       isScrollControlled: true,
@@ -143,6 +166,7 @@ class _JournalInputPageState extends ConsumerState<JournalInputPage>
         ),
         child: AddTransactionDialog(
           existingLine: existingLine,
+          blockedCashLocationIds: usedCashLocations,
         ),
       ),
     );
@@ -186,11 +210,15 @@ class _JournalInputPageState extends ConsumerState<JournalInputPage>
       
       // Show success message
       if (mounted) {
+        // Clear the form and reset journal entry immediately after success
+        _descriptionController.clear();
+        journalEntry.clear();
+        
         // Show success dialog
-        await showDialog(
+        await showDialog<void>(
           context: context,
-          barrierDismissible: true, // Allow dismissing success dialogs
-          builder: (BuildContext context) {
+          barrierDismissible: false, // Don't allow dismissing without pressing OK
+          builder: (BuildContext dialogContext) {
             return AlertDialog(
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(TossBorderRadius.lg),
@@ -222,7 +250,10 @@ class _JournalInputPageState extends ConsumerState<JournalInputPage>
               ),
               actions: [
                 TextButton(
-                  onPressed: () => Navigator.of(context).pop(),
+                  onPressed: () {
+                    Navigator.of(dialogContext).pop(); // Close dialog
+                    Navigator.of(context).pop(); // Navigate back to previous page
+                  },
                   child: Text('OK'),
                   style: TextButton.styleFrom(
                     foregroundColor: TossColors.primary,
@@ -231,24 +262,6 @@ class _JournalInputPageState extends ConsumerState<JournalInputPage>
               ],
             );
           },
-        );
-        
-        // Clear the form and reset journal entry
-        _descriptionController.clear();
-        journalEntry.clear();
-        
-        // Re-set company and store from app state after clearing
-        final appState = ref.read(appStateProvider);
-        journalEntry.setSelectedCompany(appState.companyChoosen);
-        journalEntry.setSelectedStore(appState.storeChoosen);
-        
-        // Also show snackbar for additional feedback
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Ready for new journal entry'),
-            backgroundColor: TossColors.info,
-            duration: Duration(seconds: 2),
-          ),
         );
       }
     } catch (e) {
@@ -326,7 +339,7 @@ class _JournalInputPageState extends ConsumerState<JournalInputPage>
                               child: Text(
                                 appState.storeChoosen.isNotEmpty
                                     ? '${selectedCompany?['company_name'] ?? ''} • ${selectedStore?['store_name'] ?? ''}'
-                                    : selectedCompany?['company_name'] ?? '',
+                                    : '${selectedCompany?['company_name'] ?? ''}',
                                 style: TossTextStyles.caption.copyWith(
                                   color: TossColors.gray600,
                                 ),

@@ -12,6 +12,7 @@ import '../../widgets/common/toss_white_card.dart';
 import '../../helpers/navigation_helper.dart';
 import 'models/invoice_models.dart';
 import 'providers/payment_providers.dart';
+import '../sale_product/sale_product_page.dart' show cartProvider;
 
 class PaymentMethodPage extends ConsumerStatefulWidget {
   final List<SalesProduct> selectedProducts;
@@ -1526,16 +1527,22 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
     print('💰 Currency: ${paymentState.selectedCurrency?.currencyCode}');
     print('📦 Products: ${widget.selectedProducts.length}');
     
-    // TODO: Navigate to invoice creation/summary page or complete the flow
+    // Clear the cart to refresh the Sales Product page
+    ref.read(cartProvider.notifier).clearCart();
+    
+    // Clear payment method selections for next invoice
+    ref.read(paymentMethodProvider.notifier).clearSelections();
+    
+    // Show success message
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Invoice created successfully!'),
+        content: const Text('Invoice created successfully!'),
         backgroundColor: TossColors.success,
+        duration: const Duration(seconds: 2),
       ),
     );
     
-    // For now, go back to the main invoice page
-    NavigationHelper.safeGoBack(context);
+    // Navigate back to Sales Product page
     NavigationHelper.safeGoBack(context);
   }
 

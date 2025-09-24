@@ -183,6 +183,34 @@ final checkAccountMappingProvider = Provider<Future<Map<String, dynamic>?> Funct
   };
 });
 
+// Provider for fetching exchange rates
+final exchangeRatesProvider = FutureProvider.family<Map<String, dynamic>, String>((ref, companyId) async {
+  try {
+    if (companyId.isEmpty) {
+      throw Exception('Company ID is required');
+    }
+    
+    final supabase = Supabase.instance.client;
+    
+    // Call the RPC to get exchange rates
+    final response = await supabase.rpc(
+      'get_exchange_rate_v2',
+      params: {
+        'p_company_id': companyId,
+      },
+    );
+    
+    if (response == null) {
+      throw Exception('Failed to fetch exchange rates');
+    }
+    
+    // The response contains base_currency and exchange_rates
+    return Map<String, dynamic>.from(response as Map);
+  } catch (e) {
+    throw Exception('Failed to fetch exchange rates: $e');
+  }
+});
+
 // Provider for submitting journal entry
 final submitJournalEntryProvider = Provider<Future<void> Function(JournalEntryModel)>((ref) {
   return (JournalEntryModel journalEntry) async {

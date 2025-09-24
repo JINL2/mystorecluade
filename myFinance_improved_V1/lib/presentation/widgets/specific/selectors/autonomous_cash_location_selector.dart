@@ -34,6 +34,7 @@ class AutonomousCashLocationSelector extends ConsumerStatefulWidget {
   final bool showScopeTabs; // Show Company/Store tabs
   final TransactionScope? initialScope; // Current scope context (for reference)
   final String? locationType; // Filter by specific location type
+  final Set<String>? blockedLocationIds; // IDs of locations that cannot be selected
 
   const AutonomousCashLocationSelector({
     super.key,
@@ -49,6 +50,7 @@ class AutonomousCashLocationSelector extends ConsumerStatefulWidget {
     this.showScopeTabs = true,
     this.initialScope,
     this.locationType,
+    this.blockedLocationIds,
   });
 
   @override
@@ -170,29 +172,13 @@ class _AutonomousCashLocationSelectorState extends ConsumerState<AutonomousCashL
       });
     });
 
-    // If scope tabs are disabled, use simple selector
+    // If scope tabs are disabled, use custom simple selector with blocked items support
     if (!widget.showScopeTabs) {
-      return TossSingleSelector<CashLocationData>(
-        items: allLocationsAsync.maybeWhen(
+      return _buildSimpleSelector(context, allLocationsAsync.isLoading, selectedLocation, 
+        allLocationsAsync.maybeWhen(
           data: (locations) => locations,
           orElse: () => [],
-        ),
-        selectedItem: selectedLocation,
-        onChanged: widget.onChanged ?? (String? id) {},
-        isLoading: allLocationsAsync.isLoading,
-        config: SelectorConfig(
-          label: widget.label ?? 'Cash Location',
-          hint: widget.hint ?? 'All Locations',
-          errorText: widget.errorText,
-          showSearch: widget.showSearch,
-          showTransactionCount: widget.showTransactionCount,
-          icon: Icons.location_on,
-          emptyMessage: 'There is no Cash Location.\nGo to Cash and create Cash Location',
-          searchHint: 'Search cash locations',
-        ),
-        itemTitleBuilder: (location) => location.displayName,
-        itemSubtitleBuilder: (location) => widget.showTransactionCount ? location.subtitle : '',
-        itemIdBuilder: (location) => location.id,
+        )
       );
     }
 
@@ -507,25 +493,36 @@ class _AutonomousCashLocationSelectorState extends ConsumerState<AutonomousCashL
                         itemBuilder: (context, index) {
                           final item = _filteredItems[index];
                           final isSelected = item.id == widget.selectedLocationId;
+                          final isBlocked = widget.blockedLocationIds?.contains(item.id) ?? false;
                           
                           return InkWell(
-                            onTap: () {
-                              widget.onChanged?.call(item.id);
-                              Navigator.pop(context);
-                            },
+                            onTap: isBlocked 
+                              ? null  // Disable tap if blocked
+                              : () {
+                                  widget.onChanged?.call(item.id);
+                                  Navigator.pop(context);
+                                },
                             child: Container(
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 16,
                                 vertical: 12,
                               ),
-                              color: isSelected ? TossColors.primary.withValues(alpha: 0.05) : null,
+                              color: isBlocked 
+                                ? TossColors.gray100  // Gray background for blocked items
+                                : isSelected 
+                                  ? TossColors.primary.withValues(alpha: 0.05) 
+                                  : null,
                               child: Row(
                                 children: [
                                   // Icon
                                   Icon(
-                                    Icons.location_on,
+                                    isBlocked ? Icons.block : Icons.location_on,
                                     size: TossSpacing.iconSM,
-                                    color: isSelected ? TossColors.primary : TossColors.gray500,
+                                    color: isBlocked 
+                                      ? TossColors.gray400
+                                      : isSelected 
+                                        ? TossColors.primary 
+                                        : TossColors.gray500,
                                   ),
                                   const SizedBox(width: TossSpacing.space3),
                                   
@@ -537,8 +534,13 @@ class _AutonomousCashLocationSelectorState extends ConsumerState<AutonomousCashL
                                         Text(
                                           item.displayName,
                                           style: TossTextStyles.body.copyWith(
-                                            color: isSelected ? TossColors.primary : TossColors.gray900,
+                                            color: isBlocked 
+                                              ? TossColors.gray400
+                                              : isSelected 
+                                                ? TossColors.primary 
+                                                : TossColors.gray900,
                                             fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                                            decoration: isBlocked ? TextDecoration.lineThrough : null,
                                           ),
                                           overflow: TextOverflow.ellipsis,
                                           maxLines: 2,
@@ -548,22 +550,38 @@ class _AutonomousCashLocationSelectorState extends ConsumerState<AutonomousCashL
                                           Text(
                                             item.subtitle,
                                             style: TossTextStyles.small.copyWith(
-                                              color: TossColors.gray500,
+                                              color: isBlocked ? TossColors.gray300 : TossColors.gray500,
                                             ),
                                             overflow: TextOverflow.ellipsis,
                                             maxLines: 1,
+                                          ),
+                                        ],
+                                        if (isBlocked) ...[
+                                          const SizedBox(height: 2),
+                                          Text(
+                                            'Already selected',
+                                            style: TossTextStyles.small.copyWith(
+                                              color: TossColors.error,
+                                              fontWeight: FontWeight.w500,
+                                            ),
                                           ),
                                         ],
                                       ],
                                     ),
                                   ),
                                   
-                                  // Check mark for selected
+                                  // Check mark for selected or block icon for blocked
                                   if (isSelected)
                                     const Icon(
                                       Icons.check,
                                       size: TossSpacing.iconSM,
                                       color: TossColors.primary,
+                                    )
+                                  else if (isBlocked)
+                                    const Icon(
+                                      Icons.block,
+                                      size: TossSpacing.iconSM,
+                                      color: TossColors.error,
                                     ),
                                 ],
                               ),
@@ -654,6 +672,310 @@ class _AutonomousCashLocationSelectorState extends ConsumerState<AutonomousCashL
                 ),
               ],
             ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSimpleSelector(
+    BuildContext context,
+    bool isLoading,
+    CashLocationData? selectedLocation,
+    List<CashLocationData> locations,
+  ) {
+    final hasError = widget.errorText != null && widget.errorText!.isNotEmpty;
+    
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Label
+        Text(
+          widget.label ?? 'Cash Location',
+          style: TossTextStyles.caption.copyWith(
+            color: hasError ? TossColors.error : TossColors.gray600,
+            fontWeight: FontWeight.w600,
+          ),
+          overflow: TextOverflow.ellipsis,
+        ),
+        const SizedBox(height: TossSpacing.space2),
+        
+        // Selector Field
+        GestureDetector(
+          onTap: isLoading || widget.onChanged == null 
+            ? null 
+            : () => _showSimpleSelectionBottomSheet(context, locations),
+          behavior: HitTestBehavior.opaque,
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+              color: TossColors.white,
+              border: Border.all(
+                color: hasError
+                  ? TossColors.error
+                  : TossColors.gray200,
+                width: 1,
+              ),
+            ),
+            padding: const EdgeInsets.all(TossSpacing.space3),
+            child: Row(
+              children: [
+                // Icon
+                Icon(
+                  Icons.location_on,
+                  size: TossSpacing.iconSM,
+                  color: widget.selectedLocationId != null
+                    ? TossColors.primary
+                    : TossColors.gray400,
+                ),
+                const SizedBox(width: TossSpacing.space2),
+                
+                // Selected value or hint
+                Expanded(
+                  child: isLoading
+                    ? const SizedBox(
+                        height: TossSpacing.iconSM,
+                        width: TossSpacing.iconSM,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: TossColors.primary,
+                        ),
+                      )
+                    : Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            selectedLocation?.displayName ?? widget.hint ?? 'Select Location',
+                            style: TossTextStyles.body.copyWith(
+                              color: widget.selectedLocationId != null
+                                ? TossColors.gray900
+                                : TossColors.gray400,
+                              fontWeight: widget.selectedLocationId != null 
+                                ? FontWeight.w600 
+                                : FontWeight.w400,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
+                          ),
+                          if (selectedLocation != null && widget.showTransactionCount) ...[ 
+                            const SizedBox(height: 2),
+                            Text(
+                              selectedLocation.subtitle,
+                              style: TossTextStyles.caption.copyWith(
+                                color: TossColors.gray500,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
+                            ),
+                          ],
+                        ],
+                      ),
+                ),
+                
+                // Dropdown icon
+                Icon(
+                  Icons.arrow_drop_down,
+                  color: widget.selectedLocationId != null
+                    ? TossColors.primary
+                    : TossColors.gray400,
+                ),
+              ],
+            ),
+          ),
+        ),
+        
+        // Error text
+        if (hasError) ...[ 
+          const SizedBox(height: TossSpacing.space2),
+          Text(
+            widget.errorText!,
+            style: TossTextStyles.caption.copyWith(
+              color: TossColors.error,
+            ),
+            overflow: TextOverflow.ellipsis,
+            maxLines: 2,
+          ),
+        ],
+      ],
+    );
+  }
+  
+  void _showSimpleSelectionBottomSheet(BuildContext context, List<CashLocationData> locations) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: TossColors.transparent,
+      builder: (context) => TossBottomSheet(
+        content: Container(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(context).size.height * 0.7,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Flexible(
+                    child: Text(
+                      'Select ${widget.label ?? 'Cash Location'}',
+                      style: TossTextStyles.h3.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close, color: TossColors.gray500),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ],
+              ),
+              
+              const SizedBox(height: TossSpacing.space4),
+              
+              // Clear selection option
+              if (widget.selectedLocationId != null)
+                _buildClearOption(context),
+              
+              // Items list
+              Flexible(
+                child: locations.isEmpty
+                  ? Padding(
+                      padding: const EdgeInsets.all(TossSpacing.space6),
+                      child: Center(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              'There is no Cash Location.',
+                              style: TossTextStyles.body.copyWith(color: TossColors.gray500),
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: TossSpacing.space2),
+                            Text(
+                              'Go to Cash and create Cash Location',
+                              style: TossTextStyles.caption.copyWith(
+                                color: TossColors.primary,
+                                fontWeight: FontWeight.w500,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
+                        ),
+                      ),
+                    )
+                  : ListView.separated(
+                      shrinkWrap: true,
+                      itemCount: locations.length,
+                      separatorBuilder: (context, index) => Container(
+                        height: 1,
+                        color: TossColors.gray100,
+                      ),
+                      itemBuilder: (context, index) {
+                        final item = locations[index];
+                        final isSelected = item.id == widget.selectedLocationId;
+                        final isBlocked = widget.blockedLocationIds?.contains(item.id) ?? false;
+                        
+                        return InkWell(
+                          onTap: isBlocked 
+                            ? null  // Disable tap if blocked
+                            : () {
+                                widget.onChanged?.call(item.id);
+                                Navigator.pop(context);
+                              },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 12,
+                            ),
+                            color: isBlocked 
+                              ? TossColors.gray100  // Gray background for blocked items
+                              : isSelected 
+                                ? TossColors.primary.withValues(alpha: 0.05) 
+                                : null,
+                            child: Row(
+                              children: [
+                                // Icon
+                                Icon(
+                                  isBlocked ? Icons.block : Icons.location_on,
+                                  size: TossSpacing.iconSM,
+                                  color: isBlocked 
+                                    ? TossColors.gray400
+                                    : isSelected 
+                                      ? TossColors.primary 
+                                      : TossColors.gray500,
+                                ),
+                                const SizedBox(width: TossSpacing.space3),
+                                
+                                // Content
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        item.displayName,
+                                        style: TossTextStyles.body.copyWith(
+                                          color: isBlocked 
+                                            ? TossColors.gray400
+                                            : isSelected 
+                                              ? TossColors.primary 
+                                              : TossColors.gray900,
+                                          fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                                          decoration: isBlocked ? TextDecoration.lineThrough : null,
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
+                                        maxLines: 2,
+                                      ),
+                                      if (widget.showTransactionCount && item.subtitle.isNotEmpty) ...[ 
+                                        const SizedBox(height: 2),
+                                        Text(
+                                          item.subtitle,
+                                          style: TossTextStyles.small.copyWith(
+                                            color: isBlocked ? TossColors.gray300 : TossColors.gray500,
+                                          ),
+                                          overflow: TextOverflow.ellipsis,
+                                          maxLines: 1,
+                                        ),
+                                      ],
+                                      if (isBlocked) ...[
+                                        const SizedBox(height: 2),
+                                        Text(
+                                          'Already selected',
+                                          style: TossTextStyles.small.copyWith(
+                                            color: TossColors.error,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                      ],
+                                    ],
+                                  ),
+                                ),
+                                
+                                // Check mark for selected or block icon for blocked
+                                if (isSelected)
+                                  const Icon(
+                                    Icons.check,
+                                    size: TossSpacing.iconSM,
+                                    color: TossColors.primary,
+                                  )
+                                else if (isBlocked)
+                                  const Icon(
+                                    Icons.block,
+                                    size: TossSpacing.iconSM,
+                                    color: TossColors.error,
+                                  ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+              ),
+            ],
           ),
         ),
       ),
