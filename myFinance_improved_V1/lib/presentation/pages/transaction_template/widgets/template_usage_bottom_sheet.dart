@@ -34,8 +34,10 @@ import '../../../providers/app_state_provider.dart';
 import '../../../providers/auth_provider.dart';
 import '../providers/counterparty_providers.dart';
 import '../providers/transaction_template_providers.dart';
+import '../../journal_input/providers/journal_input_providers.dart';
 import '../../../../data/services/supabase_service.dart';
 import 'package:myfinance_improved/core/themes/index.dart';
+import '../../journal_input/widgets/exchange_rate_calculator.dart';
 
 // Form complexity levels
 enum FormComplexity {
@@ -286,6 +288,9 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
   // Store linked company ID for internal counterparties
   String? _linkedCompanyId;
   
+  // Track if multiple currencies exist
+  bool _hasMultipleCurrencies = false;
+  
   // Form validation helper
   bool get _isFormValid {
     // Description is optional - no validation needed
@@ -398,6 +403,9 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
     // Initialize linked company ID if available in template
     // This will be overridden when fetching counterparty details
     _linkedCompanyId = null;
+    
+    // Check for multiple currencies on page load
+    _checkForMultipleCurrencies();
   }
   
   @override
@@ -442,6 +450,67 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
     );
     
     _previousValue = formatted;
+  }
+  
+  Future<void> _checkForMultipleCurrencies() async {
+    final appState = ref.read(appStateProvider);
+    final companyId = appState.companyChoosen;
+    
+    if (companyId.isEmpty) {
+      setState(() {
+        _hasMultipleCurrencies = false;
+      });
+      return;
+    }
+    
+    try {
+      final exchangeRatesData = await ref.read(exchangeRatesProvider(companyId).future);
+      if (exchangeRatesData != null) {
+        final exchangeRates = exchangeRatesData['exchange_rates'] as List? ?? [];
+        // Only show calculator if there's more than 1 currency (base + at least one other)
+        setState(() {
+          _hasMultipleCurrencies = exchangeRates.length > 1;
+        });
+      } else {
+        // No exchange rate data means only base currency
+        setState(() {
+          _hasMultipleCurrencies = false;
+        });
+      }
+    } catch (e) {
+      // On error, assume only base currency
+      setState(() {
+        _hasMultipleCurrencies = false;
+      });
+    }
+  }
+  
+  void _showExchangeRateCalculator() {
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      barrierColor: Colors.black.withOpacity(0.5),  // Visible backdrop
+      isDismissible: true,  // Allow dismissing by tapping outside
+      enableDrag: true,     // Allow dragging to dismiss
+      builder: (context) => Container(
+        height: MediaQuery.of(context).size.height * 0.8,  // Fixed height
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+        ),
+        child: ExchangeRateCalculator(
+          initialAmount: _amountController.text.replaceAll(',', ''),
+          onAmountSelected: (amount) {
+            // Format the result with thousand separators
+            final numericValue = double.tryParse(amount) ?? 0;
+            final formatter = NumberFormat('#,##0', 'en_US');
+            setState(() {
+              _amountController.text = formatter.format(numericValue.toInt());
+            });
+          },
+        ),
+      ),
+    );
   }
   
   @override
@@ -631,58 +700,92 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
                 ),
               ),
               SizedBox(height: TossSpacing.space2),
-              GestureDetector(
-                onTap: () async {
-                  final result = await TossNumberpadModal.show(
-                    context: context,
-                    title: 'Enter Amount',
-                    initialValue: _amountController.text.replaceAll(',', ''),
-                    // No currency symbol - universal numberpad
-                    allowDecimal: false,
-                    onConfirm: (value) {
-                      _amountController.text = _numberFormat.format(int.parse(value));
-                      setState(() {});
-                    },
-                  );
-                },
-                child: AbsorbPointer(
-                  child: TextFormField(
-                  controller: _amountController,
-                  keyboardType: TextInputType.none, // Use none since we have custom numberpad
-                  // Removed autofocus to prevent keyboard from appearing immediately
-                  style: TossTextStyles.h3.copyWith( // Larger text
-                    fontWeight: FontWeight.w600,
+              Row(
+                children: [
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () async {
+                        final result = await TossNumberpadModal.show(
+                          context: context,
+                          title: 'Enter Amount',
+                          initialValue: _amountController.text.replaceAll(',', ''),
+                          // No currency symbol - universal numberpad
+                          allowDecimal: false,
+                          onConfirm: (value) {
+                            _amountController.text = _numberFormat.format(int.parse(value));
+                            setState(() {});
+                          },
+                        );
+                      },
+                      child: AbsorbPointer(
+                        child: TextFormField(
+                        controller: _amountController,
+                        keyboardType: TextInputType.none, // Use none since we have custom numberpad
+                        // Removed autofocus to prevent keyboard from appearing immediately
+                        style: TossTextStyles.h3.copyWith( // Larger text
+                          fontWeight: FontWeight.w600,
+                        ),
+                        decoration: InputDecoration(
+                          hintText: '0',
+                          filled: true,
+                          fillColor: TossColors.gray50,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                          borderSide: BorderSide(color: TossColors.gray300, width: 1.5),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                          borderSide: BorderSide(color: TossColors.primary, width: 2),
+                        ),
+                        contentPadding: EdgeInsets.symmetric(
+                          horizontal: TossSpacing.space3,
+                          vertical: TossSpacing.space3,
+                        ),
+                      ),
+                      inputFormatters: [
+                        FilteringTextInputFormatter.allow(RegExp(r'[0-9,]')),
+                        LengthLimitingTextInputFormatter(15),
+                        ],
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Amount is required';
+                            }
+                            return null;
+                          },
+                        ),
+                        ),
+                      ),
                   ),
-                  decoration: InputDecoration(
-                    hintText: '0',
-                    filled: true,
-                    fillColor: TossColors.gray50,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                    borderSide: BorderSide(color: TossColors.gray300, width: 1.5),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                    borderSide: BorderSide(color: TossColors.primary, width: 2),
-                  ),
-                  contentPadding: EdgeInsets.symmetric(
-                    horizontal: TossSpacing.space3,
-                    vertical: TossSpacing.space3,
-                  ),
-                ),
-                inputFormatters: [
-                  FilteringTextInputFormatter.allow(RegExp(r'[0-9,]')),
-                  LengthLimitingTextInputFormatter(15),
+                  // Only show calculator if multiple currencies exist
+                  if (_hasMultipleCurrencies) ...[
+                    SizedBox(width: TossSpacing.space2),
+                    // Calculator button
+                    Container(
+                      height: 56, // Match text field height
+                      width: 56,
+                      decoration: BoxDecoration(
+                        color: TossColors.primary,
+                        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+                      ),
+                      child: Material(
+                        color: TossColors.transparent,
+                        child: InkWell(
+                          onTap: _showExchangeRateCalculator,
+                          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+                          child: Container(
+                            padding: EdgeInsets.all(TossSpacing.space3),
+                            child: Icon(
+                              Icons.calculate_outlined,
+                              color: TossColors.white,
+                              size: 24,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
                   ],
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Amount is required';
-                      }
-                      return null;
-                    },
-                  ),
-                  ),
-                ),
+                ],
+              ),
             ],
           ),
           

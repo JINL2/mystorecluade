@@ -20,6 +20,7 @@ import '../../../widgets/specific/selectors/autonomous_cash_location_selector.da
 import '../../../widgets/common/toss_loading_view.dart';
 import '../../../providers/entities/counterparty_provider.dart';
 import 'package:myfinance_improved/core/themes/index.dart';
+import 'exchange_rate_calculator.dart';
 
 
 
@@ -27,12 +28,14 @@ class AddTransactionDialog extends ConsumerStatefulWidget {
   final TransactionLine? existingLine;
   final bool? initialIsDebit;
   final double? suggestedAmount;
+  final Set<String>? blockedCashLocationIds;
   
   const AddTransactionDialog({
     super.key,
     this.existingLine,
     this.initialIsDebit,
     this.suggestedAmount,
+    this.blockedCashLocationIds,
   });
   
   @override
@@ -45,6 +48,7 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
   String? _selectedAccountName;
   String? _selectedCategoryTag;
   String? _selectedCounterpartyId;
+  bool _hasMultipleCurrencies = false;  // Track if multiple currencies exist
   String? _selectedCounterpartyName;
   String? _selectedCounterpartyStoreId;
   String? _selectedCounterpartyStoreName;
@@ -84,6 +88,9 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
   @override
   void initState() {
     super.initState();
+    
+    // Check for multiple currencies
+    _checkForMultipleCurrencies();
     
     // Initialize with existing line data if editing
     if (widget.existingLine != null) {
@@ -136,6 +143,40 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
         final formatter = NumberFormat('#,##0.##', 'en_US');
         _amountController.text = formatter.format(widget.suggestedAmount);
       }
+    }
+  }
+  
+  Future<void> _checkForMultipleCurrencies() async {
+    final appState = ref.read(appStateProvider);
+    final companyId = appState.companyChoosen;
+    
+    if (companyId.isEmpty) {
+      setState(() {
+        _hasMultipleCurrencies = false;
+      });
+      return;
+    }
+    
+    try {
+      // Use the existing provider to get exchange rates
+      final exchangeRatesData = await ref.read(exchangeRatesProvider(companyId).future);
+      
+      if (exchangeRatesData != null) {
+        final exchangeRates = exchangeRatesData['exchange_rates'] as List? ?? [];
+        // Show calculator only if there are multiple currencies (more than just base currency)
+        setState(() {
+          _hasMultipleCurrencies = exchangeRates.length > 1;
+        });
+      } else {
+        setState(() {
+          _hasMultipleCurrencies = false;
+        });
+      }
+    } catch (e) {
+      // If there's an error, hide the calculator button
+      setState(() {
+        _hasMultipleCurrencies = false;
+      });
     }
   }
   
@@ -320,6 +361,34 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
       },
     );
   }
+  
+  void _showExchangeRateCalculator() {
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      barrierColor: Colors.black.withOpacity(0.5),  // Visible backdrop
+      isDismissible: true,  // Allow dismissing by tapping outside
+      enableDrag: true,     // Allow dragging to dismiss
+      builder: (context) => Container(
+        height: MediaQuery.of(context).size.height * 0.8,  // Fixed height
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+        ),
+        child: ExchangeRateCalculator(
+          initialAmount: _amountController.text.replaceAll(',', ''),
+          onAmountSelected: (amount) {
+            // Format the result with thousand separators
+            final formatter = NumberFormat('#,##0.##', 'en_US');
+            final numericValue = double.tryParse(amount) ?? 0;
+            setState(() {
+              _amountController.text = formatter.format(numericValue);
+            });
+          },
+        ),
+      ),
+    );
+  }
 
   void _saveTransaction() {
     // Remove commas before parsing
@@ -433,7 +502,7 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
         ),
         ...stores.map((store) => TossDropdownItem(
           value: store['store_id'] as String,
-          label: store['store_name'] ?? 'Unknown Store',
+          label: (store['store_name'] ?? 'Unknown Store') as String,
         )),
       ],
       onChanged: (storeId) {
@@ -441,7 +510,7 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
           _selectedCounterpartyStoreId = storeId;
           if (storeId != null) {
             final store = stores.firstWhere((s) => s['store_id'] == storeId);
-            _selectedCounterpartyStoreName = store['store_name'];
+            _selectedCounterpartyStoreName = store['store_name'] as String?;
           } else {
             _selectedCounterpartyStoreName = null;
           }
@@ -598,8 +667,8 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
                                 if (account.isNotEmpty) {
                                   setState(() {
                                     _selectedAccountId = selectedId;
-                                    _selectedAccountName = account['account_name'];
-                                    _selectedCategoryTag = account['category_tag'];
+                                    _selectedAccountName = account['account_name'] as String?;
+                                    _selectedCategoryTag = account['category_tag'] as String?;
                                     // Reset all dependent fields when account changes
                                     _selectedCashLocationId = null;
                                     _selectedCounterpartyId = null;
@@ -641,6 +710,7 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
                         hint: 'Select cash location',
                         showSearch: true,
                         showTransactionCount: false,
+                        blockedLocationIds: widget.blockedCashLocationIds,
                       ),
                     ],
                     
@@ -677,7 +747,7 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
                                       _selectedCounterpartyName = counterpartyAsync.name;
                                       _isInternal = counterpartyAsync.isInternal;
                                       // Check if there's a linked company ID in additionalData
-                                      _linkedCompanyId = counterpartyAsync.additionalData?['linked_company_id'];
+                                      _linkedCompanyId = counterpartyAsync.additionalData?['linked_company_id'] as String?;
                                     });
                                     
                                     // Check account mapping after setting counterparty
@@ -887,6 +957,7 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
                           showSearch: true,
                           showTransactionCount: false,
                           showScopeTabs: _selectedCounterpartyStoreId != null, // Show tabs only if store is available
+                          blockedLocationIds: widget.blockedCashLocationIds,
                         ),
                       ],
                       
@@ -1025,20 +1096,57 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
                     SizedBox(height: 20),
                     _buildSectionTitle('Amount *'),
                     SizedBox(height: TossSpacing.space2),
-                    GestureDetector(
-                      onTap: () => _showNumberpadModal(),
-                      child: AbsorbPointer(
-                        child: _buildTextField(
-                          controller: _amountController,
-                          hint: 'Enter amount',
-                          keyboardType: TextInputType.none,
-                          focusNode: _amountFocusNode,
-                          textInputAction: TextInputAction.next,
-                          onSubmitted: (_) {
-                            _descriptionFocusNode.requestFocus();
-                          },
+                    Row(
+                      children: [
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () => _showNumberpadModal(),
+                            child: AbsorbPointer(
+                              child: _buildTextField(
+                                controller: _amountController,
+                                hint: 'Enter amount',
+                                keyboardType: TextInputType.none,
+                                focusNode: _amountFocusNode,
+                                textInputAction: TextInputAction.next,
+                                onSubmitted: (_) {
+                                  _descriptionFocusNode.requestFocus();
+                                },
+                              ),
+                            ),
+                          ),
                         ),
-                      ),
+                        if (_hasMultipleCurrencies) ...[
+                          SizedBox(width: TossSpacing.space2),
+                          Container(
+                            decoration: BoxDecoration(
+                              color: TossColors.primary,
+                              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: TossColors.primary.withValues(alpha: 0.25),
+                                  blurRadius: 8,
+                                  offset: Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: Material(
+                              color: TossColors.transparent,
+                              child: InkWell(
+                                onTap: _showExchangeRateCalculator,
+                                borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+                                child: Container(
+                                  padding: EdgeInsets.all(TossSpacing.space3),
+                                  child: Icon(
+                                    Icons.calculate_outlined,
+                                    color: TossColors.white,
+                                    size: 24,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
                     
                     // Description

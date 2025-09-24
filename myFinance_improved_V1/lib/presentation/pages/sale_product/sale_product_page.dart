@@ -300,6 +300,10 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage> {
   // Sorting
   SortOption _currentSort = SortOption.nameAsc;
   bool _sortAscending = true;
+  
+  // Add search focus state
+  final FocusNode _searchFocusNode = FocusNode();
+  bool _isSearchFocused = false;
 
   @override
   void initState() {
@@ -308,12 +312,26 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(cartProvider.notifier).clearCart();
     });
+    
+    // Listen to search focus changes
+    _searchFocusNode.addListener(() {
+      final cartItems = ref.read(cartProvider);
+      setState(() {
+        _isSearchFocused = _searchFocusNode.hasFocus;
+        // Clear search when losing focus to show clean Added Items view
+        if (!_isSearchFocused && cartItems.isNotEmpty) {
+          _searchController.clear();
+          searchQuery = '';
+        }
+      });
+    });
   }
 
   @override
   void dispose() {
     _searchController.dispose();
     _searchDebounceTimer?.cancel();
+    _searchFocusNode.dispose();
     super.dispose();
   }
 
@@ -322,15 +340,8 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage> {
       searchQuery = value;
     });
     
-    // Cancel previous timer
-    _searchDebounceTimer?.cancel();
-    
-    // Start new timer for debounced search
-    _searchDebounceTimer = Timer(const Duration(milliseconds: 500), () {
-      if (mounted) {
-        ref.read(salesProductProvider.notifier).search(value.trim());
-      }
-    });
+    // Live filtering is now handled in the build method
+    // No need to call RPC service for search anymore
   }
   
   String _getSortLabel() {
@@ -526,6 +537,23 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage> {
         break;
     }
 
+    // Determine if product list should be shown
+    // Show product list when:
+    // 1. Cart is empty (initial state)
+    // 2. Search bar is focused (user wants to search/select)
+    // 3. Search has text and is not focused (show filtered results)
+    final shouldShowProductList = cart.isEmpty || _isSearchFocused || searchQuery.isNotEmpty;
+    
+    // Apply live filtering based on search query
+    var displayProducts = filteredProducts;
+    if (searchQuery.isNotEmpty) {
+      displayProducts = filteredProducts.where((product) {
+        final searchLower = searchQuery.toLowerCase();
+        return product.productName.toLowerCase().contains(searchLower) ||
+               product.sku.toLowerCase().contains(searchLower);
+      }).toList();
+    }
+    
     return TossScaffold(
       backgroundColor: TossColors.gray100,
       appBar: AppBar(
@@ -542,161 +570,171 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage> {
         backgroundColor: TossColors.gray100,
         foregroundColor: TossColors.black,
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            // Added Items Section (shown when cart has items)
-            if (cart.isNotEmpty) _buildAddedItemsSection(cart, currencySymbol),
-            
-            // Sort Control (simplified - no filter for now)
-            Container(
-              margin: EdgeInsets.fromLTRB(
-                TossSpacing.space4,
-                TossSpacing.space3,
-                TossSpacing.space4,
-                TossSpacing.space2,
-              ),
-              child: InkWell(
-                onTap: () {
-                  HapticFeedback.lightImpact();
-                  _showSortOptionsSheet();
-                },
-                child: Container(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: TossSpacing.space3,
-                    vertical: TossSpacing.space2,
-                  ),
-                  decoration: BoxDecoration(
-                    color: TossColors.surface,
-                    borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                    boxShadow: [
-                      BoxShadow(
-                        color: TossColors.black.withValues(alpha: 0.02),
-                        blurRadius: 2,
-                        offset: const Offset(0, 1),
+      body: Column(
+        children: [
+          // Fixed search section at the top
+          Container(
+            color: TossColors.gray100,
+            padding: EdgeInsets.fromLTRB(
+              TossSpacing.space4,
+              TossSpacing.space2,
+              TossSpacing.space4,
+              TossSpacing.space2,
+            ),
+            child: TossSearchField(
+              controller: _searchController,
+              focusNode: _searchFocusNode,
+              hintText: 'Search products...',
+              prefixIcon: Icons.search,
+              onChanged: _onSearchChanged,
+            ),
+          ),
+          
+          // Scrollable content
+          Expanded(
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  // Added Items Section (shown when cart has items and search is not focused)
+                  if (cart.isNotEmpty && !_isSearchFocused) _buildAddedItemsSection(cart, currencySymbol),
+                  
+                  // Only show sort control and product list when needed
+                  if (shouldShowProductList) ...[
+                    // Sort Control (simplified - no filter for now)
+                    Container(
+                      margin: EdgeInsets.fromLTRB(
+                        TossSpacing.space4,
+                        TossSpacing.space3,
+                        TossSpacing.space4,
+                        TossSpacing.space2,
                       ),
-                    ],
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.sort_rounded,
-                        size: 22,
-                        color: _currentSort != SortOption.nameAsc ? TossColors.primary : TossColors.gray600,
-                      ),
-                      SizedBox(width: TossSpacing.space2),
-                      Expanded(
-                        child: Text(
-                          _getSortLabel(),
-                          style: TossTextStyles.labelLarge.copyWith(
-                            color: TossColors.gray700,
+                      child: InkWell(
+                        onTap: () {
+                          HapticFeedback.lightImpact();
+                          _showSortOptionsSheet();
+                        },
+                        child: Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: TossSpacing.space3,
+                            vertical: TossSpacing.space2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: TossColors.surface,
+                            borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                            boxShadow: [
+                              BoxShadow(
+                                color: TossColors.black.withValues(alpha: 0.02),
+                                blurRadius: 2,
+                                offset: const Offset(0, 1),
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.sort_rounded,
+                                size: 22,
+                                color: _currentSort != SortOption.nameAsc ? TossColors.primary : TossColors.gray600,
+                              ),
+                              SizedBox(width: TossSpacing.space2),
+                              Expanded(
+                                child: Text(
+                                  _getSortLabel(),
+                                  style: TossTextStyles.labelLarge.copyWith(
+                                    color: TossColors.gray700,
+                                  ),
+                                ),
+                              ),
+                              if (_currentSort != SortOption.nameAsc)
+                                Icon(
+                                  _sortAscending
+                                    ? Icons.arrow_upward_rounded 
+                                    : Icons.arrow_downward_rounded,
+                                  size: 16,
+                                  color: TossColors.primary,
+                                ),
+                              SizedBox(width: TossSpacing.space1),
+                              Icon(
+                                Icons.keyboard_arrow_down_rounded,
+                                size: 20,
+                                color: TossColors.gray500,
+                              ),
+                            ],
                           ),
                         ),
                       ),
-                      if (_currentSort != SortOption.nameAsc)
-                        Icon(
-                          _sortAscending
-                            ? Icons.arrow_upward_rounded 
-                            : Icons.arrow_downward_rounded,
-                          size: 16,
-                          color: TossColors.primary,
-                        ),
-                      SizedBox(width: TossSpacing.space1),
-                      Icon(
-                        Icons.keyboard_arrow_down_rounded,
-                        size: 20,
-                        color: TossColors.gray500,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            
-            // Search Section
-            Container(
-              margin: EdgeInsets.fromLTRB(
-                TossSpacing.space4,
-                TossSpacing.space2,
-                TossSpacing.space4,
-                TossSpacing.space3,
-              ),
-              child: TossSearchField(
-                controller: _searchController,
-                hintText: 'Search products...',
-                prefixIcon: Icons.search,
-                onChanged: _onSearchChanged,
-              ),
-            ),
+                    ),
 
-            // Products Content
-            if (filteredProducts.isEmpty)
-              Container(
-                height: MediaQuery.of(context).size.height * 0.5,
-                child: Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.shopping_cart_outlined,
-                        size: 64,
-                        color: TossColors.gray400,
-                      ),
-                      SizedBox(height: TossSpacing.space3),
-                      Text(
-                        'No products found',
-                        style: TossTextStyles.bodyLarge.copyWith(
-                          color: TossColors.gray600,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              )
-            else
-              Container(
-                margin: EdgeInsets.all(TossSpacing.space4),
-                child: TossWhiteCard(
-                  padding: EdgeInsets.zero,
-                  child: Column(
-                    children: [
-                      // Section Header
+                    // Products Content
+                    if (displayProducts.isEmpty)
                       Container(
-                        padding: EdgeInsets.all(TossSpacing.space4),
-                        decoration: BoxDecoration(
-                          border: Border(
-                            bottom: BorderSide(
-                              color: TossColors.gray100,
-                              width: 1,
-                            ),
+                        height: MediaQuery.of(context).size.height * 0.3,
+                        child: Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.shopping_cart_outlined,
+                                size: 64,
+                                color: TossColors.gray400,
+                              ),
+                              SizedBox(height: TossSpacing.space3),
+                              Text(
+                                searchQuery.isNotEmpty 
+                                  ? 'No products found for "${searchQuery}"'
+                                  : 'No products found',
+                                style: TossTextStyles.bodyLarge.copyWith(
+                                  color: TossColors.gray600,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                        child: Row(
-                          children: [
-                            Icon(
-                              Icons.shopping_cart_rounded,
-                              color: TossColors.primary,
-                              size: 20,
-                            ),
-                            SizedBox(width: TossSpacing.space2),
-                            Text(
-                              'Select Products',
-                              style: TossTextStyles.h4.copyWith(
-                                color: TossColors.gray900,
-                              ),
-                            ),
-                            Spacer(),
-                            Container(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: TossSpacing.space2,
-                                vertical: TossSpacing.space1,
-                              ),
-                              decoration: BoxDecoration(
-                                color: TossColors.primary.withValues(alpha: 0.1),
-                                borderRadius: BorderRadius.circular(TossBorderRadius.sm),
-                              ),
-                              child: Text(
-                                '${filteredProducts.length} available',
+                      )
+                    else
+                      Container(
+                        margin: EdgeInsets.all(TossSpacing.space4),
+                        child: TossWhiteCard(
+                          padding: EdgeInsets.zero,
+                          child: Column(
+                            children: [
+                              // Section Header
+                              Container(
+                                padding: EdgeInsets.all(TossSpacing.space4),
+                                decoration: BoxDecoration(
+                                  border: Border(
+                                    bottom: BorderSide(
+                                      color: TossColors.gray100,
+                                      width: 1,
+                                    ),
+                                  ),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      Icons.shopping_cart_rounded,
+                                      color: TossColors.primary,
+                                      size: 20,
+                                    ),
+                                    SizedBox(width: TossSpacing.space2),
+                                    Text(
+                                      'Select Products',
+                                      style: TossTextStyles.h4.copyWith(
+                                        color: TossColors.gray900,
+                                      ),
+                                    ),
+                                    Spacer(),
+                                    Container(
+                                      padding: EdgeInsets.symmetric(
+                                        horizontal: TossSpacing.space2,
+                                        vertical: TossSpacing.space1,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: TossColors.primary.withValues(alpha: 0.1),
+                                        borderRadius: BorderRadius.circular(TossBorderRadius.sm),
+                                      ),
+                                      child: Text(
+                                        '${displayProducts.length} available',
                                 style: TossTextStyles.caption.copyWith(
                                   color: TossColors.primary,
                                   fontWeight: FontWeight.w600,
@@ -707,45 +745,49 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage> {
                         ),
                       ),
                       
-                      // Product List
-                      ...filteredProducts.asMap().entries.map((entry) {
-                        final index = entry.key;
-                        final product = entry.value;
-                        final cartItem = cart.firstWhere(
-                          (item) => item.productId == product.productId,
-                          orElse: () => CartItem(
-                            id: '',
-                            productId: '',
-                            sku: '',
-                            name: '',
-                            price: 0,
-                            quantity: 0,
-                            available: 0,
+                              // Product List
+                              ...displayProducts.asMap().entries.map((entry) {
+                                final index = entry.key;
+                                final product = entry.value;
+                                final cartItem = cart.firstWhere(
+                                  (item) => item.productId == product.productId,
+                                  orElse: () => CartItem(
+                                    id: '',
+                                    productId: '',
+                                    sku: '',
+                                    name: '',
+                                    price: 0,
+                                    quantity: 0,
+                                    available: 0,
+                                  ),
+                                );
+                                
+                                return Column(
+                                  children: [
+                                    _buildProductListTile(product, cartItem, currencySymbol),
+                                    if (index < displayProducts.length - 1)
+                                      Divider(
+                                        height: 1,
+                                        color: TossColors.gray100,
+                                        indent: TossSpacing.space4,
+                                        endIndent: TossSpacing.space4,
+                                      ),
+                                  ],
+                                );
+                              }).toList(),
+                            ],
                           ),
-                        );
-                        
-                        return Column(
-                          children: [
-                            _buildProductListTile(product, cartItem, currencySymbol),
-                            if (index < filteredProducts.length - 1)
-                              Divider(
-                                height: 1,
-                                color: TossColors.gray100,
-                                indent: TossSpacing.space4,
-                                endIndent: TossSpacing.space4,
-                              ),
-                          ],
-                        );
-                      }).toList(),
-                    ],
-                  ),
-                ),
+                        ),
+                      ),
+                  ], // End of shouldShowProductList conditional
+                  
+                  // Bottom padding to prevent cart bar overlap
+                  SizedBox(height: cart.isNotEmpty ? 100 : 80),
+                ],
               ),
-            
-            // Bottom padding to prevent cart bar overlap
-            SizedBox(height: cart.isNotEmpty ? 100 : 80),
-          ],
-        ),
+            ),
+          ),
+        ],
       ),
       
       // Cart Summary Bar
@@ -793,9 +835,9 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage> {
     
     return Container(
       decoration: BoxDecoration(
-        color: isSelected ? Colors.green.withValues(alpha: 0.08) : Colors.transparent,
+        color: isSelected ? TossColors.success.withOpacity(0.1) : Colors.transparent,
         border: isSelected ? Border.all(
-          color: Colors.green.withValues(alpha: 0.4),
+          color: TossColors.success,
           width: 1.5,
         ) : null,
         borderRadius: isSelected ? BorderRadius.circular(TossBorderRadius.sm) : null,
@@ -838,72 +880,29 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage> {
               ),
             ),
             SizedBox(height: TossSpacing.space1),
-            // Quantity selector or stock info
-            AnimatedSwitcher(
-              duration: Duration(milliseconds: 300),
-              transitionBuilder: (child, animation) {
-                return SlideTransition(
-                  position: Tween<Offset>(
-                    begin: Offset(1.0, 0.0),
-                    end: Offset.zero,
-                  ).animate(CurvedAnimation(
-                    parent: animation,
-                    curve: Curves.easeOutCubic,
-                  )),
-                  child: FadeTransition(
-                    opacity: animation,
-                    child: child,
+            // Stock info only
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                Text(
+                  'Stock: ${product.totalStockSummary.totalQuantityOnHand}',
+                  style: TossTextStyles.caption.copyWith(
+                    color: _getStockColor(product),
+                    fontWeight: FontWeight.w600,
                   ),
-                );
-              },
-              child: cartItem.quantity > 0
-                  ? Container(
-                      key: ValueKey('quantity-${product.productId}'),
-                      padding: EdgeInsets.symmetric(
-                        horizontal: TossSpacing.space3,
-                        vertical: TossSpacing.space2,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.green.withValues(alpha: 0.08),
-                        borderRadius: BorderRadius.circular(TossBorderRadius.sm),
-                        border: Border.all(
-                          color: Colors.green.withValues(alpha: 0.4),
-                          width: 1.5,
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            '${cartItem.quantity}',
-                            style: TossTextStyles.body.copyWith(
-                              color: Colors.green[700],
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
-                    )
-                  : Row(
-                      key: ValueKey('clean-${product.productId}'),
-                      mainAxisSize: MainAxisSize.min,
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        Text(
-                          'Stock: ${product.totalStockSummary.totalQuantityOnHand}',
-                          style: TossTextStyles.caption.copyWith(
-                            color: _getStockColor(product),
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
+                ),
+              ],
             ),
           ],
         ),
       ),
       onTap: () {
         HapticFeedback.lightImpact();
+        
+        // Unfocus search bar when selecting a product
+        _searchFocusNode.unfocus();
+        
         if (cartItem.quantity == 0) {
           // Add first item to cart
           ref.read(cartProvider.notifier).addItem(product);
@@ -914,7 +913,7 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage> {
             cartItem.quantity + 1,
           );
         }
-        },
+      },
       ),
     );
   }
