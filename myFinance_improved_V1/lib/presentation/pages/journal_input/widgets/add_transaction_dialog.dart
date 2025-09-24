@@ -328,29 +328,25 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: TossColors.transparent,
-      useRootNavigator: true,
+      backgroundColor: Colors.transparent,
+      barrierColor: Colors.black.withOpacity(0.5),  // Visible backdrop
       isDismissible: true,  // Allow dismissing by tapping outside
       enableDrag: true,     // Allow dragging to dismiss
-      builder: (context) => Padding(
+      builder: (context) => Container(
+        height: MediaQuery.of(context).size.height * 0.8,  // Fixed height
         padding: EdgeInsets.only(
           bottom: MediaQuery.of(context).viewInsets.bottom,
         ),
-        child: DraggableScrollableSheet(
-          initialChildSize: 0.8,
-          minChildSize: 0.5,
-          maxChildSize: 0.95,
-          builder: (context, scrollController) => ExchangeRateCalculator(
-            initialAmount: _amountController.text.replaceAll(',', ''),
-            onAmountSelected: (amount) {
-              // Format the result with thousand separators
-              final formatter = NumberFormat('#,##0.##', 'en_US');
-              final numericValue = double.tryParse(amount) ?? 0;
-              setState(() {
-                _amountController.text = formatter.format(numericValue);
-              });
-            },
-          ),
+        child: ExchangeRateCalculator(
+          initialAmount: _amountController.text.replaceAll(',', ''),
+          onAmountSelected: (amount) {
+            // Format the result with thousand separators
+            final formatter = NumberFormat('#,##0.##', 'en_US');
+            final numericValue = double.tryParse(amount) ?? 0;
+            setState(() {
+              _amountController.text = formatter.format(numericValue);
+            });
+          },
         ),
       ),
     );
