@@ -609,7 +609,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 builder: (context, state) {
                   final extra = state.extra as Map<String, dynamic>?;
                   final product = extra?['product'] as Product?;
-                  return EditProductPage(product: product!);
+                  final currency = extra?['currency'] as inv_models.Currency?;
+                  return EditProductPage(product: product!, currency: currency);
                 },
               ),
               GoRoute(
@@ -644,6 +645,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                         reserved: productData.quantityReserved ?? 0,
                         brand: productData.brandName,
                         unit: productData.unit ?? 'piece',
+                        // Using description field to pass category name from RPC
+                        description: productData.categoryName,
                       );
                       return ProductDetailPage(product: product, currency: currency);
                     }

@@ -12,7 +12,11 @@ import '../../widgets/common/toss_white_card.dart';
 import '../../helpers/navigation_helper.dart';
 import 'models/invoice_models.dart';
 import 'providers/payment_providers.dart';
-import '../sale_product/sale_product_page.dart' show cartProvider;
+import '../sale_product/sale_product_page.dart' show cartProvider, salesProductProvider;
+import '../../providers/app_state_provider.dart';
+import '../../providers/auth_provider.dart';
+import '../journal_input/providers/journal_input_providers.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class PaymentMethodPage extends ConsumerStatefulWidget {
   final List<SalesProduct> selectedProducts;
@@ -38,6 +42,10 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
   // Discount type: true for percentage, false for amount
   bool _isPercentageDiscount = false;
   
+  // Exchange rate data
+  Map<String, dynamic>? _exchangeRateData;
+  String? _selectedCurrencyCode;
+  
   @override
   void initState() {
     super.initState();
@@ -46,6 +54,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
     // Load currency and cash location data when page loads
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(paymentMethodProvider.notifier).loadCurrencyData();
+      _loadExchangeRates();
     });
   }
 
@@ -54,6 +63,40 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
     _amountController.dispose();
     _discountController.dispose();
     super.dispose();
+  }
+  
+  Future<void> _loadExchangeRates() async {
+    final appState = ref.read(appStateProvider);
+    final String companyId = appState.companyChoosen;
+    
+    if (companyId.isEmpty) return;
+    
+    try {
+      final exchangeRatesData = await ref.read(exchangeRatesProvider(companyId).future);
+      if (exchangeRatesData != null && mounted) {
+        setState(() {
+          _exchangeRateData = exchangeRatesData;
+        });
+      }
+    } catch (e) {
+      print('Error loading exchange rates: $e');
+    }
+  }
+  
+  double _convertToSelectedCurrency(double baseAmount, String targetCurrencyCode) {
+    if (_exchangeRateData == null) return baseAmount;
+    
+    final exchangeRates = _exchangeRateData!['exchange_rates'] as List? ?? [];
+    final targetRate = exchangeRates.firstWhere(
+      (rate) => rate['currency_code'] == targetCurrencyCode,
+      orElse: () => {'rate': 1.0},
+    );
+    
+    final rate = (targetRate['rate'] as num).toDouble();
+    // Convert from base currency to target currency
+    // If base currency is VND and target is KRW, and 1 KRW = 19.01 VND
+    // Then to convert VND to KRW: divide by the rate
+    return rate > 0 ? baseAmount / rate : baseAmount;
   }
 
   @override
@@ -118,6 +161,12 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                 
                 // Total Section with Discount Applied
                 _buildTotalWithDiscountSection(),
+                
+                // Currency Converter Section
+                if (_exchangeRateData != null) ...[
+                  SizedBox(height: TossSpacing.space4),
+                  _buildCurrencyConverterSection(),
+                ],
               ],
               
               // Add extra padding for better scrolling when keyboard is open
@@ -1182,6 +1231,171 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
       ),
     );
   }
+  
+  Widget _buildCurrencyConverterSection() {
+    if (_exchangeRateData == null) return Container();
+    
+    // Calculate the final total amount
+    double cartTotal = 0;
+    for (final product in widget.selectedProducts) {
+      final quantity = widget.productQuantities[product.productId] ?? 0;
+      final price = product.pricing?.sellingPrice ?? 0;
+      cartTotal += price * quantity;
+    }
+    
+    final paymentState = ref.watch(paymentMethodProvider);
+    final discountAmount = paymentState.discountAmount;
+    final finalTotal = cartTotal - discountAmount;
+    
+    final baseCurrency = _exchangeRateData!['base_currency'] as Map<String, dynamic>?;
+    final exchangeRates = _exchangeRateData!['exchange_rates'] as List? ?? [];
+    
+    // Filter out the base currency from the list
+    final otherCurrencies = exchangeRates.where((rate) {
+      return rate['currency_code'] != baseCurrency?['currency_code'];
+    }).toList();
+    
+    if (otherCurrencies.isEmpty) return Container();
+    
+    return TossWhiteCard(
+      padding: EdgeInsets.all(TossSpacing.space4),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.currency_exchange,
+                color: TossColors.primary,
+                size: TossSpacing.iconSM,
+              ),
+              SizedBox(width: TossSpacing.space2),
+              Text(
+                'Currency Converter',
+                style: TossTextStyles.bodyLarge.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: TossColors.gray900,
+                ),
+              ),
+            ],
+          ),
+          
+          SizedBox(height: TossSpacing.space3),
+          
+          // Currency buttons
+          Wrap(
+            spacing: TossSpacing.space2,
+            runSpacing: TossSpacing.space2,
+            children: otherCurrencies.map((rate) {
+              final currencyCode = rate['currency_code'] as String;
+              final symbol = rate['symbol'] as String;
+              final isSelected = _selectedCurrencyCode == currencyCode;
+              
+              return InkWell(
+                onTap: () {
+                  setState(() {
+                    _selectedCurrencyCode = isSelected ? null : currencyCode;
+                  });
+                },
+                borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                child: Container(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: TossSpacing.space3,
+                    vertical: TossSpacing.space2,
+                  ),
+                  decoration: BoxDecoration(
+                    color: isSelected ? TossColors.primary : TossColors.white,
+                    border: Border.all(
+                      color: isSelected ? TossColors.primary : TossColors.gray300,
+                      width: isSelected ? 1.5 : 1,
+                    ),
+                    borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        symbol,
+                        style: TossTextStyles.body.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: isSelected ? TossColors.white : TossColors.gray700,
+                        ),
+                      ),
+                      SizedBox(width: TossSpacing.space1),
+                      Text(
+                        currencyCode,
+                        style: TossTextStyles.body.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: isSelected ? TossColors.white : TossColors.gray900,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+          
+          // Show converted amount if a currency is selected
+          if (_selectedCurrencyCode != null) ...[
+            SizedBox(height: TossSpacing.space3),
+            Container(
+              padding: EdgeInsets.all(TossSpacing.space3),
+              decoration: BoxDecoration(
+                color: TossColors.primary.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                border: Border.all(
+                  color: TossColors.primary.withOpacity(0.3),
+                  width: 1,
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Converted Amount',
+                    style: TossTextStyles.caption.copyWith(
+                      color: TossColors.gray600,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  SizedBox(height: TossSpacing.space1),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          Text(
+                            '${baseCurrency?['symbol'] ?? ''} ${_formatNumber(finalTotal.round())} ${baseCurrency?['currency_code'] ?? ''}',
+                            style: TossTextStyles.body.copyWith(
+                              color: TossColors.gray700,
+                            ),
+                          ),
+                          SizedBox(width: TossSpacing.space2),
+                          Icon(
+                            Icons.arrow_forward,
+                            size: 16,
+                            color: TossColors.gray500,
+                          ),
+                        ],
+                      ),
+                      Text(
+                        '${otherCurrencies.firstWhere((r) => r['currency_code'] == _selectedCurrencyCode, orElse: () => {'symbol': ''})['symbol']} ${_formatNumber(_convertToSelectedCurrency(finalTotal, _selectedCurrencyCode!).round())} $_selectedCurrencyCode',
+                        style: TossTextStyles.bodyLarge.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: TossColors.primary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
 
   Widget _buildDiscountSection() {
     return Consumer(
@@ -1350,7 +1564,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
             ],
           ),
           child: ElevatedButton(
-            onPressed: canProceed ? _proceedToInvoice : null,
+            onPressed: canProceed ? () => _proceedToInvoice() : null,
             style: ElevatedButton.styleFrom(
               backgroundColor: canProceed ? TossColors.primary : TossColors.gray300,
               foregroundColor: TossColors.white,
@@ -1520,30 +1734,473 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
     );
   }
 
-  void _proceedToInvoice() {
+  Future<void> _proceedToInvoice() async {
     print('🚀 [PAYMENT_METHOD] Creating invoice with:');
     final paymentState = ref.read(paymentMethodProvider);
     print('📍 Cash Location: ${paymentState.selectedCashLocation?.displayName}');
-    print('💰 Currency: ${paymentState.selectedCurrency?.currencyCode}');
     print('📦 Products: ${widget.selectedProducts.length}');
     
-    // Clear the cart to refresh the Sales Product page
-    ref.read(cartProvider.notifier).clearCart();
+    // Get required IDs
+    final appState = ref.read(appStateProvider);
+    final authState = ref.read(authStateProvider);
+    final companyId = appState.companyChoosen;
+    final storeId = appState.storeChoosen;
+    final userId = authState?.id;
     
-    // Clear payment method selections for next invoice
-    ref.read(paymentMethodProvider.notifier).clearSelections();
+    // Validate required fields
+    if (companyId.isEmpty || storeId.isEmpty || userId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Missing required information. Please ensure you are logged in and have selected a company and store.'),
+          backgroundColor: TossColors.error,
+          duration: Duration(seconds: 3),
+        ),
+      );
+      return;
+    }
     
-    // Show success message
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text('Invoice created successfully!'),
-        backgroundColor: TossColors.success,
-        duration: const Duration(seconds: 2),
+    // Format items array for the RPC
+    final items = <Map<String, dynamic>>[];
+    for (final product in widget.selectedProducts) {
+      final quantity = widget.productQuantities[product.productId] ?? 0;
+      if (quantity > 0) {
+        final itemData = <String, dynamic>{
+          'product_id': product.productId,
+          'quantity': quantity,
+        };
+        
+        // Only include unit_price if we have it
+        // If not provided, the RPC will use the product's selling_price from the database
+        final sellingPrice = product.pricing?.sellingPrice;
+        if (sellingPrice != null && sellingPrice > 0) {
+          itemData['unit_price'] = sellingPrice;
+        }
+        
+        // Don't include item-level discount_amount since we're using total invoice discount
+        items.add(itemData);
+      }
+    }
+    
+    if (items.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('No valid items to invoice'),
+          backgroundColor: TossColors.error,
+          duration: Duration(seconds: 2),
+        ),
+      );
+      return;
+    }
+    
+    // Show loading indicator
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => Center(
+        child: Container(
+          padding: EdgeInsets.all(TossSpacing.space5),
+          decoration: BoxDecoration(
+            color: TossColors.white,
+            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CircularProgressIndicator(color: TossColors.primary),
+              SizedBox(height: TossSpacing.space3),
+              Text(
+                'Creating invoice...',
+                style: TossTextStyles.body.copyWith(
+                  color: TossColors.gray700,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
     
-    // Navigate back to Sales Product page
-    NavigationHelper.safeGoBack(context);
+    try {
+      final supabase = Supabase.instance.client;
+      
+      // Determine payment method based on cash location type
+      String paymentMethod = 'cash'; // Default
+      if (paymentState.selectedCashLocation != null) {
+        // If it's a bank type, use 'transfer', otherwise 'cash'
+        paymentMethod = paymentState.selectedCashLocation!.isBank ? 'transfer' : 'cash';
+      }
+      
+      // Prepare RPC parameters
+      final params = {
+        'p_company_id': companyId,
+        'p_store_id': storeId,
+        'p_created_by': userId,
+        'p_sale_date': DateTime.now().toIso8601String(),
+        'p_items': items,
+        'p_payment_method': paymentMethod,
+        'p_tax_rate': 0.0, // No tax by default
+      };
+      
+      // Add discount if any (as total invoice discount, not item-level)
+      // Round to avoid floating point issues
+      if (paymentState.discountAmount > 0) {
+        params['p_discount_amount'] = paymentState.discountAmount.round();
+      }
+      
+      // Add cash location info as notes for reference
+      if (paymentState.selectedCashLocation != null) {
+        final cashLoc = paymentState.selectedCashLocation!;
+        params['p_notes'] = 'Cash Location: ${cashLoc.displayName} (${cashLoc.displayType})';
+      }
+      
+      print('📤 RPC Parameters: $params');
+      
+      // Call the RPC
+      final response = await supabase.rpc('inventory_create_invoice', params: params);
+      
+      print('📥 RPC Response: $response');
+      
+      // Close loading dialog
+      if (mounted) {
+        Navigator.of(context).pop();
+      }
+      
+      // Check response
+      if (response != null && response['success'] == true) {
+        // Success - show invoice number
+        final invoiceNumber = response['invoice_number'] ?? 'Unknown';
+        final totalAmount = response['total_amount'] ?? 0;
+        
+        // Create journal entry for the cash sales transaction
+        try {
+          // Only create journal if we have a cash location
+          if (paymentState.selectedCashLocation != null) {
+            // Create description based on products and discount
+            String journalDescription = "";
+            
+            // Get the base currency code
+            final baseCurrencyCode = _exchangeRateData?['base_currency']?['currency_code'] ?? 'VND';
+            
+            if (widget.selectedProducts.length == 1) {
+              // Single product - show product name
+              journalDescription = widget.selectedProducts.first.productName;
+            } else if (widget.selectedProducts.isNotEmpty) {
+              // Multiple products - show first product + count
+              final additionalCount = widget.selectedProducts.length - 1;
+              journalDescription = "${widget.selectedProducts.first.productName} +$additionalCount products";
+            }
+            
+            // Add discount information if there's a discount
+            if (paymentState.discountAmount > 0) {
+              final discountFormatted = paymentState.discountAmount.toStringAsFixed(0);
+              journalDescription += " ${discountFormatted}${baseCurrencyCode} discount";
+            }
+            
+            // If no products (shouldn't happen), use a default description
+            if (journalDescription.isEmpty) {
+              journalDescription = "Sales - Invoice $invoiceNumber";
+            }
+            
+            // Prepare journal lines for cash sales
+            final journalLines = [
+              {
+                // Cash account (debit) - increase cash
+                "account_id": "d4a7a16e-45a1-47fe-992b-ff807c8673f0", // Fixed cash account ID
+                "description": journalDescription,
+                "debit": totalAmount.toDouble(), // Ensure it's a double
+                "credit": 0.0,
+                // Include cash object for cash transactions (required!)
+                "cash": {
+                  "cash_location_id": paymentState.selectedCashLocation!.id,
+                }
+              },
+              {
+                // Sales revenue account (credit) - increase revenue
+                "account_id": "e45e7d41-7fda-43a1-ac55-9779f3e59697", // Fixed sales revenue account ID
+                "description": journalDescription,
+                "debit": 0.0,
+                "credit": totalAmount.toDouble(), // Ensure it's a double
+                // No cash object needed for non-cash accounts
+              }
+            ];
+            
+            // Prepare journal params
+            final journalParams = {
+              'p_base_amount': totalAmount.toDouble(),
+              'p_company_id': companyId,
+              'p_created_by': userId,
+              'p_description': 'Cash sales - Invoice $invoiceNumber',
+              'p_entry_date': DateTime.now().toIso8601String(),
+              'p_lines': journalLines,
+              'p_store_id': storeId,
+              // DO NOT send these parameters for simple cash sales
+              // 'p_counterparty_id': not needed for cash sales
+              // 'p_if_cash_location_id': not needed for simple sales
+            };
+            
+            print('📘 Journal RPC Parameters: $journalParams');
+            
+            // Call journal RPC
+            final journalResponse = await supabase.rpc(
+              'insert_journal_with_everything',
+              params: journalParams,
+            );
+            
+            print('📗 Journal entry created successfully: $journalResponse');
+          } else {
+            print('⚠️ No cash location selected, skipping journal entry');
+          }
+        } catch (journalError) {
+          // Log journal error but don't fail the whole transaction
+          print('⚠️ Warning: Journal entry creation failed: $journalError');
+          // The invoice was created successfully, so we continue
+        }
+        
+        // Check for warnings
+        final warnings = response['warnings'] as List? ?? [];
+        String warningMessage = '';
+        if (warnings.isNotEmpty) {
+          warningMessage = 'Warnings:\n';
+          for (final warning in warnings) {
+            if (warning['type'] == 'negative_stock') {
+              warningMessage += '⚠️ ${warning['product']} stock will be ${warning['stock_after']}\n';
+            } else if (warning['type'] == 'price_below_minimum') {
+              warningMessage += '⚠️ ${warning['product']} price is below minimum\n';
+            }
+          }
+        }
+        
+        // Clear the cart
+        ref.read(cartProvider.notifier).clearCart();
+        
+        // Clear payment method selections for next invoice
+        ref.read(paymentMethodProvider.notifier).clearSelections();
+        
+        // Show Toss-style success bottom sheet
+        if (mounted) {
+          showModalBottomSheet(
+            context: context,
+            backgroundColor: Colors.transparent,
+            isDismissible: false,
+            isScrollControlled: true,
+            builder: (context) => Container(
+              margin: EdgeInsets.all(TossSpacing.space4),
+              decoration: BoxDecoration(
+                color: TossColors.white,
+                borderRadius: BorderRadius.circular(TossBorderRadius.xl),
+                boxShadow: [
+                  BoxShadow(
+                    color: TossColors.black.withOpacity(0.1),
+                    blurRadius: 20,
+                    offset: Offset(0, -5),
+                  ),
+                ],
+              ),
+              child: SafeArea(
+                child: Padding(
+                  padding: EdgeInsets.all(TossSpacing.space5),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Success icon with animation
+                      Container(
+                        width: 64,
+                        height: 64,
+                        decoration: BoxDecoration(
+                          color: TossColors.success.withOpacity(0.1),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Center(
+                          child: Icon(
+                            Icons.check_rounded,
+                            color: TossColors.success,
+                            size: 36,
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: TossSpacing.space4),
+                      
+                      // Success title
+                      Text(
+                        'Invoice Created',
+                        style: TossTextStyles.h3.copyWith(
+                          color: TossColors.gray900,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      SizedBox(height: TossSpacing.space2),
+                      
+                      // Invoice number
+                      Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: TossSpacing.space3,
+                          vertical: TossSpacing.space1,
+                        ),
+                        decoration: BoxDecoration(
+                          color: TossColors.gray100,
+                          borderRadius: BorderRadius.circular(TossBorderRadius.sm),
+                        ),
+                        child: Text(
+                          invoiceNumber,
+                          style: TossTextStyles.bodyLarge.copyWith(
+                            color: TossColors.gray700,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: TossSpacing.space4),
+                      
+                      // Total amount
+                      Container(
+                        width: double.infinity,
+                        padding: EdgeInsets.all(TossSpacing.space4),
+                        decoration: BoxDecoration(
+                          color: TossColors.gray50,
+                          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+                        ),
+                        child: Column(
+                          children: [
+                            Text(
+                              'Total Amount',
+                              style: TossTextStyles.caption.copyWith(
+                                color: TossColors.gray600,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            SizedBox(height: TossSpacing.space1),
+                            Text(
+                              _formatNumber(totalAmount.toInt()),
+                              style: TossTextStyles.h2.copyWith(
+                                color: TossColors.primary,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      
+                      // Warnings if any
+                      if (warningMessage.isNotEmpty) ...[
+                        SizedBox(height: TossSpacing.space3),
+                        Container(
+                          width: double.infinity,
+                          padding: EdgeInsets.all(TossSpacing.space3),
+                          decoration: BoxDecoration(
+                            color: TossColors.warning.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                            border: Border.all(
+                              color: TossColors.warning.withOpacity(0.3),
+                              width: 1,
+                            ),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Icon(
+                                    Icons.info_outline,
+                                    size: 16,
+                                    color: TossColors.warning,
+                                  ),
+                                  SizedBox(width: TossSpacing.space1),
+                                  Text(
+                                    'Notice',
+                                    style: TossTextStyles.caption.copyWith(
+                                      color: TossColors.warning,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              SizedBox(height: TossSpacing.space1),
+                              Text(
+                                warningMessage.trim(),
+                                style: TossTextStyles.caption.copyWith(
+                                  color: TossColors.gray700,
+                                  fontWeight: FontWeight.w500,
+                                  height: 1.4,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                      
+                      SizedBox(height: TossSpacing.space5),
+                      
+                      // OK button
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: () {
+                            Navigator.of(context).pop(); // Close bottom sheet
+                            // Force refresh of sales product data
+                            ref.invalidate(salesProductProvider);
+                            // Navigate back to Sales Product page (go back twice: from payment page and invoice selection)
+                            Navigator.of(context).pop(); // Close payment page
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: TossColors.primary,
+                            foregroundColor: TossColors.white,
+                            padding: EdgeInsets.symmetric(
+                              vertical: TossSpacing.space3,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                            ),
+                            elevation: 0,
+                          ),
+                          child: Text(
+                            'OK',
+                            style: TossTextStyles.bodyLarge.copyWith(
+                              color: TossColors.white,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          );
+        }
+      } else {
+        // Error
+        final errorMessage = response != null && response['message'] != null
+            ? response['message']
+            : 'Failed to create invoice';
+            
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(errorMessage),
+              backgroundColor: TossColors.error,
+              duration: Duration(seconds: 4),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      // Close loading dialog if still open
+      if (mounted) {
+        Navigator.of(context).pop();
+      }
+      
+      print('❌ Error creating invoice: $e');
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error creating invoice: ${e.toString()}'),
+            backgroundColor: TossColors.error,
+            duration: Duration(seconds: 4),
+          ),
+        );
+      }
+    }
   }
 
   

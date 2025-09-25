@@ -797,7 +797,7 @@ class _InventoryManagementPageV2State extends ConsumerState<InventoryManagementP
           context,
           '/inventoryManagement/product/${product.id}',
           extra: {
-            'product': product,
+            'product': product.toProduct(), // Convert to Product with proper product type
             'currency': currency,
           },
         );

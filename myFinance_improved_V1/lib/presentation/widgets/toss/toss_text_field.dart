@@ -26,6 +26,8 @@ class TossTextField extends StatelessWidget {
   final VoidCallback? onKeyboardNext;
   final VoidCallback? onKeyboardPrevious;
   final String keyboardDoneText;
+  final bool isImportant; // New field for important emphasis
+  final TextStyle? labelStyle; // New field for custom label style
 
   const TossTextField({
     super.key,
@@ -49,6 +51,8 @@ class TossTextField extends StatelessWidget {
     this.onKeyboardNext,
     this.onKeyboardPrevious,
     this.keyboardDoneText = 'Done',
+    this.isImportant = false,
+    this.labelStyle,
   });
 
   @override
@@ -59,8 +63,9 @@ class TossTextField extends StatelessWidget {
         if (label != null) ...[
           Text(
             label!,
-            style: TossTextStyles.label.copyWith(
+            style: labelStyle ?? TossTextStyles.label.copyWith(
               color: TossColors.gray700,
+              fontWeight: isImportant ? FontWeight.w700 : FontWeight.w500,
             ),
           ),
           const SizedBox(height: TossSpacing.space2),

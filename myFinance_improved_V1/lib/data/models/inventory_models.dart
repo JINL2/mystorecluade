@@ -1,3 +1,5 @@
+import '../../presentation/pages/inventory_management/models/product_model.dart' as product_models;
+
 // Inventory Metadata Model
 class InventoryMetadata {
   final InventoryStats stats;
@@ -371,6 +373,7 @@ class InventoryProduct {
   final String? categoryName;
   final String? brandId;
   final String? brandName;
+  final String? productType; // Added product type field
   final String? description;
   final String? imageUrl;
   final bool isActive;
@@ -395,6 +398,7 @@ class InventoryProduct {
     this.categoryName,
     this.brandId,
     this.brandName,
+    this.productType,
     this.description,
     this.imageUrl,
     this.isActive = true,
@@ -469,6 +473,7 @@ class InventoryProduct {
         categoryName: json['category_name'],
         brandId: json['brand_id'],
         brandName: json['brand_name'],
+        productType: json['product_type'], // Parse product_type from RPC
         description: json['description'],
         imageUrl: json['image_url'],
         isActive: json['is_active'] ?? true,
@@ -487,6 +492,103 @@ class InventoryProduct {
       print('📋 [INVENTORY_PRODUCT] Stack trace: $stackTrace');
       print('📋 [INVENTORY_PRODUCT] Input JSON: $json');
       rethrow;
+    }
+  }
+
+  // Convert InventoryProduct to Product with proper product type mapping
+  product_models.Product toProduct() {
+    return product_models.Product(
+      id: id,
+      sku: sku ?? '',
+      barcode: barcode,
+      name: name,
+      nameEn: null,
+      description: categoryName, // Pass category name through description
+      images: imageUrl != null ? [imageUrl!] : [],
+      category: _mapCategory(categoryName),
+      productType: _mapProductType(productType),
+      brand: brandName,
+      tags: [],
+      unit: unit ?? 'piece',
+      costPrice: cost ?? 0.0,
+      salePrice: price,
+      compareAtPrice: null,
+      minPrice: null,
+      taxRate: 0.10,
+      currency: 'KRW',
+      onHand: stock,
+      available: quantityAvailable ?? stock,
+      reserved: quantityReserved ?? 0,
+      reorderPoint: null,
+      reorderQuantity: null,
+      minStock: minStock,
+      maxStock: maxStock,
+      location: null,
+      warehouse: null,
+      weight: null,
+      averageDailySales: null,
+      daysOnHand: null,
+      turnoverRate: null,
+      lastSold: null,
+      lastReceived: null,
+      lastCounted: null,
+      countDiscrepancy: null,
+      createdAt: createdAt ?? DateTime.now(),
+      updatedAt: updatedAt ?? DateTime.now(),
+      isActive: isActive,
+      sellInStore: true,
+      sellOnline: false,
+      attributes: null,
+    );
+  }
+
+  // Map category name to ProductCategory enum
+  product_models.ProductCategory _mapCategory(String? categoryName) {
+    if (categoryName == null) return product_models.ProductCategory.other;
+    
+    switch (categoryName.toLowerCase()) {
+      case 'electronics':
+        return product_models.ProductCategory.electronics;
+      case 'clothing':
+        return product_models.ProductCategory.clothing;
+      case 'accessories':
+        return product_models.ProductCategory.accessories;
+      case 'bags':
+        return product_models.ProductCategory.bags;
+      case 'shoes':
+        return product_models.ProductCategory.shoes;
+      case 'jewelry':
+        return product_models.ProductCategory.jewelry;
+      case 'food':
+        return product_models.ProductCategory.food;
+      case 'beverages':
+        return product_models.ProductCategory.beverages;
+      case 'household':
+        return product_models.ProductCategory.household;
+      case 'beauty':
+        return product_models.ProductCategory.beauty;
+      case 'sports':
+        return product_models.ProductCategory.sports;
+      case 'books':
+        return product_models.ProductCategory.books;
+      default:
+        return product_models.ProductCategory.other;
+    }
+  }
+
+  // Map product type string from RPC to ProductType enum
+  product_models.ProductType _mapProductType(String? productTypeString) {
+    if (productTypeString == null) return product_models.ProductType.simple;
+    
+    switch (productTypeString.toLowerCase()) {
+      case 'commodity':
+        return product_models.ProductType.simple;
+      case 'bundle':
+        return product_models.ProductType.bundle;
+      case 'service':
+        return product_models.ProductType.digital;
+      default:
+        return product_models.ProductType.simple;
     }
   }
 
