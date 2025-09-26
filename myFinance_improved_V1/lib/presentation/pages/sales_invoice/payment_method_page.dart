@@ -147,26 +147,18 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Cash Location Selection
+              // Unified Discount and Total Section - Shown first
+              _buildUnifiedDiscountAndTotalSection(),
+              
+              SizedBox(height: TossSpacing.space4),
+              
+              // Cash Location Selection - Shown after discount/total
               _buildCashLocationSection(),
               
-              // Only show sections after cash location is selected
-              if (paymentState.selectedCashLocation != null) ...[
+              // Currency Converter Section - Always shown if exchange rate data is available
+              if (_exchangeRateData != null) ...[
                 SizedBox(height: TossSpacing.space4),
-                
-                // Discount Section - Now shown first after cash location
-                _buildEnhancedDiscountSection(),
-                
-                SizedBox(height: TossSpacing.space4),
-                
-                // Total Section with Discount Applied
-                _buildTotalWithDiscountSection(),
-                
-                // Currency Converter Section
-                if (_exchangeRateData != null) ...[
-                  SizedBox(height: TossSpacing.space4),
-                  _buildCurrencyConverterSection(),
-                ],
+                _buildCurrencyConverterSection(),
               ],
               
               // Add extra padding for better scrolling when keyboard is open
@@ -871,228 +863,8 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
     );
   }
 
-  Widget _buildEnhancedDiscountSection() {
-    // Calculate cart total from selected products
-    double cartTotal = 0;
-    for (final product in widget.selectedProducts) {
-      final quantity = widget.productQuantities[product.productId] ?? 0;
-      final price = product.pricing?.sellingPrice ?? 0;
-      cartTotal += price * quantity;
-    }
-    
-    return TossWhiteCard(
-      padding: EdgeInsets.all(TossSpacing.space4),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(
-                Icons.discount_outlined,
-                color: TossColors.primary,
-                size: TossSpacing.iconSM,
-              ),
-              SizedBox(width: TossSpacing.space2),
-              Text(
-                'Discount',
-                style: TossTextStyles.bodyLarge.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: TossColors.gray900,
-                ),
-              ),
-            ],
-          ),
-          
-          SizedBox(height: TossSpacing.space3),
-          
-          // Discount Type Toggle
-          Row(
-            children: [
-              Expanded(
-                child: InkWell(
-                  onTap: () {
-                    setState(() {
-                      _isPercentageDiscount = false;
-                      _discountController.clear();
-                    });
-                    ref.read(paymentMethodProvider.notifier).updateDiscountAmount(0);
-                  },
-                  child: Container(
-                    padding: EdgeInsets.symmetric(
-                      vertical: TossSpacing.space2,
-                    ),
-                    decoration: BoxDecoration(
-                      color: !_isPercentageDiscount 
-                        ? TossColors.primary 
-                        : TossColors.gray100,
-                      borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(TossBorderRadius.md),
-                        bottomLeft: Radius.circular(TossBorderRadius.md),
-                      ),
-                      border: Border.all(
-                        color: !_isPercentageDiscount
-                          ? TossColors.primary
-                          : TossColors.gray300,
-                        width: 1,
-                      ),
-                    ),
-                    child: Center(
-                      child: Text(
-                        'Amount',
-                        style: TossTextStyles.body.copyWith(
-                          color: !_isPercentageDiscount
-                            ? TossColors.white
-                            : TossColors.gray700,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              Expanded(
-                child: InkWell(
-                  onTap: () {
-                    setState(() {
-                      _isPercentageDiscount = true;
-                      _discountController.clear();
-                    });
-                    ref.read(paymentMethodProvider.notifier).updateDiscountAmount(0);
-                  },
-                  child: Container(
-                    padding: EdgeInsets.symmetric(
-                      vertical: TossSpacing.space2,
-                    ),
-                    decoration: BoxDecoration(
-                      color: _isPercentageDiscount 
-                        ? TossColors.primary 
-                        : TossColors.gray100,
-                      borderRadius: BorderRadius.only(
-                        topRight: Radius.circular(TossBorderRadius.md),
-                        bottomRight: Radius.circular(TossBorderRadius.md),
-                      ),
-                      border: Border.all(
-                        color: _isPercentageDiscount
-                          ? TossColors.primary
-                          : TossColors.gray300,
-                        width: 1,
-                      ),
-                    ),
-                    child: Center(
-                      child: Text(
-                        'Percentage (%)',
-                        style: TossTextStyles.body.copyWith(
-                          color: _isPercentageDiscount
-                            ? TossColors.white
-                            : TossColors.gray700,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          
-          SizedBox(height: TossSpacing.space3),
-          
-          // Discount Input
-          Container(
-            padding: EdgeInsets.all(TossSpacing.space3),
-            decoration: BoxDecoration(
-              color: TossColors.gray50,
-              borderRadius: BorderRadius.circular(TossBorderRadius.md),
-              border: Border.all(
-                color: TossColors.primary.withOpacity(0.2),
-                width: 1,
-              ),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  _isPercentageDiscount 
-                    ? 'Discount Percentage' 
-                    : 'Discount Amount',
-                  style: TossTextStyles.body.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: TossColors.gray900,
-                  ),
-                ),
-                SizedBox(height: TossSpacing.space2),
-                TextFormField(
-                  controller: _discountController,
-                  keyboardType: TextInputType.numberWithOptions(decimal: !_isPercentageDiscount),
-                  style: TossTextStyles.bodyLarge.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: TossColors.gray900,
-                  ),
-                  decoration: InputDecoration(
-                    suffixText: _isPercentageDiscount ? '%' : '',
-                    suffixStyle: TossTextStyles.bodyLarge.copyWith(
-                      color: TossColors.gray600,
-                      fontWeight: FontWeight.w600,
-                    ),
-                    hintText: _isPercentageDiscount 
-                      ? 'Enter percentage (0-100)' 
-                      : 'Enter discount amount',
-                    hintStyle: TossTextStyles.body.copyWith(
-                      color: TossColors.gray400,
-                    ),
-                    filled: true,
-                    fillColor: TossColors.white,
-                    contentPadding: EdgeInsets.symmetric(
-                      horizontal: TossSpacing.space3,
-                      vertical: TossSpacing.space3,
-                    ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                      borderSide: BorderSide(
-                        color: TossColors.gray300,
-                        width: 1,
-                      ),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                      borderSide: BorderSide(
-                        color: TossColors.primary,
-                        width: 1.5,
-                      ),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                      borderSide: BorderSide(
-                        color: TossColors.gray300,
-                        width: 1,
-                      ),
-                    ),
-                  ),
-                  onChanged: (value) {
-                    final inputValue = double.tryParse(value.replaceAll(',', '')) ?? 0;
-                    double discountAmount = 0;
-                    
-                    if (_isPercentageDiscount) {
-                      // Calculate discount amount from percentage
-                      final percentage = inputValue.clamp(0, 100);
-                      discountAmount = (cartTotal * percentage) / 100;
-                    } else {
-                      // Direct amount discount
-                      discountAmount = inputValue;
-                    }
-                    
-                    ref.read(paymentMethodProvider.notifier).updateDiscountAmount(discountAmount);
-                  },
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
-  Widget _buildTotalWithDiscountSection() {
+  Widget _buildUnifiedDiscountAndTotalSection() {
     // Calculate cart total from selected products
     double cartTotal = 0;
     for (final product in widget.selectedProducts) {
@@ -1110,122 +882,262 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
+          // Breakdown - styled like Image #2
+          Column(
             children: [
-              Icon(
-                Icons.calculate_outlined,
-                color: TossColors.primary,
-                size: TossSpacing.iconSM,
-              ),
-              SizedBox(width: TossSpacing.space2),
-              Text(
-                'Total',
-                style: TossTextStyles.bodyLarge.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: TossColors.gray900,
+              // Subtotal with item count
+              Container(
+                padding: EdgeInsets.symmetric(
+                  vertical: TossSpacing.space3,
+                  horizontal: 0,
                 ),
-              ),
-            ],
-          ),
-          
-          SizedBox(height: TossSpacing.space3),
-          
-          // Show breakdown
-          Container(
-            padding: EdgeInsets.all(TossSpacing.space3),
-            decoration: BoxDecoration(
-              color: TossColors.gray50,
-              borderRadius: BorderRadius.circular(TossBorderRadius.sm),
-            ),
-            child: Column(
-              children: [
-                Row(
+                child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      'Subtotal',
-                      style: TossTextStyles.body.copyWith(
-                        color: TossColors.gray700,
-                      ),
+                    Row(
+                      children: [
+                        Text(
+                          'Sub-total',
+                          style: TossTextStyles.bodyLarge.copyWith(
+                            color: TossColors.gray900,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        SizedBox(width: TossSpacing.space2),
+                        // Item count in circle
+                        Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: TossSpacing.space2,
+                            vertical: TossSpacing.space1,
+                          ),
+                          decoration: BoxDecoration(
+                            color: TossColors.gray400,
+                            shape: BoxShape.circle,
+                          ),
+                          child: Text(
+                            '${widget.selectedProducts.length}',
+                            style: TossTextStyles.caption.copyWith(
+                              color: TossColors.white,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                     Text(
                       _formatNumber(cartTotal.round()),
-                      style: TossTextStyles.body.copyWith(
+                      style: TossTextStyles.bodyLarge.copyWith(
                         fontWeight: FontWeight.w600,
                         color: TossColors.gray900,
                       ),
                     ),
                   ],
                 ),
-                if (discountAmount > 0) ...[
-                  SizedBox(height: TossSpacing.space2),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
+              ),
+              
+              // Discount line - cleaner Toss design
+              Container(
+                padding: EdgeInsets.symmetric(
+                  vertical: TossSpacing.space3,
+                  horizontal: 0,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Row(
                         children: [
                           Text(
                             'Discount',
-                            style: TossTextStyles.body.copyWith(
-                              color: TossColors.error,
+                            style: TossTextStyles.bodyLarge.copyWith(
+                              color: TossColors.gray900,
+                              fontWeight: FontWeight.w500,
                             ),
                           ),
-                          if (_isPercentageDiscount && _discountController.text.isNotEmpty) ...[
+                          SizedBox(width: TossSpacing.space3),
+                          // Simplified toggle buttons
+                          Container(
+                            height: 28,
+                            decoration: BoxDecoration(
+                              color: TossColors.gray100,
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                GestureDetector(
+                                  onTap: () {
+                                    setState(() {
+                                      _isPercentageDiscount = false;
+                                      _discountController.clear();
+                                    });
+                                    ref.read(paymentMethodProvider.notifier).updateDiscountAmount(0);
+                                  },
+                                  child: Container(
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                      vertical: 4,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: !_isPercentageDiscount 
+                                        ? TossColors.primary 
+                                        : Colors.transparent,
+                                      borderRadius: BorderRadius.circular(14),
+                                    ),
+                                    child: Text(
+                                      'Amount',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: !_isPercentageDiscount
+                                          ? TossColors.white
+                                          : TossColors.gray600,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                GestureDetector(
+                                  onTap: () {
+                                    setState(() {
+                                      _isPercentageDiscount = true;
+                                      _discountController.clear();
+                                    });
+                                    ref.read(paymentMethodProvider.notifier).updateDiscountAmount(0);
+                                  },
+                                  child: Container(
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                      vertical: 4,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: _isPercentageDiscount 
+                                        ? TossColors.primary 
+                                        : Colors.transparent,
+                                      borderRadius: BorderRadius.circular(14),
+                                    ),
+                                    child: Text(
+                                      '%',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: _isPercentageDiscount
+                                          ? TossColors.white
+                                          : TossColors.gray600,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          // Show calculated percentage inline
+                          if (discountAmount > 0 && cartTotal > 0) ...[
+                            SizedBox(width: TossSpacing.space2),
                             Text(
-                              ' (${_discountController.text}%)',
-                              style: TossTextStyles.caption.copyWith(
-                                color: TossColors.error,
+                              '(${((discountAmount / cartTotal) * 100).toStringAsFixed(2)}%)',
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: TossColors.gray500,
+                                fontWeight: FontWeight.w500,
                               ),
                             ),
                           ],
                         ],
                       ),
-                      Text(
-                        '- ${_formatNumber(discountAmount.round())}',
-                        style: TossTextStyles.body.copyWith(
+                    ),
+                    // Input field with underline
+                    SizedBox(
+                      width: 100,
+                      child: TextFormField(
+                        controller: _discountController,
+                        keyboardType: TextInputType.numberWithOptions(decimal: !_isPercentageDiscount),
+                        style: TextStyle(
+                          fontSize: 15,
                           fontWeight: FontWeight.w600,
-                          color: TossColors.error,
+                          color: TossColors.gray900,
                         ),
+                        textAlign: TextAlign.right,
+                        decoration: InputDecoration(
+                          hintText: '0',
+                          hintStyle: TextStyle(
+                            fontSize: 15,
+                            color: TossColors.gray400,
+                          ),
+                          // Add underline to show it's an input field
+                          enabledBorder: UnderlineInputBorder(
+                            borderSide: BorderSide(
+                              color: TossColors.gray300,
+                              width: 1.0,
+                            ),
+                          ),
+                          focusedBorder: UnderlineInputBorder(
+                            borderSide: BorderSide(
+                              color: TossColors.primary,
+                              width: 1.5,
+                            ),
+                          ),
+                          isDense: true,
+                          contentPadding: EdgeInsets.only(bottom: 4),
+                        ),
+                        onChanged: (value) {
+                          final inputValue = double.tryParse(value.replaceAll(',', '')) ?? 0;
+                          double discountAmount = 0;
+                          
+                          if (_isPercentageDiscount) {
+                            // Calculate discount amount from percentage
+                            final percentage = inputValue.clamp(0, 100);
+                            discountAmount = (cartTotal * percentage) / 100;
+                          } else {
+                            // Direct amount discount
+                            discountAmount = inputValue;
+                          }
+                          
+                          ref.read(paymentMethodProvider.notifier).updateDiscountAmount(discountAmount);
+                        },
                       ),
-                    ],
-                  ),
-                ],
-              ],
-            ),
-          ),
-          
-          SizedBox(height: TossSpacing.space3),
-          
-          // Final Total
-          Container(
-            padding: EdgeInsets.all(TossSpacing.space3),
-            decoration: BoxDecoration(
-              color: TossColors.primary.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(TossBorderRadius.md),
-              border: Border.all(
-                color: TossColors.primary.withOpacity(0.3),
-                width: 1,
+                    ),
+                  ],
+                ),
               ),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Total Amount',
-                  style: TossTextStyles.bodyLarge.copyWith(
-                    color: TossColors.gray900,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                Text(
-                  _formatNumber(finalTotal.round()),
-                  style: TossTextStyles.h3.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: TossColors.primary,
+              
+              // Divider line - only show when there's a discount
+              if (discountAmount > 0) ...[
+                Padding(
+                  padding: EdgeInsets.symmetric(vertical: TossSpacing.space1),
+                  child: Divider(
+                    color: TossColors.gray300,
+                    height: 1,
                   ),
                 ),
               ],
-            ),
+              
+              // Final Total
+              Container(
+                padding: EdgeInsets.symmetric(
+                  vertical: TossSpacing.space3,
+                  horizontal: 0,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Total',
+                      style: TossTextStyles.h3.copyWith(
+                        color: TossColors.gray900,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    Text(
+                      _formatNumber(finalTotal.round()),
+                      style: TossTextStyles.h2.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: TossColors.primary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -1552,17 +1464,6 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
         return Container(
           width: double.infinity,
           padding: EdgeInsets.all(TossSpacing.space4),
-          decoration: BoxDecoration(
-            color: TossColors.white,
-            boxShadow: [
-              BoxShadow(
-                color: TossColors.gray300.withOpacity(0.3),
-                offset: Offset(0, -2),
-                blurRadius: 8,
-                spreadRadius: 0,
-              ),
-            ],
-          ),
           child: ElevatedButton(
             onPressed: canProceed ? () => _proceedToInvoice() : null,
             style: ElevatedButton.styleFrom(
