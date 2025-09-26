@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:image_picker/image_picker.dart';
-import 'dart:io';
 import '../../../../core/themes/index.dart';
 import '../../../../core/utils/number_formatter.dart';
 import '../../../widgets/toss/toss_bottom_sheet.dart';
@@ -13,14 +11,18 @@ import '../../../widgets/toss/toss_primary_button.dart';
 import '../../../widgets/toss/toss_selection_bottom_sheet.dart';
 import '../../../helpers/navigation_helper.dart';
 import '../models/product_model.dart';
-import '../widgets/barcode_scanner_sheet.dart';
 import 'package:myfinance_improved/core/themes/toss_border_radius.dart';
+import '../providers/inventory_providers.dart';
+import '../../../../data/models/inventory_models.dart' as inv_models;
+import '../../../providers/app_state_provider.dart';
 class EditProductPage extends ConsumerStatefulWidget {
   final Product product;
+  final inv_models.Currency? currency;
   
   const EditProductPage({
     Key? key,
     required this.product,
+    this.currency,
   }) : super(key: key);
 
   @override
@@ -34,29 +36,20 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
   late TextEditingController _skuController;
   late TextEditingController _barcodeController;
   late TextEditingController _nameController;
-  late TextEditingController _nameEnController;
   late TextEditingController _costPriceController;
   late TextEditingController _salePriceController;
-  late TextEditingController _minPriceController;
   late TextEditingController _onHandController;
   late TextEditingController _minStockController;
   late TextEditingController _maxStockController;
-  late TextEditingController _reorderPointController;
-  late TextEditingController _reorderQuantityController;
-  late TextEditingController _weightController;
-  late TextEditingController _locationController;
-  late TextEditingController _descriptionController;
   
   // Selected values
   late ProductCategory? _selectedCategory;
+  late String? _selectedCategoryName;
   late String? _selectedBrand;
   late String? _selectedUnit;
   late ProductType _selectedType;
-  late List<String> _existingImages;
-  late List<File> _newImages;
-  late List<String> _imagesToDelete;
+  late String? _selectedTypeName;
   late bool _isActive;
-  late bool _sellInStore;
   
   // State tracking
   bool _isLoading = false;
@@ -76,15 +69,11 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
     _skuController = TextEditingController(text: product.sku);
     _barcodeController = TextEditingController(text: product.barcode ?? '');
     _nameController = TextEditingController(text: product.name);
-    _nameEnController = TextEditingController(text: product.nameEn ?? '');
     _costPriceController = TextEditingController(
       text: product.costPrice.toStringAsFixed(0),
     );
     _salePriceController = TextEditingController(
       text: product.salePrice.toStringAsFixed(0),
-    );
-    _minPriceController = TextEditingController(
-      text: product.minPrice?.toStringAsFixed(0) ?? '',
     );
     _onHandController = TextEditingController(text: product.onHand.toString());
     _minStockController = TextEditingController(
@@ -93,29 +82,24 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
     _maxStockController = TextEditingController(
       text: (product.maxStock ?? 100).toString(),
     );
-    _reorderPointController = TextEditingController(
-      text: (product.reorderPoint ?? 10).toString(),
-    );
-    _reorderQuantityController = TextEditingController(
-      text: (product.reorderQuantity ?? 20).toString(),
-    );
-    _weightController = TextEditingController(
-      text: product.weight?.toString() ?? '',
-    );
-    _locationController = TextEditingController(text: product.location ?? '');
-    _descriptionController = TextEditingController(
-      text: product.description ?? '',
-    );
     
     _selectedCategory = product.category;
+    // Use description field for category name from RPC
+    _selectedCategoryName = product.description;
     _selectedBrand = product.brand;
     _selectedUnit = product.unit;
     _selectedType = product.productType;
-    _existingImages = List.from(product.images);
-    _newImages = [];
-    _imagesToDelete = [];
+    // Initialize product type name based on enum value
+    if (product.productType == ProductType.simple) {
+      _selectedTypeName = 'commodity';
+    } else if (product.productType == ProductType.bundle) {
+      _selectedTypeName = 'bundle';
+    } else if (product.productType == ProductType.digital) {
+      _selectedTypeName = 'service';
+    } else {
+      _selectedTypeName = 'commodity'; // default
+    }
     _isActive = product.isActive;
-    _sellInStore = product.sellInStore;
     
     // Add listeners to track changes
     _addChangeListeners();
@@ -126,24 +110,18 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
       'sku': _skuController.text,
       'barcode': _barcodeController.text,
       'name': _nameController.text,
-      'nameEn': _nameEnController.text,
       'costPrice': _costPriceController.text,
       'salePrice': _salePriceController.text,
-      'minPrice': _minPriceController.text,
       'onHand': _onHandController.text,
       'minStock': _minStockController.text,
       'maxStock': _maxStockController.text,
-      'reorderPoint': _reorderPointController.text,
-      'reorderQuantity': _reorderQuantityController.text,
-      'weight': _weightController.text,
-      'location': _locationController.text,
-      'description': _descriptionController.text,
       'category': _selectedCategory,
+      'categoryName': _selectedCategoryName,
       'brand': _selectedBrand,
       'unit': _selectedUnit,
       'type': _selectedType,
+      'typeName': _selectedTypeName,
       'isActive': _isActive,
-      'sellInStore': _sellInStore,
     };
   }
 
@@ -151,18 +129,11 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
     _skuController.addListener(_checkForChanges);
     _barcodeController.addListener(_checkForChanges);
     _nameController.addListener(_checkForChanges);
-    _nameEnController.addListener(_checkForChanges);
     _costPriceController.addListener(_checkForChanges);
     _salePriceController.addListener(_checkForChanges);
-    _minPriceController.addListener(_checkForChanges);
     _onHandController.addListener(_checkForChanges);
     _minStockController.addListener(_checkForChanges);
     _maxStockController.addListener(_checkForChanges);
-    _reorderPointController.addListener(_checkForChanges);
-    _reorderQuantityController.addListener(_checkForChanges);
-    _weightController.addListener(_checkForChanges);
-    _locationController.addListener(_checkForChanges);
-    _descriptionController.addListener(_checkForChanges);
   }
 
   void _checkForChanges() {
@@ -170,26 +141,18 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
         _skuController.text != _originalValues['sku'] ||
         _barcodeController.text != _originalValues['barcode'] ||
         _nameController.text != _originalValues['name'] ||
-        _nameEnController.text != _originalValues['nameEn'] ||
         _costPriceController.text != _originalValues['costPrice'] ||
         _salePriceController.text != _originalValues['salePrice'] ||
-        _minPriceController.text != _originalValues['minPrice'] ||
         _onHandController.text != _originalValues['onHand'] ||
         _minStockController.text != _originalValues['minStock'] ||
         _maxStockController.text != _originalValues['maxStock'] ||
-        _reorderPointController.text != _originalValues['reorderPoint'] ||
-        _reorderQuantityController.text != _originalValues['reorderQuantity'] ||
-        _weightController.text != _originalValues['weight'] ||
-        _locationController.text != _originalValues['location'] ||
-        _descriptionController.text != _originalValues['description'] ||
         _selectedCategory != _originalValues['category'] ||
+        _selectedCategoryName != _originalValues['categoryName'] ||
         _selectedBrand != _originalValues['brand'] ||
         _selectedUnit != _originalValues['unit'] ||
         _selectedType != _originalValues['type'] ||
-        _isActive != _originalValues['isActive'] ||
-        _sellInStore != _originalValues['sellInStore'] ||
-        _newImages.isNotEmpty ||
-        _imagesToDelete.isNotEmpty;
+        _selectedTypeName != _originalValues['typeName'] ||
+        _isActive != _originalValues['isActive'];
     
     setState(() => _hasChanges = hasFieldChanges);
   }
@@ -200,66 +163,15 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
     _skuController.dispose();
     _barcodeController.dispose();
     _nameController.dispose();
-    _nameEnController.dispose();
     _costPriceController.dispose();
     _salePriceController.dispose();
-    _minPriceController.dispose();
     _onHandController.dispose();
     _minStockController.dispose();
     _maxStockController.dispose();
-    _reorderPointController.dispose();
-    _reorderQuantityController.dispose();
-    _weightController.dispose();
-    _locationController.dispose();
-    _descriptionController.dispose();
     super.dispose();
   }
 
-  Future<void> _scanBarcode() async {
-    final result = await TossBottomSheet.show<String>(
-      context: context,
-      content: const BarcodeScannerSheet(),
-    );
-    
-    if (result != null) {
-      setState(() {
-        _barcodeController.text = result;
-        _checkForChanges();
-      });
-    }
-  }
 
-  Future<void> _pickImage(ImageSource source) async {
-    final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(
-      source: source,
-      maxWidth: 1080,
-      maxHeight: 1080,
-      imageQuality: 85,
-    );
-    
-    if (pickedFile != null) {
-      setState(() {
-        _newImages.add(File(pickedFile.path));
-        _checkForChanges();
-      });
-    }
-  }
-
-  void _removeExistingImage(String imageUrl) {
-    setState(() {
-      _existingImages.remove(imageUrl);
-      _imagesToDelete.add(imageUrl);
-      _checkForChanges();
-    });
-  }
-
-  void _removeNewImage(int index) {
-    setState(() {
-      _newImages.removeAt(index);
-      _checkForChanges();
-    });
-  }
 
   Future<void> _saveChanges() async {
     if (!_formKey.currentState!.validate()) {
@@ -285,64 +197,280 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
     setState(() => _isLoading = true);
 
     try {
-      // Create updated product object  
-      Product(
-        id: widget.product.id,
+      // Get company and store ID from app state
+      final appState = ref.read(appStateProvider);
+      final service = ref.read(inventoryServiceProvider);
+      
+      String? companyId = appState.companyChoosen as String?;
+      String? storeId = appState.storeChoosen as String?;
+      
+      if (companyId == null || storeId == null) {
+        throw Exception('Company or store not selected');
+      }
+      
+      // Get category and brand IDs from metadata
+      String? categoryId;
+      String? brandId;
+      
+      final metadataAsync = ref.read(inventoryMetadataProvider);
+      metadataAsync.whenData((metadata) {
+        if (metadata != null) {
+          // Find category ID by name
+          if (_selectedCategoryName != null) {
+            final category = metadata.categories.firstWhere(
+              (c) => c.name == _selectedCategoryName,
+              orElse: () => metadata.categories.firstWhere(
+                (c) => c.name.toLowerCase() == 'other',
+                orElse: () => metadata.categories.first,
+              ),
+            );
+            categoryId = category.id;
+          }
+          
+          // Find brand ID by name
+          if (_selectedBrand != null) {
+            final brand = metadata.brands.firstWhere(
+              (b) => b.name == _selectedBrand,
+              orElse: () => metadata.brands.first,
+            );
+            brandId = brand.id;
+          }
+        }
+      });
+      
+      // Call the edit product RPC
+      final result = await service.editProduct(
+        productId: widget.product.id,
+        companyId: companyId,
+        storeId: storeId,
         sku: _skuController.text,
+        productName: _nameController.text,
         barcode: _barcodeController.text.isEmpty ? null : _barcodeController.text,
-        name: _nameController.text,
-        nameEn: _nameEnController.text.isEmpty ? null : _nameEnController.text,
-        category: _selectedCategory!,
-        brand: _selectedBrand,
-        productType: _selectedType,
+        categoryId: categoryId,
+        brandId: brandId,
         unit: _selectedUnit ?? 'piece',
-        costPrice: double.parse(_costPriceController.text.replaceAll(',', '')),
-        salePrice: double.parse(_salePriceController.text.replaceAll(',', '')),
-        minPrice: _minPriceController.text.isEmpty 
-            ? null 
-            : double.parse(_minPriceController.text.replaceAll(',', '')),
-        onHand: int.parse(_onHandController.text),
-        minStock: int.tryParse(_minStockController.text) ?? 0,
-        maxStock: int.tryParse(_maxStockController.text) ?? 100,
-        reorderPoint: int.tryParse(_reorderPointController.text),
-        reorderQuantity: int.tryParse(_reorderQuantityController.text),
-        weight: _weightController.text.isEmpty 
-            ? null 
-            : double.parse(_weightController.text),
-        location: _locationController.text.isEmpty 
-            ? null 
-            : _locationController.text,
-        description: _descriptionController.text.isEmpty 
-            ? null 
-            : _descriptionController.text,
-        images: _existingImages,
+        productType: _selectedTypeName ?? 'commodity',
+        costPrice: double.tryParse(_costPriceController.text.replaceAll(',', '')),
+        salePrice: double.tryParse(_salePriceController.text.replaceAll(',', '')),
+        onHand: int.tryParse(_onHandController.text),
+        minStock: int.tryParse(_minStockController.text),
+        maxStock: int.tryParse(_maxStockController.text),
         isActive: _isActive,
-        sellInStore: _sellInStore,
+        description: null, // description is not used for editing
       );
 
-      // TODO: Update in database via provider
-      await Future.delayed(const Duration(seconds: 1)); // Simulate API call
-
-      if (mounted) {
+      if (result != null) {
+        // Check if the response indicates success
+        if (result['success'] == true) {
+          // Prepare the updated product before showing dialog
+          final updatedProduct = Product(
+            id: widget.product.id,
+            sku: _skuController.text,
+            barcode: _barcodeController.text.isEmpty ? null : _barcodeController.text,
+            name: _nameController.text,
+            nameEn: null, // English name not supported in RPC
+            category: _selectedCategory!,
+            brand: _selectedBrand,
+            productType: _selectedType,
+            unit: _selectedUnit ?? 'piece',
+            costPrice: double.parse(_costPriceController.text.replaceAll(',', '')),
+            salePrice: double.parse(_salePriceController.text.replaceAll(',', '')),
+            minPrice: null, // Min price not supported in RPC
+            onHand: int.parse(_onHandController.text),
+            minStock: int.tryParse(_minStockController.text) ?? 0,
+            maxStock: int.tryParse(_maxStockController.text) ?? 100,
+            reorderPoint: null, // Not supported in RPC
+            reorderQuantity: null, // Not supported in RPC
+            weight: null, // Weight not supported in RPC
+            location: null, // Location not supported in RPC
+            description: _selectedCategoryName, // Pass category name via description
+            images: widget.product.images, // Keep original images
+            isActive: _isActive,
+            sellInStore: widget.product.sellInStore, // Keep original value
+          );
+          
+          // Show success popup
+          await showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (context) => Dialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(TossBorderRadius.dialog),
+              ),
+              child: Container(
+                padding: EdgeInsets.all(TossSpacing.space6),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Success Icon with Animation
+                    TweenAnimationBuilder<double>(
+                      tween: Tween(begin: 0, end: 1),
+                      duration: Duration(milliseconds: 600),
+                      builder: (context, value, child) {
+                        return Transform.scale(
+                          scale: value,
+                          child: Container(
+                            width: TossSpacing.space20,
+                            height: TossSpacing.space20,
+                            decoration: BoxDecoration(
+                              color: TossColors.success.withValues(alpha: 0.1),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              Icons.check_circle,
+                              color: TossColors.success,
+                              size: TossSpacing.space12,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                    
+                    SizedBox(height: TossSpacing.space4),
+                    
+                    Text(
+                      'Product Updated!',
+                      style: TossTextStyles.h4.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    
+                    SizedBox(height: TossSpacing.space2),
+                    
+                    Text(
+                      _nameController.text,
+                      style: TossTextStyles.body.copyWith(
+                        color: TossColors.gray700,
+                      ),
+                      textAlign: TextAlign.center,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    
+                    SizedBox(height: TossSpacing.space6),
+                    
+                    // Done Button
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          Navigator.pop(context); // Close dialog
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: TossColors.primary,
+                          padding: EdgeInsets.symmetric(vertical: TossSpacing.space3),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(TossBorderRadius.button),
+                          ),
+                          elevation: 0,
+                        ),
+                        child: Text(
+                          'Done',
+                          style: TossTextStyles.body.copyWith(
+                            color: TossColors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+          
+          // Refresh inventory list
+          ref.invalidate(inventoryPageProvider);
+          
+          // Navigate back with updated product
+          if (mounted) {
+            Navigator.pop(context, updatedProduct);
+          }
+        } else {
+          // Handle error response from RPC
+          final error = result['error'] as Map<String, dynamic>?;
+          String errorMessage = 'Error updating product';
+          
+          if (error != null) {
+            final errorCode = error['code'] as String?;
+            final errorMsg = error['message'] as String?;
+            
+            // Handle specific error codes with user-friendly messages
+            switch (errorCode) {
+              case 'PRODUCT_NAME_DUPLICATE':
+                errorMessage = 'This product name already exists. Please choose a different name.';
+                break;
+                
+              case 'SKU_DUPLICATE':
+                errorMessage = 'This Product Code (SKU) is already in use. Please enter a unique Product Code.';
+                break;
+                
+              case 'PRODUCT_NOT_FOUND':
+                errorMessage = 'Product not found. It may have been deleted by another user.';
+                // Navigate back since product doesn't exist
+                if (mounted) {
+                  Navigator.pop(context);
+                }
+                break;
+                
+              case 'INVALID_REFERENCE':
+                errorMessage = 'Invalid category or brand selected. Please select valid options.';
+                break;
+                
+              case 'VALIDATION_ERROR':
+                // Check if it's specifically about product_type
+                if (errorMsg != null && errorMsg.contains('product_type')) {
+                  errorMessage = 'Invalid product type. Please select Commodity, Service, or Bundle.';
+                } else {
+                  errorMessage = 'Invalid data provided. Please check your input and try again.';
+                }
+                break;
+                
+              case 'UPDATE_ERROR':
+                errorMessage = errorMsg ?? 'An error occurred while updating the product. Please try again.';
+                break;
+                
+              case 'EXCEPTION':
+              case 'NO_RESPONSE':
+                errorMessage = 'Connection error. Please check your internet connection and try again.';
+                break;
+                
+              default:
+                errorMessage = errorMsg ?? 'An unexpected error occurred. Please try again.';
+                break;
+            }
+          }
+          
+          // Show error message
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                  Icon(Icons.error_outline, color: TossColors.white),
+                  SizedBox(width: TossSpacing.space2),
+                  Expanded(child: Text(errorMessage)),
+                ],
+              ),
+              backgroundColor: TossColors.error,
+              duration: Duration(seconds: 4),
+            ),
+          );
+        }
+      } else {
+        // This should not happen since service always returns a response
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Row(
-              children: [
-                Icon(Icons.check_circle, color: TossColors.white),
-                SizedBox(width: TossSpacing.space2),
-                Text('Product updated successfully'),
-              ],
-            ),
-            backgroundColor: TossColors.success,
+            content: Text('Unexpected error. Please try again.'),
+            backgroundColor: TossColors.error,
           ),
         );
-        
-        NavigationHelper.safeGoBack(context);
       }
     } catch (e) {
+      // Handle unexpected exceptions (this should be rare now)
+      print('Unexpected error in _saveChanges: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Error updating product: $e'),
+          content: Text('An unexpected error occurred. Please try again.'),
           backgroundColor: TossColors.error,
         ),
       );
@@ -425,11 +553,6 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
               children: [
                 SizedBox(height: TossSpacing.space3),
                 
-                // Product Images Section
-                _buildImageSection(),
-                
-                SizedBox(height: TossSpacing.space2),
-                
                 // Basic Info Section
                 _buildBasicInfoSection(),
                 
@@ -475,10 +598,11 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
             top: false,
             child: TossPrimaryButton(
               text: _isLoading ? 'Saving...' : 'Save Changes',
-              onPressed: _isLoading || !_hasChanges ? null : _saveChanges,
+              onPressed: _hasChanges ? _saveChanges : null,
               isLoading: _isLoading,
+              isEnabled: _hasChanges && !_isLoading,
               fullWidth: true,
-              leadingIcon: _hasChanges ? Icon(
+              leadingIcon: _hasChanges && !_isLoading ? Icon(
                 Icons.check_circle_outline,
                 color: TossColors.white,
                 size: TossSpacing.iconSM,
@@ -490,51 +614,6 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
     );
   }
 
-  Widget _buildImageSection() {
-    return Container(
-      margin: EdgeInsets.all(TossSpacing.space4),
-      child: Column(
-        children: [
-          TossSectionHeader(
-            title: 'Product Images',
-            icon: Icons.photo_library_outlined,
-          ),
-          
-          SizedBox(height: TossSpacing.space2),
-          
-          TossWhiteCard(
-            padding: EdgeInsets.all(TossSpacing.space4),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                SizedBox(
-                  height: 100,
-                  child: ListView(
-                    scrollDirection: Axis.horizontal,
-                    children: [
-                      // Existing images
-                      ..._existingImages.map((imageUrl) {
-                        return _buildImageCard(imageUrl, isExisting: true);
-                      }).toList(),
-                      
-                      // New images
-                      ..._newImages.map((image) {
-                        final index = _newImages.indexOf(image);
-                        return _buildNewImageCard(image, index);
-                      }).toList(),
-                      
-                      // Add photo button
-                      _buildAddPhotoButton(),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
   
   Widget _buildBasicInfoSection() {
     return Container(
@@ -553,12 +632,19 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // SKU (Read-only)
+                // Product Code (formerly SKU)
                 TossTextField(
-                  label: 'SKU',
-                  hintText: 'Auto-generated product SKU',
+                  label: 'Product Code *',
+                  hintText: 'Enter product code',
                   controller: _skuController,
-                  enabled: false,
+                  isImportant: true, // Bold emphasis
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Product code is required';
+                    }
+                    return null;
+                  },
+                  onChanged: (_) => _checkForChanges(),
                 ),
               
               SizedBox(height: TossSpacing.space4),
@@ -566,14 +652,10 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
               // Barcode
               TossTextField(
                 label: 'Barcode',
-                hintText: 'Scan or enter barcode',
+                hintText: 'Enter barcode',
                 controller: _barcodeController,
                 keyboardType: TextInputType.number,
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                suffixIcon: IconButton(
-                  icon: Icon(Icons.qr_code_scanner, color: TossColors.primary, size: TossSpacing.iconSM),
-                  onPressed: _scanBarcode,
-                ),
                 onChanged: (_) => _checkForChanges(),
               ),
               
@@ -584,22 +666,13 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
                 label: 'Product Name *',
                 hintText: 'Enter product name',
                 controller: _nameController,
+                isImportant: true, // Bold emphasis
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Product name is required';
                   }
                   return null;
                 },
-                onChanged: (_) => _checkForChanges(),
-              ),
-              
-              SizedBox(height: TossSpacing.space4),
-              
-              // Product Name (English)
-              TossTextField(
-                label: 'Product Name (English)',
-                hintText: 'Enter English name (optional)',
-                controller: _nameEnController,
                 onChanged: (_) => _checkForChanges(),
               ),
               
@@ -636,9 +709,9 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
                               ),
                               SizedBox(height: 2),
                               Text(
-                                _selectedCategory?.displayName ?? 'Select category',
+                                _selectedCategoryName ?? _selectedCategory?.displayName ?? 'Select category',
                                 style: TossTextStyles.body.copyWith(
-                                  color: _selectedCategory != null
+                                  color: _selectedCategoryName != null || _selectedCategory != null
                                       ? TossColors.gray900
                                       : TossColors.gray400,
                                   fontWeight: FontWeight.w500,
@@ -713,6 +786,60 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
                     ),
                   ),
                 ),
+                
+                SizedBox(height: TossSpacing.space4),
+                
+                // Unit Selector  
+                GestureDetector(
+                  onTap: () => _selectUnit(),
+                  child: Container(
+                    width: double.infinity,
+                    padding: EdgeInsets.all(TossSpacing.space4),
+                    decoration: BoxDecoration(
+                      color: TossColors.gray50,
+                      borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+                      border: Border.all(color: TossColors.gray200),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.straighten,
+                          color: TossColors.gray600,
+                          size: TossSpacing.iconSM,
+                        ),
+                        SizedBox(width: TossSpacing.space3),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Unit',
+                                style: TossTextStyles.caption.copyWith(
+                                  color: TossColors.gray600,
+                                ),
+                              ),
+                              SizedBox(height: 2),
+                              Text(
+                                _selectedUnit ?? 'piece',
+                                style: TossTextStyles.body.copyWith(
+                                  color: _selectedUnit != null
+                                      ? TossColors.gray900
+                                      : TossColors.gray400,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Icon(
+                          Icons.keyboard_arrow_down,
+                          color: TossColors.gray500,
+                          size: TossSpacing.iconSM,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
@@ -770,6 +897,7 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
                   label: 'Cost Price *',
                   hintText: '₩ Enter cost price',
                   controller: _costPriceController,
+                  isImportant: true, // Bold emphasis
                   keyboardType: TextInputType.number,
                   inputFormatters: [
                     FilteringTextInputFormatter.digitsOnly,
@@ -791,6 +919,7 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
                   label: 'Sale Price *',
                   hintText: '₩ Enter sale price',
                   controller: _salePriceController,
+                  isImportant: true, // Bold emphasis
                   keyboardType: TextInputType.number,
                   inputFormatters: [
                     FilteringTextInputFormatter.digitsOnly,
@@ -807,21 +936,6 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
                     }
                     return null;
                   },
-                  onChanged: (_) => _checkForChanges(),
-                ),
-                
-                SizedBox(height: TossSpacing.space4),
-              
-                // Minimum Price
-                TossTextField(
-                  label: 'Minimum Price',
-                  hintText: '₩ Minimum selling price (optional)',
-                  controller: _minPriceController,
-                  keyboardType: TextInputType.number,
-                  inputFormatters: [
-                    FilteringTextInputFormatter.digitsOnly,
-                    _CommaNumberInputFormatter(),
-                  ],
                   onChanged: (_) => _checkForChanges(),
                 ),
               ],
@@ -860,6 +974,7 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
                 label: 'Current Stock * (${_selectedUnit ?? 'units'})',
                 hintText: 'Enter current stock quantity',
                 controller: _onHandController,
+                isImportant: true, // Bold emphasis
                 keyboardType: TextInputType.number,
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                 validator: (value) {
@@ -899,45 +1014,6 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
                   ),
                 ],
               ),
-              
-              SizedBox(height: TossSpacing.space4),
-              
-              // Reorder Point/Quantity Row
-              Row(
-                children: [
-                  Expanded(
-                    child: TossTextField(
-                      label: 'Reorder Point',
-                      hintText: 'Alert threshold',
-                      controller: _reorderPointController,
-                      keyboardType: TextInputType.number,
-                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                      onChanged: (_) => _checkForChanges(),
-                    ),
-                  ),
-                  SizedBox(width: TossSpacing.space3),
-                  Expanded(
-                    child: TossTextField(
-                      label: 'Reorder Qty',
-                      hintText: 'Order amount',
-                      controller: _reorderQuantityController,
-                      keyboardType: TextInputType.number,
-                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                      onChanged: (_) => _checkForChanges(),
-                    ),
-                  ),
-                ],
-              ),
-              
-              SizedBox(height: TossSpacing.space4),
-              
-                // Location
-                TossTextField(
-                  label: 'Warehouse Location',
-                  hintText: 'e.g., A-1-3',
-                  controller: _locationController,
-                  onChanged: (_) => _checkForChanges(),
-                ),
               ],
             ),
           ),
@@ -963,70 +1039,219 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Weight
-                TossTextField(
-                  label: 'Weight',
-                  hintText: 'Product weight in grams (optional)',
-                  controller: _weightController,
-                  keyboardType: TextInputType.number,
-                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                  onChanged: (_) => _checkForChanges(),
-                ),
-                
-                SizedBox(height: TossSpacing.space4),
-                
-                // Description
-                TossTextField(
-                  label: 'Description',
-                  hintText: 'Product description (optional)',
-                  controller: _descriptionController,
-                  maxLines: 4,
-                  onChanged: (_) => _checkForChanges(),
-                ),
-                
-                SizedBox(height: TossSpacing.space4),
-              
                 // Product Type Chips
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Product Type',
-                      style: TossTextStyles.body.copyWith(
-                        fontWeight: FontWeight.w600,
-                        color: TossColors.gray900,
-                      ),
-                    ),
-                    SizedBox(height: TossSpacing.space2),
-                    Wrap(
-                      spacing: TossSpacing.space2,
-                      children: ProductType.values.map((type) {
-                        return ChoiceChip(
-                          label: Text(type.displayName),
-                          selected: _selectedType == type,
-                          onSelected: (selected) {
-                            if (selected) {
-                              setState(() {
-                                _selectedType = type;
-                                _checkForChanges();
-                              });
-                            }
-                          },
-                          selectedColor: TossColors.primary.withValues(alpha: 0.1),
-                          backgroundColor: TossColors.gray50,
-                          side: BorderSide(
-                            color: _selectedType == type ? TossColors.primary : TossColors.gray200,
-                          ),
-                          labelStyle: TossTextStyles.body.copyWith(
-                            color: _selectedType == type
-                                ? TossColors.primary
-                                : TossColors.gray700,
-                            fontWeight: FontWeight.w500,
-                          ),
+                Consumer(
+                  builder: (context, ref, child) {
+                    final metadataAsync = ref.watch(inventoryMetadataProvider);
+                    
+                    return metadataAsync.when(
+                      data: (metadata) {
+                        final productTypes = metadata?.productTypes ?? [];
+                        
+                        // Always use fixed product types from database constraints
+                        // Ignore metadata product types since database has CHECK constraint
+                        
+                        // Use fixed product types from database constraints
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Product Type',
+                              style: TossTextStyles.body.copyWith(
+                                fontWeight: FontWeight.w600,
+                                color: TossColors.gray900,
+                              ),
+                            ),
+                            SizedBox(height: TossSpacing.space2),
+                            Wrap(
+                              spacing: TossSpacing.space2,
+                              children: [
+                                ChoiceChip(
+                                  label: Text('Commodity'),
+                                  selected: _selectedTypeName == 'commodity' || (_selectedTypeName == null && _selectedType == ProductType.simple),
+                                  onSelected: (selected) {
+                                    if (selected) {
+                                      setState(() {
+                                        _selectedTypeName = 'commodity';
+                                        _selectedType = ProductType.simple;
+                                        _checkForChanges();
+                                      });
+                                    }
+                                  },
+                                  selectedColor: TossColors.primary.withValues(alpha: 0.1),
+                                  backgroundColor: TossColors.gray50,
+                                  side: BorderSide(
+                                    color: (_selectedTypeName == 'commodity' || (_selectedTypeName == null && _selectedType == ProductType.simple)) ? TossColors.primary : TossColors.gray200,
+                                  ),
+                                  labelStyle: TossTextStyles.body.copyWith(
+                                    color: (_selectedTypeName == 'commodity' || (_selectedTypeName == null && _selectedType == ProductType.simple))
+                                        ? TossColors.primary
+                                        : TossColors.gray700,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                ChoiceChip(
+                                  label: Text('Service'),
+                                  selected: _selectedTypeName == 'service',
+                                  onSelected: (selected) {
+                                    if (selected) {
+                                      setState(() {
+                                        _selectedTypeName = 'service';
+                                        _selectedType = ProductType.digital;
+                                        _checkForChanges();
+                                      });
+                                    }
+                                  },
+                                  selectedColor: TossColors.primary.withValues(alpha: 0.1),
+                                  backgroundColor: TossColors.gray50,
+                                  side: BorderSide(
+                                    color: _selectedTypeName == 'service' ? TossColors.primary : TossColors.gray200,
+                                  ),
+                                  labelStyle: TossTextStyles.body.copyWith(
+                                    color: _selectedTypeName == 'service'
+                                        ? TossColors.primary
+                                        : TossColors.gray700,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                ChoiceChip(
+                                  label: Text('Bundle'),
+                                  selected: _selectedTypeName == 'bundle' || _selectedType == ProductType.bundle,
+                                  onSelected: (selected) {
+                                    if (selected) {
+                                      setState(() {
+                                        _selectedTypeName = 'bundle';
+                                        _selectedType = ProductType.bundle;
+                                        _checkForChanges();
+                                      });
+                                    }
+                                  },
+                                  selectedColor: TossColors.primary.withValues(alpha: 0.1),
+                                  backgroundColor: TossColors.gray50,
+                                  side: BorderSide(
+                                    color: (_selectedTypeName == 'bundle' || _selectedType == ProductType.bundle) ? TossColors.primary : TossColors.gray200,
+                                  ),
+                                  labelStyle: TossTextStyles.body.copyWith(
+                                    color: (_selectedTypeName == 'bundle' || _selectedType == ProductType.bundle)
+                                        ? TossColors.primary
+                                        : TossColors.gray700,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
                         );
-                      }).toList(),
-                    ),
-                  ],
+                      },
+                      loading: () => Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Product Type',
+                            style: TossTextStyles.body.copyWith(
+                              fontWeight: FontWeight.w600,
+                              color: TossColors.gray900,
+                            ),
+                          ),
+                          SizedBox(height: TossSpacing.space2),
+                          CircularProgressIndicator(),
+                        ],
+                      ),
+                      error: (error, stack) {
+                        // Use fixed product types from database constraints
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Product Type',
+                              style: TossTextStyles.body.copyWith(
+                                fontWeight: FontWeight.w600,
+                                color: TossColors.gray900,
+                              ),
+                            ),
+                            SizedBox(height: TossSpacing.space2),
+                            Wrap(
+                              spacing: TossSpacing.space2,
+                              children: [
+                                ChoiceChip(
+                                  label: Text('Commodity'),
+                                  selected: _selectedTypeName == 'commodity' || (_selectedTypeName == null && _selectedType == ProductType.simple),
+                                  onSelected: (selected) {
+                                    if (selected) {
+                                      setState(() {
+                                        _selectedTypeName = 'commodity';
+                                        _selectedType = ProductType.simple;
+                                        _checkForChanges();
+                                      });
+                                    }
+                                  },
+                                  selectedColor: TossColors.primary.withValues(alpha: 0.1),
+                                  backgroundColor: TossColors.gray50,
+                                  side: BorderSide(
+                                    color: (_selectedTypeName == 'commodity' || (_selectedTypeName == null && _selectedType == ProductType.simple)) ? TossColors.primary : TossColors.gray200,
+                                  ),
+                                  labelStyle: TossTextStyles.body.copyWith(
+                                    color: (_selectedTypeName == 'commodity' || (_selectedTypeName == null && _selectedType == ProductType.simple))
+                                        ? TossColors.primary
+                                        : TossColors.gray700,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                ChoiceChip(
+                                  label: Text('Service'),
+                                  selected: _selectedTypeName == 'service',
+                                  onSelected: (selected) {
+                                    if (selected) {
+                                      setState(() {
+                                        _selectedTypeName = 'service';
+                                        _selectedType = ProductType.digital;
+                                        _checkForChanges();
+                                      });
+                                    }
+                                  },
+                                  selectedColor: TossColors.primary.withValues(alpha: 0.1),
+                                  backgroundColor: TossColors.gray50,
+                                  side: BorderSide(
+                                    color: _selectedTypeName == 'service' ? TossColors.primary : TossColors.gray200,
+                                  ),
+                                  labelStyle: TossTextStyles.body.copyWith(
+                                    color: _selectedTypeName == 'service'
+                                        ? TossColors.primary
+                                        : TossColors.gray700,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                ChoiceChip(
+                                  label: Text('Bundle'),
+                                  selected: _selectedTypeName == 'bundle' || _selectedType == ProductType.bundle,
+                                  onSelected: (selected) {
+                                    if (selected) {
+                                      setState(() {
+                                        _selectedTypeName = 'bundle';
+                                        _selectedType = ProductType.bundle;
+                                        _checkForChanges();
+                                      });
+                                    }
+                                  },
+                                  selectedColor: TossColors.primary.withValues(alpha: 0.1),
+                                  backgroundColor: TossColors.gray50,
+                                  side: BorderSide(
+                                    color: (_selectedTypeName == 'bundle' || _selectedType == ProductType.bundle) ? TossColors.primary : TossColors.gray200,
+                                  ),
+                                  labelStyle: TossTextStyles.body.copyWith(
+                                    color: (_selectedTypeName == 'bundle' || _selectedType == ProductType.bundle)
+                                        ? TossColors.primary
+                                        : TossColors.gray700,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        );
+                      },
+                    );
+                  },
                 ),
               
               SizedBox(height: TossSpacing.space4),
@@ -1062,31 +1287,6 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
                         onChanged: (value) {
                           setState(() {
                             _isActive = value;
-                            _checkForChanges();
-                          });
-                        },
-                        activeColor: TossColors.primary,
-                      ),
-                      Divider(height: 1, color: TossColors.gray200),
-                      SwitchListTile(
-                        contentPadding: EdgeInsets.zero,
-                        title: Text(
-                          'Sell In-Store',
-                          style: TossTextStyles.body.copyWith(
-                            fontWeight: FontWeight.w600,
-                            color: TossColors.gray900,
-                          ),
-                        ),
-                        subtitle: Text(
-                          'Available for POS transactions',
-                          style: TossTextStyles.caption.copyWith(
-                            color: TossColors.gray600,
-                          ),
-                        ),
-                        value: _sellInStore,
-                        onChanged: (value) {
-                          setState(() {
-                            _sellInStore = value;
                             _checkForChanges();
                           });
                         },
@@ -1137,7 +1337,7 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
 
   Widget _buildStockStatusCard() {
     final current = int.tryParse(_onHandController.text) ?? 0;
-    final reorderPoint = int.tryParse(_reorderPointController.text) ?? 10;
+    final minStock = int.tryParse(_minStockController.text) ?? 0;
     
     Color statusColor;
     String statusText;
@@ -1147,9 +1347,9 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
       statusColor = TossColors.error;
       statusText = 'Out of Stock';
       statusIcon = Icons.error_outline;
-    } else if (current <= reorderPoint) {
+    } else if (current <= minStock) {
       statusColor = TossColors.warning;
-      statusText = 'Low Stock - Reorder Needed';
+      statusText = 'Low Stock';
       statusIcon = Icons.warning_amber;
     } else {
       statusColor = TossColors.success;
@@ -1217,258 +1417,285 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
     return ((sale - cost) / cost) * 100;
   }
 
-  Widget _buildImageCard(String imageUrl, {required bool isExisting}) {
-    return Stack(
-      children: [
-        Container(
-          width: 100,
-          height: 100,
-          margin: EdgeInsets.only(right: TossSpacing.space2),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(TossBorderRadius.md),
-            image: DecorationImage(
-              image: NetworkImage(imageUrl),
-              fit: BoxFit.cover,
-            ),
-          ),
-        ),
-        Positioned(
-          top: 4,
-          right: TossSpacing.space2 + 4,
-          child: GestureDetector(
-            onTap: () => _removeExistingImage(imageUrl),
-            child: Container(
-              padding: EdgeInsets.all(TossSpacing.space1),
-              decoration: BoxDecoration(
-                color: TossColors.black.withValues(alpha: 0.7),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                TossIcons.close,
-                size: TossSpacing.iconXS,
-                color: TossColors.white,
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-  
-  Widget _buildNewImageCard(File image, int index) {
-    return Stack(
-      children: [
-        Container(
-          width: 100,
-          height: 100,
-          margin: EdgeInsets.only(right: TossSpacing.space2),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(TossBorderRadius.md),
-            border: Border.all(
-              color: TossColors.success,
-              width: 2,
-            ),
-            image: DecorationImage(
-              image: FileImage(image),
-              fit: BoxFit.cover,
-            ),
-          ),
-        ),
-        Positioned(
-          top: 4,
-          left: 4,
-          child: Container(
-            padding: EdgeInsets.all(TossSpacing.space1),
-            decoration: BoxDecoration(
-              color: TossColors.success,
-              shape: BoxShape.circle,
-            ),
-            child: Icon(
-              TossIcons.add,
-              size: TossSpacing.iconXS,
-              color: TossColors.white,
-            ),
-          ),
-        ),
-        Positioned(
-          top: 4,
-          right: TossSpacing.space2 + 4,
-          child: GestureDetector(
-            onTap: () => _removeNewImage(index),
-            child: Container(
-              padding: EdgeInsets.all(TossSpacing.space1),
-              decoration: BoxDecoration(
-                color: TossColors.black.withValues(alpha: 0.7),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                TossIcons.close,
-                size: TossSpacing.iconXS,
-                color: TossColors.white,
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-  
-  Widget _buildAddPhotoButton() {
-    return GestureDetector(
-      onTap: () => _showImagePicker(),
-      child: Container(
-        width: 100,
-        height: 100,
-        decoration: BoxDecoration(
-          color: TossColors.gray50,
-          borderRadius: BorderRadius.circular(TossBorderRadius.md),
-          border: Border.all(
-            color: TossColors.gray300,
-            width: 2,
-            style: BorderStyle.solid,
-          ),
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.add_a_photo,
-              color: TossColors.gray400,
-              size: TossSpacing.iconSM,
-            ),
-            SizedBox(height: TossSpacing.space1),
-            Text(
-              'Add Photo',
-              style: TossTextStyles.caption.copyWith(
-                color: TossColors.gray400,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
   
   void _selectCategory() {
-    final categoryItems = ProductCategory.values.map((category) => 
-      TossSelectionItem(
-        id: category.name,
-        title: category.displayName,
-      ),
-    ).toList();
+    // Get metadata from provider
+    final metadataAsync = ref.read(inventoryMetadataProvider);
     
-    TossSelectionBottomSheet.show(
-      context: context,
-      title: 'Select Category',
-      items: categoryItems,
-      selectedId: _selectedCategory?.name,
-      onItemSelected: (item) {
-        final category = ProductCategory.values.firstWhere(
-          (c) => c.name == item.id,
+    metadataAsync.when(
+      data: (metadata) {
+        if (metadata == null) {
+          // Fallback to enum values if no metadata
+          final categoryItems = ProductCategory.values.map((category) => 
+            TossSelectionItem(
+              id: category.name,
+              title: category.displayName,
+            ),
+          ).toList();
+          
+          TossSelectionBottomSheet.show(
+            context: context,
+            title: 'Select Category',
+            items: categoryItems,
+            selectedId: _selectedCategory?.name,
+            onItemSelected: (item) {
+              final category = ProductCategory.values.firstWhere(
+                (c) => c.name == item.id,
+              );
+              setState(() {
+                _selectedCategory = category;
+                _selectedCategoryName = category.displayName;
+                _checkForChanges();
+              });
+            },
+          );
+        } else {
+          // Use categories from RPC metadata
+          final categoryItems = metadata.categories.map((category) => 
+            TossSelectionItem(
+              id: category.id,
+              title: category.name,
+            ),
+          ).toList();
+          
+          // Add "Other" option if not in list
+          if (!categoryItems.any((item) => item.title.toLowerCase() == 'other')) {
+            categoryItems.add(TossSelectionItem(
+              id: 'other',
+              title: 'Other',
+            ));
+          }
+          
+          TossSelectionBottomSheet.show(
+            context: context,
+            title: 'Select Category',
+            items: categoryItems,
+            selectedId: _selectedCategoryName,
+            onItemSelected: (item) {
+              setState(() {
+                _selectedCategoryName = item.title;
+                // Map to enum value or default to other
+                _selectedCategory = ProductCategory.values.firstWhere(
+                  (c) => c.displayName.toLowerCase() == item.title.toLowerCase(),
+                  orElse: () => ProductCategory.other,
+                );
+                _checkForChanges();
+              });
+            },
+          );
+        }
+      },
+      loading: () {
+        // Show loading while fetching metadata
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Loading categories...')),
         );
-        setState(() {
-          _selectedCategory = category;
-          _checkForChanges();
-        });
+      },
+      error: (error, stack) {
+        // Fallback to enum values on error
+        final categoryItems = ProductCategory.values.map((category) => 
+          TossSelectionItem(
+            id: category.name,
+            title: category.displayName,
+          ),
+        ).toList();
+        
+        TossSelectionBottomSheet.show(
+          context: context,
+          title: 'Select Category',
+          items: categoryItems,
+          selectedId: _selectedCategory?.name,
+          onItemSelected: (item) {
+            final category = ProductCategory.values.firstWhere(
+              (c) => c.name == item.id,
+            );
+            setState(() {
+              _selectedCategory = category;
+              _selectedCategoryName = category.displayName;
+              _checkForChanges();
+            });
+          },
+        );
       },
     );
   }
   
   void _selectBrand() {
-    final brands = [
-      'GOYARD', 'PRADA', 'LOUIS VUITTON', 'CHANEL', 'HERMES',
-      'GUCCI', 'DIOR', 'FENDI', 'BALENCIAGA', 'CELINE'
-    ];
+    // Get metadata from provider
+    final metadataAsync = ref.read(inventoryMetadataProvider);
     
-    final brandItems = brands.map((brand) => 
-      TossSelectionItem(
-        id: brand,
-        title: brand,
-      ),
-    ).toList();
-    
-    TossSelectionBottomSheet.show(
-      context: context,
-      title: 'Select Brand',
-      items: brandItems,
-      selectedId: _selectedBrand,
-      onItemSelected: (item) {
-        setState(() {
-          _selectedBrand = item.id;
-          _checkForChanges();
-        });
+    metadataAsync.when(
+      data: (metadata) {
+        if (metadata == null || metadata.brands.isEmpty) {
+          // Fallback to hardcoded brands if no metadata
+          final brands = [
+            'GOYARD', 'PRADA', 'LOUIS VUITTON', 'CHANEL', 'HERMES',
+            'GUCCI', 'DIOR', 'FENDI', 'BALENCIAGA', 'CELINE'
+          ];
+          
+          final brandItems = brands.map((brand) => 
+            TossSelectionItem(
+              id: brand,
+              title: brand,
+            ),
+          ).toList();
+          
+          TossSelectionBottomSheet.show(
+            context: context,
+            title: 'Select Brand',
+            items: brandItems,
+            selectedId: _selectedBrand,
+            onItemSelected: (item) {
+              setState(() {
+                _selectedBrand = item.title;
+                _checkForChanges();
+              });
+            },
+          );
+        } else {
+          // Use brands from RPC metadata
+          final brandItems = metadata.brands.map((brand) => 
+            TossSelectionItem(
+              id: brand.id,
+              title: brand.name,
+            ),
+          ).toList();
+          
+          TossSelectionBottomSheet.show(
+            context: context,
+            title: 'Select Brand',
+            items: brandItems,
+            selectedId: _selectedBrand,
+            onItemSelected: (item) {
+              setState(() {
+                _selectedBrand = item.title;
+                _checkForChanges();
+              });
+            },
+          );
+        }
+      },
+      loading: () {
+        // Show loading while fetching metadata
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Loading brands...')),
+        );
+      },
+      error: (error, stack) {
+        // Fallback to hardcoded brands on error
+        final brands = [
+          'GOYARD', 'PRADA', 'LOUIS VUITTON', 'CHANEL', 'HERMES',
+          'GUCCI', 'DIOR', 'FENDI', 'BALENCIAGA', 'CELINE'
+        ];
+        
+        final brandItems = brands.map((brand) => 
+          TossSelectionItem(
+            id: brand,
+            title: brand,
+          ),
+        ).toList();
+        
+        TossSelectionBottomSheet.show(
+          context: context,
+          title: 'Select Brand',
+          items: brandItems,
+          selectedId: _selectedBrand,
+          onItemSelected: (item) {
+            setState(() {
+              _selectedBrand = item.title;
+              _checkForChanges();
+            });
+          },
+        );
       },
     );
   }
 
-  void _showImagePicker() {
-    TossBottomSheet.show(
-      context: context,
-      content: Container(
-        decoration: BoxDecoration(
-          color: TossColors.white,
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(TossBorderRadius.xl),
-            topRight: Radius.circular(TossBorderRadius.xl),
+  void _selectUnit() {
+    // Get metadata from provider
+    final metadataAsync = ref.read(inventoryMetadataProvider);
+    
+    metadataAsync.when(
+      data: (metadata) {
+        if (metadata == null || metadata.units.isEmpty) {
+          // Fallback to default units if no metadata
+          final units = ['piece', 'box', 'kg', 'g', 'l', 'ml', 'set', 'pack'];
+          
+          final unitItems = units.map((unit) => 
+            TossSelectionItem(
+              id: unit,
+              title: unit,
+            ),
+          ).toList();
+          
+          TossSelectionBottomSheet.show(
+            context: context,
+            title: 'Select Unit',
+            items: unitItems,
+            selectedId: _selectedUnit,
+            onItemSelected: (item) {
+              setState(() {
+                _selectedUnit = item.title;
+                _checkForChanges();
+              });
+            },
+          );
+        } else {
+          // Use units from RPC metadata
+          final unitItems = metadata.units.map((unit) => 
+            TossSelectionItem(
+              id: unit,
+              title: unit,
+            ),
+          ).toList();
+          
+          TossSelectionBottomSheet.show(
+            context: context,
+            title: 'Select Unit',
+            items: unitItems,
+            selectedId: _selectedUnit,
+            onItemSelected: (item) {
+              setState(() {
+                _selectedUnit = item.title;
+                _checkForChanges();
+              });
+            },
+          );
+        }
+      },
+      loading: () {
+        // Show loading while fetching metadata
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Loading units...')),
+        );
+      },
+      error: (error, stack) {
+        // Fallback to default units on error
+        final units = ['piece', 'box', 'kg', 'g', 'l', 'ml', 'set', 'pack'];
+        
+        final unitItems = units.map((unit) => 
+          TossSelectionItem(
+            id: unit,
+            title: unit,
           ),
-        ),
-        child: SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Handle
-              Container(
-                width: 48,
-                height: 4,
-                margin: EdgeInsets.only(top: TossSpacing.space3),
-                decoration: BoxDecoration(
-                  color: TossColors.gray300,
-                  borderRadius: BorderRadius.circular(TossBorderRadius.xs),
-                ),
-              ),
-              
-              SizedBox(height: TossSpacing.space4),
-              
-              // Title
-              Text(
-                'Add Product Image',
-                style: TossTextStyles.h3.copyWith(
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              
-              SizedBox(height: TossSpacing.space4),
-              
-              // Options
-              ListTile(
-                leading: Icon(Icons.camera_alt, color: TossColors.primary),
-                title: Text('Take Photo', style: TossTextStyles.body),
-                onTap: () {
-                  Navigator.pop(context);
-                  _pickImage(ImageSource.camera);
-                },
-              ),
-              ListTile(
-                leading: Icon(Icons.photo_library, color: TossColors.primary),
-                title: Text('Choose from Gallery', style: TossTextStyles.body),
-                onTap: () {
-                  Navigator.pop(context);
-                  _pickImage(ImageSource.gallery);
-                },
-              ),
-              ListTile(
-                leading: Icon(Icons.cancel, color: TossColors.gray500),
-                title: Text('Cancel', style: TossTextStyles.body),
-                onTap: () => Navigator.pop(context),
-              ),
-              
-              SizedBox(height: TossSpacing.space2),
-            ],
-          ),
-        ),
-      ),
+        ).toList();
+        
+        TossSelectionBottomSheet.show(
+          context: context,
+          title: 'Select Unit',
+          items: unitItems,
+          selectedId: _selectedUnit,
+          onItemSelected: (item) {
+            setState(() {
+              _selectedUnit = item.title;
+              _checkForChanges();
+            });
+          },
+        );
+      },
     );
   }
+
 
 
 }

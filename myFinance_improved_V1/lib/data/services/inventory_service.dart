@@ -129,30 +129,72 @@ class InventoryService {
     required int page,
     int limit = 10,
     String? search,
+    String? sortBy,
+    String? sortDirection,
+    String? categoryId,
+    String? brandId,
+    String? stockStatus,
   }) async {
     try {
       print('🔍 [INVENTORY_SERVICE] Starting getInventoryPage');
-      print('📋 [INVENTORY_SERVICE] Params: companyId=$companyId, storeId=$storeId, page=$page, limit=$limit, search=$search');
+      print('📋 [INVENTORY_SERVICE] Params: companyId=$companyId, storeId=$storeId, page=$page, limit=$limit');
+      print('📋 [INVENTORY_SERVICE] Filters: search=$search, categoryId=$categoryId, brandId=$brandId, stockStatus=$stockStatus');
+      print('📋 [INVENTORY_SERVICE] Sorting: sortBy=$sortBy, sortDirection=$sortDirection');
       
       // Check Supabase client auth
       final user = _client.auth.currentUser;
       print('🔐 [INVENTORY_SERVICE] Auth user: ${user?.id}');
       
-      // According to the error, the function signature is:
-      // get_inventory_page(p_company_id, p_limit, p_page, p_search, p_store_id)
-      final params = {
-        'p_company_id': companyId,
-        'p_store_id': storeId,
-        'p_page': page,
-        'p_limit': limit,
-        'p_search': search ?? '', // Required parameter, use empty string if null
-      };
-      print('📤 [INVENTORY_SERVICE] RPC params: $params');
-
-      final response = await _client.rpc(
-        'get_inventory_page',
-        params: params,
-      ).single();
+      // Try with sorting parameters first, fall back to without if not supported
+      Map<String, dynamic> params;
+      dynamic response;
+      
+      // Check if sorting is requested
+      bool includeSorting = sortBy != null || sortDirection != null;
+      
+      if (includeSorting) {
+        // Try with sorting parameters
+        params = {
+          'p_company_id': companyId,
+          'p_store_id': storeId,
+          'p_page': page,
+          'p_limit': limit,
+          'p_search': search ?? '', // Required parameter, use empty string if null
+          'p_sort_by': sortBy ?? 'name', // Default to name sorting
+          'p_sort_direction': sortDirection ?? 'asc', // Default to ascending
+        };
+        print('📤 [INVENTORY_SERVICE] Trying RPC with sorting params: $params');
+        
+        try {
+          response = await _client.rpc(
+            'get_inventory_page',
+            params: params,
+          ).single();
+          print('✅ [INVENTORY_SERVICE] RPC with sorting succeeded');
+        } catch (e) {
+          print('⚠️ [INVENTORY_SERVICE] RPC with sorting failed: $e');
+          print('🔄 [INVENTORY_SERVICE] Falling back to without sorting parameters');
+          includeSorting = false;
+        }
+      }
+      
+      // If sorting not included or failed, use basic parameters
+      if (!includeSorting || response == null) {
+        params = {
+          'p_company_id': companyId,
+          'p_store_id': storeId,
+          'p_page': page,
+          'p_limit': limit,
+          'p_search': search ?? '', // Required parameter, use empty string if null
+        };
+        print('📤 [INVENTORY_SERVICE] RPC params without sorting: $params');
+        
+        response = await _client.rpc(
+          'get_inventory_page',
+          params: params,
+        ).single();
+        print('✅ [INVENTORY_SERVICE] RPC without sorting succeeded');
+      }
 
       print('📥 [INVENTORY_SERVICE] Raw response received');
       print('📥 [INVENTORY_SERVICE] Raw response: $response');
@@ -368,6 +410,153 @@ class InventoryService {
       print('❌ [INVENTORY_SERVICE] Error creating product: $e');
       print('📋 [INVENTORY_SERVICE] Stack trace: $stackTrace');
       return null;
+    }
+  }
+
+  // Edit existing product
+  Future<Map<String, dynamic>?> editProduct({
+    required String productId,
+    required String companyId,
+    required String storeId,
+    required String sku,
+    required String productName,
+    String? barcode,
+    String? categoryId,
+    String? brandId,
+    String? unit,
+    String? productType,
+    double? costPrice,
+    double? salePrice,
+    int? onHand,
+    int? minStock,
+    int? maxStock,
+    bool? isActive,
+    String? description,
+  }) async {
+    try {
+      print('🔍 [INVENTORY_SERVICE] Starting editProduct');
+      print('📋 [INVENTORY_SERVICE] Params: productId=$productId, companyId=$companyId, storeId=$storeId');
+      
+      // Check Supabase client auth
+      final user = _client.auth.currentUser;
+      print('🔐 [INVENTORY_SERVICE] Auth user: ${user?.id}');
+      
+      final params = {
+        'p_product_id': productId,
+        'p_company_id': companyId,
+        'p_store_id': storeId,
+        'p_sku': sku,
+        'p_product_name': productName,
+        'p_category_id': categoryId,
+        'p_brand_id': brandId,
+        'p_unit': unit ?? 'piece',
+        'p_product_type': productType ?? 'commodity',
+        'p_cost_price': costPrice,
+        'p_selling_price': salePrice, // Changed from p_sale_price
+        'p_new_quantity': onHand, // Changed from p_on_hand
+        // Removed parameters not in the RPC function signature:
+        // p_barcode, p_min_stock, p_max_stock, p_is_active, p_description
+      };
+      print('📤 [INVENTORY_SERVICE] RPC params: $params');
+      
+      final response = await _client.rpc(
+        'inventory_edit_product',
+        params: params,
+      ).single();
+
+      print('📥 [INVENTORY_SERVICE] Raw response: $response');
+      print('📊 [INVENTORY_SERVICE] Response type: ${response.runtimeType}');
+      
+      if (response != null) {
+        print('✅ [INVENTORY_SERVICE] Response is not null');
+        print('🔍 [INVENTORY_SERVICE] Response keys: ${response.keys.toList()}');
+        
+        // Always return the full response structure for proper error handling
+        return response;
+      } else {
+        print('❌ [INVENTORY_SERVICE] Response is null');
+        // Return error response for null case
+        return {
+          'success': false,
+          'error': {
+            'code': 'NO_RESPONSE',
+            'message': 'No response from server'
+          }
+        };
+      }
+      return null;
+    } catch (e, stackTrace) {
+      print('❌ [INVENTORY_SERVICE] Error editing product: $e');
+      print('📋 [INVENTORY_SERVICE] Stack trace: $stackTrace');
+      
+      // Return error response for exceptions
+      return {
+        'success': false,
+        'error': {
+          'code': 'EXCEPTION',
+          'message': 'Connection error: ${e.toString()}'
+        }
+      };
+    }
+  }
+
+  // Delete products
+  Future<Map<String, dynamic>?> deleteProducts({
+    required List<String> productIds,
+    required String companyId,
+  }) async {
+    try {
+      print('🔍 [INVENTORY_SERVICE] Starting deleteProducts');
+      print('📋 [INVENTORY_SERVICE] Params: productIds=$productIds, companyId=$companyId');
+      
+      // Check Supabase client auth
+      final user = _client.auth.currentUser;
+      print('🔐 [INVENTORY_SERVICE] Auth user: ${user?.id}');
+      
+      final params = {
+        'p_product_ids': productIds,
+        'p_company_id': companyId,
+      };
+      print('📤 [INVENTORY_SERVICE] RPC params: $params');
+      
+      final response = await _client.rpc(
+        'inventory_delete_product',
+        params: params,
+      );
+
+      print('📥 [INVENTORY_SERVICE] Raw response: $response');
+      print('📊 [INVENTORY_SERVICE] Response type: ${response.runtimeType}');
+      
+      if (response != null) {
+        print('✅ [INVENTORY_SERVICE] Response is not null');
+        
+        // Check if response has a success wrapper or is direct data
+        if (response is Map && response.containsKey('success')) {
+          // Response is wrapped with success/data structure
+          print('📦 [INVENTORY_SERVICE] Response has success wrapper');
+          if (response['success'] == true) {
+            print('✅ [INVENTORY_SERVICE] Products deleted successfully');
+            return Map<String, dynamic>.from(response);
+          } else {
+            print('❌ [INVENTORY_SERVICE] Products deletion failed');
+            if (response.containsKey('error')) {
+              print('❌ [INVENTORY_SERVICE] Error in response: ${response['error']}');
+            }
+            return null;
+          }
+        } else {
+          // Response is direct data or just a success boolean
+          print('📦 [INVENTORY_SERVICE] Response is direct data');
+          return {'success': true};
+        }
+      } else {
+        print('❌ [INVENTORY_SERVICE] Response is null');
+      }
+      return null;
+    } catch (e, stackTrace) {
+      print('❌ [INVENTORY_SERVICE] Error deleting products: $e');
+      print('📋 [INVENTORY_SERVICE] Stack trace: $stackTrace');
+      rethrow; // Rethrow to handle in UI
     }
   }
 

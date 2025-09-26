@@ -39,8 +39,8 @@ class _InventoryManagementPageV2State extends ConsumerState<InventoryManagementP
   String? _selectedBrand;
   
   // Sorting
-  String _sortBy = 'name';
-  String _sortDirection = 'asc';
+  String? _sortBy;
+  String? _sortDirection;
 
   @override
   void initState() {
@@ -690,7 +690,7 @@ class _InventoryManagementPageV2State extends ConsumerState<InventoryManagementP
                         Icon(
                           Icons.sort_rounded,
                           size: 22,
-                          color: (_sortBy != 'name' || _sortDirection != 'asc') ? TossColors.primary : TossColors.gray600,
+                          color: (_sortBy != null && _sortDirection != null) ? TossColors.primary : TossColors.gray600,
                         ),
                         SizedBox(width: TossSpacing.space2),
                         Expanded(
@@ -703,7 +703,7 @@ class _InventoryManagementPageV2State extends ConsumerState<InventoryManagementP
                           ),
                         ),
                         // Show sort direction indicator
-                        if (_sortBy != 'name' || _sortDirection != 'asc')
+                        if (_sortBy != null && _sortDirection != null)
                           Icon(
                             _sortDirection == 'asc'
                               ? Icons.arrow_upward_rounded 
@@ -797,7 +797,7 @@ class _InventoryManagementPageV2State extends ConsumerState<InventoryManagementP
           context,
           '/inventoryManagement/product/${product.id}',
           extra: {
-            'product': product,
+            'product': product.toProduct(), // Convert to Product with proper product type
             'currency': currency,
           },
         );
@@ -820,6 +820,11 @@ class _InventoryManagementPageV2State extends ConsumerState<InventoryManagementP
   }
 
   String _getSortLabel() {
+    // If no sorting is set, show default label
+    if (_sortBy == null) {
+      return 'Name (A-Z)';
+    }
+    
     String label = '';
     switch (_sortBy) {
       case 'name':
@@ -840,8 +845,11 @@ class _InventoryManagementPageV2State extends ConsumerState<InventoryManagementP
     
     if (_sortDirection == 'asc') {
       label += _sortBy == 'name' ? ' (A-Z)' : ' (Low to High)';
-    } else {
+    } else if (_sortDirection == 'desc') {
       label += _sortBy == 'name' ? ' (Z-A)' : ' (High to Low)';
+    } else {
+      // Default if sortDirection is null
+      label += ' (A-Z)';
     }
     
     return label;
@@ -872,7 +880,68 @@ class _InventoryManagementPageV2State extends ConsumerState<InventoryManagementP
   Widget _buildFilterSheet(InventoryMetadata? metadata) {
     return StatefulBuilder(
       builder: (context, setModalState) {
-        return Container(
+        // Use a proper state container for the modal
+        return _FilterSheetContent(
+          metadata: metadata,
+          initialCategory: _selectedCategory,
+          initialBrand: _selectedBrand,
+          initialStockStatus: _selectedStockStatus,
+          onApplyFilters: (category, brand, stockStatus) {
+            setState(() {
+              _selectedCategory = category;
+              _selectedBrand = brand;
+              _selectedStockStatus = stockStatus;
+            });
+            
+            // Apply all filters at once to avoid multiple refreshes
+            ref.read(inventoryPageProvider.notifier).setFilters(
+              categoryId: category,
+              brandId: brand,
+              stockStatus: stockStatus,
+            );
+          },
+        );
+      },
+    );
+  }
+}
+
+// Create a proper stateful widget for the filter sheet
+class _FilterSheetContent extends StatefulWidget {
+  final InventoryMetadata? metadata;
+  final String? initialCategory;
+  final String? initialBrand;
+  final String? initialStockStatus;
+  final Function(String?, String?, String?) onApplyFilters;
+  
+  const _FilterSheetContent({
+    this.metadata,
+    this.initialCategory,
+    this.initialBrand,
+    this.initialStockStatus,
+    required this.onApplyFilters,
+  });
+  
+  @override
+  State<_FilterSheetContent> createState() => _FilterSheetContentState();
+}
+
+class _FilterSheetContentState extends State<_FilterSheetContent> {
+  late String? tempSelectedCategory;
+  late String? tempSelectedBrand;
+  late String? tempSelectedStockStatus;
+  
+  @override
+  void initState() {
+    super.initState();
+    tempSelectedCategory = widget.initialCategory;
+    tempSelectedBrand = widget.initialBrand;
+    tempSelectedStockStatus = widget.initialStockStatus;
+  }
+  
+  @override
+  Widget build(BuildContext context) {
+    return Container(
       constraints: BoxConstraints(
         maxHeight: MediaQuery.of(context).size.height * 0.8,
       ),
@@ -911,12 +980,13 @@ class _InventoryManagementPageV2State extends ConsumerState<InventoryManagementP
                 Spacer(),
                 TextButton(
                   onPressed: () {
-                    setModalState(() {
-                      _selectedCategory = null;
-                      _selectedBrand = null;
-                      _selectedStockStatus = null;
+                    setState(() {
+                      tempSelectedCategory = null;
+                      tempSelectedBrand = null;
+                      tempSelectedStockStatus = null;
                     });
-                    ref.read(inventoryPageProvider.notifier).clearFilters();
+                    // Apply the cleared filters immediately
+                    widget.onApplyFilters(null, null, null);
                   },
                   child: Text('Clear All'),
                 ),
@@ -929,46 +999,45 @@ class _InventoryManagementPageV2State extends ConsumerState<InventoryManagementP
               padding: EdgeInsets.symmetric(horizontal: TossSpacing.space4),
               children: [
                 // Category Filter
-                if (metadata?.categories != null && metadata!.categories.isNotEmpty)
+                if (widget.metadata?.categories != null && widget.metadata!.categories.isNotEmpty)
                   _buildFilterSection(
                     'Category',
-                    metadata.categories.map((c) => {'id': c.id, 'name': c.name}).toList(),
-                    _selectedCategory,
+                    widget.metadata!.categories.map((c) => {'id': c.id, 'name': c.name}).toList(),
+                    tempSelectedCategory,
                     (value) {
-                      setModalState(() {
-                        _selectedCategory = value;
+                      setState(() {
+                        tempSelectedCategory = value;
                       });
-                      _applyFilter('category', value);
                     },
                   ),
                 
                 // Brand Filter
-                if (metadata?.brands != null && metadata!.brands.isNotEmpty)
+                if (widget.metadata?.brands != null && widget.metadata!.brands.isNotEmpty)
                   _buildFilterSection(
                     'Brand',
-                    metadata.brands.map((b) => {'id': b.id, 'name': b.name}).toList(),
-                    _selectedBrand,
+                    widget.metadata!.brands.map((b) => {'id': b.id, 'name': b.name}).toList(),
+                    tempSelectedBrand,
                     (value) {
-                      setModalState(() {
-                        _selectedBrand = value;
+                      setState(() {
+                        tempSelectedBrand = value;
                       });
-                      _applyFilter('brand', value);
                     },
                   ),
                 
-                // Stock Status Filter
-                if (metadata?.stockStatusLevels != null && metadata!.stockStatusLevels.isNotEmpty)
-                  _buildFilterSection(
-                    'Stock Status',
-                    metadata.stockStatusLevels.map((s) => {'id': s.level, 'name': s.label}).toList(),
-                    _selectedStockStatus,
-                    (value) {
-                      setModalState(() {
-                        _selectedStockStatus = value;
-                      });
-                      _applyFilter('stockStatus', value);
-                    },
-                  ),
+                // Stock Status Filter - Only show normal and error (negative stock)
+                _buildFilterSection(
+                  'Stock Status',
+                  [
+                    {'id': 'normal', 'name': 'Normal'},
+                    {'id': 'error', 'name': 'Error (Negative Stock)'},
+                  ],
+                  tempSelectedStockStatus,
+                  (value) {
+                    setState(() {
+                      tempSelectedStockStatus = value;
+                    });
+                  },
+                ),
                 
                 SizedBox(height: TossSpacing.space4),
               ],
@@ -980,6 +1049,13 @@ class _InventoryManagementPageV2State extends ConsumerState<InventoryManagementP
             padding: EdgeInsets.all(TossSpacing.space4),
             child: ElevatedButton(
               onPressed: () {
+                // Apply all the filters when button is pressed
+                widget.onApplyFilters(
+                  tempSelectedCategory,
+                  tempSelectedBrand,
+                  tempSelectedStockStatus,
+                );
+                
                 Navigator.pop(context);
               },
               style: ElevatedButton.styleFrom(
@@ -1001,10 +1077,8 @@ class _InventoryManagementPageV2State extends ConsumerState<InventoryManagementP
         ],
       ),
     );
-      },
-    );
   }
-
+  
   Widget _buildFilterSection(
     String title,
     List<Map<String, String>> options,
@@ -1080,7 +1154,13 @@ class _InventoryManagementPageV2State extends ConsumerState<InventoryManagementP
       ),
     );
   }
+}
 
+// The following methods continue in _InventoryManagementPageV2State class
+class _InventoryManagementPageV2StateContinued {
+}
+
+extension on _InventoryManagementPageV2State {
   Widget _buildSortSheet() {
     return StatefulBuilder(
       builder: (context, setModalState) {
@@ -1185,8 +1265,12 @@ class _InventoryManagementPageV2State extends ConsumerState<InventoryManagementP
       onTap: () {
         setModalState(() {
           _sortBy = sortBy;
+          // Set default direction if not already set
+          if (_sortDirection == null) {
+            _sortDirection = 'asc';
+          }
         });
-        _applySorting(sortBy, _sortDirection);
+        _applySorting(sortBy, _sortDirection ?? 'asc');
         Navigator.pop(context);
       },
     );
@@ -1198,5 +1282,4 @@ class _InventoryManagementPageV2State extends ConsumerState<InventoryManagementP
       (Match m) => '${m[1]},',
     );
   }
-
 }

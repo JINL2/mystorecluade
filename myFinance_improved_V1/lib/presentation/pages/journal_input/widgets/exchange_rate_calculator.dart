@@ -212,7 +212,7 @@ class _ExchangeRateCalculatorState extends ConsumerState<ExchangeRateCalculator>
                 fontWeight: FontWeight.w600,
               ),
               border: InputBorder.none,
-              contentPadding: EdgeInsets.zero,
+              contentPadding: EdgeInsets.only(right: TossSpacing.space3),
             ),
             inputFormatters: [
               FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]')),
@@ -460,7 +460,7 @@ class _ExchangeRateCalculatorState extends ConsumerState<ExchangeRateCalculator>
                                       fontWeight: FontWeight.w600,
                                     ),
                                     border: InputBorder.none,
-                                    contentPadding: EdgeInsets.zero,
+                                    contentPadding: EdgeInsets.only(right: TossSpacing.space3),
                                   ),
                                   inputFormatters: [
                                     FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]')),

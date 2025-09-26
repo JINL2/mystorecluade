@@ -292,7 +292,7 @@ class SaleProductPage extends ConsumerStatefulWidget {
   ConsumerState<SaleProductPage> createState() => _SaleProductPageState();
 }
 
-class _SaleProductPageState extends ConsumerState<SaleProductPage> {
+class _SaleProductPageState extends ConsumerState<SaleProductPage> with WidgetsBindingObserver {
   final TextEditingController _searchController = TextEditingController();
   String searchQuery = '';
   Timer? _searchDebounceTimer;
@@ -308,9 +308,14 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage> {
   @override
   void initState() {
     super.initState();
-    // Clear cart when page loads to ensure fresh data
+    // Add observer for app lifecycle
+    WidgetsBinding.instance.addObserver(this);
+    
+    // Clear cart and refresh data when page loads
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(cartProvider.notifier).clearCart();
+      // Always refresh products to get latest stock data
+      ref.read(salesProductProvider.notifier).refresh();
     });
     
     // Listen to search focus changes
@@ -332,7 +337,16 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage> {
     _searchController.dispose();
     _searchDebounceTimer?.cancel();
     _searchFocusNode.dispose();
+    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
+  }
+  
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // Refresh data when app comes to foreground
+    if (state == AppLifecycleState.resumed) {
+      ref.read(salesProductProvider.notifier).refresh();
+    }
   }
 
   void _onSearchChanged(String value) {
