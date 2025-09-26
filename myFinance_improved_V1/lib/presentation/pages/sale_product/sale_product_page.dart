@@ -1,12 +1,8 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../widgets/common/toss_scaffold.dart';
 import '../../widgets/common/toss_white_card.dart';
-import '../../widgets/toss/toss_list_tile.dart';
-import '../../widgets/toss/toss_search_field.dart';
 import '../../helpers/navigation_helper.dart';
 import '../inventory_management/models/product_model.dart';
 import '../sales_invoice/models/invoice_models.dart';
@@ -49,7 +45,6 @@ class CartNotifier extends StateNotifier<List<CartItem>> {
       state = updatedItems;
     } else {
       // Add new item
-      print('🛒 Adding product to cart: ${product.productName}, Price: ${product.pricing.sellingPrice}');
       state = [
         ...state,
         CartItem(
@@ -64,7 +59,6 @@ class CartNotifier extends StateNotifier<List<CartItem>> {
           customerOrdered: 0,
         ),
       ];
-      print('🛒 Cart subtotal: $subtotal, Items: $totalItems');
     }
   }
 
@@ -190,7 +184,6 @@ class SalesProductNotifier extends StateNotifier<SalesProductState> {
   }
   
   Future<void> loadProducts({String? search}) async {
-    print('🔍 [SALES_PRODUCT] Loading products with search: $search');
     
     state = state.copyWith(isLoading: true, error: null);
     
@@ -199,10 +192,8 @@ class SalesProductNotifier extends StateNotifier<SalesProductState> {
       final companyId = appState.companyChoosen;
       final storeId = appState.storeChoosen;
       
-      print('📋 [SALES_PRODUCT] Company: $companyId, Store: $storeId');
       
       if (companyId.isEmpty || storeId.isEmpty) {
-        print('❌ [SALES_PRODUCT] No company or store selected');
         state = state.copyWith(
           isLoading: false,
           error: 'Please select a company and store first',
@@ -220,7 +211,6 @@ class SalesProductNotifier extends StateNotifier<SalesProductState> {
       );
       
       if (result != null) {
-        print('✅ [SALES_PRODUCT] Products loaded: ${result.products.length}');
         
         // Convert inventory products to sales products
         final salesProducts = result.products
@@ -235,7 +225,6 @@ class SalesProductNotifier extends StateNotifier<SalesProductState> {
           hasNextPage: result.pagination.hasNext,
         );
       } else {
-        print('❌ [SALES_PRODUCT] Failed to load products');
         state = state.copyWith(
           isLoading: false,
           error: 'Failed to load products',
@@ -243,7 +232,6 @@ class SalesProductNotifier extends StateNotifier<SalesProductState> {
         );
       }
     } catch (e) {
-      print('❌ [SALES_PRODUCT] Error loading products: $e');
       state = state.copyWith(
         isLoading: false,
         error: 'Error loading products: $e',
@@ -253,12 +241,10 @@ class SalesProductNotifier extends StateNotifier<SalesProductState> {
   }
   
   void search(String query) {
-    print('🔍 [SALES_PRODUCT] Searching for: $query');
     loadProducts(search: query);
   }
   
   void refresh() {
-    print('🔄 [SALES_PRODUCT] Refreshing products');
     loadProducts();
   }
 }
@@ -449,12 +435,10 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage> with WidgetsB
 
   @override
   Widget build(BuildContext context) {
-    print('🟢 Building SaleProductPage - Title should be "Sales"');
     final cart = ref.watch(cartProvider);
     final salesState = ref.watch(salesProductProvider);
     final products = salesState.products;
     final currencySymbol = ref.watch(currencyProvider);
-    print('💰 Currency symbol: $currencySymbol');
     
     // Handle loading and error states
     if (salesState.isLoading && products.isEmpty) {
