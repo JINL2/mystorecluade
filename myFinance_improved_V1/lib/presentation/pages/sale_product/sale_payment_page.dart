@@ -143,7 +143,7 @@ class _SalePaymentPageState extends ConsumerState<SalePaymentPage> {
 
   @override
   Widget build(BuildContext context) {
-    final cart = <String, int>();
+    final cart = <String, int>{};
     final paymentState = ref.watch(paymentStateProvider);
     final subtotal = 0.0;
     final totalItems = 0;
