@@ -129,30 +129,72 @@ class InventoryService {
     required int page,
     int limit = 10,
     String? search,
+    String? sortBy,
+    String? sortDirection,
+    String? categoryId,
+    String? brandId,
+    String? stockStatus,
   }) async {
     try {
       print('🔍 [INVENTORY_SERVICE] Starting getInventoryPage');
-      print('📋 [INVENTORY_SERVICE] Params: companyId=$companyId, storeId=$storeId, page=$page, limit=$limit, search=$search');
+      print('📋 [INVENTORY_SERVICE] Params: companyId=$companyId, storeId=$storeId, page=$page, limit=$limit');
+      print('📋 [INVENTORY_SERVICE] Filters: search=$search, categoryId=$categoryId, brandId=$brandId, stockStatus=$stockStatus');
+      print('📋 [INVENTORY_SERVICE] Sorting: sortBy=$sortBy, sortDirection=$sortDirection');
       
       // Check Supabase client auth
       final user = _client.auth.currentUser;
       print('🔐 [INVENTORY_SERVICE] Auth user: ${user?.id}');
       
-      // According to the error, the function signature is:
-      // get_inventory_page(p_company_id, p_limit, p_page, p_search, p_store_id)
-      final params = {
-        'p_company_id': companyId,
-        'p_store_id': storeId,
-        'p_page': page,
-        'p_limit': limit,
-        'p_search': search ?? '', // Required parameter, use empty string if null
-      };
-      print('📤 [INVENTORY_SERVICE] RPC params: $params');
-
-      final response = await _client.rpc(
-        'get_inventory_page',
-        params: params,
-      ).single();
+      // Try with sorting parameters first, fall back to without if not supported
+      Map<String, dynamic> params;
+      dynamic response;
+      
+      // Check if sorting is requested
+      bool includeSorting = sortBy != null || sortDirection != null;
+      
+      if (includeSorting) {
+        // Try with sorting parameters
+        params = {
+          'p_company_id': companyId,
+          'p_store_id': storeId,
+          'p_page': page,
+          'p_limit': limit,
+          'p_search': search ?? '', // Required parameter, use empty string if null
+          'p_sort_by': sortBy ?? 'name', // Default to name sorting
+          'p_sort_direction': sortDirection ?? 'asc', // Default to ascending
+        };
+        print('📤 [INVENTORY_SERVICE] Trying RPC with sorting params: $params');
+        
+        try {
+          response = await _client.rpc(
+            'get_inventory_page',
+            params: params,
+          ).single();
+          print('✅ [INVENTORY_SERVICE] RPC with sorting succeeded');
+        } catch (e) {
+          print('⚠️ [INVENTORY_SERVICE] RPC with sorting failed: $e');
+          print('🔄 [INVENTORY_SERVICE] Falling back to without sorting parameters');
+          includeSorting = false;
+        }
+      }
+      
+      // If sorting not included or failed, use basic parameters
+      if (!includeSorting || response == null) {
+        params = {
+          'p_company_id': companyId,
+          'p_store_id': storeId,
+          'p_page': page,
+          'p_limit': limit,
+          'p_search': search ?? '', // Required parameter, use empty string if null
+        };
+        print('📤 [INVENTORY_SERVICE] RPC params without sorting: $params');
+        
+        response = await _client.rpc(
+          'get_inventory_page',
+          params: params,
+        ).single();
+        print('✅ [INVENTORY_SERVICE] RPC without sorting succeeded');
+      }
 
       print('📥 [INVENTORY_SERVICE] Raw response received');
       print('📥 [INVENTORY_SERVICE] Raw response: $response');

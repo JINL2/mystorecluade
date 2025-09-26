@@ -1,21 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
-import '../../../core/constants/app_icons_fa.dart';
-import '../../../core/themes/toss_colors.dart';
-import '../../../core/themes/toss_text_styles.dart';
-import '../../../core/themes/toss_spacing.dart';
-import '../../../core/themes/toss_border_radius.dart';
+import 'package:myfinance_improved/core/themes/index.dart';
 import '../../widgets/common/toss_scaffold.dart';
 import '../../widgets/common/toss_white_card.dart';
 import '../../widgets/toss/toss_search_field.dart';
 import '../../helpers/navigation_helper.dart';
-import 'package:myfinance_improved/core/themes/index.dart';
 import 'models/invoice_models.dart';
 import 'providers/invoice_provider.dart';
 import '../sale_product/sale_product_page.dart';
+import 'widgets/invoice_detail_modal.dart';
 
 class SalesInvoicePage extends ConsumerStatefulWidget {
   const SalesInvoicePage({Key? key}) : super(key: key);
@@ -45,7 +40,6 @@ class _SalesInvoicePageState extends ConsumerState<SalesInvoicePage> {
 
   @override
   Widget build(BuildContext context) {
-    final invoiceState = ref.watch(invoicePageProvider);
     return TossScaffold(
       backgroundColor: TossColors.gray100,
       appBar: AppBar(
@@ -144,9 +138,6 @@ class _SalesInvoicePageState extends ConsumerState<SalesInvoicePage> {
             // Search and Filter Section
             _buildSearchFilterSection(),
             
-            // This month section with invoice count
-            _buildVoucherCountSection(),
-            
             // Invoice list grouped by date
             _buildInvoiceList(),
             
@@ -183,7 +174,7 @@ class _SalesInvoicePageState extends ConsumerState<SalesInvoicePage> {
             borderRadius: BorderRadius.circular(TossBorderRadius.md),
             boxShadow: [
               BoxShadow(
-                color: TossColors.black.withOpacity(0.02),
+                color: TossColors.black.withValues(alpha: 0.02),
                 blurRadius: 2,
                 offset: const Offset(0, 1),
               ),
@@ -299,93 +290,17 @@ class _SalesInvoicePageState extends ConsumerState<SalesInvoicePage> {
             TossSpacing.space4,
             TossSpacing.space2,
             TossSpacing.space4,
-            TossSpacing.space3,
+            TossSpacing.space4,
           ),
           child: TossSearchField(
             controller: _searchController,
-            hintText: 'Search invoices...',
+            hintText: 'Search by invoice number (e.g., IN2025...)',
             onChanged: (value) {
               ref.read(invoicePageProvider.notifier).updateSearch(value);
             },
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildVoucherCountSection() {
-    final invoiceState = ref.watch(invoicePageProvider);
-    final summary = invoiceState.response?.summary;
-    final currency = invoiceState.response?.currency;
-    
-    if (summary == null) {
-      return SizedBox.shrink();
-    }
-    
-    return Container(
-      margin: EdgeInsets.symmetric(horizontal: TossSpacing.space4),
-      child: TossWhiteCard(
-        padding: EdgeInsets.all(TossSpacing.space4),
-        child: Row(
-          children: [
-            // Icon container
-            Container(
-              width: TossSpacing.iconXL,
-              height: TossSpacing.iconXL,
-              decoration: BoxDecoration(
-                color: TossColors.primary.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(TossBorderRadius.md),
-              ),
-              child: Center(
-                child: FaIcon(
-                  AppIcons.fileAlt,
-                  color: TossColors.primary,
-                  size: TossSpacing.iconSM,
-                ),
-              ),
-            ),
-            SizedBox(width: TossSpacing.space3),
-            // Text content
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    invoiceState.selectedPeriod.displayName,
-                    style: TossTextStyles.caption.copyWith(
-                      color: TossColors.gray600,
-                    ),
-                  ),
-                  SizedBox(height: TossSpacing.space1),
-                  Text(
-                    '${summary.periodTotal.invoiceCount} invoices',
-                    style: TossTextStyles.h3.copyWith(
-                      fontWeight: FontWeight.w700,
-                      color: TossColors.gray900,
-                    ),
-                  ),
-                  if (summary.periodTotal.totalAmount > 0) ...[
-                    SizedBox(height: TossSpacing.space1),
-                    Text(
-                      '${currency?.symbol ?? ''}${currencyFormat.format(summary.periodTotal.totalAmount)}',
-                      style: TossTextStyles.body.copyWith(
-                        color: TossColors.primary,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-            ),
-            // Arrow icon
-            Icon(
-              Icons.arrow_forward_ios,
-              size: TossSpacing.iconXS,
-              color: TossColors.gray400,
-            ),
-          ],
-        ),
-      ),
     );
   }
 
@@ -499,11 +414,8 @@ class _SalesInvoicePageState extends ConsumerState<SalesInvoicePage> {
     final currency = ref.watch(invoicePageProvider).response?.currency;
     return InkWell(
       onTap: () {
-        // Navigate to invoice detail
-        // NavigationHelper.navigateTo(
-        //   context,
-        //   '/salesInvoice/detail/${invoice.invoiceId}',
-        // );
+        // Show invoice detail modal
+        InvoiceDetailModal.show(context, invoice, currency);
       },
       child: Container(
         padding: EdgeInsets.all(TossSpacing.space4),
@@ -585,7 +497,7 @@ class _SalesInvoicePageState extends ConsumerState<SalesInvoicePage> {
                 width: 24,
                 height: 24,
                 decoration: BoxDecoration(
-                  color: TossColors.success.withOpacity(0.1),
+                  color: TossColors.success.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
@@ -599,7 +511,7 @@ class _SalesInvoicePageState extends ConsumerState<SalesInvoicePage> {
                 width: 24,
                 height: 24,
                 decoration: BoxDecoration(
-                  color: TossColors.warning.withOpacity(0.1),
+                  color: TossColors.warning.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
@@ -613,7 +525,7 @@ class _SalesInvoicePageState extends ConsumerState<SalesInvoicePage> {
                 width: 24,
                 height: 24,
                 decoration: BoxDecoration(
-                  color: TossColors.error.withOpacity(0.1),
+                  color: TossColors.error.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
@@ -658,7 +570,7 @@ class _SalesInvoicePageState extends ConsumerState<SalesInvoicePage> {
               vertical: TossSpacing.space2,
             ),
             decoration: BoxDecoration(
-              color: TossColors.primary.withOpacity(0.1),
+              color: TossColors.primary.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(TossBorderRadius.sm),
             ),
             child: Text(

@@ -78,8 +78,8 @@ class InventoryPageState {
   final String? selectedCategory;
   final String? selectedBrand;
   final String? selectedStockStatus;
-  final String sortBy;
-  final String sortDirection;
+  final String? sortBy;
+  final String? sortDirection;
   final Currency? currency;
 
   InventoryPageState({
@@ -95,8 +95,8 @@ class InventoryPageState {
     this.selectedCategory,
     this.selectedBrand,
     this.selectedStockStatus,
-    this.sortBy = 'name',
-    this.sortDirection = 'asc',
+    this.sortBy,
+    this.sortDirection,
     this.currency,
   });
 
@@ -116,6 +116,13 @@ class InventoryPageState {
     String? sortBy,
     String? sortDirection,
     Currency? currency,
+    // Special flags to handle explicit null values for filters
+    bool clearSearchQuery = false,
+    bool clearSelectedCategory = false,
+    bool clearSelectedBrand = false,
+    bool clearSelectedStockStatus = false,
+    bool clearSortBy = false,
+    bool clearSortDirection = false,
   }) {
     return InventoryPageState(
       products: products ?? this.products,
@@ -126,12 +133,12 @@ class InventoryPageState {
       totalPages: totalPages ?? this.totalPages,
       totalProducts: totalProducts ?? this.totalProducts,
       hasNextPage: hasNextPage ?? this.hasNextPage,
-      searchQuery: searchQuery ?? this.searchQuery,
-      selectedCategory: selectedCategory ?? this.selectedCategory,
-      selectedBrand: selectedBrand ?? this.selectedBrand,
-      selectedStockStatus: selectedStockStatus ?? this.selectedStockStatus,
-      sortBy: sortBy ?? this.sortBy,
-      sortDirection: sortDirection ?? this.sortDirection,
+      searchQuery: clearSearchQuery ? null : (searchQuery ?? this.searchQuery),
+      selectedCategory: clearSelectedCategory ? null : (selectedCategory ?? this.selectedCategory),
+      selectedBrand: clearSelectedBrand ? null : (selectedBrand ?? this.selectedBrand),
+      selectedStockStatus: clearSelectedStockStatus ? null : (selectedStockStatus ?? this.selectedStockStatus),
+      sortBy: clearSortBy ? null : (sortBy ?? this.sortBy),
+      sortDirection: clearSortDirection ? null : (sortDirection ?? this.sortDirection),
       currency: currency ?? this.currency,
     );
   }
@@ -161,6 +168,93 @@ class InventoryPageNotifier extends StateNotifier<InventoryPageState> {
     
     // Load data immediately
     await loadInitialData();
+  }
+  
+  // Apply client-side filtering to products
+  List<InventoryProduct> _filterProducts(List<InventoryProduct> products) {
+    var filteredProducts = List<InventoryProduct>.from(products);
+    
+    print('🔍 [INVENTORY_NOTIFIER] Starting filter - Category: ${state.selectedCategory}, Brand: ${state.selectedBrand}, Stock: ${state.selectedStockStatus}');
+    
+    // Apply category filter
+    if (state.selectedCategory != null) {
+      filteredProducts = filteredProducts.where((p) => 
+        p.categoryId == state.selectedCategory
+      ).toList();
+      print('📂 [INVENTORY_NOTIFIER] After category filter: ${filteredProducts.length} products');
+    }
+    
+    // Apply brand filter  
+    if (state.selectedBrand != null) {
+      filteredProducts = filteredProducts.where((p) => 
+        p.brandId == state.selectedBrand
+      ).toList();
+      print('🏷️ [INVENTORY_NOTIFIER] After brand filter: ${filteredProducts.length} products');
+    }
+    
+    // Apply stock status filter
+    if (state.selectedStockStatus != null) {
+      if (state.selectedStockStatus == 'error') {
+        // Show only products with negative stock
+        filteredProducts = filteredProducts.where((p) => p.stock < 0).toList();
+        print('❌ [INVENTORY_NOTIFIER] Filtering for error (negative stock) products: ${filteredProducts.length}');
+      } else if (state.selectedStockStatus == 'normal') {
+        // Show only products with non-negative stock
+        filteredProducts = filteredProducts.where((p) => p.stock >= 0).toList();
+        print('✅ [INVENTORY_NOTIFIER] Filtering for normal (non-negative stock) products: ${filteredProducts.length}');
+      }
+    } else {
+      print('🔓 [INVENTORY_NOTIFIER] No stock status filter applied - showing all');
+    }
+    
+    print('📊 [INVENTORY_NOTIFIER] Final filtered products: ${filteredProducts.length} from ${products.length}');
+    return filteredProducts;
+  }
+  
+  // Apply client-side sorting to products
+  List<InventoryProduct> _sortProducts(List<InventoryProduct> products) {
+    if (state.sortBy == null || state.sortDirection == null) {
+      return products;
+    }
+    
+    // Create a copy to avoid modifying the original list
+    final sortedProducts = List<InventoryProduct>.from(products);
+    
+    switch (state.sortBy) {
+      case 'name':
+        sortedProducts.sort((a, b) {
+          final comparison = a.name.compareTo(b.name);
+          return state.sortDirection == 'desc' ? -comparison : comparison;
+        });
+        break;
+      case 'price':
+        sortedProducts.sort((a, b) {
+          final comparison = a.price.compareTo(b.price);
+          return state.sortDirection == 'desc' ? -comparison : comparison;
+        });
+        break;
+      case 'stock':
+        sortedProducts.sort((a, b) {
+          final comparison = a.stock.compareTo(b.stock);
+          return state.sortDirection == 'desc' ? -comparison : comparison;
+        });
+        break;
+      case 'created_at':
+        sortedProducts.sort((a, b) {
+          // Use createdAt if available, otherwise fall back to ID comparison
+          if (a.createdAt != null && b.createdAt != null) {
+            final comparison = a.createdAt!.compareTo(b.createdAt!);
+            return state.sortDirection == 'desc' ? -comparison : comparison;
+          }
+          // Fallback to ID comparison
+          final comparison = a.id.compareTo(b.id);
+          return state.sortDirection == 'desc' ? -comparison : comparison;
+        });
+        break;
+    }
+    
+    print('🔄 [INVENTORY_NOTIFIER] Applied client-side sorting: ${state.sortBy} ${state.sortDirection}');
+    return sortedProducts;
   }
 
   Future<void> loadInitialData() async {
@@ -220,6 +314,11 @@ class InventoryPageNotifier extends StateNotifier<InventoryPageState> {
         page: 1,
         limit: 10,
         search: state.searchQuery,
+        sortBy: state.sortBy,
+        sortDirection: state.sortDirection,
+        categoryId: state.selectedCategory,
+        brandId: state.selectedBrand,
+        stockStatus: state.selectedStockStatus,
       );
       
       print('📥 [INVENTORY_NOTIFIER] Service result: $result');
@@ -233,8 +332,12 @@ class InventoryPageNotifier extends StateNotifier<InventoryPageState> {
           print('ℹ️ [INVENTORY_NOTIFIER] No products found for this store');
         }
         
+        // Apply client-side filtering and sorting
+        final filteredProducts = _filterProducts(result.products);
+        final sortedProducts = _sortProducts(filteredProducts);
+        
         state = state.copyWith(
-          products: result.products,
+          products: sortedProducts,
           currentPage: result.pagination.page,
           totalPages: result.pagination.totalPages,
           totalProducts: result.pagination.total,
@@ -294,11 +397,25 @@ class InventoryPageNotifier extends StateNotifier<InventoryPageState> {
         page: nextPage,
         limit: 10,
         search: state.searchQuery,
+        sortBy: state.sortBy,
+        sortDirection: state.sortDirection,
+        categoryId: state.selectedCategory,
+        brandId: state.selectedBrand,
+        stockStatus: state.selectedStockStatus,
       );
       
       if (result != null) {
+        // For pagination with filters, we need to be careful
+        // We should filter the new products and add them to existing filtered products
+        // Note: This might not show all products if filter is very restrictive
+        // A better approach would be to fetch all products and then filter
+        // But for now, we'll filter the new batch and append
+        final newFilteredProducts = _filterProducts(result.products);
+        final allProducts = [...state.products, ...newFilteredProducts];
+        final sortedProducts = _sortProducts(allProducts);
+        
         state = state.copyWith(
-          products: [...state.products, ...result.products],
+          products: sortedProducts,
           currentPage: result.pagination.page,
           totalPages: result.pagination.totalPages,
           totalProducts: result.pagination.total,
@@ -370,14 +487,49 @@ class InventoryPageNotifier extends StateNotifier<InventoryPageState> {
     }
   }
 
+  // Set multiple filters at once to avoid multiple refreshes
+  void setFilters({
+    String? categoryId,
+    String? brandId,
+    String? stockStatus,
+  }) {
+    // Check if any filter has actually changed
+    bool hasChanged = false;
+    
+    if (state.selectedCategory != categoryId) {
+      hasChanged = true;
+    }
+    if (state.selectedBrand != brandId) {
+      hasChanged = true;
+    }
+    if (state.selectedStockStatus != stockStatus) {
+      hasChanged = true;
+    }
+    
+    // Only update and refresh if something changed
+    if (hasChanged) {
+      // Use clear flags when we want to explicitly set to null
+      state = state.copyWith(
+        selectedCategory: categoryId,
+        selectedBrand: brandId,
+        selectedStockStatus: stockStatus,
+        clearSelectedCategory: categoryId == null,
+        clearSelectedBrand: brandId == null,
+        clearSelectedStockStatus: stockStatus == null,
+      );
+      print('🔄 [INVENTORY_NOTIFIER] Filters updated - Category: $categoryId, Brand: $brandId, Stock: $stockStatus');
+      refresh();
+    }
+  }
+  
   void clearFilters() {
     state = state.copyWith(
-      searchQuery: null,
-      selectedCategory: null,
-      selectedBrand: null,
-      selectedStockStatus: null,
-      sortBy: 'name',
-      sortDirection: 'asc',
+      clearSearchQuery: true,
+      clearSelectedCategory: true,
+      clearSelectedBrand: true,
+      clearSelectedStockStatus: true,
+      clearSortBy: true,
+      clearSortDirection: true,
     );
     refresh();
   }
