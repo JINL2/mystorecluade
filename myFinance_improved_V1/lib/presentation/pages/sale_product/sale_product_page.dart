@@ -320,14 +320,9 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage> with WidgetsB
     
     // Listen to search focus changes
     _searchFocusNode.addListener(() {
-      final cartItems = ref.read(cartProvider);
       setState(() {
         _isSearchFocused = _searchFocusNode.hasFocus;
-        // Clear search when losing focus to show clean Added Items view
-        if (!_isSearchFocused && cartItems.isNotEmpty) {
-          _searchController.clear();
-          searchQuery = '';
-        }
+        // Don't auto-clear search here - let the back button handle it
       });
     });
   }
@@ -568,22 +563,59 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage> with WidgetsB
       }).toList();
     }
     
-    return TossScaffold(
-      backgroundColor: TossColors.gray100,
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => NavigationHelper.safeGoBack(context),
-        ),
-        title: Text(
-          'Sales',
-          style: TossTextStyles.h3,
-        ),
-        centerTitle: true,
-        elevation: 0,
+    return PopScope(
+      canPop: cart.isEmpty && !_searchFocusNode.hasFocus, // Only allow pop if cart is empty and search not focused
+      onPopInvoked: (didPop) {
+        if (!didPop) {
+          // First priority: if search is focused, just unfocus it
+          if (_searchFocusNode.hasFocus) {
+            _searchFocusNode.unfocus();
+            // Clear search text when unfocusing
+            _searchController.clear();
+            setState(() {
+              searchQuery = '';
+            });
+          }
+          // Second priority: if cart has items and search not focused, clear cart
+          else if (cart.isNotEmpty) {
+            ref.read(cartProvider.notifier).clearCart();
+          }
+        }
+      },
+      child: TossScaffold(
         backgroundColor: TossColors.gray100,
-        foregroundColor: TossColors.black,
-      ),
+        appBar: AppBar(
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () {
+              // First priority: if search is focused, just unfocus it
+              if (_searchFocusNode.hasFocus) {
+                _searchFocusNode.unfocus();
+                // Clear search text when unfocusing
+                _searchController.clear();
+                setState(() {
+                  searchQuery = '';
+                });
+              }
+              // Second priority: if cart has items and search not focused, clear cart
+              else if (cart.isNotEmpty) {
+                ref.read(cartProvider.notifier).clearCart();
+              }
+              // Last priority: if cart is empty and search not focused, navigate back
+              else {
+                NavigationHelper.safeGoBack(context);
+              }
+            },
+          ),
+          title: Text(
+            'Sales',
+            style: TossTextStyles.h3,
+          ),
+          centerTitle: true,
+          elevation: 0,
+          backgroundColor: TossColors.gray100,
+          foregroundColor: TossColors.black,
+        ),
       body: Column(
         children: [
           // Fixed search section at the top
@@ -837,10 +869,17 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage> with WidgetsB
                       productQuantities: productQuantities,
                     ),
                   ),
-                );
+                ).then((result) {
+                  // Only clear cart if invoice was successfully created
+                  // result should be true or 'success' when invoice is created
+                  if (result == true && mounted) {
+                    ref.read(cartProvider.notifier).clearCart();
+                  }
+                });
               },
             )
           : null,
+      ),
     );
   }
 
@@ -914,8 +953,7 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage> with WidgetsB
       onTap: () {
         HapticFeedback.lightImpact();
         
-        // Unfocus search bar when selecting a product
-        _searchFocusNode.unfocus();
+        // Don't unfocus search - user might want to add multiple products
         
         if (cartItem.quantity == 0) {
           // Add first item to cart

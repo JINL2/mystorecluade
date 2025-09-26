@@ -76,6 +76,22 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
       if (exchangeRatesData != null && mounted) {
         setState(() {
           _exchangeRateData = exchangeRatesData;
+          
+          // Auto-select first currency if other currencies exist
+          if (_selectedCurrencyCode == null) {
+            final baseCurrency = exchangeRatesData['base_currency'] as Map<String, dynamic>?;
+            final exchangeRates = exchangeRatesData['exchange_rates'] as List? ?? [];
+            
+            // Filter out the base currency from the list
+            final otherCurrencies = exchangeRates.where((rate) {
+              return rate['currency_code'] != baseCurrency?['currency_code'];
+            }).toList();
+            
+            // Select the first available currency
+            if (otherCurrencies.isNotEmpty) {
+              _selectedCurrencyCode = otherCurrencies.first['currency_code'];
+            }
+          }
         });
       }
     } catch (e) {
@@ -101,17 +117,19 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
 
   @override
   Widget build(BuildContext context) {
-    return TossScaffold(
-      backgroundColor: TossColors.gray100,
-      appBar: TossAppBar(
-        title: 'Payment Method',
+    return PopScope(
+      canPop: true, // Allow default back navigation
+      child: TossScaffold(
         backgroundColor: TossColors.gray100,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, size: TossSpacing.iconMD),
-          onPressed: () => NavigationHelper.safeGoBack(context),
+        appBar: TossAppBar(
+          title: 'Payment Method',
+          backgroundColor: TossColors.gray100,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back, size: TossSpacing.iconMD),
+            onPressed: () => Navigator.pop(context),
+          ),
         ),
-      ),
-      body: Column(
+        body: Column(
         children: [
           // Payment Method Selection (moved to top)
           Expanded(
@@ -130,6 +148,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
             child: _buildBottomButton(),
           ),
         ],
+      ),
       ),
     );
   }
@@ -924,12 +943,28 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                         ),
                       ],
                     ),
-                    Text(
-                      _formatNumber(cartTotal.round()),
-                      style: TossTextStyles.bodyLarge.copyWith(
-                        fontWeight: FontWeight.w600,
-                        color: TossColors.gray900,
-                      ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text(
+                          _formatNumber(cartTotal.round()),
+                          style: TossTextStyles.bodyLarge.copyWith(
+                            fontWeight: FontWeight.w600,
+                            color: TossColors.gray900,
+                          ),
+                        ),
+                        // Show converted amount if currency selected
+                        if (_selectedCurrencyCode != null && _exchangeRateData != null) ...[
+                          SizedBox(height: 2),
+                          Text(
+                            _getConvertedAmountText(cartTotal),
+                            style: TossTextStyles.caption.copyWith(
+                              color: TossColors.gray600,
+                              fontSize: 11,
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
                   ],
                 ),
@@ -1030,13 +1065,17 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                               ],
                             ),
                           ),
-                          // Show calculated percentage inline
-                          if (discountAmount > 0 && cartTotal > 0) ...[
-                            SizedBox(width: TossSpacing.space2),
+                          // Show percentage only when in amount mode and not over 100%
+                          if (discountAmount > 0 && 
+                              cartTotal > 0 && 
+                              !_isPercentageDiscount &&
+                              (discountAmount / cartTotal) <= 1.0) ...[
+                            SizedBox(width: TossSpacing.space1),
+                            // Show calculated percentage when in amount mode
                             Text(
-                              '(${((discountAmount / cartTotal) * 100).toStringAsFixed(2)}%)',
+                              '(${((discountAmount / cartTotal) * 100).toStringAsFixed(0)}%)',
                               style: TextStyle(
-                                fontSize: 13,
+                                fontSize: 11,
                                 color: TossColors.gray500,
                                 fontWeight: FontWeight.w500,
                               ),
@@ -1046,55 +1085,73 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                       ),
                     ),
                     // Input field with underline
-                    SizedBox(
-                      width: 100,
-                      child: TextFormField(
-                        controller: _discountController,
-                        keyboardType: TextInputType.numberWithOptions(decimal: !_isPercentageDiscount),
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
-                          color: TossColors.gray900,
-                        ),
-                        textAlign: TextAlign.right,
-                        decoration: InputDecoration(
-                          hintText: '0',
-                          hintStyle: TextStyle(
-                            fontSize: 15,
-                            color: TossColors.gray400,
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        SizedBox(
+                          width: 100,
+                          child: TextFormField(
+                            controller: _discountController,
+                            keyboardType: TextInputType.numberWithOptions(decimal: !_isPercentageDiscount),
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                              color: TossColors.gray900,
+                            ),
+                            textAlign: TextAlign.right,
+                            decoration: InputDecoration(
+                              hintText: '0',
+                              hintStyle: TextStyle(
+                                fontSize: 15,
+                                color: TossColors.gray400,
+                              ),
+                              // Add underline to show it's an input field
+                              enabledBorder: UnderlineInputBorder(
+                                borderSide: BorderSide(
+                                  color: TossColors.gray300,
+                                  width: 1.0,
+                                ),
+                              ),
+                              focusedBorder: UnderlineInputBorder(
+                                borderSide: BorderSide(
+                                  color: TossColors.primary,
+                                  width: 1.5,
+                                ),
+                              ),
+                              isDense: true,
+                              contentPadding: EdgeInsets.only(bottom: 4),
+                            ),
+                            onChanged: (value) {
+                              final inputValue = double.tryParse(value.replaceAll(',', '')) ?? 0;
+                              double discountAmount = 0;
+                              
+                              if (_isPercentageDiscount) {
+                                // Calculate discount amount from percentage
+                                final percentage = inputValue.clamp(0, 100);
+                                discountAmount = (cartTotal * percentage) / 100;
+                              } else {
+                                // Direct amount discount
+                                discountAmount = inputValue;
+                              }
+                              
+                              ref.read(paymentMethodProvider.notifier).updateDiscountAmount(discountAmount);
+                            },
                           ),
-                          // Add underline to show it's an input field
-                          enabledBorder: UnderlineInputBorder(
-                            borderSide: BorderSide(
-                              color: TossColors.gray300,
-                              width: 1.0,
+                        ),
+                        // Show converted discount amount if currency selected
+                        if (_selectedCurrencyCode != null && 
+                            _exchangeRateData != null && 
+                            discountAmount > 0) ...[
+                          SizedBox(height: 2),
+                          Text(
+                            _getConvertedAmountText(discountAmount),
+                            style: TossTextStyles.caption.copyWith(
+                              color: TossColors.gray600,
+                              fontSize: 11,
                             ),
                           ),
-                          focusedBorder: UnderlineInputBorder(
-                            borderSide: BorderSide(
-                              color: TossColors.primary,
-                              width: 1.5,
-                            ),
-                          ),
-                          isDense: true,
-                          contentPadding: EdgeInsets.only(bottom: 4),
-                        ),
-                        onChanged: (value) {
-                          final inputValue = double.tryParse(value.replaceAll(',', '')) ?? 0;
-                          double discountAmount = 0;
-                          
-                          if (_isPercentageDiscount) {
-                            // Calculate discount amount from percentage
-                            final percentage = inputValue.clamp(0, 100);
-                            discountAmount = (cartTotal * percentage) / 100;
-                          } else {
-                            // Direct amount discount
-                            discountAmount = inputValue;
-                          }
-                          
-                          ref.read(paymentMethodProvider.notifier).updateDiscountAmount(discountAmount);
-                        },
-                      ),
+                        ],
+                      ],
                     ),
                   ],
                 ),
@@ -1127,12 +1184,28 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                    Text(
-                      _formatNumber(finalTotal.round()),
-                      style: TossTextStyles.h2.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: TossColors.primary,
-                      ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text(
+                          _formatNumber(finalTotal.round()),
+                          style: TossTextStyles.h2.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: TossColors.primary,
+                          ),
+                        ),
+                        // Show converted amount if currency selected
+                        if (_selectedCurrencyCode != null && _exchangeRateData != null) ...[
+                          SizedBox(height: 2),
+                          Text(
+                            _getConvertedAmountText(finalTotal),
+                            style: TossTextStyles.caption.copyWith(
+                              color: TossColors.gray600,
+                              fontSize: 11,
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
                   ],
                 ),
@@ -1248,62 +1321,6 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
             }).toList(),
           ),
           
-          // Show converted amount if a currency is selected
-          if (_selectedCurrencyCode != null) ...[
-            SizedBox(height: TossSpacing.space3),
-            Container(
-              padding: EdgeInsets.all(TossSpacing.space3),
-              decoration: BoxDecoration(
-                color: TossColors.primary.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                border: Border.all(
-                  color: TossColors.primary.withOpacity(0.3),
-                  width: 1,
-                ),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Converted Amount',
-                    style: TossTextStyles.caption.copyWith(
-                      color: TossColors.gray600,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  SizedBox(height: TossSpacing.space1),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
-                        children: [
-                          Text(
-                            '${baseCurrency?['symbol'] ?? ''} ${_formatNumber(finalTotal.round())} ${baseCurrency?['currency_code'] ?? ''}',
-                            style: TossTextStyles.body.copyWith(
-                              color: TossColors.gray700,
-                            ),
-                          ),
-                          SizedBox(width: TossSpacing.space2),
-                          Icon(
-                            Icons.arrow_forward,
-                            size: 16,
-                            color: TossColors.gray500,
-                          ),
-                        ],
-                      ),
-                      Text(
-                        '${otherCurrencies.firstWhere((r) => r['currency_code'] == _selectedCurrencyCode, orElse: () => {'symbol': ''})['symbol']} ${_formatNumber(_convertToSelectedCurrency(finalTotal, _selectedCurrencyCode!).round())} $_selectedCurrencyCode',
-                        style: TossTextStyles.bodyLarge.copyWith(
-                          fontWeight: FontWeight.w700,
-                          color: TossColors.primary,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ],
         ],
       ),
     );
@@ -1491,122 +1508,14 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
   void _showCashLocationSelection(List<CashLocation> locations) {
     showModalBottomSheet(
       context: context,
-      backgroundColor: TossColors.white,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(
-          top: Radius.circular(TossBorderRadius.lg),
-        ),
-      ),
+      isScrollControlled: true,
+      backgroundColor: TossColors.transparent,
       builder: (context) {
-        return Container(
-          padding: EdgeInsets.all(TossSpacing.space4),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header
-              Row(
-                children: [
-                  Text(
-                    'Select Cash Location',
-                    style: TossTextStyles.bodyLarge.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: TossColors.gray900,
-                    ),
-                  ),
-                  Spacer(),
-                  IconButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    icon: Icon(
-                      Icons.close,
-                      color: TossColors.gray600,
-                    ),
-                  ),
-                ],
-              ),
-              
-              SizedBox(height: TossSpacing.space3),
-              
-              // Location list
-              ...locations.map((location) {
-                return InkWell(
-                  onTap: () {
-                    ref.read(paymentMethodProvider.notifier).selectCashLocation(location);
-                    Navigator.of(context).pop();
-                  },
-                  child: Container(
-                    width: double.infinity,
-                    padding: EdgeInsets.all(TossSpacing.space3),
-                    margin: EdgeInsets.only(bottom: TossSpacing.space2),
-                    decoration: BoxDecoration(
-                      border: Border.all(
-                        color: TossColors.gray200,
-                        width: 1,
-                      ),
-                      borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                    ),
-                    child: Row(
-                      children: [
-                        _getCashLocationIcon(location.type),
-                        SizedBox(width: TossSpacing.space3),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                location.displayName,
-                                style: TossTextStyles.body.copyWith(
-                                  fontWeight: FontWeight.w600,
-                                  color: TossColors.gray900,
-                                ),
-                              ),
-                              SizedBox(height: TossSpacing.space1),
-                              Row(
-                                children: [
-                                  Container(
-                                    padding: EdgeInsets.symmetric(
-                                      horizontal: TossSpacing.space2,
-                                      vertical: TossSpacing.space1,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: location.isBank
-                                          ? TossColors.primary.withOpacity(0.1)
-                                          : TossColors.success.withOpacity(0.1),
-                                      borderRadius: BorderRadius.circular(TossBorderRadius.xs),
-                                    ),
-                                    child: Text(
-                                      location.displayType,
-                                      style: TossTextStyles.caption.copyWith(
-                                        color: location.isBank
-                                            ? TossColors.primary
-                                            : TossColors.success,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                  ),
-                                  if (location.currencyCode.isNotEmpty) ...[
-                                    SizedBox(width: TossSpacing.space2),
-                                    Text(
-                                      location.currencyCode,
-                                      style: TossTextStyles.caption.copyWith(
-                                        color: TossColors.gray500,
-                                      ),
-                                    ),
-                                  ],
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              }).toList(),
-              
-              SizedBox(height: MediaQuery.of(context).viewInsets.bottom),
-            ],
-          ),
+        return _CashLocationBottomSheet(
+          locations: locations,
+          onSelect: (location) {
+            ref.read(paymentMethodProvider.notifier).selectCashLocation(location);
+          },
         );
       },
     );
@@ -1871,11 +1780,10 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
           }
         }
         
-        // Clear the cart
-        ref.read(cartProvider.notifier).clearCart();
-        
         // Clear payment method selections for next invoice
         ref.read(paymentMethodProvider.notifier).clearSelections();
+        
+        // Note: Cart clearing is handled by the Sales page when it receives the success result
         
         // Show Toss-style success bottom sheet
         if (mounted) {
@@ -2038,8 +1946,8 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                             Navigator.of(context).pop(); // Close bottom sheet
                             // Force refresh of sales product data
                             ref.invalidate(salesProductProvider);
-                            // Navigate back to Sales Product page (go back twice: from payment page and invoice selection)
-                            Navigator.of(context).pop(); // Close payment page
+                            // Navigate back to Sales Product page and indicate success
+                            Navigator.of(context).pop(true); // Return true to indicate successful invoice creation
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: TossColors.primary,
@@ -2110,6 +2018,202 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
     return value.toString().replaceAllMapped(
       RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
       (Match m) => '${m[1]},',
+    );
+  }
+  
+  String _getConvertedAmountText(double amount) {
+    if (_selectedCurrencyCode == null || _exchangeRateData == null) {
+      return '';
+    }
+    
+    final exchangeRates = _exchangeRateData!['exchange_rates'] as List? ?? [];
+    final selectedCurrency = exchangeRates.firstWhere(
+      (rate) => rate['currency_code'] == _selectedCurrencyCode,
+      orElse: () => null,
+    );
+    
+    if (selectedCurrency == null) return '';
+    
+    final convertedAmount = _convertToSelectedCurrency(amount, _selectedCurrencyCode!);
+    final symbol = selectedCurrency['symbol'] as String? ?? '';
+    
+    return '$symbol ${_formatNumber(convertedAmount.round())} $_selectedCurrencyCode';
+  }
+}
+
+// Cash Location Bottom Sheet with simplified design
+class _CashLocationBottomSheet extends StatelessWidget {
+  final List<CashLocation> locations;
+  final Function(CashLocation) onSelect;
+  
+  const _CashLocationBottomSheet({
+    Key? key,
+    required this.locations,
+    required this.onSelect,
+  }) : super(key: key);
+  
+  @override
+  Widget build(BuildContext context) {
+    final screenHeight = MediaQuery.of(context).size.height;
+    
+    return Container(
+      constraints: BoxConstraints(
+        maxHeight: screenHeight * 0.6,
+      ),
+      decoration: BoxDecoration(
+        color: TossColors.white,
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(TossBorderRadius.xl),
+        ),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Drag handle
+          Container(
+            margin: EdgeInsets.only(top: TossSpacing.space2),
+            width: 40,
+            height: 4,
+            decoration: BoxDecoration(
+              color: TossColors.gray300,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          
+          // Header
+          Padding(
+            padding: EdgeInsets.fromLTRB(
+              TossSpacing.space4,
+              TossSpacing.space4, 
+              TossSpacing.space4,
+              TossSpacing.space3,
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Select Cash Location',
+                  style: TossTextStyles.h3.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.close, color: TossColors.gray500),
+                  onPressed: () => Navigator.pop(context),
+                  padding: EdgeInsets.zero,
+                  constraints: BoxConstraints(),
+                ),
+              ],
+            ),
+          ),
+          
+          // Location list
+          Expanded(
+            child: locations.isEmpty
+                ? Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.location_off,
+                          size: 48,
+                          color: TossColors.gray300,
+                        ),
+                        SizedBox(height: TossSpacing.space3),
+                        Text(
+                          'No cash locations available',
+                          style: TossTextStyles.body.copyWith(
+                            color: TossColors.gray500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                : ListView.separated(
+                    padding: EdgeInsets.zero,
+                    itemCount: locations.length,
+                    separatorBuilder: (context, index) => Divider(
+                      height: 1,
+                      color: TossColors.gray100,
+                    ),
+                    itemBuilder: (context, index) {
+                      final location = locations[index];
+                      return InkWell(
+                        onTap: () {
+                          onSelect(location);
+                          Navigator.pop(context);
+                        },
+                        child: Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: TossSpacing.space4,
+                            vertical: TossSpacing.space3 + 4,
+                          ),
+                          child: Row(
+                            children: [
+                              // Simple location icon
+                              Icon(
+                                Icons.location_on_outlined,
+                                color: TossColors.gray500,
+                                size: 20,
+                              ),
+                              SizedBox(width: TossSpacing.space3),
+                              
+                              // Location name and type
+                              Expanded(
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        location.name,
+                                        style: TossTextStyles.body.copyWith(
+                                          color: TossColors.gray900,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                    SizedBox(width: TossSpacing.space2),
+                                    // Type badge
+                                    Container(
+                                      padding: EdgeInsets.symmetric(
+                                        horizontal: TossSpacing.space2,
+                                        vertical: 2,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: location.type.toLowerCase() == 'bank'
+                                            ? TossColors.primary.withOpacity(0.1)
+                                            : TossColors.success.withOpacity(0.1),
+                                        borderRadius: BorderRadius.circular(TossBorderRadius.xs),
+                                      ),
+                                      child: Text(
+                                        location.type.toLowerCase() == 'bank' ? 'Bank' : 'Cash',
+                                        style: TossTextStyles.caption.copyWith(
+                                          color: location.type.toLowerCase() == 'bank'
+                                              ? TossColors.primary
+                                              : TossColors.success,
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 11,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+          ),
+          
+          // Safe area padding at the bottom
+          SafeArea(
+            top: false,
+            child: SizedBox(height: TossSpacing.space3),
+          ),
+        ],
+      ),
     );
   }
 }

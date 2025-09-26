@@ -38,6 +38,7 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   bool _isNavigating = false; // Add flag to prevent multiple navigations
   bool _isSalaryExpanded = false; // Track salary breakdown expansion state
+  DateTime? _lastRefreshTime; // Track last refresh time to prevent excessive refreshes
 
   @override
   void initState() {
@@ -190,14 +191,48 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
+  
+  void _refreshRevenue({bool force = false}) {
+    // Check if enough time has passed since last refresh (30 seconds)
+    if (!force && _lastRefreshTime != null) {
+      final timeSinceLastRefresh = DateTime.now().difference(_lastRefreshTime!);
+      if (timeSinceLastRefresh.inSeconds < 30) {
+        return; // Skip refresh if less than 30 seconds
+      }
+    }
+    
+    // Update last refresh time
+    _lastRefreshTime = DateTime.now();
+    
+    // Ensure company and store are selected
+    _ensureCompanyAndStoreSelected();
+    
+    // Refresh revenue data if store is selected
+    final appState = ref.read(appStateProvider);
+    if (appState.storeChoosen.isNotEmpty && _hasRevenueFeature(ref)) {
+      ref.read(revenueProvider.notifier).fetchRevenue(forceRefresh: true);
+    }
+    
+    // Refresh user shift overview if applicable
+    if (appState.storeChoosen.isNotEmpty && !_hasRevenueFeature(ref)) {
+      ref.invalidate(userShiftOverviewProvider);
+    }
+  }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    // Handle app lifecycle changes if needed
+    // Refresh revenue when app comes back to foreground
+    if (state == AppLifecycleState.resumed) {
+      _refreshRevenue();
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    // Check if we should refresh revenue (when returning from another page)
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _refreshRevenue(); // This will check if 30 seconds have passed before refreshing
+    });
     
     final userCompaniesAsync = ref.watch(userCompaniesProvider);
     if (userCompaniesAsync.hasError) {
