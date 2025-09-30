@@ -16,11 +16,11 @@ import 'package:myfinance_improved/presentation/widgets/toss/toss_refresh_indica
 import 'package:myfinance_improved/presentation/widgets/toss/toss_tab_bar.dart';
 import 'package:myfinance_improved/data/services/supabase_service.dart';
 import 'package:myfinance_improved/presentation/providers/app_state_provider.dart';
-import 'providers/transaction_template_providers.dart';
-import 'providers/template_filter_provider.dart';
-import 'widgets/add_template_bottom_sheet.dart';
-import 'widgets/template_usage_bottom_sheet.dart';
-import 'widgets/template_filter_sheet.dart';
+import 'data/providers/transaction_template_providers.dart';
+import 'data/providers/template_filter_provider.dart';
+import 'presentation/modals/add_template_bottom_sheet.dart';
+import 'presentation/modals/template_usage_bottom_sheet.dart';
+import 'presentation/modals/template_filter_sheet.dart';
 import '../../../core/navigation/safe_navigation.dart';
 import 'package:myfinance_improved/core/themes/index.dart';
 
@@ -456,7 +456,7 @@ class _TransactionTemplatePageState extends ConsumerState<TransactionTemplatePag
                             ],
                             Expanded(
                               child: Text(
-                                template['name'] ?? 'Unnamed Template',
+                                (template['name'] as String?) ?? 'Unnamed Template',
                                 style: TossTextStyles.bodyLarge.copyWith(
                                   fontWeight: FontWeight.w600,
                                   color: TossColors.textPrimary,
@@ -837,7 +837,7 @@ class _TransactionTemplatePageState extends ConsumerState<TransactionTemplatePag
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      template['name'] ?? 'Unnamed Template',
+                      (template['name'] as String?) ?? 'Unnamed Template',
                       style: TossTextStyles.bodyLarge.copyWith(
                         fontWeight: FontWeight.w600,
                         color: TossColors.textPrimary,
@@ -929,7 +929,7 @@ class _TransactionTemplatePageState extends ConsumerState<TransactionTemplatePag
           'updated_at': DateTime.now().toIso8601String(),
         })
         .eq('template_id', templateId)
-        .catchError((e) => print('❌ Database update failed: $e'));
+        .catchError((Object e) => print('❌ Database update failed: $e'));
     
     // 3. Show success immediately
     if (context.mounted) {

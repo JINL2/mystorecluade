@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dart:async';
+import '../../../core/themes/toss_animations.dart';
 import '../../../core/themes/toss_colors.dart';
 import '../../../core/themes/toss_text_styles.dart';
 import '../../../core/themes/toss_spacing.dart';
@@ -68,7 +69,7 @@ class EnhancedQuantitySelector extends StatefulWidget {
     this.enabled = true,
     this.step = 1,
     this.longPressDelay = const Duration(milliseconds: 500),
-    this.longPressInterval = const Duration(milliseconds: 100),
+    this.longPressInterval = TossAnimations.quick,
     this.width,
     this.primaryColor,
     this.backgroundColor,
@@ -117,7 +118,7 @@ class _EnhancedQuantitySelectorState extends State<EnhancedQuantitySelector>
   void _initializeAnimations() {
     // Decrement button animation
     _decrementAnimationController = AnimationController(
-      duration: const Duration(milliseconds: 150),
+      duration: TossAnimations.fast,
       vsync: this,
     );
     _decrementScaleAnimation = Tween<double>(
@@ -125,12 +126,12 @@ class _EnhancedQuantitySelectorState extends State<EnhancedQuantitySelector>
       end: 0.85,
     ).animate(CurvedAnimation(
       parent: _decrementAnimationController,
-      curve: Curves.easeOutCubic,
+      curve: TossAnimations.enter,
     ));
 
     // Increment button animation
     _incrementAnimationController = AnimationController(
-      duration: const Duration(milliseconds: 150),
+      duration: TossAnimations.fast,
       vsync: this,
     );
     _incrementScaleAnimation = Tween<double>(
@@ -138,12 +139,12 @@ class _EnhancedQuantitySelectorState extends State<EnhancedQuantitySelector>
       end: 0.85,
     ).animate(CurvedAnimation(
       parent: _incrementAnimationController,
-      curve: Curves.easeOutCubic,
+      curve: TossAnimations.enter,
     ));
 
     // Quantity display animation
     _quantityAnimationController = AnimationController(
-      duration: const Duration(milliseconds: 200),
+      duration: TossAnimations.normal,
       vsync: this,
     );
     _quantityScaleAnimation = Tween<double>(
@@ -151,7 +152,7 @@ class _EnhancedQuantitySelectorState extends State<EnhancedQuantitySelector>
       end: 1.15,
     ).animate(CurvedAnimation(
       parent: _quantityAnimationController,
-      curve: Curves.elasticOut,
+      curve: TossAnimations.emphasis,
     ));
   }
 
@@ -218,7 +219,7 @@ class _EnhancedQuantitySelectorState extends State<EnhancedQuantitySelector>
     setState(() {}); // Update UI immediately
     
     // Debounce the callback to prevent rapid-fire updates
-    _debounceTimer = Timer(const Duration(milliseconds: 100), () {
+    _debounceTimer = Timer(TossAnimations.quick, () {
       if (mounted) {
         widget.onQuantityChanged(_pendingQuantity);
         _animateQuantityChange();
@@ -288,7 +289,7 @@ class _EnhancedQuantitySelectorState extends State<EnhancedQuantitySelector>
 
   Widget _buildAddToCartButton() {
     return AnimatedContainer(
-      duration: const Duration(milliseconds: 200),
+      duration: TossAnimations.normal,
       width: widget.width ?? 140,
       height: 48,
       child: ElevatedButton(
