@@ -695,7 +695,7 @@ class _WidgetConsistencyAnalyzerPageState
                 Text(
                   issue.example,
                   style: TossTextStyles.caption.copyWith(
-                    fontFamily: 'monospace',
+                    fontFamily: TossTextStyles.fontFamilyMono,
                     color: TossColors.gray800,
                   ),
                 ),

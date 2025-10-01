@@ -49,6 +49,7 @@ class CartNotifier extends StateNotifier<List<CartItem>> {
       state = updatedItems;
     } else {
       // Add new item
+      print('🛒 Adding product to cart: ${product.productName}, Price: ${product.pricing.sellingPrice}');
       state = [
         ...state,
         CartItem(
@@ -63,6 +64,7 @@ class CartNotifier extends StateNotifier<List<CartItem>> {
           customerOrdered: 0,
         ),
       ];
+      print('🛒 Cart subtotal: $subtotal, Items: $totalItems');
     }
   }
 
@@ -188,6 +190,7 @@ class SalesProductNotifier extends StateNotifier<SalesProductState> {
   }
   
   Future<void> loadProducts({String? search}) async {
+    print('🔍 [SALES_PRODUCT] Loading products with search: $search');
     
     state = state.copyWith(isLoading: true, error: null);
     
@@ -196,8 +199,10 @@ class SalesProductNotifier extends StateNotifier<SalesProductState> {
       final companyId = appState.companyChoosen;
       final storeId = appState.storeChoosen;
       
+      print('📋 [SALES_PRODUCT] Company: $companyId, Store: $storeId');
       
       if (companyId.isEmpty || storeId.isEmpty) {
+        print('❌ [SALES_PRODUCT] No company or store selected');
         state = state.copyWith(
           isLoading: false,
           error: 'Please select a company and store first',
@@ -215,6 +220,7 @@ class SalesProductNotifier extends StateNotifier<SalesProductState> {
       );
       
       if (result != null) {
+        print('✅ [SALES_PRODUCT] Products loaded: ${result.products.length}');
         
         // Convert inventory products to sales products
         final salesProducts = result.products
@@ -229,6 +235,7 @@ class SalesProductNotifier extends StateNotifier<SalesProductState> {
           hasNextPage: result.pagination.hasNext,
         );
       } else {
+        print('❌ [SALES_PRODUCT] Failed to load products');
         state = state.copyWith(
           isLoading: false,
           error: 'Failed to load products',
@@ -236,6 +243,7 @@ class SalesProductNotifier extends StateNotifier<SalesProductState> {
         );
       }
     } catch (e) {
+      print('❌ [SALES_PRODUCT] Error loading products: $e');
       state = state.copyWith(
         isLoading: false,
         error: 'Error loading products: $e',
@@ -245,10 +253,12 @@ class SalesProductNotifier extends StateNotifier<SalesProductState> {
   }
   
   void search(String query) {
+    print('🔍 [SALES_PRODUCT] Searching for: $query');
     loadProducts(search: query);
   }
   
   void refresh() {
+    print('🔄 [SALES_PRODUCT] Refreshing products');
     loadProducts();
   }
 }
@@ -310,9 +320,14 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage> with WidgetsB
     
     // Listen to search focus changes
     _searchFocusNode.addListener(() {
+      final cartItems = ref.read(cartProvider);
       setState(() {
         _isSearchFocused = _searchFocusNode.hasFocus;
-        // Don't auto-clear search here - let the back button handle it
+        // Clear search when losing focus to show clean Added Items view
+        if (!_isSearchFocused && cartItems.isNotEmpty) {
+          _searchController.clear();
+          searchQuery = '';
+        }
       });
     });
   }
@@ -439,10 +454,12 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage> with WidgetsB
 
   @override
   Widget build(BuildContext context) {
+    print('🟢 Building SaleProductPage - Title should be "Sales"');
     final cart = ref.watch(cartProvider);
     final salesState = ref.watch(salesProductProvider);
     final products = salesState.products;
     final currencySymbol = ref.watch(currencyProvider);
+    print('💰 Currency symbol: $currencySymbol');
     
     // Handle loading and error states
     if (salesState.isLoading && products.isEmpty) {
@@ -551,59 +568,22 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage> with WidgetsB
       }).toList();
     }
     
-    return PopScope(
-      canPop: cart.isEmpty && !_searchFocusNode.hasFocus, // Only allow pop if cart is empty and search not focused
-      onPopInvoked: (didPop) {
-        if (!didPop) {
-          // First priority: if search is focused, just unfocus it
-          if (_searchFocusNode.hasFocus) {
-            _searchFocusNode.unfocus();
-            // Clear search text when unfocusing
-            _searchController.clear();
-            setState(() {
-              searchQuery = '';
-            });
-          }
-          // Second priority: if cart has items and search not focused, clear cart
-          else if (cart.isNotEmpty) {
-            ref.read(cartProvider.notifier).clearCart();
-          }
-        }
-      },
-      child: TossScaffold(
-        backgroundColor: TossColors.gray100,
-        appBar: AppBar(
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
-            onPressed: () {
-              // First priority: if search is focused, just unfocus it
-              if (_searchFocusNode.hasFocus) {
-                _searchFocusNode.unfocus();
-                // Clear search text when unfocusing
-                _searchController.clear();
-                setState(() {
-                  searchQuery = '';
-                });
-              }
-              // Second priority: if cart has items and search not focused, clear cart
-              else if (cart.isNotEmpty) {
-                ref.read(cartProvider.notifier).clearCart();
-              }
-              // Last priority: if cart is empty and search not focused, navigate back
-              else {
-                NavigationHelper.safeGoBack(context);
-              }
-            },
-          ),
-          title: Text(
-            'Sales',
-            style: TossTextStyles.h3,
-          ),
-          centerTitle: true,
-          elevation: 0,
-          backgroundColor: TossColors.gray100,
-          foregroundColor: TossColors.black,
+    return TossScaffold(
+      backgroundColor: TossColors.gray100,
+      appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => NavigationHelper.safeGoBack(context),
         ),
+        title: Text(
+          'Sales',
+          style: TossTextStyles.h3,
+        ),
+        centerTitle: true,
+        elevation: 0,
+        backgroundColor: TossColors.gray100,
+        foregroundColor: TossColors.black,
+      ),
       body: Column(
         children: [
           // Fixed search section at the top
@@ -857,17 +837,10 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage> with WidgetsB
                       productQuantities: productQuantities,
                     ),
                   ),
-                ).then((result) {
-                  // Only clear cart if invoice was successfully created
-                  // result should be true or 'success' when invoice is created
-                  if (result == true && mounted) {
-                    ref.read(cartProvider.notifier).clearCart();
-                  }
-                });
+                );
               },
             )
           : null,
-      ),
     );
   }
 
@@ -941,7 +914,8 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage> with WidgetsB
       onTap: () {
         HapticFeedback.lightImpact();
         
-        // Don't unfocus search - user might want to add multiple products
+        // Unfocus search bar when selecting a product
+        _searchFocusNode.unfocus();
         
         if (cartItem.quantity == 0) {
           // Add first item to cart

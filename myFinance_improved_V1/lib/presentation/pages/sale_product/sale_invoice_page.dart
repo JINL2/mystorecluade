@@ -43,7 +43,8 @@ class _SaleInvoicePageState extends ConsumerState<SaleInvoicePage> {
 
   @override
   Widget build(BuildContext context) {
-    final cart = <SalesProduct>[];
+    // TODO: Update to use selectedProductsProvider
+    final cart = <SalesProduct>[]; // ref.watch(cartProvider);
     final subtotal = 0.0; // ref.read(cartProvider.notifier).subtotal;
     final totalItems = 0; // ref.read(cartProvider.notifier).totalItems;
     final formatter = NumberFormat('#,###');
@@ -252,6 +253,24 @@ class _SaleInvoicePageState extends ConsumerState<SaleInvoicePage> {
                     ),
                     
                     // Cart Items List
+                    // TODO: Update to work with SalesProduct instead of CartItem
+                    // ...cart.asMap().entries.map((entry) {
+                    //   final index = entry.key;
+                    //   final item = entry.value;
+                    //   
+                    //   return Column(
+                    //     children: [
+                    //       _buildInvoiceItem(item, index),
+                    //       if (index < cart.length - 1)
+                    //         Divider(
+                    //           height: 1,
+                    //           color: TossColors.gray100,
+                    //           indent: TossSpacing.space4 + TossSpacing.space12 + TossSpacing.space2,
+                    //           endIndent: TossSpacing.space4,
+                    //         ),
+                    //     ],
+                    //   );
+                    // }).toList(),
                   ],
                 ),
               ),

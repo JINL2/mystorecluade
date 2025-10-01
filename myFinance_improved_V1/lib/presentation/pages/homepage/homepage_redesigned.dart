@@ -38,7 +38,6 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   bool _isNavigating = false; // Add flag to prevent multiple navigations
   bool _isSalaryExpanded = false; // Track salary breakdown expansion state
-  DateTime? _lastRefreshTime; // Track last refresh time to prevent excessive refreshes
 
   @override
   void initState() {
@@ -191,48 +190,14 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
-  
-  void _refreshRevenue({bool force = false}) {
-    // Check if enough time has passed since last refresh (30 seconds)
-    if (!force && _lastRefreshTime != null) {
-      final timeSinceLastRefresh = DateTime.now().difference(_lastRefreshTime!);
-      if (timeSinceLastRefresh.inSeconds < 30) {
-        return; // Skip refresh if less than 30 seconds
-      }
-    }
-    
-    // Update last refresh time
-    _lastRefreshTime = DateTime.now();
-    
-    // Ensure company and store are selected
-    _ensureCompanyAndStoreSelected();
-    
-    // Refresh revenue data if store is selected
-    final appState = ref.read(appStateProvider);
-    if (appState.storeChoosen.isNotEmpty && _hasRevenueFeature(ref)) {
-      ref.read(revenueProvider.notifier).fetchRevenue(forceRefresh: true);
-    }
-    
-    // Refresh user shift overview if applicable
-    if (appState.storeChoosen.isNotEmpty && !_hasRevenueFeature(ref)) {
-      ref.invalidate(userShiftOverviewProvider);
-    }
-  }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    // Refresh revenue when app comes back to foreground
-    if (state == AppLifecycleState.resumed) {
-      _refreshRevenue();
-    }
+    // Handle app lifecycle changes if needed
   }
 
   @override
   Widget build(BuildContext context) {
-    // Check if we should refresh revenue (when returning from another page)
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _refreshRevenue(); // This will check if 30 seconds have passed before refreshing
-    });
     
     final userCompaniesAsync = ref.watch(userCompaniesProvider);
     if (userCompaniesAsync.hasError) {
@@ -342,38 +307,34 @@ class _HomePageRedesignedState extends ConsumerState<HomePageRedesigned> with Wi
     );
   }
 
-  /// Check if user has the revenue feature permission
+  /// Check if user has the revenue feature permission for the currently selected company
   bool _hasRevenueFeature(WidgetRef ref) {
     const revenueFeatureId = 'aef426a2-c50a-4ce2-aee9-c6509cfbd571';
     
     try {
-      // Get user data from userCompaniesProvider
-      final userDataAsync = ref.watch(userCompaniesProvider);
+      // Get the currently selected company from appStateProvider
+      // This ensures we only check permissions for the active company context
+      final appStateNotifier = ref.read(appStateProvider.notifier);
+      final selectedCompany = appStateNotifier.selectedCompany;
       
-      return userDataAsync.maybeWhen(
-        data: (userData) {
-          if (userData == null) return false;
-          
-          final companies = userData['companies'] as List<dynamic>? ?? [];
-          
-          // Search through all companies and their permissions
-          for (final company in companies) {
-            final role = company['role'] as Map<String, dynamic>?;
-            if (role != null) {
-              final permissions = role['permissions'] as List<dynamic>? ?? [];
-              
-              // Check if the revenue feature ID is in the permissions
-              if (permissions.contains(revenueFeatureId)) {
-                return true;
-              }
-            }
-          }
-          
-          return false;
-        },
-        orElse: () => false,
-      );
+      // No company selected = no permissions
+      if (selectedCompany == null) {
+        return false;
+      }
+      
+      // Extract role and permissions for the selected company only
+      final role = selectedCompany['role'] as Map<String, dynamic>?;
+      if (role == null) {
+        return false; // No role defined = no permissions
+      }
+      
+      final permissions = role['permissions'] as List<dynamic>? ?? [];
+      
+      // Check if the revenue feature ID exists in this specific company's permissions
+      return permissions.contains(revenueFeatureId);
+      
     } catch (e) {
+      // Safe default: no permissions on any error
       return false;
     }
   }

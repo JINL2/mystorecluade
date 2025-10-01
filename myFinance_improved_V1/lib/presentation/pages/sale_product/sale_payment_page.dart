@@ -143,10 +143,11 @@ class _SalePaymentPageState extends ConsumerState<SalePaymentPage> {
 
   @override
   Widget build(BuildContext context) {
-    final cart = <String, int>{};
+    // TODO: Update to use selectedProductsProvider
+    final cart = <String, int>{}; // ref.watch(cartProvider);
     final paymentState = ref.watch(paymentStateProvider);
-    final subtotal = 0.0;
-    final totalItems = 0;
+    final subtotal = 0.0; // ref.read(cartProvider.notifier).subtotal;
+    final totalItems = 0; // ref.read(cartProvider.notifier).totalItems;
     final formatter = NumberFormat('#,###');
 
     if (cart.isEmpty) {
@@ -322,6 +323,8 @@ class _SalePaymentPageState extends ConsumerState<SalePaymentPage> {
                     InkWell(
                       onTap: () {
                         HapticFeedback.lightImpact();
+                        // TODO: Update to work with new cart type
+                        // _showOrderDetails(context, cart, formatter);
                       },
                       child: Text(
                         'View order details ▼',
