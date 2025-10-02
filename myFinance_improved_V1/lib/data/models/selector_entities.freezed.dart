@@ -571,7 +571,10 @@ mixin _$CashLocationData {
   String get id => throw _privateConstructorUsedError;
   String get name => throw _privateConstructorUsedError;
   String get type => throw _privateConstructorUsedError;
-  String? get storeId => throw _privateConstructorUsedError;
+  String? get storeId =>
+      throw _privateConstructorUsedError; // RPC returns camelCase
+  String? get companyId =>
+      throw _privateConstructorUsedError; // For explicit company ID from RPC
   bool get isCompanyWide => throw _privateConstructorUsedError;
   bool get isDeleted => throw _privateConstructorUsedError;
   String? get currencyCode => throw _privateConstructorUsedError;
@@ -603,6 +606,7 @@ abstract class $CashLocationDataCopyWith<$Res> {
       String name,
       String type,
       String? storeId,
+      String? companyId,
       bool isCompanyWide,
       bool isDeleted,
       String? currencyCode,
@@ -632,6 +636,7 @@ class _$CashLocationDataCopyWithImpl<$Res, $Val extends CashLocationData>
     Object? name = null,
     Object? type = null,
     Object? storeId = freezed,
+    Object? companyId = freezed,
     Object? isCompanyWide = null,
     Object? isDeleted = null,
     Object? currencyCode = freezed,
@@ -657,6 +662,10 @@ class _$CashLocationDataCopyWithImpl<$Res, $Val extends CashLocationData>
       storeId: freezed == storeId
           ? _value.storeId
           : storeId // ignore: cast_nullable_to_non_nullable
+              as String?,
+      companyId: freezed == companyId
+          ? _value.companyId
+          : companyId // ignore: cast_nullable_to_non_nullable
               as String?,
       isCompanyWide: null == isCompanyWide
           ? _value.isCompanyWide
@@ -707,6 +716,7 @@ abstract class _$$CashLocationDataImplCopyWith<$Res>
       String name,
       String type,
       String? storeId,
+      String? companyId,
       bool isCompanyWide,
       bool isDeleted,
       String? currencyCode,
@@ -734,6 +744,7 @@ class __$$CashLocationDataImplCopyWithImpl<$Res>
     Object? name = null,
     Object? type = null,
     Object? storeId = freezed,
+    Object? companyId = freezed,
     Object? isCompanyWide = null,
     Object? isDeleted = null,
     Object? currencyCode = freezed,
@@ -759,6 +770,10 @@ class __$$CashLocationDataImplCopyWithImpl<$Res>
       storeId: freezed == storeId
           ? _value.storeId
           : storeId // ignore: cast_nullable_to_non_nullable
+              as String?,
+      companyId: freezed == companyId
+          ? _value.companyId
+          : companyId // ignore: cast_nullable_to_non_nullable
               as String?,
       isCompanyWide: null == isCompanyWide
           ? _value.isCompanyWide
@@ -804,6 +819,7 @@ class _$CashLocationDataImpl extends _CashLocationData {
       required this.name,
       required this.type,
       this.storeId,
+      this.companyId,
       this.isCompanyWide = false,
       this.isDeleted = false,
       this.currencyCode,
@@ -826,6 +842,10 @@ class _$CashLocationDataImpl extends _CashLocationData {
   final String type;
   @override
   final String? storeId;
+// RPC returns camelCase
+  @override
+  final String? companyId;
+// For explicit company ID from RPC
   @override
   @JsonKey()
   final bool isCompanyWide;
@@ -855,7 +875,7 @@ class _$CashLocationDataImpl extends _CashLocationData {
 
   @override
   String toString() {
-    return 'CashLocationData(id: $id, name: $name, type: $type, storeId: $storeId, isCompanyWide: $isCompanyWide, isDeleted: $isDeleted, currencyCode: $currencyCode, bankAccount: $bankAccount, bankName: $bankName, locationInfo: $locationInfo, transactionCount: $transactionCount, additionalData: $additionalData)';
+    return 'CashLocationData(id: $id, name: $name, type: $type, storeId: $storeId, companyId: $companyId, isCompanyWide: $isCompanyWide, isDeleted: $isDeleted, currencyCode: $currencyCode, bankAccount: $bankAccount, bankName: $bankName, locationInfo: $locationInfo, transactionCount: $transactionCount, additionalData: $additionalData)';
   }
 
   @override
@@ -867,6 +887,8 @@ class _$CashLocationDataImpl extends _CashLocationData {
             (identical(other.name, name) || other.name == name) &&
             (identical(other.type, type) || other.type == type) &&
             (identical(other.storeId, storeId) || other.storeId == storeId) &&
+            (identical(other.companyId, companyId) ||
+                other.companyId == companyId) &&
             (identical(other.isCompanyWide, isCompanyWide) ||
                 other.isCompanyWide == isCompanyWide) &&
             (identical(other.isDeleted, isDeleted) ||
@@ -893,6 +915,7 @@ class _$CashLocationDataImpl extends _CashLocationData {
       name,
       type,
       storeId,
+      companyId,
       isCompanyWide,
       isDeleted,
       currencyCode,
@@ -925,6 +948,7 @@ abstract class _CashLocationData extends CashLocationData {
       required final String name,
       required final String type,
       final String? storeId,
+      final String? companyId,
       final bool isCompanyWide,
       final bool isDeleted,
       final String? currencyCode,
@@ -945,7 +969,9 @@ abstract class _CashLocationData extends CashLocationData {
   @override
   String get type;
   @override
-  String? get storeId;
+  String? get storeId; // RPC returns camelCase
+  @override
+  String? get companyId; // For explicit company ID from RPC
   @override
   bool get isCompanyWide;
   @override

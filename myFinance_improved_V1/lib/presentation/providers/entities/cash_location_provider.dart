@@ -25,8 +25,15 @@ class CashLocationList extends _$CashLocationList {
   ]) async {
     final supabase = ref.read(supabaseServiceProvider);
     
+    // Ensure we're not using stale cache by refreshing when necessary
+    // This prevents showing deleted cash locations that might be cached
+    
     try {
       // Only pass company_id to get ALL locations for the company
+      
+      // Add a small delay to ensure any cache invalidation has taken effect
+      await Future.delayed(Duration(milliseconds: 10));
+      
       final response = await supabase.client.rpc(
         'get_cash_locations',
         params: {
@@ -34,17 +41,58 @@ class CashLocationList extends _$CashLocationList {
           // Don't pass p_store_id or p_location_type - we'll filter client-side
         },
       );
-
-      if (response == null) return [];
+      
+      if (response == null) {
+        return [];
+      }
 
       final List<dynamic> data = response as List<dynamic>;
-      final locations = data.map((json) => CashLocationData.fromJson(json as Map<String, dynamic>)).toList();
       
-      // Filter out deleted cash locations
-      return locations.where((location) => !location.isDeleted).toList();
+      // Convert to CashLocationData with enhanced validation
+      final allParsedLocations = data
+          .map((json) => CashLocationData.fromJson(json as Map<String, dynamic>))
+          .toList();
+      
+      final locations = allParsedLocations
+          .where((location) {
+            // Primary filtering: exclude deleted locations
+            if (location.isDeleted) {
+              return false;
+            }
+            
+            // Enhanced security filtering - validate company ownership
+            // The RPC should only return locations for the requested company,
+            // but we double-check for security
+            final locationCompanyId = location.companyId ?? location.additionalData?['company_id'];
+            if (locationCompanyId != null && locationCompanyId != companyId) {
+              return false;
+            }
+            
+            return true;
+          })
+          .toList();
+      
+      // FINAL SAFETY CHECK: Verify no deleted locations made it through
+      final finalDeletedCheck = locations.where((loc) => loc.isDeleted).toList();
+      if (finalDeletedCheck.isNotEmpty) {
+        // Remove them forcefully as a last resort
+        locations.removeWhere((loc) => loc.isDeleted);
+      }
+      
+      // Sort locations for consistent ordering
+      locations.sort((a, b) {
+        // Sort by: 1) Company-wide first, 2) Type, 3) Name
+        if (a.isCompanyWide != b.isCompanyWide) {
+          return a.isCompanyWide ? -1 : 1;
+        }
+        final typeComparison = a.type.compareTo(b.type);
+        if (typeComparison != 0) return typeComparison;
+        return a.name.compareTo(b.name);
+      });
+      
+      return locations;
     } catch (e) {
       // Log error but don't throw to prevent UI crashes
-      print('Error fetching cash locations: $e');
       return [];
     }
   }
@@ -69,6 +117,11 @@ class CashLocationList extends _$CashLocationList {
     final locations = await future;
     return locations.storeSpecific;
   }
+
+  // Force refresh method to bypass cache and get fresh data
+  void forceRefresh() {
+    ref.invalidateSelf();
+  }
 }
 
 // =====================================================
@@ -79,11 +132,18 @@ class CashLocationList extends _$CashLocationList {
 /// Current cash locations based on selected company/store
 @riverpod
 Future<List<CashLocationData>> currentCashLocations(CurrentCashLocationsRef ref) async {
+  final appState = ref.watch(appStateProvider);
   final appStateNotifier = ref.read(appStateProvider.notifier);
-  final selectedCompany = appStateNotifier.selectedCompany;
-  final selectedStore = appStateNotifier.selectedStore;
-  final companyId = selectedCompany?['company_id'] as String?;
-  final storeId = selectedStore?['store_id'] as String?;
+  
+  // Use companyChoosen directly from app state (source of truth)
+  final companyId = appState.companyChoosen.isNotEmpty 
+      ? appState.companyChoosen 
+      : appStateNotifier.selectedCompany?['company_id'] as String?;
+  
+  // Use storeChoosen directly from app state
+  final storeId = appState.storeChoosen.isNotEmpty 
+      ? appState.storeChoosen 
+      : appStateNotifier.selectedStore?['store_id'] as String?;
   
   if (companyId == null) return [];
   
@@ -93,11 +153,21 @@ Future<List<CashLocationData>> currentCashLocations(CurrentCashLocationsRef ref)
 /// Company-wide cash locations (no store filtering)
 @riverpod
 Future<List<CashLocationData>> companyCashLocations(CompanyCashLocationsRef ref) async {
+  final appState = ref.watch(appStateProvider);
   final appStateNotifier = ref.read(appStateProvider.notifier);
-  final selectedCompany = appStateNotifier.selectedCompany;
-  final companyId = selectedCompany?['company_id'] as String?;
   
-  if (companyId == null) return [];
+  // Use companyChoosen directly from app state (source of truth)
+  final companyId = appState.companyChoosen.isNotEmpty 
+      ? appState.companyChoosen 
+      : appStateNotifier.selectedCompany?['company_id'] as String?;
+  
+  if (companyId == null || companyId.isEmpty) {
+    return [];
+  }
+  
+  // FORCE INVALIDATION: Always invalidate the underlying provider to ensure fresh data
+  // This ensures that when the user selects "Cash" account, we get fresh data from RPC
+  ref.invalidate(cashLocationListProvider(companyId, null));
   
   // Only pass company_id to get ALL locations for the company
   // Store filtering will be done in the UI widget
@@ -110,11 +180,18 @@ Future<List<CashLocationData>> currentCashLocationsByType(
   CurrentCashLocationsByTypeRef ref,
   String locationType,
 ) async {
+  final appState = ref.watch(appStateProvider);
   final appStateNotifier = ref.read(appStateProvider.notifier);
-  final selectedCompany = appStateNotifier.selectedCompany;
-  final selectedStore = appStateNotifier.selectedStore;
-  final companyId = selectedCompany?['company_id'] as String?;
-  final storeId = selectedStore?['store_id'] as String?;
+  
+  // Use companyChoosen directly from app state (source of truth)
+  final companyId = appState.companyChoosen.isNotEmpty 
+      ? appState.companyChoosen 
+      : appStateNotifier.selectedCompany?['company_id'] as String?;
+  
+  // Use storeChoosen directly from app state
+  final storeId = appState.storeChoosen.isNotEmpty 
+      ? appState.storeChoosen 
+      : appStateNotifier.selectedStore?['store_id'] as String?;
   
   if (companyId == null) return [];
   
@@ -147,6 +224,30 @@ Future<List<CashLocationData>> currentCompanyCashLocations(CurrentCompanyCashLoc
 @riverpod
 Future<List<CashLocationData>> currentStoreCashLocations(CurrentStoreCashLocationsRef ref) async {
   return ref.watch(currentCashLocationsByScopeProvider(TransactionScope.store).future);
+}
+
+/// Store-filtered cash locations (company-wide + specific store)
+@riverpod
+Future<List<CashLocationData>> storeFilteredCashLocations(StoreFilteredCashLocationsRef ref) async {
+  final appState = ref.watch(appStateProvider);
+  final companyId = appState.companyChoosen;
+  final storeId = appState.storeChoosen;
+  
+  if (companyId.isEmpty) return [];
+  
+  // Get all company locations
+  final allLocations = await ref.watch(cashLocationListProvider(companyId, null).future);
+  
+  // Filter for store tab: company-wide + specific store
+  if (storeId.isNotEmpty) {
+    return allLocations.where((location) => 
+      location.isCompanyWide || // Company-wide locations accessible from any store
+      location.storeId == storeId // Store-specific locations
+    ).toList();
+  } else {
+    // No store selected, return only company-wide locations
+    return allLocations.where((location) => location.isCompanyWide).toList();
+  }
 }
 
 /// Cash-type locations only (not bank accounts)

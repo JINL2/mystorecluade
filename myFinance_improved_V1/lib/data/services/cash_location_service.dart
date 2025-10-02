@@ -59,9 +59,13 @@ class CashLocationService {
         },
       );
       
-      // Parse the RPC response
+      // Parse the RPC response and filter for security
       return (response as List)
           .map((json) => CashLocationRPCResponse.fromJson(json))
+          .where((location) => 
+            !location.isDeleted && 
+            (location.additionalData['company_id'] == companyId),
+          )
           .toList();
     } catch (e) {
       throw Exception('Failed to load cash locations: ${e.toString()}');
