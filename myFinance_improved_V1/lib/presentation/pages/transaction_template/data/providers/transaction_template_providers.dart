@@ -283,6 +283,7 @@ final sortedTransactionTemplatesProvider = FutureProvider<List<Map<String, dynam
     // Silent fail
   }
   
+
   // Fetch cash locations using RPC
   Map<String, String> cashLocationNames = {};
   try {
@@ -300,6 +301,7 @@ final sortedTransactionTemplatesProvider = FutureProvider<List<Map<String, dynam
         if (id != null && name != null) {
           cashLocationNames[id] = name;
         }
+
       }
     }
   } catch (e) {
@@ -479,6 +481,7 @@ final cashLocationsProvider = FutureProvider<List<Map<String, dynamic>>>((ref) a
       return [];
     }
     
+
     // Use RPC to get cash locations
     final response = await supabase.rpc(
       'get_cash_locations',
@@ -510,6 +513,7 @@ final cashLocationsProvider = FutureProvider<List<Map<String, dynamic>>>((ref) a
       'location_name': loc['name'],
       'location_type': loc['type'],
     }).toList();
+
   } catch (e) {
     throw Exception('Failed to fetch cash locations: $e');
   }
@@ -548,6 +552,7 @@ final counterpartyCashLocationsProvider = FutureProvider.family<List<Map<String,
     
     final supabase = Supabase.instance.client;
     
+
     // Use RPC to get cash locations for the counterparty company
     final response = await supabase.rpc(
       'get_cash_locations',
@@ -561,12 +566,14 @@ final counterpartyCashLocationsProvider = FutureProvider.family<List<Map<String,
         {'cash_location_id': null, 'location_name': 'None', 'location_type': 'none'},
       ];
     }
+
     
     // Add "None" option at the beginning
     final locations = <Map<String, dynamic>>[
       {'cash_location_id': null, 'location_name': 'None', 'location_type': 'none'},
     ];
     
+
     // Convert RPC response format to expected format and add to locations
     final convertedLocations = (response as List).map((loc) => {
       'cash_location_id': loc['id'],
@@ -580,6 +587,7 @@ final counterpartyCashLocationsProvider = FutureProvider.family<List<Map<String,
     );
     
     locations.addAll(convertedLocations);
+
     
     return locations;
   } catch (e) {

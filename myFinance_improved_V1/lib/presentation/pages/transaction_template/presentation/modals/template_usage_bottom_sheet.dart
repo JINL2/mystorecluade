@@ -1901,6 +1901,7 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
           tagsCashLocations.first as String? : null;
       
       if (_selectedMyCashLocationId != null || preselectedMyCashLocationId != null) {
+
         final cashLocationsResponse = await supabase.rpc(
           'get_cash_locations',
           params: {
@@ -1922,6 +1923,14 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
           
           myCashLocations = List<Map<String, dynamic>>.from(filteredLocations);
         }
+
+        final cashLocationsResponse = await supabase
+            .from('cash_locations')
+            .select('cash_location_id, location_name')
+            .eq('company_id', appState.companyChoosen)
+            .eq('store_id', appState.storeChoosen);
+        myCashLocations = List<Map<String, dynamic>>.from(cashLocationsResponse);
+
       }
       
       // Construct p_lines with proper cash/debt handling

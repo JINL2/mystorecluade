@@ -72,74 +72,32 @@ class LocationService {
       }
       
       // Build the query based on whether it's headquarter or a regular store
-      List<Map<String, dynamic>> response;
-      
-      // Use RPC to get all cash locations for the company
-      final rpcResponse = await Supabase.instance.client.rpc(
-        'get_cash_locations',
-        params: {
-          'p_company_id': companyId,
-        },
-      );
-      
-      if (rpcResponse == null) {
-        return {
-          'success': false,
-          'message': 'No cash locations found for this company',
-          'data': [],
-        };
-      }
-      
-      // Filter client-side based on store and location type
-      List<Map<String, dynamic>> filteredLocations = [];
+
+      final List<Map<String, dynamic>> response;
       
       if (selectedStoreId == 'headquarter') {
-        // For headquarter, show company-wide locations of specified type
-        filteredLocations = (rpcResponse as List<dynamic>)
-            .cast<Map<String, dynamic>>()
-            .where((location) => 
-              location['isCompanyWide'] == true &&
-              location['type']?.toString().toLowerCase() == locationType.toLowerCase() &&
-              location['isDeleted'] != true
-            )
-            .toList();
+        // For headquarter, filter by null store_id and location_type
+        response = await Supabase.instance.client
+            .from('cash_locations')
+            .select('*')  // Select all columns to see what's available
+            .eq('company_id', companyId)
+            .isFilter('store_id', null)
+            .eq('location_type', locationType)  // Filter by location type (cash/bank/vault)
+            .eq('is_deleted', false)  // Only show active locations
+            .order('location_name');
       } else if (selectedStoreId != null && selectedStoreId.isNotEmpty) {
-        // For regular store, show store-specific + company-wide locations of specified type
-        filteredLocations = (rpcResponse as List<dynamic>)
-            .cast<Map<String, dynamic>>()
-            .where((location) => 
-              (location['storeId'] == selectedStoreId || location['isCompanyWide'] == true) &&
-              location['type']?.toString().toLowerCase() == locationType.toLowerCase() &&
-              location['isDeleted'] != true
-            )
-            .toList();
+        // For regular store, filter by store_id and location_type
+        response = await Supabase.instance.client
+            .from('cash_locations')
+            .select('*')  // Select all columns to see what's available
+            .eq('company_id', companyId)
+            .eq('store_id', selectedStoreId)
+            .eq('location_type', locationType)  // Filter by location type (cash/bank/vault)
+            .eq('is_deleted', false)  // Only show active locations
+            .order('location_name');
       } else {
-        // No store selected - return empty results
-        filteredLocations = [];
-      }
-      
-      // Sort by location name
-      filteredLocations.sort((a, b) => 
-        (a['name'] ?? '').toString().compareTo((b['name'] ?? '').toString())
-      );
-      
-      // Convert RPC response format to expected format
-      response = filteredLocations.map((location) => {
-        'cash_location_id': location['id'],
-        'location_name': location['name'],
-        'location_type': location['type'],
-        'company_id': location['companyId'] ?? location['additionalData']?['company_id'],
-        'store_id': location['storeId'],
-        'is_deleted': location['isDeleted'],
-        'currency_code': location['currencyCode'],
-        'bank_account': location['bankAccount'],
-        'bank_name': location['bankName'],
-        'location_info': location['locationInfo'],
-        'is_company_wide': location['isCompanyWide'],
-      }).toList();
-      
-      // Handle case where no store is selected but we still need to return structure
-      if (selectedStoreId == null || selectedStoreId.isEmpty) {
+        // No store selected
+
         return {
           'cashLocations': locationType == 'cash' ? [] : null,
           'bankLocations': locationType == 'bank' ? [] : null,

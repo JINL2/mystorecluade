@@ -128,6 +128,7 @@ class QuickTransactionBuilder {
   
   static Future<Map<String, dynamic>?> _getCashLocationData(String cashLocationId) async {
     try {
+
       // Note: Since this is a utility function and we don't have company context,
       // we'll return a minimal structure. In a full migration, this should be refactored
       // to either receive company_id parameter or use a different approach.
