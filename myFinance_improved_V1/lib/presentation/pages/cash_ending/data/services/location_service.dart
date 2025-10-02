@@ -71,33 +71,16 @@ class LocationService {
         };
       }
       
-      // Build the query based on whether it's headquarter or a regular store
-
-      final List<Map<String, dynamic>> response;
+      // Use RPC to get all cash locations for the company
+      final rpcResponse = await Supabase.instance.client.rpc(
+        'get_cash_locations',
+        params: {
+          'p_company_id': companyId,
+        },
+      );
       
-      if (selectedStoreId == 'headquarter') {
-        // For headquarter, filter by null store_id and location_type
-        response = await Supabase.instance.client
-            .from('cash_locations')
-            .select('*')  // Select all columns to see what's available
-            .eq('company_id', companyId)
-            .isFilter('store_id', null)
-            .eq('location_type', locationType)  // Filter by location type (cash/bank/vault)
-            .eq('is_deleted', false)  // Only show active locations
-            .order('location_name');
-      } else if (selectedStoreId != null && selectedStoreId.isNotEmpty) {
-        // For regular store, filter by store_id and location_type
-        response = await Supabase.instance.client
-            .from('cash_locations')
-            .select('*')  // Select all columns to see what's available
-            .eq('company_id', companyId)
-            .eq('store_id', selectedStoreId)
-            .eq('location_type', locationType)  // Filter by location type (cash/bank/vault)
-            .eq('is_deleted', false)  // Only show active locations
-            .order('location_name');
-      } else {
-        // No store selected
-
+      if (rpcResponse == null) {
+        // No locations found
         return {
           'cashLocations': locationType == 'cash' ? [] : null,
           'bankLocations': locationType == 'bank' ? [] : null,
@@ -111,19 +94,81 @@ class LocationService {
         };
       }
       
+      // Filter the response based on store selection and location type
+      List<Map<String, dynamic>> filteredLocations = [];
+      
+      if (selectedStoreId == 'headquarter') {
+        // For headquarter, filter for company-wide locations or null storeId
+        filteredLocations = (rpcResponse as List).where((location) {
+          // Check if location matches the type and is either company-wide or has null storeId
+          return location['type'] == locationType &&
+                 !location['isDeleted'] &&
+                 (location['isCompanyWide'] == true || location['storeId'] == null);
+        }).map((location) => {
+          // Map RPC response fields to expected structure
+          'cash_location_id': location['id'],
+          'location_name': location['name'],
+          'location_type': location['type'],
+          'store_id': location['storeId'],
+          'is_deleted': location['isDeleted'],
+          'currency_code': location['currencyCode'],
+          'bank_account': location['bankAccount'],
+          'bank_name': location['bankName'],
+          'location_info': location['locationInfo'],
+        }).toList();
+      } else if (selectedStoreId != null && selectedStoreId.isNotEmpty) {
+        // For regular store, filter by storeId or company-wide locations
+        filteredLocations = (rpcResponse as List).where((location) {
+          // Check if location matches the type and belongs to this store or is company-wide
+          return location['type'] == locationType &&
+                 !location['isDeleted'] &&
+                 (location['storeId'] == selectedStoreId || location['isCompanyWide'] == true);
+        }).map((location) => {
+          // Map RPC response fields to expected structure
+          'cash_location_id': location['id'],
+          'location_name': location['name'],
+          'location_type': location['type'],
+          'store_id': location['storeId'],
+          'is_deleted': location['isDeleted'],
+          'currency_code': location['currencyCode'],
+          'bank_account': location['bankAccount'],
+          'bank_name': location['bankName'],
+          'location_info': location['locationInfo'],
+        }).toList();
+      } else {
+        // No store selected
+        return {
+          'cashLocations': locationType == 'cash' ? [] : null,
+          'bankLocations': locationType == 'bank' ? [] : null,
+          'vaultLocations': locationType == 'vault' ? [] : null,
+          'isLoadingCashLocations': false,
+          'isLoadingBankLocations': false,
+          'isLoadingVaultLocations': false,
+          'selectedLocationId': null,
+          'selectedBankLocationId': null,
+          'selectedVaultLocationId': null,
+        };
+      }
+      
+      // Sort the filtered locations by name
+      filteredLocations.sort((a, b) => 
+        (a['location_name'] as String).compareTo(b['location_name'] as String));
+      
+      final List<Map<String, dynamic>> response = filteredLocations;
+      
       // Return appropriate response based on location type
       final result = <String, dynamic>{};
       
       if (locationType == 'cash') {
-        result['cashLocations'] = List<Map<String, dynamic>>.from(response);
+        result['cashLocations'] = response;
         result['isLoadingCashLocations'] = false;
         result['selectedLocationId'] = null;
       } else if (locationType == 'bank') {
-        result['bankLocations'] = List<Map<String, dynamic>>.from(response);
+        result['bankLocations'] = response;
         result['isLoadingBankLocations'] = false;
         result['selectedBankLocationId'] = null;
       } else if (locationType == 'vault') {
-        result['vaultLocations'] = List<Map<String, dynamic>>.from(response);
+        result['vaultLocations'] = response;
         result['isLoadingVaultLocations'] = false;
         result['selectedVaultLocationId'] = null;
       }
