@@ -72,7 +72,8 @@ class CashLocationData with _$CashLocationData {
     required String id,
     required String name,
     required String type,
-    String? storeId,
+    String? storeId, // RPC returns camelCase
+    String? companyId, // For explicit company ID from RPC
     @Default(false) bool isCompanyWide,
     @Default(false) bool isDeleted,
     String? currencyCode,
@@ -104,6 +105,23 @@ class CashLocationData with _$CashLocationData {
   bool get isCash => type.toLowerCase().contains('cash');
   bool get isBank => type.toLowerCase().contains('bank');
   bool get isVault => type.toLowerCase().contains('vault');
+  
+  // Company validation helper
+  bool belongsToCompany(String targetCompanyId) {
+    // Check direct companyId field from RPC response
+    if (companyId != null && companyId!.isNotEmpty) {
+      return companyId == targetCompanyId;
+    }
+    
+    // Fallback to additionalData (for backward compatibility)
+    final additionalCompanyId = additionalData?['company_id'];
+    if (additionalCompanyId != null) {
+      return additionalCompanyId == targetCompanyId;
+    }
+    
+    // If no company ID found, assume it doesn't belong
+    return false;
+  }
 }
 
 // =====================================================

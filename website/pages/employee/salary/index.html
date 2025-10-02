@@ -11,6 +11,9 @@
     <link rel="stylesheet" href="../../../core/themes/toss-base.css">
     <link rel="stylesheet" href="../../../core/themes/toss-typography.css">
     
+    <!-- SheetJS Library for Excel Export -->
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+    
     <!-- Component CSS -->
     <link rel="stylesheet" href="../../../components/base/toss-button.css">
     <link rel="stylesheet" href="../../../components/form/toss-input.css">
@@ -76,15 +79,71 @@
             margin-top: var(--space-1);
         }
         
-        /* Period Selector */
+        /* Period Controls Wrapper */
+        .period-controls-wrapper {
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+        }
+        
+        /* Export Excel Button (Separate) */
+        .export-excel-btn {
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+            padding: 8px 16px;
+            background: #217346;
+            color: white;
+            border: none;
+            border-radius: var(--radius-lg);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+            box-shadow: var(--shadow-xs);
+            height: 48px;
+        }
+        
+        .export-excel-btn:hover {
+            background: #1a5c37;
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .export-excel-btn:active {
+            transform: translateY(0);
+            box-shadow: none;
+        }
+        
+        .export-excel-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+        
+        .export-excel-btn svg {
+            flex-shrink: 0;
+        }
+        
+        .export-excel-btn .spin-animation {
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Period Selector (Separate) */
         .period-controls {
             display: flex;
             align-items: center;
             gap: var(--space-3);
             background: var(--toss-white);
-            padding: var(--space-2);
+            padding: 8px;
             border-radius: var(--radius-lg);
             box-shadow: var(--shadow-xs);
+            height: 48px;
         }
         
         .period-nav-btn {
@@ -845,6 +904,25 @@
         }
         
         /* ==================== RESPONSIVE DESIGN ==================== */
+        
+        /* Tablet View */
+        @media (max-width: 1024px) and (min-width: 769px) {
+            .period-controls-wrapper {
+                gap: var(--space-2);
+            }
+            
+            .export-excel-btn {
+                font-size: 13px;
+                padding: 6px 12px;
+            }
+            
+            .export-excel-btn svg {
+                width: 18px;
+                height: 18px;
+            }
+        }
+        
+        /* Mobile View */
         @media (max-width: 768px) {
             .salary-container {
                 padding: var(--space-4);
@@ -855,7 +933,21 @@
                 align-items: stretch;
             }
             
+            .period-controls-wrapper {
+                flex-direction: column;
+                gap: var(--space-2);
+                align-items: stretch;
+            }
+            
+            .export-excel-btn {
+                width: 100%;
+                justify-content: center;
+                order: 2;
+            }
+            
             .period-controls {
+                order: 1;
+                width: 100%;
                 justify-content: center;
             }
             
@@ -953,18 +1045,27 @@
                     <p class="salary-subtitle">Manage employee compensation and payroll</p>
                 </div>
                 
-                <div class="period-controls">
-                    <button class="period-nav-btn" id="prevPeriod">
+                <div class="period-controls-wrapper">
+                    <button class="export-excel-btn" id="exportExcel">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
+                            <path d="M14,2L20,8V20A2,2 0 0,1 18,22H6A2,2 0 0,1 4,20V4A2,2 0 0,1 6,2H14M18,20V9H13V4H6V20H18M12,19L8,15H10.5V12H13.5V15H16L12,19Z"/>
                         </svg>
+                        <span>Export Excel</span>
                     </button>
-                    <div class="period-display" id="currentPeriod">2025-08</div>
-                    <button class="period-nav-btn" id="nextPeriod">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/>
-                        </svg>
-                    </button>
+                    
+                    <div class="period-controls">
+                        <button class="period-nav-btn" id="prevPeriod">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
+                            </svg>
+                        </button>
+                        <div class="period-display" id="currentPeriod">2025-08</div>
+                        <button class="period-nav-btn" id="nextPeriod">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/>
+                            </svg>
+                        </button>
+                    </div>
                 </div>
             </div>
             
@@ -1162,13 +1263,13 @@
                 });
                 
                 // Initialize supabase client if not already done
-                if (!window.supabase) {
+                if (!window.supabaseClient) {
                     console.error('Supabase not initialized');
                     throw new Error('Supabase client not initialized. Please refresh the page.');
                 }
                 
                 // Call the RPC function
-                const { data, error } = await supabase.rpc('get_employee_salary', {
+                const { data, error } = await window.supabaseClient.rpc('get_employee_salary', {
                     p_company_id: companyId,
                     p_month: currentPeriod
                 });
@@ -1183,12 +1284,7 @@
                     throw new Error('No data returned from get_employee_salary');
                 }
                 
-                console.log('Salary data received:', data);
-                console.log('Data structure check:');
-                console.log('- Has employees array:', Array.isArray(data.employees));
-                console.log('- Number of employees:', data.employees ? data.employees.length : 0);
-                console.log('- First employee:', data.employees ? data.employees[0] : null);
-                console.log('- Has summary:', data.summary ? true : false);
+                console.log('Salary data received for', data.employees ? data.employees.length : 0, 'employees');
                 
                 salaryData = data;
                 
@@ -1224,21 +1320,13 @@
                 return;
             }
             
-            console.log('Rendering salary data:', salaryData);
-            console.log('Number of employees:', salaryData.employees ? salaryData.employees.length : 0);
-            
             // Update period display
             document.getElementById('currentPeriod').textContent = salaryData.period || currentPeriod;
-            
-            // Update summary cards - pass null to use original summary for initial load
-            renderSummaryCards(null);
             
             // Store all employees for filtering (employees already in correct format)
             filteredEmployees = salaryData.employees || [];
             
-            console.log('Filtered employees set to:', filteredEmployees);
-            
-            // Apply current filter and search
+            // Apply filters (including removal of 0 salary employees)
             applyFilters();
         }
         
@@ -1278,17 +1366,39 @@
                     summary.employee_breakdown.hourly++;
                 }
                 
-                // Sum payments
-                const salaryInfo = employee.salary_info || {};
-                const baseInfo = salaryInfo.base_info || {};
-                summary.total_payment += salaryInfo.total_payment || 0;
-                summary.total_base_payment += baseInfo.base_payment || baseInfo.monthly_salary || 0;
-                
-                // Count problems
-                const problems = employee.problems || {};
-                const problemDetails = problems.problem_details || [];
-                summary.total_problems += problemDetails.length;
-                summary.unsolved_problems += problemDetails.filter(p => !p.is_solved).length;
+                // Calculate payments based on store filter
+                if (currentStoreFilter && employee.stores) {
+                    // Find the specific store's data
+                    const storeData = employee.stores.find(s => 
+                        String(s.store_id).trim() === String(currentStoreFilter).trim()
+                    );
+                    
+                    if (storeData) {
+                        // Use store-specific data
+                        summary.total_payment += storeData.store_total_payment || 0;
+                        summary.total_base_payment += storeData.base_payment || 0;
+                        
+                        // Count only problems from this store
+                        const problems = employee.problems || {};
+                        const problemDetails = (problems.problem_details || []).filter(p =>
+                            p.store_id && String(p.store_id).trim() === String(currentStoreFilter).trim()
+                        );
+                        summary.total_problems += problemDetails.length;
+                        summary.unsolved_problems += problemDetails.filter(p => !p.is_solved).length;
+                    }
+                } else {
+                    // Use total salary across all stores
+                    const salaryInfo = employee.salary_info || {};
+                    const baseInfo = salaryInfo.base_info || {};
+                    summary.total_payment += salaryInfo.total_payment || 0;
+                    summary.total_base_payment += baseInfo.base_payment || baseInfo.monthly_salary || 0;
+                    
+                    // Count all problems
+                    const problems = employee.problems || {};
+                    const problemDetails = problems.problem_details || [];
+                    summary.total_problems += problemDetails.length;
+                    summary.unsolved_problems += problemDetails.filter(p => !p.is_solved).length;
+                }
             });
             
             return summary;
@@ -1298,9 +1408,9 @@
         function renderSummaryCards(filteredEmployees = null) {
             if (!salaryData || !salaryData.summary) return;
             
-            // Use filtered summary if employees are filtered, otherwise use the original summary
+            // Always use filtered summary when employees are provided
             let summary;
-            if (filteredEmployees && (currentStoreFilter || currentFilter !== 'all' || searchTerm)) {
+            if (filteredEmployees) {
                 summary = calculateFilteredSummary(filteredEmployees);
             } else {
                 summary = salaryData.summary;
@@ -1354,15 +1464,27 @@
         
         // Render employee list
         function renderEmployeeList(employees) {
-            console.log('renderEmployeeList called with', employees ? employees.length : 0, 'employees');
             const employeeList = document.getElementById('employeeList');
             
             if (!employees || employees.length === 0) {
                 employeeList.innerHTML = '';
                 employeeList.classList.add('hidden');
                 document.getElementById('emptyState').classList.remove('hidden');
-                document.getElementById('emptyState').querySelector('.empty-title').textContent = 'No employees found';
-                document.getElementById('emptyState').querySelector('.empty-text').textContent = 'Try adjusting your filters or search terms.';
+                
+                // Provide more specific messages based on filters
+                const emptyTitle = document.getElementById('emptyState').querySelector('.empty-title');
+                const emptyText = document.getElementById('emptyState').querySelector('.empty-text');
+                
+                if (currentStoreFilter) {
+                    emptyTitle.textContent = 'No employees with salary in this store';
+                    emptyText.textContent = 'No employees with registered salary for this store in the selected period.';
+                } else if (searchTerm) {
+                    emptyTitle.textContent = 'No employees found';
+                    emptyText.textContent = 'No employees with salary matching your search criteria.';
+                } else {
+                    emptyTitle.textContent = 'No employees with salary';
+                    emptyText.textContent = 'No employees have registered salary for this period.';
+                }
                 return;
             }
             
@@ -1370,45 +1492,111 @@
             employeeList.classList.remove('hidden');
             
             employeeList.innerHTML = employees.map(employee => {
-                const salaryInfo = employee.salary_info || {};
-                const baseInfo = salaryInfo.base_info || {};
-                const deductions = salaryInfo.deductions || {};
-                const bonuses = salaryInfo.bonuses || {};
-                const overtime = salaryInfo.overtime || {};
-                const problems = employee.problems || {};
                 const currencyInfo = employee.currency_info || {};
                 const currencySymbol = currencyInfo.currency_symbol || '';
                 
                 // Use user_name directly from the response
                 const employeeName = employee.user_name || 'Unknown';
                 
-                // Determine salary display based on type - check both salary_type locations
-                const salaryType = employee.salary_type || salaryInfo.salary_type;
+                // Determine which salary info to use based on store filter
+                let displaySalaryInfo, displayBaseInfo, displayDeductions, displayBonuses, displayOvertime;
+                let displayTotalPayment = 0;
+                let displayStores = employee.stores || [];
+                
+                if (currentStoreFilter && employee.stores) {
+                    // Find the specific store's data
+                    const storeData = employee.stores.find(s => 
+                        String(s.store_id).trim() === String(currentStoreFilter).trim()
+                    );
+                    
+                    if (storeData) {
+                        // Use store-specific data
+                        displayTotalPayment = storeData.store_total_payment || 0;
+                        
+                        // Create simplified info from store data
+                        displaySalaryInfo = {
+                            total_payment: storeData.store_total_payment || 0
+                        };
+                        
+                        displayBaseInfo = {
+                            worked_hours: storeData.worked_hours || 0,
+                            base_payment: storeData.base_payment || 0,
+                            hourly_rate: employee.salary_info?.base_info?.hourly_rate || 0
+                        };
+                        
+                        displayDeductions = {
+                            late_deduction_amount: storeData.late_deduction || 0,
+                            late_count: 0, // Will be calculated from problems
+                            late_minutes: 0
+                        };
+                        
+                        displayBonuses = {
+                            bonus_amount: storeData.bonus_amount || 0
+                        };
+                        
+                        displayOvertime = {
+                            overtime_amount: storeData.overtime_amount || 0,
+                            overtime_count: 0
+                        };
+                        
+                        // Filter stores to show only the selected one
+                        displayStores = [storeData];
+                    } else {
+                        // Fallback to original data
+                        displaySalaryInfo = employee.salary_info || {};
+                        displayTotalPayment = displaySalaryInfo.total_payment || 0;
+                        displayBaseInfo = displaySalaryInfo.base_info || {};
+                        displayDeductions = displaySalaryInfo.deductions || {};
+                        displayBonuses = displaySalaryInfo.bonuses || {};
+                        displayOvertime = displaySalaryInfo.overtime || {};
+                    }
+                } else {
+                    // Use total salary across all stores
+                    displaySalaryInfo = employee.salary_info || {};
+                    displayTotalPayment = displaySalaryInfo.total_payment || 0;
+                    displayBaseInfo = displaySalaryInfo.base_info || {};
+                    displayDeductions = displaySalaryInfo.deductions || {};
+                    displayBonuses = displaySalaryInfo.bonuses || {};
+                    displayOvertime = displaySalaryInfo.overtime || {};
+                }
+                
+                const problems = employee.problems || {};
+                
+                // Determine salary display based on type
+                const salaryType = employee.salary_type || employee.salary_info?.salary_type;
                 let salaryDisplay = '';
                 if (salaryType === 'hourly') {
-                    const hours = baseInfo.worked_hours || 0;
-                    const rate = baseInfo.hourly_rate || 0;
+                    const hours = displayBaseInfo.worked_hours || 0;
+                    const rate = displayBaseInfo.hourly_rate || employee.salary_info?.base_info?.hourly_rate || 0;
                     salaryDisplay = `${formatNumber(hours)} hours × ${formatCurrency(rate, currencySymbol)}`;
                 } else {
-                    const baseSalary = baseInfo.monthly_salary || baseInfo.base_payment || 0;
+                    const baseSalary = displayBaseInfo.monthly_salary || displayBaseInfo.base_payment || 0;
                     salaryDisplay = `Base: ${formatCurrency(baseSalary, currencySymbol)}`;
                 }
                 
                 // Create store badges HTML
-                const stores = employee.stores || [];
                 let storesHtml = '';
-                if (stores.length > 0) {
-                    const visibleStores = stores.slice(0, 2);
-                    const remainingCount = stores.length - 2;
+                const storesToDisplay = currentStoreFilter ? displayStores : (employee.stores || []);
+                if (storesToDisplay.length > 0) {
+                    const visibleStores = storesToDisplay.slice(0, 2);
+                    const remainingCount = storesToDisplay.length - 2;
                     storesHtml = visibleStores.map(s => `<span class="store-badge">${s.store_name || 'Unknown'}</span>`).join('');
                     if (remainingCount > 0) {
                         storesHtml += `<span class="store-badge">+${remainingCount} more</span>`;
                     }
                 }
                 
-                // Create problems list HTML
-                const problemDetails = problems.problem_details || [];
+                // Create problems list HTML - filter by store if needed
+                let problemDetails = problems.problem_details || [];
                 const lateDates = problems.late_dates || [];
+                
+                // Filter problems by store if a store is selected
+                if (currentStoreFilter) {
+                    problemDetails = problemDetails.filter(p => 
+                        p.store_id && String(p.store_id).trim() === String(currentStoreFilter).trim()
+                    );
+                }
+                
                 let problemsHtml = '';
                 if (problemDetails.length > 0) {
                     problemsHtml = `
@@ -1454,7 +1642,7 @@
                                 </div>
                                 
                                 <div class="employee-salary-summary">
-                                    <div class="total-payment">${formatCurrency(salaryInfo.total_payment || 0, currencySymbol)}</div>
+                                    <div class="total-payment">${formatCurrency(displayTotalPayment, currencySymbol)}</div>
                                     <div class="payment-breakdown">${salaryDisplay}</div>
                                 </div>
                             </div>
@@ -1466,15 +1654,15 @@
                             <div class="employee-quick-stats">
                                 <div class="quick-stat">
                                     <span class="quick-stat-label">Late:</span>
-                                    <span class="quick-stat-value ${deductions.late_count > 0 ? 'warning' : ''}">${deductions.late_count || 0} times${lateDates.length > 0 ? ` (${lateDates.reduce((total, ld) => total + (ld.late_minutes || 0), 0)} min)` : ''}</span>
+                                    <span class="quick-stat-value ${displayDeductions.late_count > 0 ? 'warning' : ''}">${displayDeductions.late_count || 0} times${lateDates.length > 0 ? ` (${lateDates.reduce((total, ld) => total + (ld.late_minutes || 0), 0)} min)` : ''}</span>
                                 </div>
                                 <div class="quick-stat">
                                     <span class="quick-stat-label">Overtime:</span>
-                                    <span class="quick-stat-value">${overtime.overtime_count || 0} hours</span>
+                                    <span class="quick-stat-value">${displayOvertime.overtime_count || 0} hours</span>
                                 </div>
                                 <div class="quick-stat">
                                     <span class="quick-stat-label">${problemDetails.length > 0 ? 'Problems:' : 'Bonus:'}</span>
-                                    <span class="quick-stat-value ${problemDetails.length > 0 ? 'negative' : 'positive'}">${problemDetails.length > 0 ? problemDetails.length : formatCurrency(bonuses.bonus_amount || 0, currencySymbol)}</span>
+                                    <span class="quick-stat-value ${problemDetails.length > 0 ? 'negative' : 'positive'}">${problemDetails.length > 0 ? problemDetails.length : formatCurrency(displayBonuses.bonus_amount || 0, currencySymbol)}</span>
                                 </div>
                                 <svg class="expand-icon" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
                                     <path d="M16.59 8.59L12 13.17 7.41 8.59 6 10l6 6 6-6z"/>
@@ -1486,27 +1674,27 @@
                             <div class="details-content">
                                 <!-- Salary Breakdown -->
                                 <div class="detail-section">
-                                    <h3 class="detail-section-title">Salary Breakdown</h3>
+                                    <h3 class="detail-section-title">Salary Breakdown${currentStoreFilter && displayStores.length > 0 ? ` - ${displayStores[0].store_name}` : ''}</h3>
                                     <div class="salary-breakdown-table">
                                         <div class="breakdown-row">
-                                            <span class="breakdown-label">${salaryInfo.salary_type === 'hourly' ? `Base Payment (${baseInfo.worked_hours || 0}h × ${formatCurrency(baseInfo.hourly_rate || 0, currencySymbol)})` : 'Base Salary'}</span>
-                                            <span class="breakdown-value">${formatCurrency(baseInfo.base_payment || baseInfo.monthly_salary || 0, currencySymbol)}</span>
+                                            <span class="breakdown-label">${salaryType === 'hourly' ? `Base Payment (${displayBaseInfo.worked_hours || 0}h × ${formatCurrency(displayBaseInfo.hourly_rate || employee.salary_info?.base_info?.hourly_rate || 0, currencySymbol)})` : 'Base Salary'}</span>
+                                            <span class="breakdown-value">${formatCurrency(displayBaseInfo.base_payment || displayBaseInfo.monthly_salary || 0, currencySymbol)}</span>
                                         </div>
                                         <div class="breakdown-row">
-                                            <span class="breakdown-label">Late Deduction${deductions.late_minutes ? ` (${deductions.late_minutes} min)` : ''}</span>
-                                            <span class="breakdown-value negative">-${formatCurrency(Math.abs(deductions.late_deduction_amount || 0), currencySymbol)}</span>
+                                            <span class="breakdown-label">Late Deduction${displayDeductions.late_minutes ? ` (${displayDeductions.late_minutes} min)` : ''}</span>
+                                            <span class="breakdown-value negative">-${formatCurrency(Math.abs(displayDeductions.late_deduction_amount || 0), currencySymbol)}</span>
                                         </div>
                                         <div class="breakdown-row">
                                             <span class="breakdown-label">Overtime Payment</span>
-                                            <span class="breakdown-value positive">+${formatCurrency(overtime.overtime_amount || 0, currencySymbol)}</span>
+                                            <span class="breakdown-value positive">+${formatCurrency(displayOvertime.overtime_amount || 0, currencySymbol)}</span>
                                         </div>
                                         <div class="breakdown-row">
                                             <span class="breakdown-label">Bonus</span>
-                                            <span class="breakdown-value positive">+${formatCurrency(bonuses.bonus_amount || 0, currencySymbol)}</span>
+                                            <span class="breakdown-value positive">+${formatCurrency(displayBonuses.bonus_amount || 0, currencySymbol)}</span>
                                         </div>
                                         <div class="breakdown-row">
                                             <span class="breakdown-label">Total Payment</span>
-                                            <span class="breakdown-value">${formatCurrency(salaryInfo.total_payment || 0, currencySymbol)}</span>
+                                            <span class="breakdown-value">${formatCurrency(displayTotalPayment, currencySymbol)}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -1527,11 +1715,11 @@
                                 </div>
                                 
                                 <!-- Store Assignments -->
-                                ${stores.length > 0 ? `
+                                ${(currentStoreFilter ? displayStores : employee.stores || []).length > 0 ? `
                                 <div class="detail-section">
                                     <h3 class="detail-section-title">Store Assignments</h3>
                                     <div class="employee-stores">
-                                        ${stores.map(s => `<span class="store-badge">${s.store_name || 'Unknown'}</span>`).join('')}
+                                        ${(currentStoreFilter ? displayStores : employee.stores || []).map(s => `<span class="store-badge">${s.store_name || 'Unknown'}</span>`).join('')}
                                     </div>
                                 </div>
                                 ` : ''}
@@ -1694,6 +1882,7 @@
                 stores = [];
             }
             
+            
             // Build store options HTML
             let optionsHTML = `
                 <input 
@@ -1719,7 +1908,8 @@
             
             // Add individual store options
             stores.forEach(store => {
-                const isSelected = store.store_id === currentStoreFilter;
+                // Convert both to strings for comparison to handle type mismatches
+                const isSelected = currentStoreFilter && String(store.store_id) === String(currentStoreFilter);
                 optionsHTML += `
                     <div class="store-filter-dropdown-option${isSelected ? ' selected' : ''}" data-store-filter="${store.store_id}">
                         <svg class="store-filter-dropdown-option-icon" fill="currentColor" viewBox="0 0 24 24">
@@ -1772,7 +1962,10 @@
                     const storeFilter = option.dataset.storeFilter;
                     const storeName = option.querySelector('.store-filter-dropdown-option-text')?.textContent;
                     
-                    currentStoreFilter = storeFilter || null;
+                    // Handle empty string as null for "All Stores" option
+                    currentStoreFilter = storeFilter === '' ? null : storeFilter;
+                    
+                    console.log('Store selected:', storeName);
                     
                     // Update the display immediately with the known store name
                     const label = document.getElementById('storeFilterLabel');
@@ -1821,7 +2014,7 @@
                     try {
                         const selectedOption = window.navbarInstance.companySelector.getSelectedOption();
                         if (selectedOption && selectedOption.data && selectedOption.data.stores) {
-                            store = selectedOption.data.stores.find(s => s.store_id === currentStoreFilter);
+                            store = selectedOption.data.stores.find(s => String(s.store_id) === String(currentStoreFilter));
                         }
                     } catch (navbarError) {
                         console.log('Could not get store from navbar:', navbarError);
@@ -1836,7 +2029,7 @@
                             const parsedData = JSON.parse(userData);
                             const company = parsedData.companies?.find(c => c.company_id === companyId);
                             if (company && company.stores) {
-                                store = company.stores.find(s => s.store_id === currentStoreFilter);
+                                store = company.stores.find(s => String(s.store_id) === String(currentStoreFilter));
                             }
                         }
                     } catch (error) {
@@ -1848,7 +2041,7 @@
                 if (!store) {
                     try {
                         const stores = appState.getCompanyStores();
-                        store = stores.find(s => s.store_id === currentStoreFilter);
+                        store = stores.find(s => String(s.store_id) === String(currentStoreFilter));
                     } catch (error) {
                         console.error('Error getting store from appState:', error);
                     }
@@ -1859,7 +2052,7 @@
                     try {
                         const companies = appState.getUserCompanies();
                         const company = companies.find(c => c.company_id === companyId);
-                        store = company?.stores?.find(s => s.store_id === currentStoreFilter);
+                        store = company?.stores?.find(s => String(s.store_id) === String(currentStoreFilter));
                     } catch (fallbackError) {
                         console.error('Final fallback store lookup failed:', fallbackError);
                     }
@@ -1878,24 +2071,43 @@
                 return;
             }
             
-            console.log('Applying filters. Total employees:', salaryData.employees.length);
-            console.log('Current store filter:', currentStoreFilter);
-            console.log('Current type filter:', currentFilter);
-            console.log('Search term:', searchTerm);
-            
             let filtered = [...salaryData.employees];
-            console.log('Initial filtered array:', filtered);
+            const initialCount = filtered.length;
             
             // Apply store filter
             if (currentStoreFilter) {
-                console.log('Applying store filter for store ID:', currentStoreFilter);
+                const beforeCount = filtered.length;
                 filtered = filtered.filter(e => {
                     const stores = e.stores || [];
-                    const hasStore = stores.some(s => s.store_id === currentStoreFilter);
-                    console.log(`Employee ${e.user_name} has store:`, hasStore);
-                    return hasStore;
+                    // Check if employee has salary > 0 at the selected store
+                    const hasStoreWithSalary = stores.some(s => {
+                        const storeIdStr = String(s.store_id).trim();
+                        const filterStr = String(currentStoreFilter).trim();
+                        // Check both: store match AND has payment at that store
+                        if (storeIdStr === filterStr) {
+                            // New structure: check store_total_payment
+                            if (s.store_total_payment !== undefined) {
+                                return s.store_total_payment > 0;
+                            }
+                            // Fallback for old structure
+                            return true;
+                        }
+                        return false;
+                    });
+                    return hasStoreWithSalary;
                 });
-                console.log('After store filter:', filtered.length, 'employees');
+                console.log(`Store filter applied: ${beforeCount} → ${filtered.length} employees with salary at selected store`);
+            } else {
+                // Only filter out employees with 0 total salary when no store is selected
+                const beforeZeroFilter = filtered.length;
+                filtered = filtered.filter(e => {
+                    const totalPayment = e.salary_info?.total_payment || 0;
+                    return totalPayment > 0;
+                });
+                
+                if (beforeZeroFilter !== filtered.length) {
+                    console.log(`Filtered out ${beforeZeroFilter - filtered.length} employees with 0 salary`);
+                }
             }
             
             // Apply type filter
@@ -1923,27 +2135,17 @@
                 );
             }
             
-            // Sort employees: salary > 0 first (alphabetical), then salary = 0 (alphabetical)
+            // Sort employees alphabetically by name (all have salary > 0 now)
             filtered.sort((a, b) => {
-                const aSalary = a.salary_info?.total_payment || 0;
-                const bSalary = b.salary_info?.total_payment || 0;
                 const aName = a.user_name || '';
                 const bName = b.user_name || '';
-                
-                // If both have salary > 0 or both have salary = 0, sort alphabetically
-                if ((aSalary > 0 && bSalary > 0) || (aSalary === 0 && bSalary === 0)) {
-                    return aName.localeCompare(bName);
-                }
-                
-                // Employees with salary > 0 come first
-                if (aSalary > 0 && bSalary === 0) return -1;
-                if (aSalary === 0 && bSalary > 0) return 1;
-                
-                return 0;
+                return aName.localeCompare(bName);
             });
             
-            console.log('Final filtered and sorted employees count:', filtered.length);
-            console.log('Filtered employees:', filtered);
+            // Log the filtering result summary
+            if (initialCount !== filtered.length) {
+                console.log(`Filtering result: ${initialCount} → ${filtered.length} employees (${initialCount - filtered.length} hidden)`);
+            }
             
             // Update summary cards with filtered data
             renderSummaryCards(filtered);
@@ -1962,6 +2164,719 @@
                 currentFilter = filter;
             }
             applyFilters();
+        }
+        
+        // Fallback Excel export using existing salary data
+        async function exportFallbackExcel(skipConfirm = false, fileHandle = null) {
+            console.warn('Using fallback export - this provides aggregated salary data, not individual shift records');
+            
+            // Skip confirm dialog if requested to preserve user gesture context
+            if (!skipConfirm) {
+                // Alert user about limitations of fallback export
+                if (!confirm('NOTICE: This fallback export provides aggregated monthly salary summaries, NOT individual shift records.\n\nThe complete shift-by-shift export requires the database to be properly configured.\n\nProceed with simplified export?')) {
+                    return;
+                }
+            }
+            
+            if (!salaryData || !salaryData.employees) {
+                throw new Error('No salary data available. Please wait for the data to load first.');
+            }
+            
+            if (salaryData.employees.length === 0) {
+                throw new Error('No employees found in the current period.');
+            }
+            
+            // Get filtered employees based on current filters
+            let exportData = [...salaryData.employees];
+            
+            // Apply store filter if selected
+            if (currentStoreFilter) {
+                exportData = exportData.filter(e => {
+                    const stores = e.stores || [];
+                    return stores.some(s => {
+                        const storeIdStr = String(s.store_id).trim();
+                        const filterStr = String(currentStoreFilter).trim();
+                        if (storeIdStr === filterStr) {
+                            return s.store_total_payment !== undefined ? s.store_total_payment > 0 : true;
+                        }
+                        return false;
+                    });
+                });
+            } else {
+                // Filter out employees with 0 salary when no store is selected
+                exportData = exportData.filter(e => {
+                    const totalPayment = e.salary_info?.total_payment || 0;
+                    return totalPayment > 0;
+                });
+            }
+            
+            // Apply type filter
+            if (currentFilter !== 'all') {
+                switch (currentFilter) {
+                    case 'monthly':
+                        exportData = exportData.filter(e => e.salary_type === 'monthly');
+                        break;
+                    case 'hourly':
+                        exportData = exportData.filter(e => e.salary_type === 'hourly');
+                        break;
+                }
+            }
+            
+            // Apply search filter if active
+            const searchInput = document.getElementById('searchEmployee');
+            const searchTerm = searchInput ? searchInput.value.trim() : '';
+            if (searchTerm) {
+                exportData = exportData.filter(e => 
+                    e.user_name && e.user_name.toLowerCase().includes(searchTerm.toLowerCase())
+                );
+            }
+            
+            // Process data for Excel
+            const processedData = exportData.map(employee => {
+                const salaryInfo = employee.salary_info || {};
+                const baseInfo = salaryInfo.base_info || {};
+                const deductions = salaryInfo.deductions || {};
+                const bonuses = salaryInfo.bonuses || {};
+                const overtime = salaryInfo.overtime || {};
+                const currencyInfo = employee.currency_info || {};
+                const currencySymbol = currencyInfo.currency_symbol || '';
+                
+                // Get store-specific or total payment based on filter
+                let displayPayment = salaryInfo.total_payment || 0;
+                let displayHours = baseInfo.worked_hours || 0;
+                let displayBase = baseInfo.base_payment || 0;
+                
+                if (currentStoreFilter && employee.stores) {
+                    const storeData = employee.stores.find(s => 
+                        String(s.store_id).trim() === String(currentStoreFilter).trim()
+                    );
+                    if (storeData) {
+                        displayPayment = storeData.store_total_payment || 0;
+                        displayHours = storeData.worked_hours || 0;
+                        displayBase = storeData.base_payment || 0;
+                    }
+                }
+                
+                const stores = employee.stores || [];
+                const storeNames = stores.map(s => s.store_name).join(', ');
+                
+                return {
+                    'Employee Name': employee.user_name || '',
+                    'Employee Type': employee.salary_type === 'monthly' ? 'Monthly' : employee.salary_type === 'hourly' ? 'Hourly' : 'Unknown',
+                    'Stores': storeNames,
+                    'Hours Worked': displayHours,
+                    'Hourly Rate': employee.salary_type === 'hourly' ? (baseInfo.hourly_rate || 0) : '',
+                    'Base Payment': displayBase,
+                    'Late Count': deductions.late_count || 0,
+                    'Late Minutes': deductions.late_minutes || 0,
+                    'Late Deduction': deductions.late_deduction_amount || 0,
+                    'Overtime Count': overtime.overtime_count || 0,
+                    'Overtime Amount': overtime.overtime_amount || 0,
+                    'Bonus Count': bonuses.bonus_count || 0,
+                    'Bonus Amount': bonuses.bonus_amount || 0,
+                    'Total Payment': displayPayment,
+                    'Currency': currencyInfo.currency_code || 'VND',
+                    'Bank Name': employee.user_bank_name || '',
+                    'Account Number': employee.user_account_number || ''
+                };
+            });
+            
+            if (processedData.length === 0) {
+                throw new Error('No data to export after applying filters');
+            }
+            
+            // Create workbook and worksheet
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.json_to_sheet(processedData);
+            
+            // Auto-size columns
+            const colWidths = [];
+            Object.keys(processedData[0] || {}).forEach((key, i) => {
+                const maxWidth = Math.max(
+                    key.length,
+                    ...processedData.map(row => String(row[key] || '').length)
+                );
+                colWidths.push({ wch: Math.min(maxWidth + 2, 50) });
+            });
+            ws['!cols'] = colWidths;
+            
+            // Add worksheet to workbook
+            XLSX.utils.book_append_sheet(wb, ws, 'Salary Summary');
+            
+            // Generate filename
+            // Try to get company from multiple sources
+            let company = appState.getSelectedCompany();
+            if (!company) {
+                company = appState.getCompany ? appState.getCompany() : null;
+            }
+            const companyName = company?.company_name || 'Company';
+            let storeName = 'AllStores';
+            
+            if (currentStoreFilter) {
+                const companyStores = appState.getCompanyStores();
+                const store = companyStores?.find(s => s.store_id === currentStoreFilter);
+                storeName = store?.store_name || 'Store';
+            }
+            
+            // Clean filename
+            const cleanName = (str) => str.replace(/[^a-zA-Z0-9가-힣\s-]/g, '').replace(/\s+/g, '_');
+            const filename = `SalarySummary_${cleanName(companyName)}_${cleanName(storeName)}_${currentPeriod}.xlsx`;
+            
+            console.log('Preparing Excel file for download:', filename);
+            console.log(`File contains ${processedData.length} employee records`);
+            
+            // Create blob from workbook
+            const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+            const blob = new Blob([wbout], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+            
+            // If we already have a file handle, use it directly
+            if (fileHandle) {
+                try {
+                    console.log('Using pre-obtained file handle to write file...');
+                    const writable = await fileHandle.createWritable();
+                    await writable.write(blob);
+                    await writable.close();
+                    
+                    console.log(`Excel file saved successfully: ${filename}`);
+                    console.log(`File contains ${processedData.length} employee records`);
+                    
+                    if (window.showToast) {
+                        window.showToast(`✅ Export Successful! ${processedData.length} records exported to: ${filename}`, 'success');
+                    }
+                } catch (error) {
+                    console.error('Failed to write to file handle:', error);
+                    // Fall back to traditional download
+                    fallbackExcelDownload(blob, filename, processedData.length);
+                }
+            } else {
+                // Use File System Access API for save dialog or fallback to traditional download
+                await downloadExcelFile(blob, filename, processedData.length);
+            }
+        }
+        
+        // Enhanced download function with File System Access API and fallback
+        async function downloadExcelFile(blob, filename, recordCount) {
+            let downloadHandled = false;
+            
+            // Check if File System Access API is truly supported and working
+            // Note: localhost is considered secure context but API might still be blocked
+            const isFileSystemAPISupported = 'showSaveFilePicker' in window;
+            
+            console.log('File System Access API check:', {
+                hasShowSaveFilePicker: 'showSaveFilePicker' in window,
+                isSecureContext: window.isSecureContext,
+                protocol: window.location.protocol,
+                hostname: window.location.hostname,
+                isSupported: isFileSystemAPISupported
+            });
+            
+            if (isFileSystemAPISupported) {
+                try {
+                    // Modern browsers with File System Access API support
+                    console.log('Attempting to show save file picker...');
+                    const handle = await window.showSaveFilePicker({
+                        suggestedName: filename,
+                        types: [
+                            {
+                                description: 'Excel Files',
+                                accept: {
+                                    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx']
+                                }
+                            }
+                        ],
+                        excludeAcceptAllOption: true
+                    });
+                    
+                    console.log('File handle obtained, writing file...');
+                    // Write the file
+                    const writable = await handle.createWritable();
+                    await writable.write(blob);
+                    await writable.close();
+                    
+                    downloadHandled = true;
+                    console.log('File written successfully');
+                    
+                    // Show success message
+                    const successMessage = recordCount > 0 
+                        ? `✅ Export Successful! ${recordCount} records exported to: ${filename}`
+                        : `✅ Export Successful! Excel file exported to: ${filename}`;
+                    
+                    console.log(successMessage);
+                    
+                    // Show success notification
+                    if (window.showToast) {
+                        window.showToast(successMessage, 'success');
+                    } else {
+                        alert(successMessage);
+                    }
+                    
+                } catch (err) {
+                    console.log('File System Access API error details:', {
+                        name: err.name,
+                        message: err.message,
+                        stack: err.stack
+                    });
+                    
+                    if (err.name === 'AbortError') {
+                        // User cancelled - no need to fallback
+                        downloadHandled = true;
+                        console.log('Export cancelled by user');
+                    } else if (err.name === 'SecurityError' || err.name === 'NotAllowedError') {
+                        // Permission or security issue - use fallback
+                        console.log('File System Access API blocked due to security/permission, using fallback');
+                        downloadHandled = false;
+                    } else {
+                        // Other error - use fallback
+                        console.log('File System Access API unexpected error, using fallback');
+                        downloadHandled = false;
+                    }
+                }
+            } else {
+                console.log('File System Access API not available, using fallback download');
+            }
+            
+            // Use fallback only if download wasn't handled by File System API
+            if (!downloadHandled) {
+                fallbackExcelDownload(blob, filename, recordCount);
+            }
+        }
+        
+        // Fallback download method for browsers without File System Access API
+        function fallbackExcelDownload(blob, filename, recordCount) {
+            try {
+                // Create download link and trigger save dialog
+                const url = window.URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = filename;
+                link.style.display = 'none';
+                
+                // Append to body and trigger download
+                document.body.appendChild(link);
+                link.click();
+                
+                // Clean up immediately
+                document.body.removeChild(link);
+                window.URL.revokeObjectURL(url);
+                
+                // Show helpful message after a short delay
+                setTimeout(() => {
+                    const helpMessage = `📁 File "${filename}" is being saved to your browser's default download folder. To change download location, check your browser settings.`;
+                    console.log(helpMessage);
+                    
+                    if (window.showToast) {
+                        window.showToast(helpMessage, 'info');
+                    }
+                }, 1000);
+                
+            } catch (error) {
+                console.error('Fallback download failed:', error);
+                alert('Failed to download the Excel file. Please try again.');
+            }
+        }
+        
+        // Export Excel button handler
+        const exportExcelBtn = document.getElementById('exportExcel');
+        if (exportExcelBtn) {
+            exportExcelBtn.addEventListener('click', async (event) => {
+            const exportBtn = document.getElementById('exportExcel');
+            if (!exportBtn) {
+                console.error('Export button not found');
+                return;
+            }
+            const originalContent = exportBtn.innerHTML;
+            
+            // RPC function is now fixed and working properly
+            // Using the real get_employee_salary_excel RPC for individual shift records
+            const USE_FALLBACK_EXPORT = false; // RPC is now fixed and working
+            
+            // Try to get file handle immediately while we still have user gesture
+            let fileHandle = null;
+            let userSelectedFile = false;
+            
+            // Check if File System Access API is available
+            if ('showSaveFilePicker' in window) {
+                try {
+                    console.log('Attempting to get file handle early in user gesture context...');
+                    
+                    // Get filename ready
+                    const currentPeriod = document.getElementById('currentPeriod').textContent;
+                    
+                    // Try to get company from multiple sources
+                    let company = appState.getSelectedCompany();
+                    if (!company) {
+                        // Try to get company ID and then company details
+                        const companyId = localStorage.getItem('companyChoosen') || 
+                                        localStorage.getItem('selectedCompanyId') || 
+                                        appState.getSelectedCompanyId();
+                        if (companyId) {
+                            // Get company from appState or use default
+                            company = appState.getCompany ? appState.getCompany() : null;
+                        }
+                    }
+                    
+                    const companyName = company?.company_name || 'Company';
+                    let storeName = 'AllStores';
+                    
+                    if (currentStoreFilter) {
+                        const companyStores = appState.getCompanyStores();
+                        const store = companyStores?.find(s => s.store_id === currentStoreFilter);
+                        storeName = store?.store_name || 'Store';
+                    }
+                    
+                    const cleanName = (str) => str.replace(/[^a-zA-Z0-9가-힣\s-]/g, '').replace(/\s+/g, '_');
+                    // Use different filename based on which export will be used
+                    const filename = USE_FALLBACK_EXPORT 
+                        ? `SalarySummary_${cleanName(companyName)}_${cleanName(storeName)}_${currentPeriod}.xlsx`
+                        : `ShiftRecords_${cleanName(companyName)}_${cleanName(storeName)}_${currentPeriod}.xlsx`;
+                    
+                    // Show save dialog immediately
+                    fileHandle = await window.showSaveFilePicker({
+                        suggestedName: filename,
+                        types: [
+                            {
+                                description: 'Excel Files',
+                                accept: {
+                                    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx']
+                                }
+                            }
+                        ],
+                        excludeAcceptAllOption: true
+                    });
+                    
+                    userSelectedFile = true;
+                    console.log('File handle obtained successfully');
+                    
+                } catch (err) {
+                    if (err && err.name === 'AbortError') {
+                        console.log('User cancelled file selection');
+                        // User cancelled, stop the export process
+                        return;
+                    }
+                    console.log('Could not get file handle early:', err?.name || 'Unknown error', err?.message || 'No message');
+                    // Continue with fallback later
+                }
+            }
+            
+            try {
+                // Show loading state
+                if (exportBtn) {
+                    exportBtn.disabled = true;
+                    exportBtn.innerHTML = `
+                        <svg width="20" height="20" class="spin-animation" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10" stroke-opacity="0.25"/>
+                            <path d="M12 2 A10 10 0 0 1 22 12" stroke-opacity="1"/>
+                        </svg>
+                        <span>Exporting...</span>
+                    `;
+                }
+                
+                // Check if we should use fallback or real RPC
+                if (USE_FALLBACK_EXPORT) {
+                    // Use the fallback export with existing data
+                    console.log('Using fallback export due to RPC database issues...');
+                    console.warn('NOTE: The get_employee_salary_excel RPC has a database error. The RPC is trying to access a "store" relation that does not exist in the database. Using simplified export from existing data instead.');
+                    
+                    // Try to export with the file handle if we got one
+                    try {
+                        await exportFallbackExcel(true, fileHandle); // Skip confirm dialog, pass file handle
+                    } catch (fallbackError) {
+                        console.error('Fallback export error:', fallbackError);
+                        alert(`Export failed: ${fallbackError.message}`);
+                        if (window.showToast) {
+                            window.showToast(`Export failed: ${fallbackError.message}`, 'error');
+                        }
+                    } finally {
+                        if (exportBtn) {
+                            exportBtn.disabled = false;
+                            exportBtn.innerHTML = originalContent;
+                        }
+                    }
+                    return;
+                }
+                
+                // Get current filters and company info
+                const currentPeriod = document.getElementById('currentPeriod').textContent;
+                
+                // Get current company ID with multiple fallbacks
+                const companyId = localStorage.getItem('companyChoosen') || 
+                                localStorage.getItem('selectedCompanyId') || 
+                                appState.getSelectedCompanyId() ||
+                                appState.getSelectedCompany()?.company_id;
+                                
+                if (!companyId) {
+                    throw new Error('No company selected. Please select a company from the navigation bar.');
+                }
+                
+                // Convert period to request_month format (YYYY-MM-01)
+                const requestMonth = currentPeriod + '-01';
+                
+                // Prepare RPC parameters
+                const rpcParams = {
+                    p_company_id: companyId,
+                    p_request_month: requestMonth,
+                    p_store_id: currentStoreFilter || null  // null means all stores
+                };
+                
+                console.log('RPC Parameters:', {
+                    company_id: companyId,
+                    request_month: requestMonth,
+                    store_id: currentStoreFilter || 'All stores (null)'
+                });
+                
+                console.log('Using real get_employee_salary_excel RPC for individual shift records');
+                console.log('Calling get_employee_salary_excel with params:', rpcParams);
+                
+                // Get Supabase client
+                const supabase = window.supabaseClient;
+                if (!supabase) {
+                    throw new Error('Supabase client not initialized. Please refresh the page.');
+                }
+                
+                // Call the RPC to get Excel data
+                const { data, error } = await supabase.rpc('get_employee_salary_excel', rpcParams);
+                
+                if (error) {
+                    console.error('RPC error details:', {
+                        message: error.message,
+                        details: error.details,
+                        hint: error.hint,
+                        code: error.code,
+                        fullError: error
+                    });
+                    
+                    // Check for specific database errors
+                    if (error.message && error.message.includes('relation') && error.message.includes('does not exist')) {
+                        throw new Error('Database configuration error. The export function is not properly set up. Please contact your administrator.');
+                    } else if (error.code === '42P01') {
+                        // PostgreSQL error code for undefined table
+                        throw new Error('The export feature is not available. Database tables are missing or incorrectly configured.');
+                    } else if (error.code === '42883') {
+                        // PostgreSQL error code for undefined function
+                        throw new Error('The export function is not available in the database. Please contact support.');
+                    } else {
+                        throw new Error(error.message || 'Failed to export data');
+                    }
+                }
+                
+                if (!data || data.length === 0) {
+                    alert('No data available for export in the selected period.');
+                    if (exportBtn) {
+                        exportBtn.disabled = false;
+                        exportBtn.innerHTML = originalContent;
+                    }
+                    return;
+                }
+                
+                console.log(`Excel export data received: ${data.length} individual shift records`);
+                
+                // Load ExcelJS library if not already loaded
+                if (typeof ExcelJS === 'undefined') {
+                    await new Promise((resolve, reject) => {
+                        const script = document.createElement('script');
+                        script.src = 'https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js';
+                        script.onload = resolve;
+                        script.onerror = reject;
+                        document.head.appendChild(script);
+                    });
+                }
+                
+                // Process data for Excel - All 31 columns as per RPC documentation
+                const processedData = data.map(row => ({
+                    'shift_request_id': row.shift_request_id || '',
+                    'user_id': row.user_id || '',
+                    'first_name': row.first_name || '',
+                    'last_name': row.last_name || '',
+                    'user_name': row.user_name || '',
+                    'user_email': row.user_email || '',
+                    'store_name': row.store_name || '',
+                    'store_code': row.store_code || '',
+                    'request_date': row.request_date || '',
+                    'shift_name': row.shift_name || '',
+                    'start_time': row.start_time || '',
+                    'end_time': row.end_time || '',
+                    'actual_start_time': row.actual_start_time || '',
+                    'actual_end_time': row.actual_end_time || '',
+                    'confirm_start_time': row.confirm_start_time || '',
+                    'confirm_end_time': row.confirm_end_time || '',
+                    'scheduled_hours': row.scheduled_hours || 0,
+                    'actual_worked_hours': row.actual_worked_hours || 0,
+                    'paid_hours': row.paid_hours || 0,
+                    'is_late': row.is_late ? 'Yes' : 'No',
+                    'late_minutes': row.late_minutes || 0,
+                    'late_deduction_krw': row.late_deduction_krw || 0,
+                    'is_extratime': row.is_extratime ? 'Yes' : 'No',
+                    'overtime_minutes': row.overtime_minutes || 0,
+                    'overtime_amount': row.overtime_amount || 0,
+                    'salary_type': row.salary_type || '',
+                    'salary_amount': row.salary_amount || 0,
+                    'bonus_amount': row.bonus_amount || 0,
+                    'total_salary_pay': row.total_salary_pay || 0,
+                    'total_pay_with_bonus': row.total_pay_with_bonus || 0,
+                    'is_approved': row.is_approved ? 'Yes' : 'No',
+                    'is_problem': row.is_problem ? 'Yes' : 'No',
+                    'problem_type': row.problem_type || '',
+                    'report_reason': row.report_reason || ''
+                }));
+                
+                // Create workbook and worksheet using ExcelJS
+                const workbook = new ExcelJS.Workbook();
+                const worksheet = workbook.addWorksheet('Shift Records');
+                
+                // Define columns with proper headers and widths
+                worksheet.columns = [
+                    { header: 'shift_request_id', key: 'shift_request_id', width: 36 },
+                    { header: 'user_id', key: 'user_id', width: 36 },
+                    { header: 'first_name', key: 'first_name', width: 15 },
+                    { header: 'last_name', key: 'last_name', width: 15 },
+                    { header: 'user_name', key: 'user_name', width: 20 },
+                    { header: 'user_email', key: 'user_email', width: 25 },
+                    { header: 'store_name', key: 'store_name', width: 20 },
+                    { header: 'store_code', key: 'store_code', width: 12 },
+                    { header: 'request_date', key: 'request_date', width: 12 },
+                    { header: 'shift_name', key: 'shift_name', width: 15 },
+                    { header: 'start_time', key: 'start_time', width: 18 },
+                    { header: 'end_time', key: 'end_time', width: 18 },
+                    { header: 'actual_start_time', key: 'actual_start_time', width: 18 },
+                    { header: 'actual_end_time', key: 'actual_end_time', width: 18 },
+                    { header: 'confirm_start_time', key: 'confirm_start_time', width: 18 },
+                    { header: 'confirm_end_time', key: 'confirm_end_time', width: 18 },
+                    { header: 'scheduled_hours', key: 'scheduled_hours', width: 14 },
+                    { header: 'actual_worked_hours', key: 'actual_worked_hours', width: 16 },
+                    { header: 'paid_hours', key: 'paid_hours', width: 12 },
+                    { header: 'is_late', key: 'is_late', width: 8 },
+                    { header: 'late_minutes', key: 'late_minutes', width: 12 },
+                    { header: 'late_deduction_krw', key: 'late_deduction_krw', width: 16 },
+                    { header: 'is_extratime', key: 'is_extratime', width: 10 },
+                    { header: 'overtime_minutes', key: 'overtime_minutes', width: 15 },
+                    { header: 'overtime_amount', key: 'overtime_amount', width: 15 },
+                    { header: 'salary_type', key: 'salary_type', width: 12 },
+                    { header: 'salary_amount', key: 'salary_amount', width: 15 },
+                    { header: 'bonus_amount', key: 'bonus_amount', width: 15 },
+                    { header: 'total_salary_pay', key: 'total_salary_pay', width: 16 },
+                    { header: 'total_pay_with_bonus', key: 'total_pay_with_bonus', width: 18 },
+                    { header: 'is_approved', key: 'is_approved', width: 12 },
+                    { header: 'is_problem', key: 'is_problem', width: 12 },
+                    { header: 'problem_type', key: 'problem_type', width: 15 },
+                    { header: 'report_reason', key: 'report_reason', width: 20 }
+                ];
+                
+                // Add data rows
+                processedData.forEach(row => {
+                    worksheet.addRow(row);
+                });
+                
+                // Style the header row - BOLD, SIZE 18, THICK BOTTOM BORDER
+                const headerRow = worksheet.getRow(1);
+                headerRow.font = {
+                    name: 'Arial',
+                    size: 18,  // Font size 18 as requested
+                    bold: true
+                };
+                headerRow.alignment = {
+                    vertical: 'middle',
+                    horizontal: 'center',
+                    wrapText: false
+                };
+                headerRow.height = 30;  // Make header row taller for larger font
+                
+                // Add thick bottom border to header cells
+                headerRow.eachCell({ includeEmpty: false }, (cell) => {
+                    cell.border = {
+                        bottom: { style: 'thick', color: { argb: 'FF000000' } }  // Thick black bottom border
+                    };
+                    // Optional: Add light gray background
+                    cell.fill = {
+                        type: 'pattern',
+                        pattern: 'solid',
+                        fgColor: { argb: 'FFF2F2F2' }  // Light gray
+                    };
+                });
+                
+                // Generate filename
+                // Try to get company from multiple sources
+                let company = appState.getSelectedCompany();
+                if (!company) {
+                    // Try to get company from appState with different method
+                    company = appState.getCompany ? appState.getCompany() : null;
+                }
+                const companyName = company?.company_name || 'Company';
+                let storeName = 'AllStores';
+                
+                if (currentStoreFilter) {
+                    // Try to find store name from company stores
+                    const companyStores = appState.getCompanyStores();
+                    const store = companyStores?.find(s => s.store_id === currentStoreFilter);
+                    storeName = store?.store_name || 'Store';
+                }
+                
+                // Clean filename (remove special characters that might cause issues)
+                const cleanName = (str) => str.replace(/[^a-zA-Z0-9가-힣\s-]/g, '').replace(/\s+/g, '_');
+                const filename = `ShiftRecords_${cleanName(companyName)}_${cleanName(storeName)}_${currentPeriod}.xlsx`;
+                
+                // Generate Excel file as buffer
+                const buffer = await workbook.xlsx.writeBuffer();
+                const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+                
+                // If we already have a file handle, use it directly
+                if (fileHandle) {
+                    try {
+                        console.log('Using pre-obtained file handle to write file...');
+                        const writable = await fileHandle.createWritable();
+                        await writable.write(blob);
+                        await writable.close();
+                        
+                        console.log(`Excel file saved successfully: ${filename}`);
+                        console.log(`File contains ${data.length} shift records`);
+                        
+                        if (window.showToast) {
+                            window.showToast(`✅ Export Successful! ${data.length} shift records exported to: ${filename}`, 'success');
+                        }
+                    } catch (error) {
+                        console.error('Failed to write to file handle:', error);
+                        // Fall back to traditional download
+                        fallbackExcelDownload(blob, filename, data.length);
+                    }
+                } else {
+                    // Use File System Access API for save dialog or fallback to traditional download
+                    await downloadExcelFile(blob, filename, data.length);
+                }
+                
+            } catch (error) {
+                console.error('Export Excel error:', error);
+                
+                // Try fallback export using existing salary data
+                if (error && error.message && (
+                    error.message.includes('Database configuration error') || 
+                    error.message.includes('not available') ||
+                    error.message.includes('does not exist'))) {
+                    
+                    console.log('Attempting fallback export using existing salary data...');
+                    
+                    if (confirm('The detailed export is not available. Would you like to export a simplified version using the current displayed data?')) {
+                        try {
+                            await exportFallbackExcel();
+                        } catch (fallbackError) {
+                            console.error('Fallback export also failed:', fallbackError);
+                            alert('Unable to export data. Please contact support.');
+                        }
+                    }
+                } else {
+                    const errorMessage = error?.message || 'Unknown error occurred';
+                    alert(`Failed to export Excel: ${errorMessage}`);
+                    
+                    if (window.showToast) {
+                        window.showToast(`Export failed: ${errorMessage}`, 'error');
+                    }
+                }
+            } finally {
+                // Restore button state
+                if (exportBtn) {
+                    exportBtn.disabled = false;
+                    exportBtn.innerHTML = originalContent;
+                }
+            }
+        });
         }
         
         // Period navigation

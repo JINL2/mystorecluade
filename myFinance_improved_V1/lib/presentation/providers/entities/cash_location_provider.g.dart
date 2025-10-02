@@ -7,7 +7,7 @@ part of 'cash_location_provider.dart';
 // **************************************************************************
 
 String _$currentCashLocationsHash() =>
-    r'1281f2dccb952240d956325cd42ce3bd57d5fb9e';
+    r'2b6bdbfb5c5ae98e0af864e658542f051fc16b02';
 
 /// Current cash locations based on selected company/store
 ///
@@ -29,7 +29,7 @@ final currentCashLocationsProvider =
 typedef CurrentCashLocationsRef
     = AutoDisposeFutureProviderRef<List<CashLocationData>>;
 String _$companyCashLocationsHash() =>
-    r'8c75009bb24fb6cf651873387d42c2e1e6d3dc12';
+    r'f72a5ae0c80b3887d11050bac62386060ea97984';
 
 /// Company-wide cash locations (no store filtering)
 ///
@@ -51,7 +51,7 @@ final companyCashLocationsProvider =
 typedef CompanyCashLocationsRef
     = AutoDisposeFutureProviderRef<List<CashLocationData>>;
 String _$currentCashLocationsByTypeHash() =>
-    r'd3a948c67694f541370523c24e8dd669a78a9b72';
+    r'590cfff78c1c88209ffb80e5168099d46dcd1a8e';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -415,6 +415,28 @@ final currentStoreCashLocationsProvider =
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef CurrentStoreCashLocationsRef
+    = AutoDisposeFutureProviderRef<List<CashLocationData>>;
+String _$storeFilteredCashLocationsHash() =>
+    r'8fd27e8fc98ca51a4a225f3fb58ae2dd3b79cea5';
+
+/// Store-filtered cash locations (company-wide + specific store)
+///
+/// Copied from [storeFilteredCashLocations].
+@ProviderFor(storeFilteredCashLocations)
+final storeFilteredCashLocationsProvider =
+    AutoDisposeFutureProvider<List<CashLocationData>>.internal(
+  storeFilteredCashLocations,
+  name: r'storeFilteredCashLocationsProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$storeFilteredCashLocationsHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef StoreFilteredCashLocationsRef
     = AutoDisposeFutureProviderRef<List<CashLocationData>>;
 String _$currentCashOnlyLocationsHash() =>
     r'c55ee2145a69ba34c205a4b8f0ed9d48271c5104';
@@ -1206,7 +1228,7 @@ class _CounterpartyStoreCashLocationsProviderElement
       (origin as CounterpartyStoreCashLocationsProvider).params;
 }
 
-String _$cashLocationListHash() => r'c22b15619f1d1631d0ea91c825444db8e133c14a';
+String _$cashLocationListHash() => r'e12834792e36fd805166e42c1590905f3bcd46fd';
 
 abstract class _$CashLocationList
     extends BuildlessAutoDisposeAsyncNotifier<List<CashLocationData>> {

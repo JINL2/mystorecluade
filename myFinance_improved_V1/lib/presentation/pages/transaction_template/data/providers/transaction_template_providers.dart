@@ -283,19 +283,25 @@ final sortedTransactionTemplatesProvider = FutureProvider<List<Map<String, dynam
     // Silent fail
   }
   
-  // Fetch cash locations
+
+  // Fetch cash locations using RPC
   Map<String, String> cashLocationNames = {};
   try {
-    final cashLocations = await supabase
-        .from('cash_locations')
-        .select('cash_location_id, location_name')
-        .eq('company_id', companyId);
+    final cashLocations = await supabase.rpc(
+      'get_cash_locations',
+      params: {
+        'p_company_id': companyId,
+      },
+    );
     
-    for (var loc in cashLocations) {
-      final id = loc['cash_location_id'] as String?;
-      final name = loc['location_name'] as String?;
-      if (id != null && name != null) {
-        cashLocationNames[id] = name;
+    if (cashLocations != null) {
+      for (var loc in cashLocations) {
+        final id = loc['id'] as String?;
+        final name = loc['name'] as String?;
+        if (id != null && name != null) {
+          cashLocationNames[id] = name;
+        }
+
       }
     }
   } catch (e) {
@@ -475,22 +481,39 @@ final cashLocationsProvider = FutureProvider<List<Map<String, dynamic>>>((ref) a
       return [];
     }
     
-    // Build query based on store selection
-    var query = supabase
-        .from('cash_locations')
-        .select('cash_location_id, location_name, location_type')
-        .eq('company_id', companyId);
+
+    // Use RPC to get cash locations
+    final response = await supabase.rpc(
+      'get_cash_locations',
+      params: {
+        'p_company_id': companyId,
+      },
+    );
     
-    // Filter by store_id
+    if (response == null) return [];
+    
+    // Filter client-side based on store selection
+    List<Map<String, dynamic>> locations = List<Map<String, dynamic>>.from(response);
+    
     if (storeId.isNotEmpty) {
-      query = query.eq('store_id', storeId);
+      // Show store-specific locations + company-wide locations
+      locations = locations.where((loc) => 
+        loc['storeId'] == storeId || loc['isCompanyWide'] == true
+      ).toList();
     } else {
-      query = query.isFilter('store_id', null);
+      // Show only company-wide locations if no store selected
+      locations = locations.where((loc) => 
+        loc['isCompanyWide'] == true
+      ).toList();
     }
     
-    final response = await query.order('location_name');
-    
-    return List<Map<String, dynamic>>.from(response);
+    // Convert RPC response format to expected format
+    return locations.map((loc) => {
+      'cash_location_id': loc['id'],
+      'location_name': loc['name'],
+      'location_type': loc['type'],
+    }).toList();
+
   } catch (e) {
     throw Exception('Failed to fetch cash locations: $e');
   }
@@ -529,20 +552,42 @@ final counterpartyCashLocationsProvider = FutureProvider.family<List<Map<String,
     
     final supabase = Supabase.instance.client;
     
-    // Query cash locations filtered by the linked_company_id
-    final response = await supabase
-        .from('cash_locations')
-        .select('cash_location_id, location_name, location_type')
-        .eq('company_id', linkedCompanyId)
-        .order('location_name');
+
+    // Use RPC to get cash locations for the counterparty company
+    final response = await supabase.rpc(
+      'get_cash_locations',
+      params: {
+        'p_company_id': linkedCompanyId,
+      },
+    );
+    
+    if (response == null) {
+      return [
+        {'cash_location_id': null, 'location_name': 'None', 'location_type': 'none'},
+      ];
+    }
+
     
     // Add "None" option at the beginning
     final locations = <Map<String, dynamic>>[
       {'cash_location_id': null, 'location_name': 'None', 'location_type': 'none'},
     ];
     
-    // Add the rest of the locations
-    locations.addAll(List<Map<String, dynamic>>.from(response));
+
+    // Convert RPC response format to expected format and add to locations
+    final convertedLocations = (response as List).map((loc) => {
+      'cash_location_id': loc['id'],
+      'location_name': loc['name'],
+      'location_type': loc['type'],
+    }).toList();
+    
+    // Sort by location name
+    convertedLocations.sort((a, b) => 
+      (a['location_name'] as String).compareTo(b['location_name'] as String)
+    );
+    
+    locations.addAll(convertedLocations);
+
     
     return locations;
   } catch (e) {

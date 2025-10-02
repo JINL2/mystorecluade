@@ -1901,12 +1901,36 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
           tagsCashLocations.first as String? : null;
       
       if (_selectedMyCashLocationId != null || preselectedMyCashLocationId != null) {
+
+        final cashLocationsResponse = await supabase.rpc(
+          'get_cash_locations',
+          params: {
+            'p_company_id': appState.companyChoosen,
+          },
+        );
+        
+        if (cashLocationsResponse != null) {
+          // Filter for store-specific and company-wide locations
+          final filteredLocations = (cashLocationsResponse as List).where((loc) {
+            final storeId = appState.storeChoosen;
+            return storeId.isNotEmpty
+                ? (loc['storeId'] == storeId || loc['isCompanyWide'] == true)
+                : loc['isCompanyWide'] == true;
+          }).map((loc) => {
+            'cash_location_id': loc['id'],
+            'location_name': loc['name'],
+          }).toList();
+          
+          myCashLocations = List<Map<String, dynamic>>.from(filteredLocations);
+        }
+
         final cashLocationsResponse = await supabase
             .from('cash_locations')
             .select('cash_location_id, location_name')
             .eq('company_id', appState.companyChoosen)
             .eq('store_id', appState.storeChoosen);
         myCashLocations = List<Map<String, dynamic>>.from(cashLocationsResponse);
+
       }
       
       // Construct p_lines with proper cash/debt handling

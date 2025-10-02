@@ -72,6 +72,7 @@ class LocationService {
       }
       
       // Build the query based on whether it's headquarter or a regular store
+
       final List<Map<String, dynamic>> response;
       
       if (selectedStoreId == 'headquarter') {
@@ -96,6 +97,7 @@ class LocationService {
             .order('location_name');
       } else {
         // No store selected
+
         return {
           'cashLocations': locationType == 'cash' ? [] : null,
           'bankLocations': locationType == 'bank' ? [] : null,

@@ -79,6 +79,32 @@ class _AutonomousCashLocationSelectorState extends ConsumerState<AutonomousCashL
         });
       }
     });
+    
+    // Force refresh the provider to ensure we get fresh data from RPC
+    // This is critical to prevent showing deleted cash locations
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      // Get the effective company ID first
+      final appState = ref.read(appStateProvider);
+      final effectiveCompanyId = widget.companyId ?? appState.companyChoosen;
+      
+      if (effectiveCompanyId.isNotEmpty) {
+        // Invalidate the specific provider instance
+        ref.invalidate(cashLocationListProvider(effectiveCompanyId, null, widget.locationType));
+        
+        // Also try to get the notifier and force refresh if possible
+        try {
+          final notifier = ref.read(cashLocationListProvider(effectiveCompanyId, null, widget.locationType).notifier);
+          notifier.forceRefresh();
+        } catch (e) {
+          // Could not access notifier, relying on invalidation
+        }
+      }
+      
+      // Also invalidate the company-wide provider if we're using it
+      if (widget.companyId == null) {
+        ref.invalidate(companyCashLocationsProvider);
+      }
+    });
   }
 
   @override
@@ -117,9 +143,18 @@ class _AutonomousCashLocationSelectorState extends ConsumerState<AutonomousCashL
     
     // If not provided, fall back to app state
     if (effectiveCompanyId == null) {
+      final appState = ref.read(appStateProvider);
       final appStateNotifier = ref.read(appStateProvider.notifier);
-      effectiveCompanyId = appStateNotifier.selectedCompany?['company_id'] as String?;
-      effectiveStoreId = appStateNotifier.selectedStore?['store_id'] as String?;
+      
+      // Use companyChoosen directly from app state (this is the source of truth)
+      effectiveCompanyId = appState.companyChoosen.isNotEmpty 
+          ? appState.companyChoosen 
+          : appStateNotifier.selectedCompany?['company_id'] as String?;
+      
+      // Use storeChoosen from app state for consistent store selection
+      effectiveStoreId = appState.storeChoosen.isNotEmpty 
+          ? appState.storeChoosen 
+          : appStateNotifier.selectedStore?['store_id'] as String?;
     }
     
     // If we still don't have a company ID, show empty state
@@ -128,6 +163,7 @@ class _AutonomousCashLocationSelectorState extends ConsumerState<AutonomousCashL
     }
     
     // Fetch cash locations for the specified or current company (only company_id)
+    
     final allLocationsAsync = widget.companyId != null
         ? ref.watch(cashLocationListProvider(effectiveCompanyId, null, widget.locationType))
         : ref.watch(companyCashLocationsProvider);
@@ -153,8 +189,8 @@ class _AutonomousCashLocationSelectorState extends ConsumerState<AutonomousCashL
             // Company tab: Show ALL locations for the company (no additional filtering needed)
             _companyItems = allLocations;
             
-            // Store tab: Show company-wide locations AND store-specific locations
-            if (effectiveStoreId != null) {
+            // Store tab: Show company-wide locations AND store-specific locations for selected store
+            if (effectiveStoreId != null && effectiveStoreId!.isNotEmpty) {
               _storeItems = allLocations.where((location) => 
                 location.isCompanyWide || // Include company-wide locations (accessible from any store)
                 location.storeId == effectiveStoreId // Include store-specific locations
@@ -316,12 +352,29 @@ class _AutonomousCashLocationSelectorState extends ConsumerState<AutonomousCashL
     
     // If not provided, fall back to app state
     if (effectiveCompanyId == null) {
+      final appState = ref.read(appStateProvider);
       final appStateNotifier = ref.read(appStateProvider.notifier);
-      effectiveCompanyId = appStateNotifier.selectedCompany?['company_id'] as String?;
-      effectiveStoreId = appStateNotifier.selectedStore?['store_id'] as String?;
+      
+      // Use companyChoosen directly from app state (this is the source of truth)
+      effectiveCompanyId = appState.companyChoosen.isNotEmpty 
+          ? appState.companyChoosen 
+          : appStateNotifier.selectedCompany?['company_id'] as String?;
+      
+      // Use storeChoosen from app state for consistent store selection
+      effectiveStoreId = appState.storeChoosen.isNotEmpty 
+          ? appState.storeChoosen 
+          : appStateNotifier.selectedStore?['store_id'] as String?;
     }
     
     if (effectiveCompanyId == null) return;
+    
+    // CRITICAL FIX: Force refresh the cash location data before showing the bottom sheet
+    // This ensures we get fresh data from RPC and don't show deleted locations
+    if (widget.companyId != null) {
+      ref.invalidate(cashLocationListProvider(effectiveCompanyId, null, widget.locationType));
+    } else {
+      ref.invalidate(companyCashLocationsProvider);
+    }
     
     // Fetch cash locations for the specified or current company (only company_id)
     final allLocationsAsync = widget.companyId != null
@@ -333,8 +386,8 @@ class _AutonomousCashLocationSelectorState extends ConsumerState<AutonomousCashL
       // Company tab: Show ALL locations for the company (no additional filtering needed)
       _companyItems = allLocations;
       
-      // Store tab: Show company-wide locations AND store-specific locations
-      if (effectiveStoreId != null) {
+      // Store tab: Show company-wide locations AND store-specific locations for selected store
+      if (effectiveStoreId != null && effectiveStoreId!.isNotEmpty) {
         _storeItems = allLocations.where((location) => 
           location.isCompanyWide || // Include company-wide locations (accessible from any store)
           location.storeId == effectiveStoreId // Include store-specific locations
@@ -802,6 +855,18 @@ class _AutonomousCashLocationSelectorState extends ConsumerState<AutonomousCashL
   }
   
   void _showSimpleSelectionBottomSheet(BuildContext context, List<CashLocationData> locations) {
+    // CRITICAL FIX: Force refresh before showing simple selector as well
+    final appState = ref.read(appStateProvider);
+    final effectiveCompanyId = widget.companyId ?? appState.companyChoosen;
+    
+    if (effectiveCompanyId.isNotEmpty) {
+      if (widget.companyId != null) {
+        ref.invalidate(cashLocationListProvider(effectiveCompanyId, null, widget.locationType));
+      } else {
+        ref.invalidate(companyCashLocationsProvider);
+      }
+    }
+    
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
