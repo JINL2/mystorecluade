@@ -6,6 +6,7 @@
 /// Keyboard Handling: Uses TossKeyboardAwareBottomSheet for proper keyboard management
 ///
 /// Usage: TemplateUsageBottomSheet.show(context, template)
+import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -169,6 +170,10 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
   
   // State
   bool _isSubmitting = false;
+  
+  // Form-level submission protection - tracks last submission timestamp
+  DateTime? _lastSubmissionAttempt;
+  static const Duration _minimumSubmissionInterval = Duration(milliseconds: 500);
   
   // Store linked company ID for internal counterparties
   String? _linkedCompanyId;
@@ -1829,54 +1834,65 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
   }
   
   Future<void> _handleSubmit() async {
-    // Validate form
-    if (!_formKey.currentState!.validate()) return;
+    // CRITICAL: Prevent duplicate submissions immediately before any async operations
+    if (_isSubmitting) return;
     
-    // Description is optional - no validation needed
-    
-    // Additional validation based on requirements
-    // Validate counterparty if needed
-    if (requirements.needsCounterparty) {
-      if (_selectedCounterpartyId == null || _selectedCounterpartyId == '') {
-        _showError('Please select a counterparty');
-        return;
-      }
+    // Form-level protection: Check minimum interval between submission attempts
+    final now = DateTime.now();
+    if (_lastSubmissionAttempt != null && 
+        now.difference(_lastSubmissionAttempt!) < _minimumSubmissionInterval) {
+      return; // Silent return for rapid successive attempts
     }
-    
-    // Validate MY cash location only if truly needed
-    if (requirements.needsMyCashLocation) {
-      if (_selectedMyCashLocationId == null || _selectedMyCashLocationId == 'none' || _selectedMyCashLocationId == '') {
-        _showError('Please select your cash location');
-        return;
-      }
-    }
-    
-    if (requirements.needsCounterpartyCashLocation) {
-      // Check if store is needed (not saved in tags)
-      final tags = widget.template['tags'] as Map? ?? {};
-      final storedCounterpartyStoreId = tags['counterparty_store_id'] as String?;
-      
-      if (storedCounterpartyStoreId == null && _selectedCounterpartyStoreId == null) {
-        _showError('Please select counterparty store');
-        return;
-      }
-      if (_selectedCounterpartyCashLocationId == null) {
-        _showError('Please select counterparty cash location');
-        return;
-      }
-    }
-    
-    // Get numeric amount
-    final cleanAmount = _amountController.text.replaceAll(',', '');
-    final amount = double.tryParse(cleanAmount);
-    if (amount == null || amount <= 0) {
-      _showError('Invalid amount');
-      return;
-    }
+    _lastSubmissionAttempt = now;
     
     setState(() => _isSubmitting = true);
     
     try {
+      // Validate form
+      if (!_formKey.currentState!.validate()) return;
+      
+      // Description is optional - no validation needed
+      
+      // Additional validation based on requirements
+      // Validate counterparty if needed
+      if (requirements.needsCounterparty) {
+        if (_selectedCounterpartyId == null || _selectedCounterpartyId == '') {
+          _showError('Please select a counterparty');
+          return;
+        }
+      }
+      
+      // Validate MY cash location only if truly needed
+      if (requirements.needsMyCashLocation) {
+        if (_selectedMyCashLocationId == null || _selectedMyCashLocationId == 'none' || _selectedMyCashLocationId == '') {
+          _showError('Please select your cash location');
+          return;
+        }
+      }
+      
+      if (requirements.needsCounterpartyCashLocation) {
+        // Check if store is needed (not saved in tags)
+        final tags = widget.template['tags'] as Map? ?? {};
+        final storedCounterpartyStoreId = tags['counterparty_store_id'] as String?;
+        
+        if (storedCounterpartyStoreId == null && _selectedCounterpartyStoreId == null) {
+          _showError('Please select counterparty store');
+          return;
+        }
+        if (_selectedCounterpartyCashLocationId == null) {
+          _showError('Please select counterparty cash location');
+          return;
+        }
+      }
+      
+      // Get numeric amount
+      final cleanAmount = _amountController.text.replaceAll(',', '');
+      final amount = double.tryParse(cleanAmount);
+      if (amount == null || amount <= 0) {
+        _showError('Invalid amount');
+        return;
+      }
+      
       // Get Supabase client and user info
       final supabase = Supabase.instance.client;
       final appState = ref.read(appStateProvider);
@@ -1983,17 +1999,39 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
         Navigator.of(context).pop(true); // Return success
       }
     } on PostgrestException catch (e) {
-      // Handle database-specific errors
+      // Handle database-specific errors with enhanced duplicate detection
       
       if (e.code == '23505') {
-        _showError('Duplicate transaction detected');
+        // Unique constraint violation - possible duplicate transaction
+        _showError('Duplicate transaction detected. Please do not submit multiple times.');
+      } else if (e.code == '40001' || e.code == '40P01') {
+        // Serialization failure or deadlock - retry might be appropriate but not automatically
+        _showError('Transaction conflict detected. Please try again in a moment.');
       } else if (e.message.contains('not balanced')) {
         _showError('Transaction amounts are not balanced');
+      } else if (e.message.contains('timeout') || e.code == '57014') {
+        // Query timeout or cancellation
+        _showError('Transaction timed out. Please check your connection and try again.');
+      } else if (e.message.contains('connection') || e.code == '08006') {
+        // Connection errors
+        _showError('Connection error. Please check your internet connection.');
+      } else if (e.code == '23514') {
+        // Check constraint violation
+        _showError('Invalid transaction data. Please verify all amounts and selections.');
       } else {
         _showError('Database error: ${e.message}');
       }
+    } on TimeoutException catch (e) {
+      // Network timeout
+      _showError('Request timed out. Please check your connection and try again.');
+    } on FormatException catch (e) {
+      // Data format errors
+      _showError('Invalid data format. Please check all entered values.');
     } catch (e, stackTrace) {
-      _showError('Failed to create transaction: $e');
+      // Log the full error for debugging while showing user-friendly message
+      print('Journal submission error: $e');
+      print('Stack trace: $stackTrace');
+      _showError('Failed to create transaction. Please try again or contact support if the issue persists.');
     } finally {
       if (mounted) {
         setState(() => _isSubmitting = false);

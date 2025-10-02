@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../../core/themes/toss_colors.dart';
 import '../../../core/themes/toss_text_styles.dart';
@@ -86,6 +87,10 @@ class _TossButtonState extends State<TossButton>
   late AnimationController _controller;
   late Animation<double> _scaleAnimation;
   
+  // Button-level protection against rapid taps
+  bool _isProcessing = false;
+  Timer? _debounceTimer;
+  
   @override
   void initState() {
     super.initState();
@@ -105,6 +110,7 @@ class _TossButtonState extends State<TossButton>
   @override
   void dispose() {
     _controller.dispose();
+    _debounceTimer?.cancel();
     super.dispose();
   }
 
@@ -140,21 +146,44 @@ class _TossButtonState extends State<TossButton>
   }
 
   void _handleTapDown(TapDownDetails details) {
-    if (widget.isEnabled && !widget.isLoading) {
+    if (widget.isEnabled && !widget.isLoading && !_isProcessing) {
       _controller.forward();
     }
   }
   
   void _handleTapUp(TapUpDetails details) {
-    if (widget.isEnabled && !widget.isLoading) {
+    if (widget.isEnabled && !widget.isLoading && !_isProcessing) {
       _controller.reverse();
     }
   }
   
   void _handleTapCancel() {
-    if (widget.isEnabled && !widget.isLoading) {
+    if (widget.isEnabled && !widget.isLoading && !_isProcessing) {
       _controller.reverse();
     }
+  }
+  
+  void _handleTap() {
+    // Prevent rapid button taps with debouncing for critical operations
+    if (_isProcessing || !widget.isEnabled || widget.isLoading) return;
+    
+    // Set processing state immediately
+    if (mounted) {
+      setState(() => _isProcessing = true);
+    }
+    
+    // Cancel any existing timer
+    _debounceTimer?.cancel();
+    
+    // Execute the callback
+    widget.onPressed?.call();
+    
+    // Reset processing state after a safe delay (300ms for critical operations like journal entries)
+    _debounceTimer = Timer(const Duration(milliseconds: 300), () {
+      if (mounted) {
+        setState(() => _isProcessing = false);
+      }
+    });
   }
   
   @override
@@ -173,8 +202,8 @@ class _TossButtonState extends State<TossButton>
               child: Material(
                 color: TossColors.transparent,
                 child: InkWell(
-                  onTap: widget.isEnabled && !widget.isLoading 
-                      ? widget.onPressed 
+                  onTap: widget.isEnabled && !widget.isLoading && !_isProcessing
+                      ? _handleTap 
                       : null,
                   borderRadius: BorderRadius.circular(TossBorderRadius.md),
                   child: Container(
