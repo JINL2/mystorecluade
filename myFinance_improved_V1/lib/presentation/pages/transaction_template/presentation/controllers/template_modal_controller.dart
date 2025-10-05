@@ -4,10 +4,10 @@
 /// Simple templates → Modal, Complex templates → Full page
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../modals/template_usage_bottom_sheet.dart';
-import '../modals/quick_template_bottom_sheet.dart';
+import '../widgets/modals/template_usage_bottom_sheet.dart';
+import '../widgets/modals/quick_template_bottom_sheet.dart';
 import '../pages/template_usage_page.dart';
-import '../../shared/services/template_analyzer.dart';
+import '../../business/analyzers/template_analyzer.dart';
 
 enum TemplateModalStrategy {
   modal,        // Use modal bottom sheet

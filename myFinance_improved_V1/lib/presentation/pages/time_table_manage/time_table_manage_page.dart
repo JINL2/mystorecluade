@@ -76,10 +76,10 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
   bool isLoadingMetadata = false;
   bool isLoadingShiftStatus = false;
   
-  // Track selected shift request (shift_id + user_name combination)
-  String? selectedShiftRequest;
-  bool? selectedShiftIsApproved; // Track if selected shift is approved or pending
-  String? selectedShiftRequestId; // Track the actual shift_request_id for RPC call
+  // Track selected shift requests (shift_id + user_name combination) - Multi-select
+  Set<String> selectedShiftRequests = {};
+  Map<String, bool> selectedShiftApprovalStates = {}; // Track approval states for each selected shift
+  Map<String, String> selectedShiftRequestIds = {}; // Track actual shift_request_ids for RPC call
   
   // Manager overview data - store by month key "YYYY-MM"
   Map<String, Map<String, dynamic>> managerOverviewDataByMonth = {};
@@ -861,9 +861,9 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
                         monthlyShiftData = [];
                         loadedMonths.clear();
                         // Clear selection when switching stores
-                        selectedShiftRequest = null;
-                        selectedShiftIsApproved = null;
-                        selectedShiftRequestId = null;
+                        selectedShiftRequests.clear();
+                        selectedShiftApprovalStates.clear();
+                        selectedShiftRequestIds.clear();
                         // Clear overview data when switching stores
                         managerOverviewDataByMonth.clear();
                         managerCardsDataByMonth.clear();
@@ -1079,9 +1079,9 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
             setState(() {
               selectedDate = date;
               // Clear selection when changing dates
-              selectedShiftRequest = null;
-              selectedShiftIsApproved = null;
-              selectedShiftRequestId = null;
+              selectedShiftRequests.clear();
+              selectedShiftApprovalStates.clear();
+              selectedShiftRequestIds.clear();
             });
             HapticFeedback.selectionClick();
             // Fetch shift status for the selected date
@@ -1344,22 +1344,22 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
                         
                         // Create unique identifier for this shift request
                         final shiftRequestId = '${shiftId}_$userName';
-                        final isSelected = selectedShiftRequest == shiftRequestId;
+                        final isSelected = selectedShiftRequests.contains(shiftRequestId);
                         
                         return InkWell(
                           onTap: () {
                             // Handle shift click
                             HapticFeedback.selectionClick();
                             setState(() {
-                              // Toggle selection - if already selected, deselect; otherwise select
-                              if (selectedShiftRequest == shiftRequestId) {
-                                selectedShiftRequest = null;
-                                selectedShiftIsApproved = null;
-                                selectedShiftRequestId = null;
+                              // Toggle multi-selection - if already selected, deselect; otherwise add to selection
+                              if (selectedShiftRequests.contains(shiftRequestId)) {
+                                selectedShiftRequests.remove(shiftRequestId);
+                                selectedShiftApprovalStates.remove(shiftRequestId);
+                                selectedShiftRequestIds.remove(shiftRequestId);
                               } else {
-                                selectedShiftRequest = shiftRequestId;
-                                selectedShiftIsApproved = isApproved;
-                                selectedShiftRequestId = shiftRequestIdFromData;
+                                selectedShiftRequests.add(shiftRequestId);
+                                selectedShiftApprovalStates[shiftRequestId] = isApproved;
+                                selectedShiftRequestIds[shiftRequestId] = shiftRequestIdFromData;
                                 
                                 // Auto-scroll to show the Approve button
                                 // Delay to allow setState to complete and UI to update
@@ -2695,7 +2695,7 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space5),
                     child: InkWell(
-                      onTap: selectedShiftRequest != null && selectedShiftRequestId != null && selectedShiftRequestId!.isNotEmpty 
+                      onTap: selectedShiftRequests.isNotEmpty && selectedShiftRequestIds.isNotEmpty 
                           ? () async {
                         HapticFeedback.mediumImpact();
                         
@@ -2703,7 +2703,7 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
                         final appState = ref.read(appStateProvider);
                         final userId = appState.user['user_id'] ?? '';
                         
-                        if (userId.isEmpty || selectedShiftRequestId!.isEmpty) {
+                        if (userId.isEmpty || selectedShiftRequestIds.isEmpty) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               content: const Text('Error: Missing user ID or shift request ID'),
@@ -2721,18 +2721,22 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
                             'toggle_shift_approval',
                             params: {
                               'p_user_id': userId,
-                              'p_shift_request_ids': [selectedShiftRequestId],  // Pass as array
+                              'p_shift_request_ids': selectedShiftRequestIds.values.toList(),  // Pass all selected IDs as array
                             },
                           );
                           
                           
-                          // When clicking approved shift, it changes to pending. When clicking pending shift, it changes to approved.
-                          final action = selectedShiftIsApproved == true 
-                              ? 'changed to pending' 
-                              : 'approved';
+                          // Determine action based on selected items - if mixed states, show generic message
+                          final hasApproved = selectedShiftApprovalStates.values.contains(true);
+                          final hasPending = selectedShiftApprovalStates.values.contains(false);
+                          final action = hasApproved && hasPending 
+                              ? 'toggled' 
+                              : hasApproved 
+                                  ? 'changed to pending' 
+                                  : 'approved';
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
-                              content: Text('Shift request $action successfully'),
+                              content: Text('${selectedShiftRequests.length} shift request(s) $action successfully'),
                               backgroundColor: TossColors.success,
                               behavior: SnackBarBehavior.floating,
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(TossBorderRadius.md)),
@@ -2752,9 +2756,9 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
                           
                           // Clear selection and loaded months cache
                           setState(() {
-                            selectedShiftRequest = null;
-                            selectedShiftIsApproved = null;
-                            selectedShiftRequestId = null;
+                            selectedShiftRequests.clear();
+                            selectedShiftApprovalStates.clear();
+                            selectedShiftRequestIds.clear();
                             loadedMonths.remove(monthKey);
                             loadedMonths.remove(nextMonthKey);
                             // Clear Manager tab cached data to force refresh
@@ -2784,8 +2788,8 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
                       child: Container(
                         height: 56,
                         decoration: BoxDecoration(
-                          color: selectedShiftRequest != null 
-                              ? (selectedShiftIsApproved == true 
+                          color: selectedShiftRequests.isNotEmpty 
+                              ? (selectedShiftApprovalStates.values.contains(true) && !selectedShiftApprovalStates.values.contains(false)
                                   ? TossColors.warning 
                                   : TossColors.primary)
                               : TossColors.gray300,
@@ -2793,9 +2797,13 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
                         ),
                         child: Center(
                           child: Text(
-                            selectedShiftIsApproved == true ? 'Not Approve' : 'Approve',
+                            selectedShiftRequests.length > 1 
+                                ? 'Toggle ${selectedShiftRequests.length} Shifts' 
+                                : selectedShiftApprovalStates.values.contains(true) && !selectedShiftApprovalStates.values.contains(false)
+                                    ? 'Not Approve' 
+                                    : 'Approve',
                             style: TossTextStyles.bodyLarge.copyWith(
-                              color: selectedShiftRequest != null 
+                              color: selectedShiftRequests.isNotEmpty 
                                   ? TossColors.white 
                                   : TossColors.gray500,
                               fontWeight: FontWeight.w600,

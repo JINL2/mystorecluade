@@ -14,15 +14,29 @@ import 'package:myfinance_improved/presentation/widgets/common/toss_error_view.d
 import 'package:myfinance_improved/presentation/widgets/common/toss_empty_view.dart';
 import 'package:myfinance_improved/presentation/widgets/toss/toss_refresh_indicator.dart';
 import 'package:myfinance_improved/presentation/widgets/toss/toss_tab_bar.dart';
-import 'package:myfinance_improved/data/services/supabase_service.dart';
-import 'package:myfinance_improved/presentation/providers/app_state_provider.dart';
-import 'data/providers/transaction_template_providers.dart';
-import 'data/providers/template_filter_provider.dart';
-import 'presentation/modals/add_template_bottom_sheet.dart';
-import 'presentation/modals/template_usage_bottom_sheet.dart';
-import 'presentation/modals/template_filter_sheet.dart';
 import '../../../core/navigation/safe_navigation.dart';
 import 'package:myfinance_improved/core/themes/index.dart';
+
+// Import main app state provider  
+import '../../providers/app_state_provider.dart';
+
+// Updated imports to use new layer architecture
+import 'state/providers/template_providers.dart';
+import 'state/providers/template_page_state.dart';
+import 'state/providers/entity_providers.dart';
+import 'state/providers/counterparty_providers.dart';
+import 'state/providers/template_filter_provider.dart';
+import 'state/providers/template_user_and_entity_providers.dart';
+import 'data/repositories/template_repository.dart';
+
+// Import global entity providers (as used in original backup files)
+import '../../providers/entities/account_provider.dart';
+import '../../providers/entities/cash_location_provider.dart';
+
+// Import migrated UI components from new presentation layer
+import 'presentation/widgets/modals/add_template_bottom_sheet.dart';
+import 'presentation/widgets/modals/template_usage_bottom_sheet.dart';
+import 'presentation/widgets/modals/template_filter_sheet.dart';
 
 class TransactionTemplatePage extends ConsumerStatefulWidget {
   const TransactionTemplatePage({super.key});
@@ -54,22 +68,8 @@ class _TransactionTemplatePageState extends ConsumerState<TransactionTemplatePag
   }
 
   bool _hasAdminPermission(WidgetRef ref) {
-    final appStateNotifier = ref.read(appStateProvider.notifier);
-    final selectedCompany = appStateNotifier.selectedCompany;
-    
-    if (selectedCompany == null) return false;
-    
-    try {
-      final userRole = selectedCompany['role'];
-      if (userRole == null) return false;
-      
-      final permissions = userRole['permissions'] as List<dynamic>?;
-      if (permissions == null) return false;
-      
-      return permissions.contains(adminPermissionId);
-    } catch (e) {
-      return false;
-    }
+    // Use page state providers for template-specific permissions
+    return ref.watch(canDeleteTemplatesProvider);
   }
 
   void _updateTabController(bool hasAdminPermission) {
@@ -85,11 +85,11 @@ class _TransactionTemplatePageState extends ConsumerState<TransactionTemplatePag
 
   @override
   Widget build(BuildContext context) {
-    // Watch the filtered templates provider
+    // Watch the filtered templates provider from new data layer
     final templatesAsync = ref.watch(filteredTransactionTemplatesProvider);
     final currentFilter = ref.watch(templateFilterStateProvider);
-    final companyChoosen = ref.watch(templateCompanyChoosenProvider);
-    final storeChoosen = ref.watch(templateStoreChoosenProvider);
+    final companyChoosen = ref.watch(appStateProvider).companyChoosen;
+    final storeChoosen = ref.watch(appStateProvider).storeChoosen;
     
     // ⚡ PERFORMANCE: Preload commonly used data to reduce bottom sheet loading time
     if (companyChoosen.isNotEmpty && storeChoosen.isNotEmpty) {
@@ -98,7 +98,7 @@ class _TransactionTemplatePageState extends ConsumerState<TransactionTemplatePag
       ref.watch(counterpartiesProvider);
     }
     
-    // Check if user has admin permission
+    // Check if user has admin permission using new state providers
     final hasAdminPermission = _hasAdminPermission(ref);
     
     // Initialize or update tab controller
@@ -248,8 +248,9 @@ class _TransactionTemplatePageState extends ConsumerState<TransactionTemplatePag
 
     return TossRefreshIndicator(
       onRefresh: () async {
-        // Refresh the provider that the UI actually watches
-        ref.invalidate(filteredTransactionTemplatesProvider);
+        // Refresh using new repository pattern
+        final refreshFunction = ref.read(refreshTemplatesProvider);
+        await refreshFunction();
       },
       child: ListView.builder(
         padding: EdgeInsets.all(TossSpacing.space4),
@@ -898,9 +899,11 @@ class _TransactionTemplatePageState extends ConsumerState<TransactionTemplatePag
   }
 
   Future<void> _deleteTemplate(BuildContext context, WidgetRef ref, Map<String, dynamic> template) async {
-    final supabaseService = ref.read(supabaseServiceProvider);
-    final templateId = template['template_id'];
-    
+    final templateRepository = ref.read(templateRepositoryProvider);
+    final templateId = template['template_id'] as String?;
+    final appState = ref.read(appStateProvider);
+    final companyId = appState.companyChoosen;
+    final storeId = appState.storeChoosen;
     
     if (templateId == null) {
       _showErrorSnackBar(context, 'Unable to delete template: Invalid template ID');
@@ -918,73 +921,43 @@ class _TransactionTemplatePageState extends ConsumerState<TransactionTemplatePag
       _optimisticTemplates = currentTemplates
         .where((t) => t['template_id'] != templateId)
         .toList();
-      
     });
     
-    // 2. BACKGROUND DATABASE UPDATE (don't wait for it)
-    supabaseService.client
-        .from('transaction_templates')
-        .update({
-          'is_active': false,
-          'updated_at': DateTime.now().toIso8601String(),
-        })
-        .eq('template_id', templateId)
-        .catchError((Object e) => print('❌ Database update failed: $e'));
-    
-    // 3. Show success immediately
-    if (context.mounted) {
-      _showSuccessSnackBar(context, 'Template deleted');
+    // 2. BACKGROUND DATABASE UPDATE using repository
+    try {
+      await templateRepository.deleteTemplate(
+        templateId: templateId!,
+        userId: 'current_user_id', // TODO: Get from auth provider
+        companyId: companyId.toString(),
+        storeId: storeId.toString(),
+      );
+      
+      // 3. Show success immediately
+      if (context.mounted) {
+        _showSuccessSnackBar(context, 'Template deleted');
+      }
+    } catch (e) {
+      // Revert optimistic update if deletion failed
+      setState(() {
+        _hasOptimisticUpdates = false;
+        _optimisticTemplates = [];
+      });
+      
+      if (context.mounted) {
+        _showErrorSnackBar(context, 'Failed to delete template: $e');
+      }
     }
   }
 
-  /// Track template selection for analytics - stores in transaction_templates_preferences table
+  /// Track template selection for analytics
   void _trackTemplateSelection(Map<String, dynamic> template) async {
     try {
-      final appState = ref.read(appStateProvider);
-      if (appState.companyChoosen.isEmpty) {
-        return;
-      }
-
-      final supabase = ref.read(supabaseServiceProvider);
-      final templateId = template['template_id'] as String?;
-      final templateName = template['name'] as String? ?? 'Unknown Template';
-      final templateType = template['template_type'] as String? ?? 'transaction';
-
-      if (templateId == null) {
-        return;
-      }
-
-      // Use correct log_template_usage RPC parameters for transaction_templates_preferences table
-      await supabase.client.rpc('log_template_usage', params: {
-        'p_template_id': templateId,
-        'p_template_name': templateName,
-        'p_company_id': appState.companyChoosen,
-        'p_template_type': templateType,
-        'p_usage_type': 'selected',
-        'p_metadata': {
-          'context': 'template_selection',
-          'selection_source': 'template_list',
-        },
-      });
+      // TODO: Implement analytics tracking using new business layer services
+      // This would use the business layer analytics service once implemented
+      print('Template selected: ${template['template_id']}');
     } catch (e) {
       // Don't interrupt user experience, but silently handle error
     }
-  }
-
-
-  // Add new template to optimistic state
-  void _addTemplateOptimistic(Map<String, dynamic> newTemplate) {
-    
-    setState(() {
-      // Get current displayed templates
-      final currentTemplates = _hasOptimisticUpdates ? _optimisticTemplates : 
-        ref.read(filteredTransactionTemplatesProvider).value ?? [];
-      
-      // Add new template and keep local state active
-      _hasOptimisticUpdates = true;
-      _optimisticTemplates = [newTemplate, ...currentTemplates];
-      
-    });
   }
 
   void _showSuccessSnackBar(BuildContext context, String message) {
