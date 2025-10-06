@@ -85,7 +85,7 @@ class CreateTemplateUseCase {
     final debitAccount = await ref.read(accountByIdProvider(templateData.selectedDebitAccountId!).future);
     final creditAccount = await ref.read(accountByIdProvider(templateData.selectedCreditAccountId!).future);
     
-    // Get cash location names
+    // Get cash location names if needed
     String? debitCashLocationName;
     String? creditCashLocationName;
     
@@ -177,11 +177,8 @@ class CreateTemplateUseCase {
       "accounts": accountIds,
       "categories": uniqueCategories,
       "cash_locations": cashLocationIds,
+      if (counterpartyStoreId != null) "counterparty_store_id": counterpartyStoreId,
     };
-    
-    if (counterpartyStoreId != null) {
-      tags["counterparty_store_id"] = [counterpartyStoreId];
-    }
     
     return tags;
   }

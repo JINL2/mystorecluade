@@ -52,7 +52,11 @@ class AutonomousCounterpartySelector extends ConsumerWidget {
       counterpartiesAsync = ref.watch(currentCounterpartiesProvider);
     }
     
-    
+    print('DEBUG: AutonomousCounterpartySelector - counterpartiesAsync state: ${counterpartiesAsync.when(
+      data: (data) => 'data: ${data.length} items',
+      loading: () => 'loading',
+      error: (error, stack) => 'error: $error',
+    )}');
     
 
     // Find selected counterparty

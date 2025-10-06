@@ -97,8 +97,8 @@ class TemplateUsageBottomSheet extends ConsumerStatefulWidget {
       // Try to create a better name from the template type
       final data = template['data'] as List? ?? [];
       if (data.isNotEmpty) {
-        final debit = data.firstWhere((e) => e['type'] == 'debit', orElse: () => {});
-        final credit = data.firstWhere((e) => e['type'] == 'credit', orElse: () => {});
+        final debit = data.firstWhere((e) => e['type'] == 'debit', orElse: () => <String, dynamic>{});
+        final credit = data.firstWhere((e) => e['type'] == 'credit', orElse: () => <String, dynamic>{});
         final String debitTag = debit['category_tag']?.toString() ?? '';
         final String creditTag = credit['category_tag']?.toString() ?? '';
         if (debitTag.isNotEmpty && creditTag.isNotEmpty) {
@@ -188,7 +188,7 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
     // Amount must be entered and valid
     if (_amountController.text.isEmpty) return false;
     final cleanAmount = _amountController.text.replaceAll(',', '');
-    final amount = int.tryParse(cleanAmount);
+    final amount = double.tryParse(cleanAmount);  // ✅ FIXED: Use double instead of int
     if (amount == null || amount <= 0) return false;
     
     // Check requirements based on template
@@ -213,7 +213,16 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
     if (requirements.needsCounterpartyCashLocation) {
       // Check if store is needed (not saved in tags)
       final tags = widget.template['tags'] as Map? ?? {};
-      final storedCounterpartyStoreId = tags['counterparty_store_id'] as String?;
+      
+      // Handle both old array format and new string format for backward compatibility
+      final counterpartyStoreRaw = tags['counterparty_store_id'];
+      String? storedCounterpartyStoreId;
+      
+      if (counterpartyStoreRaw is String) {
+        storedCounterpartyStoreId = counterpartyStoreRaw;
+      } else if (counterpartyStoreRaw is List && counterpartyStoreRaw.isNotEmpty) {
+        storedCounterpartyStoreId = counterpartyStoreRaw.first as String?;
+      }
       
       if (storedCounterpartyStoreId == null && _selectedCounterpartyStoreId == null) {
         return false;
@@ -244,7 +253,17 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
     
     // Check if counterparty_store_id is stored in tags
     final tags = widget.template['tags'] as Map? ?? {};
-    final storedCounterpartyStoreId = tags['counterparty_store_id'] as String?;
+    
+    // Handle both old array format and new string format for backward compatibility
+    final counterpartyStoreRaw = tags['counterparty_store_id'];
+    String? storedCounterpartyStoreId;
+    
+    if (counterpartyStoreRaw is String) {
+      storedCounterpartyStoreId = counterpartyStoreRaw;
+    } else if (counterpartyStoreRaw is List && counterpartyStoreRaw.isNotEmpty) {
+      storedCounterpartyStoreId = counterpartyStoreRaw.first as String?;
+    }
+    
     if (storedCounterpartyStoreId != null) {
       _selectedCounterpartyStoreId = storedCounterpartyStoreId;
     }
@@ -296,6 +315,7 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
     
     // Check for multiple currencies on page load
     _checkForMultipleCurrencies();
+    
   }
   
   @override
@@ -445,7 +465,7 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
   }
   
   Widget _buildCompactTemplateHeader() {
-    String templateName = widget.template['name'] ?? 'Transaction Template';
+    String templateName = (widget.template['name'] as String?) ?? 'Transaction Template';
     final data = widget.template['data'] as List? ?? [];
     
     // Clean up template name if it contains 'none' or looks bad
@@ -453,10 +473,10 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
         templateName.toLowerCase().contains('account none')) {
       // Generate a better name from template structure
       if (data.isNotEmpty) {
-        final debit = data.firstWhere((e) => e['type'] == 'debit', orElse: () => {});
-        final credit = data.firstWhere((e) => e['type'] == 'credit', orElse: () => {});
-        final debitTag = debit['category_tag'] ?? '';
-        final creditTag = credit['category_tag'] ?? '';
+        final debit = data.firstWhere((e) => e['type'] == 'debit', orElse: () => <String, dynamic>{});
+        final credit = data.firstWhere((e) => e['type'] == 'credit', orElse: () => <String, dynamic>{});
+        final debitTag = (debit['category_tag'] as String?) ?? '';
+        final creditTag = (credit['category_tag'] as String?) ?? '';
         if (debitTag.isNotEmpty && creditTag.isNotEmpty) {
           templateName = '${_formatCategoryTag(debitTag)} to ${_formatCategoryTag(creditTag)}';
         }
@@ -467,10 +487,10 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
     String typeDescription = '';
     if (data.isNotEmpty) {
       final debitAccounts = data.where((e) => e['type'] == 'debit')
-          .map((e) => _formatCategoryTag(e['category_tag'] ?? 'account'))
+          .map((e) => _formatCategoryTag((e['category_tag'] as String?) ?? 'account'))
           .toList();
       final creditAccounts = data.where((e) => e['type'] == 'credit')
-          .map((e) => _formatCategoryTag(e['category_tag'] ?? 'account'))
+          .map((e) => _formatCategoryTag((e['category_tag'] as String?) ?? 'account'))
           .toList();
       
       if (debitAccounts.isNotEmpty && creditAccounts.isNotEmpty) {
@@ -781,8 +801,7 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
       ),
     );
   }
-  
-  
+
   // New method to build debit and credit sections with their specific requirements
   Widget _buildTransactionEntrySections() {
     final data = widget.template['data'] as List? ?? [];
@@ -858,7 +877,7 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
             padding: EdgeInsets.all(TossSpacing.space3),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: entries.map((entry) => _buildEnhancedEntryInfo(entry)).toList(),
+              children: entries.map((entry) => _buildEnhancedEntryInfo(entry as Map<String, dynamic>)).toList(),
             ),
           ),
         ],
@@ -875,7 +894,7 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
   }
   
   Widget _buildEnhancedEntryInfoContent(Map<String, dynamic> entry, WidgetRef ref) {
-    final accountName = entry['account_name'] ?? 'Unknown Account';
+    final accountName = (entry['account_name'] as String?) ?? 'Unknown Account';
     final categoryTag = entry['category_tag'] as String?;
     
     // Get additional information based on account type
@@ -1291,7 +1310,7 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
     return Consumer(
       builder: (context, ref, child) {
         // Fetch counterparty details
-        final counterpartyAsync = ref.watch(counterpartyByIdProvider(counterpartyId));
+        final counterpartyAsync = ref.watch(counterpartyMapByIdProvider(counterpartyId));
         
         return counterpartyAsync.when(
           data: (counterparty) {
@@ -1491,7 +1510,16 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
   Widget _buildCounterpartyStoreSelector() {
     // First check if counterparty_store_id is already stored in tags
     final tags = widget.template['tags'] as Map? ?? {};
-    final storedCounterpartyStoreId = tags['counterparty_store_id'] as String?;
+    
+    // Handle both old array format and new string format for backward compatibility
+    final counterpartyStoreRaw = tags['counterparty_store_id'];
+    String? storedCounterpartyStoreId;
+    
+    if (counterpartyStoreRaw is String) {
+      storedCounterpartyStoreId = counterpartyStoreRaw;
+    } else if (counterpartyStoreRaw is List && counterpartyStoreRaw.isNotEmpty) {
+      storedCounterpartyStoreId = counterpartyStoreRaw.first as String?;
+    }
     
     // If store is already saved, use it directly
     if (storedCounterpartyStoreId != null) {
@@ -1534,7 +1562,7 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
     return Consumer(
       builder: (context, ref, child) {
         // First, fetch counterparty details to get linked_company_id
-        final counterpartyAsync = ref.watch(counterpartyByIdProvider(counterpartyId));
+        final counterpartyAsync = ref.watch(counterpartyMapByIdProvider(counterpartyId));
         
         return counterpartyAsync.when(
           data: (counterparty) {
@@ -1659,7 +1687,17 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
   Widget _buildCounterpartyCashLocationSelector() {
     // Check if we have a store ID either from selection or from tags
     final tags = widget.template['tags'] as Map? ?? {};
-    final storedCounterpartyStoreId = tags['counterparty_store_id'] as String?;
+    
+    // Handle both old array format and new string format for backward compatibility
+    final counterpartyStoreRaw = tags['counterparty_store_id'];
+    String? storedCounterpartyStoreId;
+    
+    if (counterpartyStoreRaw is String) {
+      storedCounterpartyStoreId = counterpartyStoreRaw;
+    } else if (counterpartyStoreRaw is List && counterpartyStoreRaw.isNotEmpty) {
+      storedCounterpartyStoreId = counterpartyStoreRaw.first as String?;
+    }
+    
     final storeIdToUse = _selectedCounterpartyStoreId ?? storedCounterpartyStoreId;
     
     if (_linkedCompanyId == null) return SizedBox.shrink();
@@ -1693,7 +1731,7 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
   // Expose submit handler for external access
   Future<void> handleSubmit() => _handleSubmit();
   
-  // Helper function to construct p_lines array
+  // Helper function to construct p_lines array - exact match to GitHub working version
   List<Map<String, dynamic>> _constructPLines(
     double amount,
     List<Map<String, dynamic>>? myCashLocations,
@@ -1702,88 +1740,58 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
     final templateData = widget.template['data'] as List? ?? [];
     final tags = widget.template['tags'] as Map? ?? {};
     
-    // Get pre-selected MY cash location from tags if available
-    final tagsCashLocations = tags['cash_locations'] as List? ?? [];
-    final preselectedMyCashLocationId = tagsCashLocations.isNotEmpty ? 
-        tagsCashLocations.first as String? : null;
-    
     for (var templateLine in templateData) {
       final line = <String, dynamic>{
         'account_id': templateLine['account_id'],
-        'description': templateLine['description'] ?? '',
+        'description': _descriptionController.text.trim().isEmpty ? null : _descriptionController.text.trim(),
       };
       
-      // Set amounts based on type
+      // Set amounts as doubles
       if (templateLine['type'] == 'debit') {
-        line['debit'] = amount.toString();
-        line['credit'] = '0';
+        line['debit'] = amount;
+        line['credit'] = 0.0;
       } else {
-        line['debit'] = '0';
-        line['credit'] = amount.toString();
+        line['debit'] = 0.0;
+        line['credit'] = amount;
       }
       
-      // Add counterparty info if present (for line-level tracking)
-      if (templateLine['counterparty_id'] != null) {
-        line['counterparty_id'] = templateLine['counterparty_id'];
-        
-        // Add counterparty store if available
-        final storeId = _selectedCounterpartyStoreId ?? 
-                       tags['counterparty_store_id'];
-        if (storeId != null) {
-          line['counterparty_store_id'] = storeId;
-        }
-      }
-      
-      // Handle CASH accounts - Add MY cash location
+      // Add cash object for cash accounts
       if (templateLine['category_tag'] == 'cash') {
-        // Priority order for cash location:
-        // 1. Cash location from the line entry
-        // 2. Pre-selected cash location from tags
-        // 3. User-selected cash location
-        String? cashLocationId = templateLine['cash_location_id'];
+        final cashLocationId = templateLine['cash_location_id'] ?? 
+                              (tags['cash_locations'] as List?)?.first ?? 
+                              _selectedMyCashLocationId;
         
-        if (cashLocationId == null || cashLocationId == '' || cashLocationId == 'none') {
-          // Check tags for pre-selected cash location
-          if (preselectedMyCashLocationId != null && 
-              preselectedMyCashLocationId != '' && 
-              preselectedMyCashLocationId != 'none') {
-            cashLocationId = preselectedMyCashLocationId;
-          } else {
-            // Use user-selected cash location
-            cashLocationId = _selectedMyCashLocationId;
-          }
-        }
-        
-        if (cashLocationId != null && cashLocationId != 'none' && cashLocationId != '') {
-          // Find the cash location name
-          String? cashLocationName;
-          if (myCashLocations != null) {
-            final location = myCashLocations.firstWhere(
-              (loc) => loc['cash_location_id'] == cashLocationId,
-              orElse: () => {},
-            );
-            cashLocationName = location['location_name'] as String?;
-          }
-          
-          // Add cash object with both ID and name
+        if (cashLocationId != null && cashLocationId != 'none') {
           line['cash'] = {
             'cash_location_id': cashLocationId,
-            'cash_location_name': cashLocationName ?? '',
           };
         }
       }
       
-      // Handle PAYABLE/RECEIVABLE accounts - Add debt tracking
-      if (templateLine['category_tag'] == 'payable' || 
-          templateLine['category_tag'] == 'receivable') {
+      // Add debt object for receivable/payable accounts
+      final categoryTag = templateLine['category_tag'] as String?;
+      final accountId = templateLine['account_id'] as String?;
+      
+      // Add counterparty info if present (but not for debt accounts - debt handles its own counterparty)
+      if (templateLine['counterparty_id'] != null && categoryTag != 'payable' && categoryTag != 'receivable') {
+        line['counterparty_id'] = templateLine['counterparty_id'];
+      }
+      
+      if ((categoryTag == 'payable' || categoryTag == 'receivable') && accountId != null) {
         
-        final accountId = templateLine['account_id'] as String?;
-        if (accountId != null && _debtConfigurations.containsKey(accountId)) {
-          line['debt'] = _constructDebtObject(
-            templateLine,
-            amount,
-            accountId,
-          );
+        if (_debtConfigurations.containsKey(accountId)) {
+          final counterpartyId = templateLine['counterparty_id'] ?? 
+                                widget.template['counterparty_id'] ?? 
+                                _selectedCounterpartyId;
+          
+          if (counterpartyId != null && counterpartyId.toString().isNotEmpty) {
+            // Construct the debt object using the existing helper method
+            final debtObject = _constructDebtObject(templateLine as Map<String, dynamic>, amount, accountId);
+            
+            if (debtObject.isNotEmpty) {
+              line['debt'] = debtObject;
+            }
+          }
         }
       }
       
@@ -1799,38 +1807,62 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
     double amount,
     String accountId,
   ) {
-    final config = _debtConfigurations[accountId];
-    if (config == null) return {};
     
+    final config = _debtConfigurations[accountId];
+    if (config == null) {
+      return {};
+    }
+
     final categoryTag = templateLine['category_tag'];
     final counterpartyId = templateLine['counterparty_id'] ?? 
-                          widget.template['counterparty_id'];
-    final counterpartyName = templateLine['counterparty_name'] ?? '';
+                          widget.template['counterparty_id'] ?? 
+                          _selectedCounterpartyId;
+    final counterpartyName = templateLine['counterparty_name'] ?? 
+                           widget.template['counterparty_name'] ?? '';
     final tags = widget.template['tags'] as Map? ?? {};
-    final counterpartyStoreId = _selectedCounterpartyStoreId ?? 
-                               tags['counterparty_store_id'];
-    
+
+    // Handle both old array format and new string format for backward compatibility
+    final counterpartyStoreRaw = tags['counterparty_store_id'];
+    String? tagsCounterpartyStoreId;
+
+    if (counterpartyStoreRaw is String) {
+      tagsCounterpartyStoreId = counterpartyStoreRaw;
+    } else if (counterpartyStoreRaw is List && counterpartyStoreRaw.isNotEmpty) {
+      tagsCounterpartyStoreId = counterpartyStoreRaw.first as String?;
+    }
+
+    final counterpartyStoreId = _selectedCounterpartyStoreId ?? tagsCounterpartyStoreId;
+
     // Use the stored linked company ID for internal counterparties
     final linkedCompanyId = _linkedCompanyId ?? '';
+
+    String debtCategory = config.category;
+    if (debtCategory.isEmpty) {
+      if (counterpartyStoreId != null && counterpartyStoreId.isNotEmpty) {
+        debtCategory = 'transfer';
+      } else {
+        debtCategory = 'trade';
+      }
+    }
     
-    return {
+    final debtObject = {
       'counterparty_id': counterpartyId ?? '',
       'direction': categoryTag, // 'payable' or 'receivable'
-      'category': config.category, // User-selected category
-      'account_id': accountId,
-      'original_amount': amount,
+      'category': debtCategory, // transfer, trade, loan, note
       'interest_rate': config.interestRate,
-      'interest_account_id': '', // TODO: Add interest account selection if needed
-      'interest_due_day': null, // Empty as shown in example
-      'issue_date': DateFormat('yyyy-MM-dd HH:mm:ss.SSS').format(config.issueDate),
-      'due_date': config.dueDate != null ? 
-          DateFormat('yyyy-MM-dd HH:mm:ss.SSS').format(config.dueDate!) : null,
-      'status': null, // Empty as shown in example
-      'description': null, // Empty as shown in example
-      'linkedCounterparty_store_id': counterpartyStoreId ?? '',
-      'linkedCounterparty_companyId': linkedCompanyId,
-      'counterparty_Name': counterpartyName,
+      'interest_account_id': null,
+      'interest_due_day': null,
+      'issue_date': DateFormat('yyyy-MM-dd').format(DateTime.now()),
+      'due_date': null,
+      'description': null,
+      if (linkedCompanyId.isNotEmpty) ...{
+        'linkedCounterparty_companyId': linkedCompanyId,
+        if (counterpartyStoreId != null && counterpartyStoreId.isNotEmpty)
+          'linkedCounterparty_store_id': counterpartyStoreId,
+      },
     };
+
+    return debtObject;
   }
   
   Future<void> _handleSubmit() async {
@@ -1873,7 +1905,16 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
       if (requirements.needsCounterpartyCashLocation) {
         // Check if store is needed (not saved in tags)
         final tags = widget.template['tags'] as Map? ?? {};
-        final storedCounterpartyStoreId = tags['counterparty_store_id'] as String?;
+        
+        // Handle both old array format and new string format for backward compatibility
+        final counterpartyStoreRaw = tags['counterparty_store_id'];
+        String? storedCounterpartyStoreId;
+        
+        if (counterpartyStoreRaw is String) {
+          storedCounterpartyStoreId = counterpartyStoreRaw;
+        } else if (counterpartyStoreRaw is List && counterpartyStoreRaw.isNotEmpty) {
+          storedCounterpartyStoreId = counterpartyStoreRaw.first as String?;
+        }
         
         if (storedCounterpartyStoreId == null && _selectedCounterpartyStoreId == null) {
           _showError('Please select counterparty store');
@@ -1908,46 +1949,37 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
           ? null 
           : _descriptionController.text.trim();
       
-      // Get my cash locations for name lookup if needed
-      // Include pre-selected cash locations from tags
-      List<Map<String, dynamic>>? myCashLocations;
-      final tags = widget.template['tags'] as Map? ?? {};
-      final tagsCashLocations = tags['cash_locations'] as List? ?? [];
-      final preselectedMyCashLocationId = tagsCashLocations.isNotEmpty ? 
-          tagsCashLocations.first as String? : null;
-      
-      if (_selectedMyCashLocationId != null || preselectedMyCashLocationId != null) {
-
-        final cashLocationsResponse = await supabase.rpc(
-          'get_cash_locations',
-          params: {
-            'p_company_id': appState.companyChoosen,
-          },
-        );
-        
-        if (cashLocationsResponse != null) {
-          // Filter for store-specific and company-wide locations
-          final filteredLocations = (cashLocationsResponse as List).where((loc) {
-            final storeId = appState.storeChoosen;
-            return storeId.isNotEmpty
-                ? (loc['storeId'] == storeId || loc['isCompanyWide'] == true)
-                : loc['isCompanyWide'] == true;
-          }).map((loc) => {
-            'cash_location_id': loc['id'],
-            'location_name': loc['name'],
-          }).toList();
+      // CRITICAL FIX: Fetch counterparty details BEFORE constructing p_lines
+      // This ensures _linkedCompanyId is set correctly for debt objects
+      if (_selectedCounterpartyId != null) {
+        try {
+          final counterpartyQuery = await supabase
+              .from('counterparties')
+              .select('counterparty_id, name, is_internal, linked_company_id')
+              .eq('counterparty_id', _selectedCounterpartyId!)
+              .single();
           
-          myCashLocations = List<Map<String, dynamic>>.from(filteredLocations);
-        }
+          if (counterpartyQuery != null) {
+            final linkedCompanyId = counterpartyQuery['linked_company_id'] as String?;
+            final isInternal = counterpartyQuery['is_internal'] as bool? ?? false;
 
+            if (isInternal && linkedCompanyId != null && linkedCompanyId.isNotEmpty) {
+              _linkedCompanyId = linkedCompanyId;
+            } else {
+              _linkedCompanyId = null;
+            }
+          }
+        } catch (e) {
+          _linkedCompanyId = null;
+        }
       }
       
-      // Construct p_lines with proper cash/debt handling
-      final pLines = _constructPLines(amount, myCashLocations);
+      // Construct p_lines with simplified handling
+      final pLines = _constructPLines(amount, null);
       
       // Extract main counterparty (goes OUTSIDE p_lines)
-      String? mainCounterpartyId = widget.template['counterparty_id'];
-      
+      String? mainCounterpartyId = widget.template['counterparty_id'] as String?;
+
       // If user selected a counterparty (for receivable/payable without one), use that
       if (requirements.needsCounterparty && _selectedCounterpartyId != null) {
         mainCounterpartyId = _selectedCounterpartyId;
@@ -1960,12 +1992,13 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
             break;
           }
         }
+      } else {
       }
-      
+
       // Format entry date properly
       final entryDate = DateFormat('yyyy-MM-dd HH:mm:ss.SSS').format(DateTime.now());
       
-      // Prepare RPC parameters
+      // Prepare RPC parameters - exact match to working GitHub version
       final rpcParams = {
         'p_base_amount': amount,
         'p_company_id': appState.companyChoosen,
@@ -1973,21 +2006,36 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
         'p_description': description,
         'p_entry_date': entryDate,
         'p_lines': pLines,
-        'p_counterparty_id': mainCounterpartyId,  // Main counterparty (OUTSIDE p_lines)
-        'p_if_cash_location_id': _selectedCounterpartyCashLocationId, // COUNTERPARTY's cash location (OUTSIDE p_lines)
+        'p_counterparty_id': mainCounterpartyId,
+        'p_if_cash_location_id': _selectedCounterpartyCashLocationId,
         'p_store_id': appState.storeChoosen.isNotEmpty ? appState.storeChoosen : null,
       };
-      
-      
+
       // Track template usage BEFORE creating transaction (so it tracks even if transaction fails)
       await _trackTemplateUsage();
       
-      // Call RPC with properly structured parameters
-      await supabase.rpc(
-        'insert_journal_with_everything',
-        params: rpcParams,
-      );
+      // CRITICAL FIX: Keep p_description even if null - RPC requires this parameter
+      // Do not remove p_description as RPC signature requires it
       
+      // Call RPC with properly structured parameters and timeout
+      
+      dynamic rpcResult;
+      try {
+        // Add timeout to prevent hanging
+        rpcResult = await supabase.rpc(
+          'insert_journal_with_everything',
+          params: rpcParams,
+        ).timeout(
+          Duration(seconds: 30),
+          onTimeout: () {
+            throw TimeoutException('RPC call timed out', Duration(seconds: 30));
+          },
+        );
+
+      } catch (timeoutError) {
+        rethrow; // Let the outer catch handle it
+      }
+
       // Success feedback
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -2029,8 +2077,6 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
       _showError('Invalid data format. Please check all entered values.');
     } catch (e, stackTrace) {
       // Log the full error for debugging while showing user-friendly message
-      print('Journal submission error: $e');
-      print('Stack trace: $stackTrace');
       _showError('Failed to create transaction. Please try again or contact support if the issue persists.');
     } finally {
       if (mounted) {

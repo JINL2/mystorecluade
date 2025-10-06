@@ -24,6 +24,7 @@ class CounterpartyList extends _$CounterpartyList {
   ]) async {
     final supabase = ref.read(supabaseServiceProvider);
     
+    print('DEBUG: CounterpartyList.build - companyId: $companyId, storeId: $storeId, type: $counterpartyType');
     
     try {
       final response = await supabase.client.rpc(
@@ -35,17 +36,36 @@ class CounterpartyList extends _$CounterpartyList {
         },
       );
 
+      print('DEBUG: CounterpartyList.build - RPC response: $response');
 
       if (response == null) {
+        print('DEBUG: CounterpartyList.build - response is null, returning empty list');
         return [];
       }
 
       final List<dynamic> data = response as List<dynamic>;
+      print('DEBUG: CounterpartyList.build - data count: ${data.length}');
       
-      final result = data.map((json) => CounterpartyData.fromJson(json as Map<String, dynamic>)).toList();
+      // RPC returns already transformed data, create CounterpartyData directly
+      final result = data.map((item) {
+        print('DEBUG: CounterpartyList.build - processing item: $item');
+        return CounterpartyData(
+          id: item['id'] as String,
+          name: item['name'] as String,
+          type: item['type'] as String? ?? 'Customer',
+          email: item['email'] as String?,
+          phone: item['phone'] as String?,
+          isInternal: item['isInternal'] as bool? ?? false,
+          transactionCount: item['transactionCount'] as int? ?? 0,
+          additionalData: item['additionalData'] as Map<String, dynamic>?,
+        );
+      }).toList();
+      print('DEBUG: CounterpartyList.build - converted result count: ${result.length}');
       
       return result;
     } catch (e, stack) {
+      print('DEBUG: CounterpartyList.build - ERROR: $e');
+      print('DEBUG: CounterpartyList.build - STACK: $stack');
       // Return empty list on error to prevent UI crashes
       return [];
     }
@@ -85,12 +105,17 @@ Future<List<CounterpartyData>> currentCounterparties(CurrentCounterpartiesRef re
   final companyId = appState.companyChoosen;
   final storeId = appState.storeChoosen;
   
+  print('DEBUG: currentCounterparties - appState: $appState');
+  print('DEBUG: currentCounterparties - companyId: "$companyId", storeId: "$storeId"');
+  print('DEBUG: currentCounterparties - companyId.isEmpty: ${companyId.isEmpty}');
   
   if (companyId.isEmpty) {
+    print('DEBUG: currentCounterparties - companyId is empty, returning empty list');
     return [];
   }
   
   final result = await ref.watch(counterpartyListProvider(companyId, storeId.isEmpty ? null : storeId).future);
+  print('DEBUG: currentCounterparties - result count: ${result.length}');
   return result;
 }
 

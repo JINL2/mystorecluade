@@ -11,6 +11,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../../data/services/supabase_service.dart';
 import '../../../../providers/app_state_provider.dart';
+import '../../../../../data/models/selector_entities.dart';
 
 // Provider to fetch mapped counterparty IDs from account_mappings
 final mappedCounterpartiesProvider = FutureProvider.family<List<Map<String, dynamic>>, String?>((ref, accountId) async {
@@ -41,7 +42,7 @@ final mappedCounterpartiesProvider = FutureProvider.family<List<Map<String, dyna
 });
 
 // Provider to fetch counterparties for selection
-final counterpartiesForSelectionProvider = FutureProvider.family<List<Map<String, dynamic>>, String?>((ref, accountId) async {
+final counterpartiesForSelectionProvider = FutureProvider.family<List<CounterpartyData>, String?>((ref, accountId) async {
   if (accountId == null) return [];
   
   final supabaseService = ref.read(supabaseServiceProvider);
@@ -62,18 +63,25 @@ final counterpartiesForSelectionProvider = FutureProvider.family<List<Map<String
         .select('counterparty_id, name, is_internal, linked_company_id')
         .eq('company_id', companyId)
         .eq('is_deleted', false)
-        .order('name');
+        .order('is_internal', ascending: false) // Internal first
+        .order('name'); // Then by name
     
     final List<dynamic> data = response;
     
-    // Filter based on requirements
+    // Filter based on requirements and convert to CounterpartyData
     return data.where((counterparty) {
       final isInternal = counterparty['is_internal'] as bool? ?? false;
       final counterpartyId = counterparty['counterparty_id'] as String?;
       
       // Include if not internal OR if internal and mapped
       return !isInternal || (isInternal && mappedIds.contains(counterpartyId));
-    }).cast<Map<String, dynamic>>().toList();
+    }).map((item) => CounterpartyData(
+      id: item['counterparty_id'] as String,
+      name: item['name'] as String,
+      type: 'Customer', // Default type for template context
+      isInternal: item['is_internal'] as bool? ?? false,
+      transactionCount: 0, // Not needed in template context
+    )).toList();
   } catch (e) {
     print('Error fetching counterparties: $e');
     return [];
@@ -89,7 +97,33 @@ final accountRequiresCounterpartyProvider = Provider.family<bool, Map<String, dy
 });
 
 // Provider to fetch a specific counterparty by ID
-final counterpartyByIdProvider = FutureProvider.family<Map<String, dynamic>?, String?>((ref, counterpartyId) async {
+final counterpartyByIdProvider = FutureProvider.family<CounterpartyData?, String?>((ref, counterpartyId) async {
+  if (counterpartyId == null || counterpartyId.isEmpty) return null;
+  
+  final supabaseService = ref.read(supabaseServiceProvider);
+  
+  try {
+    final response = await supabaseService.client
+        .from('counterparties')
+        .select('counterparty_id, name, is_internal, linked_company_id, counterparty_type')
+        .eq('counterparty_id', counterpartyId)
+        .single();
+    
+    return CounterpartyData(
+      id: response['counterparty_id'] as String,
+      name: response['name'] as String,
+      type: response['counterparty_type'] as String? ?? 'Customer',
+      isInternal: response['is_internal'] as bool? ?? false,
+      transactionCount: 0, // Not needed in template context
+    );
+  } catch (e) {
+    print('Error fetching counterparty by ID: $e');
+    return null;
+  }
+});
+
+// Provider to fetch a specific counterparty as Map (for backward compatibility)
+final counterpartyMapByIdProvider = FutureProvider.family<Map<String, dynamic>?, String?>((ref, counterpartyId) async {
   if (counterpartyId == null || counterpartyId.isEmpty) return null;
   
   final supabaseService = ref.read(supabaseServiceProvider);

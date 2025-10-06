@@ -1477,8 +1477,10 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
       companyCurrencies: companyCurrencies,
       currencyDenominations: currencyDenominations,
       onSaveComplete: (success, {errorMessage, savedTotal}) {
-        if (success && savedTotal != null) {
-          _showSuccessBottomSheet(savedTotal);
+        if (success) {
+          // Use calculated total amount instead of savedTotal from response
+          final calculatedTotal = _calculateTotalAmount(tabType: 'vault').toDouble();
+          _showSuccessBottomSheet(calculatedTotal);
           // Clear denomination controllers after successful save
           IntegrationUtils.clearDenominationControllers(
             currencyId: selectedVaultCurrencyId!,
@@ -1587,9 +1589,21 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
         
         // Get currency_id from the selected bank location
         final locationCurrencyId = location['currency_id']?.toString();
+        final locationCurrencyCode = location['currency_code']?.toString();
         if (locationCurrencyId != null && locationCurrencyId.isNotEmpty) {
           // Auto-select the currency based on location's currency_id
           selectedBankCurrencyType = locationCurrencyId;
+        } else if (locationCurrencyCode != null && locationCurrencyCode.isNotEmpty) {
+          // Try to find currency_id using currency_code
+          final matchingCurrency = currencyTypes.firstWhere(
+            (currency) => currency['currency_code'] == locationCurrencyCode,
+            orElse: () => <String, dynamic>{},
+          );
+          if (matchingCurrency.isNotEmpty) {
+            selectedBankCurrencyType = matchingCurrency['currency_id']?.toString();
+          } else {
+          }
+        } else {
         }
         
         // Fetch recent transactions when bank location is selected
@@ -1623,10 +1637,10 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
       selectedBankCurrencyType: selectedBankCurrencyType,
       selectedVaultCurrencyId: selectedVaultCurrencyId,
       getBaseCurrency: getBaseCurrency,
-      currencyHasData: (currencyId) {
-        // Implementation for checking if currency has data
-        return true;
-      },
+      currencyHasData: (currencyId) => CashEndingCoordinator.currencyHasData(
+        currencyId: currencyId,
+        denominationControllers: denominationControllers,
+      ),
     );
   }
 

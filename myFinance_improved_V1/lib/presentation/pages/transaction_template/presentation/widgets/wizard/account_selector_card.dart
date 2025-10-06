@@ -200,7 +200,7 @@ class _AccountSelectorCardState extends ConsumerState<AccountSelectorCard> {
   Widget _buildInternalCounterpartySection() {
     return Consumer(
       builder: (context, ref, child) {
-        final counterpartyAsync = ref.watch(counterpartyByIdProvider(widget.selectedCounterpartyId));
+        final counterpartyAsync = ref.watch(counterpartyMapByIdProvider(widget.selectedCounterpartyId));
         final counterpartyData = counterpartyAsync.when(
           data: (data) => data,
           loading: () => null,

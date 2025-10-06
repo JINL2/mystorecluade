@@ -70,6 +70,7 @@ class BankService {
       final response = await Supabase.instance.client
           .rpc('bank_amount_insert_v2', params: params);
       
+      
       // Get currency symbol for display
       final currency = currencyTypes.firstWhere(
         (c) => c['currency_id'].toString() == selectedBankCurrencyType,
