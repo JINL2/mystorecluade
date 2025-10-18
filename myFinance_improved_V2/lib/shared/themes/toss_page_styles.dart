@@ -1,0 +1,183 @@
+import 'package:flutter/material.dart';
+import 'package:myfinance_improved/shared/themes/toss_colors.dart';
+import 'toss_text_styles.dart';
+import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
+import 'toss_border_radius.dart';
+import 'toss_shadows.dart';
+import 'package:myfinance_improved/shared/themes/index.dart';
+
+/// Toss Page Styles - Consistent page design patterns
+/// Based on Store Settings page visual language
+/// 
+/// Design Principles:
+/// - Light gray background (gray100) for pages
+/// - White cards with subtle shadows for content grouping
+/// - Blue accent colors for interactive elements
+/// - Clear typography hierarchy
+/// - Consistent spacing and padding
+class TossPageStyles {
+  TossPageStyles._();
+
+  // ==================== PAGE BACKGROUND ====================
+  static const Color pageBackground = TossColors.gray100;
+  static const Color cardBackground = TossColors.white;
+  
+  // ==================== CARD STYLES ====================
+  static BoxDecoration cardDecoration = BoxDecoration(
+    color: cardBackground,
+    borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+    boxShadow: TossShadows.card,
+  );
+  
+  static const EdgeInsets cardPadding = EdgeInsets.all(TossSpacing.space5);
+  static const EdgeInsets pagePadding = EdgeInsets.all(TossSpacing.paddingMD);
+  
+  // ==================== SECTION STYLES ====================
+  static TextStyle sectionTitleStyle = TossTextStyles.body.copyWith(
+    color: TossColors.gray900,
+  );
+  
+  static TextStyle sectionSubtitleStyle = TossTextStyles.caption.copyWith(
+    color: TossColors.gray600,
+    fontWeight: FontWeight.w500,
+  );
+  
+  // ==================== LIST ITEM STYLES ====================
+  static BoxDecoration listItemDecoration = BoxDecoration(
+    color: TossColors.gray50,
+    borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+  );
+  
+  static const EdgeInsets listItemPadding = EdgeInsets.all(TossSpacing.space3);
+  
+  // ==================== ICON CONTAINER STYLES ====================
+  static BoxDecoration iconContainerDecoration = BoxDecoration(
+    color: TossColors.primary.withOpacity(0.1),
+    borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+  );
+  
+  static BoxDecoration whiteIconContainerDecoration = BoxDecoration(
+    color: TossColors.white,
+    borderRadius: BorderRadius.circular(TossBorderRadius.md),
+  );
+  
+  static const double iconContainerSize = TossSpacing.iconXL + TossSpacing.space2;
+  static const double smallIconContainerSize = TossSpacing.iconXL;
+  
+  // ==================== TEXT STYLES ====================
+  static TextStyle labelStyle = TossTextStyles.body.copyWith(
+    color: TossColors.gray600,
+  );
+  
+  static TextStyle valueStyle = TossTextStyles.body.copyWith(
+    color: TossColors.gray900,
+    fontWeight: FontWeight.w600,
+  );
+  
+  static TextStyle titleStyle = TossTextStyles.body.copyWith(
+    color: TossColors.gray900,
+    fontWeight: FontWeight.w600,
+  );
+  
+  static TextStyle subtitleStyle = TossTextStyles.caption.copyWith(
+    color: TossColors.gray600,
+  );
+  
+  // ==================== STATUS STYLES ====================
+  static TextStyle activeStatusStyle = TossTextStyles.body.copyWith(
+    color: TossColors.success,
+    fontWeight: FontWeight.w600,
+  );
+  
+  static TextStyle inactiveStatusStyle = TossTextStyles.body.copyWith(
+    color: TossColors.gray400,
+    fontWeight: FontWeight.w600,
+  );
+  
+  // ==================== SPACING CONSTANTS ====================
+  static const double sectionSpacing = TossSpacing.space5;
+  static const double itemSpacing = TossSpacing.space3;
+  static const double detailSpacing = TossSpacing.space2;
+  
+  // ==================== HELPER METHODS ====================
+  
+  /// Creates a standard card widget
+  static Widget card({
+    required Widget child,
+    EdgeInsets? padding,
+    EdgeInsets? margin,
+  }) {
+    return Container(
+      padding: padding ?? cardPadding,
+      margin: margin,
+      decoration: cardDecoration,
+      child: child,
+    );
+  }
+  
+  /// Creates a list item widget
+  static Widget listItem({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+    bool showChevron = true,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+      child: Container(
+        padding: listItemPadding,
+        decoration: listItemDecoration,
+        child: Row(
+          children: [
+            Container(
+              width: smallIconContainerSize,
+              height: smallIconContainerSize,
+              decoration: whiteIconContainerDecoration,
+              child: Icon(
+                icon,
+                color: TossColors.primary,
+                size: TossSpacing.iconSM,
+              ),
+            ),
+            const SizedBox(width: TossSpacing.space3),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title, style: titleStyle),
+                  Text(subtitle, style: subtitleStyle),
+                ],
+              ),
+            ),
+            if (showChevron)
+              Icon(
+                Icons.chevron_right,
+                color: TossColors.gray400,
+                size: TossSpacing.iconSM,
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+  
+  /// Creates a detail row widget
+  static Widget detailRow({
+    required String label,
+    required String value,
+    Color? valueColor,
+  }) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(label, style: labelStyle),
+        Text(
+          value,
+          style: valueStyle.copyWith(color: valueColor),
+        ),
+      ],
+    );
+  }
+}
