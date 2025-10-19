@@ -9,13 +9,15 @@
 /// Usage: AccountSelectorCard(type: AccountType.debit, onAccountChanged: callback)
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:myfinance_improved/shared/widgets/specific/selectors/enhanced_account_selector.dart';
-import 'package:myfinance_improved/shared/widgets/specific/selectors/autonomous_counterparty_selector.dart';
-import 'package:myfinance_improved/shared/widgets/specific/selectors/autonomous_cash_location_selector.dart';
+import 'package:myfinance_improved/shared/widgets/selectors/enhanced_account_selector.dart';
+import 'package:myfinance_improved/shared/widgets/selectors/autonomous_counterparty_selector.dart';
+import 'package:myfinance_improved/shared/widgets/selectors/autonomous_cash_location_selector.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
+import 'package:myfinance_improved/app/providers/account_provider.dart';
+import 'package:myfinance_improved/app/providers/counterparty_provider.dart';
 // Updated imports to use new application layer providers
 import '../../providers/template_provider.dart';
 import '../common/store_selector.dart';
@@ -212,18 +214,12 @@ class _AccountSelectorCardState extends ConsumerState<AccountSelectorCard> {
           data: (counterparty) {
             if (counterparty == null) return SizedBox.shrink();
 
-            print('🔵 DEBUG: AccountSelectorCard - counterparty loaded: ${counterparty.name}');
-            print('🔵 DEBUG: AccountSelectorCard - isInternal: ${counterparty.isInternal}');
-            print('🔵 DEBUG: AccountSelectorCard - additionalData: ${counterparty.additionalData}');
-
             // Convert CounterpartyData to Map for compatibility
             final counterpartyData = {
               'name': counterparty.name,  // Add name for Party display in template card
               'is_internal': counterparty.isInternal,
               'linked_company_id': counterparty.additionalData?['linked_company_id'] as String?,
             };
-
-            print('🔵 DEBUG: AccountSelectorCard - extracted linked_company_id: ${counterpartyData['linked_company_id']}');
 
             // ✅ FIXED: Use Future.microtask to avoid setState during build
             // Only update if data actually changed
@@ -315,7 +311,6 @@ class _AccountSelectorCardState extends ConsumerState<AccountSelectorCard> {
           },
           loading: () => Center(child: CircularProgressIndicator()),
           error: (error, stack) {
-            print('Error loading counterparty: $error');
             return SizedBox.shrink();
           },
         );

@@ -8,9 +8,9 @@ import 'package:myfinance_improved/shared/widgets/toss/toss_bottom_sheet.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_primary_button.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_secondary_button.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_text_field.dart';
-import 'package:myfinance_improved/shared/widgets/specific/selectors/autonomous_cash_location_selector.dart';
-import 'package:myfinance_improved/shared/widgets/specific/selectors/autonomous_counterparty_selector.dart';
-import 'package:myfinance_improved/shared/widgets/specific/selectors/enhanced_account_selector.dart';
+import 'package:myfinance_improved/shared/widgets/selectors/autonomous_cash_location_selector.dart';
+import 'package:myfinance_improved/shared/widgets/selectors/autonomous_counterparty_selector.dart';
+import 'package:myfinance_improved/shared/widgets/selectors/enhanced_account_selector.dart';
 // Updated imports to use new application layer providers
 import '../providers/template_provider.dart';
 import '../../domain/value_objects/template_filter.dart';
@@ -208,7 +208,7 @@ class _TemplateFilterSheetState extends ConsumerState<TemplateFilterSheet> {
       _selectedCashLocationId = null;
       _searchController.clear();
     });
-    
+
     ref.read(templateFilterProvider.notifier).clearFilter();
     Navigator.pop(context);
   }
@@ -220,7 +220,7 @@ class _TemplateFilterSheetState extends ConsumerState<TemplateFilterSheet> {
       cashLocationId: _selectedCashLocationId,
       searchQuery: _searchController.text.trim().isEmpty ? null : _searchController.text.trim(),
     );
-    
+
     ref.read(templateFilterProvider.notifier).updateFilter(newFilter);
     Navigator.pop(context);
   }

@@ -18,13 +18,13 @@ class TemplateDataSource {
 
   TemplateDataSource(this._supabaseService);
 
-  /// Create a new transaction template
+  /// Save transaction template (upsert: insert or update)
   Future<void> save(TransactionTemplate template) async {
     final templateData = template.toDto().toJson();
 
     await _supabaseService.client
         .from('transaction_templates')
-        .insert(templateData);
+        .upsert(templateData);
   }
 
   /// Update existing template
@@ -57,9 +57,6 @@ class TemplateDataSource {
     bool? isActive,
     String? visibilityLevel,
   }) async {
-    print('🔵 DEBUG: DataSource.findByCompanyAndStore START');
-    print('🔵 DEBUG: DataSource - Query: company_id=$companyId, store_id=$storeId, isActive=$isActive');
-
     var query = _supabaseService.client
         .from('transaction_templates')
         .select()
@@ -74,22 +71,11 @@ class TemplateDataSource {
       query = query.eq('visibility_level', visibilityLevel);
     }
 
-    print('🔵 DEBUG: DataSource - Executing Supabase query...');
     final response = await query.order('created_at', ascending: false);
-
-    print('🔵 DEBUG: DataSource - Raw response count: ${response.length}');
-    if (response.isNotEmpty) {
-      print('🔵 DEBUG: DataSource - First row keys: ${response.first.keys.toList()}');
-    }
 
     final templates = response
         .map<TransactionTemplate>((row) => _mapToEntity(row))
         .toList();
-
-    print('🔵 DEBUG: DataSource - Mapped to ${templates.length} TransactionTemplate entities');
-    if (templates.isNotEmpty) {
-      print('🔵 DEBUG: DataSource - First template: ${templates.first.name}');
-    }
 
     return templates;
   }

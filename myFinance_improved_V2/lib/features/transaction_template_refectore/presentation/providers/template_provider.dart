@@ -7,6 +7,7 @@ import '../../domain/usecases/create_template_usecase.dart';
 import '../../domain/usecases/delete_template_usecase.dart';
 import '../../domain/repositories/template_repository.dart';
 import '../../domain/value_objects/template_filter.dart';
+import '../../domain/enums/template_constants.dart';
 import '../../domain/providers/repository_providers.dart'; // ✅ Changed from data to domain
 import 'package:myfinance_improved/app/providers/app_state_provider.dart'; // Import appStateProvider
 
@@ -36,7 +37,6 @@ class TemplateNotifier extends StateNotifier<TemplateState> {
     String? storeId,
     bool includeInactive = false,
   }) async {
-    print('🟢 DEBUG: TemplateNotifier.loadTemplates START - companyId=$companyId, storeId=$storeId');
     state = state.copyWith(isLoading: true, errorMessage: null);
 
     try {
@@ -47,20 +47,12 @@ class TemplateNotifier extends StateNotifier<TemplateState> {
         isActive: includeInactive ? null : true,
       );
 
-      print('🟢 DEBUG: TemplateNotifier - Received ${templates.length} templates');
-      if (templates.isNotEmpty) {
-        print('🟢 DEBUG: TemplateNotifier - First template: ${templates.first.name}');
-      }
-
       state = state.copyWith(
         isLoading: false,
         templates: templates,
         errorMessage: null,
       );
-
-      print('🟢 DEBUG: TemplateNotifier.loadTemplates SUCCESS - State updated with ${state.templates.length} templates');
     } catch (e) {
-      print('🔴 DEBUG: TemplateNotifier.loadTemplates ERROR - $e');
       state = state.copyWith(
         isLoading: false,
         errorMessage: e.toString(),
@@ -314,11 +306,29 @@ class TemplateFilterNotifier extends StateNotifier<TemplateFilterState> {
     clearAllFilters();
   }
 
+  /// Account 필터만 제거
+  void clearAccountFilter() {
+    state = state.copyWith(accountIds: []);
+  }
+
+  /// Counterparty 필터만 제거
+  void clearCounterpartyFilter() {
+    state = state.copyWith(counterpartyId: '');
+  }
+
+  /// Cash Location 필터만 제거
+  void clearCashLocationFilter() {
+    state = state.copyWith(cashLocationId: '');
+  }
+
   /// 복합 필터 업데이트
   void updateFilter(TemplateFilter filter) {
     state = state.copyWith(
       searchText: filter.searchQuery ?? '',
       visibilityFilter: filter.visibilityLevel ?? 'all',
+      accountIds: filter.accountIds,
+      counterpartyId: filter.counterpartyId,
+      cashLocationId: filter.cashLocationId,
     );
   }
 
@@ -385,94 +395,120 @@ final deleteTemplateUseCaseProvider = Provider<DeleteTemplateUseCase>((ref) {
 /// Filtered Templates Provider - 필터가 적용된 템플릿 목록
 ///
 /// TemplateState와 TemplateFilterState를 결합하여 필터링된 템플릿 반환
-final filteredTemplatesProvider = Provider<AsyncValue<List<Map<String, dynamic>>>>((ref) {
+final filteredTemplatesProvider = Provider<List<TransactionTemplate>>((ref) {
   final templateState = ref.watch(templateProvider);
   final filterState = ref.watch(templateFilterProvider);
 
-  // 로딩 중이거나 에러가 있으면 해당 상태 반환
-  if (templateState.isLoading) {
-    return const AsyncValue.loading();
-  }
-
-  if (templateState.errorMessage != null) {
-    return AsyncValue.error(
-      templateState.errorMessage!,
-      StackTrace.current,
-    );
-  }
-
-  // 템플릿을 Map<String, dynamic> 형식으로 변환
-  final templatesAsMap = templateState.templates.map((template) {
-    // Extract counterparty name from tags if available
-    final tags = template.tags;
-    String? counterpartyName;
-    if (tags['counterparty_name'] != null) {
-      counterpartyName = tags['counterparty_name'] as String?;
-    }
-
-    return {
-      'template_id': template.templateId,
-      'name': template.name,
-      'template_description': template.description,
-      'permission': template.permission,
-      'data': template.data,
-      'tags': template.tags,
-      'usage_count': 0, // TODO: Add usage tracking
-      'is_active': template.isActive,
-      'created_at': template.createdAt,
-      'counterparty_name': counterpartyName,
-      'counterparty_id': template.counterpartyId,
-    };
-  }).toList();
-
-  // 필터 적용
-  var filtered = templatesAsMap;
+  // Start with all templates
+  var filtered = templateState.templates;
 
   // 검색어 필터
   if (filterState.searchText.isNotEmpty) {
     final searchLower = filterState.searchText.toLowerCase();
     filtered = filtered.where((template) {
-      final name = (template['name'] as String?) ?? '';
-      final description = (template['template_description'] as String?) ?? '';
-      return name.toLowerCase().contains(searchLower) ||
-             description.toLowerCase().contains(searchLower);
+      final name = template.name.toLowerCase();
+      final description = (template.description ?? '').toLowerCase();
+      return name.contains(searchLower) || description.contains(searchLower);
     }).toList();
   }
 
   // 내 템플릿만 보기 필터 (TODO: userId 필요)
   if (filterState.showMyTemplatesOnly) {
-    // filtered = filtered.where((t) => t['created_by'] == currentUserId).toList();
+    // filtered = filtered.where((t) => t.createdBy == currentUserId).toList();
   }
 
   // 가시성 필터
   if (filterState.visibilityFilter != 'all') {
     filtered = filtered.where((template) {
-      final permission = template['permission']?.toString() ?? '';
       return filterState.visibilityFilter == 'admin'
-          ? permission == 'admin_permission'
-          : permission != 'admin_permission';
+          ? template.permission == TemplateConstants.adminPermissionUUID
+          : template.permission != TemplateConstants.adminPermissionUUID;
     }).toList();
   }
 
   // 상태 필터
   if (filterState.statusFilter != 'all') {
     filtered = filtered.where((template) {
-      final isActive = template['is_active'] as bool? ?? true;
-      return filterState.statusFilter == 'active' ? isActive : !isActive;
+      return filterState.statusFilter == 'active' ? template.isActive : !template.isActive;
     }).toList();
   }
 
-  return AsyncValue.data(filtered);
+  // Account 필터 - template.data[].account_id로 필터링 (debit/credit 둘 다 확인)
+  // template.data는 List<Map<String, dynamic>> 타입 (lines 배열 자체)
+  if (filterState.accountIds != null && filterState.accountIds!.isNotEmpty) {
+    filtered = filtered.where((template) {
+      final lines = template.data; // data 자체가 lines 배열
+      // 템플릿의 lines에 선택된 계정이 하나라도 있으면 표시 (debit/credit 구분 없이)
+      return lines.any((line) {
+        final accountId = line['account_id'] as String?;
+        return accountId != null && filterState.accountIds!.contains(accountId);
+      });
+    }).toList();
+  }
+
+  // Counterparty 필터 - template.counterparty_id로 필터링
+  if (filterState.counterpartyId != null) {
+    filtered = filtered.where((template) {
+      return template.counterpartyId == filterState.counterpartyId;
+    }).toList();
+  }
+
+  // Cash Location 필터 - template.data[].cash_location_id로 필터링
+  if (filterState.cashLocationId != null) {
+    filtered = filtered.where((template) {
+      final lines = template.data;
+      // lines의 cash_location_id 중 하나라도 일치하면 표시
+      return lines.any((line) {
+        final cashLocationId = line['cash_location_id'] as String?;
+        return cashLocationId == filterState.cashLocationId;
+      });
+    }).toList();
+  }
+
+  return filtered;
 });
 
 /// Can Delete Templates Provider - 템플릿 삭제 권한 확인
 ///
 /// 현재 사용자의 권한을 확인하여 Admin 권한 여부 반환
+/// Permission Provider - Check if user can delete templates (has admin access)
+///
+/// Checks user role from appStateProvider:
+/// - Owner, Manager → true (can access Admin tab and delete any templates)
+/// - Other roles → false (can only access General tab and delete own templates)
 final canDeleteTemplatesProvider = Provider<bool>((ref) {
-  // TODO: 실제 권한 시스템 연동 필요
-  // 현재는 임시로 true 반환 (개발 중)
-  // 실제로는 appStateProvider나 authProvider에서 사용자 권한 확인 필요
-  return true;
+  final appState = ref.watch(appStateProvider);
+  final user = appState.user;
+
+  if (user.isEmpty) {
+    return false;
+  }
+
+  // Get selected company data
+  final companyId = appState.companyChoosen;
+  if (companyId == null || companyId.isEmpty) {
+    return false;
+  }
+
+  // Find the selected company in user's companies list
+  final companies = user['companies'] as List<dynamic>? ?? [];
+  final selectedCompany = companies.cast<Map<String, dynamic>>().firstWhere(
+    (company) => company['company_id'] == companyId,
+    orElse: () => <String, dynamic>{},
+  );
+
+  if (selectedCompany.isEmpty) {
+    return false;
+  }
+
+  // Check user's role in this company
+  final role = selectedCompany['role'] as Map<String, dynamic>? ?? {};
+  final roleName = role['role_name'] as String? ?? '';
+
+  // Owner and Manager have admin permissions
+  final hasAdminPermission = roleName == 'Owner' || roleName == 'Manager';
+
+  return hasAdminPermission;
 });
 
 /// Refresh Templates Provider - 템플릿 새로고침 함수

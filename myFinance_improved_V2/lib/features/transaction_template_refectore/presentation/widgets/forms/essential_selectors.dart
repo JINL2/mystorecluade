@@ -9,8 +9,8 @@
 ///
 /// Usage: EssentialSelectors(analysis: analysis, onSelectionChanged: callback)
 import 'package:flutter/material.dart';
-import 'package:myfinance_improved/shared/widgets/specific/selectors/autonomous_cash_location_selector.dart';
-import 'package:myfinance_improved/shared/widgets/specific/selectors/autonomous_counterparty_selector.dart';
+import 'package:myfinance_improved/shared/widgets/selectors/autonomous_cash_location_selector.dart';
+import 'package:myfinance_improved/shared/widgets/selectors/autonomous_counterparty_selector.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';

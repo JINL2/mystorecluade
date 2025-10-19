@@ -62,10 +62,6 @@ class CreateTransactionFromTemplateUseCase {
   /// 2. Repository Params로 변환
   /// 3. Repository에 위임
   Future<void> execute(CreateTransactionFromTemplateParams params) async {
-    print('🎯 [USE CASE] Creating transaction from template...');
-    print('🎯 [USE CASE] Template: ${params.template['name']}');
-    print('🎯 [USE CASE] Amount: ${params.amount}');
-
     // ✅ SIMPLIFIED: Delegate to Repository's saveFromTemplate method
     // Repository handles all template → RPC conversion logic
     final repositoryParams = CreateFromTemplateParams(
@@ -81,10 +77,7 @@ class CreateTransactionFromTemplateUseCase {
       entryDate: DateTime.now(),
     );
 
-    print('🎯 [USE CASE] Calling repository.saveFromTemplate()...');
     await _transactionRepository.saveFromTemplate(repositoryParams);
-
-    print('✅ [USE CASE] Transaction created successfully!');
   }
 
   /// Extract counterparty ID from template or user selection

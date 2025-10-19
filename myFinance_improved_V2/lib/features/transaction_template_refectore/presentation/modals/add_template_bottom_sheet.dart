@@ -5,6 +5,7 @@ import 'package:myfinance_improved/shared/widgets/toss/toss_primary_button.dart'
 import 'package:myfinance_improved/shared/widgets/toss/toss_secondary_button.dart';
 import 'package:myfinance_improved/shared/widgets/toss/modal_keyboard_patterns.dart';
 import 'package:myfinance_improved/app/providers/app_state_provider.dart';
+import 'package:myfinance_improved/app/providers/account_provider.dart';
 
 import '../providers/template_provider.dart';
 import '../../domain/usecases/create_template_usecase.dart';
@@ -129,8 +130,6 @@ class _AddTemplateBottomSheetState extends ConsumerState<AddTemplateBottomSheet>
     setState(() => _isCreating = true);
 
     try {
-      print('🔵 DEBUG: Starting template creation...');
-
       // ✅ FIXED: Get account data for correct data structure building
       final debitAccountAsync = ref.read(accountByIdProvider(_selectedDebitAccountId ?? ''));
       final creditAccountAsync = ref.read(accountByIdProvider(_selectedCreditAccountId ?? ''));
@@ -167,14 +166,6 @@ class _AddTemplateBottomSheetState extends ConsumerState<AddTemplateBottomSheet>
       final creditCounterpartyCashLocationId = _selectedCreditCashLocationId;
       final creditCounterpartyCashLocationName = _selectedCreditCashLocationName;
 
-      print('🔵 DEBUG: Account data:');
-      print('  - Debit Account ID: $_selectedDebitAccountId');
-      print('  - Debit Account Name: $debitAccountName');
-      print('  - Debit Account CategoryTag: $debitAccountCategoryTag');
-      print('  - Credit Account ID: $_selectedCreditAccountId');
-      print('  - Credit Account Name: $creditAccountName');
-      print('  - Credit Account CategoryTag: $creditAccountCategoryTag');
-
       // ✅ CLEAN ARCHITECTURE: Use Domain Factory to create transaction lines with FLAT structure
       final data = TemplateLineFactory.createLines(
         templateName: _nameController.text,
@@ -200,9 +191,6 @@ class _AddTemplateBottomSheetState extends ConsumerState<AddTemplateBottomSheet>
         creditCounterpartyCashLocationName: creditCounterpartyCashLocationName,
       );
 
-      print('🔵 DEBUG: Generated template data structure:');
-      print(data);
-
       // Build tags object for categorization
       final accountIds = <String>[];
       if (_selectedDebitAccountId != null) accountIds.add(_selectedDebitAccountId!);
@@ -224,22 +212,12 @@ class _AddTemplateBottomSheetState extends ConsumerState<AddTemplateBottomSheet>
       };
 
       // Add counterparty store ID and name if internal transfer
-      print('🔍 DEBUG Store Selection:');
-      print('  - Debit Store ID: $_selectedDebitStoreId');
-      print('  - Debit Store Name: $_selectedDebitStoreName');
-      print('  - Credit Store ID: $_selectedCreditStoreId');
-      print('  - Credit Store Name: $_selectedCreditStoreName');
-
       if (_selectedDebitStoreId != null) {
         tags['counterparty_store_id'] = _selectedDebitStoreId;
         tags['counterparty_store_name'] = _selectedDebitStoreName;
-        print('  ✅ Added DEBIT store to tags: $_selectedDebitStoreName');
       } else if (_selectedCreditStoreId != null) {
         tags['counterparty_store_id'] = _selectedCreditStoreId;
         tags['counterparty_store_name'] = _selectedCreditStoreName;
-        print('  ✅ Added CREDIT store to tags: $_selectedCreditStoreName');
-      } else {
-        print('  ⚠️ No store selected!');
       }
 
       // Add counterparty name to tags for compatibility with legacy templates
@@ -249,20 +227,8 @@ class _AddTemplateBottomSheetState extends ConsumerState<AddTemplateBottomSheet>
         tags['counterparty_name'] = creditCounterpartyName;
       }
 
-      print('🔍 DEBUG Cash Location Names:');
-      print('  - Debit Cash Location Name: $debitCashLocationName');
-      print('  - Credit Cash Location Name: $creditCashLocationName');
-      print('  - Debit Counterparty Cash Location Name: $debitCounterpartyCashLocationName');
-      print('  - Credit Counterparty Cash Location Name: $creditCounterpartyCashLocationName');
-
       // Convert permission display name to UUID
       final permissionUUID = TemplateConstants.getPermissionUUID(_selectedPermission);
-
-      print('🔵 DEBUG: Tags:');
-      print(tags);
-      print('🔵 DEBUG: Permission conversion:');
-      print('  - Display: $_selectedPermission');
-      print('  - UUID: $permissionUUID');
 
       final command = CreateTemplateCommand(
         name: _nameController.text,
@@ -277,17 +243,6 @@ class _AddTemplateBottomSheetState extends ConsumerState<AddTemplateBottomSheet>
         storeId: ref.read(appStateProvider).storeChoosen.toString(),
         createdBy: ref.read(userDisplayDataProvider)['user_id']?.toString(), // ✅ Get user ID from app state
       );
-
-      print('🔵 DEBUG: CreateTemplateCommand:');
-      print('  - name: ${command.name}');
-      print('  - visibilityLevel: ${command.visibilityLevel}');
-      print('  - permission: ${command.permission}');
-      print('  - counterpartyId: ${command.counterpartyId}');
-      print('  - counterpartyCashLocationId: ${command.counterpartyCashLocationId}');
-      print('  - companyId: ${command.companyId}');
-      print('  - storeId: ${command.storeId}');
-      print('  - createdBy: ${command.createdBy}');
-      print('  - data length: ${command.data.length}');
 
       final createUseCase = ref.read(createTemplateUseCaseProvider);
       final result = await createUseCase.execute(command);
@@ -304,24 +259,12 @@ class _AddTemplateBottomSheetState extends ConsumerState<AddTemplateBottomSheet>
 
           await TemplateCreationDialogs.showSuccess(context);
         } else {
-          print('🔴 ERROR: Template creation failed - ${result.error}');
           await TemplateCreationDialogs.showError(context, result.error ?? 'Unknown error');
         }
       }
     } catch (e, stackTrace) {
-      print('🔴 ERROR: Exception during template creation:');
-      print('Exception Type: ${e.runtimeType}');
-      print('Exception: $e');
-      print('Stack Trace: $stackTrace');
-
       // Extract detailed error information
       String errorMessage = e.toString();
-      if (e.toString().contains('ValidationException')) {
-        print('🔴 VALIDATION ERROR DETAILS:');
-        // Try to extract more details from the exception
-        final errorStr = e.toString();
-        print('Full Error String: $errorStr');
-      }
 
       if (mounted) {
         await TemplateCreationDialogs.showError(context, errorMessage);

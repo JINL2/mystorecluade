@@ -332,19 +332,15 @@ class _TossTextFieldKeyboardModalState
         TossSpacing.space4,
         TossSpacing.space3,
         TossSpacing.space4,
-        TossSpacing.space3 + safePadding, // Always include safe area
+        TossSpacing.space3 + safePadding, // Already includes safe area
       ),
-      child: SafeArea(
-        top: false,
-        bottom: true, // Always apply safe area for consistent spacing
-        child: Row(
-          children: [
-            for (int i = 0; i < widget.actionButtons!.length; i++) ...[
-              if (i > 0) SizedBox(width: TossSpacing.space3),
-              widget.actionButtons![i],
-            ],
+      child: Row(
+        children: [
+          for (int i = 0; i < widget.actionButtons!.length; i++) ...[
+            if (i > 0) SizedBox(width: TossSpacing.space3),
+            widget.actionButtons![i],
           ],
-        ),
+        ],
       ),
     );
   }

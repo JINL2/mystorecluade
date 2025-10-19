@@ -7,7 +7,7 @@ part of 'cash_location_provider.dart';
 // **************************************************************************
 
 String _$currentCashLocationsHash() =>
-    r'2b6bdbfb5c5ae98e0af864e658542f051fc16b02';
+    r'87c2e266addd07623a3df0e7aea234245a8d510b';
 
 /// Current cash locations based on selected company/store
 ///
@@ -29,7 +29,7 @@ final currentCashLocationsProvider =
 typedef CurrentCashLocationsRef
     = AutoDisposeFutureProviderRef<List<CashLocationData>>;
 String _$companyCashLocationsHash() =>
-    r'89fae5101bd4601b3892ed05d23b1ec8e6f9fd79';
+    r'fb8b5f7b35db287772d5b71fbd6ecd9848013746';
 
 /// Company-wide cash locations (no store filtering)
 ///
@@ -51,7 +51,7 @@ final companyCashLocationsProvider =
 typedef CompanyCashLocationsRef
     = AutoDisposeFutureProviderRef<List<CashLocationData>>;
 String _$currentCashLocationsByTypeHash() =>
-    r'590cfff78c1c88209ffb80e5168099d46dcd1a8e';
+    r'353b564d9cf6daf63f5e092dfd5dd9943684fe56';
 
 /// Copied from Dart SDK
 class _SystemHash {

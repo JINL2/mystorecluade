@@ -89,8 +89,6 @@ class SupabaseTemplateRepository implements TemplateRepository {
     bool? isActive,
     String? visibilityLevel,
   }) async {
-    print('🟠 DEBUG: SupabaseTemplateRepository.findByContext - companyId=$companyId, storeId=$storeId');
-
     // Delegate to existing findByCompanyAndStore method
     // Handle optional storeId by providing empty string as default
     final result = await findByCompanyAndStore(
@@ -101,7 +99,6 @@ class SupabaseTemplateRepository implements TemplateRepository {
       forceRefresh: false, // Use default value
     );
 
-    print('🟠 DEBUG: SupabaseTemplateRepository.findByContext - Returning ${result.length} templates');
     return result;
   }
 
@@ -114,8 +111,6 @@ class SupabaseTemplateRepository implements TemplateRepository {
     String? visibilityLevel,
     bool forceRefresh = false,
   }) async {
-    print('🟠 DEBUG: Repository.findByCompanyAndStore - forceRefresh=$forceRefresh');
-
     // Check cache first unless force refresh is requested
     if (!forceRefresh) {
       final cachedTemplates = await _cacheRepository.getCachedTemplates(
@@ -126,23 +121,17 @@ class SupabaseTemplateRepository implements TemplateRepository {
       );
 
       if (cachedTemplates != null) {
-        print('🟠 DEBUG: Repository - Cache HIT, returning ${cachedTemplates.length} templates');
         return cachedTemplates;
-      } else {
-        print('🟠 DEBUG: Repository - Cache MISS, fetching from database');
       }
     }
 
     // Fetch from data source
-    print('🔵 DEBUG: Repository - Calling DataSource.findByCompanyAndStore()');
     final templates = await _dataSource.findByCompanyAndStore(
       companyId: companyId,
       storeId: storeId,
       isActive: isActive,
       visibilityLevel: visibilityLevel,
     );
-
-    print('🟠 DEBUG: Repository - DataSource returned ${templates.length} templates');
 
     // Cache the results
     await _cacheRepository.cacheTemplates(

@@ -6,21 +6,15 @@
 import 'template_line_factory.dart';
 
 void main() {
-  print('🧪 Running TemplateLineFactory Tests...\n');
-
   testCashAccount();
   testPayableAccount();
   testReceivableAccount();
   testInternalTransaction();
   testMultipleLines();
   testValidation();
-
-  print('\n✅ All tests completed!');
 }
 
 void testCashAccount() {
-  print('📝 Test: Cash Account');
-
   final line = TemplateLineFactory.createLine(
     accountId: 'cash_001',
     accountCategoryTag: 'cash',
@@ -33,13 +27,9 @@ void testCashAccount() {
   assert(line['cash'] != null, 'Cash object should exist');
   assert(line['cash']['cash_location_id'] == 'location_001', 'Cash location should match');
   assert(line['debt'] == null, 'Debt object should not exist for cash account');
-
-  print('  ✅ Cash account creates correct cash object');
 }
 
 void testPayableAccount() {
-  print('📝 Test: Payable Account');
-
   final line = TemplateLineFactory.createLine(
     accountId: 'payable_001',
     accountCategoryTag: 'payable',
@@ -54,13 +44,9 @@ void testPayableAccount() {
   assert(line['debt']['direction'] == 'payable', 'Direction should be payable');
   assert(line['debt']['category'] == 'purchase', 'Category should be purchase');
   assert(line['cash'] == null, 'Cash object should not exist for payable account');
-
-  print('  ✅ Payable account creates correct debt object with direction=payable');
 }
 
 void testReceivableAccount() {
-  print('📝 Test: Receivable Account');
-
   final line = TemplateLineFactory.createLine(
     accountId: 'receivable_001',
     accountCategoryTag: 'receivable',
@@ -75,13 +61,9 @@ void testReceivableAccount() {
   assert(line['debt']['direction'] == 'receivable', 'Direction should be receivable');
   assert(line['debt']['category'] == 'sales', 'Category should be sales');
   assert(line['cash'] == null, 'Cash object should not exist for receivable account');
-
-  print('  ✅ Receivable account creates correct debt object with direction=receivable');
 }
 
 void testInternalTransaction() {
-  print('📝 Test: Internal Counterparty Transaction');
-
   final line = TemplateLineFactory.createLine(
     accountId: 'payable_002',
     accountCategoryTag: 'payable',
@@ -98,13 +80,9 @@ void testInternalTransaction() {
   assert(line['debt']['linkedCounterparty_companyId'] == 'company_002', 'Linked company should match');
   assert(line['debt']['linkedCounterparty_store_id'] == 'store_003', 'Linked store should match');
   assert(line['debt']['linkedCounterparty_cash_location_id'] == 'cash_004', 'Linked cash location should match');
-
-  print('  ✅ Internal transaction creates correct linked fields');
 }
 
 void testMultipleLines() {
-  print('📝 Test: Create Multiple Lines');
-
   final lines = TemplateLineFactory.createLines(
     templateName: 'Test Template',
     debitAccountId: 'cash_001',
@@ -122,12 +100,9 @@ void testMultipleLines() {
   assert(lines[1]['account_id'] == 'payable_001', 'Second line should be credit');
   assert(lines[1]['debt'] != null, 'Credit line should have debt object');
   assert(lines[1]['debt']['direction'] == 'payable', 'Credit line should have payable direction');
-
-  print('  ✅ Multiple lines created correctly with appropriate objects');
 }
 
 void testValidation() {
-  print('📝 Test: Validation Logic');
 
   // Test cash account validation
   final cashErrors = TemplateLineFactory.validateLineRequirements(
@@ -165,6 +140,4 @@ void testValidation() {
     cashLocationId: 'location_001',
   );
   assert(noErrors.isEmpty, 'Should have no validation errors for valid data');
-
-  print('  ✅ Validation logic works correctly');
 }

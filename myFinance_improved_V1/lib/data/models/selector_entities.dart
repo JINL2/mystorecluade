@@ -274,6 +274,7 @@ class SelectorItem with _$SelectorItem {
 // TYPE DEFINITIONS FOR CALLBACKS
 // =====================================================
 typedef SingleSelectionCallback = void Function(String? selectedId);
+typedef SingleSelectionWithNameCallback = void Function(String? selectedId, String? selectedName);
 typedef MultiSelectionCallback = void Function(List<String>? selectedIds);
 typedef DataSelectionCallback<T> = void Function(T? selectedData);
 typedef MultiDataSelectionCallback<T> = void Function(List<T>? selectedData);

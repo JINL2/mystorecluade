@@ -1,9 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:intl/intl.dart';
-import 'package:myfinance_improved/core/models/journal_entry_model.dart';
+import 'package:myfinance_improved/core/data/models/journal_entry_model.dart';
 import 'package:myfinance_improved/app/providers/app_state_provider.dart';
-import 'package:myfinance_improved/app/providers/auth_provider.dart';
+import 'package:myfinance_improved/app/providers/auth_providers.dart';
 
 // Provider for the journal entry model
 final journalEntryProvider = ChangeNotifierProvider<JournalEntryModel>((ref) {
@@ -215,12 +215,12 @@ final exchangeRatesProvider = FutureProvider.family<Map<String, dynamic>, String
 final submitJournalEntryProvider = Provider<Future<void> Function(JournalEntryModel)>((ref) {
   return (JournalEntryModel journalEntry) async {
     final appState = ref.read(appStateProvider);
-    final user = ref.read(authStateProvider);
-    
+    final user = ref.read(currentUserProvider);
+
     if (journalEntry.selectedCompanyId == null) {
       throw Exception('No company selected');
     }
-    
+
     if (user == null) {
       throw Exception('User not authenticated');
     }

@@ -137,7 +137,7 @@ class TransactionLine extends Equatable {
     // ✅ 기본 구조 생성
     final Map<String, dynamic> rpcLine = {
       'account_id': accountId,
-      'memo': memo,
+      'description': memo,  // ✅ RPC expects 'description', not 'memo'
     };
 
     // ✅ CRITICAL: debit/credit을 STRING으로 설정 (RPC 요구사항!)

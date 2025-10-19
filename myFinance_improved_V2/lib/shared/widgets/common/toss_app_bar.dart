@@ -119,7 +119,7 @@ class TossAppBar extends StatelessWidget implements PreferredSizeWidget {
         ),
       ),
       centerTitle: centerTitle,
-      backgroundColor: backgroundColor ?? TossColors.gray100,
+      backgroundColor: backgroundColor ?? TossColors.gray50,
       elevation: elevation,
       leading: leading,
       actions: finalActions.isNotEmpty ? finalActions : null,

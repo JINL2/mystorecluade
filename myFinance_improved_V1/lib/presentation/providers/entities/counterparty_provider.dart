@@ -276,20 +276,33 @@ Future<List<Map<String, dynamic>>> counterpartyStores(
   CounterpartyStoresRef ref,
   String companyId,
 ) async {
+  print('🔵 DEBUG: counterpartyStores - companyId: $companyId');
+
   final supabase = ref.read(supabaseServiceProvider);
-  
+
   try {
     final response = await supabase.client
         .from('stores')
         .select('store_id, store_name, store_address')
         .eq('company_id', companyId)
-        .eq('is_active', true)
+        .eq('is_deleted', false)  // ✅ FIXED: Use is_deleted instead of is_active
         .order('store_name');
-    
-    if (response == null) return [];
-    
-    return List<Map<String, dynamic>>.from(response as List);
-  } catch (e) {
+
+    print('🔵 DEBUG: counterpartyStores - response type: ${response.runtimeType}');
+    print('🔵 DEBUG: counterpartyStores - response: $response');
+
+    if (response == null) {
+      print('🔵 DEBUG: counterpartyStores - response is null');
+      return [];
+    }
+
+    final result = List<Map<String, dynamic>>.from(response as List);
+    print('🔵 DEBUG: counterpartyStores - result count: ${result.length}');
+
+    return result;
+  } catch (e, stackTrace) {
+    print('🔴 ERROR: counterpartyStores - $e');
+    print('🔴 ERROR: counterpartyStores - stackTrace: $stackTrace');
     // Return empty list on error
     return [];
   }

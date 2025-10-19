@@ -111,14 +111,9 @@ class TemplateLineFactory {
   }) {
     final lines = <Map<String, dynamic>>[];
 
-    print('🔍 [FACTORY] createLines called with:');
-    print('  - Debit: ID=$debitAccountId, Name=$debitAccountName, Tag=$debitCategoryTag');
-    print('  - Credit: ID=$creditAccountId, Name=$creditAccountName, Tag=$creditCategoryTag');
-
     // Create debit line
     // ✅ FIX: Allow null categoryTag for accounts without specific category (e.g., expense accounts)
     if (debitAccountId != null && debitAccountName != null) {
-      print('✅ [FACTORY] Creating debit line');
       lines.add(createLine(
         accountId: debitAccountId,
         accountName: debitAccountName,
@@ -132,14 +127,11 @@ class TemplateLineFactory {
         counterpartyCashLocationId: debitCounterpartyCashLocationId,
         counterpartyCashLocationName: debitCounterpartyCashLocationName,
       ));
-    } else {
-      print('❌ [FACTORY] Debit line NOT created - missing: ID=${debitAccountId==null}, Name=${debitAccountName==null}, Tag=${debitCategoryTag==null}');
     }
 
     // Create credit line
     // ✅ FIX: Allow null categoryTag for accounts without specific category (e.g., expense accounts)
     if (creditAccountId != null && creditAccountName != null) {
-      print('✅ [FACTORY] Creating credit line');
       lines.add(createLine(
         accountId: creditAccountId,
         accountName: creditAccountName,
@@ -153,11 +145,8 @@ class TemplateLineFactory {
         counterpartyCashLocationId: creditCounterpartyCashLocationId,
         counterpartyCashLocationName: creditCounterpartyCashLocationName,
       ));
-    } else {
-      print('❌ [FACTORY] Credit line NOT created - missing: ID=${creditAccountId==null}, Name=${creditAccountName==null}, Tag=${creditCategoryTag==null}');
     }
 
-    print('🔍 [FACTORY] Total lines created: ${lines.length}');
     return lines;
   }
 

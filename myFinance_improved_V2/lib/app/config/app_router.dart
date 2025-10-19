@@ -6,15 +6,16 @@ import 'package:go_router/go_router.dart';
 
 import '../providers/app_state.dart';
 import '../providers/app_state_provider.dart';
+import '../providers/auth_providers.dart';
 import '../../features/auth/presentation/pages/choose_role_page.dart';
 import '../../features/auth/presentation/pages/create_business_page.dart';
 import '../../features/auth/presentation/pages/create_store_page.dart';
 import '../../features/auth/presentation/pages/join_business_page.dart';
 import '../../features/auth/presentation/pages/login_page.dart';
 import '../../features/auth/presentation/pages/signup_page.dart';
-import '../../features/auth/presentation/providers/auth_state_provider.dart';
 import '../../features/homepage/presentation/pages/homepage.dart';
 import '../../features/transaction_template_refectore/presentation/pages/transaction_template_page.dart';
+import '../../features/cash_ending/presentation/pages/cash_ending_page.dart';
 import '../../shared/themes/toss_colors.dart';
 import '../../shared/themes/toss_spacing.dart';
 import '../../shared/themes/toss_text_styles.dart';
@@ -398,6 +399,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '/onboarding/join-business',
         name: 'join-business',
         builder: (context, state) => const JoinBusinessPage(),
+      ),
+
+      // Cash Ending Route
+      GoRoute(
+        path: '/cashEnding',
+        name: 'cashEnding',
+        builder: (context, state) => const CashEndingPage(),
       ),
     ],
   );

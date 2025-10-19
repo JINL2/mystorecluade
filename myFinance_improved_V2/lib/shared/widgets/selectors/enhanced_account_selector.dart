@@ -5,16 +5,16 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../data/models/selector_entities.dart';
+import 'package:myfinance_improved/core/domain/entities/selector_entities.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
-import '../../../providers/entities/account_provider.dart';
-import '../../toss/toss_bottom_sheet.dart';
-import '../../toss/toss_search_field.dart';
-import 'selector_utils.dart';
-import 'package:myfinance_improved/shared/themes/index.dart';
+import 'package:myfinance_improved/app/providers/account_provider.dart';
+import 'package:myfinance_improved/shared/widgets/toss/toss_bottom_sheet.dart';
+import 'package:myfinance_improved/shared/widgets/toss/toss_search_field.dart';
+import 'package:myfinance_improved/core/utils/quick_access_helper.dart';
+import 'package:myfinance_improved/core/utils/account_type_utils.dart';
 
 /// Enhanced account selector with quick access to frequently used accounts
 class EnhancedAccountSelector extends ConsumerStatefulWidget {
@@ -75,13 +75,13 @@ class _EnhancedAccountSelectorState extends ConsumerState<EnhancedAccountSelecto
 
   Future<void> _loadQuickAccessAccounts() async {
     if (!widget.showQuickAccess) return;
-    
+
     final quickAccounts = await QuickAccessHelper.loadQuickAccessAccounts(
       ref,
       contextType: widget.contextType,
       maxQuickItems: widget.maxQuickItems,
     );
-    
+
     if (mounted) {
       setState(() {
         _quickAccessAccounts = quickAccounts;
@@ -111,13 +111,13 @@ class _EnhancedAccountSelectorState extends ConsumerState<EnhancedAccountSelecto
       data: (accounts) => accounts,
       orElse: () => <AccountData>[],
     );
-    
+
     _updateFilteredAccounts(allAccounts);
 
     // For multi-selection mode
     if (widget.isMultiSelect) {
       final selectedIds = widget.selectedAccountIds ?? [];
-      
+
       return GestureDetector(
         onTap: () => _showSelectionBottomSheet(allAccounts),
         child: Container(
@@ -257,7 +257,7 @@ class _EnhancedAccountSelectorState extends ConsumerState<EnhancedAccountSelecto
                (account.categoryTag?.toLowerCase().contains(queryLower) ?? false);
       }).toList();
     }
-    
+
     // Sort accounts by type for proper grouping in multi-select mode
     if (widget.isMultiSelect) {
       _filteredAccounts = filtered..sort((a, b) {
@@ -277,7 +277,7 @@ class _EnhancedAccountSelectorState extends ConsumerState<EnhancedAccountSelecto
     }
     _searchQuery = '';
     _updateFilteredAccounts(allAccounts);
-    
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -298,8 +298,8 @@ class _EnhancedAccountSelectorState extends ConsumerState<EnhancedAccountSelecto
                   children: [
                     Flexible(
                       child: Text(
-                        widget.isMultiSelect 
-                            ? 'Select Accounts' 
+                        widget.isMultiSelect
+                            ? 'Select Accounts'
                             : 'Select ${widget.label ?? AccountTypeUtils.getAccountTypeLabel(widget.accountType, widget.label, isPlural: false)}',
                         style: TossTextStyles.h3.copyWith(
                           fontWeight: FontWeight.bold,
@@ -313,9 +313,9 @@ class _EnhancedAccountSelectorState extends ConsumerState<EnhancedAccountSelecto
                     ),
                   ],
                 ),
-                
+
                 const SizedBox(height: TossSpacing.space3),
-                
+
                 // Search field
                 if (widget.showSearch) ...[
                   TossSearchField(
@@ -329,7 +329,7 @@ class _EnhancedAccountSelectorState extends ConsumerState<EnhancedAccountSelecto
                   ),
                   const SizedBox(height: TossSpacing.space3),
                 ],
-                
+
                 // Multi-select controls
                 if (widget.isMultiSelect) ...[
                   Row(
@@ -374,12 +374,12 @@ class _EnhancedAccountSelectorState extends ConsumerState<EnhancedAccountSelecto
                   ),
                   const SizedBox(height: TossSpacing.space2),
                 ],
-                
+
                 // Main content with quick access and regular list
                 Flexible(
                   child: _buildAccountList(allAccounts, scrollController, setModalState),
                 ),
-                
+
                 // Action buttons for multi-select
                 if (widget.isMultiSelect) ...[
                   const SizedBox(height: TossSpacing.space4),
@@ -462,7 +462,7 @@ class _EnhancedAccountSelectorState extends ConsumerState<EnhancedAccountSelecto
           Container(height: 1, color: TossColors.gray200),
           const SizedBox(height: TossSpacing.space2),
         ],
-        
+
         // Quick Access for Multi-Select Mode
         if (widget.showQuickAccess && _searchQuery.isEmpty && _quickAccessAccounts.isNotEmpty && widget.isMultiSelect) ...[
           _buildQuickAccessSectionMultiSelect(allAccounts, setModalState),
@@ -470,7 +470,7 @@ class _EnhancedAccountSelectorState extends ConsumerState<EnhancedAccountSelecto
           Container(height: 1, color: TossColors.gray200),
           const SizedBox(height: TossSpacing.space2),
         ],
-        
+
         // Regular accounts section header
         if (_searchQuery.isEmpty && _quickAccessAccounts.isNotEmpty)
           Padding(
@@ -486,7 +486,7 @@ class _EnhancedAccountSelectorState extends ConsumerState<EnhancedAccountSelecto
               ),
             ),
           ),
-        
+
         // Regular accounts list
         if (!widget.isMultiSelect) ...[
           // Single selection mode - simple list
@@ -529,12 +529,12 @@ class _EnhancedAccountSelectorState extends ConsumerState<EnhancedAccountSelecto
         ..._quickAccessAccounts.map((quickAccount) {
           final accountId = quickAccount['account_id'] as String?;
           if (accountId == null) return const SizedBox.shrink();
-          
+
           try {
             final account = allAccounts.firstWhere((a) => a.id == accountId);
             final usageCount = quickAccount['usage_count'] as int? ?? 0;
             final isSelected = _tempSelectedIds.contains(account.id);
-            
+
             return InkWell(
               onTap: () {
                 setModalState?.call(() {
@@ -591,7 +591,7 @@ class _EnhancedAccountSelectorState extends ConsumerState<EnhancedAccountSelecto
                                   ),
                                 ),
                               ),
-                              if (usageCount > 0) ...[ 
+                              if (usageCount > 0) ...[
                                 const SizedBox(width: TossSpacing.space2),
                                 Container(
                                   padding: const EdgeInsets.symmetric(
@@ -648,7 +648,7 @@ class _EnhancedAccountSelectorState extends ConsumerState<EnhancedAccountSelecto
       ],
     );
   }
-  
+
   Widget _buildQuickAccessSection(List<AccountData> allAccounts) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -680,11 +680,11 @@ class _EnhancedAccountSelectorState extends ConsumerState<EnhancedAccountSelecto
           // Find the full account data
           final accountId = quickAccount['account_id'] as String?;
           if (accountId == null) return const SizedBox.shrink();
-          
+
           try {
             final account = allAccounts.firstWhere((a) => a.id == accountId);
             return _buildAccountItem(
-              account, 
+              account,
               true,
               usageCount: quickAccount['usage_count'] as int? ?? 0,
             );
@@ -700,21 +700,21 @@ class _EnhancedAccountSelectorState extends ConsumerState<EnhancedAccountSelecto
   List<Widget> _buildGroupedAccountsList(StateSetter? setModalState) {
     final List<Widget> widgets = [];
     String? currentType;
-    
+
     for (int i = 0; i < _filteredAccounts.length; i++) {
       final account = _filteredAccounts[i];
-      
+
       // Add group header if account type changes
       if (currentType != account.type) {
         currentType = account.type;
-        
+
         // Add spacing before new section (except first)
         if (widgets.isNotEmpty) {
           widgets.add(const SizedBox(height: TossSpacing.space2));
           widgets.add(Container(height: 1, color: TossColors.gray200));
           widgets.add(const SizedBox(height: TossSpacing.space2));
         }
-        
+
         widgets.add(
           Padding(
             padding: const EdgeInsets.symmetric(
@@ -731,7 +731,7 @@ class _EnhancedAccountSelectorState extends ConsumerState<EnhancedAccountSelecto
           ),
         );
       }
-      
+
       // Add account item with checkbox
       final isSelected = _tempSelectedIds.contains(account.id);
       widgets.add(
@@ -799,10 +799,10 @@ class _EnhancedAccountSelectorState extends ConsumerState<EnhancedAccountSelecto
         ),
       );
     }
-    
+
     return widgets;
   }
-  
+
   // Helper method to get account type label
   String _getAccountTypeLabel(String accountType) {
     switch (accountType.toLowerCase()) {
@@ -820,7 +820,7 @@ class _EnhancedAccountSelectorState extends ConsumerState<EnhancedAccountSelecto
         return accountType[0].toUpperCase() + accountType.substring(1);
     }
   }
-  
+
   // Helper method to get account type icon
   IconData _getAccountTypeIcon(String accountType) {
     switch (accountType.toLowerCase()) {
@@ -842,9 +842,9 @@ class _EnhancedAccountSelectorState extends ConsumerState<EnhancedAccountSelecto
   Widget _buildAccountItem(AccountData account, bool isQuickAccess, {int usageCount = 0}) {
     // For multi-select mode, this is handled in _buildGroupedAccountsList
     if (widget.isMultiSelect) return const SizedBox.shrink();
-    
+
     final isSelected = account.id == widget.selectedAccountId;
-    
+
     return InkWell(
       onTap: () {
         _trackAccountUsage(account, isQuickAccess ? 'quick_access' : 'regular_list');
@@ -883,7 +883,7 @@ class _EnhancedAccountSelectorState extends ConsumerState<EnhancedAccountSelecto
               ],
             ),
             const SizedBox(width: TossSpacing.space3),
-            
+
             // Content
             Expanded(
               child: Column(
@@ -941,7 +941,7 @@ class _EnhancedAccountSelectorState extends ConsumerState<EnhancedAccountSelecto
                 ],
               ),
             ),
-            
+
             // Selection indicator
             if (isSelected)
               Icon(
@@ -960,7 +960,7 @@ class _EnhancedAccountSelectorState extends ConsumerState<EnhancedAccountSelecto
     final accountId = quickAccount['account_id'] as String?;
     final usageCount = quickAccount['usage_count'] as int? ?? 0;
     final isSelected = accountId == widget.selectedAccountId;
-    
+
     return InkWell(
       onTap: () {
         if (accountId != null) {
@@ -1126,4 +1126,3 @@ class _EnhancedAccountSelectorState extends ConsumerState<EnhancedAccountSelecto
   }
 
 }
-

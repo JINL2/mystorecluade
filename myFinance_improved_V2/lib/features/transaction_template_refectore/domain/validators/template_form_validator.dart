@@ -187,8 +187,6 @@ class TemplateFormValidator {
         // For now, we allow submission without debt config
         // TODO: Implement debt configuration UI (interest rate, due date, etc.)
         if (analysis.missingItems.contains('debt_config')) {
-          print('⚠️ [VALIDATION] Debt configuration needed but UI not implemented yet');
-          print('⚠️ [VALIDATION] Allowing submission with default debt config');
           // Don't add error - allow submission
         }
         break;

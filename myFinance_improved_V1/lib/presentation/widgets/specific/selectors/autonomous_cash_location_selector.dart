@@ -26,6 +26,7 @@ class AutonomousCashLocationSelector extends ConsumerStatefulWidget {
   final String? storeId; // Optional: Use specific store (e.g., for counterparty)
   final String? selectedLocationId;
   final SingleSelectionCallback? onChanged;
+  final SingleSelectionWithNameCallback? onChangedWithName; // New: Returns both ID and name
   final String? label;
   final String? hint;
   final String? errorText;
@@ -42,6 +43,7 @@ class AutonomousCashLocationSelector extends ConsumerStatefulWidget {
     this.storeId, // Optional store ID
     this.selectedLocationId,
     this.onChanged,
+    this.onChangedWithName, // New parameter
     this.label,
     this.hint,
     this.errorText,
@@ -79,18 +81,18 @@ class _AutonomousCashLocationSelectorState extends ConsumerState<AutonomousCashL
         });
       }
     });
-    
+
     // Force refresh the provider to ensure we get fresh data from RPC
     // This is critical to prevent showing deleted cash locations
     WidgetsBinding.instance.addPostFrameCallback((_) {
       // Get the effective company ID first
       final appState = ref.read(appStateProvider);
       final effectiveCompanyId = widget.companyId ?? appState.companyChoosen;
-      
+
       if (effectiveCompanyId.isNotEmpty) {
         // Invalidate the specific provider instance
         ref.invalidate(cashLocationListProvider(effectiveCompanyId, null, widget.locationType));
-        
+
         // Also try to get the notifier and force refresh if possible
         try {
           final notifier = ref.read(cashLocationListProvider(effectiveCompanyId, null, widget.locationType).notifier);
@@ -99,7 +101,7 @@ class _AutonomousCashLocationSelectorState extends ConsumerState<AutonomousCashL
           // Could not access notifier, relying on invalidation
         }
       }
-      
+
       // Also invalidate the company-wide provider if we're using it
       if (widget.companyId == null) {
         ref.invalidate(companyCashLocationsProvider);
@@ -115,7 +117,7 @@ class _AutonomousCashLocationSelectorState extends ConsumerState<AutonomousCashL
 
   void _updateFilteredItems() {
     final currentItems = _selectedTabIndex == 0 ? _companyItems : _storeItems;
-    
+
     if (_searchQuery.isEmpty) {
       _filteredItems = currentItems;
     } else {
@@ -140,33 +142,62 @@ class _AutonomousCashLocationSelectorState extends ConsumerState<AutonomousCashL
     // Determine which company/store to use
     String? effectiveCompanyId = widget.companyId;
     String? effectiveStoreId = widget.storeId;
-    
+
     // If not provided, fall back to app state
     if (effectiveCompanyId == null) {
       final appState = ref.read(appStateProvider);
       final appStateNotifier = ref.read(appStateProvider.notifier);
-      
+
       // Use companyChoosen directly from app state (this is the source of truth)
-      effectiveCompanyId = appState.companyChoosen.isNotEmpty 
-          ? appState.companyChoosen 
+      effectiveCompanyId = appState.companyChoosen.isNotEmpty
+          ? appState.companyChoosen
           : appStateNotifier.selectedCompany?['company_id'] as String?;
-      
+
       // Use storeChoosen from app state for consistent store selection
-      effectiveStoreId = appState.storeChoosen.isNotEmpty 
-          ? appState.storeChoosen 
+      effectiveStoreId = appState.storeChoosen.isNotEmpty
+          ? appState.storeChoosen
           : appStateNotifier.selectedStore?['store_id'] as String?;
     }
-    
+
     // If we still don't have a company ID, show empty state
     if (effectiveCompanyId == null) {
       return _buildEmptySelector();
     }
-    
+
     // Fetch cash locations for the specified or current company (only company_id)
-    
     final allLocationsAsync = widget.companyId != null
         ? ref.watch(cashLocationListProvider(effectiveCompanyId, null, widget.locationType))
         : ref.watch(companyCashLocationsProvider);
+
+    // Listen to data changes and update state accordingly (MUST be in build method)
+    ref.listen(
+      widget.companyId != null
+          ? cashLocationListProvider(effectiveCompanyId, null, widget.locationType)
+          : companyCashLocationsProvider,
+      (previous, next) {
+        next.whenData((allLocations) {
+          if (mounted) {
+            setState(() {
+              // Company tab: Show ALL locations for the company
+              _companyItems = allLocations;
+
+              // Store tab: Show company-wide locations AND store-specific locations
+              if (effectiveStoreId != null && effectiveStoreId.isNotEmpty) {
+                _storeItems = allLocations.where((location) =>
+                  location.isCompanyWide || location.storeId == effectiveStoreId
+                ).toList();
+              } else {
+                _storeItems = allLocations.where((location) =>
+                  location.isCompanyWide
+                ).toList();
+              }
+
+              _updateFilteredItems();
+            });
+          }
+        });
+      },
+    );
 
     // Find selected location
     CashLocationData? selectedLocation;
@@ -180,37 +211,9 @@ class _AutonomousCashLocationSelectorState extends ConsumerState<AutonomousCashL
       });
     }
 
-    // Organize locations by scope when data is available
-    allLocationsAsync.whenData((allLocations) {
-      // Use post-frame callback to ensure setState is called after build
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          setState(() {
-            // Company tab: Show ALL locations for the company (no additional filtering needed)
-            _companyItems = allLocations;
-            
-            // Store tab: Show company-wide locations AND store-specific locations for selected store
-            if (effectiveStoreId != null && effectiveStoreId!.isNotEmpty) {
-              _storeItems = allLocations.where((location) => 
-                location.isCompanyWide || // Include company-wide locations (accessible from any store)
-                location.storeId == effectiveStoreId // Include store-specific locations
-              ).toList();
-            } else {
-              // If no store selected, show only company-wide locations
-              _storeItems = allLocations.where((location) => 
-                location.isCompanyWide
-              ).toList();
-            }
-            
-            _updateFilteredItems();
-          });
-        }
-      });
-    });
-
     // If scope tabs are disabled, use custom simple selector with blocked items support
     if (!widget.showScopeTabs) {
-      return _buildSimpleSelector(context, allLocationsAsync.isLoading, selectedLocation, 
+      return _buildSimpleSelector(context, allLocationsAsync.isLoading, selectedLocation,
         allLocationsAsync.maybeWhen(
           data: (locations) => locations,
           orElse: () => [],
@@ -549,10 +552,11 @@ class _AutonomousCashLocationSelectorState extends ConsumerState<AutonomousCashL
                           final isBlocked = widget.blockedLocationIds?.contains(item.id) ?? false;
                           
                           return InkWell(
-                            onTap: isBlocked 
+                            onTap: isBlocked
                               ? null  // Disable tap if blocked
                               : () {
                                   widget.onChanged?.call(item.id);
+                                  widget.onChangedWithName?.call(item.id, item.name);
                                   Navigator.pop(context);
                                 },
                             child: Container(
@@ -946,10 +950,11 @@ class _AutonomousCashLocationSelectorState extends ConsumerState<AutonomousCashL
                         final isBlocked = widget.blockedLocationIds?.contains(item.id) ?? false;
                         
                         return InkWell(
-                          onTap: isBlocked 
+                          onTap: isBlocked
                             ? null  // Disable tap if blocked
                             : () {
                                 widget.onChanged?.call(item.id);
+                                widget.onChangedWithName?.call(item.id, item.name);
                                 Navigator.pop(context);
                               },
                           child: Container(
@@ -1119,6 +1124,7 @@ class _AutonomousCashLocationSelectorState extends ConsumerState<AutonomousCashL
     return InkWell(
       onTap: () {
         widget.onChanged?.call(null);
+        widget.onChangedWithName?.call(null, null);
         Navigator.pop(context);
       },
       child: Container(

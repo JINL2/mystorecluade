@@ -5,32 +5,44 @@ import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_app_bar.dart';
+import 'package:myfinance_improved/shared/widgets/toss/toss_tab_bar.dart';
 import 'package:myfinance_improved/app/providers/app_state_provider.dart';
 import '../providers/template_provider.dart';
 import '../providers/states/template_state.dart';
 import '../../domain/entities/template_entity.dart';
+import '../../domain/enums/template_constants.dart';
+import '../../domain/usecases/delete_template_usecase.dart';
 import '../modals/template_usage_bottom_sheet.dart';
+import '../modals/add_template_bottom_sheet.dart';
+import '../modals/template_filter_sheet.dart';
 
 class TransactionTemplatePage extends ConsumerStatefulWidget {
   const TransactionTemplatePage({super.key});
 
   @override
   ConsumerState<TransactionTemplatePage> createState() {
-    print('🟢 [TransactionTemplatePage] 페이지 생성됨!');
     return _TransactionTemplatePageState();
   }
 }
 
-class _TransactionTemplatePageState extends ConsumerState<TransactionTemplatePage> {
+class _TransactionTemplatePageState extends ConsumerState<TransactionTemplatePage>
+    with SingleTickerProviderStateMixin {
+  TabController? _tabController;
+  bool? _lastHasAdminPermission;
   @override
   void initState() {
     super.initState();
-    print('🟢 [TransactionTemplatePage] initState 호출됨');
 
     // Load templates after first frame
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadTemplates();
     });
+  }
+
+  @override
+  void dispose() {
+    _tabController?.dispose();
+    super.dispose();
   }
 
   void _loadTemplates() {
@@ -41,24 +53,66 @@ class _TransactionTemplatePageState extends ConsumerState<TransactionTemplatePag
     final storeId = appState.storeChoosen;
 
     if (companyId != null && companyId.isNotEmpty) {
-      print('🟢 [TransactionTemplatePage] Loading templates - companyId: $companyId, storeId: $storeId');
-
       // Load templates using templateProvider
       ref.read(templateProvider.notifier).loadTemplates(
         companyId: companyId,
         storeId: storeId,
         includeInactive: false,
       );
-    } else {
-      print('🔴 [TransactionTemplatePage] No company selected');
+    }
+  }
+
+  bool _hasAdminPermission(WidgetRef ref) {
+    // Use canDeleteTemplatesProvider which checks user role
+    // Owner and Manager roles have admin permission
+    final hasPermission = ref.watch(canDeleteTemplatesProvider);
+    return hasPermission;
+  }
+
+  void _updateTabController(bool hasAdminPermission) {
+    if (_lastHasAdminPermission != hasAdminPermission) {
+      _tabController?.dispose();
+      _tabController = TabController(
+        length: hasAdminPermission ? 2 : 1,
+        vsync: this,
+      );
+      _lastHasAdminPermission = hasAdminPermission;
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    print('🟢 [TransactionTemplatePage] build 호출됨');
-
     final templateState = ref.watch(templateProvider);
+    final filteredTemplates = ref.watch(filteredTemplatesProvider);
+    final companyChoosen = ref.watch(appStateProvider).companyChoosen;
+    final storeChoosen = ref.watch(appStateProvider).storeChoosen;
+
+    // 🔄 REACTIVE-LOAD: Reload templates when company/store changes
+    ref.listen(
+      appStateProvider.select((s) => '${s.companyChoosen}_${s.storeChoosen}'),
+      (prev, next) {
+        if (companyChoosen.isNotEmpty && storeChoosen.isNotEmpty) {
+          ref.read(templateProvider.notifier).loadTemplates(
+            companyId: companyChoosen,
+            storeId: storeChoosen,
+          );
+        }
+      },
+    );
+
+    // Check if user has admin permission
+    final hasAdminPermission = _hasAdminPermission(ref);
+
+    // Initialize or update tab controller
+    if (_tabController == null) {
+      _tabController = TabController(
+        length: hasAdminPermission ? 2 : 1,
+        vsync: this,
+      );
+      _lastHasAdminPermission = hasAdminPermission;
+    } else {
+      _updateTabController(hasAdminPermission);
+    }
 
     return Scaffold(
       backgroundColor: TossColors.gray50,
@@ -68,12 +122,14 @@ class _TransactionTemplatePageState extends ConsumerState<TransactionTemplatePag
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.of(context).pop(),
         ),
+        actions: [
+          _buildFilterButton(),
+        ],
       ),
-      body: _buildBody(templateState),
+      body: _buildBody(templateState, filteredTemplates, hasAdminPermission),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
-          // TODO: Open add template modal
-          print('🟢 [TransactionTemplatePage] Add template button pressed');
+          AddTemplateBottomSheet.show(context);
         },
         backgroundColor: TossColors.primary,
         icon: const Icon(Icons.add, color: Colors.white),
@@ -88,7 +144,7 @@ class _TransactionTemplatePageState extends ConsumerState<TransactionTemplatePag
     );
   }
 
-  Widget _buildBody(TemplateState state) {
+  Widget _buildBody(TemplateState state, List<TransactionTemplate> filteredTemplates, bool hasAdminPermission) {
     // Loading state
     if (state.isLoading) {
       return const Center(
@@ -174,20 +230,119 @@ class _TransactionTemplatePageState extends ConsumerState<TransactionTemplatePag
       );
     }
 
-    // Template list
+    // Use filtered templates and separate by permission
+    final generalTemplates = filteredTemplates.where((template) {
+      return template.permission != TemplateConstants.adminPermissionUUID;
+    }).toList();
+
+    final adminTemplates = filteredTemplates.where((template) {
+      return template.permission == TemplateConstants.adminPermissionUUID;
+    }).toList();
+
+    return Column(
+      children: [
+        // Tab Bar - show Admin tab only if user has permission
+        if (_tabController != null)
+          TossTabBar(
+            tabs: hasAdminPermission ? const ['General', 'Admin'] : const ['General'],
+            controller: _tabController!,
+            padding: EdgeInsets.symmetric(horizontal: TossSpacing.space4),
+          ),
+        // Tab Bar View
+        Expanded(
+          child: _tabController != null
+              ? TabBarView(
+                  controller: _tabController!,
+                  children: hasAdminPermission
+                      ? [
+                          // General Tab
+                          _buildTemplateList(generalTemplates),
+                          // Admin Tab
+                          _buildTemplateList(adminTemplates),
+                        ]
+                      : [
+                          // Only General Tab
+                          _buildTemplateList(generalTemplates),
+                        ],
+                )
+              : _buildTemplateList(generalTemplates),
+        ),
+      ],
+    );
+  }
+
+  // Build template list widget
+  Widget _buildTemplateList(List<TransactionTemplate> templates) {
+    if (templates.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(TossSpacing.space6),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.receipt_long_outlined,
+                size: 64,
+                color: TossColors.gray400,
+              ),
+              const SizedBox(height: TossSpacing.space4),
+              Text(
+                'No Templates Found',
+                style: TossTextStyles.h2.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: TossColors.gray700,
+                ),
+              ),
+              const SizedBox(height: TossSpacing.space2),
+              Text(
+                'Create your first transaction template to get started',
+                style: TossTextStyles.body.copyWith(
+                  color: TossColors.gray600,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     return ListView.separated(
       padding: const EdgeInsets.all(TossSpacing.space4),
-      itemCount: state.templates.length,
+      itemCount: templates.length,
       separatorBuilder: (context, index) => const SizedBox(height: TossSpacing.space3),
       itemBuilder: (context, index) {
-        final template = state.templates[index];
+        final template = templates[index];
         return _TemplateCard(template: template);
       },
     );
   }
+
+  Widget _buildFilterButton() {
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        IconButton(
+          icon: Icon(
+            Icons.filter_list,
+            color: TossColors.gray600,
+            size: 24,
+          ),
+          onPressed: () {
+            showModalBottomSheet(
+              context: context,
+              isScrollControlled: true,
+              backgroundColor: TossColors.transparent,
+              builder: (context) => const TemplateFilterSheet(),
+            );
+          },
+        ),
+      ],
+    );
+  }
 }
 
-class _TemplateCard extends StatelessWidget {
+class _TemplateCard extends ConsumerWidget {
   final TransactionTemplate template;
 
   const _TemplateCard({required this.template});
@@ -356,9 +511,11 @@ class _TemplateCard extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final transactionFlow = _buildTransactionFlow();
     final details = _buildTemplateDetails();
+    final isAdminTemplate = template.permission == TemplateConstants.adminPermissionUUID;
+    final canDelete = ref.watch(canDeleteTemplatesProvider);
 
     return Container(
       decoration: BoxDecoration(
@@ -380,7 +537,6 @@ class _TemplateCard extends StatelessWidget {
         color: Colors.transparent,
         child: InkWell(
           onTap: () {
-            print('🟢 [TemplateCard] Template tapped: ${template.name}');
             // Open template usage modal
             TemplateUsageBottomSheet.show(context, _templateToMap());
           },
@@ -414,14 +570,44 @@ class _TemplateCard extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            template.name,
-                            style: TossTextStyles.bodyLarge.copyWith(
-                              fontWeight: FontWeight.w600,
-                              color: TossColors.textPrimary,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  template.name,
+                                  style: TossTextStyles.bodyLarge.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                    color: TossColors.textPrimary,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              if (isAdminTemplate) ...[
+                                const SizedBox(width: TossSpacing.space1),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: TossSpacing.space2,
+                                    vertical: 2,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    border: Border.all(
+                                      color: TossColors.border,
+                                      width: 1.0,
+                                    ),
+                                    borderRadius: BorderRadius.circular(TossBorderRadius.xs),
+                                  ),
+                                  child: Text(
+                                    'ADMIN',
+                                    style: TossTextStyles.caption.copyWith(
+                                      color: TossColors.textSecondary,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 10,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ],
                           ),
                           const SizedBox(height: 2),
                           Text(
@@ -436,6 +622,33 @@ class _TemplateCard extends StatelessWidget {
                         ],
                       ),
                     ),
+
+                    // Delete button (if user has permission)
+                    if (canDelete)
+                      IconButton(
+                        icon: const Icon(
+                          Icons.delete_outline,
+                          color: TossColors.error,
+                          size: 20,
+                        ),
+                        onPressed: () async {
+                          // Get current user ID
+                          final userId = ref.read(appStateProvider).user['user_id'] as String? ?? '';
+
+                          // Create delete command
+                          final command = DeleteTemplateCommand(
+                            templateId: template.templateId,
+                            deletedBy: userId,
+                          );
+
+                          // Call delete template
+                          await ref.read(templateProvider.notifier).deleteTemplate(command);
+                        },
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                      ),
+
+                    const SizedBox(width: TossSpacing.space2),
 
                     // Arrow
                     const Icon(

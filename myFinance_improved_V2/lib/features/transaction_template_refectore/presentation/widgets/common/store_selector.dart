@@ -26,8 +26,6 @@ class StoreSelector extends ConsumerStatefulWidget {
 class _StoreSelectorState extends ConsumerState<StoreSelector> {
   @override
   Widget build(BuildContext context) {
-    print('🔵 DEBUG: StoreSelector.build - linkedCompanyId: ${widget.linkedCompanyId}');
-
     // ✅ FIXED: Load stores from journalCounterpartyStoresProvider
     final storesAsync = widget.linkedCompanyId != null && widget.linkedCompanyId!.isNotEmpty
         ? ref.watch(journalCounterpartyStoresProvider(widget.linkedCompanyId!))
@@ -35,11 +33,6 @@ class _StoreSelectorState extends ConsumerState<StoreSelector> {
 
     return storesAsync.when(
       data: (stores) {
-        print('🔵 DEBUG: StoreSelector - stores loaded: ${stores.length} items');
-        if (stores.isNotEmpty) {
-          print('🔵 DEBUG: StoreSelector - first store: ${stores.first}');
-        }
-
         return TossDropdown<String>(
           label: widget.label,
           hint: widget.hint,

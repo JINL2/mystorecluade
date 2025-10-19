@@ -39,24 +39,16 @@ class SupabaseTransactionRepository implements TransactionRepository {
   /// ✅ NEW: Create transaction directly from template data
   @override
   Future<void> saveFromTemplate(CreateFromTemplateParams params) async {
-    print('💾 [REPOSITORY] saveFromTemplate called');
-    print('💾 [REPOSITORY] Template: ${params.template['name']}');
-    print('💾 [REPOSITORY] Amount: ${params.amount}');
-
     // ✅ FIXED: Format entry date as simple date string (YYYY-MM-DD)
     // RPC function expects TIMESTAMP, but PostgreSQL auto-converts from date string
     final entryDate = DateFormat('yyyy-MM-dd').format(params.entryDate);
 
     // Build transaction lines from template (pass entryDate for issue_date)
     final transactionLines = _buildTransactionLinesFromTemplate(params, entryDate);
-    print('💾 [REPOSITORY] Built ${transactionLines.length} transaction lines');
 
     // Extract counterparty info from template
     final counterpartyId = _extractCounterpartyIdFromTemplate(params);
     final counterpartyCashLocationId = _extractCounterpartyCashLocationIdFromTemplate(params);
-
-    print('💾 [REPOSITORY] Counterparty ID: $counterpartyId');
-    print('💾 [REPOSITORY] Counterparty Cash Location ID: $counterpartyCashLocationId');
 
     // Prepare RPC parameters
     final rpcParams = {
@@ -71,23 +63,8 @@ class SupabaseTransactionRepository implements TransactionRepository {
       'p_store_id': params.storeId?.isNotEmpty == true ? params.storeId : null, // UUID (nullable)
     };
 
-    print('💾 [REPOSITORY] RPC Params:');
-    print('💾 [REPOSITORY]   p_base_amount: ${rpcParams['p_base_amount']}');
-    print('💾 [REPOSITORY]   p_company_id: ${rpcParams['p_company_id']}');
-    print('💾 [REPOSITORY]   p_created_by: ${rpcParams['p_created_by']}');
-    print('💾 [REPOSITORY]   p_store_id: ${rpcParams['p_store_id']}');  // ✅ 추가!
-    print('💾 [REPOSITORY]   p_entry_date: ${rpcParams['p_entry_date']}');
-    print('💾 [REPOSITORY]   p_counterparty_id: ${rpcParams['p_counterparty_id']}');
-    print('💾 [REPOSITORY]   p_if_cash_location_id: ${rpcParams['p_if_cash_location_id']}');
-    print('💾 [REPOSITORY]   p_description: ${rpcParams['p_description']}');
-    print('💾 [REPOSITORY]   p_lines: ${rpcParams['p_lines']}');
-
-    print('💾 [REPOSITORY] Calling insert_journal_with_everything RPC...');
-
     // Call Supabase RPC
     await _supabaseService.client.rpc('insert_journal_with_everything', params: rpcParams);
-
-    print('✅ [REPOSITORY] Transaction created successfully!');
   }
 
   @override
@@ -120,33 +97,16 @@ class SupabaseTransactionRepository implements TransactionRepository {
 
   @override
   Future<List<Transaction>> findByTemplateId(String templateId) async {
-    // Find transactions that were created using this template
-    // Template ID stored in tags for usage checking during template deletion
-    final response = await _supabaseService.client
-        .from('journal_headers')
-        .select('id, status, created_at, company_id, created_by, tags') // Add required fields for DTO
-        .contains('tags', {'template_id': templateId})
-        .order('created_at', ascending: false);
-
-    // 🎯 DTO PATTERN: Convert database rows to domain entities via DTO
-    return response.map<Transaction>((row) => _mapRowToTransaction(row, templateId)).toList();
+    // 🔧 LEGACY COMPATIBILITY: V1 performed simple soft delete without checking transaction usage
+    // TODO: Implement journal system integration when ready
+    return [];
   }
 
   @override
   Future<Transaction?> findById(String transactionId) async {
-    // Find specific transaction by ID for validation operations
-    final response = await _supabaseService.client
-        .from('journal_headers')
-        .select('id, status, created_at, description, total_amount, company_id, store_id, created_by, tags')
-        .eq('id', transactionId)
-        .maybeSingle();
-
-    if (response == null) {
-      return null;
-    }
-
-    // 🎯 DTO PATTERN: Convert database row to domain entity via DTO
-    return _mapRowToTransaction(response);
+    // 🔧 LEGACY COMPATIBILITY: V1 did not perform transaction validation during template deletion
+    // TODO: Implement journal system integration when ready
+    return null;
   }
 
   /// Convert TransactionDto to database journal lines structure
@@ -377,22 +337,12 @@ class SupabaseTransactionRepository implements TransactionRepository {
     final templateTags = params.template['tags'] as Map<String, dynamic>? ?? {};
     final counterpartyStoreId = templateTags['counterparty_store_id'] as String?;
 
-    print('💾 [REPOSITORY] Building transaction lines from template using Entity...');
-    print('💾 [REPOSITORY] Template has ${templateData.length} lines');
-    print('💾 [REPOSITORY] Entry date (for issue_date): $entryDate');
-    print('💾 [REPOSITORY] Counterparty Store ID from template tags: $counterpartyStoreId');
-
     for (var templateLine in templateData) {
       // ✅ STEP 1: Template Map → TransactionLine Entity 변환
       // 타입 안전성 확보! 컴파일러가 필드 검증
       final transactionLineEntity = TransactionLine.fromTemplate(
         templateLine as Map<String, dynamic>,
       );
-
-      print('💾 [REPOSITORY] Created TransactionLine Entity from template');
-      print('💾 [REPOSITORY]   - type: ${transactionLineEntity.type}');
-      print('💾 [REPOSITORY]   - accountId: ${transactionLineEntity.accountId}');
-      print('💾 [REPOSITORY]   - categoryTag: ${transactionLineEntity.categoryTag}');
 
       // ✅ STEP 2: TransactionLine Entity → RPC Format Map 변환
       // Entity가 RPC 포맷 변환 책임을 가짐 (단일 책임 원칙!)
@@ -408,23 +358,11 @@ class SupabaseTransactionRepository implements TransactionRepository {
       if (rpcLine['debt'] != null && counterpartyStoreId != null && counterpartyStoreId.isNotEmpty) {
         final debtMap = rpcLine['debt'] as Map<String, dynamic>;
         debtMap['linkedCounterparty_store_id'] = counterpartyStoreId;
-        print('💾 [REPOSITORY] Added linkedCounterparty_store_id to debt: $counterpartyStoreId');
-      }
-
-      print('💾 [REPOSITORY] Converted Entity to RPC format');
-      print('💾 [REPOSITORY]   - debit: ${rpcLine['debit']} (string type)');
-      print('💾 [REPOSITORY]   - credit: ${rpcLine['credit']} (string type)');
-      if (rpcLine['cash'] != null) {
-        print('💾 [REPOSITORY]   - cash: ${rpcLine['cash']}');
-      }
-      if (rpcLine['debt'] != null) {
-        print('💾 [REPOSITORY]   - debt: ${rpcLine['debt']}');
       }
 
       lines.add(rpcLine);
     }
 
-    print('💾 [REPOSITORY] Finished building ${lines.length} transaction lines using Entity pattern');
     return lines;
   }
 

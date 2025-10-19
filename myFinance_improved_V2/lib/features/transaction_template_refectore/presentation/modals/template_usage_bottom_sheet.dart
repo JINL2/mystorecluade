@@ -23,13 +23,13 @@ import 'package:myfinance_improved/shared/widgets/common/toss_loading_view.dart'
 import 'package:myfinance_improved/shared/themes/toss_design_system.dart';
 import 'package:myfinance_improved/shared/themes/toss_shadows.dart';
 import '../widgets/common/store_selector.dart';
-import 'package:myfinance_improved/shared/widgets/specific/selectors/autonomous_cash_location_selector.dart';
+import 'package:myfinance_improved/shared/widgets/selectors/autonomous_cash_location_selector.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/app/providers/app_state_provider.dart' as Legacy;
-import 'package:myfinance_improved/app/providers/auth_provider.dart';
+import 'package:myfinance_improved/app/providers/auth_providers.dart';
 // Updated imports to use new provider structure
 import '../providers/template_provider.dart';
 import 'package:myfinance_improved/app/providers/journal_input_providers.dart';
@@ -139,27 +139,14 @@ class TemplateUsageBottomSheet extends ConsumerStatefulWidget {
             text: 'Create Transaction',
             fullWidth: true,
             onPressed: () async {
-              print('🔵 [CREATE TRANSACTION] Button clicked!');
-
               // Get the form state and submit
               final state = formKey.currentState;
-              print('🔵 [CREATE TRANSACTION] formKey.currentState: ${state != null ? "exists" : "NULL"}');
 
               if (state != null) {
                 final isValid = state._isFormValid;
-                print('🔵 [CREATE TRANSACTION] _isFormValid: $isValid');
 
                 if (isValid) {
-                  print('🔵 [CREATE TRANSACTION] Form is valid, calling _handleSubmit()...');
                   await state._handleSubmit();
-                  print('🔵 [CREATE TRANSACTION] _handleSubmit() completed');
-                } else {
-                  print('❌ [CREATE TRANSACTION] Form is INVALID - cannot submit');
-                  print('❌ [CREATE TRANSACTION] Validation details:');
-                  print('   - Amount: "${state._amountController.text}"');
-                  print('   - Selected Cash Location: ${state._selectedMyCashLocationId}');
-                  print('   - Selected Counterparty: ${state._selectedCounterpartyId}');
-                  print('   - Analysis missing items: ${state._analysis.missingItems}');
                 }
               }
             },
@@ -196,19 +183,12 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
   @override
   void initState() {
     super.initState();
-    print('🔧 [INIT] TemplateUsageBottomSheet initState called');
 
     // Analyze template to determine required fields
-    print('🔧 [INIT] Analyzing template...');
     _analysis = TemplateAnalysisResult.analyze(widget.template);
-    print('🔧 [INIT] Analysis complete:');
-    print('   - Missing items: ${_analysis.missingItems}');
-    print('   - Missing fields count: ${_analysis.missingFields}');
-    print('   - Template data: ${widget.template['data']}');
 
     // Add listeners for real-time validation
     _amountController.addListener(_validateAmountField);
-    print('🔧 [INIT] Listeners added');
   }
 
   /// Real-time amount field validation
@@ -240,12 +220,6 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
 
   /// Comprehensive form validation using domain validator
   bool get _isFormValid {
-    print('🔍 [VALIDATION] Checking form validity...');
-    print('🔍 [VALIDATION] - Amount text: "${_amountController.text}"');
-    print('🔍 [VALIDATION] - Selected cash location: $_selectedMyCashLocationId');
-    print('🔍 [VALIDATION] - Selected counterparty: $_selectedCounterpartyId');
-    print('🔍 [VALIDATION] - Missing items: ${_analysis.missingItems}');
-
     final canSubmit = TemplateFormValidator.canSubmit(
       analysis: _analysis,
       amountText: _amountController.text,
@@ -254,7 +228,6 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
       selectedCounterpartyCashLocationId: _selectedCounterpartyCashLocationId,
     );
 
-    print('🔍 [VALIDATION] Result: ${canSubmit ? "✅ VALID" : "❌ INVALID"}');
     return canSubmit;
   }
 
@@ -635,11 +608,6 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
     final tags = widget.template['tags'] as Map<String, dynamic>? ?? {};
     final counterpartyStoreName = tags['counterparty_store_name']?.toString();
 
-    // 🔍 DEBUG: Print template data to console
-    print('🔍 Template Data: $data');
-    print('🔍 Template Tags: $tags');
-    print('🔍 Store Name: $counterpartyStoreName');
-
     return Container(
       padding: EdgeInsets.all(TossSpacing.space3),
       decoration: BoxDecoration(
@@ -785,12 +753,10 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
   
   /// ✅ Clean Architecture: Creates transaction using Use Case
   Future<void> _createTransactionFromTemplate(double amount) async {
-    print('🎯 [PRESENTATION] Calling Use Case...');
-
     // Get app state for company/user/store IDs
     // ✅ FIXED: Access state properties from AppState, not AppStateNotifier
     final legacyAppState = ref.read(Legacy.appStateProvider);
-    final user = ref.read(authStateProvider);
+    final user = ref.read(currentUserProvider);
 
     if (user == null) {
       throw Exception('User not authenticated');
@@ -799,10 +765,6 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
     final companyId = legacyAppState.companyChoosen;
     final storeId = legacyAppState.storeChoosen;
     final userId = user.id;
-
-    print('🎯 [PRESENTATION] Company ID: $companyId');
-    print('🎯 [PRESENTATION] User ID: $userId');
-    print('🎯 [PRESENTATION] Store ID: $storeId');
 
     // Build use case parameters
     final params = CreateTransactionFromTemplateParams(
@@ -820,27 +782,17 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
     // Execute use case
     final useCase = ref.read(createTransactionFromTemplateUseCaseProvider);
     await useCase.execute(params);
-
-    print('✅ [PRESENTATION] Transaction created successfully via Use Case!');
   }
 
   Future<void> _handleSubmit() async {
     // 🔧 ENHANCED: Comprehensive form submission with validation and feedback
-    print('📤 [SUBMIT] _handleSubmit() called');
 
     // 1. Validate form
-    print('📤 [SUBMIT] Step 1: Validating form...');
     final validationResult = _getValidationResult();
-    print('📤 [SUBMIT] Validation result: ${validationResult.isValid ? "✅ VALID" : "❌ INVALID"}');
 
     if (!validationResult.isValid) {
-      print('❌ [SUBMIT] Validation failed!');
-      print('❌ [SUBMIT] First error: ${validationResult.firstError}');
-      print('❌ [SUBMIT] All errors: ${validationResult.errors}');
-
       // Show first error in snackbar
       if (mounted && validationResult.firstError != null) {
-        print('📤 [SUBMIT] Showing error snackbar...');
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(validationResult.firstError!),
@@ -849,37 +801,25 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
           ),
         );
       }
-      print('📤 [SUBMIT] Returning early due to validation failure');
       return;
     }
 
     try {
-      print('📤 [SUBMIT] Validation passed, continuing with submission...');
-
       // 2. Show loading state
       if (mounted) {
-        print('📤 [SUBMIT] Step 2: Showing loading state (TODO)');
         // TODO: Show loading indicator
       }
 
       // 3. Parse amount
-      print('📤 [SUBMIT] Step 3: Parsing amount...');
       final cleanAmount = _amountController.text.replaceAll(',', '').replaceAll(' ', '');
-      print('📤 [SUBMIT] Raw amount: "${_amountController.text}"');
-      print('📤 [SUBMIT] Cleaned amount: "$cleanAmount"');
 
       final amount = double.parse(cleanAmount);
-      print('📤 [SUBMIT] Parsed amount: $amount');
 
       // 4. Create transaction from template
-      print('📤 [SUBMIT] Step 4: Creating transaction via RPC...');
       await _createTransactionFromTemplate(amount);
-      print('📤 [SUBMIT] Transaction creation completed');
 
       // 5. Success feedback
-      print('📤 [SUBMIT] Step 5: Showing success feedback');
       if (mounted) {
-        print('📤 [SUBMIT] Showing success snackbar...');
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Row(
@@ -894,19 +834,13 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
           ),
         );
 
-        print('📤 [SUBMIT] Closing modal and returning success...');
         // Close modal and notify parent
         Navigator.of(context).pop(true); // Return true to indicate success
-        print('✅ [SUBMIT] _handleSubmit() completed successfully');
       }
 
     } catch (e, stackTrace) {
       // 6. Error feedback
-      print('❌ [SUBMIT] ERROR in _handleSubmit(): $e');
-      print('❌ [SUBMIT] Stack trace: $stackTrace');
-
       if (mounted) {
-        print('📤 [SUBMIT] Showing error snackbar...');
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Row(

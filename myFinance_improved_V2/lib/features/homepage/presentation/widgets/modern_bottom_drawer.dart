@@ -6,8 +6,8 @@ import '../../../../core/themes/toss_colors.dart';
 import '../../../../core/themes/toss_text_styles.dart';
 import '../../../../core/themes/toss_spacing.dart';
 import '../../../../core/themes/toss_border_radius.dart';
-import '../../../providers/app_state_provider.dart';
-import '../../../providers/auth_provider.dart';
+import '../../../../app/providers/app_state_provider.dart';
+import '../../../../app/providers/auth_providers.dart';
 import '../../../providers/session_manager_provider.dart';
 import '../../../widgets/toss/toss_primary_button.dart';
 import '../../../widgets/toss/toss_dropdown.dart';
@@ -1697,8 +1697,8 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
       
       // Import the unified join service
       final unifiedJoinService = ref.read(unifiedJoinServiceProvider);
-      final user = ref.read(authStateProvider);
-      
+      final user = ref.read(currentUserProvider);
+
       if (user == null) {
         // Dismiss loading snackbar
         if (scaffoldMessenger != null) {
@@ -1941,8 +1941,8 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
     try {
       // Import the unified join service
       final unifiedJoinService = ref.read(unifiedJoinServiceProvider);
-      final user = ref.read(authStateProvider);
-      
+      final user = ref.read(currentUserProvider);
+
       if (user == null) {
         // Dismiss loading snackbar
         if (scaffoldMessenger != null) {

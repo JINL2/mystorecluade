@@ -515,6 +515,11 @@ mixin _$TemplateFilterState {
       throw _privateConstructorUsedError; // all, active, inactive
   String get searchText => throw _privateConstructorUsedError;
   bool get showMyTemplatesOnly => throw _privateConstructorUsedError;
+  List<String>? get accountIds =>
+      throw _privateConstructorUsedError; // Filter by account IDs
+  String? get counterpartyId =>
+      throw _privateConstructorUsedError; // Filter by counterparty ID
+  String? get cashLocationId => throw _privateConstructorUsedError;
 
   /// Create a copy of TemplateFilterState
   /// with the given fields replaced by the non-null parameter values.
@@ -533,7 +538,10 @@ abstract class $TemplateFilterStateCopyWith<$Res> {
       {String visibilityFilter,
       String statusFilter,
       String searchText,
-      bool showMyTemplatesOnly});
+      bool showMyTemplatesOnly,
+      List<String>? accountIds,
+      String? counterpartyId,
+      String? cashLocationId});
 }
 
 /// @nodoc
@@ -555,6 +563,9 @@ class _$TemplateFilterStateCopyWithImpl<$Res, $Val extends TemplateFilterState>
     Object? statusFilter = null,
     Object? searchText = null,
     Object? showMyTemplatesOnly = null,
+    Object? accountIds = freezed,
+    Object? counterpartyId = freezed,
+    Object? cashLocationId = freezed,
   }) {
     return _then(_value.copyWith(
       visibilityFilter: null == visibilityFilter
@@ -573,6 +584,18 @@ class _$TemplateFilterStateCopyWithImpl<$Res, $Val extends TemplateFilterState>
           ? _value.showMyTemplatesOnly
           : showMyTemplatesOnly // ignore: cast_nullable_to_non_nullable
               as bool,
+      accountIds: freezed == accountIds
+          ? _value.accountIds
+          : accountIds // ignore: cast_nullable_to_non_nullable
+              as List<String>?,
+      counterpartyId: freezed == counterpartyId
+          ? _value.counterpartyId
+          : counterpartyId // ignore: cast_nullable_to_non_nullable
+              as String?,
+      cashLocationId: freezed == cashLocationId
+          ? _value.cashLocationId
+          : cashLocationId // ignore: cast_nullable_to_non_nullable
+              as String?,
     ) as $Val);
   }
 }
@@ -589,7 +612,10 @@ abstract class _$$TemplateFilterStateImplCopyWith<$Res>
       {String visibilityFilter,
       String statusFilter,
       String searchText,
-      bool showMyTemplatesOnly});
+      bool showMyTemplatesOnly,
+      List<String>? accountIds,
+      String? counterpartyId,
+      String? cashLocationId});
 }
 
 /// @nodoc
@@ -609,6 +635,9 @@ class __$$TemplateFilterStateImplCopyWithImpl<$Res>
     Object? statusFilter = null,
     Object? searchText = null,
     Object? showMyTemplatesOnly = null,
+    Object? accountIds = freezed,
+    Object? counterpartyId = freezed,
+    Object? cashLocationId = freezed,
   }) {
     return _then(_$TemplateFilterStateImpl(
       visibilityFilter: null == visibilityFilter
@@ -627,6 +656,18 @@ class __$$TemplateFilterStateImplCopyWithImpl<$Res>
           ? _value.showMyTemplatesOnly
           : showMyTemplatesOnly // ignore: cast_nullable_to_non_nullable
               as bool,
+      accountIds: freezed == accountIds
+          ? _value._accountIds
+          : accountIds // ignore: cast_nullable_to_non_nullable
+              as List<String>?,
+      counterpartyId: freezed == counterpartyId
+          ? _value.counterpartyId
+          : counterpartyId // ignore: cast_nullable_to_non_nullable
+              as String?,
+      cashLocationId: freezed == cashLocationId
+          ? _value.cashLocationId
+          : cashLocationId // ignore: cast_nullable_to_non_nullable
+              as String?,
     ));
   }
 }
@@ -638,8 +679,12 @@ class _$TemplateFilterStateImpl extends _TemplateFilterState {
       {this.visibilityFilter = 'all',
       this.statusFilter = 'all',
       this.searchText = '',
-      this.showMyTemplatesOnly = false})
-      : super._();
+      this.showMyTemplatesOnly = false,
+      final List<String>? accountIds,
+      this.counterpartyId,
+      this.cashLocationId})
+      : _accountIds = accountIds,
+        super._();
 
   @override
   @JsonKey()
@@ -655,10 +700,26 @@ class _$TemplateFilterStateImpl extends _TemplateFilterState {
   @override
   @JsonKey()
   final bool showMyTemplatesOnly;
+  final List<String>? _accountIds;
+  @override
+  List<String>? get accountIds {
+    final value = _accountIds;
+    if (value == null) return null;
+    if (_accountIds is EqualUnmodifiableListView) return _accountIds;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(value);
+  }
+
+// Filter by account IDs
+  @override
+  final String? counterpartyId;
+// Filter by counterparty ID
+  @override
+  final String? cashLocationId;
 
   @override
   String toString() {
-    return 'TemplateFilterState(visibilityFilter: $visibilityFilter, statusFilter: $statusFilter, searchText: $searchText, showMyTemplatesOnly: $showMyTemplatesOnly)';
+    return 'TemplateFilterState(visibilityFilter: $visibilityFilter, statusFilter: $statusFilter, searchText: $searchText, showMyTemplatesOnly: $showMyTemplatesOnly, accountIds: $accountIds, counterpartyId: $counterpartyId, cashLocationId: $cashLocationId)';
   }
 
   @override
@@ -673,12 +734,25 @@ class _$TemplateFilterStateImpl extends _TemplateFilterState {
             (identical(other.searchText, searchText) ||
                 other.searchText == searchText) &&
             (identical(other.showMyTemplatesOnly, showMyTemplatesOnly) ||
-                other.showMyTemplatesOnly == showMyTemplatesOnly));
+                other.showMyTemplatesOnly == showMyTemplatesOnly) &&
+            const DeepCollectionEquality()
+                .equals(other._accountIds, _accountIds) &&
+            (identical(other.counterpartyId, counterpartyId) ||
+                other.counterpartyId == counterpartyId) &&
+            (identical(other.cashLocationId, cashLocationId) ||
+                other.cashLocationId == cashLocationId));
   }
 
   @override
-  int get hashCode => Object.hash(runtimeType, visibilityFilter, statusFilter,
-      searchText, showMyTemplatesOnly);
+  int get hashCode => Object.hash(
+      runtimeType,
+      visibilityFilter,
+      statusFilter,
+      searchText,
+      showMyTemplatesOnly,
+      const DeepCollectionEquality().hash(_accountIds),
+      counterpartyId,
+      cashLocationId);
 
   /// Create a copy of TemplateFilterState
   /// with the given fields replaced by the non-null parameter values.
@@ -695,7 +769,10 @@ abstract class _TemplateFilterState extends TemplateFilterState {
       {final String visibilityFilter,
       final String statusFilter,
       final String searchText,
-      final bool showMyTemplatesOnly}) = _$TemplateFilterStateImpl;
+      final bool showMyTemplatesOnly,
+      final List<String>? accountIds,
+      final String? counterpartyId,
+      final String? cashLocationId}) = _$TemplateFilterStateImpl;
   const _TemplateFilterState._() : super._();
 
   @override
@@ -706,6 +783,12 @@ abstract class _TemplateFilterState extends TemplateFilterState {
   String get searchText;
   @override
   bool get showMyTemplatesOnly;
+  @override
+  List<String>? get accountIds; // Filter by account IDs
+  @override
+  String? get counterpartyId; // Filter by counterparty ID
+  @override
+  String? get cashLocationId;
 
   /// Create a copy of TemplateFilterState
   /// with the given fields replaced by the non-null parameter values.

@@ -29,7 +29,7 @@ final currentCashLocationsProvider =
 typedef CurrentCashLocationsRef
     = AutoDisposeFutureProviderRef<List<CashLocationData>>;
 String _$companyCashLocationsHash() =>
-    r'f72a5ae0c80b3887d11050bac62386060ea97984';
+    r'89fae5101bd4601b3892ed05d23b1ec8e6f9fd79';
 
 /// Company-wide cash locations (no store filtering)
 ///
@@ -1228,7 +1228,7 @@ class _CounterpartyStoreCashLocationsProviderElement
       (origin as CounterpartyStoreCashLocationsProvider).params;
 }
 
-String _$cashLocationListHash() => r'e12834792e36fd805166e42c1590905f3bcd46fd';
+String _$cashLocationListHash() => r'950fad6184dd0f9f84ae25e09d5a30be7b33675d';
 
 abstract class _$CashLocationList
     extends BuildlessAutoDisposeAsyncNotifier<List<CashLocationData>> {

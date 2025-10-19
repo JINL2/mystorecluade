@@ -5,7 +5,7 @@ import 'package:myfinance_improved/features/homepage/domain/entities/category_wi
 import 'package:myfinance_improved/features/homepage/domain/entities/revenue.dart';
 import 'package:myfinance_improved/features/homepage/domain/entities/top_feature.dart';
 import 'package:myfinance_improved/features/homepage/domain/revenue_period.dart';
-import 'package:myfinance_improved/features/auth/presentation/providers/auth_state_provider.dart';
+import 'package:myfinance_improved/app/providers/auth_providers.dart';
 import 'package:myfinance_improved/app/providers/app_state_provider.dart';
 
 // === Revenue Provider ===

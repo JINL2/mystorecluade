@@ -45,6 +45,9 @@ class TemplateFilterState with _$TemplateFilterState {
     @Default('all') String statusFilter,     // all, active, inactive
     @Default('') String searchText,
     @Default(false) bool showMyTemplatesOnly,
+    List<String>? accountIds,                // Filter by account IDs
+    String? counterpartyId,                  // Filter by counterparty ID
+    String? cashLocationId,                  // Filter by cash location ID
   }) = _TemplateFilterState;
 
   /// Get display name for current filter

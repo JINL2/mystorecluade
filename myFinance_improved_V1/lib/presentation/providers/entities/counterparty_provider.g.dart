@@ -7,7 +7,7 @@ part of 'counterparty_provider.dart';
 // **************************************************************************
 
 String _$currentCounterpartiesHash() =>
-    r'cfb9e8fe790d39679af6d1a05697a97008d5545d';
+    r'2100c51bc7bbbab09db6aa910dde360f46c4509a';
 
 /// Current counterparties based on selected company/store
 ///
@@ -902,7 +902,7 @@ class _CounterpartyStoresProviderElement
   String get companyId => (origin as CounterpartyStoresProvider).companyId;
 }
 
-String _$counterpartyListHash() => r'f5c20d53ef978ccf74a91483664faf315b7bb248';
+String _$counterpartyListHash() => r'9006e592fb8ce2e32be792ee514de1e4412e9c03';
 
 abstract class _$CounterpartyList
     extends BuildlessAutoDisposeAsyncNotifier<List<CounterpartyData>> {

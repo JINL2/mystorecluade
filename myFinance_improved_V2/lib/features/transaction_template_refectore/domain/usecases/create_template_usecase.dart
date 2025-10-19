@@ -24,27 +24,15 @@ class CreateTemplateUseCase {
   /// Executes the template creation use case
   Future<CreateTemplateResult> execute(CreateTemplateCommand command) async {
     try {
-      print('🟢 DEBUG: CreateTemplateUseCase.execute() starting...');
-      print('  - Template name: ${command.name}');
-      print('  - Company ID: ${command.companyId}');
-      print('  - Store ID: ${command.storeId}');
-
       // 1. Check if template name already exists
-      print('🟢 DEBUG: Step 1 - Checking name uniqueness...');
       await _checkNameUniqueness(command);
-      print('🟢 DEBUG: Step 1 - Name is unique ✓');
 
       // 2. Create template entity from command
-      print('🟢 DEBUG: Step 2 - Creating template entity...');
       final template = _createTemplateFromCommand(command);
-      print('🟢 DEBUG: Step 2 - Template entity created ✓');
 
       // 3. Validate entity internal consistency
-      print('🟢 DEBUG: Step 3 - Validating entity consistency...');
       final entityValidation = template.validate();
       if (!entityValidation.isValid) {
-        print('🔴 ERROR: Entity validation failed!');
-        print('  Errors: ${entityValidation.errors}');
         throw ValidationException.multipleFields(
           errors: entityValidation.errors.map((error) =>
             ValidationError(
@@ -56,14 +44,10 @@ class CreateTemplateUseCase {
           ).toList(),
         );
       }
-      print('🟢 DEBUG: Step 3 - Entity validation passed ✓');
 
       // 🚨 ENHANCED: Additional template data JSONB validation according to DB requirements
-      print('🟢 DEBUG: Step 4 - Validating data structure...');
       final dataValidationErrors = _validateTemplateDataStructure(template);
       if (dataValidationErrors.isNotEmpty) {
-        print('🔴 ERROR: Data structure validation failed!');
-        print('  Errors: $dataValidationErrors');
         throw ValidationException.multipleFields(
           errors: dataValidationErrors.map((error) =>
             ValidationError(
@@ -75,12 +59,10 @@ class CreateTemplateUseCase {
           ).toList(),
         );
       }
-      print('🟢 DEBUG: Step 4 - Data structure validation passed ✓');
 
       // 4. Validate against external policies (pure business rules)
       // ✅ ARCHITECTURE FIX: Permission checks removed from Domain Layer
       // Permission validation is UI Layer responsibility (canCreateTemplatesProvider)
-      print('🟢 DEBUG: Step 5 - Validating template policy...');
       final templatePolicy = TemplatePolicy(
         enforceNamingConvention: true,
         namingPattern: r'^[A-Z][a-zA-Z0-9_]*$',
@@ -100,9 +82,6 @@ class CreateTemplateUseCase {
       );
 
       if (!policyValidation.isValid) {
-        print('🔴 ERROR: Template policy validation failed!');
-        print('  Errors: ${policyValidation.errors}');
-        print('  Warnings: ${policyValidation.warnings}');
         throw ValidationException.businessRule(
           ruleName: 'template_policy',
           ruleDescription: policyValidation.firstError ?? 'Policy validation failed',
@@ -113,16 +92,11 @@ class CreateTemplateUseCase {
           },
         );
       }
-      print('🟢 DEBUG: Step 5 - Template policy validation passed ✓');
 
       // 4a. Additional validations that require external dependencies
-      print('🟢 DEBUG: Step 6 - Validating account access...');
       await _validateAccountAccess(command);
-      print('🟢 DEBUG: Step 6 - Account access validated ✓');
 
-      print('🟢 DEBUG: Step 7 - Validating template quotas...');
       await _validateTemplateQuotas(command);
-      print('🟢 DEBUG: Step 7 - Template quotas validated ✓');
 
       // 5. Validate template for QuickTransaction compatibility
       final quickValidation = _validateTemplateForQuickTransaction(template);

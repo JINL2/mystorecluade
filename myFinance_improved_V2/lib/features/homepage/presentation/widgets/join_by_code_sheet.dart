@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:myfinance_improved/features/auth/presentation/providers/auth_state_provider.dart';
+import 'package:myfinance_improved/app/providers/auth_providers.dart';
 import 'package:myfinance_improved/features/homepage/presentation/providers/join_providers.dart';
 import 'package:myfinance_improved/features/homepage/presentation/providers/join_state.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
