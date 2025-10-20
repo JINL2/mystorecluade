@@ -6,6 +6,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../app/providers/app_state_provider.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/widgets/common/toss_scaffold.dart';
+import '../../../../shared/widgets/common/toss_app_bar_1.dart';
+import '../../../../shared/widgets/toss/toss_tab_bar_1.dart';
 import '../../domain/entities/cash_ending.dart';
 import '../../domain/entities/currency.dart';
 import '../providers/cash_ending_provider.dart';
@@ -50,10 +52,18 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
 
     // Load initial data
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final companyId = ref.read(appStateProvider).companyChoosen;
+      final appState = ref.read(appStateProvider);
+      final companyId = appState.companyChoosen;
+      final storeId = appState.storeChoosen;
+
       if (companyId.isNotEmpty) {
         ref.read(cashEndingProvider.notifier).loadStores(companyId);
         ref.read(cashEndingProvider.notifier).loadCurrencies(companyId);
+
+        // Auto-select store from AppState (like lib_old)
+        if (storeId.isNotEmpty) {
+          ref.read(cashEndingProvider.notifier).selectStore(storeId, companyId);
+        }
       }
     });
   }
@@ -69,15 +79,14 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
     final companyId = ref.read(appStateProvider).companyChoosen;
 
     return TossScaffold(
-      appBar: AppBar(
-        title: const Text('Cash Ending'),
-        bottom: TabBar(
-          controller: _tabController,
-          tabs: const [
-            Tab(text: 'Cash'),
-            Tab(text: 'Bank'),
-            Tab(text: 'Vault'),
-          ],
+      appBar: TossAppBar1(
+        title: 'Cash Ending',
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(48),
+          child: TossTabBar1(
+            tabs: const ['Cash', 'Bank', 'Vault'],
+            controller: _tabController,
+          ),
         ),
       ),
       body: TabBarView(

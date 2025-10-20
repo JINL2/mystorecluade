@@ -55,7 +55,7 @@ import '../pages/debt_account_settings/debt_account_settings_page.dart';
 import '../pages/debt_control/smart_debt_control_page.dart';
 import '../pages/debt_control/debt_relationship_page.dart';
 import '../pages/component_test/component_test_page.dart';
-import '../pages/transaction_template_refectore/presentation/pages/transaction_template_page.dart' as refactored;
+import '../pages/transaction_template/transaction_template_page.dart' as refactored;
 import '../pages/debug/supabase_connection_test_page.dart';
 import '../pages/debug/notification_debug_page.dart';
 import '../pages/debug/push_notification_diagnostic.dart';
