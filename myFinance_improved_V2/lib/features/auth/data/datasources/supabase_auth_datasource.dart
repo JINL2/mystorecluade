@@ -1,7 +1,9 @@
 // lib/features/auth/data/datasources/supabase_auth_datasource.dart
 
 import 'package:supabase_flutter/supabase_flutter.dart' hide User;
+import 'package:flutter_timezone/flutter_timezone.dart';
 import '../models/user_model.dart';
+import '../../../../core/utils/datetime_utils.dart';
 
 /// Supabase Auth DataSource
 ///
@@ -110,19 +112,37 @@ class SupabaseAuthDataSource implements AuthDataSource {
       }
 
       // 2. Create user profile in users table
-      final now = DateTime.now().toIso8601String();
+      final now = DateTimeUtils.nowUtc();
+      // Get device timezone using flutter_timezone (IANA standard format)
+      String timezone;
+      try {
+        timezone = await FlutterTimezone.getLocalTimezone();
+        // Validate that it's in IANA format (e.g., "Asia/Ho_Chi_Minh")
+        if (timezone.startsWith('+') || timezone.startsWith('-') || timezone.length < 3) {
+          timezone = 'Asia/Ho_Chi_Minh';  // Fallback if invalid format
+        }
+      } catch (e) {
+        // Fallback to Hanoi, Vietnam if detection fails
+        timezone = 'Asia/Ho_Chi_Minh';
+        print('⚠️ Failed to detect timezone, using default: $e');
+      }
+
       final userModel = UserModel(
         userId: response.user!.id,
         email: email,
         firstName: firstName,
         lastName: lastName,
+        preferredTimezone: timezone,
         createdAt: now,
         updatedAt: now,
-        isEmailVerified: false,
       );
 
       try {
-        await _client.from('users').insert(userModel.toInsertMap());
+        // Use UPSERT to handle case where row already exists (e.g., created by trigger or elsewhere)
+        await _client.from('users').upsert(
+          userModel.toInsertMap(),
+          onConflict: 'user_id',
+        );
       } catch (e) {
         // If profile creation fails, user is still created in auth
         // Log this critical error for monitoring

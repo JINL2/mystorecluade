@@ -12,6 +12,7 @@ import '../../domain/entities/template_entity.dart';
 import 'package:myfinance_improved/core/services/supabase_service.dart';
 import '../dtos/template_dto.dart';
 import '../mappers/template_mapper.dart';
+import '../../../../core/utils/datetime_utils.dart';
 
 class TemplateDataSource {
   final SupabaseService _supabaseService;
@@ -136,7 +137,7 @@ class TemplateDataSource {
         .from('transaction_templates')
         .update({
           'is_active': false,
-          'updated_at': DateTime.now().toIso8601String(),
+          'updated_at': DateTimeUtils.nowUtc(),
         })
         .eq('template_id', templateId);
   }
