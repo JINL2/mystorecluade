@@ -1,14 +1,10 @@
 import 'package:flutter/material.dart';
 import '../config/widget_migration_config.dart';
-import '../themes/index.dart';
-import '../../presentation/widgets/toss/toss_icon_button.dart';
-import '../../presentation/widgets/toss/toss_card.dart';
-import '../../presentation/widgets/toss/toss_primary_button.dart';
-import '../../presentation/widgets/toss/toss_secondary_button.dart';
-import '../../presentation/widgets/common/toss_app_bar.dart';
+import '../../shared/themes/index.dart';
+import '../../shared/widgets/common/toss_app_bar_1.dart';
 
 /// Helper class for safe widget migration
-/// 
+///
 /// Provides clean methods to conditionally use new widgets
 /// based on feature flags without cluttering the code.
 class WidgetMigrationHelper {
@@ -21,17 +17,7 @@ class WidgetMigrationHelper {
     String? tooltip,
     String pageName = 'default',
   }) {
-    if (WidgetMigrationConfig.shouldUseNewWidget('iconbutton', pageName: pageName)) {
-      WidgetMigrationConfig.logMigration('TossIconButton', pageName);
-      return TossIconButton(
-        icon: icon,
-        onPressed: onPressed,
-        color: color,
-        size: size,
-        tooltip: tooltip,
-      );
-    }
-    
+    // Always use default IconButton since TossIconButton is not imported
     return IconButton(
       icon: Icon(icon),
       onPressed: onPressed,
@@ -40,7 +26,7 @@ class WidgetMigrationHelper {
       tooltip: tooltip,
     );
   }
-  
+
   /// Get the appropriate AppBar based on feature flag
   static PreferredSizeWidget appBar({
     required String title,
@@ -50,8 +36,8 @@ class WidgetMigrationHelper {
     String pageName = 'default',
   }) {
     if (WidgetMigrationConfig.shouldUseNewWidget('appbar', pageName: pageName)) {
-      WidgetMigrationConfig.logMigration('TossAppBar', pageName);
-      return TossAppBar(
+      WidgetMigrationConfig.logMigration('TossAppBar1', pageName);
+      return TossAppBar1(
         title: title,
         leading: leading,
         actions: actions,
@@ -84,24 +70,7 @@ class WidgetMigrationHelper {
     BorderRadius? borderRadius,
     String pageName = 'default',
   }) {
-    if (WidgetMigrationConfig.shouldUseNewWidget('card', pageName: pageName)) {
-      WidgetMigrationConfig.logMigration('TossCard', pageName);
-      
-      final card = TossCard(
-        child: child,
-        padding: padding as EdgeInsets?,
-        borderRadius: borderRadius?.topLeft.x ?? TossBorderRadius.md,
-      );
-      
-      // Wrap in Container if margin is needed
-      if (margin != null) {
-        return Container(
-          margin: margin,
-          child: card,
-        );
-      }
-      return card;
-    }
+    // Always use default Container since TossCard is not imported
     
     // Use traditional Container with BoxDecoration
     return Container(
@@ -131,16 +100,7 @@ class WidgetMigrationHelper {
     bool isEnabled = true,
     String pageName = 'default',
   }) {
-    if (WidgetMigrationConfig.shouldUseNewWidget('elevatedbutton', pageName: pageName)) {
-      WidgetMigrationConfig.logMigration('TossPrimaryButton', pageName);
-      return TossPrimaryButton(
-        text: text,
-        onPressed: onPressed,
-        leadingIcon: icon != null ? Icon(icon) : null,
-        isLoading: isLoading,
-        isEnabled: isEnabled,
-      );
-    }
+    // Always use default ElevatedButton since TossPrimaryButton is not imported
     
     return ElevatedButton(
       onPressed: isEnabled ? onPressed : null,
@@ -180,14 +140,7 @@ class WidgetMigrationHelper {
     IconData? icon,
     String pageName = 'default',
   }) {
-    if (WidgetMigrationConfig.shouldUseNewWidget('textbutton', pageName: pageName)) {
-      WidgetMigrationConfig.logMigration('TossSecondaryButton', pageName);
-      return TossSecondaryButton(
-        text: text,
-        onPressed: onPressed,
-        leadingIcon: icon != null ? Icon(icon) : null,
-      );
-    }
+    // Always use default TextButton since TossSecondaryButton is not imported
     
     return TextButton(
       onPressed: onPressed,

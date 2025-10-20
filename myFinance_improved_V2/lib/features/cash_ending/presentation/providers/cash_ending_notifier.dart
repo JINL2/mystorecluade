@@ -170,6 +170,19 @@ class CashEndingNotifier extends StateNotifier<CashEndingState> {
     state = state.copyWith(selectedStoreId: storeId);
   }
 
+  /// Select store and auto-load all locations (like lib_old)
+  Future<void> selectStore(String storeId, String companyId) async {
+    // Set selected store
+    state = state.copyWith(selectedStoreId: storeId);
+
+    // Auto-load all location types (cash, bank, vault) like lib_old
+    await Future.wait([
+      loadLocations(companyId: companyId, locationType: 'cash', storeId: storeId),
+      loadLocations(companyId: companyId, locationType: 'bank', storeId: storeId),
+      loadLocations(companyId: companyId, locationType: 'vault', storeId: storeId),
+    ]);
+  }
+
   /// Update selected cash location
   void setSelectedCashLocation(String? locationId) {
     state = state.copyWith(selectedCashLocationId: locationId);

@@ -120,25 +120,23 @@ class _CashTabState extends ConsumerState<CashTab> {
             },
           ),
 
-          // Location Selector (show if store selected)
-          if (state.selectedStoreId != null) ...[
-            const SizedBox(height: TossSpacing.space6),
-            LocationSelector(
-              locationType: 'cash',
-              isLoading: false,
-              locations: state.cashLocations,
-              selectedLocationId: state.selectedCashLocationId,
-              onTap: () {
-                LocationSelectorSheet.show(
-                  context: context,
-                  ref: ref,
-                  locationType: 'cash',
-                  locations: state.cashLocations,
-                  selectedLocationId: state.selectedCashLocationId,
-                );
-              },
-            ),
-          ],
+          // Location Selector (always show like lib_old)
+          const SizedBox(height: TossSpacing.space6),
+          LocationSelector(
+            locationType: 'cash',
+            isLoading: false,
+            locations: state.cashLocations,
+            selectedLocationId: state.selectedCashLocationId,
+            onTap: () {
+              LocationSelectorSheet.show(
+                context: context,
+                ref: ref,
+                locationType: 'cash',
+                locations: state.cashLocations,
+                selectedLocationId: state.selectedCashLocationId,
+              );
+            },
+          ),
         ],
       ),
     );

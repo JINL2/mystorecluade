@@ -4,8 +4,8 @@ import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
-import 'package:myfinance_improved/shared/widgets/common/toss_app_bar.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_tab_bar.dart';
+import 'package:myfinance_improved/shared/widgets/common/toss_app_bar_1.dart';
+import 'package:myfinance_improved/shared/widgets/toss/toss_tab_bar_1.dart';
 import 'package:myfinance_improved/app/providers/app_state_provider.dart';
 import '../providers/template_provider.dart';
 import '../providers/states/template_state.dart';
@@ -116,7 +116,7 @@ class _TransactionTemplatePageState extends ConsumerState<TransactionTemplatePag
 
     return Scaffold(
       backgroundColor: TossColors.gray50,
-      appBar: TossAppBar(
+      appBar: TossAppBar1(
         title: 'Transaction Templates',
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
@@ -243,7 +243,7 @@ class _TransactionTemplatePageState extends ConsumerState<TransactionTemplatePag
       children: [
         // Tab Bar - show Admin tab only if user has permission
         if (_tabController != null)
-          TossTabBar(
+          TossTabBar1(
             tabs: hasAdminPermission ? const ['General', 'Admin'] : const ['General'],
             controller: _tabController!,
             padding: EdgeInsets.symmetric(horizontal: TossSpacing.space4),
