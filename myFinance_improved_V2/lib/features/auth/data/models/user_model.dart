@@ -1,6 +1,7 @@
 // lib/features/auth/data/models/user_model.dart
 
 import '../../domain/entities/user_entity.dart';
+import '../../../../core/utils/datetime_utils.dart';
 
 /// User Model
 ///
@@ -19,11 +20,12 @@ class UserModel {
   final String? lastName;
   final String? userPhoneNumber;
   final String? profileImage;
+  final String? preferredTimezone;
   final String createdAt;
   final String? updatedAt;
-  final String? lastLoginAt;
-  final bool isEmailVerified;
   final bool isDeleted;
+  final bool isEmailVerified;
+  final String? lastLoginAt;
 
   const UserModel({
     required this.userId,
@@ -32,11 +34,12 @@ class UserModel {
     this.lastName,
     this.userPhoneNumber,
     this.profileImage,
+    this.preferredTimezone,
     required this.createdAt,
     this.updatedAt,
-    this.lastLoginAt,
-    required this.isEmailVerified,
     this.isDeleted = false,
+    this.isEmailVerified = false,
+    this.lastLoginAt,
   });
 
   /// Create from Supabase JSON
@@ -48,11 +51,12 @@ class UserModel {
       lastName: json['last_name'] as String?,
       userPhoneNumber: json['user_phone_number'] as String?,
       profileImage: json['profile_image'] as String?,
+      preferredTimezone: json['preferred_timezone'] as String?,
       createdAt: json['created_at'] as String,
       updatedAt: json['updated_at'] as String?,
-      lastLoginAt: json['last_login_at'] as String?,
-      isEmailVerified: json['is_email_verified'] as bool? ?? false,
       isDeleted: json['is_deleted'] as bool? ?? false,
+      isEmailVerified: json['is_email_verified'] as bool? ?? false,
+      lastLoginAt: json['last_login_at'] as String?,
     );
   }
 
@@ -65,11 +69,12 @@ class UserModel {
       'last_name': lastName,
       'user_phone_number': userPhoneNumber,
       'profile_image': profileImage,
+      'preferred_timezone': preferredTimezone,
       'created_at': createdAt,
       'updated_at': updatedAt,
-      'last_login_at': lastLoginAt,
-      'is_email_verified': isEmailVerified,
       'is_deleted': isDeleted,
+      'is_email_verified': isEmailVerified,
+      'last_login_at': lastLoginAt,
     };
   }
 
@@ -80,8 +85,8 @@ class UserModel {
       email: email,
       firstName: firstName,
       lastName: lastName,
-      createdAt: DateTime.parse(createdAt),
-      lastLoginAt: lastLoginAt != null ? DateTime.parse(lastLoginAt!) : null,
+      createdAt: DateTimeUtils.toLocal(createdAt),
+      lastLoginAt: lastLoginAt != null ? DateTimeUtils.toLocal(lastLoginAt!) : null,
       isEmailVerified: isEmailVerified,
     );
   }
@@ -93,8 +98,8 @@ class UserModel {
       email: entity.email,
       firstName: entity.firstName,
       lastName: entity.lastName,
-      createdAt: entity.createdAt.toIso8601String(),
-      lastLoginAt: entity.lastLoginAt?.toIso8601String(),
+      createdAt: DateTimeUtils.toUtc(entity.createdAt),
+      lastLoginAt: entity.lastLoginAt != null ? DateTimeUtils.toUtc(entity.lastLoginAt!) : null,
       isEmailVerified: entity.isEmailVerified,
     );
   }
@@ -107,15 +112,15 @@ class UserModel {
     final map = <String, dynamic>{
       'user_id': userId,
       'email': email,
-      'is_email_verified': isEmailVerified,
       'created_at': createdAt,
-      'updated_at': DateTime.now().toIso8601String(),
+      'updated_at': DateTimeUtils.nowUtc(),
     };
 
     if (firstName != null) map['first_name'] = firstName;
     if (lastName != null) map['last_name'] = lastName;
     if (userPhoneNumber != null) map['user_phone_number'] = userPhoneNumber;
     if (profileImage != null) map['profile_image'] = profileImage;
+    if (preferredTimezone != null) map['preferred_timezone'] = preferredTimezone;
 
     return map;
   }
@@ -126,14 +131,14 @@ class UserModel {
   /// Does not include user_id, email, or created_at.
   Map<String, dynamic> toUpdateMap() {
     final map = <String, dynamic>{
-      'updated_at': DateTime.now().toIso8601String(),
+      'updated_at': DateTimeUtils.nowUtc(),
     };
 
     if (firstName != null) map['first_name'] = firstName;
     if (lastName != null) map['last_name'] = lastName;
     if (userPhoneNumber != null) map['user_phone_number'] = userPhoneNumber;
     if (profileImage != null) map['profile_image'] = profileImage;
-    if (lastLoginAt != null) map['last_login_at'] = lastLoginAt;
+    if (preferredTimezone != null) map['preferred_timezone'] = preferredTimezone;
 
     return map;
   }
@@ -146,11 +151,12 @@ class UserModel {
     String? lastName,
     String? userPhoneNumber,
     String? profileImage,
+    String? preferredTimezone,
     String? createdAt,
     String? updatedAt,
-    String? lastLoginAt,
-    bool? isEmailVerified,
     bool? isDeleted,
+    bool? isEmailVerified,
+    String? lastLoginAt,
   }) {
     return UserModel(
       userId: userId ?? this.userId,
@@ -159,11 +165,12 @@ class UserModel {
       lastName: lastName ?? this.lastName,
       userPhoneNumber: userPhoneNumber ?? this.userPhoneNumber,
       profileImage: profileImage ?? this.profileImage,
+      preferredTimezone: preferredTimezone ?? this.preferredTimezone,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
-      lastLoginAt: lastLoginAt ?? this.lastLoginAt,
-      isEmailVerified: isEmailVerified ?? this.isEmailVerified,
       isDeleted: isDeleted ?? this.isDeleted,
+      isEmailVerified: isEmailVerified ?? this.isEmailVerified,
+      lastLoginAt: lastLoginAt ?? this.lastLoginAt,
     );
   }
 }

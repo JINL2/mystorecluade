@@ -1,5 +1,6 @@
 // Journal Entry Model for managing journal input data
 import 'package:flutter/foundation.dart';
+import '../../utils/datetime_utils.dart';
 
 class TransactionLine {
   String? accountId;
@@ -150,8 +151,8 @@ class TransactionLine {
         'interest_rate': (interestRate ?? 0.0).toString(),
         'interest_account_id': '',
         'interest_due_day': 0,
-        'issue_date': issueDate?.toIso8601String().split('T')[0] ?? DateTime.now().toIso8601String().split('T')[0],
-        'due_date': dueDate?.toIso8601String().split('T')[0] ?? DateTime.now().add(Duration(days: 30)).toIso8601String().split('T')[0],
+        'issue_date': issueDate != null ? DateTimeUtils.toUtc(issueDate!) : DateTimeUtils.nowUtc(),
+        'due_date': dueDate != null ? DateTimeUtils.toUtc(dueDate!) : DateTimeUtils.toUtc(DateTime.now().add(Duration(days: 30))),
         'description': debtDescription ?? '',
         'linkedCounterparty_store_id': counterpartyStoreId ?? '',
         'linkedCounterparty_companyId': linkedCompanyId ?? '',
@@ -163,7 +164,7 @@ class TransactionLine {
       json['fix_asset'] = {
         'asset_name': fixedAssetName,
         'salvage_value': (salvageValue ?? 0.0).toString(),
-        'acquire_date': acquisitionDate?.toIso8601String().split('T')[0] ?? DateTime.now().toIso8601String().split('T')[0],
+        'acquire_date': acquisitionDate != null ? DateTimeUtils.toUtc(acquisitionDate!) : DateTimeUtils.nowUtc(),
         'useful_life': (usefulLife ?? 5).toString(),
       };
     }

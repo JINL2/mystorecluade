@@ -1,5 +1,6 @@
 import '../../domain/entities/template_entity.dart';
 import '../dtos/template_dto.dart';
+import '../../../../core/utils/datetime_utils.dart';
 
 /// Template Mapper - Bidirectional conversion between DTO and Domain
 ///
@@ -62,9 +63,9 @@ extension TransactionTemplateToDDto on TransactionTemplate {
       counterpartyCashLocationId: counterpartyCashLocationId,
       createdBy: createdBy,
 
-      /// 📅 Convert DateTime to ISO string
-      createdAt: createdAt.toIso8601String(),
-      updatedAt: updatedAt.toIso8601String(),
+      /// 📅 Convert DateTime to UTC ISO string
+      createdAt: DateTimeUtils.toUtc(createdAt),
+      updatedAt: DateTimeUtils.toUtc(updatedAt),
 
       updatedBy: updatedBy,
       isActive: isActive,

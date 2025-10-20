@@ -6,6 +6,7 @@ import '../exceptions/validation_exception.dart';
 import '../exceptions/validation_error.dart';
 import '../enums/template_enums.dart';
 import '../value_objects/template_creation_data.dart';
+import '../../../../core/utils/datetime_utils.dart';
 
 /// Use case for creating a new transaction template
 /// 
@@ -271,8 +272,8 @@ class CreateTemplateUseCase {
       'store_id': finalTemplate.storeId,
       'counterparty_id': templateData.counterpartyId,
       'counterparty_cash_location_id': finalTemplate.counterpartyCashLocationId,
-      'created_at': finalTemplate.createdAt.toIso8601String(),
-      'updated_at': finalTemplate.updatedAt.toIso8601String(),
+      'created_at': DateTimeUtils.toUtc(finalTemplate.createdAt),
+      'updated_at': DateTimeUtils.toUtc(finalTemplate.updatedAt),
       'updated_by': finalTemplate.updatedBy,
       'requires_approval': policyValidation.requiresApproval,
       'can_be_shared': policyValidation.canBeShared,

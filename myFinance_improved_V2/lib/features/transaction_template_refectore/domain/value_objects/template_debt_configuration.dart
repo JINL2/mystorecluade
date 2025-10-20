@@ -1,4 +1,5 @@
 import '../enums/template_enums.dart';
+import '../../../../core/utils/datetime_utils.dart';
 
 /// Template Debt Configuration Value Object
 /// 
@@ -51,8 +52,8 @@ class TemplateDebtConfiguration {
       if (linkedCompanyId != null) 'linkedCounterparty_companyId': linkedCompanyId,
       if (linkedStoreId != null) 'linkedCounterparty_store_id': linkedStoreId,
       if (interestRate != null) 'interest_rate': interestRate,
-      if (dueDate != null) 'due_date': dueDate!.toIso8601String(),
-      if (issueDate != null) 'issue_date': issueDate!.toIso8601String(),
+      if (dueDate != null) 'due_date': DateTimeUtils.toUtc(dueDate!),
+      if (issueDate != null) 'issue_date': DateTimeUtils.toUtc(issueDate!),
       if (additionalData != null) 'additional_data': additionalData,
     };
   }
@@ -74,10 +75,10 @@ class TemplateDebtConfiguration {
   /// Get date range as string representation
   String? get dateRange {
     if (issueDate != null && dueDate != null) {
-      return '${issueDate!.toIso8601String().split('T')[0]} - ${dueDate!.toIso8601String().split('T')[0]}';
+      return '${DateTimeUtils.formatDateOnly(issueDate!)} - ${DateTimeUtils.formatDateOnly(dueDate!)}';
     }
     if (issueDate != null) {
-      return 'From ${issueDate!.toIso8601String().split('T')[0]}';
+      return 'From ${DateTimeUtils.formatDateOnly(issueDate!)}';
     }
     return null;
   }
