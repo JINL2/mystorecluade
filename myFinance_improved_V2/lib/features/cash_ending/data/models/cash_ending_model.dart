@@ -1,5 +1,6 @@
 // lib/features/cash_ending/data/models/cash_ending_model.dart
 
+import '../../../../core/utils/datetime_utils.dart';
 import '../../domain/entities/cash_ending.dart';
 import 'currency_model.dart';
 
@@ -27,6 +28,8 @@ class CashEndingModel {
   });
 
   /// Create from JSON (from database)
+  ///
+  /// Converts UTC datetime from database to local time for display
   factory CashEndingModel.fromJson(Map<String, dynamic> json) {
     return CashEndingModel(
       cashEndingId: json['cash_ending_id']?.toString(),
@@ -34,8 +37,12 @@ class CashEndingModel {
       userId: json['user_id']?.toString() ?? json['created_by']?.toString() ?? '',
       locationId: json['location_id']?.toString() ?? '',
       storeId: json['store_id']?.toString(),
-      recordDate: DateTime.parse(json['record_date']?.toString() ?? DateTime.now().toString()),
-      createdAt: DateTime.parse(json['created_at']?.toString() ?? DateTime.now().toString()),
+      recordDate: DateTimeUtils.toLocal(
+        json['record_date']?.toString() ?? DateTimeUtils.nowUtc(),
+      ),
+      createdAt: DateTimeUtils.toLocal(
+        json['created_at']?.toString() ?? DateTimeUtils.nowUtc(),
+      ),
       currencies: (json['currencies'] as List<dynamic>?)
               ?.map((c) => CurrencyModel.fromJson(c as Map<String, dynamic>))
               .toList() ??
@@ -46,17 +53,17 @@ class CashEndingModel {
   /// Convert to JSON for RPC call (Supabase format)
   ///
   /// This matches the format expected by insert_cashier_amount_lines RPC
+  /// Converts local datetime to UTC for database storage
   Map<String, dynamic> toRpcParams() {
     // Build currencies array for RPC
-    final currenciesJson = currencies
-        .where((currency) => currency.denominations.any((d) => d.quantity > 0))
-        .map((currency) {
+    // Note: Include currencies even if all denominations are 0 (cash can be 0)
+    final currenciesJson = currencies.map((currency) {
+      // Include all denominations with their quantities (including 0)
       final denominationsJson = currency.denominations
-          .where((d) => d.quantity > 0)
           .map((d) => {
                 'denomination_id': d.denominationId,
                 'quantity': d.quantity,
-              })
+              },)
           .toList();
 
       return {
@@ -68,10 +75,10 @@ class CashEndingModel {
     return {
       'p_company_id': companyId,
       'p_location_id': locationId,
-      'p_record_date': recordDate.toIso8601String().split('T')[0], // yyyy-MM-dd
+      'p_record_date': DateTimeUtils.toDateOnly(recordDate), // Date only, no timezone conversion
       'p_created_by': userId,
       'p_currencies': currenciesJson,
-      'p_created_at': createdAt.toIso8601String().replaceFirst('T', ' ').split('.')[0], // yyyy-MM-dd HH:mm:ss
+      'p_created_at': DateTimeUtils.toRpcFormat(createdAt), // Convert to UTC for RPC
       'p_store_id': (storeId == null || storeId == 'headquarter') ? null : storeId,
     };
   }

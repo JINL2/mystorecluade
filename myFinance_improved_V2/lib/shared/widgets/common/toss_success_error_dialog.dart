@@ -676,6 +676,73 @@ class TossDialogs {
     );
   }
 
+  // Cash Ending Success/Error dialogs
+  static Future<bool?> showCashEndingSaved({
+    required BuildContext context,
+    String? message,
+  }) {
+    return showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => TossDialog.success(
+        title: 'Cash Ending Saved',
+        message: message ?? 'Cash ending saved successfully',
+        primaryButtonText: 'Done',
+        onPrimaryPressed: () => Navigator.of(context).pop(true),
+      ),
+    );
+  }
+
+  static Future<bool?> showBankBalanceSaved({
+    required BuildContext context,
+    String? message,
+  }) {
+    return showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => TossDialog.success(
+        title: 'Bank Balance Saved',
+        message: message ?? 'Bank balance saved successfully',
+        primaryButtonText: 'Done',
+        onPrimaryPressed: () => Navigator.of(context).pop(true),
+      ),
+    );
+  }
+
+  static Future<bool?> showVaultTransactionSaved({
+    required BuildContext context,
+    required String transactionType,
+    String? message,
+  }) {
+    final label = transactionType == 'debit' ? 'In' : 'Out';
+    return showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => TossDialog.success(
+        title: 'Vault $label Transaction Saved',
+        message: message ?? 'Vault $label transaction saved successfully',
+        primaryButtonText: 'Done',
+        onPrimaryPressed: () => Navigator.of(context).pop(true),
+      ),
+    );
+  }
+
+  static Future<bool?> showCashEndingError({
+    required BuildContext context,
+    required String error,
+  }) {
+    return showDialog<bool>(
+      context: context,
+      barrierDismissible: true,
+      builder: (context) => TossDialog.error(
+        title: 'Failed to Save',
+        message: _parseErrorMessage(error),
+        primaryButtonText: 'OK',
+        onPrimaryPressed: () => Navigator.of(context).pop(true),
+      ),
+    );
+  }
+
   // Error dialogs
   static Future<bool?> showNetworkError({
     required BuildContext context,
@@ -688,14 +755,14 @@ class TossDialogs {
         title: 'Connection Error',
         message: 'Please check your internet connection and try again.',
         primaryButtonText: onRetry != null ? 'Retry' : 'OK',
-        onPrimaryPressed: onRetry != null 
+        onPrimaryPressed: onRetry != null
             ? () {
                 Navigator.of(context).pop(true);
                 onRetry();
               }
             : null,
         secondaryButtonText: onRetry != null ? 'Cancel' : null,
-        onSecondaryPressed: onRetry != null 
+        onSecondaryPressed: onRetry != null
             ? () => Navigator.of(context).pop(false)
             : null,
       ),

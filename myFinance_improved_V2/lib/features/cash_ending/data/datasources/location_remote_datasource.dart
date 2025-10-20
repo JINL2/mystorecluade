@@ -61,6 +61,15 @@ class LocationRemoteDataSource {
 
     final response = await query.order('location_name');
 
+    // Debug: Log the raw response from database
+    print('🗄️ Database response for $locationType locations:');
+    print('   Query: company_id=$companyId, location_type=$locationType, store_id=$storeIdValue');
+    print('   Response count: ${response.length}');
+    if (response.isNotEmpty) {
+      print('   First record keys: ${response.first.keys.toList()}');
+      print('   First record values: ${response.first}');
+    }
+
     return List<Map<String, dynamic>>.from(response);
   }
 }

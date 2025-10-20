@@ -72,8 +72,6 @@ class HomepageDataSource {
     String? storeId,
     required String period,
   }) async {
-    debugPrint('🔵 [DataSource.getRevenue] Calling RPC: get_dashboard_revenue');
-    debugPrint('🔵 [DataSource.getRevenue] Params: companyId=$companyId, storeId=$storeId, period=$period');
 
     // Convert period to date for RPC
     final date = _periodToDate(period);
@@ -88,8 +86,6 @@ class HomepageDataSource {
         },
       );
 
-      debugPrint('🔵 [DataSource.getRevenue] Response type: ${response.runtimeType}');
-      debugPrint('🔵 [DataSource.getRevenue] Response: $response');
 
       if (response == null) {
         debugPrint('🔵 [DataSource.getRevenue] ERROR: No revenue data returned');
@@ -134,7 +130,6 @@ class HomepageDataSource {
         companyId: companyId,
       );
 
-      debugPrint('🔵 [DataSource.getRevenue] Successfully parsed model: amount=${model.amount}, previous=${model.comparisonAmount}');
       return model;
     } catch (e, stack) {
       debugPrint('🔵 [DataSource.getRevenue] ERROR: $e');
@@ -152,7 +147,6 @@ class HomepageDataSource {
   ///
   /// ✅ Filters out deleted companies and stores before parsing
   Future<UserCompaniesModel> getUserCompanies(String userId) async {
-    debugPrint('🔵 [DataSource.getUserCompanies] Calling RPC: get_user_companies_and_stores');
     debugPrint('🔵 [DataSource.getUserCompanies] userId: $userId');
 
     final response = await _supabaseService.client.rpc(
@@ -162,7 +156,6 @@ class HomepageDataSource {
       },
     );
 
-    debugPrint('🔵 [DataSource.getUserCompanies] Response type: ${response.runtimeType}');
 
     if (response == null) {
       throw Exception('No user companies data returned from database');
@@ -175,7 +168,6 @@ class HomepageDataSource {
       final filteredData = filterDeletedCompaniesAndStores(data);
 
       final model = UserCompaniesModel.fromJson(filteredData);
-      debugPrint('🔵 [DataSource.getUserCompanies] Successfully parsed user companies');
       return model;
     } catch (e, stack) {
       debugPrint('🔵 [DataSource.getUserCompanies] ERROR parsing response: $e');
@@ -192,15 +184,12 @@ class HomepageDataSource {
   /// Calls: rpc('get_categories_with_features')
   /// Returns: List of categories with their features
   Future<List<CategoryFeaturesModel>> getCategoriesWithFeatures() async {
-    debugPrint('🔵 [DataSource.getCategoriesWithFeatures] Calling RPC: get_categories_with_features');
 
     try {
       final response = await _supabaseService.client.rpc(
         'get_categories_with_features',
       );
 
-      debugPrint('🔵 [DataSource.getCategoriesWithFeatures] Response type: ${response.runtimeType}');
-      debugPrint('🔵 [DataSource.getCategoriesWithFeatures] Response length: ${response is List ? response.length : "not a list"}');
 
       if (response == null || response is! List) {
         debugPrint('🔵 [DataSource.getCategoriesWithFeatures] ERROR: Invalid data returned');
@@ -209,12 +198,10 @@ class HomepageDataSource {
 
       final models = (response as List<dynamic>)
           .map((json) {
-            debugPrint('🔵 [DataSource.getCategoriesWithFeatures]   Parsing category: ${json['category_name']}');
             return CategoryFeaturesModel.fromJson(json as Map<String, dynamic>);
           })
           .toList();
 
-      debugPrint('🔵 [DataSource.getCategoriesWithFeatures] Successfully parsed ${models.length} categories');
       return models;
     } catch (e, stack) {
       debugPrint('🔵 [DataSource.getCategoriesWithFeatures] ERROR: $e');
@@ -231,8 +218,6 @@ class HomepageDataSource {
     required String userId,
     required String companyId,
   }) async {
-    debugPrint('🔵 [DataSource.getQuickAccessFeatures] Calling RPC: get_user_quick_access_features');
-    debugPrint('🔵 [DataSource.getQuickAccessFeatures] Params: userId=$userId, companyId=$companyId');
 
     try {
       final response = await _supabaseService.client.rpc(
@@ -243,8 +228,6 @@ class HomepageDataSource {
         },
       );
 
-      debugPrint('🔵 [DataSource.getQuickAccessFeatures] Response type: ${response.runtimeType}');
-      debugPrint('🔵 [DataSource.getQuickAccessFeatures] Response length: ${response is List ? response.length : "not a list"}');
 
       if (response == null || response is! List) {
         debugPrint('🔵 [DataSource.getQuickAccessFeatures] ERROR: Invalid data returned');
@@ -254,12 +237,10 @@ class HomepageDataSource {
       final models = (response as List<dynamic>)
           .map((json) {
             final model = TopFeatureModel.fromJson(json as Map<String, dynamic>);
-            debugPrint('🔵 [DataSource.getQuickAccessFeatures]   Feature: ${model.featureName}, iconKey: "${model.iconKey}", icon: "${model.icon}"');
             return model;
           })
           .toList();
 
-      debugPrint('🔵 [DataSource.getQuickAccessFeatures] Successfully parsed ${models.length} features');
       return models;
     } catch (e, stack) {
       debugPrint('🔵 [DataSource.getQuickAccessFeatures] ERROR: $e');

@@ -162,11 +162,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
 
         // 🔍 DEBUG: Current path
         debugPrint('┌─────────────────────────────────────────────────────');
-        debugPrint('│ [Router Debug] Current path: $currentPath');
 
         // Skip redirects during active navigation
         if (routerNotifier.isNavigationLocked) {
-          debugPrint('│ [Router Debug] Navigation locked, skipping redirect');
           debugPrint('└─────────────────────────────────────────────────────');
           return null;
         }
@@ -174,15 +172,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         // Helper function for safe redirect with loop detection
         String? safeRedirect(String targetPath, String reason) {
           if (routerNotifier._checkForRedirectLoop(targetPath)) {
-            debugPrint('│ [Router Debug] ⚠️ Redirect loop detected!');
-            debugPrint('│ [Router Debug] Returning to /');
             debugPrint('└─────────────────────────────────────────────────────');
             routerNotifier._clearRedirectHistory();
             return '/';
           }
 
-          debugPrint('│ [Router Debug] ➡️ REDIRECTING: $currentPath -> $targetPath');
-          debugPrint('│ [Router Debug] Reason: $reason');
           debugPrint('└─────────────────────────────────────────────────────');
           routerNotifier._trackRedirect(targetPath);
           return targetPath;
@@ -190,32 +184,22 @@ final appRouterProvider = Provider<GoRouter>((ref) {
 
         // Check authentication
         final authState = ref.read(authStateProvider);
-        debugPrint('│ [Router Debug] Auth State: ${authState.runtimeType}');
 
         authState.when(
           data: (user) {
-            debugPrint('│ [Router Debug] Auth State = AsyncData');
-            debugPrint('│ [Router Debug] User: ${user != null ? user.id : 'null'}');
           },
           loading: () {
-            debugPrint('│ [Router Debug] Auth State = AsyncLoading');
           },
           error: (error, stack) {
-            debugPrint('│ [Router Debug] Auth State = AsyncError: $error');
           },
         );
 
         final isAuth = ref.read(isAuthenticatedProvider);
-        debugPrint('│ [Router Debug] isAuthenticated: $isAuth');
 
         final appState = ref.read(appStateProvider);
-        debugPrint('│ [Router Debug] App State: ${appState.runtimeType}');
-        debugPrint('│ [Router Debug] App State user: ${appState.user}');
 
         final isOnboardingRoute = currentPath.startsWith('/onboarding');
         final isAuthRoute = currentPath.startsWith('/auth');
-        debugPrint('│ [Router Debug] Is onboarding route: $isOnboardingRoute');
-        debugPrint('│ [Router Debug] Is auth route: $isAuthRoute');
 
         // Get company count from app state
         final userData = appState.user;
@@ -227,61 +211,46 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           companyCount = (userData['companies'] as List).length;
         }
 
-        debugPrint('│ [Router Debug] Has user data: $hasUserData');
-        debugPrint('│ [Router Debug] Company count: $companyCount');
 
         // Redirect to login if not authenticated AND trying to access protected pages
         if (!isAuth && !isAuthRoute && !isOnboardingRoute) {
-          debugPrint('│ [Router Debug] ❌ User NOT authenticated, redirecting to login');
           return safeRedirect('/auth/login', 'Not authenticated');
         }
 
         // Allow unauthenticated users to access auth pages (login, signup)
         if (!isAuth && isAuthRoute) {
-          debugPrint('│ [Router Debug] ✅ Unauthenticated user on auth page, allowing access');
           debugPrint('└─────────────────────────────────────────────────────');
           return null;
         }
 
-        debugPrint('│ [Router Debug] ✅ User IS authenticated');
 
         // ✅ Redirect authenticated users away from auth pages
         if (isAuth && isAuthRoute) {
-          debugPrint('│ [Router Debug] 🔄 Authenticated user on auth page, redirecting...');
 
           // If user has companies, go straight to home
           if (hasUserData && companyCount > 0) {
-            debugPrint('│ [Router Debug] 📊 User has companies, going to home');
             return safeRedirect('/', 'Authenticated, has companies');
           }
 
           // ⚠️ CRITICAL FIX: Check if AppState data is still loading
           // If AppState is empty, stay on auth page and wait for data to load
           if (!hasUserData) {
-            debugPrint('│ [Router Debug] ⏳ AppState empty, staying on auth page (data loading)');
             debugPrint('└─────────────────────────────────────────────────────');
             return null;  // Stay on current page, wait for data to load
           }
 
           // If user has NO companies (data loaded but empty), go to onboarding
-          debugPrint('│ [Router Debug] 📊 User has no companies, going to onboarding');
           return safeRedirect('/onboarding/choose-role', 'Authenticated, needs onboarding');
         }
 
         // Redirect to onboarding if authenticated but no companies (from homepage)
         if (isAuth && !isOnboardingRoute && hasUserData && companyCount == 0) {
-          debugPrint('│ [Router Debug] ⚠️ No companies found, redirecting to onboarding');
-          debugPrint('│ [Router Debug] 🔍 hasUserData: $hasUserData, companyCount: $companyCount');
-          debugPrint('│ [Router Debug] 🔍 userData.companies: ${userData['companies']}');
           return safeRedirect('/onboarding/choose-role', 'No companies');
         }
 
-        debugPrint('│ [Router Debug] ✅ No redirect needed, continuing to: $currentPath');
         debugPrint('└─────────────────────────────────────────────────────');
         return null;
       } catch (error, stackTrace) {
-        debugPrint('│ [Router Debug] ❌ ERROR: $error');
-        debugPrint('│ [Router Debug] Stack trace: $stackTrace');
         debugPrint('└─────────────────────────────────────────────────────');
         return '/';
       }

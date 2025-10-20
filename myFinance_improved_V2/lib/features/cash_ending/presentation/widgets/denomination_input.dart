@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 
 import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
+import '../../../../shared/themes/toss_icons.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import '../../domain/entities/denomination.dart';
@@ -92,7 +93,7 @@ class DenominationInput extends StatelessWidget {
                       ),
                     ),
                     child: const Icon(
-                      Icons.remove,
+                      TossIcons.remove,
                       size: 12,
                       color: TossColors.gray600,
                     ),
@@ -179,7 +180,7 @@ class DenominationInput extends StatelessWidget {
                       ),
                     ),
                     child: const Icon(
-                      Icons.add,
+                      TossIcons.add,
                       size: 12,
                       color: TossColors.gray600,
                     ),

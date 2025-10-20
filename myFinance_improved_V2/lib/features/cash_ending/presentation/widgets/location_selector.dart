@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
+import '../../../../shared/themes/toss_icons.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import '../../../../shared/widgets/common/toss_loading_view.dart';
@@ -55,7 +56,7 @@ class LocationSelector extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               const Icon(
-                Icons.location_off,
+                TossIcons.locationOff,
                 color: TossColors.gray500,
                 size: 24,
               ),
@@ -74,7 +75,7 @@ class LocationSelector extends StatelessWidget {
     }
 
     // Get selected location name
-    String locationName = 'Select Location';
+    String locationName = 'Select ${_getLocationTypeLabel()}';
     if (selectedLocationId != null) {
       try {
         final location = locations.firstWhere(
@@ -82,7 +83,7 @@ class LocationSelector extends StatelessWidget {
         );
         locationName = location.locationName;
       } catch (e) {
-        locationName = 'Select Location';
+        locationName = 'Select ${_getLocationTypeLabel()}';
       }
     }
 
@@ -106,43 +107,46 @@ class LocationSelector extends StatelessWidget {
               color: TossColors.background,
               borderRadius: BorderRadius.circular(TossBorderRadius.xl),
               border: Border.all(
-                color: selectedLocationId != null ? TossColors.primary : TossColors.gray200,
-                width: selectedLocationId != null ? 1.5 : 1,
+                color: TossColors.gray200,
+                width: 1,
               ),
+              boxShadow: [
+                BoxShadow(
+                  color: TossColors.black.withValues(alpha: 0.04),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
             child: Row(
               children: [
-                Icon(
-                  _getLocationIcon(),
-                  color: selectedLocationId != null ? TossColors.primary : TossColors.gray500,
-                  size: 24,
-                ),
-                const SizedBox(width: TossSpacing.space3),
+                if (selectedLocationId != null) ...[
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: TossColors.primary.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                    ),
+                    child: Icon(
+                      _getLocationIcon(),
+                      size: 20,
+                      color: TossColors.primary,
+                    ),
+                  ),
+                  const SizedBox(width: TossSpacing.space3),
+                ],
                 Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        locationName,
-                        style: TossTextStyles.bodyLarge.copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: selectedLocationId != null
-                              ? TossColors.textPrimary
-                              : TossColors.gray500,
-                        ),
-                      ),
-                      if (selectedLocationId != null)
-                        Text(
-                          'Tap to change',
-                          style: TossTextStyles.caption.copyWith(
-                            color: TossColors.gray500,
-                          ),
-                        ),
-                    ],
+                  child: Text(
+                    locationName,
+                    style: TossTextStyles.body.copyWith(
+                      color: selectedLocationId != null ? TossColors.gray900 : TossColors.gray500,
+                      fontWeight: selectedLocationId != null ? FontWeight.w600 : FontWeight.normal,
+                    ),
                   ),
                 ),
-                Icon(
-                  Icons.chevron_right,
+                const Icon(
+                  TossIcons.forward,
                   color: TossColors.gray400,
                   size: 24,
                 ),
@@ -170,13 +174,13 @@ class LocationSelector extends StatelessWidget {
   IconData _getLocationIcon() {
     switch (locationType) {
       case 'cash':
-        return Icons.attach_money;
+        return TossIcons.wallet;
       case 'bank':
-        return Icons.account_balance;
+        return TossIcons.bank;
       case 'vault':
-        return Icons.lock;
+        return TossIcons.lock;
       default:
-        return Icons.location_on;
+        return TossIcons.location;
     }
   }
 }

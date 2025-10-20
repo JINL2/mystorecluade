@@ -21,10 +21,8 @@ class CashEndingRepositoryImpl implements CashEndingRepository {
   @override
   Future<CashEnding> saveCashEnding(CashEnding cashEnding) async {
     try {
-      // Validate entity has data
-      if (!cashEnding.hasData) {
-        throw const NoDenominationsException();
-      }
+      // Note: Allow saving even with 0 denominations (cash can be 0)
+      // Removed validation: if (!cashEnding.hasData) throw NoDenominationsException();
 
       // Convert entity to model
       final model = CashEndingModel.fromEntity(cashEnding);

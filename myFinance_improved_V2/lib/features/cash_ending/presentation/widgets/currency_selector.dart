@@ -5,6 +5,7 @@ import '../../domain/entities/currency.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import '../../../../shared/themes/toss_spacing.dart';
+import '../../../../shared/themes/toss_icons.dart';
 
 /// Currency selector widget
 ///
@@ -58,8 +59,8 @@ class CurrencySelector extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Icon(
-            Icons.currency_exchange,
+          const Icon(
+            TossIcons.currency,
             color: TossColors.primary,
             size: 20,
           ),

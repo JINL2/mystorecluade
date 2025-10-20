@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
@@ -28,9 +29,9 @@ class TossSelectionItem {
   /// Factory constructor for store items
   factory TossSelectionItem.fromStore(Map<String, dynamic> store) {
     return TossSelectionItem(
-      id: store['store_id'] ?? '',
-      title: store['store_name'] ?? 'Unnamed Store',
-      subtitle: store['store_code'] != null ? 'Code: ${store['store_code']}' : null,
+      id: store['store_id']?.toString() ?? '',
+      title: store['store_name']?.toString() ?? 'Unnamed Store',
+      subtitle: store['store_code']?.toString(),
       icon: IconMapper.getIcon('building'),
       data: store,
     );
@@ -39,9 +40,9 @@ class TossSelectionItem {
   /// Factory constructor for company items
   factory TossSelectionItem.fromCompany(Map<String, dynamic> company) {
     return TossSelectionItem(
-      id: company['company_id'] ?? '',
-      title: company['company_name'] ?? 'Unnamed Company',
-      subtitle: company['company_code'] != null ? 'Code: ${company['company_code']}' : null,
+      id: company['company_id']?.toString() ?? '',
+      title: company['company_name']?.toString() ?? 'Unnamed Company',
+      subtitle: company['company_code']?.toString(),
       icon: IconMapper.getIcon('building'),
       data: company,
     );
@@ -82,27 +83,45 @@ class TossSelectionItem {
 class TossSelectionBottomSheet extends StatefulWidget {
   /// Title displayed at the top of the bottom sheet
   final String title;
-  
+
   /// List of items to display for selection
   final List<TossSelectionItem> items;
-  
+
   /// Currently selected item ID
   final String? selectedId;
-  
+
   /// Callback when an item is selected
   final ValueChanged<TossSelectionItem>? onItemSelected;
-  
+
   /// Maximum height as a fraction of screen height (0.0 - 1.0)
   final double maxHeightFraction;
-  
+
   /// Whether to show a search bar
   final bool showSearch;
-  
+
   /// Custom icon for items (overrides individual item icons)
   final IconData? defaultIcon;
-  
+
   /// Whether to show subtitle text
   final bool showSubtitle;
+
+  /// 🆕 Font weight for selected items (default: w600, cash_ending: w700)
+  final FontWeight selectedFontWeight;
+
+  /// 🆕 Font weight for unselected items (default: w400, cash_ending: w500)
+  final FontWeight unselectedFontWeight;
+
+  /// 🆕 Icon color for unselected items (default: gray600, cash_ending: gray500)
+  final Color unselectedIconColor;
+
+  /// 🆕 Border width for item dividers (default: 1, cash_ending: 0.5)
+  final double borderBottomWidth;
+
+  /// 🆕 Check icon (default: circleCheck, cash_ending: check)
+  final IconData checkIcon;
+
+  /// 🆕 Whether to enable haptic feedback on selection
+  final bool enableHapticFeedback;
 
   const TossSelectionBottomSheet({
     super.key,
@@ -114,6 +133,12 @@ class TossSelectionBottomSheet extends StatefulWidget {
     this.showSearch = false,
     this.defaultIcon,
     this.showSubtitle = true,
+    this.selectedFontWeight = FontWeight.w600,
+    this.unselectedFontWeight = FontWeight.w400,
+    this.unselectedIconColor = TossColors.gray600,
+    this.borderBottomWidth = 1.0,
+    this.checkIcon = FontAwesomeIcons.circleCheck,
+    this.enableHapticFeedback = false,
   });
   
   @override
@@ -130,6 +155,12 @@ class TossSelectionBottomSheet extends StatefulWidget {
     bool showSearch = false,
     IconData? defaultIcon,
     bool showSubtitle = true,
+    FontWeight selectedFontWeight = FontWeight.w600,
+    FontWeight unselectedFontWeight = FontWeight.w400,
+    Color unselectedIconColor = TossColors.gray600,
+    double borderBottomWidth = 1.0,
+    IconData checkIcon = FontAwesomeIcons.circleCheck,
+    bool enableHapticFeedback = false,
   }) {
     return showModalBottomSheet<T>(
       context: context,
@@ -144,6 +175,12 @@ class TossSelectionBottomSheet extends StatefulWidget {
         showSearch: showSearch,
         defaultIcon: defaultIcon,
         showSubtitle: showSubtitle,
+        selectedFontWeight: selectedFontWeight,
+        unselectedFontWeight: unselectedFontWeight,
+        unselectedIconColor: unselectedIconColor,
+        borderBottomWidth: borderBottomWidth,
+        checkIcon: checkIcon,
+        enableHapticFeedback: enableHapticFeedback,
       ),
     );
   }
@@ -286,9 +323,14 @@ class _TossSelectionBottomSheetState extends State<TossSelectionBottomSheet> {
     required bool isLast,
   }) {
     final itemIcon = widget.defaultIcon ?? item.icon ?? IconMapper.getIcon('circle');
-    
+
     return InkWell(
       onTap: () {
+        // Haptic feedback (if enabled)
+        if (widget.enableHapticFeedback) {
+          HapticFeedback.selectionClick();
+        }
+
         FocusScope.of(context).unfocus();
         widget.onItemSelected?.call(item);
         Navigator.pop(context);
@@ -303,7 +345,7 @@ class _TossSelectionBottomSheetState extends State<TossSelectionBottomSheet> {
           border: Border(
             bottom: BorderSide(
               color: TossColors.gray100,
-              width: isLast ? 0 : 1,
+              width: isLast ? 0 : widget.borderBottomWidth,
             ),
           ),
         ),
@@ -314,20 +356,20 @@ class _TossSelectionBottomSheetState extends State<TossSelectionBottomSheet> {
               width: TossSpacing.iconXL,
               height: TossSpacing.iconXL,
               decoration: BoxDecoration(
-                color: isSelected 
-                  ? TossColors.primary.withValues(alpha: 0.1) 
+                color: isSelected
+                  ? TossColors.primary.withValues(alpha: 0.1)
                   : TossColors.gray50,
                 borderRadius: BorderRadius.circular(TossBorderRadius.md),
               ),
               child: Icon(
                 itemIcon,
                 size: TossSpacing.iconSM,
-                color: isSelected ? TossColors.primary : TossColors.gray600,
+                color: isSelected ? TossColors.primary : widget.unselectedIconColor,
               ),
             ),
-            
+
             const SizedBox(width: TossSpacing.space3),
-            
+
             // Content
             Expanded(
               child: Column(
@@ -338,10 +380,10 @@ class _TossSelectionBottomSheetState extends State<TossSelectionBottomSheet> {
                     item.title,
                     style: TossTextStyles.body.copyWith(
                       color: TossColors.gray900,
-                      fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                      fontWeight: isSelected ? widget.selectedFontWeight : widget.unselectedFontWeight,
                     ),
                   ),
-                  
+
                   // Subtitle (if enabled and available)
                   if (widget.showSubtitle && item.subtitle != null) ...[
                     const SizedBox(height: TossSpacing.space1/2),
@@ -355,11 +397,11 @@ class _TossSelectionBottomSheetState extends State<TossSelectionBottomSheet> {
                 ],
               ),
             ),
-            
+
             // Selected indicator
             if (isSelected)
               Icon(
-                FontAwesomeIcons.circleCheck,
+                widget.checkIcon,
                 color: TossColors.primary,
                 size: TossSpacing.iconMD,
               ),
@@ -380,12 +422,12 @@ class TossStoreSelector {
     String title = 'Select Store',
   }) async {
     final items = stores
-        .map((store) => TossSelectionItem.fromStore(store))
+        .map((store) => TossSelectionItem.fromStore(store as Map<String, dynamic>))
         .toList();
 
     Map<String, dynamic>? selectedStore;
 
-    await TossSelectionBottomSheet.show(
+    await TossSelectionBottomSheet.show<void>(
       context: context,
       title: title,
       items: items,
@@ -409,12 +451,12 @@ class TossCompanySelector {
     String title = 'Select Company',
   }) async {
     final items = companies
-        .map((company) => TossSelectionItem.fromCompany(company))
+        .map((company) => TossSelectionItem.fromCompany(company as Map<String, dynamic>))
         .toList();
 
     Map<String, dynamic>? selectedCompany;
 
-    await TossSelectionBottomSheet.show(
+    await TossSelectionBottomSheet.show<void>(
       context: context,
       title: title,
       items: items,
@@ -437,26 +479,28 @@ class TossAccountSelector {
     String? selectedAccountId,
     String title = 'Select Account',
   }) async {
-    final items = accounts
-        .map((account) => TossSelectionItem.fromGeneric(
-          id: account['account_id'] ?? '',
-          title: account['account_name'] ?? 'Unnamed Account',
-          subtitle: account['category_tag'] != null ? 
-            '${_getAccountTypeFromCategory(account['category_tag'])} • ${account['category_tag']}' : null,
-          icon: IconMapper.getIcon('wallet'),
-          data: account,
-        ))
-        .toList();
+    final items = accounts.map((account) {
+      final accountMap = account as Map<String, dynamic>;
+      return TossSelectionItem.fromGeneric(
+        id: accountMap['account_id']?.toString() ?? '',
+        title: accountMap['account_name']?.toString() ?? 'Unnamed Account',
+        subtitle: accountMap['category_tag'] != null
+            ? '${_getAccountTypeFromCategory(accountMap['category_tag']?.toString())} • ${accountMap['category_tag']}'
+            : null,
+        icon: IconMapper.getIcon('wallet'),
+        data: accountMap,
+      );
+    }).toList();
 
     Map<String, dynamic>? selectedAccount;
 
-    await TossSelectionBottomSheet.show(
+    await TossSelectionBottomSheet.show<void>(
       context: context,
       title: title,
       items: items,
       selectedId: selectedAccountId,
       showSearch: true,
-      maxHeightFraction: 0.7,  // Reduced to 70% to prevent overflow
+      maxHeightFraction: 0.7,
       onItemSelected: (item) {
         selectedAccount = item.data;
       },

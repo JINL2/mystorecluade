@@ -9,6 +9,7 @@
 /// ✅ LOCATION: lib/app/providers/app_state_notifier.dart
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'app_state.dart';
 
 /// Global App State Notifier
@@ -16,6 +17,56 @@ import 'app_state.dart';
 /// Manages all app-level state transitions and business logic
 class AppStateNotifier extends StateNotifier<AppState> {
   AppStateNotifier() : super(AppState.initial());
+
+  // SharedPreferences keys
+  static const String _keyLastCompanyId = 'last_selected_company_id';
+  static const String _keyLastStoreId = 'last_selected_store_id';
+  static const String _keyLastCompanyName = 'last_selected_company_name';
+  static const String _keyLastStoreName = 'last_selected_store_name';
+
+  /// Load last selected company and store from cache
+  Future<Map<String, String?>> loadLastSelection() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      return {
+        'companyId': prefs.getString(_keyLastCompanyId),
+        'storeId': prefs.getString(_keyLastStoreId),
+        'companyName': prefs.getString(_keyLastCompanyName),
+        'storeName': prefs.getString(_keyLastStoreName),
+      };
+    } catch (e) {
+      print('⚠️ [AppState] Failed to load last selection: $e');
+      return {};
+    }
+  }
+
+  /// Save last selected company and store to cache
+  Future<void> _saveLastSelection() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_keyLastCompanyId, state.companyChoosen);
+      await prefs.setString(_keyLastStoreId, state.storeChoosen);
+      await prefs.setString(_keyLastCompanyName, state.companyName);
+      await prefs.setString(_keyLastStoreName, state.storeName);
+      print('💾 [AppState] Saved selection: ${state.companyName} / ${state.storeName}');
+    } catch (e) {
+      print('⚠️ [AppState] Failed to save last selection: $e');
+    }
+  }
+
+  /// Clear cached selection (called on logout)
+  Future<void> clearLastSelection() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove(_keyLastCompanyId);
+      await prefs.remove(_keyLastStoreId);
+      await prefs.remove(_keyLastCompanyName);
+      await prefs.remove(_keyLastStoreName);
+      print('🗑️ [AppState] Cleared last selection cache');
+    } catch (e) {
+      print('⚠️ [AppState] Failed to clear last selection: $e');
+    }
+  }
 
   /// Initialize app state from legacy provider
   void initializeFromLegacy(Map<String, dynamic> legacyState) {
@@ -60,6 +111,8 @@ class AppStateNotifier extends StateNotifier<AppState> {
       storeChoosen: '',
       storeName: '',
     );
+    // Save to cache
+    _saveLastSelection();
   }
 
   /// Update store selection
@@ -68,6 +121,8 @@ class AppStateNotifier extends StateNotifier<AppState> {
       storeChoosen: storeId,
       storeName: storeName ?? '',
     );
+    // Save to cache
+    _saveLastSelection();
   }
 
   /// Update category features (menu permissions)
@@ -193,6 +248,7 @@ class AppStateNotifier extends StateNotifier<AppState> {
   /// should be handled by the logout service.
   void signOut() {
     state = AppState.initial();
+    clearLastSelection(); // Clear cached selection on logout
   }
 
   /// Sync with legacy app state provider

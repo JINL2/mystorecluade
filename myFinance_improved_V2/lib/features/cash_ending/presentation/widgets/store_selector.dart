@@ -40,7 +40,7 @@ class StoreSelector extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               const Icon(
-                Icons.info_outline,
+                TossIcons.info,
                 color: TossColors.gray500,
                 size: 24,
               ),
@@ -93,43 +93,44 @@ class StoreSelector extends StatelessWidget {
               color: TossColors.background,
               borderRadius: BorderRadius.circular(TossBorderRadius.xl),
               border: Border.all(
-                color: selectedStoreId != null ? TossColors.primary : TossColors.gray200,
-                width: selectedStoreId != null ? 1.5 : 1,
+                color: TossColors.gray200,
+                width: 1,
               ),
+              boxShadow: [
+                BoxShadow(
+                  color: TossColors.black.withValues(alpha: 0.04),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
             child: Row(
               children: [
-                Icon(
-                  TossIcons.store,
-                  color: selectedStoreId != null ? TossColors.primary : TossColors.gray500,
-                  size: 24,
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: TossColors.primary.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                  ),
+                  child: Icon(
+                    TossIcons.getStoreIcon(selectedStoreId == 'headquarter' ? 'headquarter' : 'store'),
+                    size: 20,
+                    color: TossColors.primary,
+                  ),
                 ),
                 const SizedBox(width: TossSpacing.space3),
                 Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        storeName,
-                        style: TossTextStyles.bodyLarge.copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: selectedStoreId != null
-                              ? TossColors.textPrimary
-                              : TossColors.gray500,
-                        ),
-                      ),
-                      if (selectedStoreId != null)
-                        Text(
-                          'Tap to change',
-                          style: TossTextStyles.caption.copyWith(
-                            color: TossColors.gray500,
-                          ),
-                        ),
-                    ],
+                  child: Text(
+                    storeName,
+                    style: TossTextStyles.body.copyWith(
+                      color: TossColors.gray900,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
-                Icon(
-                  Icons.chevron_right,
+                const Icon(
+                  TossIcons.forward,
                   color: TossColors.gray400,
                   size: 24,
                 ),

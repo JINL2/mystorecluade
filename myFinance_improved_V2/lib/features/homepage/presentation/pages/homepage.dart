@@ -28,7 +28,6 @@ class _HomepageState extends ConsumerState<Homepage> {
 
   @override
   Widget build(BuildContext context) {
-    debugPrint('🔴🔴🔴 [Homepage.build] Building Homepage widget');
     // Watch user companies provider to ensure AppState is initialized
     final userCompaniesAsync = ref.watch(userCompaniesProvider);
 
@@ -96,7 +95,6 @@ class _HomepageState extends ConsumerState<Homepage> {
   }
 
   Widget _buildAppBar() {
-    debugPrint('🔴 [Homepage._buildAppBar] Building AppBar');
     return SliverAppBar(
       pinned: true,
       floating: false,
@@ -220,13 +218,9 @@ class _HomepageState extends ConsumerState<Homepage> {
     final profileImage = appState.user['profile_image'] as String? ?? '';
 
     // Debug: Log profile image URL
-    debugPrint('🟢 [Homepage._buildProfileAvatar] AppState user map: ${appState.user}');
-    debugPrint('🟢 [Homepage._buildProfileAvatar] Profile image URL: "$profileImage"');
-    debugPrint('🟢 [Homepage._buildProfileAvatar] Is empty: ${profileImage.isEmpty}');
 
     // If profile image exists and is not empty, show image
     if (profileImage.isNotEmpty) {
-      debugPrint('🟢 [Homepage._buildProfileAvatar] Showing profile image from URL');
       return CircleAvatar(
         radius: 20,
         backgroundColor: TossColors.primary.withValues(alpha: 0.1),
@@ -252,7 +246,6 @@ class _HomepageState extends ConsumerState<Homepage> {
             },
             loadingBuilder: (context, child, loadingProgress) {
               if (loadingProgress == null) {
-                debugPrint('🟢 [Homepage] Profile image loaded successfully');
                 return child;
               }
               // Show loading indicator while image is loading
@@ -491,12 +484,6 @@ class _PinnedHelloDelegate extends SliverPersistentHeaderDelegate {
     bool overlapsContent,
   ) {
     // Debug: Check AppState values
-    debugPrint('🟢 [UI.HelloSection] Building with AppState:');
-    debugPrint('🟢 [UI.HelloSection]   user: ${appState.user}');
-    debugPrint('🟢 [UI.HelloSection]   companyName: "${appState.companyName}"');
-    debugPrint('🟢 [UI.HelloSection]   storeName: "${appState.storeName}"');
-    debugPrint('🟢 [UI.HelloSection]   companyChoosen: "${appState.companyChoosen}"');
-    debugPrint('🟢 [UI.HelloSection]   storeChoosen: "${appState.storeChoosen}"');
 
     // Extract user name from AppState
     final firstName = appState.user['user_first_name'] as String? ?? '';
@@ -505,7 +492,6 @@ class _PinnedHelloDelegate extends SliverPersistentHeaderDelegate {
         ? (lastName.isNotEmpty ? '$firstName $lastName' : firstName)
         : 'User';
 
-    debugPrint('🟢 [UI.HelloSection]   Computed userName: "$userName"');
 
     // Get company and store names from AppState
     final companyName = appState.companyName.isNotEmpty
@@ -513,8 +499,6 @@ class _PinnedHelloDelegate extends SliverPersistentHeaderDelegate {
         : (appState.companyChoosen.isNotEmpty ? 'Company Selected' : 'No Company');
     final storeName = appState.storeName;
 
-    debugPrint('🟢 [UI.HelloSection]   Computed companyName: "$companyName"');
-    debugPrint('🟢 [UI.HelloSection]   Computed storeName: "$storeName"');
 
     return Container(
       color: TossColors.gray100,

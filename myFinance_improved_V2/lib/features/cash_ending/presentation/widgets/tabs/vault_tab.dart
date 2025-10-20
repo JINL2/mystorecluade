@@ -7,15 +7,18 @@ import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
+import '../../../../../shared/widgets/toss/toss_button_1.dart';
 import '../../../../../shared/widgets/toss/toss_card.dart';
 import '../../../domain/entities/denomination.dart';
+import '../../../domain/entities/stock_flow.dart';
 import '../../providers/cash_ending_provider.dart';
 import '../../providers/cash_ending_state.dart';
+import '../../providers/repository_providers.dart';
 import '../denomination_input.dart';
 import '../location_selector.dart';
+import '../real_section_widget.dart';
+import '../sheets/cash_ending_selection_helpers.dart';
 import '../sheets/currency_selector_sheet.dart';
-import '../sheets/location_selector_sheet.dart';
-import '../sheets/store_selector_sheet.dart';
 import '../store_selector.dart';
 import '../total_display.dart';
 
@@ -47,6 +50,41 @@ class _VaultTabState extends ConsumerState<VaultTab> {
   // Transaction type: 'debit' (In) or 'credit' (Out)
   String _transactionType = 'debit'; // Default to 'In'
 
+  // Stock flow data for Real section
+  List<ActualFlow> _actualFlows = [];
+  LocationSummary? _locationSummary;
+  bool _isLoadingFlows = false;
+  bool _hasMoreFlows = false;
+  int _flowsOffset = 0;
+  String? _previousLocationId;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Listen for location changes
+    ref.listenManual(
+      cashEndingProvider.select((state) => state.selectedVaultLocationId),
+      (previous, next) {
+        if (next != null && next.isNotEmpty && next != previous) {
+          _previousLocationId = next;
+          _loadStockFlows();
+        }
+      },
+    );
+
+    // Load initial data
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final state = ref.read(cashEndingProvider);
+      _previousLocationId = state.selectedVaultLocationId;
+
+      if (state.selectedVaultLocationId != null &&
+          state.selectedVaultLocationId!.isNotEmpty) {
+        _loadStockFlows();
+      }
+    });
+  }
+
   @override
   void dispose() {
     // Dispose all controllers
@@ -56,6 +94,83 @@ class _VaultTabState extends ConsumerState<VaultTab> {
       }
     }
     super.dispose();
+  }
+
+  @override
+  void didUpdateWidget(VaultTab oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final state = ref.read(cashEndingProvider);
+
+    if (state.selectedVaultLocationId != _previousLocationId) {
+      _previousLocationId = state.selectedVaultLocationId;
+      _loadStockFlows();
+    }
+  }
+
+  /// Load stock flows for the selected location
+  Future<void> _loadStockFlows({bool loadMore = false}) async {
+    final state = ref.read(cashEndingProvider);
+
+    if (state.selectedVaultLocationId == null ||
+        state.selectedVaultLocationId!.isEmpty ||
+        state.selectedStoreId == null) {
+      return;
+    }
+
+    if (_isLoadingFlows) return;
+
+    setState(() {
+      _isLoadingFlows = true;
+      if (!loadMore) {
+        _flowsOffset = 0;
+        _actualFlows = [];
+      }
+    });
+
+    try {
+      final repository = ref.read(stockFlowRepositoryProvider);
+
+      final result = await repository.getLocationStockFlow(
+        companyId: widget.companyId,
+        storeId: state.selectedStoreId!,
+        cashLocationId: state.selectedVaultLocationId!,
+        offset: _flowsOffset,
+        limit: 20,
+      );
+
+      if (result.success) {
+        setState(() {
+          if (loadMore) {
+            _actualFlows.addAll(result.actualFlows);
+          } else {
+            _actualFlows = result.actualFlows;
+            _locationSummary = result.locationSummary;
+          }
+          _hasMoreFlows = result.pagination?.hasMore ?? false;
+          _flowsOffset += result.actualFlows.length;
+        });
+      }
+    } catch (e) {
+      debugPrint('❌ Error loading stock flows: $e');
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoadingFlows = false;
+        });
+      }
+    }
+  }
+
+  void _loadMoreFlows() {
+    _loadStockFlows(loadMore: true);
+  }
+
+  void reloadStockFlows() {
+    _loadStockFlows();
+  }
+
+  void _showFlowDetails(ActualFlow flow) {
+    debugPrint('Show details for flow: ${flow.flowId}');
   }
 
   TextEditingController _getController(String currencyId, String denominationId) {
@@ -95,9 +210,24 @@ class _VaultTabState extends ConsumerState<VaultTab> {
           _buildLocationSelectionCard(state),
 
           // Card 2: Vault Counting (show if location selected)
-          if (state.selectedVaultLocationId != null) ...[
+          if (state.selectedVaultLocationId != null &&
+              state.selectedVaultLocationId!.isNotEmpty) ...[
             const SizedBox(height: TossSpacing.space6),
             _buildVaultCountingCard(state),
+
+            // Card 3: Real Section
+            const SizedBox(height: TossSpacing.space6),
+            RealSectionWidget(
+              actualFlows: _actualFlows,
+              locationSummary: _locationSummary,
+              isLoading: _isLoadingFlows,
+              hasMore: _hasMoreFlows,
+              baseCurrencySymbol: state.currencies.isNotEmpty
+                  ? state.currencies.first.symbol
+                  : '\$',
+              onLoadMore: _loadMoreFlows,
+              onItemTap: _showFlowDetails,
+            ),
           ],
         ],
       ),
@@ -115,7 +245,7 @@ class _VaultTabState extends ConsumerState<VaultTab> {
             stores: state.stores,
             selectedStoreId: state.selectedStoreId,
             onTap: () {
-              StoreSelectorSheet.show(
+              CashEndingSelectionHelpers.showStoreSelector(
                 context: context,
                 ref: ref,
                 stores: state.stores,
@@ -134,7 +264,7 @@ class _VaultTabState extends ConsumerState<VaultTab> {
               locations: state.vaultLocations,
               selectedLocationId: state.selectedVaultLocationId,
               onTap: () {
-                LocationSelectorSheet.show(
+                CashEndingSelectionHelpers.showLocationSelector(
                   context: context,
                   ref: ref,
                   locationType: 'vault',
@@ -287,42 +417,28 @@ class _VaultTabState extends ConsumerState<VaultTab> {
         const SizedBox(height: TossSpacing.space10),
 
         // Submit Button
-        ElevatedButton(
-          onPressed: state.isSaving
-              ? null
-              : () async {
-                  await widget.onSave(
-                    context,
-                    state,
-                    selectedCurrencyId,
-                    _transactionType,
-                  );
-                },
-          style: ElevatedButton.styleFrom(
-            backgroundColor: TossColors.primary,
-            foregroundColor: TossColors.white,
-            padding: const EdgeInsets.symmetric(vertical: TossSpacing.space4),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
+        Center(
+          child: TossButton1.primary(
+            text: 'Save Vault Transaction',
+            isLoading: state.isSaving,
+            isEnabled: !state.isSaving,
+            fullWidth: false,
+            onPressed: !state.isSaving
+                ? () async {
+                    await widget.onSave(
+                      context,
+                      state,
+                      selectedCurrencyId,
+                      _transactionType,
+                    );
+                  }
+                : null,
+            padding: const EdgeInsets.symmetric(
+              horizontal: TossSpacing.space4,
+              vertical: TossSpacing.space3,
             ),
+            borderRadius: 12,
           ),
-          child: state.isSaving
-              ? const SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    valueColor:
-                        AlwaysStoppedAnimation<Color>(TossColors.white),
-                  ),
-                )
-              : Text(
-                  'Save Vault Transaction',
-                  style: TossTextStyles.h4.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: TossColors.white,
-                  ),
-                ),
         ),
       ],
     );

@@ -1,5 +1,6 @@
 // lib/features/cash_ending/presentation/providers/cash_ending_notifier.dart
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/repositories/cash_ending_repository.dart';
 import '../../domain/repositories/location_repository.dart';
@@ -63,20 +64,34 @@ class CashEndingNotifier extends StateNotifier<CashEndingState> {
         storeId: storeId,
       );
 
+      // Debug logging for location data
+      if (locations.isNotEmpty) {
+      } else {
+      }
+
       // Update appropriate state based on type
       if (locationType == 'cash') {
+        // Auto-select first cash location if available
+        final defaultCashLocationId = locations.isNotEmpty ? locations.first.locationId : null;
         state = state.copyWith(
           cashLocations: locations,
+          selectedCashLocationId: defaultCashLocationId,
           isLoadingCashLocations: false,
         );
       } else if (locationType == 'bank') {
+        // Auto-select first bank location if available
+        final defaultBankLocationId = locations.isNotEmpty ? locations.first.locationId : null;
         state = state.copyWith(
           bankLocations: locations,
+          selectedBankLocationId: defaultBankLocationId,
           isLoadingBankLocations: false,
         );
       } else if (locationType == 'vault') {
+        // Auto-select first vault location if available
+        final defaultVaultLocationId = locations.isNotEmpty ? locations.first.locationId : null;
         state = state.copyWith(
           vaultLocations: locations,
+          selectedVaultLocationId: defaultVaultLocationId,
           isLoadingVaultLocations: false,
         );
       }
@@ -146,6 +161,7 @@ class CashEndingNotifier extends StateNotifier<CashEndingState> {
     state = state.copyWith(isSaving: true, clearError: true);
 
     try {
+
       await _cashEndingRepository.saveCashEnding(cashEnding);
 
       state = state.copyWith(isSaving: false);
@@ -156,11 +172,15 @@ class CashEndingNotifier extends StateNotifier<CashEndingState> {
       }
 
       return true;
-    } catch (e) {
+    } catch (e, stack) {
+
+      final errorMessage = e is CashEndingException ? e.message : 'Failed to save cash ending';
+
       state = state.copyWith(
         isSaving: false,
-        error: e is CashEndingException ? e.message : 'Failed to save cash ending',
+        error: errorMessage,
       );
+
       return false;
     }
   }
@@ -172,8 +192,39 @@ class CashEndingNotifier extends StateNotifier<CashEndingState> {
 
   /// Select store and auto-load all locations (like lib_old)
   Future<void> selectStore(String storeId, String companyId) async {
-    // Set selected store
-    state = state.copyWith(selectedStoreId: storeId);
+    // Clear all location selections when store changes
+    state = state.copyWith(
+      selectedStoreId: storeId,
+      cashLocations: [],
+      bankLocations: [],
+      vaultLocations: [],
+    );
+
+    // Manually clear location IDs (copyWith doesn't handle null properly)
+    state = CashEndingState(
+      selectedStoreId: storeId,
+      selectedCashLocationId: null,
+      selectedBankLocationId: null,
+      selectedVaultLocationId: null,
+      stores: state.stores,
+      cashLocations: [],
+      bankLocations: [],
+      vaultLocations: [],
+      currencies: state.currencies,
+      currentTabIndex: state.currentTabIndex,
+      selectedCashCurrencyId: state.selectedCashCurrencyId,
+      selectedBankCurrencyId: state.selectedBankCurrencyId,
+      selectedVaultCurrencyId: state.selectedVaultCurrencyId,
+      recentCashEndings: state.recentCashEndings,
+      isLoadingStores: state.isLoadingStores,
+      isLoadingCashLocations: state.isLoadingCashLocations,
+      isLoadingBankLocations: state.isLoadingBankLocations,
+      isLoadingVaultLocations: state.isLoadingVaultLocations,
+      isLoadingCurrencies: state.isLoadingCurrencies,
+      isLoadingRecentEndings: state.isLoadingRecentEndings,
+      isSaving: state.isSaving,
+      error: state.error,
+    );
 
     // Auto-load all location types (cash, bank, vault) like lib_old
     await Future.wait([

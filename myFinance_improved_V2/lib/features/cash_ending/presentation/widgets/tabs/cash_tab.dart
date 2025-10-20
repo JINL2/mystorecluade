@@ -6,27 +6,31 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
+import '../../../../../shared/widgets/toss/toss_button_1.dart';
 import '../../../../../shared/widgets/toss/toss_card.dart';
 import '../../../domain/entities/currency.dart';
 import '../../../domain/entities/denomination.dart';
+import '../../../domain/entities/stock_flow.dart';
 import '../../providers/cash_ending_provider.dart';
 import '../../providers/cash_ending_state.dart';
 import '../denomination_input.dart';
 import '../location_selector.dart';
+import '../real_section_widget.dart';
+import '../sheets/cash_ending_selection_helpers.dart';
 import '../sheets/currency_selector_sheet.dart';
-import '../sheets/location_selector_sheet.dart';
-import '../sheets/store_selector_sheet.dart';
 import '../store_selector.dart';
 import '../total_display.dart';
+import '../../providers/repository_providers.dart';
 
 /// Cash Tab - Denomination-based cash counting
 ///
 /// Structure from legacy:
 /// - Card 1: Store + Location selection
 /// - Card 2: Denomination inputs + Total + Submit
+/// - Card 3: Real section (transaction history)
 class CashTab extends ConsumerStatefulWidget {
   final String companyId;
-  final Function(BuildContext, CashEndingState, String) onSave;
+  final Future<void> Function(BuildContext, CashEndingState, String) onSave;
 
   const CashTab({
     super.key,
@@ -42,6 +46,46 @@ class _CashTabState extends ConsumerState<CashTab> {
   // Store TextEditingControllers for each denomination
   final Map<String, Map<String, TextEditingController>> _controllers = {};
 
+  // Stock flow data for Real section
+  List<ActualFlow> _actualFlows = [];
+  LocationSummary? _locationSummary;
+  bool _isLoadingFlows = false;
+  bool _hasMoreFlows = false;
+  int _flowsOffset = 0;
+  String? _previousLocationId;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Add listener for location changes (like lib_old pattern)
+    // This will trigger when location is auto-selected
+    ref.listenManual(
+      cashEndingProvider.select((state) => state.selectedCashLocationId),
+      (previous, next) {
+
+        // Load stock flows when location changes
+        if (next != null && next.isNotEmpty && next != previous) {
+          _previousLocationId = next;
+          _loadStockFlows();
+        }
+      },
+    );
+
+    // Load initial data after build
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final state = ref.read(cashEndingProvider);
+
+      _previousLocationId = state.selectedCashLocationId;
+
+      if (state.selectedCashLocationId != null &&
+          state.selectedCashLocationId!.isNotEmpty) {
+        _loadStockFlows();
+      } else {
+      }
+    });
+  }
+
   @override
   void dispose() {
     // Dispose all controllers
@@ -51,6 +95,19 @@ class _CashTabState extends ConsumerState<CashTab> {
       }
     }
     super.dispose();
+  }
+
+  @override
+  void didUpdateWidget(CashTab oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Reload flows if location changed
+    final state = ref.read(cashEndingProvider);
+
+    if (state.selectedCashLocationId != _previousLocationId) {
+      _previousLocationId = state.selectedCashLocationId;
+      _loadStockFlows();
+    } else {
+    }
   }
 
   TextEditingController _getController(String currencyId, String denominationId) {
@@ -77,6 +134,83 @@ class _CashTabState extends ConsumerState<CashTab> {
     return total;
   }
 
+  /// Load stock flows for the selected location
+  Future<void> _loadStockFlows({bool loadMore = false}) async {
+    final state = ref.read(cashEndingProvider);
+
+
+    if (state.selectedCashLocationId == null ||
+        state.selectedCashLocationId!.isEmpty ||
+        state.selectedStoreId == null) {
+      return;
+    }
+
+    if (_isLoadingFlows) {
+      return;
+    }
+
+    setState(() {
+      _isLoadingFlows = true;
+      if (!loadMore) {
+        _flowsOffset = 0;
+        _actualFlows = [];
+      }
+    });
+
+    try {
+      final repository = ref.read(stockFlowRepositoryProvider);
+
+      final result = await repository.getLocationStockFlow(
+        companyId: widget.companyId,
+        storeId: state.selectedStoreId!,
+        cashLocationId: state.selectedCashLocationId!,
+        offset: _flowsOffset,
+        limit: 20,
+      );
+
+
+      if (result.success) {
+        if (result.actualFlows.isNotEmpty) {
+        }
+
+        setState(() {
+          if (loadMore) {
+            _actualFlows.addAll(result.actualFlows);
+          } else {
+            _actualFlows = result.actualFlows;
+            _locationSummary = result.locationSummary;
+          }
+          _hasMoreFlows = result.pagination?.hasMore ?? false;
+          _flowsOffset += result.actualFlows.length;
+        });
+
+      }
+    } catch (e, stackTrace) {
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoadingFlows = false;
+        });
+      }
+    }
+  }
+
+  /// Load more flows for pagination
+  void _loadMoreFlows() {
+    _loadStockFlows(loadMore: true);
+  }
+
+  /// Reload stock flows (called after save)
+  /// Public method exposed for parent to call after successful save
+  void reloadStockFlows() {
+    _loadStockFlows();
+  }
+
+  /// Show flow details in bottom sheet
+  void _showFlowDetails(ActualFlow flow) {
+    // TODO: Implement flow details bottom sheet
+  }
+
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(cashEndingProvider);
@@ -90,9 +224,24 @@ class _CashTabState extends ConsumerState<CashTab> {
           _buildLocationSelectionCard(state),
 
           // Card 2: Cash Counting (show if location selected)
-          if (state.selectedCashLocationId != null) ...[
+          if (state.selectedCashLocationId != null &&
+              state.selectedCashLocationId!.isNotEmpty) ...[
             const SizedBox(height: TossSpacing.space6),
             _buildCashCountingCard(state),
+
+            // Card 3: Real Section
+            const SizedBox(height: TossSpacing.space6),
+            RealSectionWidget(
+              actualFlows: _actualFlows,
+              locationSummary: _locationSummary,
+              isLoading: _isLoadingFlows,
+              hasMore: _hasMoreFlows,
+              baseCurrencySymbol: state.currencies.isNotEmpty
+                  ? state.currencies.first.symbol
+                  : '\$',
+              onLoadMore: _loadMoreFlows,
+              onItemTap: _showFlowDetails,
+            ),
           ],
         ],
       ),
@@ -110,7 +259,7 @@ class _CashTabState extends ConsumerState<CashTab> {
             stores: state.stores,
             selectedStoreId: state.selectedStoreId,
             onTap: () {
-              StoreSelectorSheet.show(
+              CashEndingSelectionHelpers.showStoreSelector(
                 context: context,
                 ref: ref,
                 stores: state.stores,
@@ -128,7 +277,7 @@ class _CashTabState extends ConsumerState<CashTab> {
             locations: state.cashLocations,
             selectedLocationId: state.selectedCashLocationId,
             onTap: () {
-              LocationSelectorSheet.show(
+              CashEndingSelectionHelpers.showLocationSelector(
                 context: context,
                 ref: ref,
                 locationType: 'cash',
@@ -274,37 +423,26 @@ class _CashTabState extends ConsumerState<CashTab> {
         const SizedBox(height: TossSpacing.space10),
 
         // Submit Button
-        ElevatedButton(
-          onPressed: state.isSaving
-              ? null
-              : () async {
-                  await widget.onSave(context, state, selectedCurrencyId);
-                },
-          style: ElevatedButton.styleFrom(
-            backgroundColor: TossColors.primary,
-            foregroundColor: TossColors.white,
-            padding: const EdgeInsets.symmetric(vertical: TossSpacing.space4),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
+        Center(
+          child: TossButton1.primary(
+            text: 'Save Cash Ending',
+            isLoading: state.isSaving,
+            isEnabled: !state.isSaving,
+            fullWidth: false,
+            onPressed: !state.isSaving
+                ? () async {
+                    try {
+                      await widget.onSave(context, state, selectedCurrencyId);
+                    } catch (e, stack) {
+                    }
+                  }
+                : null,
+            padding: const EdgeInsets.symmetric(
+              horizontal: TossSpacing.space4,
+              vertical: TossSpacing.space3,
             ),
+            borderRadius: 12,
           ),
-          child: state.isSaving
-              ? const SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    valueColor:
-                        AlwaysStoppedAnimation<Color>(TossColors.white),
-                  ),
-                )
-              : Text(
-                  'Save Cash Ending',
-                  style: TossTextStyles.h4.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: TossColors.white,
-                  ),
-                ),
         ),
       ],
     );
