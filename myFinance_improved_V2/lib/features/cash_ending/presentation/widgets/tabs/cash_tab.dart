@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
+import '../../../../../shared/widgets/common/keyboard_toolbar_1.dart';
 import '../../../../../shared/widgets/toss/toss_button_1.dart';
 import '../../../../../shared/widgets/toss/toss_card.dart';
 import '../../../domain/entities/currency.dart';
@@ -45,6 +46,12 @@ class CashTab extends ConsumerStatefulWidget {
 class _CashTabState extends ConsumerState<CashTab> {
   // Store TextEditingControllers for each denomination
   final Map<String, Map<String, TextEditingController>> _controllers = {};
+
+  // Store FocusNodes for each denomination (for keyboard toolbar)
+  final Map<String, Map<String, FocusNode>> _focusNodes = {};
+
+  // Keyboard toolbar controller
+  KeyboardToolbarController? _toolbarController;
 
   // Stock flow data for Real section
   List<ActualFlow> _actualFlows = [];
@@ -94,6 +101,14 @@ class _CashTabState extends ConsumerState<CashTab> {
         controller.dispose();
       }
     }
+    // Dispose all focus nodes
+    for (final currencyFocusNodes in _focusNodes.values) {
+      for (final focusNode in currencyFocusNodes.values) {
+        focusNode.dispose();
+      }
+    }
+    // Dispose toolbar controller
+    _toolbarController?.dispose();
     super.dispose();
   }
 
@@ -117,6 +132,35 @@ class _CashTabState extends ConsumerState<CashTab> {
       () => TextEditingController(),
     );
     return _controllers[currencyId]![denominationId]!;
+  }
+
+  FocusNode _getFocusNode(String currencyId, String denominationId) {
+    _focusNodes.putIfAbsent(currencyId, () => {});
+    _focusNodes[currencyId]!.putIfAbsent(
+      denominationId,
+      () => FocusNode(),
+    );
+    return _focusNodes[currencyId]![denominationId]!;
+  }
+
+  void _initializeToolbarController(List<Denomination> denominations, String currencyId) {
+    // Dispose existing controller if any
+    _toolbarController?.dispose();
+
+    // Create new controller with denomination count
+    _toolbarController = KeyboardToolbarController(
+      fieldCount: denominations.length,
+    );
+
+    // Map focus nodes to toolbar controller
+    for (int i = 0; i < denominations.length; i++) {
+      final denom = denominations[i];
+      final focusNode = _getFocusNode(currencyId, denom.denominationId);
+
+      // Replace toolbar's focus node with our focus node
+      _toolbarController!.focusNodes[i].dispose();
+      _toolbarController!.focusNodes[i] = focusNode;
+    }
   }
 
   double _calculateTotal(String currencyId, List<Denomination> denominations) {
@@ -334,9 +378,13 @@ class _CashTabState extends ConsumerState<CashTab> {
       orElse: () => state.currencies.first,
     );
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
+    // Wrap in Stack to render toolbar separately from Column
+    return Stack(
       children: [
+        // Main content in Column
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
         // Header: "Cash Count" title + Currency selector
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -397,19 +445,37 @@ class _CashTabState extends ConsumerState<CashTab> {
               ),
             ),
           )
-        else
-          ...currency.denominations.map((denom) {
+        else ...[
+          // Initialize toolbar controller for this currency
+          Builder(
+            builder: (context) {
+              // Initialize toolbar controller when building denominations
+              if (_toolbarController == null ||
+                  _toolbarController!.focusNodes.length != currency.denominations.length) {
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  _initializeToolbarController(currency.denominations, selectedCurrencyId);
+                });
+              }
+              return const SizedBox.shrink();
+            },
+          ),
+          ...currency.denominations.asMap().entries.map((entry) {
+            final index = entry.key;
+            final denom = entry.value;
             final controller = _getController(selectedCurrencyId, denom.denominationId);
+            final focusNode = _getFocusNode(selectedCurrencyId, denom.denominationId);
 
             return DenominationInput(
               denomination: denom,
               controller: controller,
+              focusNode: focusNode,
               currencySymbol: currency.symbol,
               onChanged: () {
                 setState(() {}); // Update total display
               },
             );
           }),
+        ],
 
         const SizedBox(height: TossSpacing.space8),
 
@@ -433,7 +499,8 @@ class _CashTabState extends ConsumerState<CashTab> {
                 ? () async {
                     try {
                       await widget.onSave(context, state, selectedCurrencyId);
-                    } catch (e, stack) {
+                    } catch (e) {
+                      // Error handled by parent
                     }
                   }
                 : null,
@@ -444,8 +511,27 @@ class _CashTabState extends ConsumerState<CashTab> {
             borderRadius: 12,
           ),
         ),
+          ],
+        ), // End of Column
+
+        // Single shared keyboard toolbar - rendered separately in Stack
+        if (_toolbarController != null)
+          KeyboardToolbar1(
+            controller: _toolbarController,
+            showToolbar: true,
+            // Callbacks will be evaluated when buttons are pressed
+            onPrevious: () {
+              final callback = _toolbarController!.focusPrevious;
+              callback?.call();
+            },
+            onNext: () {
+              final callback = _toolbarController!.focusNext;
+              callback?.call();
+            },
+            onDone: () => _toolbarController!.unfocusAll(),
+          ),
       ],
-    );
+    ); // End of Stack
   }
 
   // Expose quantities for parent to access

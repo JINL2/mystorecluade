@@ -47,6 +47,9 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
     // Listen to tab changes
     _tabController.addListener(() {
       if (!_tabController.indexIsChanging) {
+        // Unfocus to close keyboard when switching tabs
+        FocusScope.of(context).unfocus();
+
         ref
             .read(cashEndingProvider.notifier)
             .setCurrentTab(_tabController.index);

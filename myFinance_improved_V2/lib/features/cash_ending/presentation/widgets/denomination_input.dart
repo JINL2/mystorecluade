@@ -21,6 +21,7 @@ class DenominationInput extends StatelessWidget {
   final TextEditingController controller;
   final String currencySymbol;
   final VoidCallback onChanged;
+  final FocusNode? focusNode;
 
   const DenominationInput({
     super.key,
@@ -28,6 +29,7 @@ class DenominationInput extends StatelessWidget {
     required this.controller,
     required this.currencySymbol,
     required this.onChanged,
+    this.focusNode,
   });
 
   @override
@@ -108,12 +110,16 @@ class DenominationInput extends StatelessWidget {
                   height: 32,
                   child: TextField(
                     controller: controller,
+                    focusNode: focusNode,
                     keyboardType: TextInputType.number,
                     inputFormatters: [
                       FilteringTextInputFormatter.digitsOnly,
                       LengthLimitingTextInputFormatter(5), // Max 99999
                     ],
                     textAlign: TextAlign.center,
+                    // KEY FIX: scrollPadding accounts for keyboard toolbar height
+                    // Toolbar height (48) + keyboard height + comfortable padding (80)
+                    scrollPadding: const EdgeInsets.only(bottom: 130),
                     style: TossTextStyles.body.copyWith(
                       fontWeight: FontWeight.w600,
                       color: TossColors.gray900,
