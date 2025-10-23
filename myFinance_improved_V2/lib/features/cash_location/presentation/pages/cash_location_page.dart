@@ -11,8 +11,8 @@ import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_app_bar_1.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_loading_view.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_scaffold.dart';
+import 'package:myfinance_improved/shared/widgets/common/toss_success_error_dialog.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_tab_bar_1.dart';
-import '../../data/models/cash_location_model.dart';
 import '../providers/cash_location_providers.dart';
 import 'add_account_page.dart';
 import 'bank_real_page.dart';
@@ -92,15 +92,13 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
         
         // Only show success feedback if explicitly requested (manual refresh)
         if (showFeedback && mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: const Text('Data refreshed successfully'),
-              backgroundColor: TossColors.success,
-              behavior: SnackBarBehavior.floating,
-              duration: const Duration(seconds: 2),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-              ),
+          await showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (context) => TossDialog.success(
+              title: 'Data Refreshed',
+              message: 'Data refreshed successfully',
+              primaryButtonText: 'OK',
             ),
           );
         }
@@ -108,15 +106,13 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
     } catch (e) {
       // Only show error feedback if explicitly requested or if it's a real error
       if (showFeedback && mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to refresh: ${e.toString()}'),
-            backgroundColor: TossColors.error,
-            behavior: SnackBarBehavior.floating,
-            duration: const Duration(seconds: 3),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-            ),
+        await showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => TossDialog.error(
+            title: 'Refresh Failed',
+            message: 'Failed to refresh: ${e.toString()}',
+            primaryButtonText: 'OK',
           ),
         );
       }

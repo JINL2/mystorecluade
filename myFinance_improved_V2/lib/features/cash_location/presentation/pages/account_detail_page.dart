@@ -9,6 +9,7 @@ import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_scaffold.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_app_bar_1.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_loading_view.dart';
+import 'package:myfinance_improved/shared/widgets/common/toss_confirm_cancel_dialog.dart';
 import 'package:myfinance_improved/app/providers/app_state_provider.dart';
 import '../providers/cash_location_providers.dart';
 import 'account_settings_page.dart';
@@ -455,7 +456,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
     
     if (companyId.isEmpty || storeId.isEmpty || widget.locationId == null || widget.locationId!.isEmpty) {
       return TossScaffold(
-        appBar: TossAppBar(
+        appBar: TossAppBar1(
           title: widget.accountName,
           backgroundColor: TossColors.gray50,
           secondaryActionIcon: Icons.settings_outlined,
@@ -509,7 +510,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
     ));
     
     return TossScaffold(
-      appBar: TossAppBar(
+      appBar: TossAppBar1(
         title: widget.accountName,
         backgroundColor: TossColors.gray50,
         secondaryActionIcon: Icons.settings_outlined,
@@ -1115,149 +1116,60 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
     );
   }
   
-  void _showMappingConfirmationDialog(String mappingType) {
+  void _showMappingConfirmationDialog(String mappingType) async {
     // Calculate the error amount using updated values if available
     final totalJournal = _updatedTotalJournal ?? widget.totalJournal ?? widget.balance;
     final totalReal = _updatedTotalReal ?? widget.totalReal ?? widget.balance;
     final errorAmount = totalReal - totalJournal;
     final currencySymbol = widget.currencySymbol ?? '';
-    
-    showDialog(
-      context: context,
-      barrierDismissible: true,
-      builder: (BuildContext context) {
-        return Dialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+
+    // Custom content for Difference Amount
+    final customContent = Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // Difference Amount label
+        Text(
+          'Difference Amount',
+          style: TossTextStyles.body.copyWith(
+            color: TossColors.gray600,
+            fontSize: 14,
           ),
-          child: Container(
-            padding: EdgeInsets.all(TossSpacing.space5),
-            decoration: BoxDecoration(
-              color: TossColors.white,
-              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Title - matching main page font style
-                Text(
-                  'Auto Mapping',
-                  style: TossTextStyles.h3.copyWith(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 18,
-                  ),
-                ),
-                
-                SizedBox(height: TossSpacing.space5),
-                
-                // Main question - matching main page body style
-                Text(
-                  'Do you want to make\n$mappingType?',
-                  style: TossTextStyles.body.copyWith(
-                    fontSize: 15,
-                    height: 1.5,
-                    color: TossColors.black87,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                
-                SizedBox(height: TossSpacing.space4),
-                
-                // Difference Amount label - plain text
-                Text(
-                  'Difference Amount',
-                  style: TossTextStyles.body.copyWith(
-                    color: TossColors.gray600,
-                    fontSize: 14,
-                  ),
-                ),
-                
-                SizedBox(height: TossSpacing.space2),
-                
-                // Difference amount value - plain text without box
-                Text(
-                  _formatCurrencyWithSign(errorAmount.toDouble(), currencySymbol),
-                  style: TossTextStyles.h3.copyWith(
-                    color: TossColors.error,
-                    fontWeight: FontWeight.w700,
-                    fontSize: 20,
-                  ),
-                ),
-                
-                SizedBox(height: TossSpacing.space5),
-                
-                // Buttons
-                Row(
-                  children: [
-                    // Cancel button
-                    Expanded(
-                      child: TextButton(
-                        onPressed: () {
-                          Navigator.pop(context);
-                        },
-                        style: TextButton.styleFrom(
-                          padding: EdgeInsets.symmetric(vertical: TossSpacing.space3),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                            side: BorderSide(
-                              color: TossColors.gray300,
-                              width: 1,
-                            ),
-                          ),
-                        ),
-                        child: Text(
-                          'Cancel',
-                          style: TossTextStyles.body.copyWith(
-                            color: TossColors.gray700,
-                            fontWeight: FontWeight.w500,
-                            fontSize: 15,
-                          ),
-                        ),
-                      ),
-                    ),
-                    
-                    SizedBox(width: TossSpacing.space3),
-                    
-                    // OK button
-                    Expanded(
-                      child: ElevatedButton(
-                        onPressed: () async {
-                          Navigator.pop(context); // Close dialog first
-                          
-                          // Handle different mapping types
-                          if (mappingType == 'Exchange Rate Differences') {
-                            await _handleForeignCurrencyTranslation(errorAmount.toDouble());
-                          } else if (mappingType == 'Error') {
-                            await _handleErrorMapping(errorAmount.toDouble());
-                          }
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Theme.of(context).colorScheme.primary,
-                          foregroundColor: TossColors.white,
-                          padding: EdgeInsets.symmetric(vertical: TossSpacing.space3),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                          ),
-                          elevation: 0,
-                        ),
-                        child: Text(
-                          'OK',
-                          style: TossTextStyles.body.copyWith(
-                            color: TossColors.white,
-                            fontWeight: FontWeight.w500,
-                            fontSize: 15,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
+        ),
+
+        SizedBox(height: TossSpacing.space2),
+
+        // Difference amount value
+        Text(
+          _formatCurrencyWithSign(errorAmount.toDouble(), currencySymbol),
+          style: TossTextStyles.h3.copyWith(
+            color: TossColors.error,
+            fontWeight: FontWeight.w700,
+            fontSize: 20,
           ),
-        );
-      },
+        ),
+      ],
     );
+
+    // Show confirm/cancel dialog using TossConfirmCancelDialog
+    final confirmed = await TossConfirmCancelDialog.show(
+      context: context,
+      title: 'Auto Mapping',
+      message: 'Do you want to make\n$mappingType?',
+      confirmButtonText: 'OK',
+      cancelButtonText: 'Cancel',
+      customContent: customContent,
+      barrierDismissible: true,
+    );
+
+    // If user confirmed
+    if (confirmed == true) {
+      // Handle different mapping types
+      if (mappingType == 'Exchange Rate Differences') {
+        await _handleForeignCurrencyTranslation(errorAmount.toDouble());
+      } else if (mappingType == 'Error') {
+        await _handleErrorMapping(errorAmount.toDouble());
+      }
+    }
   }
   
   void _showFilterBottomSheet() {

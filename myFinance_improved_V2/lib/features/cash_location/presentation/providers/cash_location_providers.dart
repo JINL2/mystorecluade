@@ -1,45 +1,42 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 
-import '../../data/datasources/cash_location_data_source.dart';
-import '../../data/models/bank_real_model.dart';
-import '../../data/models/cash_location_model.dart';
-import '../../data/models/cash_real_model.dart';
-import '../../data/models/vault_real_model.dart';
-import '../../data/repositories/cash_location_repository_impl.dart';
+import '../../data/repositories/repository_providers.dart';
 import '../../domain/entities/bank_real_entry.dart';
 import '../../domain/entities/cash_location.dart';
 import '../../domain/entities/cash_real_entry.dart';
-import '../../domain/entities/journal_entry.dart';
 import '../../domain/entities/currency_type.dart';
+import '../../domain/entities/journal_entry.dart';
 import '../../domain/entities/stock_flow.dart';
 import '../../domain/entities/vault_real_entry.dart';
 import '../../domain/repositories/cash_location_repository.dart';
+import '../../domain/value_objects/bank_real_params.dart';
+import '../../domain/value_objects/cash_journal_params.dart';
+import '../../domain/value_objects/cash_location_query_params.dart';
+import '../../domain/value_objects/cash_real_params.dart';
+import '../../domain/value_objects/stock_flow_params.dart';
+import '../../domain/value_objects/vault_real_params.dart';
 
 // Export parameter classes for use in pages
-export '../../data/models/bank_real_model.dart' show BankRealParams;
-export '../../data/models/cash_location_model.dart' show CashLocationQueryParams;
-export '../../data/models/cash_real_model.dart' show CashRealParams;
-export '../../data/models/vault_real_model.dart' show VaultRealParams;
-
-// Note: StockFlowParams is defined in this file and exported automatically
+export '../../domain/value_objects/bank_real_params.dart';
+export '../../domain/value_objects/cash_location_query_params.dart';
+export '../../domain/value_objects/cash_real_params.dart';
+export '../../domain/value_objects/cash_journal_params.dart';
+export '../../domain/value_objects/vault_real_params.dart';
+export '../../domain/value_objects/stock_flow_params.dart';
 
 // Export domain entities for use in pages (hide duplicates)
 export '../../domain/entities/bank_real_entry.dart';
 export '../../domain/entities/cash_location.dart';
 export '../../domain/entities/cash_real_entry.dart' hide CurrencySummary, Denomination;
+export '../../domain/entities/journal_entry.dart';
 export '../../domain/entities/stock_flow.dart';
 export '../../domain/entities/vault_real_entry.dart' hide CurrencySummary, Denomination;
 
-// Data Source Provider
-final cashLocationDataSourceProvider = Provider<CashLocationDataSource>((ref) {
-  return CashLocationDataSource();
-});
-
-// Repository Provider
-final cashLocationRepositoryProvider = Provider<CashLocationRepository>((ref) {
-  final dataSource = ref.read(cashLocationDataSourceProvider);
-  return CashLocationRepositoryImpl(dataSource: dataSource);
-});
+// Repository Provider is now imported from data layer (repository_providers.dart)
+// This ensures presentation layer only depends on domain interfaces, not data implementations
+// Re-export the repository provider for use in pages
+export '../../data/repositories/repository_providers.dart' show cashLocationRepositoryProvider;
 
 // Cash Location Providers
 final allCashLocationsProvider = FutureProvider.family<List<CashLocation>, CashLocationQueryParams>((ref, params) async {
@@ -123,43 +120,114 @@ class CashJournalService {
       limit: limit,
     );
   }
+
+  /// Create foreign currency translation journal entry
+  Future<Map<String, dynamic>> createForeignCurrencyTranslation({
+    required double differenceAmount,
+    required String companyId,
+    required String userId,
+    required String locationName,
+    required String cashLocationId,
+    String? storeId,
+  }) async {
+    // Constants for account IDs
+    const cashAccountId = 'd4a7a16e-45a1-47fe-992b-ff807c8673f0';
+    const foreignCurrencyAccountId = '80b311db-f548-46e3-9854-67c5ff6766e8';
+
+    // Get current date
+    final now = DateTime.now().toLocal();
+    final entryDate = DateFormat('yyyy-MM-ddTHH:mm:ss').format(now);
+
+    // Calculate absolute amount
+    final absAmount = differenceAmount.abs();
+    final isPositiveDifference = differenceAmount > 0;
+
+    // Create journal lines
+    final lines = [
+      {
+        'account_id': cashAccountId,
+        'description': 'Foreign Currency Translation',
+        'debit': isPositiveDifference ? absAmount : 0,
+        'credit': isPositiveDifference ? 0 : absAmount,
+        'cash': {
+          'cash_location_id': cashLocationId,
+        },
+      },
+      {
+        'account_id': foreignCurrencyAccountId,
+        'description': 'Foreign Currency Translation',
+        'debit': isPositiveDifference ? 0 : absAmount,
+        'credit': isPositiveDifference ? absAmount : 0,
+      },
+    ];
+
+    return _repository.insertJournalWithEverything(
+      baseAmount: absAmount,
+      companyId: companyId,
+      createdBy: userId,
+      description: 'Foreign Currency Translation - $locationName',
+      entryDate: entryDate,
+      lines: lines,
+      counterpartyId: null,
+      ifCashLocationId: null,
+      storeId: storeId,
+    );
+  }
+
+  /// Create error adjustment journal entry
+  Future<Map<String, dynamic>> createErrorJournal({
+    required double differenceAmount,
+    required String companyId,
+    required String userId,
+    required String locationName,
+    required String cashLocationId,
+    String? storeId,
+  }) async {
+    // Constants for account IDs
+    const cashAccountId = 'd4a7a16e-45a1-47fe-992b-ff807c8673f0';
+    const errorAccountId = 'a45fac5d-010c-4b1b-92e9-ddcf8f3222bf';
+
+    // Get current date
+    final now = DateTime.now().toLocal();
+    final entryDate = DateFormat('yyyy-MM-ddTHH:mm:ss').format(now);
+
+    // Calculate absolute amount
+    final absAmount = differenceAmount.abs();
+    final isPositiveDifference = differenceAmount > 0;
+
+    // Create journal lines
+    final lines = [
+      {
+        'account_id': cashAccountId,
+        'description': 'Make error',
+        'debit': isPositiveDifference ? absAmount : 0,
+        'credit': isPositiveDifference ? 0 : absAmount,
+        'cash': {
+          'cash_location_id': cashLocationId,
+        },
+      },
+      {
+        'account_id': errorAccountId,
+        'description': 'Make error',
+        'debit': isPositiveDifference ? 0 : absAmount,
+        'credit': isPositiveDifference ? absAmount : 0,
+      },
+    ];
+
+    return _repository.insertJournalWithEverything(
+      baseAmount: absAmount,
+      companyId: companyId,
+      createdBy: userId,
+      description: 'Make Error - $locationName',
+      entryDate: entryDate,
+      lines: lines,
+      counterpartyId: null,
+      ifCashLocationId: null,
+      storeId: storeId,
+    );
+  }
 }
 
-// Parameters for the provider
-class CashJournalParams {
-  final String companyId;
-  final String storeId;
-  final String locationType;
-  final int offset;
-  final int limit;
-
-  CashJournalParams({
-    required this.companyId,
-    required this.storeId,
-    required this.locationType,
-    this.offset = 0,
-    this.limit = 20,
-  });
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is CashJournalParams &&
-          runtimeType == other.runtimeType &&
-          companyId == other.companyId &&
-          storeId == other.storeId &&
-          locationType == other.locationType &&
-          offset == other.offset &&
-          limit == other.limit;
-
-  @override
-  int get hashCode =>
-      companyId.hashCode ^
-      storeId.hashCode ^
-      locationType.hashCode ^
-      offset.hashCode ^
-      limit.hashCode;
-}
 
 // Stock Flow Service Provider (for backward compatibility with old code)
 final stockFlowServiceProvider = Provider<StockFlowService>((ref) {
@@ -167,15 +235,15 @@ final stockFlowServiceProvider = Provider<StockFlowService>((ref) {
   return StockFlowService(repository);
 });
 
-// Stock Flow Provider (placeholder - returns empty lists for now)
-// This will need proper implementation when stock flow RPC is available
+// Stock Flow Provider
 final stockFlowProvider = FutureProvider.family<StockFlowResponse, StockFlowParams>((ref, params) async {
-  // TODO: Implement actual stock flow fetching from repository
-  // For now, return empty response to maintain compatibility
-  return StockFlowResponse(
-    journalFlows: [],
-    actualFlows: [],
-    locationSummary: null,
+  final repository = ref.read(cashLocationRepositoryProvider);
+  return repository.getLocationStockFlow(
+    companyId: params.companyId,
+    storeId: params.storeId,
+    cashLocationId: params.cashLocationId,
+    offset: params.offset,
+    limit: params.limit,
   );
 });
 
@@ -185,70 +253,15 @@ class StockFlowService {
 
   StockFlowService(this._repository);
 
-  Future<StockFlowResponse> getStockFlow({
-    required String companyId,
-    required String storeId,
-    required String locationId,
-    int offset = 0,
-    int limit = 20,
-  }) async {
-    // TODO: Implement actual stock flow fetching
-    // For now, return empty response to maintain compatibility
-    return StockFlowResponse(
-      journalFlows: [],
-      actualFlows: [],
-      locationSummary: null,
+  Future<StockFlowResponse> getLocationStockFlow(StockFlowParams params) async {
+    return _repository.getLocationStockFlow(
+      companyId: params.companyId,
+      storeId: params.storeId,
+      cashLocationId: params.cashLocationId,
+      offset: params.offset,
+      limit: params.limit,
     );
   }
-}
-
-// Stock Flow Response
-class StockFlowResponse {
-  final List<JournalFlow> journalFlows;
-  final List<ActualFlow> actualFlows;
-  final LocationSummary? locationSummary;
-
-  StockFlowResponse({
-    required this.journalFlows,
-    required this.actualFlows,
-    this.locationSummary,
-  });
-}
-
-// Parameters for Stock Flow Provider
-class StockFlowParams {
-  final String companyId;
-  final String storeId;
-  final String locationId;
-  final int offset;
-  final int limit;
-
-  StockFlowParams({
-    required this.companyId,
-    required this.storeId,
-    required this.locationId,
-    this.offset = 0,
-    this.limit = 20,
-  });
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is StockFlowParams &&
-          runtimeType == other.runtimeType &&
-          companyId == other.companyId &&
-          storeId == other.storeId &&
-          locationId == other.locationId &&
-          offset == other.offset &&
-          limit == other.limit;
-
-  @override
-  int get hashCode =>
-      companyId.hashCode ^
-      storeId.hashCode ^
-      locationId.hashCode ^
-      offset.hashCode ^
-      limit.hashCode;
 }
 
 // Currency Types Provider (placeholder - returns empty list for now)
@@ -258,4 +271,67 @@ final currencyTypesProvider = FutureProvider<List<CurrencyType>>((ref) async {
   // For now, return empty list to maintain compatibility
   return [];
 });
+
+// ============================================================================
+// Display Models (Presentation Layer Concerns)
+// ============================================================================
+
+/// Display model for Bank Real UI
+class BankRealDisplay {
+  final String date;
+  final String time;
+  final String title;
+  final String locationName;
+  final double amount;
+  final String currencySymbol;
+  final BankRealEntry realEntry;
+
+  BankRealDisplay({
+    required this.date,
+    required this.time,
+    required this.title,
+    required this.locationName,
+    required this.amount,
+    required this.currencySymbol,
+    required this.realEntry,
+  });
+}
+
+/// Display model for Cash Real UI
+class CashRealDisplay {
+  final String date;
+  final String time;
+  final String title;
+  final String locationName;
+  final double amount;
+  final CashRealEntry realEntry;
+
+  CashRealDisplay({
+    required this.date,
+    required this.time,
+    required this.title,
+    required this.locationName,
+    required this.amount,
+    required this.realEntry,
+  });
+}
+
+/// Display model for Vault Real UI
+class VaultRealDisplay {
+  final String date;
+  final String title;
+  final String locationName;
+  final double amount;
+  final String currencySymbol;
+  final VaultRealEntry realEntry;
+
+  VaultRealDisplay({
+    required this.date,
+    required this.title,
+    required this.locationName,
+    required this.amount,
+    required this.currencySymbol,
+    required this.realEntry,
+  });
+}
 

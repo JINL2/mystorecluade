@@ -447,13 +447,6 @@ class _TossDialogState extends State<TossDialog>
                             text: action.text,
                             onPressed: action.onPressed,
                             fullWidth: true,
-                            leadingIcon: widget.type == TossDialogType.success
-                                ? Icon(
-                                    Icons.arrow_forward,
-                                    size: 18,
-                                    color: TossColors.white,
-                                  )
-                                : null,
                           )
                         : TossSecondaryButton(
                             text: action.text,
@@ -473,13 +466,6 @@ class _TossDialogState extends State<TossDialog>
           text: widget.primaryButtonText,
           onPressed: widget.onPrimaryPressed ?? () => Navigator.of(context).pop(true),
           fullWidth: true,
-          leadingIcon: widget.type == TossDialogType.success
-              ? Icon(
-                  Icons.arrow_forward,
-                  size: 18,
-                  color: TossColors.white,
-                )
-              : null,
         ),
         if (widget.secondaryButtonText != null) ...[
           SizedBox(height: TossSpacing.space3),

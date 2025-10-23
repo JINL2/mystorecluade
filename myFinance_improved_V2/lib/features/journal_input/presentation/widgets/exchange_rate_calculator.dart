@@ -2,16 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import 'package:myfinance_improved/app/providers/journal_input_providers.dart';
-import 'package:myfinance_improved/app/providers/app_state_provider.dart';
-import 'package:myfinance_improved/shared/themes/toss_colors.dart';
-import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
-import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
-import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_primary_button.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_secondary_button.dart';
-import 'package:myfinance_improved/shared/widgets/common/toss_loading_view.dart';
-import 'package:myfinance_improved/shared/themes/index.dart';
+
+import '../../../../app/providers/app_state_provider.dart';
+import '../../../../shared/themes/toss_border_radius.dart';
+import '../../../../shared/themes/toss_colors.dart';
+import '../../../../shared/themes/toss_spacing.dart';
+import '../../../../shared/themes/toss_text_styles.dart';
+import '../../../../shared/widgets/common/toss_loading_view.dart';
+import '../../../../shared/widgets/toss/toss_primary_button.dart';
+import '../../../../shared/widgets/toss/toss_secondary_button.dart';
+import '../providers/journal_input_providers.dart';
 
 class ExchangeRateCalculator extends ConsumerStatefulWidget {
   final String? initialAmount;

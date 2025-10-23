@@ -1,5 +1,6 @@
 // Data Layer - Cash Real Models (DTOs) with Mappers
 
+import '../../../../core/utils/datetime_utils.dart';
 import '../../domain/entities/cash_real_entry.dart' as domain;
 
 /// Cash Real Entry Model - DTO
@@ -24,8 +25,11 @@ class CashRealEntryModel {
 
   /// From JSON → Model
   factory CashRealEntryModel.fromJson(Map<String, dynamic> json) {
+    // Convert UTC datetime string from database to local time ISO8601 string
+    final createdAtUtc = json['created_at'] as String? ?? '';
+
     return CashRealEntryModel(
-      createdAt: json['created_at'] as String? ?? '',
+      createdAt: createdAtUtc.isNotEmpty ? DateTimeUtils.toLocal(createdAtUtc).toIso8601String() : '',
       recordDate: json['record_date'] as String? ?? '',
       locationId: json['location_id'] as String? ?? '',
       locationName: json['location_name'] as String? ?? '',
@@ -129,59 +133,4 @@ class DenominationModel {
       subtotal: subtotal,
     );
   }
-}
-
-/// Display model for the UI (Presentation layer concern, keep in model for backward compatibility)
-class CashRealDisplay {
-  final String date;
-  final String time;
-  final String title;
-  final String locationName;
-  final double amount;
-  final domain.CashRealEntry realEntry;
-
-  CashRealDisplay({
-    required this.date,
-    required this.time,
-    required this.title,
-    required this.locationName,
-    required this.amount,
-    required this.realEntry,
-  });
-}
-
-/// Parameters for the provider
-class CashRealParams {
-  final String companyId;
-  final String storeId;
-  final String locationType;
-  final int offset;
-  final int limit;
-
-  CashRealParams({
-    required this.companyId,
-    required this.storeId,
-    required this.locationType,
-    this.offset = 0,
-    this.limit = 20,
-  });
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is CashRealParams &&
-          runtimeType == other.runtimeType &&
-          companyId == other.companyId &&
-          storeId == other.storeId &&
-          locationType == other.locationType &&
-          offset == other.offset &&
-          limit == other.limit;
-
-  @override
-  int get hashCode =>
-      companyId.hashCode ^
-      storeId.hashCode ^
-      locationType.hashCode ^
-      offset.hashCode ^
-      limit.hashCode;
 }

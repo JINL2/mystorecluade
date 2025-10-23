@@ -51,6 +51,21 @@ class ShiftOverview {
     return actualWorkHours / actualWorkDays;
   }
 
+  /// Convert to Map for backward compatibility with old code
+  Map<String, dynamic> toMap() {
+    return {
+      'request_month': requestMonth,
+      'actual_work_days': actualWorkDays,
+      'actual_work_hours': actualWorkHours,
+      'estimated_salary': estimatedSalary,
+      'currency_symbol': currencySymbol,
+      'salary_amount': salaryAmount,
+      'salary_type': salaryType,
+      'late_deduction_total': lateDeductionTotal,
+      'overtime_total': overtimeTotal,
+    };
+  }
+
   @override
   String toString() => 'ShiftOverview(month: $requestMonth, days: $actualWorkDays, hours: $actualWorkHours)';
 }

@@ -17,14 +17,23 @@ import '../../features/homepage/presentation/pages/homepage.dart';
 import '../../features/transaction_template_refectore/presentation/pages/transaction_template_page.dart';
 import '../../features/cash_ending/presentation/pages/cash_ending_page.dart';
 import '../../features/cash_location/presentation/pages/cash_location_page.dart';
-import '../../features/attendance/presentation/pages/attendance_main_page.dart';
-import '../../features/attendance/presentation/pages/qr_scanner_page.dart';
-// TODO: Re-enable after migrating required services
-// import '../../features/cash_location/presentation/pages/account_detail_page.dart';
+// TODO: Re-enable after fixing attendance errors (31 compilation errors)
+// import '../../features/attendance/presentation/pages/attendance_main_page.dart';
+// import '../../features/attendance/presentation/pages/qr_scanner_page.dart';
+import '../../features/cash_location/presentation/pages/account_detail_page.dart';
+import '../../features/time_table_manage/presentation/pages/time_table_manage_page.dart';
+import '../../features/register_denomination/presentation/pages/register_denomination_page.dart';
+import '../../features/employee_setting/presentation/pages/employee_setting_page.dart';
+import '../../features/my_page/presentation/pages/my_page.dart';
+import '../../features/my_page/presentation/pages/edit_profile_page.dart';
+import '../../features/my_page/presentation/pages/notifications_settings_page.dart';
+import '../../features/my_page/presentation/pages/privacy_security_page.dart';
+import '../../features/journal_input/presentation/pages/journal_input_page.dart';
 import '../../shared/themes/toss_colors.dart';
 import '../../shared/themes/toss_spacing.dart';
 import '../../shared/themes/toss_text_styles.dart';
 import '../../shared/widgets/common/toss_scaffold.dart';
+import '../../shared/widgets/common/toss_app_bar_1.dart';
 
 // Router notifier to listen to auth and app state changes
 class RouterNotifier extends ChangeNotifier {
@@ -319,6 +328,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/',
         builder: (context, state) => Homepage(), // ✅ Removed const to allow rebuilds
+        routes: [
+          // Time Table Management (nested route)
+          GoRoute(
+            path: 'timetableManage',
+            name: 'timetableManage',
+            builder: (context, state) => const TimeTableManagePage(),
+          ),
+        ],
       ),
 
       // Test Route (독립 route) - TransactionTemplatePage 연결
@@ -387,41 +404,94 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '/cashLocation',
         name: 'cashLocation',
         builder: (context, state) => const CashLocationPage(),
-        // TODO: Re-enable after migrating required services (stockFlowService, cashJournalService)
-        // routes: [
-        //   GoRoute(
-        //     path: 'account/:accountName',
-        //     name: 'accountDetail',
-        //     builder: (context, state) {
-        //       final accountName = state.pathParameters['accountName'] ?? '';
-        //       final extra = state.extra as Map<String, dynamic>?;
-        //       return AccountDetailPage(
-        //         locationId: extra?['locationId'] as String?,
-        //         accountName: accountName,
-        //         locationType: (extra?['locationType'] as String?) ?? 'cash',
-        //         balance: (extra?['balance'] as int?) ?? 0,
-        //         errors: (extra?['errors'] as int?) ?? 0,
-        //         totalJournal: extra?['totalJournal'] as int?,
-        //         totalReal: extra?['totalReal'] as int?,
-        //         cashDifference: extra?['cashDifference'] as int?,
-        //         currencySymbol: extra?['currencySymbol'] as String?,
-        //       );
-        //     },
-        //   ),
-        // ],
+        routes: [
+          GoRoute(
+            path: 'account/:accountName',
+            name: 'accountDetail',
+            builder: (context, state) {
+              final accountName = state.pathParameters['accountName'] ?? '';
+              final extra = state.extra as Map<String, dynamic>?;
+
+              return AccountDetailPage(
+                locationId: extra?['locationId'] as String?,
+                accountName: accountName,
+                locationType: extra?['locationType'] as String? ?? 'cash',
+                balance: extra?['balance'] as int? ?? 0,
+                errors: extra?['errors'] as int? ?? 0,
+                totalJournal: extra?['totalJournal'] as int?,
+                totalReal: extra?['totalReal'] as int?,
+                cashDifference: extra?['cashDifference'] as int?,
+                currencySymbol: extra?['currencySymbol'] as String?,
+              );
+            },
+          ),
+        ],
       ),
 
-      // Attendance Routes
+      // Register Denomination Route
       GoRoute(
-        path: '/attendance',
-        name: 'attendance',
-        builder: (context, state) => const AttendanceMainPage(),
+        path: '/registerDenomination',
+        name: 'registerDenomination',
+        builder: (context, state) => const RegisterDenominationPage(),
+      ),
+
+      // Journal Input Route
+      GoRoute(
+        path: '/journal-input',
+        name: 'journal-input',
+        builder: (context, state) => const JournalInputPage(),
+      ),
+
+      // Journal Input Route (legacy alias for database compatibility)
+      GoRoute(
+        path: '/journalInput',
+        name: 'journalInput',
+        builder: (context, state) => const JournalInputPage(),
+      ),
+
+      // Employee Setting Route
+      GoRoute(
+        path: '/employeeSetting',
+        name: 'employeeSetting',
+        builder: (context, state) => const EmployeeSettingPageV2(),
+      ),
+
+      // My Page Routes
+      GoRoute(
+        path: '/my-page',
+        name: 'my-page',
+        builder: (context, state) => const MyPage(),
       ),
       GoRoute(
-        path: '/attendance/qr-scanner',
-        name: 'qr-scanner',
-        builder: (context, state) => const QRScannerPage(),
+        path: '/edit-profile',
+        name: 'edit-profile',
+        builder: (context, state) => const EditProfilePage(),
       ),
+      GoRoute(
+        path: '/notifications-settings',
+        name: 'notifications-settings',
+        builder: (context, state) => const NotificationsSettingsPage(),
+      ),
+      GoRoute(
+        path: '/privacy-security',
+        name: 'privacy-security',
+        builder: (context, state) => const PrivacySecurityPage(),
+      ),
+
+      // Attendance Routes - TODO: Re-enable after fixing 31 compilation errors
+      // Temporarily disabled due to compilation errors in attendance module
+      // GoRoute(
+      //   path: '/attendance',
+      //   name: 'attendance',
+      //   builder: (context, state) => const AttendanceMainPage(),
+      //   routes: [
+      //     GoRoute(
+      //       path: 'qr-scanner',
+      //       name: 'qr-scanner',
+      //       builder: (context, state) => const QRScannerPage(),
+      //     ),
+      //   ],
+      // ),
     ],
   );
 

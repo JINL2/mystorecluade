@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import '../config/notification_display_config.dart';
 import '../models/notification_payload.dart';
-import '../../../presentation/widgets/notifications/smart_toast_notification.dart';
+// import '../../../presentation/widgets/notifications/smart_toast_notification.dart'; // TODO: File missing
 
 /// Manages how notifications are displayed to prevent repetitive, annoying notifications
 /// This service ensures notifications are shown only once and respects user preferences
@@ -169,7 +169,8 @@ class NotificationDisplayManager {
       _addToQueue(payload);
     } else {
       // Show immediately
-      SmartToastNotification.showFromPayload(context, payload);
+      // SmartToastNotification.showFromPayload(context, payload); // TODO: File missing
+      debugPrint('[NotificationDisplayManager] Would show toast: ${payload.title}');
     }
   }
   

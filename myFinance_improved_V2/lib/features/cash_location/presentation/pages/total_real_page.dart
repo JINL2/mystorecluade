@@ -10,10 +10,9 @@ import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_app_bar_1.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_loading_view.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_scaffold.dart';
-import '../../data/models/cash_real_model.dart';
+import 'package:myfinance_improved/shared/extensions/string_extensions.dart';
 import '../../domain/entities/cash_real_entry.dart' as cash;
 import '../providers/cash_location_providers.dart';
-import '../utils/string_extensions.dart';
 
 class TotalRealPage extends ConsumerStatefulWidget {
   final String locationType; // 'cash', 'bank', 'vault'

@@ -1,5 +1,6 @@
 // Data Layer - Bank Real Models (DTOs) with Mappers
 
+import '../../../../core/utils/datetime_utils.dart';
 import '../../domain/entities/bank_real_entry.dart' as domain;
 
 /// Bank Real Entry Model - DTO
@@ -32,9 +33,12 @@ class BankRealEntryModel {
 
   /// From JSON → Model
   factory BankRealEntryModel.fromJson(Map<String, dynamic> json) {
+    // Convert UTC datetime string from database to local time ISO8601 string
+    final createdAtUtc = json['created_at'] as String? ?? '';
+
     return BankRealEntryModel(
       bankAmountId: json['bank_amount_id'] as String? ?? '',
-      createdAt: json['created_at'] as String? ?? '',
+      createdAt: createdAtUtc.isNotEmpty ? DateTimeUtils.toLocal(createdAtUtc).toIso8601String() : '',
       recordDate: json['record_date'] as String? ?? '',
       locationId: json['location_id'] as String? ?? '',
       locationName: json['location_name'] as String? ?? '',
@@ -68,57 +72,4 @@ class BankRealEntryModel {
       currencySummary: [currencySummary],
     );
   }
-}
-
-/// Display model for the UI (Presentation layer concern)
-class BankRealDisplay {
-  final String date;
-  final String time;
-  final String title;
-  final String locationName;
-  final double amount;
-  final String currencySymbol;
-  final domain.BankRealEntry realEntry;
-
-  BankRealDisplay({
-    required this.date,
-    required this.time,
-    required this.title,
-    required this.locationName,
-    required this.amount,
-    required this.currencySymbol,
-    required this.realEntry,
-  });
-}
-
-/// Parameters for the provider
-class BankRealParams {
-  final String companyId;
-  final String storeId;
-  final int offset;
-  final int limit;
-
-  BankRealParams({
-    required this.companyId,
-    required this.storeId,
-    this.offset = 0,
-    this.limit = 20,
-  });
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is BankRealParams &&
-          runtimeType == other.runtimeType &&
-          companyId == other.companyId &&
-          storeId == other.storeId &&
-          offset == other.offset &&
-          limit == other.limit;
-
-  @override
-  int get hashCode =>
-      companyId.hashCode ^
-      storeId.hashCode ^
-      offset.hashCode ^
-      limit.hashCode;
 }

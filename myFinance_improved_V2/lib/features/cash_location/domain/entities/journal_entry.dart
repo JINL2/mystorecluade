@@ -1,4 +1,6 @@
-/// Journal Entry entity for cash_location feature
+// Domain Layer - Journal Entry Entity
+// Pure business object with business logic
+
 class JournalEntry {
   final String journalId;
   final String journalDescription;
@@ -6,7 +8,7 @@ class JournalEntry {
   final DateTime transactionDate;
   final List<JournalLine> lines;
 
-  JournalEntry({
+  const JournalEntry({
     required this.journalId,
     required this.journalDescription,
     required this.entryDate,
@@ -55,16 +57,15 @@ class JournalEntry {
       time: _formatTime(transactionDate),
       title: title,
       locationName: cashLine.locationName ?? 'Unknown',
-      personName: '', // Could be extracted from description if available
+      personName: '',
       amount: amount,
       isIncome: isIncome,
       description: journalDescription,
-      journalEntry: this, // Pass reference to original journal entry
+      journalEntry: this,
     );
   }
 
   static String _formatTitle(String accountName) {
-    // Convert account names like "office supplies expenses" to "Office Supplies"
     final words = accountName.toLowerCase()
         .replaceAll('expenses', '')
         .replaceAll('expense', '')
@@ -95,7 +96,7 @@ class JournalLine {
   final double credit;
   final String description;
 
-  JournalLine({
+  const JournalLine({
     required this.lineId,
     this.cashLocationId,
     this.locationName,
@@ -108,7 +109,6 @@ class JournalLine {
   });
 }
 
-// Display model for the UI
 class TransactionDisplay {
   final String date;
   final String time;
@@ -118,9 +118,9 @@ class TransactionDisplay {
   final double amount;
   final bool isIncome;
   final String description;
-  final JournalEntry journalEntry; // Reference to original journal entry for detail view
+  final JournalEntry journalEntry;
 
-  TransactionDisplay({
+  const TransactionDisplay({
     required this.date,
     required this.time,
     required this.title,

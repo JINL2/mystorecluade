@@ -30,11 +30,9 @@ import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/app/providers/app_state_provider.dart' as Legacy;
 import 'package:myfinance_improved/app/providers/auth_providers.dart';
+import 'package:myfinance_improved/shared/themes/index.dart';
 // Updated imports to use new provider structure
 import '../providers/template_provider.dart';
-import 'package:myfinance_improved/app/providers/journal_input_providers.dart';
-import 'package:myfinance_improved/shared/themes/index.dart';
-import 'package:myfinance_improved/shared/widgets/journal_input/exchange_rate_calculator.dart';
 // 🔧 ENHANCED: Template analysis for intelligent UI
 import '../../domain/value_objects/template_analysis_result.dart';
 import '../../domain/enums/template_enums.dart';

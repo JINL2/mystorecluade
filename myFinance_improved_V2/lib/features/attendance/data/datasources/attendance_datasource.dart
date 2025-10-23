@@ -1,5 +1,6 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../../core/utils/datetime_utils.dart';
 import '../../domain/entities/attendance_location.dart';
 import '../../domain/exceptions/attendance_exceptions.dart';
 
@@ -10,6 +11,44 @@ class AttendanceDatasource {
   final SupabaseClient _supabase;
 
   AttendanceDatasource(this._supabase);
+
+  /// Convert UTC datetime fields to local time in a Map
+  ///
+  /// Converts common datetime field names from UTC to local timezone:
+  /// - actual_start_time, actual_end_time
+  /// - plan_start_time, plan_end_time
+  /// - created_at, updated_at
+  /// - report_time
+  Map<String, dynamic> _convertToLocalTime(Map<String, dynamic> data) {
+    final result = Map<String, dynamic>.from(data);
+
+    // List of datetime fields to convert
+    const timeFields = [
+      'actual_start_time',
+      'actual_end_time',
+      'plan_start_time',
+      'plan_end_time',
+      'created_at',
+      'updated_at',
+      'report_time',
+    ];
+
+    for (final field in timeFields) {
+      if (result[field] != null && result[field] is String) {
+        final localTime = DateTimeUtils.toLocalSafe(result[field] as String);
+        if (localTime != null) {
+          result[field] = localTime.toIso8601String();
+        }
+      }
+    }
+
+    // If there's nested store_shifts data, convert it too
+    if (result['store_shifts'] is Map<String, dynamic>) {
+      result['store_shifts'] = _convertToLocalTime(result['store_shifts'] as Map<String, dynamic>);
+    }
+
+    return result;
+  }
 
   /// Fetch user shift overview for the month
   Future<Map<String, dynamic>> getUserShiftOverview({
@@ -85,7 +124,9 @@ class AttendanceDatasource {
           .lte('request_date', endDate.toIso8601String())
           .order('request_date', ascending: true);
 
-      return List<Map<String, dynamic>>.from(response);
+      // Convert UTC times to local time
+      final results = List<Map<String, dynamic>>.from(response);
+      return results.map((item) => _convertToLocalTime(item)).toList();
     } catch (e) {
       throw AttendanceServerException(e.toString());
     }
@@ -160,7 +201,7 @@ class AttendanceDatasource {
   }) async {
     try {
       await _supabase.from('shift_requests').update({
-        'actual_start_time': DateTime.now().toIso8601String(),
+        'actual_start_time': DateTimeUtils.toUtc(DateTime.now()),
         'checkin_location': location.toPostGISPoint(),
       }).eq('shift_request_id', shiftRequestId);
     } catch (e) {
@@ -175,7 +216,7 @@ class AttendanceDatasource {
   }) async {
     try {
       await _supabase.from('shift_requests').update({
-        'actual_end_time': DateTime.now().toIso8601String(),
+        'actual_end_time': DateTimeUtils.toUtc(DateTime.now()),
         'checkout_location': location.toPostGISPoint(),
       }).eq('shift_request_id', shiftRequestId);
     } catch (e) {
@@ -205,9 +246,10 @@ class AttendanceDatasource {
         return [];
       }
 
-      // Return the response as a list
+      // Convert UTC times to local time and return as list
       if (response is List) {
-        return List<Map<String, dynamic>>.from(response);
+        final results = List<Map<String, dynamic>>.from(response);
+        return results.map((item) => _convertToLocalTime(item)).toList();
       }
 
       return [];
@@ -234,7 +276,11 @@ class AttendanceDatasource {
           )
           .maybeSingle();
 
-      return response;
+      // Convert UTC times to local time
+      if (response != null) {
+        return _convertToLocalTime(response);
+      }
+      return null;
     } catch (e) {
       return null;
     }
@@ -246,13 +292,11 @@ class AttendanceDatasource {
     String? reportReason,
   }) async {
     try {
-      final now = DateTime.now().toIso8601String();
-
       // Update the shift_requests table with report details
       await _supabase.from('shift_requests').update({
         'is_reported': true,
         'is_problem_solved': false,
-        'report_time': now,
+        'report_time': DateTimeUtils.toUtc(DateTime.now()),
         'report_reason': reportReason ?? '',
       }).eq('shift_request_id', shiftRequestId);
 

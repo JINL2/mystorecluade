@@ -10,7 +10,7 @@ import 'package:myfinance_improved/app/providers/app_state_provider.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_scaffold.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_app_bar_1.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_loading_view.dart';
-import '../../data/datasources/cash_location_data_source.dart';
+import 'package:myfinance_improved/shared/widgets/common/toss_success_error_dialog.dart';
 import '../../domain/entities/currency_type.dart';
 import '../providers/cash_location_providers.dart';
 
@@ -527,10 +527,16 @@ class _AddAccountPageState extends ConsumerState<AddAccountPage> {
     final appState = ref.read(appStateProvider);
     final companyId = appState.companyChoosen;
     final storeId = appState.storeChoosen;
-    
+
     if (companyId.isEmpty || storeId.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select a company and store first')),
+      await showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => TossDialog.warning(
+          title: 'Missing Information',
+          message: 'Please select a company and store first',
+          primaryButtonText: 'OK',
+        ),
       );
       return;
     }
@@ -594,27 +600,33 @@ class _AddAccountPageState extends ConsumerState<AddAccountPage> {
       
       // Show success message
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('${_pageTitle.replaceAll('Add ', '')} added successfully'),
-            backgroundColor: TossColors.success,
+        await showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => TossDialog.success(
+            title: 'Account Added',
+            message: '${_pageTitle.replaceAll('Add ', '')} added successfully',
+            primaryButtonText: 'OK',
           ),
         );
       }
-      
+
       // Go back to previous screen
       if (mounted) Navigator.of(context).pop();
       
     } catch (e) {
       // Close loading dialog
       if (mounted) Navigator.of(context).pop();
-      
+
       // Show error message
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to add account: ${e.toString()}'),
-            backgroundColor: TossColors.error,
+        await showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => TossDialog.error(
+            title: 'Add Failed',
+            message: 'Failed to add account: ${e.toString()}',
+            primaryButtonText: 'OK',
           ),
         );
       }

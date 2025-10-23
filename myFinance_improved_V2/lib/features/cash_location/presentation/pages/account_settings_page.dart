@@ -1,11 +1,9 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'package:myfinance_improved/app/providers/app_state_provider.dart';
+import 'package:myfinance_improved/features/cash_location/presentation/providers/cash_location_providers.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_shadows.dart';
@@ -14,6 +12,8 @@ import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_app_bar_1.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_loading_view.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_scaffold.dart';
+import 'package:myfinance_improved/shared/widgets/common/toss_success_error_dialog.dart';
+import 'package:myfinance_improved/shared/widgets/common/toss_confirm_cancel_dialog.dart';
 
 class AccountSettingsPage extends ConsumerStatefulWidget {
   final String accountName;
@@ -31,7 +31,7 @@ class AccountSettingsPage extends ConsumerStatefulWidget {
   ConsumerState<AccountSettingsPage> createState() => _AccountSettingsPageState();
 }
 
-class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage> 
+class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage>
     with WidgetsBindingObserver {
   bool _isMainAccount = false;
   final TextEditingController _nameController = TextEditingController();
@@ -39,7 +39,6 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage>
   final TextEditingController _descriptionController = TextEditingController();
   final TextEditingController _bankNameController = TextEditingController();
   final TextEditingController _accountNumberController = TextEditingController();
-  final _supabase = Supabase.instance.client;
   String _currentAccountName = '';
   
   @override
@@ -81,32 +80,30 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage>
   
   Future<void> _loadCashLocationData() async {
     try {
-      final response = await _supabase
-          .from('cash_locations')
-          .select('*')
-          .eq('cash_location_id', widget.locationId)
-          .single();
-      
+      final repository = ref.read(cashLocationRepositoryProvider);
+      final location = await repository.getCashLocationById(
+        locationId: widget.locationId,
+      );
+
+      if (location == null) {
+        // If not found by ID, try loading by name
+        _loadCashLocationDataByName();
+        return;
+      }
+
       if (mounted) {
         setState(() {
-          _currentAccountName = response['location_name'] ?? widget.accountName;
+          _currentAccountName = location.locationName;
           _nameController.text = _currentAccountName;
-          _noteController.text = response['note'] ?? '';
-          _isMainAccount = response['main_cash_location'] ?? false;
-          
+          _noteController.text = location.note ?? '';
+          _isMainAccount = location.isMainLocation;
+
           if (widget.locationType == 'bank') {
-            _bankNameController.text = response['bank_name'] ?? '';
-            _accountNumberController.text = response['bank_account'] ?? '';
+            _bankNameController.text = location.bankName ?? '';
+            _accountNumberController.text = location.accountNumber ?? '';
           } else {
-            // For cash/vault, load description from location_info
-            try {
-              final locationInfo = response['location_info'] != null 
-                  ? jsonDecode(response['location_info']) 
-                  : {};
-              _descriptionController.text = locationInfo['description'] ?? '';
-            } catch (e) {
-              _descriptionController.text = '';
-            }
+            // For cash/vault, load description
+            _descriptionController.text = location.description ?? '';
           }
         });
       }
@@ -119,39 +116,35 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage>
   Future<void> _loadCashLocationDataByName() async {
     try {
       final appState = ref.read(appStateProvider);
-      final response = await _supabase
-          .from('cash_locations')
-          .select('*')
-          .eq('location_name', widget.accountName)
-          .eq('location_type', widget.locationType)
-          .eq('company_id', appState.companyChoosen)
-          .eq('store_id', appState.storeChoosen)
-          .single();
-      
+      final repository = ref.read(cashLocationRepositoryProvider);
+
+      final location = await repository.getCashLocationByName(
+        locationName: widget.accountName,
+        locationType: widget.locationType,
+        companyId: appState.companyChoosen,
+        storeId: appState.storeChoosen,
+      );
+
+      if (location == null) return;
+
       if (mounted) {
         setState(() {
-          _currentAccountName = response['location_name'] ?? widget.accountName;
+          _currentAccountName = location.locationName;
           _nameController.text = _currentAccountName;
-          _noteController.text = response['note'] ?? '';
-          _isMainAccount = response['main_cash_location'] ?? false;
-          
+          _noteController.text = location.note ?? '';
+          _isMainAccount = location.isMainLocation;
+
           if (widget.locationType == 'bank') {
-            _bankNameController.text = response['bank_name'] ?? '';
-            _accountNumberController.text = response['bank_account'] ?? '';
+            _bankNameController.text = location.bankName ?? '';
+            _accountNumberController.text = location.accountNumber ?? '';
           } else {
-            // For cash/vault, load description from location_info
-            try {
-              final locationInfo = response['location_info'] != null 
-                  ? jsonDecode(response['location_info']) 
-                  : {};
-              _descriptionController.text = locationInfo['description'] ?? '';
-            } catch (e) {
-              _descriptionController.text = '';
-            }
+            // For cash/vault, load description
+            _descriptionController.text = location.description ?? '';
           }
         });
       }
     } catch (e) {
+      // Silent fail - location not found
     }
   }
   
@@ -169,7 +162,7 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage>
   @override
   Widget build(BuildContext context) {
     return TossScaffold(
-      appBar: TossAppBar(
+      appBar: TossAppBar1(
         title: 'Account Settings',
         backgroundColor: TossColors.gray50,
       ),
@@ -586,145 +579,110 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage>
     );
   }
   
-  void _showDeleteConfirmation() {
+  void _showDeleteConfirmation() async {
     // Save the main widget's context before showing any dialogs
     final rootContext = context;
-    
-    showDialog(
+
+    // Show confirm/cancel dialog
+    final confirmed = await TossConfirmCancelDialog.showDelete(
       context: rootContext,
-      builder: (BuildContext dialogContext) {
-        return AlertDialog(
-          title: Text(
-            'Delete Account',
-            style: TossTextStyles.h3.copyWith(
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          content: Text(
-            'Are you sure you want to delete this account? This action cannot be undone.',
-            style: TossTextStyles.body,
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(),
-              child: Text(
-                'Cancel',
-                style: TossTextStyles.body.copyWith(
-                  color: TossColors.gray600,
-                ),
-              ),
-            ),
-            TextButton(
-              onPressed: () async {
-                // Close the confirmation dialog first
-                Navigator.of(dialogContext).pop();
-                
-                // Check if the widget is still mounted before proceeding
-                if (!mounted) return;
-                
-                // Show loading indicator using the root context
-                showDialog(
-                  context: rootContext,
-                  barrierDismissible: false,
-                  builder: (BuildContext loadingContext) {
-                    return PopScope(
-                      canPop: false,
-                      child: Center(
-                        child: Container(
-                          padding: EdgeInsets.all(TossSpacing.space5),
-                          decoration: BoxDecoration(
-                            color: TossColors.white,
-                            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-                          ),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              TossLoadingView(),
-                              SizedBox(height: TossSpacing.space4),
-                              Text(
-                                'Deleting...',
-                                style: TossTextStyles.body.copyWith(
-                                  fontSize: 14,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    );
-                  },
-                );
-                
-                // Delete the cash location
-                final success = await _deleteCashLocation();
-                
-                // Check if still mounted before any navigation
-                if (!mounted) return;
-                
-                // Close the loading dialog using the root navigator
-                Navigator.of(rootContext).pop();
-                
-                if (success) {
-                  // Invalidate cache to refresh the list
-                  ref.invalidate(allCashLocationsProvider);
-                  // Also invalidate the RPC-based provider if it exists
-                  ref.invalidate(cashLocationListProvider);
-                  ref.invalidate(currentCashLocationsProvider);
-                  
-                  // Show success message
-                  if (mounted) {
-                    ScaffoldMessenger.of(rootContext).showSnackBar(
-                      SnackBar(
-                        content: Text('Account deleted successfully'),
-                        backgroundColor: TossColors.success,
-                        behavior: SnackBarBehavior.floating,
-                        duration: const Duration(seconds: 2),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-                        ),
-                      ),
-                    );
-                  }
-                  
-                  // Add a small delay for the success message to show
-                  await Future.delayed(const Duration(milliseconds: 300));
-                  
-                  // Navigate back to Cash Location list page
-                  // Check if still mounted after the delay
-                  if (mounted) {
-                    // Use GoRouter for safer navigation back to cash location page
-                    // This will replace the current navigation stack
-                    context.go('/cashLocation');
-                  }
-                } else {
-                  // Show error message if deletion failed
-                  if (mounted) {
-                    ScaffoldMessenger.of(rootContext).showSnackBar(
-                      SnackBar(
-                        content: Text('Failed to delete account'),
-                        backgroundColor: TossColors.error,
-                        behavior: SnackBarBehavior.floating,
-                        duration: const Duration(seconds: 2),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-                        ),
-                      ),
-                    );
-                  }
-                }
-              },
-              child: Text(
-                'Delete',
-                style: TossTextStyles.body.copyWith(
-                  color: TossColors.error,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-          ],
-        );
-      },
+      title: 'Delete Account',
+      message: 'Are you sure you want to delete this account? This action cannot be undone.',
+      confirmButtonText: 'Delete',
+      cancelButtonText: 'Cancel',
     );
+
+    // If user confirmed deletion
+    if (confirmed == true) {
+      // Check if the widget is still mounted before proceeding
+      if (!mounted) return;
+
+      // Show loading indicator using the root context
+      showDialog(
+        context: rootContext,
+        barrierDismissible: false,
+        builder: (BuildContext loadingContext) {
+          return PopScope(
+            canPop: false,
+            child: Center(
+              child: Container(
+                padding: EdgeInsets.all(TossSpacing.space5),
+                decoration: BoxDecoration(
+                  color: TossColors.white,
+                  borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const TossLoadingView(),
+                    SizedBox(height: TossSpacing.space4),
+                    Text(
+                      'Deleting...',
+                      style: TossTextStyles.body.copyWith(
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
+      );
+
+      // Delete the cash location
+      final success = await _deleteCashLocation();
+
+      // Check if still mounted before any navigation
+      if (!mounted) return;
+
+      // Close the loading dialog using the root navigator
+      Navigator.of(rootContext).pop();
+
+      if (success) {
+        // Invalidate cache to refresh the list
+        // Note: Provider invalidation temporarily disabled - needs proper setup
+        // final appState = ref.read(appStateProvider);
+        // ref.invalidate(allCashLocationsProvider(...));
+
+        // Show success message
+        if (mounted) {
+          await showDialog(
+            context: rootContext,
+            barrierDismissible: false,
+            builder: (context) => TossDialog.success(
+              title: 'Account Deleted',
+              message: 'Account deleted successfully',
+              primaryButtonText: 'OK',
+            ),
+          );
+        }
+
+        // Add a small delay for the success message to show
+        await Future.delayed(const Duration(milliseconds: 300));
+
+        // Navigate back to Cash Location list page
+        // Check if still mounted after the delay
+        if (mounted) {
+          // Use GoRouter for safer navigation back to cash location page
+          // This will replace the current navigation stack
+          context.go('/cashLocation');
+        }
+      } else {
+        // Show error message if deletion failed
+        if (mounted) {
+          await showDialog(
+            context: rootContext,
+            barrierDismissible: false,
+            builder: (context) => TossDialog.error(
+              title: 'Delete Failed',
+              message: 'Failed to delete account',
+              primaryButtonText: 'OK',
+            ),
+          );
+        }
+      }
+    }
   }
   
   String _getAccountTypeText() {
@@ -741,44 +699,40 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage>
   
   Future<void> _updateCashLocationName(String newName) async {
     try {
-      if (widget.locationId.isNotEmpty) {
-        // Update using locationId
-        await _supabase
-            .from('cash_locations')
-            .update({'location_name': newName})
-            .eq('cash_location_id', widget.locationId);
-      } else {
-        // Fallback: Update using name and other identifying fields
-        final appState = ref.read(appStateProvider);
-        await _supabase
-            .from('cash_locations')
-            .update({'location_name': newName})
-            .eq('location_name', _currentAccountName)
-            .eq('location_type', widget.locationType)
-            .eq('company_id', appState.companyChoosen)
-            .eq('store_id', appState.storeChoosen);
-      }
-      
+      final repository = ref.read(cashLocationRepositoryProvider);
+
+      await repository.updateCashLocation(
+        locationId: widget.locationId,
+        name: newName,
+      );
+
       // Update the current name after successful DB update
       _currentAccountName = newName;
-      
+
       // Invalidate cache to refresh the list
-      ref.invalidate(allCashLocationsProvider);
-      
+      // TODO: Fix provider invalidation after proper setup
+      // ref.invalidate(allCashLocationsProvider(...));
+
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Account name updated successfully'),
-            backgroundColor: TossColors.success,
+        await showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => TossDialog.success(
+            title: 'Name Updated',
+            message: 'Account name updated successfully',
+            primaryButtonText: 'OK',
           ),
         );
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to update name: ${e.toString()}'),
-            backgroundColor: TossColors.error,
+        await showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => TossDialog.error(
+            title: 'Update Failed',
+            message: 'Failed to update name: ${e.toString()}',
+            primaryButtonText: 'OK',
           ),
         );
       }
@@ -787,37 +741,34 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage>
   
   Future<void> _updateCashLocationNote(String newNote) async {
     try {
-      if (widget.locationId.isNotEmpty) {
-        await _supabase
-            .from('cash_locations')
-            .update({'note': newNote})
-            .eq('cash_location_id', widget.locationId);
-      } else {
-        // Fallback: Update using name and other identifying fields
-        final appState = ref.read(appStateProvider);
-        await _supabase
-            .from('cash_locations')
-            .update({'note': newNote})
-            .eq('location_name', _currentAccountName)
-            .eq('location_type', widget.locationType)
-            .eq('company_id', appState.companyChoosen)
-            .eq('store_id', appState.storeChoosen);
-      }
-      
+      final repository = ref.read(cashLocationRepositoryProvider);
+
+      await repository.updateCashLocation(
+        locationId: widget.locationId,
+        name: _currentAccountName,
+        note: newNote,
+      );
+
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Note updated successfully'),
-            backgroundColor: TossColors.success,
+        await showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => TossDialog.success(
+            title: 'Note Updated',
+            message: 'Note updated successfully',
+            primaryButtonText: 'OK',
           ),
         );
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to update note: ${e.toString()}'),
-            backgroundColor: TossColors.error,
+        await showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => TossDialog.error(
+            title: 'Update Failed',
+            message: 'Failed to update note: ${e.toString()}',
+            primaryButtonText: 'OK',
           ),
         );
       }
@@ -826,72 +777,34 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage>
   
   Future<void> _updateCashLocationDescription(String newDescription) async {
     try {
-      // First, get the current location_info
-      Map<String, dynamic> currentData;
-      if (widget.locationId.isNotEmpty) {
-        final response = await _supabase
-            .from('cash_locations')
-            .select('location_info')
-            .eq('cash_location_id', widget.locationId)
-            .single();
-        currentData = response;
-      } else {
-        // Fallback: Get using name and other identifying fields
-        final appState = ref.read(appStateProvider);
-        final response = await _supabase
-            .from('cash_locations')
-            .select('location_info')
-            .eq('location_name', _currentAccountName)
-            .eq('location_type', widget.locationType)
-            .eq('company_id', appState.companyChoosen)
-            .eq('store_id', appState.storeChoosen)
-            .single();
-        currentData = response;
-      }
-      
-      // Parse and update location_info
-      Map<String, dynamic> locationInfo = {};
-      if (currentData['location_info'] != null) {
-        try {
-          locationInfo = jsonDecode(currentData['location_info']);
-        } catch (e) {
-          locationInfo = {};
-        }
-      }
-      locationInfo['description'] = newDescription;
-      
-      // Update the database
-      if (widget.locationId.isNotEmpty) {
-        await _supabase
-            .from('cash_locations')
-            .update({'location_info': jsonEncode(locationInfo)})
-            .eq('cash_location_id', widget.locationId);
-      } else {
-        // Fallback: Update using name and other identifying fields
-        final appState = ref.read(appStateProvider);
-        await _supabase
-            .from('cash_locations')
-            .update({'location_info': jsonEncode(locationInfo)})
-            .eq('location_name', _currentAccountName)
-            .eq('location_type', widget.locationType)
-            .eq('company_id', appState.companyChoosen)
-            .eq('store_id', appState.storeChoosen);
-      }
-      
+      final repository = ref.read(cashLocationRepositoryProvider);
+
+      await repository.updateCashLocation(
+        locationId: widget.locationId,
+        name: _currentAccountName,
+        description: newDescription,
+      );
+
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Description updated successfully'),
-            backgroundColor: TossColors.success,
+        await showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => TossDialog.success(
+            title: 'Description Updated',
+            message: 'Description updated successfully',
+            primaryButtonText: 'OK',
           ),
         );
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to update description: ${e.toString()}'),
-            backgroundColor: TossColors.error,
+        await showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => TossDialog.error(
+            title: 'Update Failed',
+            message: 'Failed to update description: ${e.toString()}',
+            primaryButtonText: 'OK',
           ),
         );
       }
@@ -900,47 +813,29 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage>
   
   Future<void> _updateMainAccountStatus(bool isMain) async {
     try {
-      // If setting as main, first unset any existing main account
-      if (isMain) {
-        final appState = ref.read(appStateProvider);
-        final companyId = appState.companyChoosen;
-        final storeId = appState.storeChoosen;
-        
-        // Unset all main accounts for this location type
-        await _supabase
-            .from('cash_locations')
-            .update({'main_cash_location': false})
-            .eq('company_id', companyId)
-            .eq('store_id', storeId)
-            .eq('location_type', widget.locationType);
-      }
-      
-      // Update the current account
-      if (widget.locationId.isNotEmpty) {
-        await _supabase
-            .from('cash_locations')
-            .update({'main_cash_location': isMain})
-            .eq('cash_location_id', widget.locationId);
-      } else {
-        // Fallback: Update using name and other identifying fields
-        final appState = ref.read(appStateProvider);
-        await _supabase
-            .from('cash_locations')
-            .update({'main_cash_location': isMain})
-            .eq('location_name', _currentAccountName)
-            .eq('location_type', widget.locationType)
-            .eq('company_id', appState.companyChoosen)
-            .eq('store_id', appState.storeChoosen);
-      }
-      
+      final repository = ref.read(cashLocationRepositoryProvider);
+      final appState = ref.read(appStateProvider);
+
+      await repository.updateMainAccountStatus(
+        locationId: widget.locationId,
+        isMain: isMain,
+        companyId: appState.companyChoosen,
+        storeId: appState.storeChoosen,
+        locationType: widget.locationType,
+      );
+
       // Invalidate cache to refresh the list
-      ref.invalidate(allCashLocationsProvider);
-      
+      // TODO: Fix provider invalidation after proper setup
+      // ref.invalidate(allCashLocationsProvider(...));
+
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(isMain ? 'Set as main account' : 'Removed as main account'),
-            backgroundColor: TossColors.success,
+        await showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => TossDialog.success(
+            title: 'Account Updated',
+            message: isMain ? 'Set as main account' : 'Removed as main account',
+            primaryButtonText: 'OK',
           ),
         );
       }
@@ -950,10 +845,13 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage>
         setState(() {
           _isMainAccount = !isMain;
         });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to update main account: ${e.toString()}'),
-            backgroundColor: TossColors.error,
+        await showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => TossDialog.error(
+            title: 'Update Failed',
+            message: 'Failed to update main account: ${e.toString()}',
+            primaryButtonText: 'OK',
           ),
         );
       }
@@ -962,57 +860,22 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage>
   
   Future<bool> _deleteCashLocation() async {
     try {
-      // Call RPC to delete cash location
-      if (widget.locationId.isNotEmpty) {
-        // Use RPC to delete the cash location
-        await _supabase.rpc(
-          'delete_cash_location',
-          params: {
-            'p_cash_location_id': widget.locationId,
-          },
-        );
-      } else {
-        // If no locationId, we need to find it first
-        final appState = ref.read(appStateProvider);
-        
-        // Query to get the cash_location_id
-        final response = await _supabase
-            .from('cash_locations')
-            .select('cash_location_id')
-            .eq('location_name', _currentAccountName)
-            .eq('location_type', widget.locationType)
-            .eq('company_id', appState.companyChoosen)
-            .eq('store_id', appState.storeChoosen)
-            .eq('is_deleted', false)
-            .single();
-        
-        if (response != null && response['cash_location_id'] != null) {
-          // Call RPC with the found cash_location_id
-          await _supabase.rpc(
-            'delete_cash_location',
-            params: {
-              'p_cash_location_id': response['cash_location_id'],
-            },
-          );
-        } else {
-          throw Exception('Cash location not found');
-        }
-      }
-      
+      final repository = ref.read(cashLocationRepositoryProvider);
+
+      await repository.deleteCashLocation(widget.locationId);
+
       // Don't show success message here, it will be shown after dialog closes
       return true; // Return success
     } catch (e) {
       // Show error message only on failure
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to delete account: ${e.toString()}'),
-            backgroundColor: TossColors.error,
-            behavior: SnackBarBehavior.floating,
-            duration: const Duration(seconds: 3),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-            ),
+        await showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => TossDialog.error(
+            title: 'Delete Failed',
+            message: 'Failed to delete account: ${e.toString()}',
+            primaryButtonText: 'OK',
           ),
         );
       }

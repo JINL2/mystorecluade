@@ -189,7 +189,10 @@ class _HomepageState extends ConsumerState<Homepage> {
                 if (value == 'logout') {
                   await _handleLogout();
                 } else if (value == 'profile') {
-                  // Navigate to profile page if needed
+                  // Navigate to My Page
+                  if (mounted) {
+                    context.go('/my-page');
+                  }
                 }
               });
             },

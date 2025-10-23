@@ -1,52 +1,85 @@
-import '../../domain/entities/journal_entry.dart';
+// Data Layer - Journal Entry Model (DTO + Mapper)
+import '../../../../core/utils/datetime_utils.dart';
+import '../../domain/entities/journal_entry.dart' as domain;
 
-/// Journal Entry Model - extends entity with JSON serialization
-class JournalEntryModel extends JournalEntry {
+class JournalEntryModel {
+  final String journalId;
+  final String journalDescription;
+  final String entryDate;
+  final DateTime transactionDate;
+  final List<JournalLineModel> lines;
+
   JournalEntryModel({
-    required super.journalId,
-    required super.journalDescription,
-    required super.entryDate,
-    required super.transactionDate,
-    required super.lines,
+    required this.journalId,
+    required this.journalDescription,
+    required this.entryDate,
+    required this.transactionDate,
+    required this.lines,
   });
 
+  // From JSON (Supabase)
   factory JournalEntryModel.fromJson(Map<String, dynamic> json) {
+    // Convert UTC datetime string from database to local DateTime
+    final transactionDateUtc = json['transaction_date'] as String? ?? DateTime.now().toIso8601String();
+
     return JournalEntryModel(
       journalId: (json['journal_id'] ?? '').toString(),
       journalDescription: (json['journal_description'] ?? '').toString(),
       entryDate: (json['entry_date'] ?? '').toString(),
-      transactionDate: DateTime.parse((json['transaction_date'] ?? DateTime.now().toIso8601String()).toString()),
+      transactionDate: DateTimeUtils.toLocal(transactionDateUtc),
       lines: (json['lines'] as List? ?? [])
           .map((line) => JournalLineModel.fromJson(line as Map<String, dynamic>))
           .toList(),
     );
   }
 
-  Map<String, dynamic> toJson() {
-    return {
-      'journal_id': journalId,
-      'journal_description': journalDescription,
-      'entry_date': entryDate,
-      'transaction_date': transactionDate.toIso8601String(),
-      'lines': lines.map((line) => (line as JournalLineModel).toJson()).toList(),
-    };
+  // Model → Domain Entity
+  domain.JournalEntry toEntity() {
+    return domain.JournalEntry(
+      journalId: journalId,
+      journalDescription: journalDescription,
+      entryDate: entryDate,
+      transactionDate: transactionDate,
+      lines: lines.map((line) => line.toEntity()).toList(),
+    );
+  }
+
+  // Domain Entity → Model
+  factory JournalEntryModel.fromEntity(domain.JournalEntry entity) {
+    return JournalEntryModel(
+      journalId: entity.journalId,
+      journalDescription: entity.journalDescription,
+      entryDate: entity.entryDate,
+      transactionDate: entity.transactionDate,
+      lines: entity.lines.map((line) => JournalLineModel.fromEntity(line)).toList(),
+    );
   }
 }
 
-/// Journal Line Model - extends entity with JSON serialization
-class JournalLineModel extends JournalLine {
+class JournalLineModel {
+  final String lineId;
+  final String? cashLocationId;
+  final String? locationName;
+  final String? locationType;
+  final String accountId;
+  final String accountName;
+  final double debit;
+  final double credit;
+  final String description;
+
   JournalLineModel({
-    required super.lineId,
-    super.cashLocationId,
-    super.locationName,
-    super.locationType,
-    required super.accountId,
-    required super.accountName,
-    required super.debit,
-    required super.credit,
-    required super.description,
+    required this.lineId,
+    this.cashLocationId,
+    this.locationName,
+    this.locationType,
+    required this.accountId,
+    required this.accountName,
+    required this.debit,
+    required this.credit,
+    required this.description,
   });
 
+  // From JSON
   factory JournalLineModel.fromJson(Map<String, dynamic> json) {
     return JournalLineModel(
       lineId: (json['line_id'] ?? '').toString(),
@@ -61,17 +94,33 @@ class JournalLineModel extends JournalLine {
     );
   }
 
-  Map<String, dynamic> toJson() {
-    return {
-      'line_id': lineId,
-      'cash_location_id': cashLocationId,
-      'location_name': locationName,
-      'location_type': locationType,
-      'account_id': accountId,
-      'account_name': accountName,
-      'debit': debit,
-      'credit': credit,
-      'description': description,
-    };
+  // Model → Domain Entity
+  domain.JournalLine toEntity() {
+    return domain.JournalLine(
+      lineId: lineId,
+      cashLocationId: cashLocationId,
+      locationName: locationName,
+      locationType: locationType,
+      accountId: accountId,
+      accountName: accountName,
+      debit: debit,
+      credit: credit,
+      description: description,
+    );
+  }
+
+  // Domain Entity → Model
+  factory JournalLineModel.fromEntity(domain.JournalLine entity) {
+    return JournalLineModel(
+      lineId: entity.lineId,
+      cashLocationId: entity.cashLocationId,
+      locationName: entity.locationName,
+      locationType: entity.locationType,
+      accountId: entity.accountId,
+      accountName: entity.accountName,
+      debit: entity.debit,
+      credit: entity.credit,
+      description: entity.description,
+    );
   }
 }

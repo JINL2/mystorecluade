@@ -1,9 +1,12 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
+
 import '../models/bank_real_model.dart';
 import '../models/cash_location_model.dart';
+import '../models/cash_location_detail_model.dart';
 import '../models/cash_real_model.dart';
-import '../models/vault_real_model.dart';
 import '../models/journal_entry_model.dart';
+import '../models/stock_flow_model.dart';
+import '../models/vault_real_model.dart';
 
 /// Cash Location Data Source
 /// Handles all API calls for cash location feature
@@ -31,6 +34,50 @@ class CashLocationDataSource {
           .toList();
     } catch (e) {
       throw Exception('Failed to load cash locations: ${e.toString()}');
+    }
+  }
+
+  /// Get single cash location by ID with full details
+  Future<CashLocationDetailModel?> getCashLocationById({
+    required String locationId,
+  }) async {
+    try {
+      final response = await _supabase
+          .from('cash_locations')
+          .select('*')
+          .eq('cash_location_id', locationId)
+          .maybeSingle();
+
+      if (response == null) return null;
+
+      return CashLocationDetailModel.fromJson(response);
+    } catch (e) {
+      throw Exception('Failed to load cash location: ${e.toString()}');
+    }
+  }
+
+  /// Get single cash location by name and type
+  Future<CashLocationDetailModel?> getCashLocationByName({
+    required String locationName,
+    required String locationType,
+    required String companyId,
+    required String storeId,
+  }) async {
+    try {
+      final response = await _supabase
+          .from('cash_locations')
+          .select('*')
+          .eq('location_name', locationName)
+          .eq('location_type', locationType)
+          .eq('company_id', companyId)
+          .eq('store_id', storeId)
+          .maybeSingle();
+
+      if (response == null) return null;
+
+      return CashLocationDetailModel.fromJson(response);
+    } catch (e) {
+      throw Exception('Failed to load cash location: ${e.toString()}');
     }
   }
 
@@ -151,7 +198,7 @@ class CashLocationDataSource {
     int limit = 20,
   }) async {
     try {
-      final response = await _supabase.rpc(
+      final response = await _supabase.rpc<List<dynamic>>(
         'get_cash_journal',
         params: {
           'p_company_id': companyId,
@@ -163,11 +210,158 @@ class CashLocationDataSource {
 
       if (response == null) return [];
 
-      return (response as List)
+      return response
           .map((json) => JournalEntryModel.fromJson(json as Map<String, dynamic>))
           .toList();
     } catch (e) {
       return [];
+    }
+  }
+
+  /// Get location stock flow data using RPC
+  Future<StockFlowResponseModel> getLocationStockFlow({
+    required String companyId,
+    required String storeId,
+    required String cashLocationId,
+    int offset = 0,
+    int limit = 20,
+  }) async {
+    try {
+      final response = await _supabase.rpc<Map<String, dynamic>>(
+        'get_location_stock_flow',
+        params: {
+          'p_company_id': companyId,
+          'p_store_id': storeId,
+          'p_cash_location_id': cashLocationId,
+          'p_offset': offset,
+          'p_limit': limit,
+        },
+      );
+
+      if (response == null) {
+        throw Exception('No data received from get_location_stock_flow');
+      }
+
+      return StockFlowResponseModel.fromJson(response);
+    } catch (e) {
+      throw Exception('Failed to fetch stock flow data: $e');
+    }
+  }
+
+  /// Insert journal entry with lines using RPC
+  Future<Map<String, dynamic>> insertJournalWithEverything({
+    required double baseAmount,
+    required String companyId,
+    required String createdBy,
+    required String description,
+    required String entryDate,
+    required List<Map<String, dynamic>> lines,
+    String? counterpartyId,
+    String? ifCashLocationId,
+    String? storeId,
+  }) async {
+    try {
+      final response = await _supabase.rpc<dynamic>(
+        'insert_journal_with_everything',
+        params: {
+          'p_base_amount': baseAmount,
+          'p_company_id': companyId,
+          'p_created_by': createdBy,
+          'p_description': description,
+          'p_entry_date': entryDate,
+          'p_lines': lines,
+          'p_counterparty_id': counterpartyId,
+          'p_if_cash_location_id': ifCashLocationId,
+          'p_store_id': storeId,
+        },
+      );
+
+      return {
+        'success': true,
+        'data': response,
+      };
+    } catch (e) {
+      return {
+        'success': false,
+        'error': e.toString(),
+      };
+    }
+  }
+
+  /// Update cash location details
+  Future<void> updateCashLocation({
+    required String locationId,
+    required String name,
+    String? note,
+    String? description,
+    String? bankName,
+    String? accountNumber,
+  }) async {
+    try {
+      final updateData = <String, dynamic>{
+        'name': name,
+        'updated_at': DateTime.now().toUtc().toIso8601String(),
+      };
+
+      // Add optional fields only if provided
+      if (note != null) updateData['note'] = note;
+      if (description != null) updateData['description'] = description;
+      if (bankName != null) updateData['bank_name'] = bankName;
+      if (accountNumber != null) updateData['account_number'] = accountNumber;
+
+      await _supabase
+          .from('cash_locations')
+          .update(updateData)
+          .eq('id', locationId);
+    } catch (e) {
+      throw Exception('Failed to update cash location: ${e.toString()}');
+    }
+  }
+
+  /// Delete cash location (soft delete by setting is_deleted = true)
+  Future<void> deleteCashLocation(String locationId) async {
+    try {
+      // Use RPC to delete cash location
+      await _supabase.rpc(
+        'delete_cash_location',
+        params: {
+          'p_cash_location_id': locationId,
+        },
+      );
+    } catch (e) {
+      throw Exception('Failed to delete cash location: ${e.toString()}');
+    }
+  }
+
+  /// Update main account status (unsets other main accounts if setting as main)
+  Future<void> updateMainAccountStatus({
+    required String locationId,
+    required bool isMain,
+    required String companyId,
+    required String storeId,
+    required String locationType,
+  }) async {
+    try {
+      // If setting as main, first unset any existing main account
+      if (isMain) {
+        await _supabase
+            .from('cash_locations')
+            .update({'main_cash_location': false})
+            .eq('company_id', companyId)
+            .eq('store_id', storeId)
+            .eq('location_type', locationType);
+      }
+
+      // Update the current account
+      await _supabase
+          .from('cash_locations')
+          .update({
+            'main_cash_location': isMain,
+            'updated_at': DateTime.now().toUtc().toIso8601String(),
+          })
+          .eq('cash_location_id', locationId);
+    } catch (e) {
+      throw Exception('Failed to update main account status: ${e.toString()}');
     }
   }
 }

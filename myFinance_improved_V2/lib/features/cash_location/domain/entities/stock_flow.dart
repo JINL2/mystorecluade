@@ -38,20 +38,9 @@ class JournalFlow {
   String getFormattedDate() {
     try {
       final dateTime = DateTime.parse(createdAt);
-      final now = DateTime.now();
-      final diff = now.difference(dateTime);
-
-      if (diff.inDays == 0) {
-        return 'Today';
-      } else if (diff.inDays == 1) {
-        return 'Yesterday';
-      } else if (diff.inDays < 7) {
-        return '${diff.inDays} days ago';
-      } else {
-        return '${dateTime.year}-${dateTime.month.toString().padLeft(2, '0')}-${dateTime.day.toString().padLeft(2, '0')}';
-      }
+      return '${dateTime.day}/${dateTime.month}';
     } catch (e) {
-      return createdAt;
+      return '';
     }
   }
 
@@ -91,20 +80,9 @@ class ActualFlow {
   String getFormattedDate() {
     try {
       final dateTime = DateTime.parse(createdAt);
-      final now = DateTime.now();
-      final diff = now.difference(dateTime);
-
-      if (diff.inDays == 0) {
-        return 'Today';
-      } else if (diff.inDays == 1) {
-        return 'Yesterday';
-      } else if (diff.inDays < 7) {
-        return '${diff.inDays} days ago';
-      } else {
-        return '${dateTime.year}-${dateTime.month.toString().padLeft(2, '0')}-${dateTime.day.toString().padLeft(2, '0')}';
-      }
+      return '${dateTime.day}/${dateTime.month}';
     } catch (e) {
-      return createdAt;
+      return '';
     }
   }
 
@@ -201,5 +179,45 @@ class DenominationDetail {
     required this.quantityChange,
     required this.subtotal,
     this.currencySymbol,
+  });
+}
+
+class StockFlowData {
+  final LocationSummary? locationSummary;
+  final List<JournalFlow> journalFlows;
+  final List<ActualFlow> actualFlows;
+
+  StockFlowData({
+    this.locationSummary,
+    required this.journalFlows,
+    required this.actualFlows,
+  });
+}
+
+class PaginationInfo {
+  final int offset;
+  final int limit;
+  final int totalJournalFlows;
+  final int totalActualFlows;
+  final bool hasMore;
+
+  PaginationInfo({
+    required this.offset,
+    required this.limit,
+    required this.totalJournalFlows,
+    required this.totalActualFlows,
+    required this.hasMore,
+  });
+}
+
+class StockFlowResponse {
+  final bool success;
+  final StockFlowData? data;
+  final PaginationInfo? pagination;
+
+  StockFlowResponse({
+    required this.success,
+    this.data,
+    this.pagination,
   });
 }

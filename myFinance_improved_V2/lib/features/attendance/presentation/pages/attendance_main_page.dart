@@ -15,6 +15,7 @@ import '../../../../shared/themes/toss_text_styles.dart';
 import '../../../../shared/widgets/common/toss_app_bar_1.dart';
 import '../../../../shared/widgets/common/toss_loading_view.dart';
 import '../../../../shared/widgets/common/toss_scaffold.dart';
+import '../../domain/entities/shift_overview.dart';
 import '../providers/attendance_provider.dart';
 import 'qr_scanner_page.dart';
 class AttendanceMainPage extends StatefulWidget {
@@ -3573,8 +3574,10 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
           storeId: storeId,
         ),
       ]);
-      
-      final overviewResponse = results[0] as Map<String, dynamic>;
+
+      // Convert ShiftOverview entity to Map for backward compatibility
+      final overviewEntity = results[0] as ShiftOverview;
+      final overviewResponse = overviewEntity.toMap();
       final cardsResponse = results[1] as List<Map<String, dynamic>>;
       final currentShift = results[2] as Map<String, dynamic>?;
       

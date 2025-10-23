@@ -1,5 +1,6 @@
 // lib/features/cash_location/data/models/stock_flow_model.dart
 
+import '../../../../core/utils/datetime_utils.dart';
 import '../../domain/entities/stock_flow.dart';
 
 /// Data models for stock flow tracking
@@ -23,10 +24,14 @@ class JournalFlowModel extends JournalFlow {
   });
 
   factory JournalFlowModel.fromJson(Map<String, dynamic> json) {
+    // Convert UTC datetime strings from database to local time ISO8601 strings
+    final createdAtUtc = (json['created_at'] ?? '').toString();
+    final systemTimeUtc = (json['system_time'] ?? '').toString();
+
     return JournalFlowModel(
       flowId: (json['flow_id'] ?? '').toString(),
-      createdAt: (json['created_at'] ?? '').toString(),
-      systemTime: (json['system_time'] ?? '').toString(),
+      createdAt: createdAtUtc.isNotEmpty ? DateTimeUtils.toLocal(createdAtUtc).toIso8601String() : '',
+      systemTime: systemTimeUtc.isNotEmpty ? DateTimeUtils.toLocal(systemTimeUtc).toIso8601String() : '',
       balanceBefore: (json['balance_before'] as num?)?.toDouble() ?? 0.0,
       flowAmount: (json['flow_amount'] as num?)?.toDouble() ?? 0.0,
       balanceAfter: (json['balance_after'] as num?)?.toDouble() ?? 0.0,
@@ -57,10 +62,14 @@ class ActualFlowModel extends ActualFlow {
   });
 
   factory ActualFlowModel.fromJson(Map<String, dynamic> json) {
+    // Convert UTC datetime strings from database to local time ISO8601 strings
+    final createdAtUtc = (json['created_at'] ?? '').toString();
+    final systemTimeUtc = (json['system_time'] ?? '').toString();
+
     return ActualFlowModel(
       flowId: (json['flow_id'] ?? '').toString(),
-      createdAt: (json['created_at'] ?? '').toString(),
-      systemTime: (json['system_time'] ?? '').toString(),
+      createdAt: createdAtUtc.isNotEmpty ? DateTimeUtils.toLocal(createdAtUtc).toIso8601String() : '',
+      systemTime: systemTimeUtc.isNotEmpty ? DateTimeUtils.toLocal(systemTimeUtc).toIso8601String() : '',
       balanceBefore: (json['balance_before'] as num?)?.toDouble() ?? 0.0,
       flowAmount: (json['flow_amount'] as num?)?.toDouble() ?? 0.0,
       balanceAfter: (json['balance_after'] as num?)?.toDouble() ?? 0.0,
@@ -175,6 +184,68 @@ class DenominationDetailModel extends DenominationDetail {
       quantityChange: (json['quantity_change'] as num?)?.toInt() ?? 0,
       subtotal: (json['subtotal'] as num?)?.toDouble() ?? 0.0,
       currencySymbol: json['currency_symbol']?.toString(),
+    );
+  }
+}
+
+class StockFlowDataModel extends StockFlowData {
+  StockFlowDataModel({
+    super.locationSummary,
+    required super.journalFlows,
+    required super.actualFlows,
+  });
+
+  factory StockFlowDataModel.fromJson(Map<String, dynamic> json) {
+    return StockFlowDataModel(
+      locationSummary: json['location_summary'] != null
+          ? LocationSummaryModel.fromJson(json['location_summary'] as Map<String, dynamic>)
+          : null,
+      journalFlows: (json['journal_flows'] as List<dynamic>?)
+          ?.map((e) => JournalFlowModel.fromJson(e as Map<String, dynamic>))
+          .toList() ?? [],
+      actualFlows: (json['actual_flows'] as List<dynamic>?)
+          ?.map((e) => ActualFlowModel.fromJson(e as Map<String, dynamic>))
+          .toList() ?? [],
+    );
+  }
+}
+
+class PaginationInfoModel extends PaginationInfo {
+  PaginationInfoModel({
+    required super.offset,
+    required super.limit,
+    required super.totalJournalFlows,
+    required super.totalActualFlows,
+    required super.hasMore,
+  });
+
+  factory PaginationInfoModel.fromJson(Map<String, dynamic> json) {
+    return PaginationInfoModel(
+      offset: (json['offset'] as num?)?.toInt() ?? 0,
+      limit: (json['limit'] as num?)?.toInt() ?? 20,
+      totalJournalFlows: (json['total_journal_flows'] as num?)?.toInt() ?? 0,
+      totalActualFlows: (json['total_actual_flows'] as num?)?.toInt() ?? 0,
+      hasMore: json['has_more'] as bool? ?? false,
+    );
+  }
+}
+
+class StockFlowResponseModel extends StockFlowResponse {
+  StockFlowResponseModel({
+    required super.success,
+    super.data,
+    super.pagination,
+  });
+
+  factory StockFlowResponseModel.fromJson(Map<String, dynamic> json) {
+    return StockFlowResponseModel(
+      success: json['success'] as bool? ?? false,
+      data: json['data'] != null
+          ? StockFlowDataModel.fromJson(json['data'] as Map<String, dynamic>)
+          : null,
+      pagination: json['pagination'] != null
+          ? PaginationInfoModel.fromJson(json['pagination'] as Map<String, dynamic>)
+          : null,
     );
   }
 }

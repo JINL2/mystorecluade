@@ -10,7 +10,6 @@ import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_app_bar_1.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_loading_view.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_scaffold.dart';
-import '../../data/models/bank_real_model.dart';
 import '../providers/cash_location_providers.dart';
 
 class BankRealPage extends ConsumerStatefulWidget {
