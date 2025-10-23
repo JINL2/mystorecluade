@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import '../../../../core/services/supabase_service.dart';
 import '../models/category_features_model.dart';
 import '../models/revenue_model.dart';
@@ -27,14 +26,10 @@ class HomepageDataSource {
     }
 
     final companies = data['companies'] as List<dynamic>;
-    debugPrint('🔵 [DataSource.filterDeleted] Total companies before filter: ${companies.length}');
 
     // Filter deleted companies and their deleted stores
     final filteredCompanies = companies.where((company) {
       final isDeleted = company['is_deleted'] == true;
-      if (isDeleted) {
-        debugPrint('🔵 [DataSource.filterDeleted] ❌ Filtering out deleted company: ${company['company_name']}');
-      }
       return !isDeleted;
     }).map((company) {
       // Also filter deleted stores within each company
@@ -42,9 +37,6 @@ class HomepageDataSource {
         final stores = company['stores'] as List<dynamic>;
         final filteredStores = stores.where((store) {
           final isDeleted = store['is_deleted'] == true;
-          if (isDeleted) {
-            debugPrint('🔵 [DataSource.filterDeleted] ❌ Filtering out deleted store: ${store['store_name']} in company ${company['company_name']}');
-          }
           return !isDeleted;
         }).toList();
 
@@ -57,7 +49,6 @@ class HomepageDataSource {
     data['companies'] = filteredCompanies;
     data['company_count'] = filteredCompanies.length;
 
-    debugPrint('🔵 [DataSource.filterDeleted] ✅ Total companies after filter: ${filteredCompanies.length}');
     return data;
   }
 
@@ -88,7 +79,6 @@ class HomepageDataSource {
 
 
       if (response == null) {
-        debugPrint('🔵 [DataSource.getRevenue] ERROR: No revenue data returned');
         throw Exception('No revenue data returned from database');
       }
 
@@ -131,9 +121,7 @@ class HomepageDataSource {
       );
 
       return model;
-    } catch (e, stack) {
-      debugPrint('🔵 [DataSource.getRevenue] ERROR: $e');
-      debugPrint('🔵 [DataSource.getRevenue] Stack: $stack');
+    } catch (e) {
       rethrow;
     }
   }
@@ -147,7 +135,6 @@ class HomepageDataSource {
   ///
   /// ✅ Filters out deleted companies and stores before parsing
   Future<UserCompaniesModel> getUserCompanies(String userId) async {
-    debugPrint('🔵 [DataSource.getUserCompanies] userId: $userId');
 
     final response = await _supabaseService.client.rpc(
       'get_user_companies_and_stores',
@@ -169,10 +156,7 @@ class HomepageDataSource {
 
       final model = UserCompaniesModel.fromJson(filteredData);
       return model;
-    } catch (e, stack) {
-      debugPrint('🔵 [DataSource.getUserCompanies] ERROR parsing response: $e');
-      debugPrint('🔵 [DataSource.getUserCompanies] Stack: $stack');
-      debugPrint('🔵 [DataSource.getUserCompanies] Response data: $response');
+    } catch (e) {
       rethrow;
     }
   }
@@ -184,15 +168,12 @@ class HomepageDataSource {
   /// Calls: rpc('get_categories_with_features')
   /// Returns: List of categories with their features
   Future<List<CategoryFeaturesModel>> getCategoriesWithFeatures() async {
-
     try {
       final response = await _supabaseService.client.rpc(
         'get_categories_with_features',
       );
 
-
       if (response == null || response is! List) {
-        debugPrint('🔵 [DataSource.getCategoriesWithFeatures] ERROR: Invalid data returned');
         throw Exception('Invalid categories data returned from database');
       }
 
@@ -203,9 +184,7 @@ class HomepageDataSource {
           .toList();
 
       return models;
-    } catch (e, stack) {
-      debugPrint('🔵 [DataSource.getCategoriesWithFeatures] ERROR: $e');
-      debugPrint('🔵 [DataSource.getCategoriesWithFeatures] Stack: $stack');
+    } catch (e) {
       rethrow;
     }
   }
@@ -218,7 +197,6 @@ class HomepageDataSource {
     required String userId,
     required String companyId,
   }) async {
-
     try {
       final response = await _supabaseService.client.rpc(
         'get_user_quick_access_features',
@@ -228,9 +206,7 @@ class HomepageDataSource {
         },
       );
 
-
       if (response == null || response is! List) {
-        debugPrint('🔵 [DataSource.getQuickAccessFeatures] ERROR: Invalid data returned');
         throw Exception('Invalid quick access features data returned from database');
       }
 
@@ -242,9 +218,7 @@ class HomepageDataSource {
           .toList();
 
       return models;
-    } catch (e, stack) {
-      debugPrint('🔵 [DataSource.getQuickAccessFeatures] ERROR: $e');
-      debugPrint('🔵 [DataSource.getQuickAccessFeatures] Stack: $stack');
+    } catch (e) {
       rethrow;
     }
   }

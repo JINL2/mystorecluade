@@ -1,4 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../domain/entities/perspective_summary.dart';
+import 'debt_repository_provider.dart';
 import 'states/debt_control_state.dart';
 
 /// Perspective state provider for viewpoint selection
@@ -41,5 +43,54 @@ class PerspectiveNotifier extends StateNotifier<PerspectiveState> {
   /// Reset to company perspective
   void resetToCompany() {
     state = const PerspectiveState(selectedPerspective: 'company');
+  }
+}
+
+/// Perspective summary provider
+final perspectiveSummaryProvider =
+    AsyncNotifierProvider<PerspectiveSummaryNotifier, PerspectiveSummary?>(
+  () => PerspectiveSummaryNotifier(),
+);
+
+class PerspectiveSummaryNotifier extends AsyncNotifier<PerspectiveSummary?> {
+  @override
+  Future<PerspectiveSummary?> build() async {
+    return null;
+  }
+
+  /// Load perspective summary
+  Future<void> loadPerspectiveSummary({
+    required String perspectiveType,
+    required String entityId,
+    required String entityName,
+  }) async {
+    state = const AsyncValue.loading();
+
+    try {
+      final repository = ref.read(debtRepositoryProvider);
+
+      final summary = await repository.getPerspectiveSummary(
+        perspectiveType: perspectiveType,
+        entityId: entityId,
+        entityName: entityName,
+      );
+
+      state = AsyncValue.data(summary);
+    } catch (error, stackTrace) {
+      state = AsyncValue.error(error, stackTrace);
+    }
+  }
+
+  /// Refresh perspective summary
+  Future<void> refresh({
+    required String perspectiveType,
+    required String entityId,
+    required String entityName,
+  }) async {
+    await loadPerspectiveSummary(
+      perspectiveType: perspectiveType,
+      entityId: entityId,
+      entityName: entityName,
+    );
   }
 }

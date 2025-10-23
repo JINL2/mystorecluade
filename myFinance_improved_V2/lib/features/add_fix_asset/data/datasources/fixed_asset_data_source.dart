@@ -15,7 +15,7 @@ class FixedAssetDataSource {
   }) async {
     var query = _supabase
         .from('fixed_assets')
-        .select('asset_id, asset_name, acquisition_date, acquisition_cost, useful_life_years, salvage_value, company_id, store_id, created_at, status')
+        .select('asset_id, asset_name, acquisition_date, acquisition_cost, useful_life_years, salvage_value, company_id, store_id, created_at')
         .eq('company_id', companyId);
 
     // Store filter

@@ -11,7 +11,6 @@ class FixedAsset {
   final String companyId;
   final String? storeId; // null = headquarters
   final DateTime? createdAt;
-  final String status;
 
   const FixedAsset({
     this.assetId,
@@ -21,7 +20,6 @@ class FixedAsset {
     required this.companyId,
     this.storeId,
     this.createdAt,
-    this.status = 'active',
   });
 
   /// 감가상각 정보 계산
@@ -53,7 +51,6 @@ class FixedAsset {
     String? companyId,
     String? storeId,
     DateTime? createdAt,
-    String? status,
   }) {
     return FixedAsset(
       assetId: assetId ?? this.assetId,
@@ -63,7 +60,6 @@ class FixedAsset {
       companyId: companyId ?? this.companyId,
       storeId: storeId ?? this.storeId,
       createdAt: createdAt ?? this.createdAt,
-      status: status ?? this.status,
     );
   }
 
@@ -77,8 +73,7 @@ class FixedAsset {
         other.acquisitionDate == acquisitionDate &&
         other.financialInfo == financialInfo &&
         other.companyId == companyId &&
-        other.storeId == storeId &&
-        other.status == status;
+        other.storeId == storeId;
   }
 
   @override
@@ -88,7 +83,6 @@ class FixedAsset {
         acquisitionDate.hashCode ^
         financialInfo.hashCode ^
         companyId.hashCode ^
-        storeId.hashCode ^
-        status.hashCode;
+        storeId.hashCode;
   }
 }

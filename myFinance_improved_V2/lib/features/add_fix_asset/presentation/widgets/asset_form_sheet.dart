@@ -77,10 +77,12 @@ class _AssetFormSheetState extends State<AssetFormSheet> {
   @override
   Widget build(BuildContext context) {
     final isEdit = widget.mode == AssetFormMode.edit;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final maxHeight = screenHeight * 0.9; // 90% of screen height
 
     return Container(
-      padding: EdgeInsets.only(
-        bottom: MediaQuery.of(context).viewInsets.bottom,
+      constraints: BoxConstraints(
+        maxHeight: maxHeight,
       ),
       decoration: const BoxDecoration(
         color: TossColors.background,
@@ -90,121 +92,147 @@ class _AssetFormSheetState extends State<AssetFormSheet> {
         ),
       ),
       child: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(TossSpacing.space5),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Handle bar
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  margin: const EdgeInsets.only(bottom: 20),
-                  decoration: BoxDecoration(
-                    color: TossColors.gray200,
-                    borderRadius: BorderRadius.circular(TossBorderRadius.xs),
-                  ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Scrollable content
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(
+                  TossSpacing.space5,
+                  TossSpacing.space5,
+                  TossSpacing.space5,
+                  TossSpacing.space3,
                 ),
-              ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Handle bar
+                    Center(
+                      child: Container(
+                        width: 40,
+                        height: 4,
+                        margin: const EdgeInsets.only(bottom: 20),
+                        decoration: BoxDecoration(
+                          color: TossColors.gray200,
+                          borderRadius: BorderRadius.circular(TossBorderRadius.xs),
+                        ),
+                      ),
+                    ),
 
-              // Title section
-              Row(
-                children: [
-                  Container(
-                    width: isEdit ? 44 : 48,
-                    height: isEdit ? 44 : 48,
-                    decoration: BoxDecoration(
-                      gradient: isEdit
-                          ? null
-                          : LinearGradient(
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                              colors: [
-                                TossColors.primary.withValues(alpha: 0.8),
-                                TossColors.primary,
-                              ],
-                            ),
-                      color: isEdit ? TossColors.primary.withValues(alpha: 0.1) : null,
-                      borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-                    ),
-                    child: Icon(
-                      isEdit ? Icons.edit_outlined : Icons.add_business,
-                      size: isEdit ? 24 : 26,
-                      color: isEdit ? TossColors.primary : TossColors.white,
-                    ),
-                  ),
-                  SizedBox(width: isEdit ? TossSpacing.space3 : TossSpacing.space4),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                    // Title section
+                    Row(
                       children: [
-                        Text(
-                          isEdit ? 'Edit Asset' : 'Add New Asset',
-                          style: TossTextStyles.h3.copyWith(
-                            color: TossColors.gray900,
-                            fontWeight: FontWeight.w700,
-                            fontSize: 20,
+                        Container(
+                          width: isEdit ? 44 : 48,
+                          height: isEdit ? 44 : 48,
+                          decoration: BoxDecoration(
+                            gradient: isEdit
+                                ? null
+                                : LinearGradient(
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                    colors: [
+                                      TossColors.primary.withValues(alpha: 0.8),
+                                      TossColors.primary,
+                                    ],
+                                  ),
+                            color: isEdit ? TossColors.primary.withValues(alpha: 0.1) : null,
+                            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+                          ),
+                          child: Icon(
+                            isEdit ? Icons.edit_outlined : Icons.add_business,
+                            size: isEdit ? 24 : 26,
+                            color: isEdit ? TossColors.primary : TossColors.white,
                           ),
                         ),
-                        SizedBox(height: isEdit ? 2 : 4),
-                        Text(
-                          isEdit ? 'Update asset information' : 'Track your business assets',
-                          style: TossTextStyles.bodySmall.copyWith(
-                            color: TossColors.gray500,
-                            fontSize: 14,
+                        SizedBox(width: isEdit ? TossSpacing.space3 : TossSpacing.space4),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                isEdit ? 'Edit Asset' : 'Add New Asset',
+                                style: TossTextStyles.h3.copyWith(
+                                  color: TossColors.gray900,
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 20,
+                                ),
+                              ),
+                              SizedBox(height: isEdit ? 2 : 4),
+                              Text(
+                                isEdit ? 'Update asset information' : 'Track your business assets',
+                                style: TossTextStyles.bodySmall.copyWith(
+                                  color: TossColors.gray500,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ],
                           ),
+                        ),
+                        IconButton(
+                          icon: const Icon(
+                            Icons.close,
+                            size: 24,
+                            color: TossColors.gray600,
+                          ),
+                          onPressed: () => Navigator.pop(context),
                         ),
                       ],
                     ),
-                  ),
-                  IconButton(
-                    icon: const Icon(
-                      Icons.close,
-                      size: 24,
-                      color: TossColors.gray600,
+
+                    const SizedBox(height: 28),
+
+                    // Asset Name Field
+                    _buildTextField(
+                      label: 'Asset Name',
+                      icon: Icons.inventory_2_outlined,
+                      controller: _nameController,
+                      hint: 'e.g., MacBook Pro, Office Desk',
+                      required: true,
+                      enabled: true,
                     ),
-                    onPressed: () => Navigator.pop(context),
+
+                    const SizedBox(height: 24),
+
+                    // Acquisition Date Field
+                    _buildDateField(),
+
+                    const SizedBox(height: 24),
+
+                    // Financial Information Section
+                    _buildFinancialSection(isEdit),
+
+                    const SizedBox(height: 20),
+
+                    // Depreciation Preview
+                    _buildDepreciationPreview(),
+                  ],
+                ),
+              ),
+            ),
+
+            // Fixed bottom buttons
+            Container(
+              padding: EdgeInsets.fromLTRB(
+                TossSpacing.space5,
+                TossSpacing.space3,
+                TossSpacing.space5,
+                TossSpacing.space5 + MediaQuery.of(context).viewInsets.bottom,
+              ),
+              decoration: BoxDecoration(
+                color: TossColors.background,
+                border: Border(
+                  top: BorderSide(
+                    color: TossColors.gray100,
+                    width: 1,
                   ),
-                ],
+                ),
               ),
-
-              const SizedBox(height: 28),
-
-              // Asset Name Field
-              _buildTextField(
-                label: 'Asset Name',
-                icon: Icons.inventory_2_outlined,
-                controller: _nameController,
-                hint: 'e.g., MacBook Pro, Office Desk',
-                required: true,
-                enabled: true,
-              ),
-
-              const SizedBox(height: 24),
-
-              // Acquisition Date Field
-              _buildDateField(),
-
-              const SizedBox(height: 24),
-
-              // Financial Information Section
-              _buildFinancialSection(isEdit),
-
-              const SizedBox(height: 20),
-
-              // Depreciation Preview
-              _buildDepreciationPreview(),
-
-              const SizedBox(height: 28),
-
-              // Action Buttons
-              _buildActionButtons(isEdit),
-
-              const SizedBox(height: TossSpacing.space2),
-            ],
-          ),
+              child: _buildActionButtons(isEdit),
+            ),
+          ],
         ),
       ),
     );

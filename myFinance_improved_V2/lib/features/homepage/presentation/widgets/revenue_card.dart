@@ -8,13 +8,22 @@ import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 import '../../../../shared/themes/toss_shadows.dart';
 import '../../domain/revenue_period.dart';
 
+/// Revenue view tab (Company or Store)
+enum RevenueViewTab { company, store }
+
+/// Provider for selected revenue view tab
+final selectedRevenueTabProvider = StateProvider<RevenueViewTab>((ref) {
+  return RevenueViewTab.company;
+});
+
 class RevenueCard extends ConsumerWidget {
   const RevenueCard({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Watch selected period
+    // Watch selected period and tab
     final selectedPeriod = ref.watch(selectedRevenuePeriodProvider);
+    final selectedTab = ref.watch(selectedRevenueTabProvider);
 
     // Watch revenue data with selected period
     final revenueAsync = ref.watch(revenueProvider(selectedPeriod));
@@ -27,7 +36,7 @@ class RevenueCard extends ConsumerWidget {
           end: Alignment.bottomRight,
           colors: [
             TossColors.primary,
-            TossColors.primary.withOpacity(0.8),
+            TossColors.primary.withValues(alpha: 0.8),
           ],
         ),
         borderRadius: BorderRadius.circular(TossBorderRadius.xxxl),
@@ -53,9 +62,19 @@ class RevenueCard extends ConsumerWidget {
               ],
             ),
 
+            const SizedBox(height: TossSpacing.space3),
+
+            // Company/Store tabs
+            _TabSelector(
+              selectedTab: selectedTab,
+              onTabChanged: (RevenueViewTab tab) {
+                ref.read(selectedRevenueTabProvider.notifier).state = tab;
+              },
+            ),
+
             const SizedBox(height: TossSpacing.space4),
 
-            // Revenue amount
+            // Revenue amount based on selected tab
             revenueAsync.when(
               data: (revenue) => Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -78,15 +97,15 @@ class RevenueCard extends ConsumerWidget {
                         Icon(
                           revenue.isIncreased ? Icons.trending_up : Icons.trending_down,
                           color: revenue.isIncreased
-                              ? TossColors.white.withOpacity(0.9)
-                              : TossColors.white.withOpacity(0.7),
+                              ? TossColors.white.withValues(alpha: 0.9)
+                              : TossColors.white.withValues(alpha: 0.7),
                           size: 16,
                         ),
                         const SizedBox(width: TossSpacing.space1),
                         Text(
                           '${revenue.growthPercentage.toStringAsFixed(1)}% vs ${revenue.period.comparisonText}',
                           style: TossTextStyles.caption.copyWith(
-                            color: TossColors.white.withOpacity(0.8),
+                            color: TossColors.white.withValues(alpha: 0.8),
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -100,7 +119,7 @@ class RevenueCard extends ConsumerWidget {
                   Text(
                     'Last updated: ${_formatLastUpdated(revenue.lastUpdated)}',
                     style: TossTextStyles.caption.copyWith(
-                      color: TossColors.white.withOpacity(0.7),
+                      color: TossColors.white.withValues(alpha: 0.7),
                     ),
                   ),
                 ],
@@ -139,7 +158,7 @@ class _PeriodSelector extends ConsumerWidget {
 
     return Container(
       decoration: BoxDecoration(
-        color: TossColors.white.withOpacity(0.2),
+        color: TossColors.white.withValues(alpha: 0.2),
         borderRadius: BorderRadius.circular(TossBorderRadius.lg),
       ),
       child: PopupMenuButton<RevenuePeriod>(
@@ -194,7 +213,7 @@ class _LoadingRevenue extends StatelessWidget {
           width: 200,
           height: 36,
           decoration: BoxDecoration(
-            color: TossColors.white.withOpacity(0.2),
+            color: TossColors.white.withValues(alpha: 0.2),
             borderRadius: BorderRadius.circular(TossBorderRadius.md),
           ),
         ),
@@ -203,11 +222,70 @@ class _LoadingRevenue extends StatelessWidget {
           width: 150,
           height: 20,
           decoration: BoxDecoration(
-            color: TossColors.white.withOpacity(0.15),
+            color: TossColors.white.withValues(alpha: 0.15),
             borderRadius: BorderRadius.circular(TossBorderRadius.xs),
           ),
         ),
       ],
+    );
+  }
+}
+
+class _TabSelector extends StatelessWidget {
+  final RevenueViewTab selectedTab;
+  final ValueChanged<RevenueViewTab> onTabChanged;
+
+  const _TabSelector({
+    required this.selectedTab,
+    required this.onTabChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: TossColors.white.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+      ),
+      padding: EdgeInsets.all(TossSpacing.space1 / 2),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _buildTab(
+            'Company',
+            RevenueViewTab.company,
+            selectedTab == RevenueViewTab.company,
+          ),
+          _buildTab(
+            'Store',
+            RevenueViewTab.store,
+            selectedTab == RevenueViewTab.store,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTab(String label, RevenueViewTab tab, bool isSelected) {
+    return GestureDetector(
+      onTap: () => onTabChanged(tab),
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: TossSpacing.space3,
+          vertical: TossSpacing.space1,
+        ),
+        decoration: BoxDecoration(
+          color: isSelected ? TossColors.white.withValues(alpha: 0.25) : TossColors.transparent,
+          borderRadius: BorderRadius.circular(TossBorderRadius.md),
+        ),
+        child: Text(
+          label,
+          style: TossTextStyles.bodySmall.copyWith(
+            color: TossColors.white,
+            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+          ),
+        ),
+      ),
     );
   }
 }
@@ -222,7 +300,7 @@ class _ErrorRevenue extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(TossSpacing.space3),
       decoration: BoxDecoration(
-        color: TossColors.error.withOpacity(0.2),
+        color: TossColors.error.withValues(alpha: 0.2),
         borderRadius: BorderRadius.circular(TossBorderRadius.lg),
       ),
       child: Row(

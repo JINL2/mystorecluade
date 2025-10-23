@@ -1,3 +1,4 @@
+import '../../../../core/utils/datetime_utils.dart';
 import '../../domain/entities/fixed_asset.dart';
 import '../../domain/value_objects/asset_financial_info.dart';
 
@@ -13,7 +14,6 @@ class FixedAssetModel {
   final String companyId;
   final String? storeId;
   final String? createdAt;
-  final String status;
 
   const FixedAssetModel({
     this.assetId,
@@ -25,7 +25,6 @@ class FixedAssetModel {
     required this.companyId,
     this.storeId,
     this.createdAt,
-    this.status = 'active',
   });
 
   /// JSON → Model
@@ -40,7 +39,6 @@ class FixedAssetModel {
       companyId: json['company_id'] as String,
       storeId: json['store_id'] as String?,
       createdAt: json['created_at'] as String?,
-      status: json['status'] as String? ?? 'active',
     );
   }
 
@@ -56,7 +54,6 @@ class FixedAssetModel {
       'company_id': companyId,
       'store_id': storeId,
       if (createdAt != null) 'created_at': createdAt,
-      'status': status,
     };
   }
 
@@ -65,7 +62,7 @@ class FixedAssetModel {
     return FixedAsset(
       assetId: assetId,
       assetName: assetName,
-      acquisitionDate: DateTime.parse(acquisitionDate),
+      acquisitionDate: DateTime.parse(acquisitionDate), // Date-only field, no timezone conversion
       financialInfo: AssetFinancialInfo(
         acquisitionCost: acquisitionCost,
         salvageValue: salvageValue,
@@ -73,8 +70,7 @@ class FixedAssetModel {
       ),
       companyId: companyId,
       storeId: storeId,
-      createdAt: createdAt != null ? DateTime.parse(createdAt!) : null,
-      status: status,
+      createdAt: createdAt != null ? DateTimeUtils.toLocal(createdAt!) : null, // Convert UTC to local
     );
   }
 
@@ -83,14 +79,13 @@ class FixedAssetModel {
     return FixedAssetModel(
       assetId: entity.assetId,
       assetName: entity.assetName,
-      acquisitionDate: entity.acquisitionDate.toIso8601String(),
+      acquisitionDate: DateTimeUtils.toDateOnly(entity.acquisitionDate), // Date-only, no timezone conversion
       acquisitionCost: entity.financialInfo.acquisitionCost,
       salvageValue: entity.financialInfo.salvageValue,
       usefulLifeYears: entity.financialInfo.usefulLifeYears,
       companyId: entity.companyId,
       storeId: entity.storeId,
-      createdAt: entity.createdAt?.toIso8601String(),
-      status: entity.status,
+      createdAt: entity.createdAt != null ? DateTimeUtils.toUtc(entity.createdAt!) : null, // Convert local to UTC
     );
   }
 }

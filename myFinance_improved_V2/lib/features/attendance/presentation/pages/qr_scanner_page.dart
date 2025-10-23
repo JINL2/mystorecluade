@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:intl/intl.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
 import '../../../../app/providers/auth_providers.dart';
+import '../../../../core/utils/datetime_utils.dart';
 import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
@@ -13,7 +13,6 @@ import '../../../../shared/themes/toss_text_styles.dart';
 import '../../../../shared/widgets/common/toss_loading_view.dart';
 import '../../../../shared/widgets/common/toss_scaffold.dart';
 import '../../domain/entities/attendance_location.dart';
-import '../../domain/repositories/attendance_repository.dart';
 import '../providers/attendance_provider.dart';
 class QRScannerPage extends ConsumerStatefulWidget {
   const QRScannerPage({super.key});
@@ -133,7 +132,7 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
               ),
               const SizedBox(height: TossSpacing.space2),
               Text(
-                DateFormat('MMM dd, yyyy • HH:mm').format(DateTime.now()),
+                DateTimeUtils.format(DateTime.now()),
                 style: TossTextStyles.body.copyWith(
                   color: TossColors.gray500,
                 ),
@@ -226,9 +225,9 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
                 
                 // Get current date and time
                 final now = DateTime.now();
-                final requestDate = DateFormat('yyyy-MM-dd').format(now);
-                // Use ISO 8601 format for the time parameter
-                final currentTime = now.toIso8601String();
+                final requestDate = DateTimeUtils.toDateOnly(now);
+                // Convert to UTC for database storage
+                final currentTime = DateTimeUtils.toUtc(now);
                 
                 // Submit attendance
                 final attendanceRepository = ref.read(attendanceRepositoryProvider);

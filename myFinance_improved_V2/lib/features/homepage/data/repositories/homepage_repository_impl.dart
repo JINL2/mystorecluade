@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import '../../domain/entities/category_with_features.dart';
 import '../../domain/entities/revenue.dart';
 import '../../domain/entities/top_feature.dart';
@@ -26,7 +25,6 @@ class HomepageRepositoryImpl implements HomepageRepository {
     String? storeId,
     required RevenuePeriod period,
   }) async {
-
     try {
       final revenueModel = await _dataSource.getRevenue(
         companyId: companyId,
@@ -36,9 +34,7 @@ class HomepageRepositoryImpl implements HomepageRepository {
 
       final revenue = revenueModel.toDomain();
       return revenue;
-    } catch (e, stack) {
-      debugPrint('🔵 [Repository.getRevenue] ERROR: $e');
-      debugPrint('🔵 [Repository.getRevenue] Stack: $stack');
+    } catch (e) {
       throw Exception('Failed to fetch revenue: $e');
     }
   }
@@ -59,16 +55,11 @@ class HomepageRepositoryImpl implements HomepageRepository {
 
   @override
   Future<List<CategoryWithFeatures>> getCategoriesWithFeatures() async {
-    debugPrint('🔵 [Repository.getCategoriesWithFeatures] Called');
-
     try {
       final categoriesModels = await _dataSource.getCategoriesWithFeatures();
-
       final categories = categoriesModels.map((model) => model.toDomain()).toList();
       return categories;
-    } catch (e, stack) {
-      debugPrint('🔵 [Repository.getCategoriesWithFeatures] ERROR: $e');
-      debugPrint('🔵 [Repository.getCategoriesWithFeatures] Stack: $stack');
+    } catch (e) {
       throw Exception('Failed to fetch categories with features: $e');
     }
   }
@@ -78,7 +69,6 @@ class HomepageRepositoryImpl implements HomepageRepository {
     required String userId,
     required String companyId,
   }) async {
-
     try {
       final topFeaturesModels = await _dataSource.getQuickAccessFeatures(
         userId: userId,
@@ -87,9 +77,7 @@ class HomepageRepositoryImpl implements HomepageRepository {
 
       final features = topFeaturesModels.map((model) => model.toDomain()).toList();
       return features;
-    } catch (e, stack) {
-      debugPrint('🔵 [Repository.getQuickAccessFeatures] ERROR: $e');
-      debugPrint('🔵 [Repository.getQuickAccessFeatures] Stack: $stack');
+    } catch (e) {
       throw Exception('Failed to fetch quick access features: $e');
     }
   }

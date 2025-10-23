@@ -98,10 +98,12 @@ class AttendanceDatasource {
             'overtime_total': 0,
           };
         }
-        return response.first as Map<String, dynamic>;
+        final firstItem = response.first as Map<String, dynamic>;
+        return _convertToLocalTime(firstItem);
       }
 
-      return response as Map<String, dynamic>;
+      final result = response as Map<String, dynamic>;
+      return _convertToLocalTime(result);
     } catch (e) {
       throw AttendanceServerException(e.toString());
     }
@@ -120,8 +122,8 @@ class AttendanceDatasource {
           .select('*, store_shifts(*)')
           .eq('user_id', userId)
           .eq('store_id', storeId)
-          .gte('request_date', startDate.toIso8601String())
-          .lte('request_date', endDate.toIso8601String())
+          .gte('request_date', DateTimeUtils.toDateOnly(startDate))
+          .lte('request_date', DateTimeUtils.toDateOnly(endDate))
           .order('request_date', ascending: true);
 
       // Convert UTC times to local time
@@ -270,10 +272,7 @@ class AttendanceDatasource {
           .select('*, store_shifts(*)')
           .eq('user_id', userId)
           .eq('store_id', storeId)
-          .eq(
-            'request_date',
-            '${today.year}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}',
-          )
+          .eq('request_date', DateTimeUtils.toDateOnly(today))
           .maybeSingle();
 
       // Convert UTC times to local time

@@ -235,8 +235,6 @@ class _HomepageState extends ConsumerState<Homepage> {
             fit: BoxFit.cover,
             errorBuilder: (context, error, stackTrace) {
               // If image fails to load, show initials
-              debugPrint('🔴 [Homepage] Profile image failed to load: $error');
-              debugPrint('🔴 [Homepage] Stack trace: $stackTrace');
               return Center(
                 child: Text(
                   _getUserInitials(),
@@ -252,7 +250,6 @@ class _HomepageState extends ConsumerState<Homepage> {
                 return child;
               }
               // Show loading indicator while image is loading
-              debugPrint('🟡 [Homepage] Loading profile image: ${loadingProgress.cumulativeBytesLoaded}/${loadingProgress.expectedTotalBytes}');
               return Center(
                 child: SizedBox(
                   width: 20,
@@ -272,8 +269,6 @@ class _HomepageState extends ConsumerState<Homepage> {
         ),
       );
     }
-
-    debugPrint('🟡 [Homepage._buildProfileAvatar] Profile image is empty, showing initials');
 
     // Fallback to initials
     return CircleAvatar(
@@ -332,8 +327,6 @@ class _HomepageState extends ConsumerState<Homepage> {
   /// 4. NO manual pop() - let the menu close naturally during navigation
   Future<void> _handleLogout() async {
     try {
-      debugPrint('🔵 [Homepage] Logging out...');
-
       // ✅ Read all providers BEFORE logout starts
       // This prevents "Cannot use ref after dispose" errors
       final authService = ref.read(authServiceProvider);
@@ -373,13 +366,11 @@ class _HomepageState extends ConsumerState<Homepage> {
       // 4. Trigger GoRouter redirect (auth state changes to null)
       // 5. PopupMenu will close automatically during navigation
       await authService.signOut();
-      debugPrint('🔵 [Homepage] Auth logout completed');
 
       // ✅ Clear app state AFTER auth logout
       if (mounted) {
         final appStateNotifier = ref.read(appStateProvider.notifier);
         appStateNotifier.signOut();
-        debugPrint('🔵 [Homepage] App state cleared');
       }
 
       // Note: Widget is disposed here due to GoRouter redirect
@@ -394,8 +385,6 @@ class _HomepageState extends ConsumerState<Homepage> {
       // No manual navigation needed!
 
     } catch (e) {
-      debugPrint('🔵 [Homepage] Logout failed: $e');
-
       if (mounted) {
         ScaffoldMessenger.of(context).hideCurrentSnackBar();
         ScaffoldMessenger.of(context).showSnackBar(
@@ -413,14 +402,11 @@ class _HomepageState extends ConsumerState<Homepage> {
   }
 
   Future<void> _handleRefresh() async {
-    debugPrint('🔵 [Homepage] Refreshing all data...');
-
     final appStateNotifier = ref.read(appStateProvider.notifier);
 
     try {
       // Clear AppState cache to force fresh fetch
       appStateNotifier.updateCategoryFeatures([]);
-      debugPrint('🔵 [Homepage] Cleared category cache');
 
       // Invalidate all homepage providers to refresh data
       ref.invalidate(userCompaniesProvider);
@@ -433,8 +419,6 @@ class _HomepageState extends ConsumerState<Homepage> {
         ref.read(userCompaniesProvider.future),
         ref.read(categoriesWithFeaturesProvider.future),
       ]);
-
-      debugPrint('🔵 [Homepage] Refresh completed successfully');
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -449,8 +433,6 @@ class _HomepageState extends ConsumerState<Homepage> {
         );
       }
     } catch (e) {
-      debugPrint('🔵 [Homepage] Refresh failed: $e');
-
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

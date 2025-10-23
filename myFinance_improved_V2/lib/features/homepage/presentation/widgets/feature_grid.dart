@@ -70,8 +70,30 @@ class _CategorySection extends StatelessWidget {
 
   final CategoryWithFeatures category;
 
+  /// Features to hide from display (not delete)
+  static const List<String> _hiddenFeatures = [
+    'Account Mapping',
+    'Delete Transaction',
+    'Export Reports',
+    'Cash Balance',
+    'Income Statement',
+    'Manager Transaction Template',
+    'Bank Vault Ending',
+    'Cash Control',
+  ];
+
   @override
   Widget build(BuildContext context) {
+    // Filter out hidden features
+    final visibleFeatures = category.features
+        .where((feature) => !_hiddenFeatures.contains(feature.featureName))
+        .toList();
+
+    // If all features are hidden, don't show the category
+    if (visibleFeatures.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
     return Container(
       margin: const EdgeInsets.only(bottom: TossSpacing.space4),
       padding: const EdgeInsets.all(TossSpacing.space5),
@@ -117,11 +139,11 @@ class _CategorySection extends StatelessWidget {
           ),
           const SizedBox(height: TossSpacing.space4),
 
-          // Features List
-          ...category.features.asMap().entries.map((entry) {
+          // Features List (only visible features)
+          ...visibleFeatures.asMap().entries.map((entry) {
             final index = entry.key;
             final feature = entry.value;
-            final isLast = index == category.features.length - 1;
+            final isLast = index == visibleFeatures.length - 1;
 
             return Column(
               children: [
@@ -159,12 +181,7 @@ class _FeatureListItem extends StatelessWidget {
           final route = feature.featureRoute.startsWith('/')
               ? feature.featureRoute
               : '/${feature.featureRoute}';
-          print('🔵 [FeatureGrid] Feature "${feature.featureName}" 클릭됨');
-          print('🔵 [FeatureGrid] 원본 route: "${feature.featureRoute}"');
-          print('🔵 [FeatureGrid] 변환된 route: "$route"');
-          print('🔵 [FeatureGrid] context.push() 호출 시작...');
           context.push(route);
-          print('🔵 [FeatureGrid] context.push() 호출 완료');
         },
         borderRadius: BorderRadius.circular(TossBorderRadius.lg),
         splashColor: TossColors.primary.withOpacity(0.08),
