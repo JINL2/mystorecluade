@@ -333,7 +333,7 @@ class _TossSelectionBottomSheetState extends State<TossSelectionBottomSheet> {
 
         FocusScope.of(context).unfocus();
         widget.onItemSelected?.call(item);
-        Navigator.pop(context);
+        Navigator.pop(context, item);  // Return the selected item
       },
       child: Container(
         padding: const EdgeInsets.symmetric(

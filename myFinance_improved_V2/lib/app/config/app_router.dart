@@ -14,12 +14,11 @@ import '../../features/auth/presentation/pages/join_business_page.dart';
 import '../../features/auth/presentation/pages/login_page.dart';
 import '../../features/auth/presentation/pages/signup_page.dart';
 import '../../features/homepage/presentation/pages/homepage.dart';
-import '../../features/transaction_template_refectore/presentation/pages/transaction_template_page.dart';
+import '../../features/transaction_template/presentation/pages/transaction_template_page.dart';
 import '../../features/cash_ending/presentation/pages/cash_ending_page.dart';
 import '../../features/cash_location/presentation/pages/cash_location_page.dart';
-// TODO: Re-enable after fixing attendance errors (31 compilation errors)
-// import '../../features/attendance/presentation/pages/attendance_main_page.dart';
-// import '../../features/attendance/presentation/pages/qr_scanner_page.dart';
+import '../../features/attendance/presentation/pages/attendance_main_page.dart';
+import '../../features/attendance/presentation/pages/qr_scanner_page.dart';
 import '../../features/cash_location/presentation/pages/account_detail_page.dart';
 import '../../features/time_table_manage/presentation/pages/time_table_manage_page.dart';
 import '../../features/register_denomination/presentation/pages/register_denomination_page.dart';
@@ -29,6 +28,13 @@ import '../../features/my_page/presentation/pages/edit_profile_page.dart';
 import '../../features/my_page/presentation/pages/notifications_settings_page.dart';
 import '../../features/my_page/presentation/pages/privacy_security_page.dart';
 import '../../features/journal_input/presentation/pages/journal_input_page.dart';
+import '../../features/transaction_history/presentation/pages/transaction_history_page.dart';
+import '../../features/store_shift/presentation/pages/store_shift_page.dart';
+import '../../features/delegate_role/presentation/pages/delegate_role_page.dart';
+import '../../features/balance_sheet/presentation/pages/balance_sheet_page.dart';
+import '../../features/counter_party/presentation/pages/counter_party_page.dart';
+import '../../features/add_fix_asset/presentation/pages/add_fix_asset_page.dart';
+import '../../features/debt_control/presentation/pages/smart_debt_control_page.dart';
 import '../../shared/themes/toss_colors.dart';
 import '../../shared/themes/toss_spacing.dart';
 import '../../shared/themes/toss_text_styles.dart';
@@ -335,19 +341,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             name: 'timetableManage',
             builder: (context, state) => const TimeTableManagePage(),
           ),
+          // Transaction Template (nested route)
+          GoRoute(
+            path: 'transactionTemplate',
+            name: 'transactionTemplate',
+            builder: (context, state) => const TransactionTemplatePage(),
+          ),
         ],
-      ),
-
-      // Test Route (독립 route) - TransactionTemplatePage 연결
-      GoRoute(
-        path: '/test',
-        name: 'test',
-        builder: (context, state) {
-          print('🟢 [AppRouter] /test route builder 호출됨!');
-          print('🟢 [AppRouter] state.uri: ${state.uri}');
-          print('🟢 [AppRouter] state.matchedLocation: ${state.matchedLocation}');
-          return const TransactionTemplatePage();
-        },
       ),
 
       // Auth Routes
@@ -456,6 +456,22 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const EmployeeSettingPageV2(),
       ),
 
+      // Transaction History Route
+      GoRoute(
+        path: '/transactionHistory',
+        name: 'transactionHistory',
+        builder: (context, state) {
+          final counterpartyId = state.uri.queryParameters['counterpartyId'];
+          final counterpartyName = state.uri.queryParameters['counterpartyName'];
+          final scope = state.uri.queryParameters['scope'];
+          return TransactionHistoryPage(
+            counterpartyId: counterpartyId,
+            counterpartyName: counterpartyName,
+            scope: scope,
+          );
+        },
+      ),
+
       // My Page Routes
       GoRoute(
         path: '/my-page',
@@ -478,20 +494,61 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const PrivacySecurityPage(),
       ),
 
-      // Attendance Routes - TODO: Re-enable after fixing 31 compilation errors
-      // Temporarily disabled due to compilation errors in attendance module
-      // GoRoute(
-      //   path: '/attendance',
-      //   name: 'attendance',
-      //   builder: (context, state) => const AttendanceMainPage(),
-      //   routes: [
-      //     GoRoute(
-      //       path: 'qr-scanner',
-      //       name: 'qr-scanner',
-      //       builder: (context, state) => const QRScannerPage(),
-      //     ),
-      //   ],
-      // ),
+      // Store Shift Route
+      GoRoute(
+        path: '/storeShiftSetting',
+        name: 'storeShiftSetting',
+        builder: (context, state) => const StoreShiftPage(),
+      ),
+
+      // Delegate Role Route
+      GoRoute(
+        path: '/delegateRolePage',
+        name: 'delegateRolePage',
+        builder: (context, state) => const DelegateRolePage(),
+      ),
+
+      // Balance Sheet Route
+      GoRoute(
+        path: '/balanceSheet',
+        name: 'balanceSheet',
+        builder: (context, state) => const BalanceSheetPage(),
+      ),
+
+      // Counter Party Route
+      GoRoute(
+        path: '/registerCounterparty',
+        name: 'registerCounterparty',
+        builder: (context, state) => const CounterPartyPage(),
+      ),
+
+      // Add Fix Asset Route
+      GoRoute(
+        path: '/addFixAsset',
+        name: 'addFixAsset',
+        builder: (context, state) => const AddFixAssetPage(),
+      ),
+
+      // Debt Control Route
+      GoRoute(
+        path: '/debtControl',
+        name: 'debtControl',
+        builder: (context, state) => const SmartDebtControlPage(),
+      ),
+
+      // Attendance Routes
+      GoRoute(
+        path: '/attendance',
+        name: 'attendance',
+        builder: (context, state) => const AttendanceMainPage(),
+        routes: [
+          GoRoute(
+            path: 'qr-scanner',
+            name: 'qr-scanner',
+            builder: (context, state) => const QRScannerPage(),
+          ),
+        ],
+      ),
     ],
   );
 

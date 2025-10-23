@@ -5,8 +5,8 @@ import '../../../../app/providers/app_state_provider.dart';
 import '../../../../app/providers/auth_providers.dart';
 import '../../data/datasources/attendance_datasource.dart';
 import '../../data/repositories/attendance_repository_impl.dart';
-import '../../domain/entities/shift_overview.dart';
 import '../../domain/repositories/attendance_repository.dart';
+import 'states/shift_overview_state.dart';
 
 // ========================================
 // Data Layer Providers
@@ -32,45 +32,6 @@ final attendanceRepositoryProvider = Provider<AttendanceRepository>((ref) {
 // ========================================
 // Presentation Layer Providers
 // ========================================
-
-/// Shift Overview State
-class ShiftOverviewState {
-  final ShiftOverview overview;
-  final bool isLoading;
-  final String? error;
-
-  const ShiftOverviewState({
-    required this.overview,
-    this.isLoading = false,
-    this.error,
-  });
-
-  factory ShiftOverviewState.initial() {
-    return ShiftOverviewState(
-      overview: ShiftOverview.empty(''),
-      isLoading: false,
-    );
-  }
-
-  factory ShiftOverviewState.loading() {
-    return ShiftOverviewState(
-      overview: ShiftOverview.empty(''),
-      isLoading: true,
-    );
-  }
-
-  ShiftOverviewState copyWith({
-    ShiftOverview? overview,
-    bool? isLoading,
-    String? error,
-  }) {
-    return ShiftOverviewState(
-      overview: overview ?? this.overview,
-      isLoading: isLoading ?? this.isLoading,
-      error: error,
-    );
-  }
-}
 
 /// Shift Overview Provider
 final shiftOverviewProvider =

@@ -30,8 +30,8 @@ final authStateProvider = StreamProvider<User?>((ref) {
   return Supabase.instance.client.auth.onAuthStateChange.map((event) => event.session?.user);
 });
 
-// Current user profile provider
-final currentUserProfileProvider = FutureProvider<UserProfile?>((ref) async {
+// Current user profile provider (autoDispose to refresh on every page visit)
+final currentUserProfileProvider = FutureProvider.autoDispose<UserProfile?>((ref) async {
   final authState = await ref.watch(authStateProvider.future);
 
   if (authState == null) return null;
@@ -56,8 +56,8 @@ final currentUserProfileProvider = FutureProvider<UserProfile?>((ref) async {
   }
 });
 
-// Business dashboard provider
-final businessDashboardProvider = FutureProvider<BusinessDashboard?>((ref) async {
+// Business dashboard provider (autoDispose to refresh on every page visit)
+final businessDashboardProvider = FutureProvider.autoDispose<BusinessDashboard?>((ref) async {
   final authState = await ref.watch(authStateProvider.future);
 
   if (authState == null) return null;

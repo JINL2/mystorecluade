@@ -71,10 +71,15 @@ class _EmployeeSettingPageV2State extends ConsumerState<EmployeeSettingPageV2>
     _filterAnimationController.forward();
     _cardAnimationController.forward();
     
-    // Reset loading states
+    // Reset loading states and refresh data on page entry
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(isUpdatingSalaryProvider.notifier).state = false;
       ref.read(isSyncingProvider.notifier).state = false;
+
+      // Invalidate providers to force fresh data load from database
+      ref.invalidate(employeeSalaryListProvider);
+      ref.invalidate(currencyTypesProvider);
+      ref.invalidate(rolesProvider);
     });
   }
 
@@ -145,6 +150,7 @@ class _EmployeeSettingPageV2State extends ConsumerState<EmployeeSettingPageV2>
       backgroundColor: TossColors.gray100,
       appBar: TossAppBar1(
         title: 'Team Management',
+        backgroundColor: TossColors.gray100,
       ),
       body: RefreshIndicator(
         onRefresh: _handleRefresh,

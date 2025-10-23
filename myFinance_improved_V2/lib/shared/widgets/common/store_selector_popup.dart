@@ -5,7 +5,7 @@ import '../../../app/providers/app_state_provider.dart';
 import '../../themes/toss_colors.dart';
 import '../../themes/toss_text_styles.dart';
 import '../../themes/toss_spacing.dart';
-import 'toss_bottom_sheet.dart';
+import '../toss/toss_bottom_sheet.dart';
 
 /// Store Selector Popup
 ///
@@ -47,7 +47,7 @@ class StoreSelectorPopup extends ConsumerWidget {
 
     return TossBottomSheet(
       title: '매장 선택',
-      child: stores.isEmpty
+      content: stores.isEmpty
           ? _buildEmptyState()
           : _buildStoreList(context, stores),
     );
@@ -75,7 +75,7 @@ class StoreSelectorPopup extends ConsumerWidget {
 
   Widget _buildEmptyState() {
     return Padding(
-      padding: const EdgeInsets.all(TossSpacing.large),
+      padding: const EdgeInsets.all(TossSpacing.space6),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -84,21 +84,21 @@ class StoreSelectorPopup extends ConsumerWidget {
             size: 64,
             color: TossColors.gray400,
           ),
-          const SizedBox(height: TossSpacing.medium),
+          const SizedBox(height: TossSpacing.space4),
           Text(
             '등록된 매장이 없습니다',
             style: TossTextStyles.h4.copyWith(
               color: TossColors.gray600,
             ),
           ),
-          const SizedBox(height: TossSpacing.small),
+          const SizedBox(height: TossSpacing.space2),
           Text(
             '매장을 먼저 등록해주세요',
             style: TossTextStyles.body.copyWith(
               color: TossColors.gray500,
             ),
           ),
-          const SizedBox(height: TossSpacing.large),
+          const SizedBox(height: TossSpacing.space6),
         ],
       ),
     );
@@ -110,7 +110,7 @@ class StoreSelectorPopup extends ConsumerWidget {
   ) {
     return ListView.separated(
       shrinkWrap: true,
-      padding: const EdgeInsets.all(TossSpacing.medium),
+      padding: const EdgeInsets.all(TossSpacing.space4),
       itemCount: stores.length,
       separatorBuilder: (context, index) => Divider(
         height: 1,
@@ -124,8 +124,8 @@ class StoreSelectorPopup extends ConsumerWidget {
 
         return ListTile(
           contentPadding: const EdgeInsets.symmetric(
-            horizontal: TossSpacing.medium,
-            vertical: TossSpacing.small,
+            horizontal: TossSpacing.space4,
+            vertical: TossSpacing.space2,
           ),
           leading: Container(
             width: 48,
