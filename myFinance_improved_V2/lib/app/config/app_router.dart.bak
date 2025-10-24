@@ -36,8 +36,6 @@ import '../../features/counter_party/presentation/pages/counter_party_page.dart'
 import '../../features/add_fix_asset/presentation/pages/add_fix_asset_page.dart';
 import '../../features/debt_control/presentation/pages/smart_debt_control_page.dart';
 import '../../features/sale_product/presentation/pages/sale_product_page.dart';
-import '../../features/inventory_management/presentation/pages/inventory_management_page.dart';
-import '../../features/sales_invoice/presentation/pages/sales_invoice_page.dart';
 import '../../shared/themes/toss_colors.dart';
 import '../../shared/themes/toss_spacing.dart';
 import '../../shared/themes/toss_text_styles.dart';
@@ -539,13 +537,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const SmartDebtControlPage(),
       ),
 
-      // Inventory Management Route
-      GoRoute(
-        path: '/inventoryManagement',
-        name: 'inventoryManagement',
-        builder: (context, state) => const InventoryManagementPage(),
-      ),
-
       // Attendance Routes
       GoRoute(
         path: '/attendance',
@@ -565,13 +556,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '/saleProduct',
         name: 'saleProduct',
         builder: (context, state) => const SaleProductPage(),
-      ),
-
-      // Sales Invoice Route
-      GoRoute(
-        path: '/salesInvoice',
-        name: 'salesInvoice',
-        builder: (context, state) => const SalesInvoicePage(),
       ),
     ],
   );

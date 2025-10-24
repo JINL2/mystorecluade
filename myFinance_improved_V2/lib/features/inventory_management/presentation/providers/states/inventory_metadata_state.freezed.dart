@@ -1,0 +1,189 @@
+// coverage:ignore-file
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint
+// ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
+
+part of 'inventory_metadata_state.dart';
+
+// **************************************************************************
+// FreezedGenerator
+// **************************************************************************
+
+T _$identity<T>(T value) => value;
+
+final _privateConstructorUsedError = UnsupportedError(
+    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
+
+/// @nodoc
+mixin _$InventoryMetadataState {
+  InventoryMetadata? get metadata => throw _privateConstructorUsedError;
+  bool get isLoading => throw _privateConstructorUsedError;
+  String? get error => throw _privateConstructorUsedError;
+
+  /// Create a copy of InventoryMetadataState
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $InventoryMetadataStateCopyWith<InventoryMetadataState> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $InventoryMetadataStateCopyWith<$Res> {
+  factory $InventoryMetadataStateCopyWith(InventoryMetadataState value,
+          $Res Function(InventoryMetadataState) then) =
+      _$InventoryMetadataStateCopyWithImpl<$Res, InventoryMetadataState>;
+  @useResult
+  $Res call({InventoryMetadata? metadata, bool isLoading, String? error});
+}
+
+/// @nodoc
+class _$InventoryMetadataStateCopyWithImpl<$Res,
+        $Val extends InventoryMetadataState>
+    implements $InventoryMetadataStateCopyWith<$Res> {
+  _$InventoryMetadataStateCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of InventoryMetadataState
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? metadata = freezed,
+    Object? isLoading = null,
+    Object? error = freezed,
+  }) {
+    return _then(_value.copyWith(
+      metadata: freezed == metadata
+          ? _value.metadata
+          : metadata // ignore: cast_nullable_to_non_nullable
+              as InventoryMetadata?,
+      isLoading: null == isLoading
+          ? _value.isLoading
+          : isLoading // ignore: cast_nullable_to_non_nullable
+              as bool,
+      error: freezed == error
+          ? _value.error
+          : error // ignore: cast_nullable_to_non_nullable
+              as String?,
+    ) as $Val);
+  }
+}
+
+/// @nodoc
+abstract class _$$InventoryMetadataStateImplCopyWith<$Res>
+    implements $InventoryMetadataStateCopyWith<$Res> {
+  factory _$$InventoryMetadataStateImplCopyWith(
+          _$InventoryMetadataStateImpl value,
+          $Res Function(_$InventoryMetadataStateImpl) then) =
+      __$$InventoryMetadataStateImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call({InventoryMetadata? metadata, bool isLoading, String? error});
+}
+
+/// @nodoc
+class __$$InventoryMetadataStateImplCopyWithImpl<$Res>
+    extends _$InventoryMetadataStateCopyWithImpl<$Res,
+        _$InventoryMetadataStateImpl>
+    implements _$$InventoryMetadataStateImplCopyWith<$Res> {
+  __$$InventoryMetadataStateImplCopyWithImpl(
+      _$InventoryMetadataStateImpl _value,
+      $Res Function(_$InventoryMetadataStateImpl) _then)
+      : super(_value, _then);
+
+  /// Create a copy of InventoryMetadataState
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? metadata = freezed,
+    Object? isLoading = null,
+    Object? error = freezed,
+  }) {
+    return _then(_$InventoryMetadataStateImpl(
+      metadata: freezed == metadata
+          ? _value.metadata
+          : metadata // ignore: cast_nullable_to_non_nullable
+              as InventoryMetadata?,
+      isLoading: null == isLoading
+          ? _value.isLoading
+          : isLoading // ignore: cast_nullable_to_non_nullable
+              as bool,
+      error: freezed == error
+          ? _value.error
+          : error // ignore: cast_nullable_to_non_nullable
+              as String?,
+    ));
+  }
+}
+
+/// @nodoc
+
+class _$InventoryMetadataStateImpl extends _InventoryMetadataState {
+  const _$InventoryMetadataStateImpl(
+      {this.metadata, this.isLoading = false, this.error})
+      : super._();
+
+  @override
+  final InventoryMetadata? metadata;
+  @override
+  @JsonKey()
+  final bool isLoading;
+  @override
+  final String? error;
+
+  @override
+  String toString() {
+    return 'InventoryMetadataState(metadata: $metadata, isLoading: $isLoading, error: $error)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$InventoryMetadataStateImpl &&
+            (identical(other.metadata, metadata) ||
+                other.metadata == metadata) &&
+            (identical(other.isLoading, isLoading) ||
+                other.isLoading == isLoading) &&
+            (identical(other.error, error) || other.error == error));
+  }
+
+  @override
+  int get hashCode => Object.hash(runtimeType, metadata, isLoading, error);
+
+  /// Create a copy of InventoryMetadataState
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$InventoryMetadataStateImplCopyWith<_$InventoryMetadataStateImpl>
+      get copyWith => __$$InventoryMetadataStateImplCopyWithImpl<
+          _$InventoryMetadataStateImpl>(this, _$identity);
+}
+
+abstract class _InventoryMetadataState extends InventoryMetadataState {
+  const factory _InventoryMetadataState(
+      {final InventoryMetadata? metadata,
+      final bool isLoading,
+      final String? error}) = _$InventoryMetadataStateImpl;
+  const _InventoryMetadataState._() : super._();
+
+  @override
+  InventoryMetadata? get metadata;
+  @override
+  bool get isLoading;
+  @override
+  String? get error;
+
+  /// Create a copy of InventoryMetadataState
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$InventoryMetadataStateImplCopyWith<_$InventoryMetadataStateImpl>
+      get copyWith => throw _privateConstructorUsedError;
+}
