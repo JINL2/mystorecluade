@@ -119,7 +119,7 @@ class _BankTabState extends ConsumerState<BankTab> {
         });
       }
     } catch (e) {
-      debugPrint('❌ Error loading stock flows: $e');
+      // Error loading stock flows
     } finally {
       if (mounted) {
         setState(() {
@@ -135,7 +135,7 @@ class _BankTabState extends ConsumerState<BankTab> {
     _loadStockFlows();
   }
   void _showFlowDetails(ActualFlow flow) {
-    debugPrint('Show details for flow: ${flow.flowId}');
+    // TODO: Implement flow details bottom sheet
   }
   @override
   Widget build(BuildContext context) {

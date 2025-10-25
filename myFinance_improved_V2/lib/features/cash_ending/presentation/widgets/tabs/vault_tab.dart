@@ -166,7 +166,7 @@ class _VaultTabState extends ConsumerState<VaultTab> {
         });
       }
     } catch (e) {
-      debugPrint('❌ Error loading stock flows: $e');
+      // Error loading stock flows
     } finally {
       if (mounted) {
         setState(() {
@@ -185,7 +185,7 @@ class _VaultTabState extends ConsumerState<VaultTab> {
   }
 
   void _showFlowDetails(ActualFlow flow) {
-    debugPrint('Show details for flow: ${flow.flowId}');
+    // TODO: Implement flow details bottom sheet
   }
 
   TextEditingController _getController(String currencyId, String denominationId) {

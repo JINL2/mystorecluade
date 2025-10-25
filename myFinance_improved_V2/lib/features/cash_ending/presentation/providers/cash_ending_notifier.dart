@@ -1,6 +1,5 @@
 // lib/features/cash_ending/presentation/providers/cash_ending_notifier.dart
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/repositories/cash_ending_repository.dart';
 import '../../domain/repositories/location_repository.dart';
@@ -26,7 +25,7 @@ class CashEndingNotifier extends StateNotifier<CashEndingState> {
 
   /// Load stores for a company
   Future<void> loadStores(String companyId) async {
-    state = state.copyWith(isLoadingStores: true, clearError: true);
+    state = state.copyWith(isLoadingStores: true, errorMessage: null);
 
     try {
       final stores = await _locationRepository.getStores(companyId);
@@ -37,7 +36,7 @@ class CashEndingNotifier extends StateNotifier<CashEndingState> {
     } catch (e) {
       state = state.copyWith(
         isLoadingStores: false,
-        error: e is CashEndingException ? e.message : 'Failed to load stores',
+        errorMessage: e is CashEndingException ? e.message : 'Failed to load stores',
       );
     }
   }
@@ -50,11 +49,11 @@ class CashEndingNotifier extends StateNotifier<CashEndingState> {
   }) async {
     // Set appropriate loading state
     if (locationType == 'cash') {
-      state = state.copyWith(isLoadingCashLocations: true, clearError: true);
+      state = state.copyWith(isLoadingCashLocations: true, errorMessage: null);
     } else if (locationType == 'bank') {
-      state = state.copyWith(isLoadingBankLocations: true, clearError: true);
+      state = state.copyWith(isLoadingBankLocations: true, errorMessage: null);
     } else if (locationType == 'vault') {
-      state = state.copyWith(isLoadingVaultLocations: true, clearError: true);
+      state = state.copyWith(isLoadingVaultLocations: true, errorMessage: null);
     }
 
     try {
@@ -63,11 +62,6 @@ class CashEndingNotifier extends StateNotifier<CashEndingState> {
         locationType: locationType,
         storeId: storeId,
       );
-
-      // Debug logging for location data
-      if (locations.isNotEmpty) {
-      } else {
-      }
 
       // Update appropriate state based on type
       if (locationType == 'cash') {
@@ -96,22 +90,22 @@ class CashEndingNotifier extends StateNotifier<CashEndingState> {
         );
       }
     } catch (e) {
-      final errorMessage =
+      final errorMsg =
           e is CashEndingException ? e.message : 'Failed to load $locationType locations';
 
       if (locationType == 'cash') {
-        state = state.copyWith(isLoadingCashLocations: false, error: errorMessage);
+        state = state.copyWith(isLoadingCashLocations: false, errorMessage: errorMsg);
       } else if (locationType == 'bank') {
-        state = state.copyWith(isLoadingBankLocations: false, error: errorMessage);
+        state = state.copyWith(isLoadingBankLocations: false, errorMessage: errorMsg);
       } else if (locationType == 'vault') {
-        state = state.copyWith(isLoadingVaultLocations: false, error: errorMessage);
+        state = state.copyWith(isLoadingVaultLocations: false, errorMessage: errorMsg);
       }
     }
   }
 
   /// Load company currencies with denominations
   Future<void> loadCurrencies(String companyId) async {
-    state = state.copyWith(isLoadingCurrencies: true, clearError: true);
+    state = state.copyWith(isLoadingCurrencies: true, errorMessage: null);
 
     try {
       final currencies = await _currencyRepository.getCompanyCurrencies(companyId);
@@ -129,14 +123,14 @@ class CashEndingNotifier extends StateNotifier<CashEndingState> {
     } catch (e) {
       state = state.copyWith(
         isLoadingCurrencies: false,
-        error: e is CashEndingException ? e.message : 'Failed to load currencies',
+        errorMessage: e is CashEndingException ? e.message : 'Failed to load currencies',
       );
     }
   }
 
   /// Load recent cash endings for a location
   Future<void> loadRecentCashEndings(String locationId) async {
-    state = state.copyWith(isLoadingRecentEndings: true, clearError: true);
+    state = state.copyWith(isLoadingRecentEndings: true, errorMessage: null);
 
     try {
       final recentEndings = await _cashEndingRepository.getCashEndingHistory(
@@ -151,20 +145,23 @@ class CashEndingNotifier extends StateNotifier<CashEndingState> {
     } catch (e) {
       state = state.copyWith(
         isLoadingRecentEndings: false,
-        error: e is CashEndingException ? e.message : 'Failed to load recent cash endings',
+        errorMessage: e is CashEndingException ? e.message : 'Failed to load recent cash endings',
       );
     }
   }
 
   /// Save cash ending
   Future<bool> saveCashEnding(CashEnding cashEnding) async {
-    state = state.copyWith(isSaving: true, clearError: true);
+    state = state.copyWith(isSaving: true, errorMessage: null);
 
     try {
 
       await _cashEndingRepository.saveCashEnding(cashEnding);
 
-      state = state.copyWith(isSaving: false);
+      state = state.copyWith(
+        isSaving: false,
+        successMessage: 'Cash ending saved successfully',
+      );
 
       // Reload recent cash endings for the location
       if (cashEnding.locationId.isNotEmpty) {
@@ -172,13 +169,13 @@ class CashEndingNotifier extends StateNotifier<CashEndingState> {
       }
 
       return true;
-    } catch (e, stack) {
+    } catch (e) {
 
-      final errorMessage = e is CashEndingException ? e.message : 'Failed to save cash ending';
+      final errorMsg = e is CashEndingException ? e.message : 'Failed to save cash ending';
 
       state = state.copyWith(
         isSaving: false,
-        error: errorMessage,
+        errorMessage: errorMsg,
       );
 
       return false;
@@ -195,35 +192,12 @@ class CashEndingNotifier extends StateNotifier<CashEndingState> {
     // Clear all location selections when store changes
     state = state.copyWith(
       selectedStoreId: storeId,
-      cashLocations: [],
-      bankLocations: [],
-      vaultLocations: [],
-    );
-
-    // Manually clear location IDs (copyWith doesn't handle null properly)
-    state = CashEndingState(
-      selectedStoreId: storeId,
       selectedCashLocationId: null,
       selectedBankLocationId: null,
       selectedVaultLocationId: null,
-      stores: state.stores,
       cashLocations: [],
       bankLocations: [],
       vaultLocations: [],
-      currencies: state.currencies,
-      currentTabIndex: state.currentTabIndex,
-      selectedCashCurrencyId: state.selectedCashCurrencyId,
-      selectedBankCurrencyId: state.selectedBankCurrencyId,
-      selectedVaultCurrencyId: state.selectedVaultCurrencyId,
-      recentCashEndings: state.recentCashEndings,
-      isLoadingStores: state.isLoadingStores,
-      isLoadingCashLocations: state.isLoadingCashLocations,
-      isLoadingBankLocations: state.isLoadingBankLocations,
-      isLoadingVaultLocations: state.isLoadingVaultLocations,
-      isLoadingCurrencies: state.isLoadingCurrencies,
-      isLoadingRecentEndings: state.isLoadingRecentEndings,
-      isSaving: state.isSaving,
-      error: state.error,
     );
 
     // Auto-load all location types (cash, bank, vault) like lib_old
@@ -271,6 +245,6 @@ class CashEndingNotifier extends StateNotifier<CashEndingState> {
 
   /// Clear error message
   void clearError() {
-    state = state.copyWith(clearError: true);
+    state = state.copyWith(errorMessage: null, successMessage: null);
   }
 }

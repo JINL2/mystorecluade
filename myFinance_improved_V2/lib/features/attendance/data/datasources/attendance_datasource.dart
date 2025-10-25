@@ -304,4 +304,116 @@ class AttendanceDatasource {
       return false;
     }
   }
+
+  /// Get shift metadata for a store
+  Future<Map<String, dynamic>?> getShiftMetadata({
+    required String storeId,
+    required String date,
+  }) async {
+    try {
+      final response = await _supabase.rpc<dynamic>(
+        'get_shift_metadata',
+        params: {
+          'p_store_id': storeId,
+          'p_date': date,
+        },
+      );
+
+      if (response == null || (response is List && response.isEmpty)) {
+        return null;
+      }
+
+      if (response is List) {
+        final firstItem = response.first as Map<String, dynamic>;
+        return _convertToLocalTime(firstItem);
+      }
+
+      return _convertToLocalTime(response as Map<String, dynamic>);
+    } catch (e) {
+      throw AttendanceServerException(e.toString());
+    }
+  }
+
+  /// Get monthly shift status for manager view
+  Future<List<Map<String, dynamic>>> getMonthlyShiftStatusManager({
+    required String storeId,
+    required String companyId,
+    required String requestDate,
+  }) async {
+    try {
+      final response = await _supabase.rpc<dynamic>(
+        'get_monthly_shift_status_manager',
+        params: {
+          'p_store_id': storeId,
+          'p_company_id': companyId,
+          'p_request_date': requestDate,
+        },
+      );
+
+      if (response == null) {
+        return [];
+      }
+
+      if (response is List) {
+        final results = List<Map<String, dynamic>>.from(response);
+        return results.map((item) => _convertToLocalTime(item)).toList();
+      }
+
+      return [];
+    } catch (e) {
+      throw AttendanceServerException(e.toString());
+    }
+  }
+
+  /// Insert shift request
+  Future<Map<String, dynamic>?> insertShiftRequest({
+    required String userId,
+    required String shiftId,
+    required String storeId,
+    required String requestDate,
+  }) async {
+    try {
+      final response = await _supabase.rpc<dynamic>(
+        'insert_shift_request_v2',
+        params: {
+          'p_user_id': userId,
+          'p_shift_id': shiftId,
+          'p_store_id': storeId,
+          'p_request_date': requestDate,
+        },
+      );
+
+      if (response == null) {
+        return null;
+      }
+
+      if (response is List) {
+        if (response.isEmpty) return null;
+        final firstItem = response.first as Map<String, dynamic>;
+        return _convertToLocalTime(firstItem);
+      }
+
+      return _convertToLocalTime(response as Map<String, dynamic>);
+    } catch (e) {
+      throw AttendanceServerException(e.toString());
+    }
+  }
+
+  /// Delete shift request
+  Future<void> deleteShiftRequest({
+    required String userId,
+    required String shiftId,
+    required String requestDate,
+  }) async {
+    try {
+      await _supabase
+          .from('shift_requests')
+          .delete()
+          .eq('user_id', userId)
+          .eq('shift_id', shiftId)
+          .eq('request_date', requestDate);
+    } catch (e) {
+      throw AttendanceServerException(e.toString());
+    }
+  }
 }

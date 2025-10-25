@@ -130,6 +130,16 @@ class _AddTemplateBottomSheetState extends ConsumerState<AddTemplateBottomSheet>
     setState(() => _isCreating = true);
 
     try {
+      // 🔍 DEBUG: Log all selected values
+      print('═══════════════════════════════════════════════════════════');
+      print('🔍 TEMPLATE CREATION DEBUG LOG - START');
+      print('═══════════════════════════════════════════════════════════');
+      print('📝 Template Name: ${_nameController.text}');
+      print('📄 Description: ${_descriptionController.text}');
+      print('🔐 Visibility: $_selectedVisibility');
+      print('🔒 Permission: $_selectedPermission');
+      print('');
+
       // ✅ FIXED: Get account data for correct data structure building
       final debitAccountAsync = ref.read(accountByIdProvider(_selectedDebitAccountId ?? ''));
       final creditAccountAsync = ref.read(accountByIdProvider(_selectedCreditAccountId ?? ''));
@@ -152,6 +162,34 @@ class _AddTemplateBottomSheetState extends ConsumerState<AddTemplateBottomSheet>
         orElse: () => null,
       );
 
+      print('💳 DEBIT ACCOUNT:');
+      print('  - ID: $_selectedDebitAccountId');
+      print('  - Name: $debitAccountName');
+      print('  - Category Tag: $debitAccountCategoryTag');
+      print('  - My Cash Location ID: $_selectedDebitMyCashLocationId');
+      print('  - My Cash Location Name: $_selectedDebitMyCashLocationName');
+      print('  - Counterparty ID: $_selectedDebitCounterpartyId');
+      print('  - Counterparty Data: $_selectedDebitCounterpartyData');
+      print('  - Store ID: $_selectedDebitStoreId');
+      print('  - Store Name: $_selectedDebitStoreName');
+      print('  - Counterparty Cash Location ID: $_selectedDebitCashLocationId');
+      print('  - Counterparty Cash Location Name: $_selectedDebitCashLocationName');
+      print('');
+
+      print('💳 CREDIT ACCOUNT:');
+      print('  - ID: $_selectedCreditAccountId');
+      print('  - Name: $creditAccountName');
+      print('  - Category Tag: $creditAccountCategoryTag');
+      print('  - My Cash Location ID: $_selectedCreditMyCashLocationId');
+      print('  - My Cash Location Name: $_selectedCreditMyCashLocationName');
+      print('  - Counterparty ID: $_selectedCreditCounterpartyId');
+      print('  - Counterparty Data: $_selectedCreditCounterpartyData');
+      print('  - Store ID: $_selectedCreditStoreId');
+      print('  - Store Name: $_selectedCreditStoreName');
+      print('  - Counterparty Cash Location ID: $_selectedCreditCashLocationId');
+      print('  - Counterparty Cash Location Name: $_selectedCreditCashLocationName');
+      print('');
+
       // Use cash location names from state (already received from selector callback)
       final debitCashLocationName = _selectedDebitMyCashLocationName;
       final creditCashLocationName = _selectedCreditMyCashLocationName;
@@ -167,6 +205,7 @@ class _AddTemplateBottomSheetState extends ConsumerState<AddTemplateBottomSheet>
       final creditCounterpartyCashLocationName = _selectedCreditCashLocationName;
 
       // ✅ CLEAN ARCHITECTURE: Use Domain Factory to create transaction lines with FLAT structure
+      print('🏭 Creating transaction lines using TemplateLineFactory...');
       final data = TemplateLineFactory.createLines(
         templateName: _nameController.text,
         // Debit line parameters
@@ -190,6 +229,12 @@ class _AddTemplateBottomSheetState extends ConsumerState<AddTemplateBottomSheet>
         creditCounterpartyCashLocationId: creditCounterpartyCashLocationId,
         creditCounterpartyCashLocationName: creditCounterpartyCashLocationName,
       );
+
+      print('✅ Generated transaction lines (data array):');
+      for (int i = 0; i < data.length; i++) {
+        print('  Line ${i + 1}: ${data[i]}');
+      }
+      print('');
 
       // Build tags object for categorization
       final accountIds = <String>[];
@@ -230,6 +275,7 @@ class _AddTemplateBottomSheetState extends ConsumerState<AddTemplateBottomSheet>
       // Convert permission display name to UUID
       final permissionUUID = TemplateConstants.getPermissionUUID(_selectedPermission);
 
+      print('📦 Creating CreateTemplateCommand...');
       final command = CreateTemplateCommand(
         name: _nameController.text,
         templateDescription: _descriptionController.text.isEmpty ? null : _descriptionController.text,
@@ -244,8 +290,32 @@ class _AddTemplateBottomSheetState extends ConsumerState<AddTemplateBottomSheet>
         createdBy: ref.read(userDisplayDataProvider)['user_id']?.toString(), // ✅ Get user ID from app state
       );
 
+      print('📋 Command Details:');
+      print('  - Name: ${command.name}');
+      print('  - Description: ${command.templateDescription}');
+      print('  - Visibility Level: ${command.visibilityLevel}');
+      print('  - Permission UUID: ${command.permission}');
+      print('  - Company ID: ${command.companyId}');
+      print('  - Store ID: ${command.storeId}');
+      print('  - Created By: ${command.createdBy}');
+      print('  - Counterparty ID: ${command.counterpartyId}');
+      print('  - Counterparty Cash Location ID: ${command.counterpartyCashLocationId}');
+      print('  - Data Lines: ${command.data.length}');
+      print('  - Tags: ${command.tags}');
+      print('');
+
+      print('🚀 Executing CreateTemplateUseCase...');
       final createUseCase = ref.read(createTemplateUseCaseProvider);
       final result = await createUseCase.execute(command);
+
+      print('📊 Result: ${result.isSuccess ? "✅ SUCCESS" : "❌ FAILED"}');
+      if (!result.isSuccess) {
+        print('❌ Error: ${result.error}');
+      }
+      print('═══════════════════════════════════════════════════════════');
+      print('🔍 TEMPLATE CREATION DEBUG LOG - END');
+      print('═══════════════════════════════════════════════════════════');
+      print('');
 
       if (mounted) {
         if (result.isSuccess) {
@@ -263,6 +333,18 @@ class _AddTemplateBottomSheetState extends ConsumerState<AddTemplateBottomSheet>
         }
       }
     } catch (e, stackTrace) {
+      // 🔍 DEBUG: Log detailed error information
+      print('═══════════════════════════════════════════════════════════');
+      print('❌ TEMPLATE CREATION ERROR');
+      print('═══════════════════════════════════════════════════════════');
+      print('Error Type: ${e.runtimeType}');
+      print('Error Message: $e');
+      print('');
+      print('Stack Trace:');
+      print(stackTrace);
+      print('═══════════════════════════════════════════════════════════');
+      print('');
+
       // Extract detailed error information
       String errorMessage = e.toString();
 

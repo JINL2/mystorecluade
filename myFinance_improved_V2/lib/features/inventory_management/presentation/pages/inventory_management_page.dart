@@ -5,6 +5,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
@@ -91,14 +92,7 @@ class _InventoryManagementPageState
       body: _buildSimpleProductList(pageState),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          // TODO: Implement add product page navigation
-          // For now, show a message
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Add Product page - Coming Soon'),
-              duration: Duration(seconds: 2),
-            ),
-          );
+          context.push('/inventoryManagement/addProduct');
         },
         backgroundColor: TossColors.primary,
         child: const Icon(TossIcons.add, color: TossColors.white),
@@ -415,7 +409,17 @@ class _InventoryManagementPageState
           color: TossColors.gray100,
           borderRadius: BorderRadius.circular(TossBorderRadius.md),
         ),
-        child: Icon(Icons.inventory_2, color: TossColors.gray400, size: 24),
+        child: product.images.isNotEmpty
+            ? ClipRRect(
+                borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                child: Image.network(
+                  product.images.first,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) =>
+                      Icon(Icons.inventory_2, color: TossColors.gray400, size: 24),
+                ),
+              )
+            : Icon(Icons.inventory_2, color: TossColors.gray400, size: 24),
       ),
       trailing: Column(
         crossAxisAlignment: CrossAxisAlignment.end,
@@ -439,7 +443,7 @@ class _InventoryManagementPageState
         ],
       ),
       onTap: () {
-        // TODO: Navigate to product detail
+        context.push('/inventoryManagement/product/${product.id}');
       },
     );
   }

@@ -25,15 +25,32 @@ class CreateTemplateUseCase {
   /// Executes the template creation use case
   Future<CreateTemplateResult> execute(CreateTemplateCommand command) async {
     try {
+      print('');
+      print('🔧 USE CASE: CreateTemplateUseCase.execute() START');
+      print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+
       // 1. Check if template name already exists
+      print('📝 Step 1: Checking template name uniqueness...');
       await _checkNameUniqueness(command);
+      print('✅ Step 1: Template name is unique');
 
       // 2. Create template entity from command
+      print('📝 Step 2: Creating template entity from command...');
       final template = _createTemplateFromCommand(command);
+      print('✅ Step 2: Template entity created');
+      print('   - Template ID: ${template.templateId}');
+      print('   - Name: ${template.name}');
+      print('   - Data lines: ${template.data.length}');
 
       // 3. Validate entity internal consistency
+      print('📝 Step 3: Validating entity internal consistency...');
       final entityValidation = template.validate();
       if (!entityValidation.isValid) {
+        print('❌ Step 3: Entity validation FAILED');
+        print('   Validation Errors (${entityValidation.errors.length}):');
+        for (int i = 0; i < entityValidation.errors.length; i++) {
+          print('   ${i + 1}. ${entityValidation.errors[i]}');
+        }
         throw ValidationException.multipleFields(
           errors: entityValidation.errors.map((error) =>
             ValidationError(
@@ -45,10 +62,17 @@ class CreateTemplateUseCase {
           ).toList(),
         );
       }
+      print('✅ Step 3: Entity validation passed');
 
       // 🚨 ENHANCED: Additional template data JSONB validation according to DB requirements
+      print('📝 Step 4: Validating template data JSONB structure...');
       final dataValidationErrors = _validateTemplateDataStructure(template);
       if (dataValidationErrors.isNotEmpty) {
+        print('❌ Step 4: Data structure validation FAILED');
+        print('   Data Validation Errors (${dataValidationErrors.length}):');
+        for (int i = 0; i < dataValidationErrors.length; i++) {
+          print('   ${i + 1}. ${dataValidationErrors[i]}');
+        }
         throw ValidationException.multipleFields(
           errors: dataValidationErrors.map((error) =>
             ValidationError(
@@ -60,6 +84,7 @@ class CreateTemplateUseCase {
           ).toList(),
         );
       }
+      print('✅ Step 4: Data structure validation passed');
 
       // 4. Validate against external policies (pure business rules)
       // ✅ ARCHITECTURE FIX: Permission checks removed from Domain Layer
@@ -129,9 +154,14 @@ class CreateTemplateUseCase {
       );
 
       // 8. Save the template
+      print('📝 Step 8: Saving template to repository...');
       await _templateRepository.save(finalTemplate);
+      print('✅ Step 8: Template saved successfully');
 
       // 9. Return success result with optimistic template
+      print('✅ USE CASE: Template creation completed successfully!');
+      print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      print('');
       return CreateTemplateResult.success(
         optimisticTemplate: optimisticTemplate,
         requiresApproval: policyValidation.requiresApproval,
@@ -139,11 +169,27 @@ class CreateTemplateUseCase {
         warnings: policyValidation.warnings,
       );
 
-    } on ValidationException {
+    } on ValidationException catch (e) {
+      print('❌ USE CASE: ValidationException caught');
+      print('   Error Code: ${e.errorCode}');
+      print('   Message: ${e.message}');
+      print('   Context: ${e.context}');
+      print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      print('');
       rethrow;
-    } on TemplateBusinessException {
+    } on TemplateBusinessException catch (e) {
+      print('❌ USE CASE: TemplateBusinessException caught');
+      print('   Error Code: ${e.errorCode}');
+      print('   Message: ${e.message}');
+      print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      print('');
       rethrow;
     } catch (e) {
+      print('❌ USE CASE: Unexpected exception caught');
+      print('   Type: ${e.runtimeType}');
+      print('   Message: $e');
+      print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      print('');
       throw TemplateBusinessException(
         'Failed to create template: ${e.toString()}',
         errorCode: 'TEMPLATE_CREATION_FAILED',
@@ -495,20 +541,35 @@ class CreateTemplateUseCase {
     }
 
     // Check for similar templates
+    // ✅ FIX: Enhanced similarity check - consider cash locations and counterparties
+    // Templates with same accounts but different cash locations are NOT duplicates
     final similarTemplates = await _templateRepository.findSimilar(
       templateName: command.name,
       companyId: command.companyId,
       similarityThreshold: 0.8,
-      limit: 1,
+      limit: 5, // Check more templates for detailed comparison
     );
-    
+
     if (similarTemplates.isNotEmpty) {
-      errors.add('Similar template already exists - consider reusing existing template');
+      // ✅ ENHANCED: Detailed similarity check
+      bool isDuplicate = false;
+
+      for (final similar in similarTemplates) {
+        // Check if it's truly a duplicate by comparing data structures
+        if (_areTemplatesIdentical(command.data, similar.data, command.tags, similar.tags)) {
+          isDuplicate = true;
+          break;
+        }
+      }
+
+      if (isDuplicate) {
+        errors.add('Identical template already exists with same accounts and cash locations - consider reusing existing template');
+      }
     }
 
     if (errors.isNotEmpty) {
       throw ValidationException.multipleFields(
-        errors: errors.map((error) => 
+        errors: errors.map((error) =>
           ValidationError(
             fieldName: 'template_quotas',
             fieldValue: '',
@@ -518,6 +579,75 @@ class CreateTemplateUseCase {
         ).toList(),
       );
     }
+  }
+
+  /// Checks if two templates are truly identical
+  ///
+  /// Returns true only if:
+  /// - Same accounts in debit/credit positions
+  /// - Same cash locations (for cash accounts)
+  /// - Same counterparties (for payable/receivable accounts)
+  bool _areTemplatesIdentical(
+    List<Map<String, dynamic>> data1,
+    List<Map<String, dynamic>> data2,
+    Map<String, dynamic> tags1,
+    Map<String, dynamic> tags2,
+  ) {
+    // Quick check: different number of lines
+    if (data1.length != data2.length) {
+      return false;
+    }
+
+    // Check if both templates have the same accounts
+    final accounts1 = data1.map((line) => line['account_id'] as String?).toSet();
+    final accounts2 = data2.map((line) => line['account_id'] as String?).toSet();
+
+    if (!accounts1.containsAll(accounts2) || !accounts2.containsAll(accounts1)) {
+      return false;
+    }
+
+    // ✅ CRITICAL: Check cash locations (different cash locations = different templates)
+    final cashLocations1 = (tags1['cash_locations'] as List?)?.cast<String>().toSet() ?? {};
+    final cashLocations2 = (tags2['cash_locations'] as List?)?.cast<String>().toSet() ?? {};
+
+    // If cash locations are different, templates are NOT identical
+    if (!cashLocations1.containsAll(cashLocations2) || !cashLocations2.containsAll(cashLocations1)) {
+      return false;
+    }
+
+    // Check each line for exact match
+    for (int i = 0; i < data1.length; i++) {
+      final line1 = data1[i];
+      final line2 = data2[i];
+
+      // Check account_id
+      if (line1['account_id'] != line2['account_id']) {
+        return false;
+      }
+
+      // Check type (debit/credit)
+      if (line1['type'] != line2['type']) {
+        return false;
+      }
+
+      // ✅ Check cash_location_id (different locations = different templates)
+      if (line1['cash_location_id'] != line2['cash_location_id']) {
+        return false;
+      }
+
+      // ✅ Check counterparty_id (different counterparties = different templates)
+      if (line1['counterparty_id'] != line2['counterparty_id']) {
+        return false;
+      }
+
+      // ✅ Check counterparty_cash_location_id (for internal transfers)
+      if (line1['counterparty_cash_location_id'] != line2['counterparty_cash_location_id']) {
+        return false;
+      }
+    }
+
+    // All checks passed - templates are truly identical
+    return true;
   }
 }
 

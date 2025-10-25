@@ -37,6 +37,9 @@ import '../../features/add_fix_asset/presentation/pages/add_fix_asset_page.dart'
 import '../../features/debt_control/presentation/pages/smart_debt_control_page.dart';
 import '../../features/sale_product/presentation/pages/sale_product_page.dart';
 import '../../features/inventory_management/presentation/pages/inventory_management_page.dart';
+import '../../features/inventory_management/presentation/pages/add_product_page.dart';
+import '../../features/inventory_management/presentation/pages/product_detail_page.dart';
+import '../../features/inventory_management/presentation/pages/edit_product_page.dart';
 import '../../features/sales_invoice/presentation/pages/sales_invoice_page.dart';
 import '../../shared/themes/toss_colors.dart';
 import '../../shared/themes/toss_spacing.dart';
@@ -544,6 +547,29 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '/inventoryManagement',
         name: 'inventoryManagement',
         builder: (context, state) => const InventoryManagementPage(),
+        routes: [
+          GoRoute(
+            path: 'addProduct',
+            name: 'addProduct',
+            builder: (context, state) => const AddProductPage(),
+          ),
+          GoRoute(
+            path: 'product/:productId',
+            name: 'productDetail',
+            builder: (context, state) {
+              final productId = state.pathParameters['productId']!;
+              return ProductDetailPage(productId: productId);
+            },
+          ),
+          GoRoute(
+            path: 'editProduct/:productId',
+            name: 'editProduct',
+            builder: (context, state) {
+              final productId = state.pathParameters['productId']!;
+              return EditProductPage(productId: productId);
+            },
+          ),
+        ],
       ),
 
       // Attendance Routes

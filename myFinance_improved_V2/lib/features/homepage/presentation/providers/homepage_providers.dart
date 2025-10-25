@@ -9,9 +9,19 @@ import 'package:myfinance_improved/app/providers/app_state_provider.dart';
 
 // === Revenue Provider ===
 
+/// Revenue view tab (Company or Store)
+enum RevenueViewTab { company, store }
+
+/// Provider for selected revenue view tab
+final selectedRevenueTabProvider = StateProvider<RevenueViewTab>((ref) {
+  return RevenueViewTab.company;
+});
+
 /// Provider for fetching revenue data
 ///
-/// Depends on app state for company/store selection.
+/// Depends on app state for company/store selection AND selected tab.
+/// - Company tab: Returns revenue for the entire company
+/// - Store tab: Returns revenue for the selected store only
 final revenueProvider = FutureProvider.family<Revenue, RevenuePeriod>(
   (ref, period) async {
     // Check authentication first
@@ -29,6 +39,9 @@ final revenueProvider = FutureProvider.family<Revenue, RevenuePeriod>(
     final appState = ref.watch(appStateProvider);
     final repository = ref.watch(homepageRepositoryProvider);
 
+    // Watch selected tab to determine which revenue to fetch
+    final selectedTab = ref.watch(selectedRevenueTabProvider);
+
     // Get selected company/store from app state
     final companyId = appState.companyChoosen;
     final storeId = appState.storeChoosen;
@@ -37,9 +50,16 @@ final revenueProvider = FutureProvider.family<Revenue, RevenuePeriod>(
       throw Exception('No company selected');
     }
 
+    // Determine storeId based on selected tab:
+    // - Company tab: pass null to get company-wide revenue
+    // - Store tab: pass storeId to get store-specific revenue
+    final effectiveStoreId = (selectedTab == RevenueViewTab.store && storeId.isNotEmpty)
+        ? storeId
+        : null;
+
     final revenue = await repository.getRevenue(
       companyId: companyId,
-      storeId: storeId.isNotEmpty ? storeId : null,
+      storeId: effectiveStoreId,
       period: period,
     );
     return revenue;

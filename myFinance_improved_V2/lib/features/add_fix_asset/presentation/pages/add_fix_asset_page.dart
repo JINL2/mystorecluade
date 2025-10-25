@@ -12,6 +12,7 @@ import '../../../../shared/widgets/common/toss_scaffold.dart';
 import '../../../../shared/widgets/toss/toss_selection_bottom_sheet.dart';
 import '../../domain/entities/fixed_asset.dart';
 import '../providers/fixed_asset_providers.dart';
+import '../providers/states/fixed_asset_state.dart';
 import '../widgets/asset_form_sheet.dart';
 import '../widgets/asset_list_item.dart';
 
@@ -23,49 +24,42 @@ class AddFixAssetPage extends ConsumerStatefulWidget {
 }
 
 class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
-  String? selectedStoreId;
-  String? baseCurrencyId;
-  String currencySymbol = '\$'; // Default symbol
-
   @override
   void initState() {
     super.initState();
-    // Initialize selectedStoreId from app state
+    // Initialize state from app state
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final appState = ref.read(appStateProvider);
-      setState(() {
-        selectedStoreId = appState.storeChoosen.isEmpty ? null : appState.storeChoosen;
-      });
-      _fetchBaseCurrency();
+      final notifier = ref.read(fixedAssetProvider.notifier);
+
+      // Update selected store
+      final storeId = appState.storeChoosen.isEmpty ? null : appState.storeChoosen;
+      notifier.updateSelectedStore(storeId);
+
+      // Fetch currency information
+      _fetchCurrencyInfo(appState.companyChoosen);
+
+      // Load assets
+      notifier.loadAssets(
+        companyId: appState.companyChoosen,
+        storeId: storeId,
+      );
     });
   }
 
-  Future<void> _fetchBaseCurrency() async {
+  Future<void> _fetchCurrencyInfo(String companyId) async {
+    if (companyId.isEmpty) return;
+
     try {
-      final appState = ref.read(appStateProvider);
-      final companyId = appState.companyChoosen;
-
-      if (companyId.isEmpty) return;
-
       final currency = await ref.read(companyBaseCurrencyProvider(companyId).future);
       if (mounted && currency != null) {
-        setState(() {
-          baseCurrencyId = currency;
-        });
-        _fetchCurrencySymbol(currency);
-      }
-    } catch (e) {
-      // Handle error silently
-    }
-  }
-
-  Future<void> _fetchCurrencySymbol(String currencyId) async {
-    try {
-      final symbol = await ref.read(currencySymbolProvider(currencyId).future);
-      if (mounted) {
-        setState(() {
-          currencySymbol = symbol;
-        });
+        final symbol = await ref.read(currencySymbolProvider(currency).future);
+        if (mounted) {
+          ref.read(fixedAssetProvider.notifier).updateCurrency(
+            baseCurrencyId: currency,
+            currencySymbol: symbol,
+          );
+        }
       }
     } catch (e) {
       // Handle error silently
@@ -75,6 +69,7 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
   @override
   Widget build(BuildContext context) {
     final appState = ref.watch(appStateProvider);
+    final assetState = ref.watch(fixedAssetProvider);
     final userData = appState.user;
 
     // Extract stores from user data
@@ -88,7 +83,6 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
             (c) => c['company_id'] == appState.companyChoosen,
             orElse: () => null,
           );
-          // If not found, use first company
           selectedCompany ??= companies.first;
         } catch (e) {
           selectedCompany = companies.first;
@@ -101,12 +95,6 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
     }
 
     final companyId = appState.companyChoosen;
-
-    // Auto-select first store if none selected
-    final appStateStoreId = appState.storeChoosen;
-    if (selectedStoreId == null && appStateStoreId.isNotEmpty && stores.isNotEmpty) {
-      selectedStoreId = stores.first['store_id'] as String?;
-    }
 
     return TossScaffold(
       backgroundColor: TossColors.background,
@@ -138,17 +126,17 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
       body: Column(
         children: [
           // Store selector section
-          _buildStoreSelector(stores),
+          _buildStoreSelector(stores, assetState.selectedStoreId),
 
           // Assets list
           Expanded(
-            child: _buildAssetsList(companyId),
+            child: _buildAssetsList(companyId, assetState),
           ),
         ],
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          _showAddAssetBottomSheet();
+          _showAddAssetBottomSheet(assetState);
         },
         backgroundColor: TossColors.primary,
         elevation: 2,
@@ -160,7 +148,7 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
     );
   }
 
-  Widget _buildAssetsList(String companyId) {
+  Widget _buildAssetsList(String companyId, FixedAssetState assetState) {
     if (companyId.isEmpty) {
       return Center(
         child: Text(
@@ -170,65 +158,12 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
       );
     }
 
-    final params = FixedAssetListParams(
-      companyId: companyId,
-      storeId: selectedStoreId,
-    );
+    if (assetState.isLoading) {
+      return const Center(child: TossLoadingView());
+    }
 
-    final fixedAssetsAsync = ref.watch(fixedAssetsProvider(params));
-
-    return fixedAssetsAsync.when(
-      data: (assets) {
-        if (assets.isEmpty) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(
-                  Icons.inventory_outlined,
-                  size: 64,
-                  color: TossColors.gray400,
-                ),
-                const SizedBox(height: TossSpacing.space4),
-                Text(
-                  'No assets found',
-                  style: TossTextStyles.bodyLarge.copyWith(
-                    color: TossColors.gray500,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                const SizedBox(height: TossSpacing.space2),
-                Text(
-                  'Add your first asset to get started',
-                  style: TossTextStyles.body.copyWith(
-                    color: TossColors.gray400,
-                  ),
-                ),
-              ],
-            ),
-          );
-        }
-
-        return ListView.builder(
-          padding: const EdgeInsets.symmetric(vertical: TossSpacing.space2),
-          itemCount: assets.length,
-          itemBuilder: (context, index) {
-            final asset = assets[index];
-            return AssetListItem(
-              asset: asset,
-              currencySymbol: currencySymbol,
-              onEdit: () => _showEditAssetBottomSheet(asset),
-              onDelete: () {
-                // TODO: Implement delete
-              },
-            );
-          },
-        );
-      },
-      loading: () => const Center(
-        child: TossLoadingView(),
-      ),
-      error: (error, stack) => Center(
+    if (assetState.errorMessage != null) {
+      return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -247,7 +182,7 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
             ),
             const SizedBox(height: TossSpacing.space2),
             Text(
-              error.toString(),
+              assetState.errorMessage!,
               style: TossTextStyles.bodySmall.copyWith(
                 color: TossColors.gray500,
               ),
@@ -255,11 +190,89 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
             ),
           ],
         ),
-      ),
+      );
+    }
+
+    if (assetState.assets.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(
+              Icons.inventory_outlined,
+              size: 64,
+              color: TossColors.gray400,
+            ),
+            const SizedBox(height: TossSpacing.space4),
+            Text(
+              'No assets found',
+              style: TossTextStyles.bodyLarge.copyWith(
+                color: TossColors.gray500,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            const SizedBox(height: TossSpacing.space2),
+            Text(
+              'Add your first asset to get started',
+              style: TossTextStyles.body.copyWith(
+                color: TossColors.gray400,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return ListView.builder(
+      padding: const EdgeInsets.symmetric(vertical: TossSpacing.space2),
+      itemCount: assetState.assets.length,
+      itemBuilder: (context, index) {
+        final asset = assetState.assets[index];
+        return AssetListItem(
+          asset: asset,
+          currencySymbol: assetState.currencySymbol,
+          onEdit: () => _showEditAssetBottomSheet(asset, assetState.currencySymbol),
+          onDelete: () => _deleteAsset(asset.assetId!),
+        );
+      },
     );
   }
 
-  void _showAddAssetBottomSheet() {
+  Future<void> _deleteAsset(String assetId) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Asset'),
+        content: const Text('Are you sure you want to delete this asset?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: TextButton.styleFrom(foregroundColor: TossColors.error),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && mounted) {
+      final success = await ref.read(fixedAssetProvider.notifier).deleteAsset(assetId);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(success ? 'Asset deleted successfully' : 'Failed to delete asset'),
+            backgroundColor: success ? TossColors.success : TossColors.error,
+          ),
+        );
+      }
+    }
+  }
+
+  void _showAddAssetBottomSheet(FixedAssetState assetState) {
     final appState = ref.read(appStateProvider);
     final authAsync = ref.read(authStateProvider);
 
@@ -279,12 +292,13 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
       builder: (context) => AssetFormSheet(
         mode: AssetFormMode.create,
         companyId: appState.companyChoosen,
-        storeId: selectedStoreId,
-        currencySymbol: currencySymbol,
+        storeId: assetState.selectedStoreId,
+        currencySymbol: assetState.currencySymbol,
         onSave: (asset) async {
           try {
-            await ref.read(createFixedAssetProvider(asset).future);
-            if (mounted) {
+            final success = await ref.read(fixedAssetProvider.notifier).createAsset(asset);
+
+            if (mounted && success) {
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
@@ -300,6 +314,14 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                   ),
+                ),
+              );
+            } else if (mounted && !success) {
+              final errorMsg = ref.read(fixedAssetProvider).errorMessage ?? 'Unknown error';
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Failed to add asset: $errorMsg'),
+                  backgroundColor: TossColors.error,
                 ),
               );
             }
@@ -318,7 +340,7 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
     );
   }
 
-  void _showEditAssetBottomSheet(FixedAsset asset) {
+  void _showEditAssetBottomSheet(FixedAsset asset, String currencySymbol) {
     showModalBottomSheet<void>(
       context: context,
       backgroundColor: TossColors.transparent,
@@ -331,8 +353,9 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
         currencySymbol: currencySymbol,
         onSave: (updatedAsset) async {
           try {
-            await ref.read(updateFixedAssetProvider(updatedAsset).future);
-            if (mounted) {
+            final success = await ref.read(fixedAssetProvider.notifier).updateAsset(updatedAsset);
+
+            if (mounted && success) {
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
@@ -342,6 +365,14 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                   ),
+                ),
+              );
+            } else if (mounted && !success) {
+              final errorMsg = ref.read(fixedAssetProvider).errorMessage ?? 'Unknown error';
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Failed to update asset: $errorMsg'),
+                  backgroundColor: TossColors.error,
                 ),
               );
             }
@@ -360,7 +391,7 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
     );
   }
 
-  Widget _buildStoreSelector(List<dynamic> stores) {
+  Widget _buildStoreSelector(List<dynamic> stores, String? selectedStoreId) {
     // Find selected store name
     String selectedStoreName = 'All Stores';
     if (selectedStoreId != null && stores.isNotEmpty) {
@@ -388,6 +419,8 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
         color: TossColors.transparent,
         child: InkWell(
           onTap: () async {
+            final appState = ref.read(appStateProvider);
+
             // Create selection items with "All Stores" option
             final items = [
               TossSelectionItem.fromGeneric(
@@ -405,13 +438,19 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
               items: items,
               selectedId: selectedStoreId ?? '',
               onItemSelected: (item) {
-                setState(() {
-                  selectedStoreId = item.id.isEmpty ? null : item.id;
-                });
+                final newStoreId = item.id.isEmpty ? null : item.id;
+
+                // Update notifier
+                ref.read(fixedAssetProvider.notifier).updateSelectedStore(newStoreId);
 
                 // Update app state
-                final appStateValue = item.id;
-                ref.read(appStateProvider.notifier).selectStore(appStateValue);
+                ref.read(appStateProvider.notifier).selectStore(item.id);
+
+                // Reload assets with new store filter
+                ref.read(fixedAssetProvider.notifier).loadAssets(
+                  companyId: appState.companyChoosen,
+                  storeId: newStoreId,
+                );
               },
             );
           },

@@ -41,8 +41,6 @@ class SalesProductNotifier extends StateNotifier<SalesProductState> {
 
   /// Load products from repository
   Future<void> loadProducts({String? search}) async {
-    print('🔍 [SALES_PRODUCT] Loading products with search: $search');
-
     state = state.copyWith(isLoading: true, errorMessage: null);
 
     try {
@@ -50,10 +48,7 @@ class SalesProductNotifier extends StateNotifier<SalesProductState> {
       final companyId = appState.companyChoosen;
       final storeId = appState.storeChoosen;
 
-      print('📋 [SALES_PRODUCT] Company: $companyId, Store: $storeId');
-
       if (companyId.isEmpty || storeId.isEmpty) {
-        print('❌ [SALES_PRODUCT] No company or store selected');
         state = state.copyWith(
           isLoading: false,
           errorMessage: 'Please select a company and store first',
@@ -70,8 +65,6 @@ class SalesProductNotifier extends StateNotifier<SalesProductState> {
         search: search ?? state.searchQuery,
       );
 
-      print('✅ [SALES_PRODUCT] Products loaded: ${products.length}');
-
       state = state.copyWith(
         products: products,
         isLoading: false,
@@ -80,7 +73,6 @@ class SalesProductNotifier extends StateNotifier<SalesProductState> {
         hasNextPage: false,
       );
     } catch (e) {
-      print('❌ [SALES_PRODUCT] Error loading products: $e');
       state = state.copyWith(
         isLoading: false,
         errorMessage: 'Error loading products: $e',
@@ -91,19 +83,16 @@ class SalesProductNotifier extends StateNotifier<SalesProductState> {
 
   /// Search products
   void search(String query) {
-    print('🔍 [SALES_PRODUCT] Searching for: $query');
     state = state.copyWith(searchQuery: query);
   }
 
   /// Update sort option
   void updateSort(SortOption sortOption) {
-    print('🔄 [SALES_PRODUCT] Updating sort: $sortOption');
     state = state.copyWith(sortOption: sortOption);
   }
 
   /// Refresh products
   Future<void> refresh() async {
-    print('🔄 [SALES_PRODUCT] Refreshing products');
     state = state.copyWith(isRefreshing: true);
     await loadProducts();
     state = state.copyWith(isRefreshing: false);

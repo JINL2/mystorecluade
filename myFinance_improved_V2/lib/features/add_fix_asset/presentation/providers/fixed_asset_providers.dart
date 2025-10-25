@@ -1,9 +1,15 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+
 import '../../data/datasources/fixed_asset_data_source.dart';
 import '../../data/repositories/fixed_asset_repository_impl.dart';
-import '../../domain/entities/fixed_asset.dart';
 import '../../domain/repositories/fixed_asset_repository.dart';
+import 'fixed_asset_notifier.dart';
+import 'states/fixed_asset_state.dart';
+
+/// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+/// 🎯 Infrastructure Providers (DI)
+/// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 /// Supabase Client Provider
 final supabaseClientProvider = Provider<SupabaseClient>((ref) {
@@ -22,14 +28,25 @@ final fixedAssetRepositoryProvider = Provider<FixedAssetRepository>((ref) {
   return FixedAssetRepositoryImpl(dataSource);
 });
 
-/// 고정자산 목록 조회 Provider
-final fixedAssetsProvider = FutureProvider.family<List<FixedAsset>, FixedAssetListParams>((ref, params) async {
-  final repository = ref.watch(fixedAssetRepositoryProvider);
-  return await repository.getFixedAssets(
-    companyId: params.companyId,
-    storeId: params.storeId,
+/// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+/// 🎯 State Notifier Providers
+/// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+/// Fixed Asset Provider - 메인 상태 관리
+final fixedAssetProvider = StateNotifierProvider<FixedAssetNotifier, FixedAssetState>((ref) {
+  return FixedAssetNotifier(
+    repository: ref.watch(fixedAssetRepositoryProvider),
   );
 });
+
+/// Fixed Asset Form Provider - 폼 상태 관리
+final fixedAssetFormProvider = StateNotifierProvider<FixedAssetFormNotifier, FixedAssetFormState>((ref) {
+  return FixedAssetFormNotifier();
+});
+
+/// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+/// 🎯 Helper Providers (Computed/Utility)
+/// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 /// 회사 기본 통화 Provider
 final companyBaseCurrencyProvider = FutureProvider.family<String?, String>((ref, companyId) async {
@@ -42,52 +59,3 @@ final currencySymbolProvider = FutureProvider.family<String, String>((ref, curre
   final repository = ref.watch(fixedAssetRepositoryProvider);
   return await repository.getCurrencySymbol(currencyId);
 });
-
-/// 고정자산 생성 Provider
-final createFixedAssetProvider = FutureProvider.family<void, FixedAsset>((ref, asset) async {
-  final repository = ref.watch(fixedAssetRepositoryProvider);
-  await repository.createFixedAsset(asset);
-
-  // Invalidate list to refresh
-  ref.invalidate(fixedAssetsProvider);
-});
-
-/// 고정자산 수정 Provider
-final updateFixedAssetProvider = FutureProvider.family<void, FixedAsset>((ref, asset) async {
-  final repository = ref.watch(fixedAssetRepositoryProvider);
-  await repository.updateFixedAsset(asset);
-
-  // Invalidate list to refresh
-  ref.invalidate(fixedAssetsProvider);
-});
-
-/// 고정자산 삭제 Provider
-final deleteFixedAssetProvider = FutureProvider.family<void, String>((ref, assetId) async {
-  final repository = ref.watch(fixedAssetRepositoryProvider);
-  await repository.deleteFixedAsset(assetId);
-
-  // Invalidate list to refresh
-  ref.invalidate(fixedAssetsProvider);
-});
-
-/// Parameters class for fixed asset list
-class FixedAssetListParams {
-  final String companyId;
-  final String? storeId;
-
-  const FixedAssetListParams({
-    required this.companyId,
-    this.storeId,
-  });
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    return other is FixedAssetListParams &&
-        other.companyId == companyId &&
-        other.storeId == storeId;
-  }
-
-  @override
-  int get hashCode => companyId.hashCode ^ storeId.hashCode;
-}

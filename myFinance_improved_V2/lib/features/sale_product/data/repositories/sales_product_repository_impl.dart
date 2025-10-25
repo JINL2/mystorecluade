@@ -16,20 +16,15 @@ class SalesProductRepositoryImpl implements SalesProductRepository {
     int limit = 100,
     String? search,
   }) async {
-    try {
-      final products = await _remoteDataSource.getInventoryProducts(
-        companyId: companyId,
-        storeId: storeId,
-        page: page,
-        limit: limit,
-        search: search,
-      );
+    final products = await _remoteDataSource.getInventoryProducts(
+      companyId: companyId,
+      storeId: storeId,
+      page: page,
+      limit: limit,
+      search: search,
+    );
 
-      return products.map((model) => model.toEntity()).toList();
-    } catch (e) {
-      print('❌ [SALES_REPOSITORY] Error loading products: $e');
-      rethrow;
-    }
+    return products.map((model) => model.toEntity()).toList();
   }
 
   @override

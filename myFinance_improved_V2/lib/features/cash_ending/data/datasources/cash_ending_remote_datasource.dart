@@ -21,10 +21,6 @@ class CashEndingRemoteDataSource {
   Future<Map<String, dynamic>?> saveCashEnding(
     Map<String, dynamic> params,
   ) async {
-    print('🗄️ [DATASOURCE] saveCashEnding called');
-    print('🗄️ [DATASOURCE] RPC name: insert_cashier_amount_lines');
-    print('🗄️ [DATASOURCE] params: $params');
-
     try {
       // RPC returns void on success, explicitly specify void type
       await _client.rpc<void>(
@@ -32,13 +28,9 @@ class CashEndingRemoteDataSource {
         params: params,
       );
 
-      print('✅ [DATASOURCE] RPC call successful - data saved');
-
       // RPC returns void on success, return null to indicate success
       return null;
-    } catch (e, stack) {
-      print('❌ [DATASOURCE] RPC call failed: $e');
-      print('❌ [DATASOURCE] Stack: $stack');
+    } catch (e) {
       rethrow;
     }
   }

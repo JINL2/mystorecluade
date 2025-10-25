@@ -206,7 +206,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
     } else {
       await TossDialogs.showCashEndingError(
         context: context,
-        error: state.error ?? 'Failed to save cash ending',
+        error: state.errorMessage ?? 'Failed to save cash ending',
       );
     }
   }

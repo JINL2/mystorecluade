@@ -8,14 +8,6 @@ import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 import '../../../../shared/themes/toss_shadows.dart';
 import '../../domain/revenue_period.dart';
 
-/// Revenue view tab (Company or Store)
-enum RevenueViewTab { company, store }
-
-/// Provider for selected revenue view tab
-final selectedRevenueTabProvider = StateProvider<RevenueViewTab>((ref) {
-  return RevenueViewTab.company;
-});
-
 class RevenueCard extends ConsumerWidget {
   const RevenueCard({super.key});
 

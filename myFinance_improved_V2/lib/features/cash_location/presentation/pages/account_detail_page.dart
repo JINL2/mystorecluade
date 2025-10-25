@@ -446,14 +446,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
     final appState = ref.watch(appStateProvider);
     final companyId = appState.companyChoosen;
     final storeId = appState.storeChoosen;
-    
-    // Debug logging (uncomment for debugging)
-    // print('AccountDetailPage build:');
-    // print('  locationId: ${widget.locationId}');
-    // print('  accountName: ${widget.accountName}');
-    // print('  companyId: $companyId');
-    // print('  storeId: $storeId');
-    
+
     if (companyId.isEmpty || storeId.isEmpty || widget.locationId == null || widget.locationId!.isEmpty) {
       return TossScaffold(
         appBar: TossAppBar1(

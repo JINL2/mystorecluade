@@ -1,0 +1,386 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+
+import '../../../../shared/themes/toss_colors.dart';
+import '../../../../shared/themes/toss_text_styles.dart';
+import '../../../../shared/widgets/common/toss_scaffold.dart';
+import '../../domain/entities/product.dart';
+import '../providers/inventory_providers.dart';
+
+/// Product Detail Page - Shows detailed product information
+class ProductDetailPage extends ConsumerWidget {
+  final String productId;
+
+  const ProductDetailPage({
+    super.key,
+    required this.productId,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final productsState = ref.watch(inventoryPageProvider);
+
+    // Find product in the list
+    final product = productsState.products.firstWhere(
+      (p) => p.id == productId,
+      orElse: () => throw Exception('Product not found'),
+    );
+
+    return TossScaffold(
+      backgroundColor: TossColors.gray100,
+      appBar: AppBar(
+        title: Text(
+          'Product Details',
+          style: TossTextStyles.h3.copyWith(fontWeight: FontWeight.w700),
+        ),
+        centerTitle: true,
+        elevation: 0,
+        backgroundColor: TossColors.surface,
+        foregroundColor: TossColors.black,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.edit),
+            onPressed: () {
+              context.push('/inventoryManagement/editProduct/$productId');
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.delete_outline),
+            onPressed: () => _showDeleteConfirmation(context, ref, product),
+          ),
+        ],
+      ),
+      body: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Product Images
+            _buildImageSection(product),
+
+            const SizedBox(height: 8),
+
+            // Product Basic Info
+            _buildBasicInfoSection(product),
+
+            const SizedBox(height: 8),
+
+            // Classification
+            _buildClassificationSection(product),
+
+            const SizedBox(height: 8),
+
+            // Pricing
+            _buildPricingSection(product),
+
+            const SizedBox(height: 8),
+
+            // Inventory
+            _buildInventorySection(product),
+
+            const SizedBox(height: 80),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildImageSection(Product product) {
+    if (product.images.isEmpty) {
+      return Container(
+        width: double.infinity,
+        height: 300,
+        color: TossColors.gray100,
+        child: const Icon(
+          Icons.inventory_2,
+          size: 100,
+          color: TossColors.gray400,
+        ),
+      );
+    }
+
+    return SizedBox(
+      height: 300,
+      child: PageView.builder(
+        itemCount: product.images.length,
+        itemBuilder: (context, index) {
+          return Image.network(
+            product.images[index],
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) => Container(
+              color: TossColors.gray100,
+              child: const Icon(
+                Icons.inventory_2,
+                size: 100,
+                color: TossColors.gray400,
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildBasicInfoSection(Product product) {
+    return Container(
+      color: TossColors.surface,
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  product.name,
+                  style: TossTextStyles.h2.copyWith(fontWeight: FontWeight.w700),
+                ),
+              ),
+              if (!product.isActive)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: TossColors.error.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    'Inactive',
+                    style: TossTextStyles.caption.copyWith(
+                      color: TossColors.error,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          if (product.description != null) ...[
+            const SizedBox(height: 8),
+            Text(
+              product.description!,
+              style: TossTextStyles.body.copyWith(color: TossColors.gray600),
+            ),
+          ],
+          const SizedBox(height: 16),
+          _buildInfoRow('SKU', product.sku),
+          if (product.barcode != null) ...[
+            const SizedBox(height: 8),
+            _buildInfoRow('Barcode', product.barcode!),
+          ],
+          const SizedBox(height: 8),
+          _buildInfoRow('Product Type', product.productType),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildClassificationSection(Product product) {
+    return Container(
+      color: TossColors.surface,
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.folder_outlined, color: TossColors.primary, size: 20),
+              const SizedBox(width: 8),
+              Text(
+                'Classification',
+                style: TossTextStyles.bodyLarge.copyWith(fontWeight: FontWeight.w600),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          _buildInfoRow('Category', product.categoryName ?? 'N/A'),
+          const SizedBox(height: 8),
+          _buildInfoRow('Brand', product.brandName ?? 'N/A'),
+          const SizedBox(height: 8),
+          _buildInfoRow('Unit', product.unit),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPricingSection(Product product) {
+    return Container(
+      color: TossColors.surface,
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.attach_money, color: TossColors.primary, size: 20),
+              const SizedBox(width: 8),
+              Text(
+                'Pricing',
+                style: TossTextStyles.bodyLarge.copyWith(fontWeight: FontWeight.w600),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          _buildInfoRow('Sale Price', '${product.currency} ${product.salePrice.toStringAsFixed(0)}'),
+          const SizedBox(height: 8),
+          _buildInfoRow('Cost Price', '${product.currency} ${product.costPrice.toStringAsFixed(0)}'),
+          const SizedBox(height: 8),
+          _buildInfoRow('Margin', '${product.currency} ${product.margin.toStringAsFixed(0)} (${product.marginPercentage.toStringAsFixed(1)}%)'),
+          const SizedBox(height: 8),
+          _buildInfoRow('Tax Rate', '${(product.taxRate * 100).toStringAsFixed(1)}%'),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInventorySection(Product product) {
+    final stockStatus = product.getStockStatus();
+    Color statusColor;
+    switch (stockStatus) {
+      case StockStatus.outOfStock:
+        statusColor = TossColors.error;
+        break;
+      case StockStatus.critical:
+        statusColor = TossColors.error;
+        break;
+      case StockStatus.low:
+        statusColor = Colors.orange;
+        break;
+      case StockStatus.normal:
+        statusColor = TossColors.success;
+        break;
+      case StockStatus.excess:
+        statusColor = Colors.blue;
+        break;
+    }
+
+    return Container(
+      color: TossColors.surface,
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.inventory, color: TossColors.primary, size: 20),
+              const SizedBox(width: 8),
+              Text(
+                'Inventory',
+                style: TossTextStyles.bodyLarge.copyWith(fontWeight: FontWeight.w600),
+              ),
+              const Spacer(),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                decoration: BoxDecoration(
+                  color: statusColor.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  stockStatus.displayName,
+                  style: TossTextStyles.caption.copyWith(
+                    color: statusColor,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          _buildInfoRow('On Hand', '${product.onHand} ${product.unit}'),
+          const SizedBox(height: 8),
+          _buildInfoRow('Available', '${product.available} ${product.unit}'),
+          const SizedBox(height: 8),
+          _buildInfoRow('Reserved', '${product.reserved} ${product.unit}'),
+          if (product.reorderPoint != null) ...[
+            const SizedBox(height: 8),
+            _buildInfoRow('Reorder Point', '${product.reorderPoint} ${product.unit}'),
+          ],
+          if (product.minStock != null) ...[
+            const SizedBox(height: 8),
+            _buildInfoRow('Min Stock', '${product.minStock} ${product.unit}'),
+          ],
+          if (product.maxStock != null) ...[
+            const SizedBox(height: 8),
+            _buildInfoRow('Max Stock', '${product.maxStock} ${product.unit}'),
+          ],
+          if (product.location != null) ...[
+            const SizedBox(height: 8),
+            _buildInfoRow('Location', product.location!),
+          ],
+          const SizedBox(height: 16),
+          const Divider(),
+          const SizedBox(height: 16),
+          Text(
+            'Financial Summary',
+            style: TossTextStyles.bodyLarge.copyWith(fontWeight: FontWeight.w600),
+          ),
+          const SizedBox(height: 12),
+          _buildInfoRow('Inventory Value', '${product.currency} ${product.inventoryValue.toStringAsFixed(0)}'),
+          const SizedBox(height: 8),
+          _buildInfoRow('Potential Revenue', '${product.currency} ${product.potentialRevenue.toStringAsFixed(0)}'),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInfoRow(String label, String value) {
+    return Row(
+      children: [
+        Expanded(
+          flex: 2,
+          child: Text(
+            label,
+            style: TossTextStyles.body.copyWith(
+              color: TossColors.gray600,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ),
+        Expanded(
+          flex: 3,
+          child: Text(
+            value,
+            style: TossTextStyles.body.copyWith(
+              fontWeight: FontWeight.w600,
+            ),
+            textAlign: TextAlign.right,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _showDeleteConfirmation(
+    BuildContext context,
+    WidgetRef ref,
+    Product product,
+  ) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Product'),
+        content: Text(
+          'Are you sure you want to delete "${product.name}"?\n\nThis action cannot be undone.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: TextButton.styleFrom(
+              foregroundColor: TossColors.error,
+            ),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && context.mounted) {
+      // TODO: Implement delete functionality
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Delete functionality - Coming Soon')),
+      );
+    }
+  }
+}

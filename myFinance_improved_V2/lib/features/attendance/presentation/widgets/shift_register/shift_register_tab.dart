@@ -2,17 +2,16 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../../app/providers/app_state_provider.dart';
 import '../../../../../app/providers/auth_providers.dart';
 import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
-import '../../../../../shared/themes/toss_shadows.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../../shared/widgets/common/toss_loading_view.dart';
 import '../../../domain/entities/shift_data.dart';
+import '../../providers/attendance_provider.dart';
 
 class ShiftRegisterTab extends ConsumerStatefulWidget {
   const ShiftRegisterTab({super.key});
@@ -59,27 +58,30 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
   // Fetch shift metadata from Supabase RPC
   Future<void> fetchShiftMetadata(String storeId) async {
     if (storeId.isEmpty) return;
-    
+
     if (mounted) {
       setState(() {
         isLoadingMetadata = true;
       });
     }
-    
+
     try {
-      final response = await Supabase.instance.client.rpc(
-        'get_shift_metadata',
-        params: {
-          'p_store_id': storeId,
-        },
+      // Use datasource instead of direct Supabase call
+      final datasource = ref.read(attendanceDatasourceProvider);
+      final today = DateTime.now();
+      final dateStr = '${today.year}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}';
+
+      final response = await datasource.getShiftMetadata(
+        storeId: storeId,
+        date: dateStr,
       );
-      
-      
+
+
       if (mounted) {
         setState(() {
           // Store the raw response directly - it should be a List of shift objects
           if (response != null) {
-            shiftMetadata = response;
+            shiftMetadata = [response];
           } else {
             shiftMetadata = [];
           }
@@ -108,20 +110,20 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
     try {
       // Format date as YYYY-MM-DD for the first day of the focused month
       final requestDate = '${focusedMonth.year}-${focusedMonth.month.toString().padLeft(2, '0')}-01';
-      
-      // Call the manager RPC to get all employees' shift status for the store
-      final response = await Supabase.instance.client.rpc(
-        'get_monthly_shift_status_manager',
-        params: {
-          'p_store_id': selectedStoreId,
-          'p_request_date': requestDate,
-        },
+
+      // Use datasource instead of direct Supabase call
+      final datasource = ref.read(attendanceDatasourceProvider);
+      final appState = ref.read(appStateProvider);
+      final companyId = appState.companyChoosen;
+
+      final response = await datasource.getMonthlyShiftStatusManager(
+        storeId: selectedStoreId!,
+        companyId: companyId,
+        requestDate: requestDate,
       );
-      
+
       setState(() {
-        monthlyShiftStatus = response != null 
-            ? List<Map<String, dynamic>>.from(response as List) 
-            : [];
+        monthlyShiftStatus = response;
         isLoadingShiftStatus = false;
       });
       
@@ -918,15 +920,13 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
                             
                             
                             try {
-                              // Call RPC function to register shift
-                              final response = await Supabase.instance.client.rpc(
-                                'insert_shift_request_v2',
-                                params: {
-                                  'p_user_id': user.id,
-                                  'p_shift_id': selectedShift,
-                                  'p_store_id': selectedStoreId,
-                                  'p_request_date': dateStr,
-                                },
+                              // Use datasource instead of direct Supabase call
+                              final datasource = ref.read(attendanceDatasourceProvider);
+                              await datasource.insertShiftRequest(
+                                userId: user.id,
+                                shiftId: selectedShift!,
+                                storeId: selectedStoreId!,
+                                requestDate: dateStr,
                               );
                               
                               
@@ -972,10 +972,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
                                   // The UI will now reflect the changes made by _updateLocalShiftStatusOptimistically
                                 });
                               }
-                              
-                              // REMOVED: No more fetchMonthlyShiftStatus() call
-                              // The local state is already updated, no need to fetch from server
-                              
+
                               // Show success message
                               if (mounted) {
                                 showDialog(
@@ -1634,17 +1631,17 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
         
         
         if (shiftId.isNotEmpty) {
-          
-          // Delete using the three-column filter approach
+
+          // Delete using the three-column filter approach via datasource
           // This uniquely identifies the row without needing shift_request_id
-          final response = await Supabase.instance.client
-              .from('shift_requests')
-              .delete()
-              .eq('user_id', user.id)
-              .eq('shift_id', shiftId)
-              .eq('request_date', dateStr);
-          
-          
+          final datasource = ref.read(attendanceDatasourceProvider);
+          await datasource.deleteShiftRequest(
+            userId: user.id,
+            shiftId: shiftId,
+            requestDate: dateStr,
+          );
+
+
           // Optimistic UI update: immediately remove from local state
           // This prevents the race condition where fetch happens before DB commit
           _removeFromLocalShiftStatusOptimistically(
@@ -1668,10 +1665,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
           // The UI will now reflect the changes made by _removeFromLocalShiftStatusOptimistically
         });
       }
-      
-      // REMOVED: No more fetchMonthlyShiftStatus() call
-      // The local state is already updated, no need to fetch from server
-      
+
       // Show success message
       if (mounted) {
         showDialog(

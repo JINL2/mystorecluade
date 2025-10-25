@@ -590,13 +590,7 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
       onTap: () async {
         // Refresh data before navigating
         _refreshData();
-        
-        // Debug logging (uncomment for debugging)
-        // print('Navigating to account detail:');
-        // print('  locationId: ${location.locationId}');
-        // print('  locationName: ${location.locationName}');
-        // print('  locationType: $_currentLocationType');
-        
+
         await context.safePush(
           '/cashLocation/account/${Uri.encodeComponent(location.locationName)}',
           extra: {

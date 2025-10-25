@@ -2,7 +2,6 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../../app/providers/app_state_provider.dart';
 import '../../../../../app/providers/auth_providers.dart';
@@ -344,7 +343,9 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
   void _updateLocalStateAfterQRScan(Map<String, dynamic> scanResult) {
     final requestDate = scanResult['request_date'] ?? '';
     final action = scanResult['action'] ?? '';
-    final timestamp = scanResult['timestamp'] ?? DateTime.now().toIso8601String();
+    // Note: timestamp from QR scan is already in UTC from the server
+    // If missing, convert current time to UTC
+    final timestamp = scanResult['timestamp'] ?? DateTime.now().toUtc().toIso8601String();
     
     
     // Find the existing shift card for today's date
@@ -1530,7 +1531,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                 checkInTime = '${timeParts[0].padLeft(2, '0')}:${timeParts[1].padLeft(2, '0')}';
               }
             } else {
-              // It's a full datetime string
+              // It's a full datetime string (already converted to local time by datasource)
               final startTime = DateTime.parse(actualStart.toString());
               checkInTime = '${startTime.hour.toString().padLeft(2, '0')}:${startTime.minute.toString().padLeft(2, '0')}';
             }
@@ -1548,7 +1549,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                 checkOutTime = '${timeParts[0].padLeft(2, '0')}:${timeParts[1].padLeft(2, '0')}';
               }
             } else {
-              // It's a full datetime string
+              // It's a full datetime string (already converted to local time by datasource)
               final endTime = DateTime.parse(actualEnd.toString());
               checkOutTime = '${endTime.hour.toString().padLeft(2, '0')}:${endTime.minute.toString().padLeft(2, '0')}';
             }
@@ -1559,7 +1560,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                 // Parse the request_date and combine with times to get full DateTime
                 final baseDate = date;
                 
-                // Parse start time
+                // Parse start time (already converted to local time by datasource)
                 DateTime startDateTime;
                 if (actualStart.toString().contains('T')) {
                   startDateTime = DateTime.parse(actualStart.toString());
@@ -1574,7 +1575,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                   );
                 }
                 
-                // Parse end time
+                // Parse end time (already converted to local time by datasource)
                 DateTime endDateTime;
                 if (actualEnd.toString().contains('T')) {
                   endDateTime = DateTime.parse(actualEnd.toString());
@@ -3400,7 +3401,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
         }
       }
       
-      // If it's a datetime string
+      // If it's a datetime string (already converted to local time by datasource)
       if (timeStr.contains('T') || timeStr.length > 10) {
         final dateTime = DateTime.parse(timeStr);
         return '${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
@@ -3573,21 +3574,21 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                                     });
 
                                     try {
-                                      // Update the shift_requests table with report details
-                                      final now = DateTime.now().toIso8601String();
-                                      await Supabase.instance.client
-                                          .from('shift_requests')
-                                          .update({
-                                            'is_reported': true,
-                                            'report_time': now,
-                                            'report_reason': reason,
-                                            'is_problem_solved': false,
-                                          })
-                                          .eq('shift_request_id', shiftRequestId);
+                                      // Report shift issue via datasource (handles UTC conversion)
+                                      final datasource = ref.read(attendanceDatasourceProvider);
+                                      final success = await datasource.reportShiftIssue(
+                                        shiftRequestId: shiftRequestId,
+                                        reportReason: reason,
+                                      );
 
-                                      // Update local card data
+                                      if (!success) {
+                                        throw Exception('Failed to report shift issue');
+                                      }
+
+                                      // Update local card data with current time in UTC (will be converted to local on next fetch)
+                                      final nowUtc = DateTime.now().toUtc().toIso8601String();
                                       cardData['is_reported'] = true;
-                                      cardData['report_time'] = now;
+                                      cardData['report_time'] = nowUtc;
                                       cardData['report_reason'] = reason;
                                       cardData['is_problem_solved'] = false;
 

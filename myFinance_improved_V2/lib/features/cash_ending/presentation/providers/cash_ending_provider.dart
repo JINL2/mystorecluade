@@ -48,5 +48,10 @@ final isLoadingProvider = Provider<bool>((ref) {
 
 /// Provider for error message
 final errorMessageProvider = Provider<String?>((ref) {
-  return ref.watch(cashEndingProvider.select((state) => state.error));
+  return ref.watch(cashEndingProvider.select((state) => state.errorMessage));
+});
+
+/// Provider for success message
+final successMessageProvider = Provider<String?>((ref) {
+  return ref.watch(cashEndingProvider.select((state) => state.successMessage));
 });
