@@ -127,18 +127,25 @@ class ManageTabView extends ConsumerWidget {
     final storeData = stores.first as Map<String, dynamic>;
     final cards = storeData['cards'] as List<dynamic>? ?? [];
 
+    // First filter by selected date
+    final selectedDateStr = '${manageSelectedDate.year}-${manageSelectedDate.month.toString().padLeft(2, '0')}-${manageSelectedDate.day.toString().padLeft(2, '0')}';
+    var filteredCards = cards.where((card) {
+      final cardMap = card as Map<String, dynamic>;
+      return cardMap['request_date'] == selectedDateStr;
+    }).cast<Map<String, dynamic>>().toList();
+
+    // Then apply status filter
     if (selectedFilter == null || selectedFilter == 'all') {
-      return cards.cast<Map<String, dynamic>>();
+      return filteredCards;
     }
 
-    return cards.where((card) {
-      final cardMap = card as Map<String, dynamic>;
+    return filteredCards.where((card) {
       if (selectedFilter == 'problem') {
-        return cardMap['is_problem'] == true && cardMap['is_problem_solved'] != true;
+        return card['is_problem'] == true && card['is_problem_solved'] != true;
       } else if (selectedFilter == 'approved') {
-        return cardMap['is_approved'] == true;
+        return card['is_approved'] == true;
       } else if (selectedFilter == 'pending') {
-        return cardMap['is_approved'] != true;
+        return card['is_approved'] != true;
       }
       return true;
     }).cast<Map<String, dynamic>>().toList();
@@ -267,6 +274,7 @@ class ManageTabView extends ConsumerWidget {
                         value: _getMonthlyStatValue('total_requests'),
                         subtitle: 'requests',
                         onTap: () => onFilterChanged('all'),
+                        isSelected: selectedFilter == null || selectedFilter == 'all',
                       ),
                       StatCardWidget(
                         icon: Icons.warning_amber_rounded,
@@ -276,6 +284,7 @@ class ManageTabView extends ConsumerWidget {
                         value: _getMonthlyStatValue('total_problems'),
                         subtitle: 'issues',
                         onTap: () => onFilterChanged('problem'),
+                        isSelected: selectedFilter == 'problem',
                       ),
                       StatCardWidget(
                         icon: Icons.check_circle,
@@ -285,6 +294,7 @@ class ManageTabView extends ConsumerWidget {
                         value: _getMonthlyStatValue('total_approved'),
                         subtitle: 'approved',
                         onTap: () => onFilterChanged('approved'),
+                        isSelected: selectedFilter == 'approved',
                       ),
                       StatCardWidget(
                         icon: Icons.pending_actions,
@@ -294,6 +304,7 @@ class ManageTabView extends ConsumerWidget {
                         value: _getMonthlyStatValue('total_pending'),
                         subtitle: 'pending',
                         onTap: () => onFilterChanged('pending'),
+                        isSelected: selectedFilter == 'pending',
                       ),
                     ],
                   ),

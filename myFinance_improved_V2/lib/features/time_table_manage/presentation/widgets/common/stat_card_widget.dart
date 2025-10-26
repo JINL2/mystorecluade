@@ -16,6 +16,7 @@ class StatCardWidget extends StatelessWidget {
   final String value;
   final String subtitle;
   final VoidCallback onTap;
+  final bool isSelected;
 
   const StatCardWidget({
     super.key,
@@ -26,6 +27,7 @@ class StatCardWidget extends StatelessWidget {
     required this.value,
     required this.subtitle,
     required this.onTap,
+    this.isSelected = false,
   });
 
   @override
@@ -38,11 +40,25 @@ class StatCardWidget extends StatelessWidget {
         decoration: BoxDecoration(
           color: backgroundColor,
           borderRadius: BorderRadius.circular(TossBorderRadius.xl),
-          border: backgroundColor == TossColors.background
+          border: isSelected
               ? Border.all(
-                  color: TossColors.gray200,
-                  width: 1,
+                  color: iconColor.withValues(alpha: 0.5),
+                  width: 2,
                 )
+              : backgroundColor == TossColors.background
+                  ? Border.all(
+                      color: TossColors.gray200,
+                      width: 1,
+                    )
+                  : null,
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: iconColor.withValues(alpha: 0.2),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ]
               : null,
         ),
         child: Column(
