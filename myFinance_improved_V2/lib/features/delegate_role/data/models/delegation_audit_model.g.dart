@@ -15,7 +15,8 @@ _$DelegationAuditModelImpl _$$DelegationAuditModelImplFromJson(
       performedBy: json['performedBy'] as String,
       performedByUser: json['performedByUser'] as Map<String, dynamic>,
       details: json['details'] as Map<String, dynamic>,
-      timestamp: DateTime.parse(json['timestamp'] as String),
+      timestamp:
+          const _DateTimeConverter().fromJson(json['timestamp'] as String),
     );
 
 Map<String, dynamic> _$$DelegationAuditModelImplToJson(
@@ -27,5 +28,5 @@ Map<String, dynamic> _$$DelegationAuditModelImplToJson(
       'performedBy': instance.performedBy,
       'performedByUser': instance.performedByUser,
       'details': instance.details,
-      'timestamp': instance.timestamp.toIso8601String(),
+      'timestamp': const _DateTimeConverter().toJson(instance.timestamp),
     };

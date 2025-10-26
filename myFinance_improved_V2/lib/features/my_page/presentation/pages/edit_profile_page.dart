@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:myfinance_improved/app/providers/app_state_provider.dart';
 import 'package:myfinance_improved/core/navigation/safe_navigation.dart';
+import 'package:myfinance_improved/core/utils/datetime_utils.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
@@ -566,7 +567,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
       if (_firstNameController.text.trim() != (_originalFirstName ?? '') ||
           _lastNameController.text.trim() != (_originalLastName ?? '') ||
           _phoneNumberController.text.trim() != (_originalPhoneNumber ?? '')) {
-        await ref.read(userProfileServiceProvider.notifier).updateProfile(
+        await ref.read(myPageProvider.notifier).updateProfile(
               firstName: _firstNameController.text.trim(),
               lastName: _lastNameController.text.trim(),
               phoneNumber: _phoneNumberController.text.trim().isEmpty ? null : _phoneNumberController.text.trim(),
@@ -593,7 +594,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                 'user_bank_name': _bankNameController.text.trim(),
                 'user_account_number': _bankAccountController.text.trim(),
                 'description': _bankDescriptionController.text.trim(),
-                'updated_at': DateTime.now().toIso8601String(),
+                'updated_at': DateTimeUtils.nowUtc(),
               }).eq('user_id', userId).eq('company_id', companyId);
             } else {
               await Supabase.instance.client.from('users_bank_account').insert({
@@ -602,8 +603,8 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                 'user_bank_name': _bankNameController.text.trim(),
                 'user_account_number': _bankAccountController.text.trim(),
                 'description': _bankDescriptionController.text.trim(),
-                'created_at': DateTime.now().toIso8601String(),
-                'updated_at': DateTime.now().toIso8601String(),
+                'created_at': DateTimeUtils.nowUtc(),
+                'updated_at': DateTimeUtils.nowUtc(),
               });
             }
           }

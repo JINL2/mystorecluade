@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 // Domain
+import '../../domain/entities/journal_entry.dart';
 import '../../domain/entities/transaction_line.dart';
 
 // Presentation
@@ -89,10 +90,11 @@ class _JournalInputPageState extends ConsumerState<JournalInputPage>
 
   Future<void> _addTransactionLine([bool? isDebit]) async {
     final state = ref.read(journalEntryStateProvider);
+    final notifier = ref.read(journalEntryStateProvider.notifier);
 
     // Suggest the difference amount if there is one
     double? suggestedAmount;
-    final difference = state.difference;
+    final difference = notifier.difference;
     if (difference.abs() > 0.01) {
       suggestedAmount = difference.abs();
     }
@@ -104,8 +106,8 @@ class _JournalInputPageState extends ConsumerState<JournalInputPage>
       defaultIsDebit = isDebit;
     } else {
       // Auto-determine based on which side needs balancing
-      final totalDebits = state.totalDebits;
-      final totalCredits = state.totalCredits;
+      final totalDebits = notifier.totalDebits;
+      final totalCredits = notifier.totalCredits;
       if (totalDebits < totalCredits) {
         defaultIsDebit = true;
       } else if (totalCredits < totalDebits) {
@@ -143,8 +145,9 @@ class _JournalInputPageState extends ConsumerState<JournalInputPage>
 
       // If the transaction line has a counterparty cash location, update state
       if (result.counterpartyCashLocationId != null) {
-        ref.read(journalEntryStateProvider.notifier).setCounterpartyCashLocation(
-          result.counterpartyCashLocationId,
+        final currentState = ref.read(journalEntryStateProvider);
+        ref.read(journalEntryStateProvider.notifier).state = currentState.copyWith(
+          counterpartyCashLocationId: result.counterpartyCashLocationId,
         );
       }
     }
@@ -185,8 +188,9 @@ class _JournalInputPageState extends ConsumerState<JournalInputPage>
 
       // If the transaction line has a counterparty cash location, update state
       if (result.counterpartyCashLocationId != null) {
-        ref.read(journalEntryStateProvider.notifier).setCounterpartyCashLocation(
-          result.counterpartyCashLocationId,
+        final currentState = ref.read(journalEntryStateProvider);
+        ref.read(journalEntryStateProvider.notifier).state = currentState.copyWith(
+          counterpartyCashLocationId: result.counterpartyCashLocationId,
         );
       }
     }
@@ -212,12 +216,8 @@ class _JournalInputPageState extends ConsumerState<JournalInputPage>
     try {
       final appState = ref.read(appStateProvider);
 
-      // Get current journal entry as entity
-      final notifier = ref.read(journalEntryStateProvider.notifier);
-      final currentEntry = notifier.getCurrentJournalEntry();
-
-      // Update description
-      final updatedJournalEntry = currentEntry.copyWith(
+      // Update description in state
+      final updatedJournalEntry = journalEntry.copyWith(
         overallDescription: _descriptionController.text.isNotEmpty ? _descriptionController.text : null,
       );
 
@@ -240,7 +240,12 @@ class _JournalInputPageState extends ConsumerState<JournalInputPage>
       if (mounted) {
         // Clear the form and reset journal entry immediately after success
         _descriptionController.clear();
-        notifier.clear();
+        ref.read(journalEntryStateProvider.notifier).state = JournalEntry(
+          entryDate: DateTime.now(),
+          transactionLines: const [],
+          selectedCompanyId: appState.companyChoosen.isNotEmpty ? appState.companyChoosen : null,
+          selectedStoreId: appState.storeChoosen.isNotEmpty ? appState.storeChoosen : null,
+        );
 
         // Show success dialog
         await showDialog<void>(
@@ -347,7 +352,7 @@ class _JournalInputPageState extends ConsumerState<JournalInputPage>
                         children: [
                           // Date
                           Text(
-                            DateFormat('MMM d, yyyy').format(journalEntry.entryDate ?? DateTime.now()),
+                            DateFormat('MMM d, yyyy').format(journalEntry.entryDate),
                             style: TossTextStyles.caption.copyWith(
                               color: TossColors.gray600,
                             ),

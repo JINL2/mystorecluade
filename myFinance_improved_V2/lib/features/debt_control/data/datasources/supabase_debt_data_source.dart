@@ -1,4 +1,5 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:myfinance_improved/core/utils/datetime_utils.dart';
 import '../models/debt_control_dto.dart';
 
 /// Supabase implementation of DebtDataSource
@@ -297,9 +298,7 @@ class SupabaseDebtDataSource {
         suggestedActions: _getSuggestedActions(riskCategory),
         transactionCount: (record['transaction_count'] as int?) ?? 0,
         linkedCompanyName: isInternal ? (record['linked_company_id'] as String?) : null,
-        lastContactDate: record['last_activity'] != null
-          ? DateTime.tryParse(record['last_activity'] as String)
-          : null,
+        lastContactDate: DateTimeUtils.toLocalSafe(record['last_activity'] as String?),
       ));
     }
 

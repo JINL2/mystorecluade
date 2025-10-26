@@ -14,23 +14,28 @@ class AttendanceDatasource {
 
   /// Convert UTC datetime fields to local time in a Map
   ///
-  /// Converts common datetime field names from UTC to local timezone:
-  /// - actual_start_time, actual_end_time
-  /// - plan_start_time, plan_end_time
-  /// - created_at, updated_at
-  /// - report_time
+  /// Only converts fields that represent actual events (timestamps):
+  /// - actual_start_time, actual_end_time (실제 근무 시간)
+  /// - confirm_start_time, confirm_end_time (관리자 확정 시간)
+  /// - created_at, updated_at (레코드 생성/수정 시각)
+  /// - report_time (문제 신고 시각)
+  ///
+  /// Does NOT convert schedule times (these are time-of-day only):
+  /// - scheduled_start_time, scheduled_end_time (예정된 근무 시간 - HH:mm:ss)
+  /// - shift_start_time, shift_end_time (시프트 시간 - HH:mm:ss)
+  /// - plan_start_time, plan_end_time (계획된 시간 - HH:mm:ss)
   Map<String, dynamic> _convertToLocalTime(Map<String, dynamic> data) {
     final result = Map<String, dynamic>.from(data);
 
-    // List of datetime fields to convert
+    // List of datetime fields to convert (actual events only)
     const timeFields = [
-      'actual_start_time',
-      'actual_end_time',
-      'plan_start_time',
-      'plan_end_time',
-      'created_at',
-      'updated_at',
-      'report_time',
+      'actual_start_time',      // 실제 출근 시각 (QR 스캔)
+      'actual_end_time',        // 실제 퇴근 시각 (QR 스캔)
+      'confirm_start_time',     // 관리자 확정 출근 시각
+      'confirm_end_time',       // 관리자 확정 퇴근 시각
+      'created_at',             // 레코드 생성 시각
+      'updated_at',             // 레코드 수정 시각
+      'report_time',            // 문제 신고 시각
     ];
 
     for (final field in timeFields) {
@@ -306,29 +311,29 @@ class AttendanceDatasource {
   }
 
   /// Get shift metadata for a store
-  Future<Map<String, dynamic>?> getShiftMetadata({
+  Future<List<Map<String, dynamic>>> getShiftMetadata({
     required String storeId,
-    required String date,
   }) async {
     try {
       final response = await _supabase.rpc<dynamic>(
         'get_shift_metadata',
         params: {
           'p_store_id': storeId,
-          'p_date': date,
         },
       );
 
-      if (response == null || (response is List && response.isEmpty)) {
-        return null;
+      if (response == null) {
+        return [];
       }
 
       if (response is List) {
-        final firstItem = response.first as Map<String, dynamic>;
-        return _convertToLocalTime(firstItem);
+        return response
+            .map((item) => _convertToLocalTime(item as Map<String, dynamic>))
+            .toList();
       }
 
-      return _convertToLocalTime(response as Map<String, dynamic>);
+      // If it's a single map, wrap it in a list
+      return [_convertToLocalTime(response as Map<String, dynamic>)];
     } catch (e) {
       throw AttendanceServerException(e.toString());
     }

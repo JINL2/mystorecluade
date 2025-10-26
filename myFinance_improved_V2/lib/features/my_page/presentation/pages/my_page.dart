@@ -66,8 +66,9 @@ class _MyPageState extends ConsumerState<MyPage> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    final userProfile = ref.watch(currentUserProfileProvider);
-    final businessData = ref.watch(businessDashboardProvider);
+    final myPageState = ref.watch(myPageProvider);
+    final userProfile = myPageState.userProfile;
+    final businessData = myPageState.businessDashboard;
 
     return TossScaffold(
       backgroundColor: TossColors.gray100,
@@ -108,52 +109,48 @@ class _MyPageState extends ConsumerState<MyPage> with TickerProviderStateMixin {
               child: RefreshIndicator(
                 onRefresh: _handleRefresh,
                 color: TossColors.primary,
-                child: userProfile.when(
-                  data: (profile) {
-                    if (profile == null) {
-                      return const Center(child: Text('No profile data'));
-                    }
+                child: myPageState.isLoading
+                    ? const Center(child: TossLoadingView())
+                    : myPageState.errorMessage != null
+                        ? Center(
+                            child: Text('Error loading profile: ${myPageState.errorMessage}'),
+                          )
+                        : userProfile == null
+                            ? const Center(child: Text('No profile data'))
+                            : SingleChildScrollView(
+                                controller: _scrollController,
+                                physics: const BouncingScrollPhysics(),
+                                child: Column(
+                                  children: [
+                                    // Profile Header Section
+                                    FadeTransition(
+                                      opacity: _animations[0],
+                                      child: ProfileHeaderSection(
+                                        profile: userProfile,
+                                        businessData: businessData,
+                                        temporaryImageUrl: _temporaryProfileImageUrl,
+                                        onAvatarTap: _handleAvatarTap,
+                                      ),
+                                    ),
 
-                    return SingleChildScrollView(
-                      controller: _scrollController,
-                      physics: const BouncingScrollPhysics(),
-                      child: Column(
-                        children: [
-                          // Profile Header Section
-                          FadeTransition(
-                            opacity: _animations[0],
-                            child: ProfileHeaderSection(
-                              profile: profile,
-                              businessData: businessData.value,
-                              temporaryImageUrl: _temporaryProfileImageUrl,
-                              onAvatarTap: _handleAvatarTap,
-                            ),
-                          ),
+                                    SizedBox(height: TossSpacing.space4),
 
-                          SizedBox(height: TossSpacing.space4),
+                                    // Settings Section
+                                    FadeTransition(
+                                      opacity: _animations[1],
+                                      child: SettingsSection(
+                                        onEditProfile: _navigateToEditProfile,
+                                        onNotifications: _navigateToNotifications,
+                                        onPrivacySecurity: _navigateToPrivacySecurity,
+                                        onSignOut: _handleSignOut,
+                                      ),
+                                    ),
 
-                          // Settings Section
-                          FadeTransition(
-                            opacity: _animations[1],
-                            child: SettingsSection(
-                              onEditProfile: _navigateToEditProfile,
-                              onNotifications: _navigateToNotifications,
-                              onPrivacySecurity: _navigateToPrivacySecurity,
-                              onSignOut: _handleSignOut,
-                            ),
-                          ),
-
-                          // Bottom spacing
-                          SizedBox(height: TossSpacing.space12),
-                        ],
-                      ),
-                    );
-                  },
-                  loading: () => const Center(child: TossLoadingView()),
-                  error: (error, stack) => Center(
-                    child: Text('Error loading profile: $error'),
-                  ),
-                ),
+                                    // Bottom spacing
+                                    SizedBox(height: TossSpacing.space12),
+                                  ],
+                                ),
+                              ),
               ),
             ),
           ],
@@ -165,11 +162,11 @@ class _MyPageState extends ConsumerState<MyPage> with TickerProviderStateMixin {
   Future<void> _handleRefresh() async {
     HapticFeedback.mediumImpact();
 
-    // Refresh providers
-    ref.invalidate(currentUserProfileProvider);
-    ref.invalidate(businessDashboardProvider);
-
-    await Future.delayed(const Duration(seconds: 1));
+    // Refresh user data using new pattern
+    final authState = await ref.read(authStateProvider.future);
+    if (authState != null) {
+      await ref.read(myPageProvider.notifier).loadUserData(authState.id);
+    }
   }
 
   void _handleAvatarTap() {
@@ -178,7 +175,7 @@ class _MyPageState extends ConsumerState<MyPage> with TickerProviderStateMixin {
   }
 
   void _showAvatarOptions() {
-    final profile = ref.read(currentUserProfileProvider).value;
+    final profile = ref.read(currentUserProfileProvider);
     if (profile == null) return;
 
     showModalBottomSheet<void>(
@@ -254,7 +251,7 @@ class _MyPageState extends ConsumerState<MyPage> with TickerProviderStateMixin {
 
     try {
       final publicUrl = await ref
-          .read(userProfileServiceProvider.notifier)
+          .read(myPageProvider.notifier)
           .uploadProfileImage(imageFile.path);
 
       if (mounted) {
@@ -336,7 +333,7 @@ class _MyPageState extends ConsumerState<MyPage> with TickerProviderStateMixin {
     );
 
     try {
-      await ref.read(userProfileServiceProvider.notifier).removeProfileImage();
+      await ref.read(myPageProvider.notifier).removeProfileImage();
 
       if (mounted) {
         Navigator.pop(context); // Close loading dialog

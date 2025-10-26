@@ -1,3 +1,4 @@
+import 'package:myfinance_improved/core/utils/datetime_utils.dart';
 import '../../domain/entities/user_profile.dart';
 
 class UserProfileModel {
@@ -52,17 +53,15 @@ class UserProfileModel {
       bankName: json['bank_name']?.toString(),
       bankAccountNumber: json['bank_account_number']?.toString(),
       isDeleted: json['is_deleted'] as bool? ?? false,
-      deletedAt: json['deleted_at'] != null ? DateTime.parse(json['deleted_at'].toString()) : null,
-      createdAt: json['created_at'] != null ? DateTime.parse(json['created_at'].toString()) : null,
-      updatedAt: json['updated_at'] != null ? DateTime.parse(json['updated_at'].toString()) : null,
+      deletedAt: DateTimeUtils.toLocalSafe(json['deleted_at'] as String?),
+      createdAt: DateTimeUtils.toLocalSafe(json['created_at'] as String?),
+      updatedAt: DateTimeUtils.toLocalSafe(json['updated_at'] as String?),
       companyName: json['company_name']?.toString(),
       storeName: json['store_name']?.toString(),
       roleName: json['role_name']?.toString(),
       subscriptionPlan: json['subscription_plan']?.toString() ?? 'Free',
       subscriptionStatus: json['subscription_status']?.toString() ?? 'active',
-      subscriptionExpiresAt: json['subscription_expires_at'] != null
-          ? DateTime.parse(json['subscription_expires_at'].toString())
-          : null,
+      subscriptionExpiresAt: DateTimeUtils.toLocalSafe(json['subscription_expires_at'] as String?),
     );
   }
 
@@ -77,15 +76,15 @@ class UserProfileModel {
       'bank_name': bankName,
       'bank_account_number': bankAccountNumber,
       'is_deleted': isDeleted,
-      'deleted_at': deletedAt?.toIso8601String(),
-      'created_at': createdAt?.toIso8601String(),
-      'updated_at': updatedAt?.toIso8601String(),
+      'deleted_at': deletedAt != null ? DateTimeUtils.toUtc(deletedAt!) : null,
+      'created_at': createdAt != null ? DateTimeUtils.toUtc(createdAt!) : null,
+      'updated_at': updatedAt != null ? DateTimeUtils.toUtc(updatedAt!) : null,
       'company_name': companyName,
       'store_name': storeName,
       'role_name': roleName,
       'subscription_plan': subscriptionPlan,
       'subscription_status': subscriptionStatus,
-      'subscription_expires_at': subscriptionExpiresAt?.toIso8601String(),
+      'subscription_expires_at': subscriptionExpiresAt != null ? DateTimeUtils.toUtc(subscriptionExpiresAt!) : null,
     };
   }
 

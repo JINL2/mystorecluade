@@ -5,49 +5,69 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../data/repositories/repository_providers.dart';
 import '../../domain/entities/journal_entry.dart';
-import '../../domain/entities/transaction_line.dart';
+import 'states/journal_entry_state.dart';
+import 'journal_entry_notifier.dart';
 
-// Journal Entry State Provider (immutable)
-final journalEntryStateProvider = StateProvider<JournalEntry>((ref) {
-  return JournalEntry(
-    entryDate: DateTime.now(),
-    transactionLines: const [],
-  );
+// =============================================================================
+// State Management Providers
+// =============================================================================
+
+/// Journal Entry State Provider
+final journalEntryStateProvider = StateNotifierProvider<JournalEntryNotifier, JournalEntryState>((ref) {
+  return JournalEntryNotifier();
 });
 
-// Helper providers for computed values
+/// Transaction Line Creation State Provider
+final transactionLineCreationStateProvider =
+    StateNotifierProvider<TransactionLineCreationNotifier, TransactionLineCreationState>((ref) {
+  return TransactionLineCreationNotifier();
+});
+
+// =============================================================================
+// Computed Value Providers
+// =============================================================================
+
+/// Total debits provider
 final totalDebitsProvider = Provider<double>((ref) {
-  final journalEntry = ref.watch(journalEntryStateProvider);
-  return journalEntry.totalDebits;
+  final state = ref.watch(journalEntryStateProvider);
+  return state.totalDebits;
 });
 
+/// Total credits provider
 final totalCreditsProvider = Provider<double>((ref) {
-  final journalEntry = ref.watch(journalEntryStateProvider);
-  return journalEntry.totalCredits;
+  final state = ref.watch(journalEntryStateProvider);
+  return state.totalCredits;
 });
 
+/// Difference provider
 final differenceProvider = Provider<double>((ref) {
-  final journalEntry = ref.watch(journalEntryStateProvider);
-  return journalEntry.difference;
+  final state = ref.watch(journalEntryStateProvider);
+  return state.difference;
 });
 
+/// Is balanced provider
 final isBalancedProvider = Provider<bool>((ref) {
-  final journalEntry = ref.watch(journalEntryStateProvider);
-  return journalEntry.isBalanced;
+  final state = ref.watch(journalEntryStateProvider);
+  return state.isBalanced;
 });
 
+/// Can submit provider
 final canSubmitProvider = Provider<bool>((ref) {
-  final journalEntry = ref.watch(journalEntryStateProvider);
-  return journalEntry.canSubmit();
+  final state = ref.watch(journalEntryStateProvider);
+  return state.canSubmit();
 });
 
-// Fetch accounts
+// =============================================================================
+// Data Fetch Providers
+// =============================================================================
+
+/// Fetch accounts
 final journalAccountsProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
   final repository = ref.watch(journalEntryRepositoryProvider);
   return await repository.getAccounts();
 });
 
-// Fetch counterparties (family provider for company-specific data)
+/// Fetch counterparties (family provider for company-specific data)
 final journalCounterpartiesProvider = FutureProvider.family<List<Map<String, dynamic>>, String>(
   (ref, companyId) async {
     if (companyId.isEmpty) return [];
@@ -56,7 +76,7 @@ final journalCounterpartiesProvider = FutureProvider.family<List<Map<String, dyn
   },
 );
 
-// Fetch counterparty stores
+/// Fetch counterparty stores
 final journalCounterpartyStoresProvider = FutureProvider.family<List<Map<String, dynamic>>, String?>(
   (ref, linkedCompanyId) async {
     if (linkedCompanyId == null || linkedCompanyId.isEmpty) return [];
@@ -65,7 +85,7 @@ final journalCounterpartyStoresProvider = FutureProvider.family<List<Map<String,
   },
 );
 
-// Fetch cash locations
+/// Fetch cash locations
 final journalCashLocationsProvider = FutureProvider.family<List<Map<String, dynamic>>, ({String companyId, String? storeId})>(
   (ref, params) async {
     if (params.companyId.isEmpty) return [];
@@ -77,7 +97,7 @@ final journalCashLocationsProvider = FutureProvider.family<List<Map<String, dyna
   },
 );
 
-// Check account mapping
+/// Check account mapping
 final checkAccountMappingProvider = Provider<Future<Map<String, dynamic>?> Function(String, String, String)>(
   (ref) {
     return (String companyId, String counterpartyId, String accountId) async {
@@ -91,7 +111,7 @@ final checkAccountMappingProvider = Provider<Future<Map<String, dynamic>?> Funct
   },
 );
 
-// Fetch exchange rates
+/// Fetch exchange rates
 final exchangeRatesProvider = FutureProvider.family<Map<String, dynamic>, String>(
   (ref, companyId) async {
     if (companyId.isEmpty) {
@@ -102,7 +122,11 @@ final exchangeRatesProvider = FutureProvider.family<Map<String, dynamic>, String
   },
 );
 
-// Submit journal entry
+// =============================================================================
+// Action Providers
+// =============================================================================
+
+/// Submit journal entry
 final submitJournalEntryProvider = Provider<Future<void> Function(JournalEntry, String, String, String?)>(
   (ref) {
     return (JournalEntry journalEntry, String userId, String companyId, String? storeId) async {
@@ -120,42 +144,3 @@ final submitJournalEntryProvider = Provider<Future<void> Function(JournalEntry, 
     };
   },
 );
-
-// Helper functions for updating journal entry state
-extension JournalEntryStateExtension on StateController<JournalEntry> {
-  void addTransactionLine(TransactionLine line) {
-    state = state.addTransactionLine(line);
-  }
-
-  void removeTransactionLine(int index) {
-    state = state.removeTransactionLine(index);
-  }
-
-  void updateTransactionLine(int index, TransactionLine line) {
-    state = state.updateTransactionLine(index, line);
-  }
-
-  void setEntryDate(DateTime date) {
-    state = state.copyWith(entryDate: date);
-  }
-
-  void setOverallDescription(String? description) {
-    state = state.copyWith(overallDescription: description);
-  }
-
-  void setSelectedCompany(String? companyId) {
-    state = state.copyWith(selectedCompanyId: companyId);
-  }
-
-  void setSelectedStore(String? storeId) {
-    state = state.copyWith(selectedStoreId: storeId);
-  }
-
-  void setCounterpartyCashLocation(String? cashLocationId) {
-    state = state.copyWith(counterpartyCashLocationId: cashLocationId);
-  }
-
-  void clear() {
-    state = state.clear();
-  }
-}

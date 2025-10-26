@@ -1,4 +1,5 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:myfinance_improved/core/utils/datetime_utils.dart';
 
 import '../../domain/value_objects/salary_update_request.dart';
 import '../models/currency_type_model.dart';
@@ -154,7 +155,7 @@ class EmployeeRemoteDataSource {
             'salary_amount': request.salaryAmount,
             'salary_type': request.salaryType,
             'currency_id': currencyIdToUse,
-            'updated_at': DateTime.now().toIso8601String(),
+            'updated_at': DateTimeUtils.nowUtc(),
           })
           .eq('salary_id', request.salaryId)
           .select();

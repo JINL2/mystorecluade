@@ -4,9 +4,13 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../data/datasources/profile_image_datasource.dart';
 import '../../data/datasources/user_profile_datasource.dart';
 import '../../data/repositories/user_profile_repository_impl.dart';
-import '../../domain/entities/business_dashboard.dart';
-import '../../domain/entities/user_profile.dart';
 import '../../domain/repositories/user_profile_repository.dart';
+import 'my_page_notifier.dart';
+import 'states/my_page_state.dart';
+
+/// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+/// 🎯 DataSource & Repository Providers (DI)
+/// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 // DataSource providers
 final userProfileDataSourceProvider = Provider<UserProfileDataSource>((ref) {
@@ -25,122 +29,66 @@ final userProfileRepositoryProvider = Provider<UserProfileRepository>((ref) {
   );
 });
 
+/// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+/// 🎯 State Providers (Freezed State + StateNotifier Pattern)
+/// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+/// My Page Provider - 메인 페이지 상태 관리
+///
+/// Flutter 표준 구조: Freezed State + StateNotifier
+final myPageProvider = StateNotifierProvider<MyPageNotifier, MyPageState>((ref) {
+  return MyPageNotifier(
+    repository: ref.read(userProfileRepositoryProvider),
+  );
+});
+
+/// Profile Edit Provider - 프로필 편집 전용 상태 관리
+///
+/// Flutter 표준 구조: Freezed State + StateNotifier
+final profileEditProvider = StateNotifierProvider<ProfileEditNotifier, ProfileEditState>((ref) {
+  return ProfileEditNotifier(
+    repository: ref.read(userProfileRepositoryProvider),
+  );
+});
+
+/// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+/// 🎯 Helper Providers (Auth & Computed)
+/// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
 // Auth state provider (watches Supabase auth)
 final authStateProvider = StreamProvider<User?>((ref) {
   return Supabase.instance.client.auth.onAuthStateChange.map((event) => event.session?.user);
 });
 
-// Current user profile provider (autoDispose to refresh on every page visit)
-final currentUserProfileProvider = FutureProvider.autoDispose<UserProfile?>((ref) async {
-  final authState = await ref.watch(authStateProvider.future);
+/// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+/// 🎯 Computed Providers (UI Helper Providers)
+/// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-  if (authState == null) return null;
-
-  try {
-    final repository = ref.watch(userProfileRepositoryProvider);
-    final profile = await repository.getUserProfile(authState.id);
-
-    if (profile == null) {
-      // Return minimal profile if not found
-      return UserProfile(
-        userId: authState.id,
-        email: authState.email ?? '',
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
-      );
-    }
-
-    return profile;
-  } catch (e) {
-    return null;
-  }
+/// Current User Profile Provider - MyPageState에서 userProfile 추출
+///
+/// 기존 FutureProvider와 호환성을 위한 computed provider
+final currentUserProfileProvider = Provider.autoDispose((ref) {
+  final myPageState = ref.watch(myPageProvider);
+  return myPageState.userProfile;
 });
 
-// Business dashboard provider (autoDispose to refresh on every page visit)
-final businessDashboardProvider = FutureProvider.autoDispose<BusinessDashboard?>((ref) async {
-  final authState = await ref.watch(authStateProvider.future);
-
-  if (authState == null) return null;
-
-  try {
-    final repository = ref.watch(userProfileRepositoryProvider);
-    return await repository.getBusinessDashboard(authState.id);
-  } catch (e) {
-    return null;
-  }
+/// Business Dashboard Provider - MyPageState에서 businessDashboard 추출
+///
+/// 기존 FutureProvider와 호환성을 위한 computed provider
+final businessDashboardProvider = Provider.autoDispose((ref) {
+  final myPageState = ref.watch(myPageProvider);
+  return myPageState.businessDashboard;
 });
 
-// User profile service provider for update operations
-final userProfileServiceProvider = StateNotifierProvider<UserProfileServiceNotifier, AsyncValue<void>>((ref) {
-  return UserProfileServiceNotifier(
-    repository: ref.watch(userProfileRepositoryProvider),
-  );
+/// Refresh User Data Provider - 사용자 데이터 새로고침 함수
+///
+/// UI에서 pull-to-refresh 등에 사용할 수 있는 새로고침 함수 제공
+final refreshUserDataProvider = Provider<Future<void> Function()>((ref) {
+  return () async {
+    final authState = await ref.read(authStateProvider.future);
+    if (authState == null) return;
+
+    final notifier = ref.read(myPageProvider.notifier);
+    await notifier.loadUserData(authState.id);
+  };
 });
-
-class UserProfileServiceNotifier extends StateNotifier<AsyncValue<void>> {
-  final UserProfileRepository repository;
-
-  UserProfileServiceNotifier({required this.repository}) : super(const AsyncValue.data(null));
-
-  Future<void> updateProfile({
-    String? firstName,
-    String? lastName,
-    String? phoneNumber,
-    String? bankName,
-    String? bankAccountNumber,
-    String? profileImage,
-  }) async {
-    state = const AsyncValue.loading();
-
-    try {
-      final userId = Supabase.instance.client.auth.currentUser?.id;
-      if (userId == null) throw Exception('User not authenticated');
-
-      await repository.updateUserProfile(
-        userId: userId,
-        firstName: firstName,
-        lastName: lastName,
-        phoneNumber: phoneNumber,
-        bankName: bankName,
-        bankAccountNumber: bankAccountNumber,
-        profileImage: profileImage,
-      );
-
-      state = const AsyncValue.data(null);
-    } catch (e, stack) {
-      state = AsyncValue.error(e, stack);
-    }
-  }
-
-  Future<String> uploadProfileImage(String filePath) async {
-    state = const AsyncValue.loading();
-
-    try {
-      final userId = Supabase.instance.client.auth.currentUser?.id;
-      if (userId == null) throw Exception('User not authenticated');
-
-      final publicUrl = await repository.uploadProfileImage(userId, filePath);
-
-      state = const AsyncValue.data(null);
-      return publicUrl;
-    } catch (e, stack) {
-      state = AsyncValue.error(e, stack);
-      rethrow;
-    }
-  }
-
-  Future<void> removeProfileImage() async {
-    state = const AsyncValue.loading();
-
-    try {
-      final userId = Supabase.instance.client.auth.currentUser?.id;
-      if (userId == null) throw Exception('User not authenticated');
-
-      await repository.removeProfileImage(userId);
-
-      state = const AsyncValue.data(null);
-    } catch (e, stack) {
-      state = AsyncValue.error(e, stack);
-    }
-  }
-}

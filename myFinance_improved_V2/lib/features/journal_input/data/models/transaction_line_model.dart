@@ -1,6 +1,7 @@
 // Data Model: TransactionLineModel
 // DTO (Data Transfer Object) with mapper to domain entity
 
+import '../../../../core/utils/datetime_utils.dart';
 import '../../domain/entities/transaction_line.dart';
 
 class TransactionLineModel {
@@ -153,10 +154,12 @@ class TransactionLineModel {
         'interest_rate': (interestRate ?? 0.0).toString(),
         'interest_account_id': '',
         'interest_due_day': 0,
-        'issue_date': issueDate?.toIso8601String().split('T')[0] ??
-            DateTime.now().toIso8601String().split('T')[0],
-        'due_date': dueDate?.toIso8601String().split('T')[0] ??
-            DateTime.now().add(Duration(days: 30)).toIso8601String().split('T')[0],
+        'issue_date': issueDate != null
+            ? DateTimeUtils.toDateOnly(issueDate!)
+            : DateTimeUtils.toDateOnly(DateTime.now()),
+        'due_date': dueDate != null
+            ? DateTimeUtils.toDateOnly(dueDate!)
+            : DateTimeUtils.toDateOnly(DateTime.now().add(const Duration(days: 30))),
         'description': debtDescription ?? '',
         'linkedCounterparty_store_id': counterpartyStoreId ?? '',
         'linkedCounterparty_companyId': linkedCompanyId ?? '',
@@ -168,8 +171,9 @@ class TransactionLineModel {
       json['fix_asset'] = {
         'asset_name': fixedAssetName,
         'salvage_value': (salvageValue ?? 0.0).toString(),
-        'acquire_date': acquisitionDate?.toIso8601String().split('T')[0] ??
-            DateTime.now().toIso8601String().split('T')[0],
+        'acquire_date': acquisitionDate != null
+            ? DateTimeUtils.toDateOnly(acquisitionDate!)
+            : DateTimeUtils.toDateOnly(DateTime.now()),
         'useful_life': (usefulLife ?? 5).toString(),
       };
     }

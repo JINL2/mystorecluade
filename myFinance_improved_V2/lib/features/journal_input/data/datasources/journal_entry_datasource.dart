@@ -1,9 +1,9 @@
 // Data Source: JournalEntryDataSource
 // Handles all API calls and database queries for journal entries
 
-import 'package:intl/intl.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../../core/utils/datetime_utils.dart';
 import '../models/journal_entry_model.dart';
 
 class JournalEntryDataSource {
@@ -164,9 +164,9 @@ class JournalEntryDataSource {
     String? storeId,
   }) async {
     try {
-      // Use device's current time at the moment of submission
-      final currentDeviceTime = DateTime.now();
-      final entryDate = DateFormat('yyyy-MM-dd HH:mm:ss.SSS').format(currentDeviceTime);
+      // Convert entry date to UTC for database storage
+      // RPC expects 'yyyy-MM-dd HH:mm:ss' format in UTC
+      final entryDate = DateTimeUtils.toRpcFormat(journalEntry.entryDate);
 
       // Prepare journal lines
       final pLines = journalEntry.getTransactionLinesJson();

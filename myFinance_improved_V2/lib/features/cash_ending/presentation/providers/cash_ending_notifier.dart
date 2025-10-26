@@ -65,27 +65,18 @@ class CashEndingNotifier extends StateNotifier<CashEndingState> {
 
       // Update appropriate state based on type
       if (locationType == 'cash') {
-        // Auto-select first cash location if available
-        final defaultCashLocationId = locations.isNotEmpty ? locations.first.locationId : null;
         state = state.copyWith(
           cashLocations: locations,
-          selectedCashLocationId: defaultCashLocationId,
           isLoadingCashLocations: false,
         );
       } else if (locationType == 'bank') {
-        // Auto-select first bank location if available
-        final defaultBankLocationId = locations.isNotEmpty ? locations.first.locationId : null;
         state = state.copyWith(
           bankLocations: locations,
-          selectedBankLocationId: defaultBankLocationId,
           isLoadingBankLocations: false,
         );
       } else if (locationType == 'vault') {
-        // Auto-select first vault location if available
-        final defaultVaultLocationId = locations.isNotEmpty ? locations.first.locationId : null;
         state = state.copyWith(
           vaultLocations: locations,
-          selectedVaultLocationId: defaultVaultLocationId,
           isLoadingVaultLocations: false,
         );
       }
@@ -110,14 +101,8 @@ class CashEndingNotifier extends StateNotifier<CashEndingState> {
     try {
       final currencies = await _currencyRepository.getCompanyCurrencies(companyId);
 
-      // Set first currency as default selected for all tabs
-      final defaultCurrencyId = currencies.isNotEmpty ? currencies.first.currencyId : null;
-
       state = state.copyWith(
         currencies: currencies,
-        selectedCashCurrencyId: defaultCurrencyId,
-        selectedBankCurrencyId: defaultCurrencyId,
-        selectedVaultCurrencyId: defaultCurrencyId,
         isLoadingCurrencies: false,
       );
     } catch (e) {

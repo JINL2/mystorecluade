@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
+import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/widgets/common/toss_scaffold.dart';
 import '../../../../shared/widgets/common/toss_app_bar_1.dart';
 import '../../../../shared/widgets/common/toss_success_error_dialog.dart';
@@ -85,13 +86,18 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
     final companyId = ref.read(appStateProvider).companyChoosen;
 
     return TossScaffold(
+      backgroundColor: TossColors.white,
       appBar: TossAppBar1(
         title: 'Cash Ending',
+        backgroundColor: TossColors.white,
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(48),
-          child: TossTabBar1(
-            tabs: const ['Cash', 'Bank', 'Vault'],
-            controller: _tabController,
+          child: Container(
+            color: TossColors.white,
+            child: TossTabBar1(
+              tabs: const ['Cash', 'Bank', 'Vault'],
+              controller: _tabController,
+            ),
           ),
         ),
       ),

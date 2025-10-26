@@ -27,6 +27,7 @@ mixin _$DelegationAuditModel {
   Map<String, dynamic> get performedByUser =>
       throw _privateConstructorUsedError;
   Map<String, dynamic> get details => throw _privateConstructorUsedError;
+  @_DateTimeConverter()
   DateTime get timestamp => throw _privateConstructorUsedError;
 
   /// Serializes this DelegationAuditModel to a JSON map.
@@ -52,7 +53,7 @@ abstract class $DelegationAuditModelCopyWith<$Res> {
       String performedBy,
       Map<String, dynamic> performedByUser,
       Map<String, dynamic> details,
-      DateTime timestamp});
+      @_DateTimeConverter() DateTime timestamp});
 }
 
 /// @nodoc
@@ -127,7 +128,7 @@ abstract class _$$DelegationAuditModelImplCopyWith<$Res>
       String performedBy,
       Map<String, dynamic> performedByUser,
       Map<String, dynamic> details,
-      DateTime timestamp});
+      @_DateTimeConverter() DateTime timestamp});
 }
 
 /// @nodoc
@@ -194,7 +195,7 @@ class _$DelegationAuditModelImpl extends _DelegationAuditModel {
       required this.performedBy,
       required final Map<String, dynamic> performedByUser,
       required final Map<String, dynamic> details,
-      required this.timestamp})
+      @_DateTimeConverter() required this.timestamp})
       : _performedByUser = performedByUser,
         _details = details,
         super._();
@@ -227,6 +228,7 @@ class _$DelegationAuditModelImpl extends _DelegationAuditModel {
   }
 
   @override
+  @_DateTimeConverter()
   final DateTime timestamp;
 
   @override
@@ -284,13 +286,14 @@ class _$DelegationAuditModelImpl extends _DelegationAuditModel {
 
 abstract class _DelegationAuditModel extends DelegationAuditModel {
   const factory _DelegationAuditModel(
-      {required final String id,
-      required final String delegationId,
-      required final String action,
-      required final String performedBy,
-      required final Map<String, dynamic> performedByUser,
-      required final Map<String, dynamic> details,
-      required final DateTime timestamp}) = _$DelegationAuditModelImpl;
+          {required final String id,
+          required final String delegationId,
+          required final String action,
+          required final String performedBy,
+          required final Map<String, dynamic> performedByUser,
+          required final Map<String, dynamic> details,
+          @_DateTimeConverter() required final DateTime timestamp}) =
+      _$DelegationAuditModelImpl;
   const _DelegationAuditModel._() : super._();
 
   factory _DelegationAuditModel.fromJson(Map<String, dynamic> json) =
@@ -309,6 +312,7 @@ abstract class _DelegationAuditModel extends DelegationAuditModel {
   @override
   Map<String, dynamic> get details;
   @override
+  @_DateTimeConverter()
   DateTime get timestamp;
 
   /// Create a copy of DelegationAuditModel

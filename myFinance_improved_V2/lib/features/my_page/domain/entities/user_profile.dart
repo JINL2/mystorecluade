@@ -1,4 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:myfinance_improved/core/utils/datetime_utils.dart';
 
 part 'user_profile.freezed.dart';
 part 'user_profile.g.dart';
@@ -15,9 +16,9 @@ class UserProfile with _$UserProfile {
     @JsonKey(name: 'bank_name') String? bankName,
     @JsonKey(name: 'bank_account_number') String? bankAccountNumber,
     @JsonKey(name: 'is_deleted') @Default(false) bool isDeleted,
-    @JsonKey(name: 'deleted_at') DateTime? deletedAt,
-    @JsonKey(name: 'created_at') DateTime? createdAt,
-    @JsonKey(name: 'updated_at') DateTime? updatedAt,
+    @JsonKey(name: 'deleted_at', fromJson: _dateTimeFromJsonNullable, toJson: _dateTimeToJsonNullable) DateTime? deletedAt,
+    @JsonKey(name: 'created_at', fromJson: _dateTimeFromJsonNullable, toJson: _dateTimeToJsonNullable) DateTime? createdAt,
+    @JsonKey(name: 'updated_at', fromJson: _dateTimeFromJsonNullable, toJson: _dateTimeToJsonNullable) DateTime? updatedAt,
 
     // Additional fields from relationships
     @JsonKey(name: 'company_name') String? companyName,
@@ -27,7 +28,7 @@ class UserProfile with _$UserProfile {
     // Subscription info (can be extended later)
     @JsonKey(name: 'subscription_plan') @Default('Free') String subscriptionPlan,
     @JsonKey(name: 'subscription_status') @Default('active') String subscriptionStatus,
-    @JsonKey(name: 'subscription_expires_at') DateTime? subscriptionExpiresAt,
+    @JsonKey(name: 'subscription_expires_at', fromJson: _dateTimeFromJsonNullable, toJson: _dateTimeToJsonNullable) DateTime? subscriptionExpiresAt,
   }) = _UserProfile;
 
   factory UserProfile.fromJson(Map<String, dynamic> json) =>
@@ -61,3 +62,8 @@ class UserProfile with _$UserProfile {
 
   String get displayStore => storeName ?? 'No Store Assigned';
 }
+
+// DateTime converter functions
+DateTime? _dateTimeFromJsonNullable(String? value) => DateTimeUtils.toLocalSafe(value);
+String? _dateTimeToJsonNullable(DateTime? value) =>
+    value != null ? DateTimeUtils.toUtc(value) : null;

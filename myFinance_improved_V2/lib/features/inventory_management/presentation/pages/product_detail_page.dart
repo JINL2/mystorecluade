@@ -2,9 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../app/providers/app_state_provider.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import '../../../../shared/widgets/common/toss_scaffold.dart';
+import '../../../../shared/widgets/common/toss_success_error_dialog.dart';
+import '../../data/repositories/repository_providers.dart';
 import '../../domain/entities/product.dart';
 import '../providers/inventory_providers.dart';
 
@@ -36,7 +39,7 @@ class ProductDetailPage extends ConsumerWidget {
         ),
         centerTitle: true,
         elevation: 0,
-        backgroundColor: TossColors.surface,
+        backgroundColor: TossColors.gray100,
         foregroundColor: TossColors.black,
         actions: [
           IconButton(
@@ -377,10 +380,99 @@ class ProductDetailPage extends ConsumerWidget {
     );
 
     if (confirmed == true && context.mounted) {
-      // TODO: Implement delete functionality
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Delete functionality - Coming Soon')),
-      );
+      try {
+        // Get company ID
+        final appState = ref.read(appStateProvider);
+        final companyId = appState.companyChoosen as String?;
+
+        if (companyId == null) {
+          if (context.mounted) {
+            await showDialog<void>(
+              context: context,
+              builder: (context) => TossDialog.error(
+                title: 'Company Not Selected',
+                message: 'Please select a company to delete products.',
+                primaryButtonText: 'OK',
+              ),
+            );
+          }
+          return;
+        }
+
+        // Show loading indicator
+        if (context.mounted) {
+          showDialog<void>(
+            context: context,
+            barrierDismissible: false,
+            builder: (context) => const Center(
+              child: CircularProgressIndicator(),
+            ),
+          );
+        }
+
+        // Delete product
+        final repository = ref.read(inventoryRepositoryProvider);
+        final success = await repository.deleteProducts(
+          productIds: [product.id],
+          companyId: companyId,
+        );
+
+        // Close loading indicator
+        if (context.mounted) {
+          Navigator.pop(context);
+        }
+
+        if (success) {
+          // Refresh inventory list
+          ref.read(inventoryPageProvider.notifier).refresh();
+
+          if (context.mounted) {
+            // Navigate back to inventory list first
+            context.pop();
+
+            // Show success dialog
+            if (context.mounted) {
+              await showDialog<void>(
+                context: context,
+                barrierDismissible: false,
+                builder: (context) => TossDialog.success(
+                  title: 'Product Deleted',
+                  message: '${product.name} has been successfully deleted.',
+                  primaryButtonText: 'OK',
+                  onPrimaryPressed: () => Navigator.pop(context),
+                ),
+              );
+            }
+          }
+        } else {
+          if (context.mounted) {
+            await showDialog<void>(
+              context: context,
+              builder: (context) => TossDialog.error(
+                title: 'Delete Failed',
+                message: 'Failed to delete product. Please try again.',
+                primaryButtonText: 'OK',
+              ),
+            );
+          }
+        }
+      } catch (e) {
+        // Close loading indicator if still showing
+        if (context.mounted && Navigator.canPop(context)) {
+          Navigator.pop(context);
+        }
+
+        if (context.mounted) {
+          await showDialog<void>(
+            context: context,
+            builder: (context) => TossDialog.error(
+              title: 'Error',
+              message: e.toString().replaceAll('Exception:', '').trim(),
+              primaryButtonText: 'OK',
+            ),
+          );
+        }
+      }
     }
   }
 }

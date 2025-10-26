@@ -1,3 +1,4 @@
+import 'package:myfinance_improved/core/utils/datetime_utils.dart';
 import '../../domain/entities/role.dart';
 
 /// Data Model: Role Model
@@ -45,8 +46,8 @@ class RoleModel extends Role {
       description: json['description'] as String?,
       tags: json['tags'] != null ? List<String>.from(json['tags'] as List) : null,
       isDeletable: json['is_deletable'] as bool?,
-      createdAt: DateTime.parse(json['created_at'] as String),
-      updatedAt: DateTime.parse(json['updated_at'] as String),
+      createdAt: DateTimeUtils.toLocal(json['created_at'] as String),
+      updatedAt: DateTimeUtils.toLocal(json['updated_at'] as String),
     );
   }
 
@@ -61,8 +62,8 @@ class RoleModel extends Role {
       'description': description,
       'tags': tags,
       'is_deletable': isDeletable,
-      'created_at': createdAt.toIso8601String(),
-      'updated_at': updatedAt.toIso8601String(),
+      'created_at': DateTimeUtils.toUtc(createdAt),
+      'updated_at': DateTimeUtils.toUtc(updatedAt),
     };
   }
 

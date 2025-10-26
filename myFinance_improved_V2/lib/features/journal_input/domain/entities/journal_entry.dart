@@ -1,24 +1,23 @@
 // Domain Entity: JournalEntry
 // Pure business entity with no dependencies on frameworks
 
+import 'package:freezed_annotation/freezed_annotation.dart';
 import 'transaction_line.dart';
 
-class JournalEntry {
-  final List<TransactionLine> transactionLines;
-  final DateTime entryDate;
-  final String? overallDescription;
-  final String? selectedCompanyId;
-  final String? selectedStoreId;
-  final String? counterpartyCashLocationId;
+part 'journal_entry.freezed.dart';
 
-  const JournalEntry({
-    this.transactionLines = const [],
-    required this.entryDate,
-    this.overallDescription,
-    this.selectedCompanyId,
-    this.selectedStoreId,
-    this.counterpartyCashLocationId,
-  });
+@freezed
+class JournalEntry with _$JournalEntry {
+  const JournalEntry._();
+
+  const factory JournalEntry({
+    @Default([]) List<TransactionLine> transactionLines,
+    required DateTime entryDate,
+    String? overallDescription,
+    String? selectedCompanyId,
+    String? selectedStoreId,
+    String? counterpartyCashLocationId,
+  }) = _JournalEntry;
 
   // Calculated values
   double get totalDebits => transactionLines
@@ -42,24 +41,6 @@ class JournalEntry {
            isBalanced &&
            selectedCompanyId != null &&
            selectedCompanyId!.isNotEmpty;
-  }
-
-  JournalEntry copyWith({
-    List<TransactionLine>? transactionLines,
-    DateTime? entryDate,
-    String? overallDescription,
-    String? selectedCompanyId,
-    String? selectedStoreId,
-    String? counterpartyCashLocationId,
-  }) {
-    return JournalEntry(
-      transactionLines: transactionLines ?? this.transactionLines,
-      entryDate: entryDate ?? this.entryDate,
-      overallDescription: overallDescription ?? this.overallDescription,
-      selectedCompanyId: selectedCompanyId ?? this.selectedCompanyId,
-      selectedStoreId: selectedStoreId ?? this.selectedStoreId,
-      counterpartyCashLocationId: counterpartyCashLocationId ?? this.counterpartyCashLocationId,
-    );
   }
 
   JournalEntry addTransactionLine(TransactionLine line) {
@@ -96,17 +77,4 @@ class JournalEntry {
       counterpartyCashLocationId: null,
     );
   }
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-
-    return other is JournalEntry &&
-      other.selectedCompanyId == selectedCompanyId &&
-      other.entryDate == entryDate &&
-      other.transactionLines.length == transactionLines.length;
-  }
-
-  @override
-  int get hashCode => Object.hash(selectedCompanyId, entryDate, transactionLines.length);
 }

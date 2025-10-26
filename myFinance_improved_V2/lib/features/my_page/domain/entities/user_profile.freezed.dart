@@ -37,11 +37,20 @@ mixin _$UserProfile {
   String? get bankAccountNumber => throw _privateConstructorUsedError;
   @JsonKey(name: 'is_deleted')
   bool get isDeleted => throw _privateConstructorUsedError;
-  @JsonKey(name: 'deleted_at')
+  @JsonKey(
+      name: 'deleted_at',
+      fromJson: _dateTimeFromJsonNullable,
+      toJson: _dateTimeToJsonNullable)
   DateTime? get deletedAt => throw _privateConstructorUsedError;
-  @JsonKey(name: 'created_at')
+  @JsonKey(
+      name: 'created_at',
+      fromJson: _dateTimeFromJsonNullable,
+      toJson: _dateTimeToJsonNullable)
   DateTime? get createdAt => throw _privateConstructorUsedError;
-  @JsonKey(name: 'updated_at')
+  @JsonKey(
+      name: 'updated_at',
+      fromJson: _dateTimeFromJsonNullable,
+      toJson: _dateTimeToJsonNullable)
   DateTime? get updatedAt =>
       throw _privateConstructorUsedError; // Additional fields from relationships
   @JsonKey(name: 'company_name')
@@ -55,7 +64,10 @@ mixin _$UserProfile {
   String get subscriptionPlan => throw _privateConstructorUsedError;
   @JsonKey(name: 'subscription_status')
   String get subscriptionStatus => throw _privateConstructorUsedError;
-  @JsonKey(name: 'subscription_expires_at')
+  @JsonKey(
+      name: 'subscription_expires_at',
+      fromJson: _dateTimeFromJsonNullable,
+      toJson: _dateTimeToJsonNullable)
   DateTime? get subscriptionExpiresAt => throw _privateConstructorUsedError;
 
   /// Serializes this UserProfile to a JSON map.
@@ -84,15 +96,30 @@ abstract class $UserProfileCopyWith<$Res> {
       @JsonKey(name: 'bank_name') String? bankName,
       @JsonKey(name: 'bank_account_number') String? bankAccountNumber,
       @JsonKey(name: 'is_deleted') bool isDeleted,
-      @JsonKey(name: 'deleted_at') DateTime? deletedAt,
-      @JsonKey(name: 'created_at') DateTime? createdAt,
-      @JsonKey(name: 'updated_at') DateTime? updatedAt,
+      @JsonKey(
+          name: 'deleted_at',
+          fromJson: _dateTimeFromJsonNullable,
+          toJson: _dateTimeToJsonNullable)
+      DateTime? deletedAt,
+      @JsonKey(
+          name: 'created_at',
+          fromJson: _dateTimeFromJsonNullable,
+          toJson: _dateTimeToJsonNullable)
+      DateTime? createdAt,
+      @JsonKey(
+          name: 'updated_at',
+          fromJson: _dateTimeFromJsonNullable,
+          toJson: _dateTimeToJsonNullable)
+      DateTime? updatedAt,
       @JsonKey(name: 'company_name') String? companyName,
       @JsonKey(name: 'store_name') String? storeName,
       @JsonKey(name: 'role_name') String? roleName,
       @JsonKey(name: 'subscription_plan') String subscriptionPlan,
       @JsonKey(name: 'subscription_status') String subscriptionStatus,
-      @JsonKey(name: 'subscription_expires_at')
+      @JsonKey(
+          name: 'subscription_expires_at',
+          fromJson: _dateTimeFromJsonNullable,
+          toJson: _dateTimeToJsonNullable)
       DateTime? subscriptionExpiresAt});
 }
 
@@ -225,15 +252,30 @@ abstract class _$$UserProfileImplCopyWith<$Res>
       @JsonKey(name: 'bank_name') String? bankName,
       @JsonKey(name: 'bank_account_number') String? bankAccountNumber,
       @JsonKey(name: 'is_deleted') bool isDeleted,
-      @JsonKey(name: 'deleted_at') DateTime? deletedAt,
-      @JsonKey(name: 'created_at') DateTime? createdAt,
-      @JsonKey(name: 'updated_at') DateTime? updatedAt,
+      @JsonKey(
+          name: 'deleted_at',
+          fromJson: _dateTimeFromJsonNullable,
+          toJson: _dateTimeToJsonNullable)
+      DateTime? deletedAt,
+      @JsonKey(
+          name: 'created_at',
+          fromJson: _dateTimeFromJsonNullable,
+          toJson: _dateTimeToJsonNullable)
+      DateTime? createdAt,
+      @JsonKey(
+          name: 'updated_at',
+          fromJson: _dateTimeFromJsonNullable,
+          toJson: _dateTimeToJsonNullable)
+      DateTime? updatedAt,
       @JsonKey(name: 'company_name') String? companyName,
       @JsonKey(name: 'store_name') String? storeName,
       @JsonKey(name: 'role_name') String? roleName,
       @JsonKey(name: 'subscription_plan') String subscriptionPlan,
       @JsonKey(name: 'subscription_status') String subscriptionStatus,
-      @JsonKey(name: 'subscription_expires_at')
+      @JsonKey(
+          name: 'subscription_expires_at',
+          fromJson: _dateTimeFromJsonNullable,
+          toJson: _dateTimeToJsonNullable)
       DateTime? subscriptionExpiresAt});
 }
 
@@ -359,15 +401,31 @@ class _$UserProfileImpl extends _UserProfile {
       @JsonKey(name: 'bank_name') this.bankName,
       @JsonKey(name: 'bank_account_number') this.bankAccountNumber,
       @JsonKey(name: 'is_deleted') this.isDeleted = false,
-      @JsonKey(name: 'deleted_at') this.deletedAt,
-      @JsonKey(name: 'created_at') this.createdAt,
-      @JsonKey(name: 'updated_at') this.updatedAt,
+      @JsonKey(
+          name: 'deleted_at',
+          fromJson: _dateTimeFromJsonNullable,
+          toJson: _dateTimeToJsonNullable)
+      this.deletedAt,
+      @JsonKey(
+          name: 'created_at',
+          fromJson: _dateTimeFromJsonNullable,
+          toJson: _dateTimeToJsonNullable)
+      this.createdAt,
+      @JsonKey(
+          name: 'updated_at',
+          fromJson: _dateTimeFromJsonNullable,
+          toJson: _dateTimeToJsonNullable)
+      this.updatedAt,
       @JsonKey(name: 'company_name') this.companyName,
       @JsonKey(name: 'store_name') this.storeName,
       @JsonKey(name: 'role_name') this.roleName,
       @JsonKey(name: 'subscription_plan') this.subscriptionPlan = 'Free',
       @JsonKey(name: 'subscription_status') this.subscriptionStatus = 'active',
-      @JsonKey(name: 'subscription_expires_at') this.subscriptionExpiresAt})
+      @JsonKey(
+          name: 'subscription_expires_at',
+          fromJson: _dateTimeFromJsonNullable,
+          toJson: _dateTimeToJsonNullable)
+      this.subscriptionExpiresAt})
       : super._();
 
   factory _$UserProfileImpl.fromJson(Map<String, dynamic> json) =>
@@ -400,13 +458,22 @@ class _$UserProfileImpl extends _UserProfile {
   @JsonKey(name: 'is_deleted')
   final bool isDeleted;
   @override
-  @JsonKey(name: 'deleted_at')
+  @JsonKey(
+      name: 'deleted_at',
+      fromJson: _dateTimeFromJsonNullable,
+      toJson: _dateTimeToJsonNullable)
   final DateTime? deletedAt;
   @override
-  @JsonKey(name: 'created_at')
+  @JsonKey(
+      name: 'created_at',
+      fromJson: _dateTimeFromJsonNullable,
+      toJson: _dateTimeToJsonNullable)
   final DateTime? createdAt;
   @override
-  @JsonKey(name: 'updated_at')
+  @JsonKey(
+      name: 'updated_at',
+      fromJson: _dateTimeFromJsonNullable,
+      toJson: _dateTimeToJsonNullable)
   final DateTime? updatedAt;
 // Additional fields from relationships
   @override
@@ -426,7 +493,10 @@ class _$UserProfileImpl extends _UserProfile {
   @JsonKey(name: 'subscription_status')
   final String subscriptionStatus;
   @override
-  @JsonKey(name: 'subscription_expires_at')
+  @JsonKey(
+      name: 'subscription_expires_at',
+      fromJson: _dateTimeFromJsonNullable,
+      toJson: _dateTimeToJsonNullable)
   final DateTime? subscriptionExpiresAt;
 
   @override
@@ -525,15 +595,30 @@ abstract class _UserProfile extends UserProfile {
       @JsonKey(name: 'bank_name') final String? bankName,
       @JsonKey(name: 'bank_account_number') final String? bankAccountNumber,
       @JsonKey(name: 'is_deleted') final bool isDeleted,
-      @JsonKey(name: 'deleted_at') final DateTime? deletedAt,
-      @JsonKey(name: 'created_at') final DateTime? createdAt,
-      @JsonKey(name: 'updated_at') final DateTime? updatedAt,
+      @JsonKey(
+          name: 'deleted_at',
+          fromJson: _dateTimeFromJsonNullable,
+          toJson: _dateTimeToJsonNullable)
+      final DateTime? deletedAt,
+      @JsonKey(
+          name: 'created_at',
+          fromJson: _dateTimeFromJsonNullable,
+          toJson: _dateTimeToJsonNullable)
+      final DateTime? createdAt,
+      @JsonKey(
+          name: 'updated_at',
+          fromJson: _dateTimeFromJsonNullable,
+          toJson: _dateTimeToJsonNullable)
+      final DateTime? updatedAt,
       @JsonKey(name: 'company_name') final String? companyName,
       @JsonKey(name: 'store_name') final String? storeName,
       @JsonKey(name: 'role_name') final String? roleName,
       @JsonKey(name: 'subscription_plan') final String subscriptionPlan,
       @JsonKey(name: 'subscription_status') final String subscriptionStatus,
-      @JsonKey(name: 'subscription_expires_at')
+      @JsonKey(
+          name: 'subscription_expires_at',
+          fromJson: _dateTimeFromJsonNullable,
+          toJson: _dateTimeToJsonNullable)
       final DateTime? subscriptionExpiresAt}) = _$UserProfileImpl;
   const _UserProfile._() : super._();
 
@@ -567,13 +652,22 @@ abstract class _UserProfile extends UserProfile {
   @JsonKey(name: 'is_deleted')
   bool get isDeleted;
   @override
-  @JsonKey(name: 'deleted_at')
+  @JsonKey(
+      name: 'deleted_at',
+      fromJson: _dateTimeFromJsonNullable,
+      toJson: _dateTimeToJsonNullable)
   DateTime? get deletedAt;
   @override
-  @JsonKey(name: 'created_at')
+  @JsonKey(
+      name: 'created_at',
+      fromJson: _dateTimeFromJsonNullable,
+      toJson: _dateTimeToJsonNullable)
   DateTime? get createdAt;
   @override
-  @JsonKey(name: 'updated_at')
+  @JsonKey(
+      name: 'updated_at',
+      fromJson: _dateTimeFromJsonNullable,
+      toJson: _dateTimeToJsonNullable)
   DateTime? get updatedAt; // Additional fields from relationships
   @override
   @JsonKey(name: 'company_name')
@@ -591,7 +685,10 @@ abstract class _UserProfile extends UserProfile {
   @JsonKey(name: 'subscription_status')
   String get subscriptionStatus;
   @override
-  @JsonKey(name: 'subscription_expires_at')
+  @JsonKey(
+      name: 'subscription_expires_at',
+      fromJson: _dateTimeFromJsonNullable,
+      toJson: _dateTimeToJsonNullable)
   DateTime? get subscriptionExpiresAt;
 
   /// Create a copy of UserProfile

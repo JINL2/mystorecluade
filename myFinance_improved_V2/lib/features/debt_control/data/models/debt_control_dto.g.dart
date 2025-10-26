@@ -63,7 +63,7 @@ Map<String, dynamic> _$$AgingAnalysisDtoImplToJson(
 _$AgingTrendPointDtoImpl _$$AgingTrendPointDtoImplFromJson(
         Map<String, dynamic> json) =>
     _$AgingTrendPointDtoImpl(
-      date: DateTime.parse(json['date'] as String),
+      date: _dateTimeFromJson(json['date'] as String),
       current: (json['current'] as num).toDouble(),
       overdue30: (json['overdue30'] as num).toDouble(),
       overdue60: (json['overdue60'] as num).toDouble(),
@@ -73,7 +73,7 @@ _$AgingTrendPointDtoImpl _$$AgingTrendPointDtoImplFromJson(
 Map<String, dynamic> _$$AgingTrendPointDtoImplToJson(
         _$AgingTrendPointDtoImpl instance) =>
     <String, dynamic>{
-      'date': instance.date.toIso8601String(),
+      'date': _dateTimeToJson(instance.date),
       'current': instance.current,
       'overdue30': instance.overdue30,
       'overdue60': instance.overdue60,
@@ -89,9 +89,7 @@ _$CriticalAlertDtoImpl _$$CriticalAlertDtoImplFromJson(
       count: (json['count'] as num).toInt(),
       severity: json['severity'] as String,
       isRead: json['isRead'] as bool? ?? false,
-      createdAt: json['createdAt'] == null
-          ? null
-          : DateTime.parse(json['createdAt'] as String),
+      createdAt: _dateTimeFromJsonNullable(json['createdAt'] as String?),
     );
 
 Map<String, dynamic> _$$CriticalAlertDtoImplToJson(
@@ -103,7 +101,7 @@ Map<String, dynamic> _$$CriticalAlertDtoImplToJson(
       'count': instance.count,
       'severity': instance.severity,
       'isRead': instance.isRead,
-      'createdAt': instance.createdAt?.toIso8601String(),
+      'createdAt': _dateTimeToJsonNullable(instance.createdAt),
     };
 
 _$PrioritizedDebtDtoImpl _$$PrioritizedDebtDtoImplFromJson(
@@ -115,13 +113,12 @@ _$PrioritizedDebtDtoImpl _$$PrioritizedDebtDtoImplFromJson(
       counterpartyType: json['counterpartyType'] as String,
       amount: (json['amount'] as num).toDouble(),
       currency: json['currency'] as String,
-      dueDate: DateTime.parse(json['dueDate'] as String),
+      dueDate: _dateTimeFromJson(json['dueDate'] as String),
       daysOverdue: (json['daysOverdue'] as num).toInt(),
       riskCategory: json['riskCategory'] as String,
       priorityScore: (json['priorityScore'] as num).toDouble(),
-      lastContactDate: json['lastContactDate'] == null
-          ? null
-          : DateTime.parse(json['lastContactDate'] as String),
+      lastContactDate:
+          _dateTimeFromJsonNullable(json['lastContactDate'] as String?),
       lastContactType: json['lastContactType'] as String?,
       paymentStatus: json['paymentStatus'] as String?,
       suggestedActions: (json['suggestedActions'] as List<dynamic>?)
@@ -144,11 +141,11 @@ Map<String, dynamic> _$$PrioritizedDebtDtoImplToJson(
       'counterpartyType': instance.counterpartyType,
       'amount': instance.amount,
       'currency': instance.currency,
-      'dueDate': instance.dueDate.toIso8601String(),
+      'dueDate': _dateTimeToJson(instance.dueDate),
       'daysOverdue': instance.daysOverdue,
       'riskCategory': instance.riskCategory,
       'priorityScore': instance.priorityScore,
-      'lastContactDate': instance.lastContactDate?.toIso8601String(),
+      'lastContactDate': _dateTimeToJsonNullable(instance.lastContactDate),
       'lastContactType': instance.lastContactType,
       'paymentStatus': instance.paymentStatus,
       'suggestedActions': instance.suggestedActions,

@@ -19,15 +19,14 @@ _$RoleDelegationModelImpl _$$RoleDelegationModelImplFromJson(
       permissions: (json['permissions'] as List<dynamic>)
           .map((e) => e as String)
           .toList(),
-      startDate: DateTime.parse(json['startDate'] as String),
-      endDate: DateTime.parse(json['endDate'] as String),
+      startDate:
+          const _DateTimeConverter().fromJson(json['startDate'] as String),
+      endDate: const _DateTimeConverter().fromJson(json['endDate'] as String),
       isActive: json['isActive'] as bool,
-      createdAt: json['createdAt'] == null
-          ? null
-          : DateTime.parse(json['createdAt'] as String),
-      updatedAt: json['updatedAt'] == null
-          ? null
-          : DateTime.parse(json['updatedAt'] as String),
+      createdAt: const _NullableDateTimeConverter()
+          .fromJson(json['createdAt'] as String?),
+      updatedAt: const _NullableDateTimeConverter()
+          .fromJson(json['updatedAt'] as String?),
     );
 
 Map<String, dynamic> _$$RoleDelegationModelImplToJson(
@@ -41,9 +40,11 @@ Map<String, dynamic> _$$RoleDelegationModelImplToJson(
       'roleName': instance.roleName,
       'delegateUser': instance.delegateUser,
       'permissions': instance.permissions,
-      'startDate': instance.startDate.toIso8601String(),
-      'endDate': instance.endDate.toIso8601String(),
+      'startDate': const _DateTimeConverter().toJson(instance.startDate),
+      'endDate': const _DateTimeConverter().toJson(instance.endDate),
       'isActive': instance.isActive,
-      'createdAt': instance.createdAt?.toIso8601String(),
-      'updatedAt': instance.updatedAt?.toIso8601String(),
+      'createdAt':
+          const _NullableDateTimeConverter().toJson(instance.createdAt),
+      'updatedAt':
+          const _NullableDateTimeConverter().toJson(instance.updatedAt),
     };

@@ -1,3 +1,5 @@
+import 'package:myfinance_improved/core/utils/datetime_utils.dart';
+
 import '../../domain/entities/business_dashboard.dart';
 import '../../domain/entities/user_profile.dart';
 import '../../domain/repositories/user_profile_repository.dart';
@@ -70,7 +72,7 @@ class UserProfileRepositoryImpl implements UserProfileRepository {
       if (bankAccountNumber != null) updates['bank_account_number'] = bankAccountNumber;
       if (profileImage != null) updates['profile_image'] = profileImage;
 
-      updates['updated_at'] = DateTime.now().toIso8601String();
+      updates['updated_at'] = DateTimeUtils.nowUtc();
 
       return await _userProfileDataSource.updateUserProfile(
         userId: userId,

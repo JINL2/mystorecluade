@@ -1,4 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:myfinance_improved/core/utils/datetime_utils.dart';
 
 part 'debt_control_dto.freezed.dart';
 part 'debt_control_dto.g.dart';
@@ -43,6 +44,7 @@ class AgingAnalysisDto with _$AgingAnalysisDto {
 @freezed
 class AgingTrendPointDto with _$AgingTrendPointDto {
   const factory AgingTrendPointDto({
+    @JsonKey(fromJson: _dateTimeFromJson, toJson: _dateTimeToJson)
     required DateTime date,
     required double current,
     required double overdue30,
@@ -64,6 +66,7 @@ class CriticalAlertDto with _$CriticalAlertDto {
     required int count,
     required String severity,
     @Default(false) bool isRead,
+    @JsonKey(fromJson: _dateTimeFromJsonNullable, toJson: _dateTimeToJsonNullable)
     DateTime? createdAt,
   }) = _CriticalAlertDto;
 
@@ -81,10 +84,12 @@ class PrioritizedDebtDto with _$PrioritizedDebtDto {
     required String counterpartyType,
     required double amount,
     required String currency,
+    @JsonKey(fromJson: _dateTimeFromJson, toJson: _dateTimeToJson)
     required DateTime dueDate,
     required int daysOverdue,
     required String riskCategory,
     required double priorityScore,
+    @JsonKey(fromJson: _dateTimeFromJsonNullable, toJson: _dateTimeToJsonNullable)
     DateTime? lastContactDate,
     String? lastContactType,
     String? paymentStatus,
@@ -143,3 +148,20 @@ class StoreAggregateDto with _$StoreAggregateDto {
   factory StoreAggregateDto.fromJson(Map<String, dynamic> json) =>
       _$StoreAggregateDtoFromJson(json);
 }
+
+// ============================================================================
+// DateTime Converter Functions
+// ============================================================================
+
+/// Convert UTC string from DB to local DateTime
+DateTime _dateTimeFromJson(String value) => DateTimeUtils.toLocal(value);
+
+/// Convert local DateTime to UTC string for DB
+String _dateTimeToJson(DateTime value) => DateTimeUtils.toUtc(value);
+
+/// Convert UTC string from DB to local DateTime (nullable)
+DateTime? _dateTimeFromJsonNullable(String? value) => DateTimeUtils.toLocalSafe(value);
+
+/// Convert local DateTime to UTC string for DB (nullable)
+String? _dateTimeToJsonNullable(DateTime? value) =>
+    value != null ? DateTimeUtils.toUtc(value) : null;

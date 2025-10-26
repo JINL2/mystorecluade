@@ -247,18 +247,29 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
                 if (result.isEmpty) {
                   throw Exception('Failed to update shift request. Please try again.');
                 }
-                
+
+                // Verify that actual DB modification occurred
+                // If no shift exists, RPC returns status but no actual_start_time/actual_end_time
+                final hasActualData = result.containsKey('actual_start_time') ||
+                                     result.containsKey('actual_end_time') ||
+                                     result.containsKey('shift_request_id');
+
+                if (!hasActualData) {
+                  // RPC returned status but didn't actually modify any records
+                  throw Exception('No shift found for today or previous day. Please contact your manager.');
+                }
+
                 // NO RPC REFRESH - Just pass the result back to update local state
                 // The attendance main page will handle local state updates
-                
+
                 // Add a small delay for UX
-                await Future.delayed(const Duration(milliseconds: 100));
-                
+                await Future<void>.delayed(const Duration(milliseconds: 100));
+
                 // Show success popup
                 if (mounted) {
                   // Determine if it was check-in or check-out based on result
                   String message = 'Check-in Successful';
-                  
+
                   // Check various possible response formats from the RPC
                   // The RPC might return different formats depending on the action
                   {
@@ -268,8 +279,8 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
                     final status = result['status']?.toString().toLowerCase() ?? '';
                     final checkinTime = result['actual_start_time'];
                     final checkoutTime = result['actual_end_time'];
-                    
-                    if (action.contains('out') || type.contains('out') || 
+
+                    if (action.contains('out') || type.contains('out') ||
                         status.contains('out') || checkoutTime != null) {
                       message = 'Check-out Successful';
                     } else if (checkinTime != null && checkoutTime == null) {

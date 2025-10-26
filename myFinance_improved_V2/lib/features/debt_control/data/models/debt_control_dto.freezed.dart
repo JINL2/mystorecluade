@@ -656,6 +656,7 @@ AgingTrendPointDto _$AgingTrendPointDtoFromJson(Map<String, dynamic> json) {
 
 /// @nodoc
 mixin _$AgingTrendPointDto {
+  @JsonKey(fromJson: _dateTimeFromJson, toJson: _dateTimeToJson)
   DateTime get date => throw _privateConstructorUsedError;
   double get current => throw _privateConstructorUsedError;
   double get overdue30 => throw _privateConstructorUsedError;
@@ -679,7 +680,8 @@ abstract class $AgingTrendPointDtoCopyWith<$Res> {
       _$AgingTrendPointDtoCopyWithImpl<$Res, AgingTrendPointDto>;
   @useResult
   $Res call(
-      {DateTime date,
+      {@JsonKey(fromJson: _dateTimeFromJson, toJson: _dateTimeToJson)
+      DateTime date,
       double current,
       double overdue30,
       double overdue60,
@@ -741,7 +743,8 @@ abstract class _$$AgingTrendPointDtoImplCopyWith<$Res>
   @override
   @useResult
   $Res call(
-      {DateTime date,
+      {@JsonKey(fromJson: _dateTimeFromJson, toJson: _dateTimeToJson)
+      DateTime date,
       double current,
       double overdue30,
       double overdue60,
@@ -796,7 +799,8 @@ class __$$AgingTrendPointDtoImplCopyWithImpl<$Res>
 @JsonSerializable()
 class _$AgingTrendPointDtoImpl implements _AgingTrendPointDto {
   const _$AgingTrendPointDtoImpl(
-      {required this.date,
+      {@JsonKey(fromJson: _dateTimeFromJson, toJson: _dateTimeToJson)
+      required this.date,
       required this.current,
       required this.overdue30,
       required this.overdue60,
@@ -806,6 +810,7 @@ class _$AgingTrendPointDtoImpl implements _AgingTrendPointDto {
       _$$AgingTrendPointDtoImplFromJson(json);
 
   @override
+  @JsonKey(fromJson: _dateTimeFromJson, toJson: _dateTimeToJson)
   final DateTime date;
   @override
   final double current;
@@ -860,7 +865,8 @@ class _$AgingTrendPointDtoImpl implements _AgingTrendPointDto {
 
 abstract class _AgingTrendPointDto implements AgingTrendPointDto {
   const factory _AgingTrendPointDto(
-      {required final DateTime date,
+      {@JsonKey(fromJson: _dateTimeFromJson, toJson: _dateTimeToJson)
+      required final DateTime date,
       required final double current,
       required final double overdue30,
       required final double overdue60,
@@ -870,6 +876,7 @@ abstract class _AgingTrendPointDto implements AgingTrendPointDto {
       _$AgingTrendPointDtoImpl.fromJson;
 
   @override
+  @JsonKey(fromJson: _dateTimeFromJson, toJson: _dateTimeToJson)
   DateTime get date;
   @override
   double get current;
@@ -900,6 +907,7 @@ mixin _$CriticalAlertDto {
   int get count => throw _privateConstructorUsedError;
   String get severity => throw _privateConstructorUsedError;
   bool get isRead => throw _privateConstructorUsedError;
+  @JsonKey(fromJson: _dateTimeFromJsonNullable, toJson: _dateTimeToJsonNullable)
   DateTime? get createdAt => throw _privateConstructorUsedError;
 
   /// Serializes this CriticalAlertDto to a JSON map.
@@ -925,6 +933,8 @@ abstract class $CriticalAlertDtoCopyWith<$Res> {
       int count,
       String severity,
       bool isRead,
+      @JsonKey(
+          fromJson: _dateTimeFromJsonNullable, toJson: _dateTimeToJsonNullable)
       DateTime? createdAt});
 }
 
@@ -999,6 +1009,8 @@ abstract class _$$CriticalAlertDtoImplCopyWith<$Res>
       int count,
       String severity,
       bool isRead,
+      @JsonKey(
+          fromJson: _dateTimeFromJsonNullable, toJson: _dateTimeToJsonNullable)
       DateTime? createdAt});
 }
 
@@ -1066,6 +1078,8 @@ class _$CriticalAlertDtoImpl implements _CriticalAlertDto {
       required this.count,
       required this.severity,
       this.isRead = false,
+      @JsonKey(
+          fromJson: _dateTimeFromJsonNullable, toJson: _dateTimeToJsonNullable)
       this.createdAt});
 
   factory _$CriticalAlertDtoImpl.fromJson(Map<String, dynamic> json) =>
@@ -1085,6 +1099,7 @@ class _$CriticalAlertDtoImpl implements _CriticalAlertDto {
   @JsonKey()
   final bool isRead;
   @override
+  @JsonKey(fromJson: _dateTimeFromJsonNullable, toJson: _dateTimeToJsonNullable)
   final DateTime? createdAt;
 
   @override
@@ -1138,6 +1153,8 @@ abstract class _CriticalAlertDto implements CriticalAlertDto {
       required final int count,
       required final String severity,
       final bool isRead,
+      @JsonKey(
+          fromJson: _dateTimeFromJsonNullable, toJson: _dateTimeToJsonNullable)
       final DateTime? createdAt}) = _$CriticalAlertDtoImpl;
 
   factory _CriticalAlertDto.fromJson(Map<String, dynamic> json) =
@@ -1156,6 +1173,7 @@ abstract class _CriticalAlertDto implements CriticalAlertDto {
   @override
   bool get isRead;
   @override
+  @JsonKey(fromJson: _dateTimeFromJsonNullable, toJson: _dateTimeToJsonNullable)
   DateTime? get createdAt;
 
   /// Create a copy of CriticalAlertDto
@@ -1178,10 +1196,12 @@ mixin _$PrioritizedDebtDto {
   String get counterpartyType => throw _privateConstructorUsedError;
   double get amount => throw _privateConstructorUsedError;
   String get currency => throw _privateConstructorUsedError;
+  @JsonKey(fromJson: _dateTimeFromJson, toJson: _dateTimeToJson)
   DateTime get dueDate => throw _privateConstructorUsedError;
   int get daysOverdue => throw _privateConstructorUsedError;
   String get riskCategory => throw _privateConstructorUsedError;
   double get priorityScore => throw _privateConstructorUsedError;
+  @JsonKey(fromJson: _dateTimeFromJsonNullable, toJson: _dateTimeToJsonNullable)
   DateTime? get lastContactDate => throw _privateConstructorUsedError;
   String? get lastContactType => throw _privateConstructorUsedError;
   String? get paymentStatus => throw _privateConstructorUsedError;
@@ -1215,10 +1235,13 @@ abstract class $PrioritizedDebtDtoCopyWith<$Res> {
       String counterpartyType,
       double amount,
       String currency,
+      @JsonKey(fromJson: _dateTimeFromJson, toJson: _dateTimeToJson)
       DateTime dueDate,
       int daysOverdue,
       String riskCategory,
       double priorityScore,
+      @JsonKey(
+          fromJson: _dateTimeFromJsonNullable, toJson: _dateTimeToJsonNullable)
       DateTime? lastContactDate,
       String? lastContactType,
       String? paymentStatus,
@@ -1361,10 +1384,13 @@ abstract class _$$PrioritizedDebtDtoImplCopyWith<$Res>
       String counterpartyType,
       double amount,
       String currency,
+      @JsonKey(fromJson: _dateTimeFromJson, toJson: _dateTimeToJson)
       DateTime dueDate,
       int daysOverdue,
       String riskCategory,
       double priorityScore,
+      @JsonKey(
+          fromJson: _dateTimeFromJsonNullable, toJson: _dateTimeToJsonNullable)
       DateTime? lastContactDate,
       String? lastContactType,
       String? paymentStatus,
@@ -1500,10 +1526,13 @@ class _$PrioritizedDebtDtoImpl implements _PrioritizedDebtDto {
       required this.counterpartyType,
       required this.amount,
       required this.currency,
+      @JsonKey(fromJson: _dateTimeFromJson, toJson: _dateTimeToJson)
       required this.dueDate,
       required this.daysOverdue,
       required this.riskCategory,
       required this.priorityScore,
+      @JsonKey(
+          fromJson: _dateTimeFromJsonNullable, toJson: _dateTimeToJsonNullable)
       this.lastContactDate,
       this.lastContactType,
       this.paymentStatus,
@@ -1532,6 +1561,7 @@ class _$PrioritizedDebtDtoImpl implements _PrioritizedDebtDto {
   @override
   final String currency;
   @override
+  @JsonKey(fromJson: _dateTimeFromJson, toJson: _dateTimeToJson)
   final DateTime dueDate;
   @override
   final int daysOverdue;
@@ -1540,6 +1570,7 @@ class _$PrioritizedDebtDtoImpl implements _PrioritizedDebtDto {
   @override
   final double priorityScore;
   @override
+  @JsonKey(fromJson: _dateTimeFromJsonNullable, toJson: _dateTimeToJsonNullable)
   final DateTime? lastContactDate;
   @override
   final String? lastContactType;
@@ -1672,10 +1703,13 @@ abstract class _PrioritizedDebtDto implements PrioritizedDebtDto {
       required final String counterpartyType,
       required final double amount,
       required final String currency,
+      @JsonKey(fromJson: _dateTimeFromJson, toJson: _dateTimeToJson)
       required final DateTime dueDate,
       required final int daysOverdue,
       required final String riskCategory,
       required final double priorityScore,
+      @JsonKey(
+          fromJson: _dateTimeFromJsonNullable, toJson: _dateTimeToJsonNullable)
       final DateTime? lastContactDate,
       final String? lastContactType,
       final String? paymentStatus,
@@ -1702,6 +1736,7 @@ abstract class _PrioritizedDebtDto implements PrioritizedDebtDto {
   @override
   String get currency;
   @override
+  @JsonKey(fromJson: _dateTimeFromJson, toJson: _dateTimeToJson)
   DateTime get dueDate;
   @override
   int get daysOverdue;
@@ -1710,6 +1745,7 @@ abstract class _PrioritizedDebtDto implements PrioritizedDebtDto {
   @override
   double get priorityScore;
   @override
+  @JsonKey(fromJson: _dateTimeFromJsonNullable, toJson: _dateTimeToJsonNullable)
   DateTime? get lastContactDate;
   @override
   String? get lastContactType;

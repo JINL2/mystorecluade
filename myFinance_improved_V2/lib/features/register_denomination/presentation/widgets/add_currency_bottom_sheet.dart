@@ -10,6 +10,7 @@ import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/app/providers/app_state_provider.dart';
+import '../../../../core/utils/datetime_utils.dart';
 import '../../domain/entities/currency.dart';
 import '../providers/currency_providers.dart';
 import '../providers/denomination_providers.dart';
@@ -774,8 +775,8 @@ class _AddCurrencyBottomSheetState extends ConsumerState<AddCurrencyBottomSheet>
       }
       
       final supabase = ref.read(supabaseClientProvider);
-      final currentTime = DateTime.now().toIso8601String();
-      final currentDate = DateTime.now().toIso8601String().substring(0, 10); // yyyy-MM-dd format
+      final currentTime = DateTimeUtils.nowUtc();
+      final currentDate = DateTimeUtils.toDateOnly(DateTime.now());
       
       // First check if currency is soft-deleted and reactivate if needed
       final existingCurrency = await supabase

@@ -1,3 +1,4 @@
+import 'package:myfinance_improved/core/utils/datetime_utils.dart';
 import '../../domain/entities/employee_salary.dart';
 
 /// Data Model: Employee Salary Model
@@ -94,29 +95,19 @@ class EmployeeSalaryModel extends EmployeeSalary {
       currencyId: json['currency_id'] as String? ?? 'USD',
       currencyName: json['currency_name'] as String? ?? 'US Dollar',
       symbol: json['symbol'] as String? ?? '\$',
-      effectiveDate: json['effective_date'] != null
-          ? DateTime.tryParse(json['effective_date'].toString())
-          : null,
+      effectiveDate: DateTimeUtils.toLocalSafe(json['effective_date'] as String?),
       isActive: json['is_active'] as bool? ?? true,
-      updatedAt: json['updated_at'] != null
-          ? DateTime.tryParse(json['updated_at'].toString())
-          : null,
+      updatedAt: DateTimeUtils.toLocalSafe(json['updated_at'] as String?),
 
       // Enhanced fields with defaults
       department: json['department'] as String?,
-      hireDate: json['hire_date'] != null
-          ? DateTime.tryParse(json['hire_date'].toString())
-          : null,
+      hireDate: DateTimeUtils.toLocalSafe(json['hire_date'] as String?),
       employeeId: json['employee_id'] as String?,
       workLocation: json['work_location'] as String?,
       performanceRating: json['performance_rating'] as String?,
       employmentType: json['employment_type'] as String? ?? 'Full-time',
-      lastReviewDate: json['last_review_date'] != null
-          ? DateTime.tryParse(json['last_review_date'].toString())
-          : null,
-      nextReviewDate: json['next_review_date'] != null
-          ? DateTime.tryParse(json['next_review_date'].toString())
-          : null,
+      lastReviewDate: DateTimeUtils.toLocalSafe(json['last_review_date'] as String?),
+      nextReviewDate: DateTimeUtils.toLocalSafe(json['next_review_date'] as String?),
       previousSalary: (json['previous_salary'] as num?)?.toDouble(),
       managerName: json['manager_name'] as String?,
       costCenter: json['cost_center'] as String?,
@@ -146,19 +137,19 @@ class EmployeeSalaryModel extends EmployeeSalary {
       'currency_id': currencyId,
       'currency_name': currencyName,
       'symbol': symbol,
-      'effective_date': effectiveDate?.toIso8601String(),
+      'effective_date': effectiveDate != null ? DateTimeUtils.toUtc(effectiveDate!) : null,
       'is_active': isActive,
-      'updated_at': updatedAt?.toIso8601String(),
+      'updated_at': updatedAt != null ? DateTimeUtils.toUtc(updatedAt!) : null,
 
       // Enhanced fields
       'department': department,
-      'hire_date': hireDate?.toIso8601String(),
+      'hire_date': hireDate != null ? DateTimeUtils.toUtc(hireDate!) : null,
       'employee_id': employeeId,
       'work_location': workLocation,
       'performance_rating': performanceRating,
       'employment_type': employmentType,
-      'last_review_date': lastReviewDate?.toIso8601String(),
-      'next_review_date': nextReviewDate?.toIso8601String(),
+      'last_review_date': lastReviewDate != null ? DateTimeUtils.toUtc(lastReviewDate!) : null,
+      'next_review_date': nextReviewDate != null ? DateTimeUtils.toUtc(nextReviewDate!) : null,
       'previous_salary': previousSalary,
       'manager_name': managerName,
       'cost_center': costCenter,

@@ -12,6 +12,8 @@ import '../../domain/entities/employee_salary.dart';
 import '../../domain/entities/role.dart';
 import '../../domain/repositories/employee_repository.dart';
 import '../../domain/repositories/role_repository.dart';
+import 'employee_notifier.dart';
+import 'states/employee_state.dart';
 
 // ============================================================================
 // Data Source Providers
@@ -233,6 +235,20 @@ final rolesProvider = FutureProvider<List<Role>>((ref) async {
   } catch (e) {
     rethrow;
   }
+});
+
+// ============================================================================
+// ✅ NEW STANDARD: StateNotifier Pattern (Following transaction_template)
+// ============================================================================
+
+/// Employee State Provider - 메인 직원 상태 관리
+///
+/// ✅ This is the new standard pattern using Freezed State + StateNotifier
+/// Use this provider for new code instead of individual StateProviders above
+final employeeProvider = StateNotifierProvider<EmployeeNotifier, EmployeeState>((ref) {
+  return EmployeeNotifier(
+    repository: ref.read(employeeRepositoryProvider),
+  );
 });
 
 // ============================================================================

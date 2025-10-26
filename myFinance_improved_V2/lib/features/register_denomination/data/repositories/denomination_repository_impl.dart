@@ -1,5 +1,6 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uuid/uuid.dart';
+import '../../../../core/utils/datetime_utils.dart';
 import '../../domain/entities/denomination.dart';
 import '../../domain/repositories/denomination_repository.dart';
 import '../services/denomination_template_service.dart';
@@ -36,7 +37,7 @@ class SupabaseDenominationRepository implements DenominationRepository {
           displayName: type == DenominationType.coin ? 'Coin' : 'Bill',
           emoji: type == DenominationType.coin ? '🪙' : '💵',
           isActive: true,
-          createdAt: json['created_at'] != null ? DateTime.parse(json['created_at'] as String) : null,
+          createdAt: json['created_at'] != null ? DateTimeUtils.toLocal(json['created_at'] as String) : null,
         );
       }).toList();
     } catch (e) {
@@ -87,7 +88,7 @@ class SupabaseDenominationRepository implements DenominationRepository {
           'value': input.value,
           'type': input.type.name, // 'coin' or 'bill'
           'is_deleted': false,  // Initialize as not deleted
-          'created_at': DateTime.now().toIso8601String(),
+          'created_at': DateTimeUtils.nowUtc(),
         };
 
         await _client.from('currency_denominations').insert(insertData).select();
@@ -247,7 +248,7 @@ class SupabaseDenominationRepository implements DenominationRepository {
         displayName: type == DenominationType.coin ? 'Coin' : 'Bill',
         emoji: type == DenominationType.coin ? '🪙' : '💵',
         isActive: true,
-        createdAt: response['created_at'] != null ? DateTime.parse(response['created_at'] as String) : null,
+        createdAt: response['created_at'] != null ? DateTimeUtils.toLocal(response['created_at'] as String) : null,
       );
     } catch (e) {
       if (e.toString().contains('No rows returned')) {
@@ -297,7 +298,7 @@ class SupabaseDenominationRepository implements DenominationRepository {
           'value': input.value,
           'type': input.type.name,
           'is_deleted': false,  // Initialize as not deleted
-          'created_at': DateTime.now().toIso8601String(),
+          'created_at': DateTimeUtils.nowUtc(),
         };
       }).toList();
 
@@ -405,7 +406,7 @@ class SupabaseDenominationRepository implements DenominationRepository {
             displayName: type == DenominationType.coin ? 'Coin' : 'Bill',
             emoji: type == DenominationType.coin ? '🪙' : '💵',
             isActive: true,
-            createdAt: json['created_at'] != null ? DateTime.parse(json['created_at'] as String) : null,
+            createdAt: json['created_at'] != null ? DateTimeUtils.toLocal(json['created_at'] as String) : null,
           );
         }).toList());
   }

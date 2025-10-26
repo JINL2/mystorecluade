@@ -1,8 +1,39 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:myfinance_improved/core/utils/datetime_utils.dart';
 import '../../domain/entities/role_delegation.dart';
 
 part 'role_delegation_model.freezed.dart';
 part 'role_delegation_model.g.dart';
+
+/// Custom JSON converter for DateTime with UTC to Local conversion
+class _DateTimeConverter implements JsonConverter<DateTime, String> {
+  const _DateTimeConverter();
+
+  @override
+  DateTime fromJson(String json) {
+    return DateTimeUtils.toLocal(json);
+  }
+
+  @override
+  String toJson(DateTime object) {
+    return DateTimeUtils.toUtc(object);
+  }
+}
+
+/// Custom JSON converter for nullable DateTime with UTC to Local conversion
+class _NullableDateTimeConverter implements JsonConverter<DateTime?, String?> {
+  const _NullableDateTimeConverter();
+
+  @override
+  DateTime? fromJson(String? json) {
+    return DateTimeUtils.toLocalSafe(json);
+  }
+
+  @override
+  String? toJson(DateTime? object) {
+    return object != null ? DateTimeUtils.toUtc(object) : null;
+  }
+}
 
 @freezed
 class RoleDelegationModel with _$RoleDelegationModel {
@@ -17,11 +48,11 @@ class RoleDelegationModel with _$RoleDelegationModel {
     required String roleName,
     required Map<String, dynamic> delegateUser,
     required List<String> permissions,
-    required DateTime startDate,
-    required DateTime endDate,
+    @_DateTimeConverter() required DateTime startDate,
+    @_DateTimeConverter() required DateTime endDate,
     required bool isActive,
-    DateTime? createdAt,
-    DateTime? updatedAt,
+    @_NullableDateTimeConverter() DateTime? createdAt,
+    @_NullableDateTimeConverter() DateTime? updatedAt,
   }) = _RoleDelegationModel;
 
   factory RoleDelegationModel.fromJson(Map<String, dynamic> json) =>

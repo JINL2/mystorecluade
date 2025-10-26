@@ -1,5 +1,7 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uuid/uuid.dart';
+
+import '../../../../core/utils/datetime_utils.dart';
 import '../../domain/entities/currency.dart';
 import '../../domain/entities/denomination.dart';
 import '../../domain/repositories/currency_repository.dart';
@@ -27,7 +29,7 @@ class SupabaseCurrencyRepository implements CurrencyRepository {
             currencyName: json['currency_name'] as String,
             symbol: json['symbol'] as String,
             flagEmoji: json['flag_emoji'] as String? ?? _defaultFlagEmoji,
-            createdAt: json['created_at'] != null ? DateTime.parse(json['created_at'] as String) : null,
+            createdAt: json['created_at'] != null ? DateTimeUtils.toLocal(json['created_at'] as String) : null,
           ))
           .toList();
     } catch (e) {
@@ -84,7 +86,7 @@ class SupabaseCurrencyRepository implements CurrencyRepository {
           displayName: (denom['type'] as String? ?? 'bill') == 'coin' ? 'Coin' : 'Bill',
           emoji: (denom['type'] as String? ?? 'bill') == 'coin' ? '🪙' : '💵',
           isActive: true,
-          createdAt: denom['created_at'] != null ? DateTime.parse(denom['created_at'] as String) : null,
+          createdAt: denom['created_at'] != null ? DateTimeUtils.toLocal(denom['created_at'] as String) : null,
         ));
       }
 
@@ -100,7 +102,7 @@ class SupabaseCurrencyRepository implements CurrencyRepository {
           flagEmoji: ct['flag_emoji'] as String? ?? _defaultFlagEmoji,
           companyCurrencyId: currencyIdToCompanyCurrencyId[currencyId], // Include company_currency_id
           denominations: denominationMap[currencyId] ?? [],
-          createdAt: ct['created_at'] != null ? DateTime.parse(ct['created_at'] as String) : null,
+          createdAt: ct['created_at'] != null ? DateTimeUtils.toLocal(ct['created_at'] as String) : null,
         );
       }).toList();
     } catch (e) {
@@ -213,7 +215,7 @@ class SupabaseCurrencyRepository implements CurrencyRepository {
           'company_id': companyId,
           'currency_id': currencyId,
           'is_deleted': false,  // Initialize as not deleted
-          'created_at': DateTime.now().toIso8601String(),
+          'created_at': DateTimeUtils.nowUtc(),
         }).select();
 
         if (insertResult.isEmpty) {
@@ -334,7 +336,7 @@ class SupabaseCurrencyRepository implements CurrencyRepository {
           displayName: (denom['type'] as String? ?? 'bill') == 'coin' ? 'Coin' : 'Bill',
           emoji: (denom['type'] as String? ?? 'bill') == 'coin' ? '🪙' : '💵',
           isActive: denom['is_active'] as bool? ?? true,
-          createdAt: denom['created_at'] != null ? DateTime.parse(denom['created_at'] as String) : null,
+          createdAt: denom['created_at'] != null ? DateTimeUtils.toLocal(denom['created_at'] as String) : null,
         );
       }).toList();
 
@@ -348,7 +350,7 @@ class SupabaseCurrencyRepository implements CurrencyRepository {
         flagEmoji: currencyType['flag_emoji'] as String? ?? _defaultFlagEmoji,
         companyCurrencyId: companyCurrencyId, // Include company_currency_id
         denominations: denominationList,
-        createdAt: currencyType['created_at'] != null ? DateTime.parse(currencyType['created_at'] as String) : null,
+        createdAt: currencyType['created_at'] != null ? DateTimeUtils.toLocal(currencyType['created_at'] as String) : null,
       );
     } catch (e) {
       throw Exception('Failed to fetch company currency: $e');
@@ -361,7 +363,7 @@ class SupabaseCurrencyRepository implements CurrencyRepository {
   }) async {
     try {
       final updateData = <String, dynamic>{
-        'updated_at': DateTime.now().toIso8601String(),
+        'updated_at': DateTimeUtils.nowUtc(),
       };
 
       // Use isActive if provided and column exists
@@ -424,7 +426,7 @@ class SupabaseCurrencyRepository implements CurrencyRepository {
           currencyName: currencyName,
           symbol: symbol,
           flagEmoji: json['flag_emoji'] as String? ?? _defaultFlagEmoji,
-          createdAt: json['created_at'] != null ? DateTime.parse(json['created_at'] as String) : null,
+          createdAt: json['created_at'] != null ? DateTimeUtils.toLocal(json['created_at'] as String) : null,
         );
       }).toList();
     } catch (e) {
@@ -480,7 +482,7 @@ class SupabaseCurrencyRepository implements CurrencyRepository {
               displayName: (denom['type'] as String? ?? 'bill') == 'coin' ? 'Coin' : 'Bill',
               emoji: (denom['type'] as String? ?? 'bill') == 'coin' ? '🪙' : '💵',
               isActive: denom['is_active'] as bool? ?? true,
-              createdAt: denom['created_at'] != null ? DateTime.parse(denom['created_at'] as String) : null,
+              createdAt: denom['created_at'] != null ? DateTimeUtils.toLocal(denom['created_at'] as String) : null,
             ));
           }
 
@@ -496,7 +498,7 @@ class SupabaseCurrencyRepository implements CurrencyRepository {
               flagEmoji: ct['flag_emoji'] as String? ?? _defaultFlagEmoji,
               companyCurrencyId: currencyIdToCompanyCurrencyId[currencyId], // Include company_currency_id
               denominations: denominationMap[currencyId] ?? [],
-              createdAt: ct['created_at'] != null ? DateTime.parse(ct['created_at'] as String) : null,
+              createdAt: ct['created_at'] != null ? DateTimeUtils.toLocal(ct['created_at'] as String) : null,
             );
           }).toList();
         });

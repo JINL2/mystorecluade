@@ -1,8 +1,24 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:myfinance_improved/core/utils/datetime_utils.dart';
 import '../../domain/entities/delegation_audit.dart';
 
 part 'delegation_audit_model.freezed.dart';
 part 'delegation_audit_model.g.dart';
+
+/// Custom JSON converter for DateTime with UTC to Local conversion
+class _DateTimeConverter implements JsonConverter<DateTime, String> {
+  const _DateTimeConverter();
+
+  @override
+  DateTime fromJson(String json) {
+    return DateTimeUtils.toLocal(json);
+  }
+
+  @override
+  String toJson(DateTime object) {
+    return DateTimeUtils.toUtc(object);
+  }
+}
 
 @freezed
 class DelegationAuditModel with _$DelegationAuditModel {
@@ -15,7 +31,7 @@ class DelegationAuditModel with _$DelegationAuditModel {
     required String performedBy,
     required Map<String, dynamic> performedByUser,
     required Map<String, dynamic> details,
-    required DateTime timestamp,
+    @_DateTimeConverter() required DateTime timestamp,
   }) = _DelegationAuditModel;
 
   factory DelegationAuditModel.fromJson(Map<String, dynamic> json) =>

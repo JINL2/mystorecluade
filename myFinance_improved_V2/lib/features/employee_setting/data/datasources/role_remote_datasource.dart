@@ -1,4 +1,6 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:myfinance_improved/core/utils/datetime_utils.dart';
+
 import '../models/role_model.dart';
 
 /// Remote Data Source: Role Remote Data Source
@@ -80,8 +82,8 @@ class RoleRemoteDataSource {
                 .from('user_roles')
                 .update({
                   'is_deleted': true,
-                  'deleted_at': DateTime.now().toIso8601String(),
-                  'updated_at': DateTime.now().toIso8601String(),
+                  'deleted_at': DateTimeUtils.nowUtc(),
+                  'updated_at': DateTimeUtils.nowUtc(),
                 })
                 .eq('user_role_id', existingRecords[i]['user_role_id'] as Object);
           }
@@ -92,7 +94,7 @@ class RoleRemoteDataSource {
             .from('user_roles')
             .update({
               'role_id': roleId,
-              'updated_at': DateTime.now().toIso8601String(),
+              'updated_at': DateTimeUtils.nowUtc(),
             })
             .eq('user_role_id', latestRecord['user_role_id'] as Object)
             .select();
@@ -103,8 +105,8 @@ class RoleRemoteDataSource {
             .insert({
               'user_id': userId,
               'role_id': roleId,
-              'created_at': DateTime.now().toIso8601String(),
-              'updated_at': DateTime.now().toIso8601String(),
+              'created_at': DateTimeUtils.nowUtc(),
+              'updated_at': DateTimeUtils.nowUtc(),
             })
             .select();
       }

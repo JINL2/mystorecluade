@@ -68,27 +68,19 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
     try {
       // Use datasource instead of direct Supabase call
       final datasource = ref.read(attendanceDatasourceProvider);
-      final today = DateTime.now();
-      final dateStr = '${today.year}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}';
 
       final response = await datasource.getShiftMetadata(
         storeId: storeId,
-        date: dateStr,
       );
-
 
       if (mounted) {
         setState(() {
           // Store the raw response directly - it should be a List of shift objects
-          if (response != null) {
-            shiftMetadata = [response];
-          } else {
-            shiftMetadata = [];
-          }
+          shiftMetadata = response;
           isLoadingMetadata = false;
         });
       }
-      
+
     } catch (e) {
       if (mounted) {
         setState(() {

@@ -28,10 +28,14 @@ mixin _$RoleDelegationModel {
   String get roleName => throw _privateConstructorUsedError;
   Map<String, dynamic> get delegateUser => throw _privateConstructorUsedError;
   List<String> get permissions => throw _privateConstructorUsedError;
+  @_DateTimeConverter()
   DateTime get startDate => throw _privateConstructorUsedError;
+  @_DateTimeConverter()
   DateTime get endDate => throw _privateConstructorUsedError;
   bool get isActive => throw _privateConstructorUsedError;
+  @_NullableDateTimeConverter()
   DateTime? get createdAt => throw _privateConstructorUsedError;
+  @_NullableDateTimeConverter()
   DateTime? get updatedAt => throw _privateConstructorUsedError;
 
   /// Serializes this RoleDelegationModel to a JSON map.
@@ -59,11 +63,11 @@ abstract class $RoleDelegationModelCopyWith<$Res> {
       String roleName,
       Map<String, dynamic> delegateUser,
       List<String> permissions,
-      DateTime startDate,
-      DateTime endDate,
+      @_DateTimeConverter() DateTime startDate,
+      @_DateTimeConverter() DateTime endDate,
       bool isActive,
-      DateTime? createdAt,
-      DateTime? updatedAt});
+      @_NullableDateTimeConverter() DateTime? createdAt,
+      @_NullableDateTimeConverter() DateTime? updatedAt});
 }
 
 /// @nodoc
@@ -169,11 +173,11 @@ abstract class _$$RoleDelegationModelImplCopyWith<$Res>
       String roleName,
       Map<String, dynamic> delegateUser,
       List<String> permissions,
-      DateTime startDate,
-      DateTime endDate,
+      @_DateTimeConverter() DateTime startDate,
+      @_DateTimeConverter() DateTime endDate,
       bool isActive,
-      DateTime? createdAt,
-      DateTime? updatedAt});
+      @_NullableDateTimeConverter() DateTime? createdAt,
+      @_NullableDateTimeConverter() DateTime? updatedAt});
 }
 
 /// @nodoc
@@ -272,11 +276,11 @@ class _$RoleDelegationModelImpl extends _RoleDelegationModel {
       required this.roleName,
       required final Map<String, dynamic> delegateUser,
       required final List<String> permissions,
-      required this.startDate,
-      required this.endDate,
+      @_DateTimeConverter() required this.startDate,
+      @_DateTimeConverter() required this.endDate,
       required this.isActive,
-      this.createdAt,
-      this.updatedAt})
+      @_NullableDateTimeConverter() this.createdAt,
+      @_NullableDateTimeConverter() this.updatedAt})
       : _delegateUser = delegateUser,
         _permissions = permissions,
         super._();
@@ -313,14 +317,18 @@ class _$RoleDelegationModelImpl extends _RoleDelegationModel {
   }
 
   @override
+  @_DateTimeConverter()
   final DateTime startDate;
   @override
+  @_DateTimeConverter()
   final DateTime endDate;
   @override
   final bool isActive;
   @override
+  @_NullableDateTimeConverter()
   final DateTime? createdAt;
   @override
+  @_NullableDateTimeConverter()
   final DateTime? updatedAt;
 
   @override
@@ -395,19 +403,20 @@ class _$RoleDelegationModelImpl extends _RoleDelegationModel {
 
 abstract class _RoleDelegationModel extends RoleDelegationModel {
   const factory _RoleDelegationModel(
-      {required final String id,
-      required final String delegatorId,
-      required final String delegateId,
-      required final String companyId,
-      required final String roleId,
-      required final String roleName,
-      required final Map<String, dynamic> delegateUser,
-      required final List<String> permissions,
-      required final DateTime startDate,
-      required final DateTime endDate,
-      required final bool isActive,
-      final DateTime? createdAt,
-      final DateTime? updatedAt}) = _$RoleDelegationModelImpl;
+          {required final String id,
+          required final String delegatorId,
+          required final String delegateId,
+          required final String companyId,
+          required final String roleId,
+          required final String roleName,
+          required final Map<String, dynamic> delegateUser,
+          required final List<String> permissions,
+          @_DateTimeConverter() required final DateTime startDate,
+          @_DateTimeConverter() required final DateTime endDate,
+          required final bool isActive,
+          @_NullableDateTimeConverter() final DateTime? createdAt,
+          @_NullableDateTimeConverter() final DateTime? updatedAt}) =
+      _$RoleDelegationModelImpl;
   const _RoleDelegationModel._() : super._();
 
   factory _RoleDelegationModel.fromJson(Map<String, dynamic> json) =
@@ -430,14 +439,18 @@ abstract class _RoleDelegationModel extends RoleDelegationModel {
   @override
   List<String> get permissions;
   @override
+  @_DateTimeConverter()
   DateTime get startDate;
   @override
+  @_DateTimeConverter()
   DateTime get endDate;
   @override
   bool get isActive;
   @override
+  @_NullableDateTimeConverter()
   DateTime? get createdAt;
   @override
+  @_NullableDateTimeConverter()
   DateTime? get updatedAt;
 
   /// Create a copy of RoleDelegationModel

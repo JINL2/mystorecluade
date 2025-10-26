@@ -11,6 +11,7 @@ import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
 import 'package:myfinance_improved/app/providers/app_state_provider.dart';
+import '../../../../core/utils/datetime_utils.dart';
 import '../../domain/entities/currency.dart';
 import '../providers/exchange_rate_provider.dart';
 
@@ -205,8 +206,8 @@ class _EditExchangeRateBottomSheetState extends ConsumerState<EditExchangeRateBo
       }
 
       final supabase = Supabase.instance.client;
-      final now = DateTime.now().toIso8601String();
-      final today = DateTime.now().toIso8601String().split('T')[0]; // YYYY-MM-DD format
+      final now = DateTimeUtils.nowUtc();
+      final today = DateTimeUtils.toDateOnly(DateTime.now());
 
       // Insert new exchange rate record
       await supabase.from('book_exchange_rates').insert({

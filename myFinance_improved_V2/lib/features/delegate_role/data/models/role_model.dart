@@ -1,4 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:myfinance_improved/core/utils/datetime_utils.dart';
 import '../../domain/entities/role.dart';
 
 part 'role_model.freezed.dart';
@@ -36,14 +37,14 @@ class RoleModel with _$RoleModel {
       canEdit: json['canEdit'] as bool? ?? json['can_edit'] as bool? ?? false,
       canDelegate: json['canDelegate'] as bool? ?? json['can_delegate'] as bool? ?? false,
       createdAt: json['createdAt'] != null
-          ? DateTime.parse(json['createdAt'] as String)
+          ? DateTimeUtils.toLocalSafe(json['createdAt'] as String)
           : json['created_at'] != null
-              ? DateTime.parse(json['created_at'] as String)
+              ? DateTimeUtils.toLocalSafe(json['created_at'] as String)
               : null,
       updatedAt: json['updatedAt'] != null
-          ? DateTime.parse(json['updatedAt'] as String)
+          ? DateTimeUtils.toLocalSafe(json['updatedAt'] as String)
           : json['updated_at'] != null
-              ? DateTime.parse(json['updated_at'] as String)
+              ? DateTimeUtils.toLocalSafe(json['updated_at'] as String)
               : null,
     );
   }
