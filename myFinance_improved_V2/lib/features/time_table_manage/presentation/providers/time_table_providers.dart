@@ -8,6 +8,7 @@ import '../../domain/entities/manager_overview.dart';
 import '../../domain/entities/monthly_shift_status.dart';
 import '../../domain/entities/shift_metadata.dart';
 import '../../domain/repositories/time_table_repository.dart';
+import 'states/time_table_state.dart';
 
 // ============================================================================
 // Data Layer Providers
@@ -74,35 +75,6 @@ final shiftMetadataProvider =
 // ============================================================================
 // Monthly Shift Status Provider
 // ============================================================================
-
-/// Monthly Shift Status State
-class MonthlyShiftStatusState {
-  final Map<String, List<MonthlyShiftStatus>> dataByMonth;
-  final Set<String> loadedMonths;
-  final bool isLoading;
-  final String? error;
-
-  const MonthlyShiftStatusState({
-    this.dataByMonth = const {},
-    this.loadedMonths = const {},
-    this.isLoading = false,
-    this.error,
-  });
-
-  MonthlyShiftStatusState copyWith({
-    Map<String, List<MonthlyShiftStatus>>? dataByMonth,
-    Set<String>? loadedMonths,
-    bool? isLoading,
-    String? error,
-  }) {
-    return MonthlyShiftStatusState(
-      dataByMonth: dataByMonth ?? this.dataByMonth,
-      loadedMonths: loadedMonths ?? this.loadedMonths,
-      isLoading: isLoading ?? this.isLoading,
-      error: error,
-    );
-  }
-}
 
 /// Monthly Shift Status Notifier
 class MonthlyShiftStatusNotifier
@@ -196,31 +168,6 @@ final monthlyShiftStatusProvider = StateNotifierProvider.family<
 // Manager Overview Provider
 // ============================================================================
 
-/// Manager Overview State
-class ManagerOverviewState {
-  final Map<String, ManagerOverview> dataByMonth;
-  final bool isLoading;
-  final String? error;
-
-  const ManagerOverviewState({
-    this.dataByMonth = const {},
-    this.isLoading = false,
-    this.error,
-  });
-
-  ManagerOverviewState copyWith({
-    Map<String, ManagerOverview>? dataByMonth,
-    bool? isLoading,
-    String? error,
-  }) {
-    return ManagerOverviewState(
-      dataByMonth: dataByMonth ?? this.dataByMonth,
-      isLoading: isLoading ?? this.isLoading,
-      error: error,
-    );
-  }
-}
-
 /// Manager Overview Notifier
 class ManagerOverviewNotifier extends StateNotifier<ManagerOverviewState> {
   final TimeTableRepository _repository;
@@ -303,27 +250,6 @@ final managerOverviewProvider = StateNotifierProvider.family<
 // ============================================================================
 // Selected Shift Requests Provider (for multi-select approval)
 // ============================================================================
-
-/// Selected Shift Requests State
-class SelectedShiftRequestsState {
-  final Set<String> selectedIds; // shift_request_ids
-  final Map<String, bool> approvalStates;
-
-  const SelectedShiftRequestsState({
-    this.selectedIds = const {},
-    this.approvalStates = const {},
-  });
-
-  SelectedShiftRequestsState copyWith({
-    Set<String>? selectedIds,
-    Map<String, bool>? approvalStates,
-  }) {
-    return SelectedShiftRequestsState(
-      selectedIds: selectedIds ?? this.selectedIds,
-      approvalStates: approvalStates ?? this.approvalStates,
-    );
-  }
-}
 
 /// Selected Shift Requests Notifier
 class SelectedShiftRequestsNotifier

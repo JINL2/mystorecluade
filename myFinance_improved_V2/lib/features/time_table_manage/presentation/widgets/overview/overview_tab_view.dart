@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../../shared/widgets/common/toss_loading_view.dart';
-import '../../../../../shared/widgets/common/toss_error_view.dart';
 import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
+import '../../../../../shared/widgets/common/toss_error_view.dart';
+import '../../../../../shared/widgets/common/toss_loading_view.dart';
 import '../../providers/time_table_providers.dart';
 
 /// Overview Tab View

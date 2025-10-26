@@ -133,7 +133,7 @@ class CalendarDayCell extends StatelessWidget {
     if (isToday) {
       return isSelected
           ? TossColors.primarySurface
-          : TossColors.primarySurface.withOpacity(0.3);
+          : TossColors.primarySurface.withValues(alpha: 0.3);
     }
     if (isSelected) {
       return TossColors.primarySurface;

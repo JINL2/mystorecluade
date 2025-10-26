@@ -5,7 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../../app/providers/app_state_provider.dart';
-import '../../providers/time_table_providers.dart';
+import '../../../../../core/utils/datetime_utils.dart';
 import '../../../../../core/utils/input_formatters.dart';
 import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
@@ -13,6 +13,7 @@ import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../../shared/widgets/common/toss_loading_view.dart';
 import '../../../../../shared/widgets/toss/toss_time_picker.dart';
+import '../../providers/time_table_providers.dart';
 
 class ShiftDetailsBottomSheet extends ConsumerStatefulWidget {
   final Map<String, dynamic> card;
@@ -2050,13 +2051,27 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<ShiftDetailsBottomShee
                       }
                       
                       // Format times - these should already be in HH:mm format from _formatTimeOfDay
-                      final startTime = formatTimeToHHmm(editedStartTime ?? widget.card['confirm_start_time']);
-                      final endTime = formatTimeToHHmm(editedEndTime ?? widget.card['confirm_end_time']);
+                      final startTimeHHmm = formatTimeToHHmm(editedStartTime ?? widget.card['confirm_start_time']);
+                      final endTimeHHmm = formatTimeToHHmm(editedEndTime ?? widget.card['confirm_end_time']);
 
                       // Validate times are not null
-                      if (startTime == null || endTime == null) {
+                      if (startTimeHHmm == null || endTimeHHmm == null) {
                         throw Exception('Start time and end time are required');
                       }
+
+                      // Get request date for full DateTime conversion
+                      final requestDate = widget.card['request_date'] as String?;
+                      if (requestDate == null || requestDate.isEmpty) {
+                        throw Exception('Request date is required for time conversion');
+                      }
+
+                      // Convert HH:mm to full DateTime and then to UTC for DB storage
+                      final startDateTime = DateTime.parse('$requestDate $startTimeHHmm:00');
+                      final endDateTime = DateTime.parse('$requestDate $endTimeHHmm:00');
+
+                      // Convert to UTC ISO8601 string for RPC
+                      final startTimeUtc = DateTimeUtils.toUtc(startDateTime);
+                      final endTimeUtc = DateTimeUtils.toUtc(endDateTime);
 
                       // Prepare tag parameters - ensure null instead of empty strings
                       final processedTagContent = (tagContent != null && tagContent!.trim().isNotEmpty)
@@ -2070,15 +2085,13 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<ShiftDetailsBottomShee
                       if (shiftRequestId == null || shiftRequestId.isEmpty) {
                         throw Exception('Invalid shift request ID');
                       }
-                      
-                      // Debug log to verify parameters
 
                       // Use repository instead of direct Supabase call
                       final response = await ref.read(timeTableRepositoryProvider).inputCard(
                         managerId: userId,
                         shiftRequestId: shiftRequestId,
-                        confirmStartTime: startTime,
-                        confirmEndTime: endTime,
+                        confirmStartTime: startTimeUtc,
+                        confirmEndTime: endTimeUtc,
                         newTagContent: processedTagContent,
                         newTagType: processedTagType,
                         isLate: isLate,

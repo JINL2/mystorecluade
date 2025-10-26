@@ -1,3 +1,4 @@
+import '../../../../core/utils/datetime_utils.dart';
 import '../../domain/entities/manager_overview.dart';
 import '../../domain/entities/monthly_shift_status.dart';
 import '../../domain/entities/shift_metadata.dart';
@@ -88,7 +89,7 @@ class TimeTableRepositoryImpl implements TimeTableRepository {
                     return {
                       ...emp,
                       'shift_id': shift['shift_id'], // Add missing shift_id
-                      'created_at': now.toIso8601String(), // Add missing created_at
+                      'created_at': DateTimeUtils.toUtc(now), // Add missing created_at
                       'employee': {
                         'user_id': emp['user_id'],
                         'user_name': emp['user_name'],
@@ -104,8 +105,8 @@ class TimeTableRepositoryImpl implements TimeTableRepository {
                     return {
                       ...emp,
                       'shift_id': shift['shift_id'], // Add missing shift_id
-                      'created_at': now.toIso8601String(), // Add missing created_at
-                      'approved_at': now.toIso8601String(), // Add approved_at for approved requests
+                      'created_at': DateTimeUtils.toUtc(now), // Add missing created_at
+                      'approved_at': DateTimeUtils.toUtc(now), // Add approved_at for approved requests
                       'employee': {
                         'user_id': emp['user_id'],
                         'user_name': emp['user_name'],
@@ -121,8 +122,8 @@ class TimeTableRepositoryImpl implements TimeTableRepository {
                     'shift_id': shift['shift_id'],
                     'shift_name': shift['shift_name'],
                     'required_employees': shift['required_employees'],
-                    'plan_start_time': defaultStartTime.toIso8601String(),
-                    'plan_end_time': defaultEndTime.toIso8601String(),
+                    'plan_start_time': DateTimeUtils.toUtc(defaultStartTime),
+                    'plan_end_time': DateTimeUtils.toUtc(defaultEndTime),
                   },
                   'pending_requests': transformPendingRequests,
                   'approved_requests': transformApprovedRequests,

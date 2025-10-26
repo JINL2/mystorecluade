@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../../shared/themes/toss_colors.dart';
 import '../../../domain/entities/monthly_shift_status.dart';
+import '../../providers/states/time_table_state.dart';
 import '../../providers/time_table_providers.dart';
 import 'calendar_day_cell.dart';
 import 'calendar_header.dart';

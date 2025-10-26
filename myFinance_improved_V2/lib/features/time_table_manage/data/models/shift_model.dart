@@ -1,3 +1,4 @@
+import '../../../../core/utils/datetime_utils.dart';
 import '../../domain/entities/shift.dart';
 
 /// Shift Model (DTO + Mapper)
@@ -65,8 +66,8 @@ class ShiftModel {
       shiftId: shiftId,
       storeId: storeId,
       shiftDate: shiftDate,
-      planStartTime: DateTime.parse(planStartTime),
-      planEndTime: DateTime.parse(planEndTime),
+      planStartTime: DateTimeUtils.toLocal(planStartTime),
+      planEndTime: DateTimeUtils.toLocal(planEndTime),
       targetCount: targetCount,
       currentCount: currentCount,
       tags: tags,
@@ -80,8 +81,8 @@ class ShiftModel {
       shiftId: entity.shiftId,
       storeId: entity.storeId,
       shiftDate: entity.shiftDate,
-      planStartTime: entity.planStartTime.toIso8601String(),
-      planEndTime: entity.planEndTime.toIso8601String(),
+      planStartTime: DateTimeUtils.toUtc(entity.planStartTime),
+      planEndTime: DateTimeUtils.toUtc(entity.planEndTime),
       targetCount: entity.targetCount,
       currentCount: entity.currentCount,
       tags: entity.tags,

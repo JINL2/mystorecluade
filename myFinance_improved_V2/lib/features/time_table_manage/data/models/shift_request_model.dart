@@ -1,3 +1,4 @@
+import '../../../../core/utils/datetime_utils.dart';
 import '../../domain/entities/shift_request.dart';
 import 'employee_info_model.dart';
 
@@ -54,8 +55,8 @@ class ShiftRequestModel {
       shiftId: shiftId,
       employee: employee.toEntity(),
       isApproved: isApproved,
-      createdAt: DateTime.parse(createdAt),
-      approvedAt: approvedAt != null ? DateTime.parse(approvedAt!) : null,
+      createdAt: DateTimeUtils.toLocal(createdAt),
+      approvedAt: DateTimeUtils.toLocalSafe(approvedAt),
     );
   }
 
@@ -66,8 +67,8 @@ class ShiftRequestModel {
       shiftId: entity.shiftId,
       employee: EmployeeInfoModel.fromEntity(entity.employee),
       isApproved: entity.isApproved,
-      createdAt: entity.createdAt.toIso8601String(),
-      approvedAt: entity.approvedAt?.toIso8601String(),
+      createdAt: DateTimeUtils.toUtc(entity.createdAt),
+      approvedAt: entity.approvedAt != null ? DateTimeUtils.toUtc(entity.approvedAt!) : null,
     );
   }
 }

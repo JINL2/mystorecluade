@@ -1,3 +1,4 @@
+import '../../../../core/utils/datetime_utils.dart';
 import '../../domain/entities/shift_metadata.dart';
 
 /// Shift Metadata Model (DTO + Mapper)
@@ -40,7 +41,7 @@ class ShiftMetadataModel {
     return ShiftMetadata(
       availableTags: availableTags,
       settings: settings,
-      lastUpdated: lastUpdated != null ? DateTime.parse(lastUpdated!) : null,
+      lastUpdated: DateTimeUtils.toLocalSafe(lastUpdated),
     );
   }
 
@@ -49,7 +50,7 @@ class ShiftMetadataModel {
     return ShiftMetadataModel(
       availableTags: entity.availableTags,
       settings: entity.settings,
-      lastUpdated: entity.lastUpdated?.toIso8601String(),
+      lastUpdated: entity.lastUpdated != null ? DateTimeUtils.toUtc(entity.lastUpdated!) : null,
     );
   }
 }

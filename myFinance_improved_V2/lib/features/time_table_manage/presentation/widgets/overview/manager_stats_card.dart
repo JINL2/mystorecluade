@@ -42,7 +42,7 @@ class ManagerStatsCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(TossSpacing.paddingXS),
                 decoration: BoxDecoration(
-                  color: accentColor.withOpacity(0.1),
+                  color: accentColor.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Icon(

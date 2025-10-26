@@ -1,3 +1,5 @@
+import '../../../../core/utils/datetime_utils.dart';
+
 /// Create Shift Parameters
 ///
 /// Value object for creating a new shift.
@@ -53,8 +55,8 @@ class CreateShiftParams {
     return {
       'p_store_id': storeId,
       'p_shift_date': shiftDate,
-      'p_plan_start_time': planStartTime.toIso8601String(),
-      'p_plan_end_time': planEndTime.toIso8601String(),
+      'p_plan_start_time': DateTimeUtils.toUtc(planStartTime),
+      'p_plan_end_time': DateTimeUtils.toUtc(planEndTime),
       'p_target_count': targetCount,
       'p_tags': tags,
       if (shiftName != null) 'p_shift_name': shiftName,

@@ -1,5 +1,6 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import '../../domain/entities/transaction.dart';
+import '../../../../core/utils/datetime_utils.dart';
 
 part 'transaction_model.freezed.dart';
 
@@ -55,8 +56,12 @@ class TransactionModel with _$TransactionModel {
       return TransactionModel(
         journalId: json['journal_id']?.toString() ?? '',
         journalNumber: json['journal_number']?.toString() ?? '',
-        entryDate: DateTime.tryParse(json['entry_date']?.toString() ?? '') ?? DateTime.now(),
-        createdAt: DateTime.tryParse(json['created_at']?.toString() ?? '') ?? DateTime.now(),
+        entryDate: json['entry_date'] != null
+            ? DateTimeUtils.toLocal(json['entry_date'] as String)
+            : DateTime.now(),
+        createdAt: json['created_at'] != null
+            ? DateTimeUtils.toLocal(json['created_at'] as String)
+            : DateTime.now(),
         description: json['description']?.toString() ?? '',
         journalType: json['journal_type']?.toString() ?? '',
         isDraft: (json['is_draft'] as bool?) ?? false,
