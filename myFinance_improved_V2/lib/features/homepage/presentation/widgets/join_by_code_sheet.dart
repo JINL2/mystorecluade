@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:myfinance_improved/app/providers/auth_providers.dart';
 import 'package:myfinance_improved/features/homepage/presentation/providers/join_providers.dart';
-import 'package:myfinance_improved/features/homepage/presentation/providers/join_state.dart';
+import 'package:myfinance_improved/features/homepage/presentation/providers/states/join_state.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
@@ -53,75 +53,84 @@ class _JoinByCodeSheetState extends ConsumerState<JoinByCodeSheet> {
   Widget build(BuildContext context) {
     // Listen to state changes for snackbars and navigation
     ref.listen<JoinState>(joinNotifierProvider, (previous, next) {
-      if (next is JoinLoading) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                const SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    valueColor: AlwaysStoppedAnimation<Color>(TossColors.white),
+      next.when(
+        initial: () {
+          // Do nothing
+        },
+        loading: () {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                  const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(TossColors.white),
+                    ),
                   ),
-                ),
-                const SizedBox(width: TossSpacing.space3),
-                Text('Joining...'),
-              ],
+                  const SizedBox(width: TossSpacing.space3),
+                  Text('Joining...'),
+                ],
+              ),
+              backgroundColor: TossColors.primary,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+              ),
+              duration: const Duration(seconds: 30), // Will be dismissed on success/error
             ),
-            backgroundColor: TossColors.primary,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+          );
+        },
+        error: (message, errorCode) {
+          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(message),
+              backgroundColor: TossColors.error,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+              ),
+              action: SnackBarAction(
+                label: 'Retry',
+                textColor: TossColors.white,
+                onPressed: () => _handleJoin(),
+              ),
             ),
-            duration: const Duration(seconds: 30), // Will be dismissed on success/error
-          ),
-        );
-      } else if (next is JoinError) {
-        ScaffoldMessenger.of(context).hideCurrentSnackBar();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(next.message),
-            backgroundColor: TossColors.error,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-            ),
-            action: SnackBarAction(
-              label: 'Retry',
-              textColor: TossColors.white,
-              onPressed: () => _handleJoin(),
-            ),
-          ),
-        );
-      } else if (next is JoinSuccess) {
-        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+          );
+        },
+        success: (result) {
+          ScaffoldMessenger.of(context).hideCurrentSnackBar();
 
-        final result = next.result;
-        final entityType = result.isStoreJoin ? 'store' : 'company';
+          final entityType = result.isStoreJoin ? 'store' : 'company';
 
-        // Close the sheet and return result
-        Navigator.of(context).pop(result);
+          // Close the sheet and return result
+          Navigator.of(context).pop(result);
 
-        // Show success message
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Successfully joined ${result.entityName}! Role: ${result.roleAssigned ?? "Member"}',
+          // Show success message
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Successfully joined ${result.entityName}! Role: ${result.roleAssigned ?? "Member"}',
+              ),
+              backgroundColor: TossColors.success,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+              ),
             ),
-            backgroundColor: TossColors.success,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-            ),
-          ),
-        );
-      }
+          );
+        },
+      );
     });
 
     final state = ref.watch(joinNotifierProvider);
-    final isLoading = state is JoinLoading;
+    final isLoading = state.maybeWhen(
+      loading: () => true,
+      orElse: () => false,
+    );
 
     return Container(
       decoration: const BoxDecoration(

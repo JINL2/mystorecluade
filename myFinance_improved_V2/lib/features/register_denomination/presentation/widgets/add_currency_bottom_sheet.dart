@@ -4,6 +4,7 @@ import 'package:myfinance_improved/shared/widgets/toss/toss_primary_button.dart'
 import 'package:myfinance_improved/shared/widgets/toss/toss_secondary_button.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_search_field.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_loading_view.dart';
+import 'package:myfinance_improved/shared/widgets/common/toss_success_error_dialog.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
@@ -126,11 +127,14 @@ class _AddCurrencyBottomSheetState extends ConsumerState<AddCurrencyBottomSheet>
             isFetchingExchangeRate = false;
           });
           
-          // Show error message
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Unable to fetch current exchange rates. Using default value.'),
-              backgroundColor: TossColors.warning,
+          // Show warning message
+          await showDialog<bool>(
+            context: context,
+            barrierDismissible: true,
+            builder: (context) => TossDialog.warning(
+              title: 'Exchange Rate Warning',
+              message: 'Unable to fetch current exchange rates. Using default value.',
+              primaryButtonText: 'OK',
             ),
           );
         }
@@ -146,10 +150,13 @@ class _AddCurrencyBottomSheetState extends ConsumerState<AddCurrencyBottomSheet>
         });
         
         // Show error message
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to fetch exchange rates: Network error'),
-            backgroundColor: TossColors.error,
+        await showDialog<bool>(
+          context: context,
+          barrierDismissible: true,
+          builder: (context) => TossDialog.error(
+            title: 'Network Error',
+            message: 'Failed to fetch exchange rates: Network error',
+            primaryButtonText: 'OK',
           ),
         );
       }
@@ -739,10 +746,13 @@ class _AddCurrencyBottomSheetState extends ConsumerState<AddCurrencyBottomSheet>
     // Validate exchange rate
     final double? exchangeRate = double.tryParse(exchangeRateText);
     if (exchangeRate == null || exchangeRate <= 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please enter a valid exchange rate'),
-          backgroundColor: TossColors.error,
+      await showDialog<bool>(
+        context: context,
+        barrierDismissible: true,
+        builder: (context) => TossDialog.error(
+          title: 'Validation Error',
+          message: 'Please enter a valid exchange rate',
+          primaryButtonText: 'OK',
         ),
       );
       return;
@@ -845,15 +855,18 @@ class _AddCurrencyBottomSheetState extends ConsumerState<AddCurrencyBottomSheet>
       
       if (mounted) {
         Navigator.of(context).pop();
-        
+
         // Show success message
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(message),
-            backgroundColor: TossColors.success,
+        await showDialog<bool>(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => TossDialog.success(
+            title: 'Currency Added',
+            message: message,
+            primaryButtonText: 'OK',
           ),
         );
-        
+
         // Refresh providers after UI operations complete to sync with database
         Future.microtask(() {
           ref.invalidate(availableCurrenciesToAddProvider);
@@ -861,18 +874,21 @@ class _AddCurrencyBottomSheetState extends ConsumerState<AddCurrencyBottomSheet>
           ref.invalidate(companyCurrenciesStreamProvider);
         });
       }
-      
+
     } catch (e) {
       print('Error adding currency with exchange rate: $e');
-      
+
       // Revert optimistic update on failure
       ref.read(localCurrencyListProvider.notifier).optimisticallyRemove(selectedCurrencyId!);
-      
+
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to add currency: $e'),
-            backgroundColor: TossColors.error,
+        await showDialog<bool>(
+          context: context,
+          barrierDismissible: true,
+          builder: (context) => TossDialog.error(
+            title: 'Error',
+            message: 'Failed to add currency: $e',
+            primaryButtonText: 'OK',
           ),
         );
       }

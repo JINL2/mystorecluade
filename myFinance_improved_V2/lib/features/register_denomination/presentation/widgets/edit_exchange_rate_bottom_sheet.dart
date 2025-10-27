@@ -5,6 +5,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_bottom_sheet.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_primary_button.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_loading_view.dart';
+import 'package:myfinance_improved/shared/widgets/common/toss_success_error_dialog.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
@@ -143,11 +144,13 @@ class _EditExchangeRateBottomSheetState extends ConsumerState<EditExchangeRateBo
         
         // Show success feedback
         HapticFeedback.lightImpact();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Latest exchange rate fetched: ${rate.toStringAsFixed(4)}'),
-            backgroundColor: TossColors.success,
-            duration: const Duration(seconds: 2),
+        await showDialog<bool>(
+          context: context,
+          barrierDismissible: true,
+          builder: (context) => TossDialog.success(
+            title: 'Success',
+            message: 'Latest exchange rate fetched: ${rate.toStringAsFixed(4)}',
+            primaryButtonText: 'OK',
           ),
         );
       }
@@ -157,11 +160,13 @@ class _EditExchangeRateBottomSheetState extends ConsumerState<EditExchangeRateBo
           isFetchingRate = false;
         });
         
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to fetch exchange rate: $e'),
-            backgroundColor: TossColors.error,
-            duration: const Duration(seconds: 3),
+        await showDialog<bool>(
+          context: context,
+          barrierDismissible: true,
+          builder: (context) => TossDialog.error(
+            title: 'Error',
+            message: 'Failed to fetch exchange rate: $e',
+            primaryButtonText: 'OK',
           ),
         );
       }
@@ -172,21 +177,27 @@ class _EditExchangeRateBottomSheetState extends ConsumerState<EditExchangeRateBo
     final exchangeRateText = exchangeRateController.text.trim();
     
     if (exchangeRateText.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please enter an exchange rate'),
-          backgroundColor: TossColors.error,
+      await showDialog<bool>(
+        context: context,
+        barrierDismissible: true,
+        builder: (context) => TossDialog.error(
+          title: 'Invalid Input',
+          message: 'Please enter an exchange rate',
+          primaryButtonText: 'OK',
         ),
       );
       return;
     }
-    
+
     final exchangeRate = double.tryParse(exchangeRateText);
     if (exchangeRate == null || exchangeRate <= 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please enter a valid exchange rate'),
-          backgroundColor: TossColors.error,
+      await showDialog<bool>(
+        context: context,
+        barrierDismissible: true,
+        builder: (context) => TossDialog.error(
+          title: 'Invalid Input',
+          message: 'Please enter a valid exchange rate',
+          primaryButtonText: 'OK',
         ),
       );
       return;
@@ -222,14 +233,16 @@ class _EditExchangeRateBottomSheetState extends ConsumerState<EditExchangeRateBo
 
       // Show success message
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Exchange rate updated successfully for ${widget.currency.code}!'),
-            backgroundColor: TossColors.success,
-            duration: const Duration(seconds: 2),
+        await showDialog<bool>(
+          context: context,
+          barrierDismissible: true,
+          builder: (context) => TossDialog.success(
+            title: 'Success',
+            message: 'Exchange rate updated successfully for ${widget.currency.code}!',
+            primaryButtonText: 'OK',
           ),
         );
-        
+
         // Close the bottom sheet
         Navigator.of(context).pop();
       }
@@ -246,11 +259,13 @@ class _EditExchangeRateBottomSheetState extends ConsumerState<EditExchangeRateBo
       HapticFeedback.heavyImpact();
       
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error updating exchange rate: $e'),
-            backgroundColor: TossColors.error,
-            duration: const Duration(seconds: 3),
+        await showDialog<bool>(
+          context: context,
+          barrierDismissible: true,
+          builder: (context) => TossDialog.error(
+            title: 'Error',
+            message: 'Error updating exchange rate: $e',
+            primaryButtonText: 'OK',
           ),
         );
       }

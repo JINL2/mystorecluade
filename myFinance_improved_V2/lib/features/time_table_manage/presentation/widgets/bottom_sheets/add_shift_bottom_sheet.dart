@@ -18,6 +18,7 @@ import '../../../../../shared/themes/toss_border_radius.dart';
 
 // Shared widgets
 import '../../../../../shared/widgets/common/toss_loading_view.dart';
+import '../../../../../shared/widgets/common/toss_success_error_dialog.dart';
 
 /// AddShiftBottomSheet
 ///
@@ -131,12 +132,13 @@ class _AddShiftBottomSheetState extends ConsumerState<AddShiftBottomSheet> {
       final approvedBy = appState.user['user_id'] ?? '';
       
       if (storeId == null || storeId.isEmpty || approvedBy.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('Error: Missing store or user information'),
-            backgroundColor: TossColors.error,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(TossBorderRadius.md)),
+        await showDialog<bool>(
+          context: context,
+          barrierDismissible: true,
+          builder: (context) => TossDialog.error(
+            title: 'Error',
+            message: 'Missing store or user information',
+            primaryButtonText: 'OK',
           ),
         );
         setState(() {
@@ -158,18 +160,19 @@ class _AddShiftBottomSheetState extends ConsumerState<AddShiftBottomSheet> {
       );
 
       // Show success message
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Shift scheduled successfully'),
-          backgroundColor: TossColors.success,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(TossBorderRadius.md)),
+      await showDialog<bool>(
+        context: context,
+        barrierDismissible: true,
+        builder: (context) => TossDialog.success(
+          title: 'Success',
+          message: 'Shift scheduled successfully',
+          primaryButtonText: 'OK',
         ),
       );
-      
+
       // Notify parent widget
       widget.onShiftAdded?.call();
-      
+
       // Close the bottom sheet
       if (mounted) {
         Navigator.pop(context, true);
@@ -178,16 +181,17 @@ class _AddShiftBottomSheetState extends ConsumerState<AddShiftBottomSheet> {
     } catch (e) {
       // Show error message
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: ${e.toString()}'),
-            backgroundColor: TossColors.error,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(TossBorderRadius.md)),
+        await showDialog<bool>(
+          context: context,
+          barrierDismissible: true,
+          builder: (context) => TossDialog.error(
+            title: 'Error',
+            message: e.toString(),
+            primaryButtonText: 'OK',
           ),
         );
       }
-      
+
       setState(() {
         _isSaving = false;
       });

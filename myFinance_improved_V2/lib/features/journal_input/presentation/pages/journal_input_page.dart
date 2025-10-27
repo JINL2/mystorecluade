@@ -16,6 +16,7 @@ import '../../../../app/providers/app_state_provider.dart';
 // Shared widgets
 import '../../../../shared/widgets/common/toss_app_bar_1.dart';
 import '../../../../shared/widgets/common/toss_scaffold.dart';
+import '../../../../shared/widgets/common/toss_success_error_dialog.dart';
 import '../../../../shared/widgets/common/toss_white_card.dart';
 import '../../../../shared/widgets/common/toss_empty_view.dart';
 import '../../../../shared/widgets/toss/toss_primary_button.dart';
@@ -196,12 +197,16 @@ class _JournalInputPageState extends ConsumerState<JournalInputPage>
     final journalEntry = ref.read(journalEntryStateProvider);
 
     if (!journalEntry.canSubmit()) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(journalEntry.isBalanced
+      showDialog(
+        context: context,
+        barrierDismissible: true,
+        builder: (context) => TossDialog.error(
+          title: 'Invalid Journal Entry',
+          message: journalEntry.isBalanced
             ? 'Please add at least one transaction'
-            : 'Debits and credits must be balanced'),
-          backgroundColor: TossColors.error,
+            : 'Debits and credits must be balanced',
+          primaryButtonText: 'OK',
+          onPrimaryPressed: () => Navigator.of(context).pop(),
         ),
       );
       return;
@@ -294,10 +299,14 @@ class _JournalInputPageState extends ConsumerState<JournalInputPage>
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: ${e.toString()}'),
-            backgroundColor: TossColors.error,
+        await showDialog(
+          context: context,
+          barrierDismissible: true,
+          builder: (context) => TossDialog.error(
+            title: 'Submission Failed',
+            message: 'Failed to submit journal entry: ${e.toString()}',
+            primaryButtonText: 'OK',
+            onPrimaryPressed: () => Navigator.of(context).pop(),
           ),
         );
       }

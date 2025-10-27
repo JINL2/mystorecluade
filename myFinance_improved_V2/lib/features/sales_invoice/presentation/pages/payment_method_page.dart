@@ -15,6 +15,7 @@ import '../../../../shared/themes/toss_text_styles.dart';
 // Shared imports - widgets
 import '../../../../shared/widgets/common/toss_app_bar_1.dart';
 import '../../../../shared/widgets/common/toss_scaffold.dart';
+import '../../../../shared/widgets/common/toss_success_error_dialog.dart';
 import '../../../../shared/widgets/common/toss_white_card.dart';
 
 // App-level providers
@@ -1663,11 +1664,14 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
     
     // Validate required fields
     if (companyId.isEmpty || storeId.isEmpty || userId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Missing required information. Please ensure you are logged in and have selected a company and store.'),
-          backgroundColor: TossColors.error,
-          duration: Duration(seconds: 3),
+      showDialog(
+        context: context,
+        barrierDismissible: true,
+        builder: (context) => TossDialog.error(
+          title: 'Missing Information',
+          message: 'Please ensure you are logged in and have selected a company and store.',
+          primaryButtonText: 'OK',
+          onPrimaryPressed: () => Navigator.of(context).pop(),
         ),
       );
       return;
@@ -1696,11 +1700,14 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
     }
     
     if (items.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('No valid items to invoice'),
-          backgroundColor: TossColors.error,
-          duration: Duration(seconds: 2),
+      showDialog(
+        context: context,
+        barrierDismissible: true,
+        builder: (context) => TossDialog.error(
+          title: 'No Items',
+          message: 'No valid items to invoice',
+          primaryButtonText: 'OK',
+          onPrimaryPressed: () => Navigator.of(context).pop(),
         ),
       );
       return;
@@ -2082,11 +2089,14 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
             : 'Failed to create invoice';
 
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(errorMessage),
-              backgroundColor: TossColors.error,
-              duration: Duration(seconds: 4),
+          showDialog(
+            context: context,
+            barrierDismissible: true,
+            builder: (context) => TossDialog.error(
+              title: 'Invoice Creation Failed',
+              message: errorMessage,
+              primaryButtonText: 'OK',
+              onPrimaryPressed: () => Navigator.of(context).pop(),
             ),
           );
         }
@@ -2096,14 +2106,17 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
       if (mounted) {
         Navigator.of(context).pop();
       }
-      
-      
+
+
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error creating invoice: ${e.toString()}'),
-            backgroundColor: TossColors.error,
-            duration: Duration(seconds: 4),
+        showDialog(
+          context: context,
+          barrierDismissible: true,
+          builder: (context) => TossDialog.error(
+            title: 'Error',
+            message: 'Error creating invoice: ${e.toString()}',
+            primaryButtonText: 'OK',
+            onPrimaryPressed: () => Navigator.of(context).pop(),
           ),
         );
       }

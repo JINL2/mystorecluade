@@ -9,6 +9,7 @@ import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
+import '../../../../shared/widgets/common/toss_success_error_dialog.dart';
 import '../../../../shared/widgets/toss/toss_text_field.dart';
 import '../../../../shared/widgets/toss/toss_time_picker.dart';
 import '../../domain/entities/store_shift.dart';
@@ -93,15 +94,27 @@ void showEditShiftDialog(
                         );
                         if (context.mounted) {
                           Navigator.pop(context);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Shift updated successfully')),
+                          await showDialog<bool>(
+                            context: context,
+                            barrierDismissible: false,
+                            builder: (context) => TossDialog.success(
+                              title: 'Shift Updated',
+                              message: 'Shift updated successfully',
+                              primaryButtonText: 'OK',
+                            ),
                           );
                         }
                         ref.invalidate(storeShiftsProvider);
                       } catch (e) {
                         if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Failed: $e')),
+                          await showDialog<bool>(
+                            context: context,
+                            barrierDismissible: true,
+                            builder: (context) => TossDialog.error(
+                              title: 'Update Failed',
+                              message: 'Failed: $e',
+                              primaryButtonText: 'OK',
+                            ),
                           );
                         }
                       }
@@ -195,15 +208,27 @@ void showAddShiftDialog(
                         );
                         if (context.mounted) {
                           Navigator.pop(context);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Shift created successfully')),
+                          await showDialog<bool>(
+                            context: context,
+                            barrierDismissible: false,
+                            builder: (context) => TossDialog.success(
+                              title: 'Shift Created',
+                              message: 'Shift created successfully',
+                              primaryButtonText: 'OK',
+                            ),
                           );
                         }
                         ref.invalidate(storeShiftsProvider);
                       } catch (e) {
                         if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Failed: $e')),
+                          await showDialog<bool>(
+                            context: context,
+                            barrierDismissible: true,
+                            builder: (context) => TossDialog.error(
+                              title: 'Creation Failed',
+                              message: 'Failed: $e',
+                              primaryButtonText: 'OK',
+                            ),
                           );
                         }
                       }
@@ -242,16 +267,28 @@ void showDeleteShiftDialog(
               await ref.read(deleteShiftProvider)(shift.shiftId);
               if (context.mounted) {
                 Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Shift deleted successfully')),
+                await showDialog<bool>(
+                  context: context,
+                  barrierDismissible: false,
+                  builder: (context) => TossDialog.success(
+                    title: 'Shift Deleted',
+                    message: 'Shift deleted successfully',
+                    primaryButtonText: 'OK',
+                  ),
                 );
               }
               ref.invalidate(storeShiftsProvider);
             } catch (e) {
               if (context.mounted) {
                 Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Failed to delete: $e')),
+                await showDialog<bool>(
+                  context: context,
+                  barrierDismissible: true,
+                  builder: (context) => TossDialog.error(
+                    title: 'Delete Failed',
+                    message: 'Failed to delete: $e',
+                    primaryButtonText: 'OK',
+                  ),
                 );
               }
             }
@@ -486,15 +523,27 @@ class _ShiftFormContentState extends State<_ShiftFormContent> {
           child: ElevatedButton(
             onPressed: _isSubmitting ? null : () async {
               if (_nameController.text.isEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Please enter shift name')),
+                await showDialog<bool>(
+                  context: context,
+                  barrierDismissible: true,
+                  builder: (context) => TossDialog.error(
+                    title: 'Validation Error',
+                    message: 'Please enter shift name',
+                    primaryButtonText: 'OK',
+                  ),
                 );
                 return;
               }
 
               if (widget.selectedStartTime == null || widget.selectedEndTime == null) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Please select start and end times')),
+                await showDialog<bool>(
+                  context: context,
+                  barrierDismissible: true,
+                  builder: (context) => TossDialog.error(
+                    title: 'Validation Error',
+                    message: 'Please select start and end times',
+                    primaryButtonText: 'OK',
+                  ),
                 );
                 return;
               }

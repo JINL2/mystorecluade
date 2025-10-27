@@ -7,6 +7,7 @@ import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_loading_view.dart';
+import 'package:myfinance_improved/shared/widgets/common/toss_success_error_dialog.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_primary_button.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_search_field.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_secondary_button.dart';
@@ -269,10 +270,14 @@ class _RoleManagementModalState extends ConsumerState<RoleManagementModal> {
   
   void _saveChanges() async {
     if (_selectedRoleId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Please select a role'),
-          backgroundColor: TossColors.error,
+      showDialog(
+        context: context,
+        barrierDismissible: true,
+        builder: (context) => TossDialog.error(
+          title: 'Role Required',
+          message: 'Please select a role before saving',
+          primaryButtonText: 'OK',
+          onPrimaryPressed: () => Navigator.of(context).pop(),
         ),
       );
       return;
@@ -314,32 +319,37 @@ class _RoleManagementModalState extends ConsumerState<RoleManagementModal> {
       
       // Close modal with success result
       Navigator.of(context, rootNavigator: false).pop(true);
-      
-      
-      // Show success message on parent context
-      Future.delayed(Duration(milliseconds: 500), () {
+
+      // Show success dialog on parent context
+      Future.delayed(Duration(milliseconds: 500), () async {
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Role updated successfully'),
-              backgroundColor: TossColors.success,
-              duration: Duration(seconds: 2),
+          await showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (context) => TossDialog.success(
+              title: 'Role Updated!',
+              message: 'Employee role has been updated successfully',
+              primaryButtonText: 'Done',
+              onPrimaryPressed: () => Navigator.of(context).pop(),
             ),
           );
         }
       });
     } catch (e) {
-      
+
       // Close loading dialog
       Navigator.of(context, rootNavigator: false).pop();
-      
-      // Show error message
+
+      // Show error dialog
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to update role: ${e.toString()}'),
-            backgroundColor: TossColors.error,
-            duration: Duration(seconds: 3),
+        await showDialog(
+          context: context,
+          barrierDismissible: true,
+          builder: (context) => TossDialog.error(
+            title: 'Failed to Update Role',
+            message: 'Could not update employee role: ${e.toString()}',
+            primaryButtonText: 'OK',
+            onPrimaryPressed: () => Navigator.of(context).pop(),
           ),
         );
       }

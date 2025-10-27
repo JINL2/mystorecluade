@@ -10,6 +10,7 @@ import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_app_bar_1.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_scaffold.dart';
+import 'package:myfinance_improved/shared/widgets/common/toss_success_error_dialog.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_white_card.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_enhanced_text_field.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -626,28 +627,32 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
 
       if (mounted) {
         HapticFeedback.lightImpact();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                const Icon(Icons.check_circle, color: TossColors.white, size: 20),
-                SizedBox(width: TossSpacing.space2),
-                const Text('Profile updated successfully'),
-              ],
-            ),
-            backgroundColor: TossColors.success,
-            behavior: SnackBarBehavior.floating,
-            duration: const Duration(seconds: 2),
+
+        // Show success dialog
+        await showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => TossDialog.success(
+            title: 'Profile Updated!',
+            message: 'Your profile has been updated successfully',
+            primaryButtonText: 'Done',
+            onPrimaryPressed: () => Navigator.of(context).pop(),
           ),
         );
+
         context.safePop();
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error updating profile: $e'),
-            backgroundColor: TossColors.error,
+        // Show error dialog
+        await showDialog(
+          context: context,
+          barrierDismissible: true,
+          builder: (context) => TossDialog.error(
+            title: 'Update Failed',
+            message: 'Failed to update profile: $e',
+            primaryButtonText: 'OK',
+            onPrimaryPressed: () => Navigator.of(context).pop(),
           ),
         );
       }

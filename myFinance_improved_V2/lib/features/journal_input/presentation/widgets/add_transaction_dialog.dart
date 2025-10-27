@@ -9,6 +9,7 @@ import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import '../../../../shared/widgets/common/toss_loading_view.dart';
+import '../../../../shared/widgets/common/toss_success_error_dialog.dart';
 import '../../../../shared/widgets/toss/keyboard/toss_numberpad_modal.dart';
 import '../../../../shared/widgets/toss/toss_dropdown.dart';
 import '../../../../shared/widgets/toss/toss_enhanced_text_field.dart';
@@ -397,25 +398,33 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
     // Remove commas before parsing
     final amountText = _amountController.text.replaceAll(',', '');
     final amount = double.tryParse(amountText) ?? 0;
-    
+
     if (_selectedAccountId == null || amount <= 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Please select an account and enter a valid amount'),
-          backgroundColor: TossColors.error,
+      showDialog(
+        context: context,
+        barrierDismissible: true,
+        builder: (context) => TossDialog.error(
+          title: 'Invalid Input',
+          message: 'Please select an account and enter a valid amount',
+          primaryButtonText: 'OK',
+          onPrimaryPressed: () => Navigator.of(context).pop(),
         ),
       );
       return;
     }
-    
+
     // Check if mapping is required but not found
-    if (_isInternal && 
+    if (_isInternal &&
         (_selectedCategoryTag == 'payable' || _selectedCategoryTag == 'receivable') &&
         _accountMapping == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Account mapping is required for this internal transaction'),
-          backgroundColor: TossColors.error,
+      showDialog(
+        context: context,
+        barrierDismissible: true,
+        builder: (context) => TossDialog.error(
+          title: 'Mapping Required',
+          message: 'Account mapping is required for this internal transaction',
+          primaryButtonText: 'OK',
+          onPrimaryPressed: () => Navigator.of(context).pop(),
         ),
       );
       return;

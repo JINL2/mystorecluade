@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:myfinance_improved/features/homepage/presentation/providers/company_providers.dart';
-import 'package:myfinance_improved/features/homepage/presentation/providers/company_state.dart';
+import 'package:myfinance_improved/features/homepage/presentation/providers/states/company_state.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
@@ -134,83 +134,90 @@ class _CreateCompanySheetState extends ConsumerState<CreateCompanySheet> {
     ref.listen<CompanyState>(companyNotifierProvider, (previous, next) {
       print('🟣 [CreateCompanySheet] State changed: ${next.runtimeType}');
 
-      if (next is CompanyLoading) {
-        print('🟣 [CreateCompanySheet] Showing loading SnackBar');
-        // Show loading snackbar
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Row(
-              children: [
-                SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+      next.when(
+        initial: () {
+          // Do nothing
+        },
+        loading: () {
+          print('🟣 [CreateCompanySheet] Showing loading SnackBar');
+          // Show loading snackbar
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Row(
+                children: [
+                  SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                    ),
                   ),
-                ),
-                SizedBox(width: 12),
-                Text('Creating company...'),
-              ],
+                  SizedBox(width: 12),
+                  Text('Creating company...'),
+                ],
+              ),
+              backgroundColor: Theme.of(context).colorScheme.primary,
+              duration: const Duration(seconds: 30),
             ),
-            backgroundColor: Theme.of(context).colorScheme.primary,
-            duration: const Duration(seconds: 30),
-          ),
-        );
-      } else if (next is CompanyError) {
-        print('🟣 [CreateCompanySheet] Showing error SnackBar: ${next.message}');
-        // Hide loading, show error
-        ScaffoldMessenger.of(context).hideCurrentSnackBar();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                const Icon(Icons.error_outline, color: Colors.white),
-                const SizedBox(width: 12),
-                Expanded(child: Text(next.message)),
-              ],
+          );
+        },
+        error: (message, errorCode) {
+          print('🟣 [CreateCompanySheet] Showing error SnackBar: $message');
+          // Hide loading, show error
+          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                  const Icon(Icons.error_outline, color: Colors.white),
+                  const SizedBox(width: 12),
+                  Expanded(child: Text(message)),
+                ],
+              ),
+              backgroundColor: Colors.red,
+              duration: const Duration(seconds: 4),
+              action: SnackBarAction(
+                label: 'Retry',
+                textColor: Colors.white,
+                onPressed: _createCompany,
+              ),
             ),
-            backgroundColor: Colors.red,
-            duration: const Duration(seconds: 4),
-            action: SnackBarAction(
-              label: 'Retry',
-              textColor: Colors.white,
-              onPressed: _createCompany,
-            ),
-          ),
-        );
-      } else if (next is CompanyCreated) {
-        print('🟣 [CreateCompanySheet] Company created successfully: ${next.company.name}');
-        // Hide loading
-        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+          );
+        },
+        created: (company) {
+          print('🟣 [CreateCompanySheet] Company created successfully: ${company.name}');
+          // Hide loading
+          ScaffoldMessenger.of(context).hideCurrentSnackBar();
 
-        // Close bottom sheet and return company
-        Navigator.of(context).pop(next.company);
+          // Close bottom sheet and return company
+          Navigator.of(context).pop(company);
 
-        // Show success message
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                const Icon(Icons.check_circle_outline, color: Colors.white),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text('Company "${next.company.name}" created successfully!'),
-                ),
-              ],
+          // Show success message
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                  const Icon(Icons.check_circle_outline, color: Colors.white),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text('Company "${company.name}" created successfully!'),
+                  ),
+                ],
+              ),
+              backgroundColor: Colors.green,
+              duration: const Duration(seconds: 3),
+              action: company.code.isNotEmpty
+                  ? SnackBarAction(
+                      label: 'Share Code',
+                      textColor: Colors.white,
+                      onPressed: () => _copyToClipboard(company.code),
+                    )
+                  : null,
             ),
-            backgroundColor: Colors.green,
-            duration: const Duration(seconds: 3),
-            action: next.company.code.isNotEmpty
-                ? SnackBarAction(
-                    label: 'Share Code',
-                    textColor: Colors.white,
-                    onPressed: () => _copyToClipboard(next.company.code),
-                  )
-                : null,
-          ),
-        );
-      }
+          );
+        },
+      );
     });
 
     final state = ref.watch(companyNotifierProvider);
@@ -393,7 +400,10 @@ class _CreateCompanySheetState extends ConsumerState<CreateCompanySheet> {
                       width: double.infinity,
                       child: TossPrimaryButton(
                         text: 'Create Company',
-                        onPressed: state is! CompanyLoading ? _createCompany : null,
+                        onPressed: state.maybeWhen(
+                          loading: () => null,
+                          orElse: () => _createCompany,
+                        ),
                       ),
                     ),
 

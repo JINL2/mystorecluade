@@ -5,7 +5,7 @@ import 'package:myfinance_improved/features/homepage/data/repositories/join_repo
 import 'package:myfinance_improved/features/homepage/domain/repositories/join_repository.dart';
 import 'package:myfinance_improved/features/homepage/domain/usecases/join_by_code.dart';
 import 'package:myfinance_improved/features/homepage/presentation/providers/join_notifier.dart';
-import 'package:myfinance_improved/features/homepage/presentation/providers/join_state.dart';
+import 'package:myfinance_improved/features/homepage/presentation/providers/states/join_state.dart';
 
 // ============================================================================
 // Infrastructure Layer

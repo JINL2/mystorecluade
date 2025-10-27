@@ -11,6 +11,7 @@ import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import '../../../../shared/widgets/common/toss_app_bar_1.dart';
 import '../../../../shared/widgets/common/toss_scaffold.dart';
+import '../../../../shared/widgets/common/toss_success_error_dialog.dart';
 import '../../../../shared/widgets/common/toss_white_card.dart';
 import '../../../../shared/widgets/toss/toss_search_field.dart';
 import '../../domain/entities/sales_product.dart';
@@ -708,10 +709,14 @@ class _CreateInvoicePageState extends ConsumerState<CreateInvoicePage> {
     final state = ref.read(invoiceCreationProvider);
 
     if (state.selectedProducts.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please add at least one product'),
-          backgroundColor: TossColors.error,
+      showDialog(
+        context: context,
+        barrierDismissible: true,
+        builder: (context) => TossDialog.error(
+          title: 'No Products Selected',
+          message: 'Please add at least one product',
+          primaryButtonText: 'OK',
+          onPrimaryPressed: () => Navigator.of(context).pop(),
         ),
       );
       return;

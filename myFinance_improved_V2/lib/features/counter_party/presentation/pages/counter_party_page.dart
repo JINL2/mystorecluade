@@ -13,6 +13,7 @@ import 'package:myfinance_improved/shared/themes/toss_animations.dart';
 // Shared - Widgets
 import 'package:myfinance_improved/shared/widgets/common/toss_scaffold.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_app_bar_1.dart';
+import 'package:myfinance_improved/shared/widgets/common/toss_success_error_dialog.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_search_field.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_loading_view.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_selection_bottom_sheet.dart';
@@ -717,14 +718,14 @@ class _CounterPartyPageState extends ConsumerState<CounterPartyPage> {
                       if (counterParty.isInternal) {
                         context.safePush<void>('/debtAccountSettings/${counterParty.counterpartyId}/${Uri.encodeComponent(counterParty.name)}');
                       } else {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('Account settings are only available for internal companies'),
-                            backgroundColor: TossColors.warning,
-                            behavior: SnackBarBehavior.floating,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                            ),
+                        showDialog(
+                          context: context,
+                          barrierDismissible: true,
+                          builder: (context) => TossDialog.error(
+                            title: 'Not Available',
+                            message: 'Account settings are only available for internal companies',
+                            primaryButtonText: 'OK',
+                            onPrimaryPressed: () => Navigator.of(context).pop(),
                           ),
                         );
                       }
@@ -812,23 +813,31 @@ class _CounterPartyPageState extends ConsumerState<CounterPartyPage> {
     try {
       // Use the delete provider to soft delete the counter party
       await ref.read(deleteCounterPartyProvider(counterParty.counterpartyId).future);
-      
+
       // Show success message
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('${counterParty.name} deleted successfully'),
-            backgroundColor: TossColors.success,
+        await showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => TossDialog.success(
+            title: 'Counter Party Deleted!',
+            message: '${counterParty.name} has been deleted successfully',
+            primaryButtonText: 'Done',
+            onPrimaryPressed: () => Navigator.of(context).pop(),
           ),
         );
       }
     } catch (e) {
       // Show error message
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to delete: ${e.toString()}'),
-            backgroundColor: TossColors.error,
+        await showDialog(
+          context: context,
+          barrierDismissible: true,
+          builder: (context) => TossDialog.error(
+            title: 'Failed to Delete',
+            message: 'Could not delete counter party: ${e.toString()}',
+            primaryButtonText: 'OK',
+            onPrimaryPressed: () => Navigator.of(context).pop(),
           ),
         );
       }

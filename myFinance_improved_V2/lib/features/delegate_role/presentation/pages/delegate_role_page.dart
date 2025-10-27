@@ -16,6 +16,7 @@ import 'package:myfinance_improved/shared/widgets/common/toss_empty_view.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_error_view.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_loading_view.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_scaffold.dart';
+import 'package:myfinance_improved/shared/widgets/common/toss_success_error_dialog.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_list_tile.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_primary_button.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_search_field.dart';
@@ -431,29 +432,31 @@ class _DelegateRolePageState extends ConsumerState<DelegateRolePage> {
     try {
       ref.invalidate(allCompanyRolesProvider);
       ref.invalidate(activeDelegationsProvider);
-      
+
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('Roles refreshed'),
-            backgroundColor: TossColors.success,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(TossBorderRadius.sm),
-            ),
+        // Show success dialog
+        await showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => TossDialog.success(
+            title: 'Roles Refreshed!',
+            message: 'All roles have been successfully refreshed',
+            primaryButtonText: 'Done',
+            onPrimaryPressed: () => Navigator.of(context).pop(),
           ),
         );
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to refresh: ${e.toString()}'),
-            backgroundColor: TossColors.error,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(TossBorderRadius.sm),
-            ),
+        // Show error dialog
+        await showDialog(
+          context: context,
+          barrierDismissible: true,
+          builder: (context) => TossDialog.error(
+            title: 'Failed to Refresh',
+            message: 'Could not refresh roles: ${e.toString()}',
+            primaryButtonText: 'OK',
+            onPrimaryPressed: () => Navigator.of(context).pop(),
           ),
         );
       }
@@ -1021,10 +1024,14 @@ class _CreateRoleBottomSheetState extends ConsumerState<_CreateRoleBottomSheet> 
   void _addTag(String tag) {
     final validation = TagValidator.validateTag(tag);
     if (validation != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(validation),
-          backgroundColor: TossColors.error,
+      showDialog(
+        context: context,
+        barrierDismissible: true,
+        builder: (context) => TossDialog.error(
+          title: 'Invalid Tag',
+          message: validation,
+          primaryButtonText: 'OK',
+          onPrimaryPressed: () => Navigator.of(context).pop(),
         ),
       );
       return;
@@ -1037,20 +1044,28 @@ class _CreateRoleBottomSheetState extends ConsumerState<_CreateRoleBottomSheet> 
     );
 
     if (existingTag.isNotEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Tag "$tag" already added'),
-          backgroundColor: TossColors.warning,
+      showDialog(
+        context: context,
+        barrierDismissible: true,
+        builder: (context) => TossDialog.error(
+          title: 'Duplicate Tag',
+          message: 'Tag "$tag" has already been added',
+          primaryButtonText: 'OK',
+          onPrimaryPressed: () => Navigator.of(context).pop(),
         ),
       );
       return;
     }
 
     if (_selectedTags.length >= TagValidator.MAX_TAGS) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Maximum ${TagValidator.MAX_TAGS} tags allowed'),
-          backgroundColor: TossColors.warning,
+      showDialog(
+        context: context,
+        barrierDismissible: true,
+        builder: (context) => TossDialog.error(
+          title: 'Maximum Tags Reached',
+          message: 'You can only add up to ${TagValidator.MAX_TAGS} tags',
+          primaryButtonText: 'OK',
+          onPrimaryPressed: () => Navigator.of(context).pop(),
         ),
       );
       return;
@@ -1392,10 +1407,14 @@ class _CreateRoleBottomSheetState extends ConsumerState<_CreateRoleBottomSheet> 
     if (_currentStep == 0) {
       final roleName = _roleNameController.text.trim();
       if (roleName.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('Please enter a role name'),
-            backgroundColor: TossColors.error,
+        showDialog(
+          context: context,
+          barrierDismissible: true,
+          builder: (context) => TossDialog.error(
+            title: 'Role Name Required',
+            message: 'Please enter a role name to continue',
+            primaryButtonText: 'OK',
+            onPrimaryPressed: () => Navigator.of(context).pop(),
           ),
         );
         return;
@@ -1412,10 +1431,14 @@ class _CreateRoleBottomSheetState extends ConsumerState<_CreateRoleBottomSheet> 
   Future<void> _createRole() async {
     final roleName = _roleNameController.text.trim();
     if (roleName.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Please enter a role name'),
-          backgroundColor: TossColors.error,
+      showDialog(
+        context: context,
+        barrierDismissible: true,
+        builder: (context) => TossDialog.error(
+          title: 'Role Name Required',
+          message: 'Please enter a role name to create the role',
+          primaryButtonText: 'OK',
+          onPrimaryPressed: () => Navigator.of(context).pop(),
         ),
       );
       return;
@@ -1449,19 +1472,30 @@ class _CreateRoleBottomSheetState extends ConsumerState<_CreateRoleBottomSheet> 
 
       if (mounted) {
         Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Role "$roleName" created successfully'),
-            backgroundColor: TossColors.primary,
+
+        // Show success dialog
+        await showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => TossDialog.success(
+            title: 'Role Created Successfully!',
+            message: 'Role "$roleName" has been created',
+            primaryButtonText: 'Done',
+            onPrimaryPressed: () => Navigator.of(context).pop(),
           ),
         );
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to create role: $e'),
-            backgroundColor: TossColors.error,
+        // Show error dialog
+        await showDialog(
+          context: context,
+          barrierDismissible: true,
+          builder: (context) => TossDialog.error(
+            title: 'Failed to Create Role',
+            message: 'Could not create role: $e',
+            primaryButtonText: 'OK',
+            onPrimaryPressed: () => Navigator.of(context).pop(),
           ),
         );
       }
