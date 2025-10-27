@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 
 import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
+import '../../../../shared/themes/toss_icons.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import '../../domain/entities/denomination.dart';
@@ -20,6 +21,7 @@ class DenominationInput extends StatelessWidget {
   final TextEditingController controller;
   final String currencySymbol;
   final VoidCallback onChanged;
+  final FocusNode? focusNode;
 
   const DenominationInput({
     super.key,
@@ -27,6 +29,7 @@ class DenominationInput extends StatelessWidget {
     required this.controller,
     required this.currencySymbol,
     required this.onChanged,
+    this.focusNode,
   });
 
   @override
@@ -92,7 +95,7 @@ class DenominationInput extends StatelessWidget {
                       ),
                     ),
                     child: const Icon(
-                      Icons.remove,
+                      TossIcons.remove,
                       size: 12,
                       color: TossColors.gray600,
                     ),
@@ -107,12 +110,16 @@ class DenominationInput extends StatelessWidget {
                   height: 32,
                   child: TextField(
                     controller: controller,
+                    focusNode: focusNode,
                     keyboardType: TextInputType.number,
                     inputFormatters: [
                       FilteringTextInputFormatter.digitsOnly,
                       LengthLimitingTextInputFormatter(5), // Max 99999
                     ],
                     textAlign: TextAlign.center,
+                    // KEY FIX: scrollPadding accounts for keyboard toolbar height
+                    // Toolbar height (48) + keyboard height + comfortable padding (80)
+                    scrollPadding: const EdgeInsets.only(bottom: 130),
                     style: TossTextStyles.body.copyWith(
                       fontWeight: FontWeight.w600,
                       color: TossColors.gray900,
@@ -179,7 +186,7 @@ class DenominationInput extends StatelessWidget {
                       ),
                     ),
                     child: const Icon(
-                      Icons.add,
+                      TossIcons.add,
                       size: 12,
                       color: TossColors.gray600,
                     ),

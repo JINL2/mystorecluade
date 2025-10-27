@@ -15,7 +15,7 @@ import '../../../../data/services/enhanced_company_service.dart';
 import '../../../../data/services/enhanced_store_service.dart';
 import '../../../../data/services/company_service.dart';
 import '../providers/homepage_providers.dart';
-import '../../../widgets/common/toss_dialog.dart';
+import '../../../../shared/widgets/common/toss_success_error_dialog.dart';
 import '../../../../data/services/unified_join_service.dart';
 import 'package:myfinance_improved/core/themes/index.dart';
 import 'package:flutter/foundation.dart';

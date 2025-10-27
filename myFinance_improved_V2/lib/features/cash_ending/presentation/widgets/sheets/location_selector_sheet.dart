@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
+import '../../../../../shared/themes/toss_icons.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../domain/entities/location.dart';
@@ -127,7 +128,7 @@ class LocationSelectorSheet extends ConsumerWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(
-            Icons.location_off,
+            TossIcons.locationOff,
             size: 64,
             color: TossColors.gray400,
           ),
@@ -240,7 +241,7 @@ class LocationSelectorSheet extends ConsumerWidget {
             ),
             if (isSelected)
               const Icon(
-                Icons.check,
+                TossIcons.check,
                 size: 20,
                 color: TossColors.primary,
               ),
@@ -266,13 +267,13 @@ class LocationSelectorSheet extends ConsumerWidget {
   IconData _getLocationIcon() {
     switch (locationType) {
       case 'cash':
-        return Icons.attach_money;
+        return TossIcons.wallet;
       case 'bank':
-        return Icons.account_balance;
+        return TossIcons.bank;
       case 'vault':
-        return Icons.lock;
+        return TossIcons.lock;
       default:
-        return Icons.location_on;
+        return TossIcons.location;
     }
   }
 }

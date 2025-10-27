@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
+import '../../../../../shared/themes/toss_icons.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../domain/entities/store.dart';
@@ -175,7 +176,7 @@ class StoreSelectorSheet extends ConsumerWidget {
                 borderRadius: BorderRadius.circular(TossBorderRadius.md),
               ),
               child: Icon(
-                Icons.business,
+                TossIcons.business,
                 size: 20,
                 color: isSelected ? TossColors.primary : TossColors.gray500,
               ),
@@ -204,7 +205,7 @@ class StoreSelectorSheet extends ConsumerWidget {
             ),
             if (isSelected)
               const Icon(
-                Icons.check,
+                TossIcons.check,
                 size: 20,
                 color: TossColors.primary,
               ),
@@ -270,7 +271,7 @@ class StoreSelectorSheet extends ConsumerWidget {
                 borderRadius: BorderRadius.circular(TossBorderRadius.md),
               ),
               child: Icon(
-                Icons.store,
+                TossIcons.store,
                 size: 20,
                 color: isSelected ? TossColors.primary : TossColors.gray500,
               ),
@@ -300,7 +301,7 @@ class StoreSelectorSheet extends ConsumerWidget {
             ),
             if (isSelected)
               const Icon(
-                Icons.check,
+                TossIcons.check,
                 size: 20,
                 color: TossColors.primary,
               ),

@@ -14,12 +14,38 @@ import '../../features/auth/presentation/pages/join_business_page.dart';
 import '../../features/auth/presentation/pages/login_page.dart';
 import '../../features/auth/presentation/pages/signup_page.dart';
 import '../../features/homepage/presentation/pages/homepage.dart';
-import '../../features/transaction_template_refectore/presentation/pages/transaction_template_page.dart';
+import '../../features/transaction_template/presentation/pages/transaction_template_page.dart';
 import '../../features/cash_ending/presentation/pages/cash_ending_page.dart';
+import '../../features/cash_location/presentation/pages/cash_location_page.dart';
+import '../../features/attendance/presentation/pages/attendance_main_page.dart';
+import '../../features/attendance/presentation/pages/qr_scanner_page.dart';
+import '../../features/cash_location/presentation/pages/account_detail_page.dart';
+import '../../features/time_table_manage/presentation/pages/time_table_manage_page.dart';
+import '../../features/register_denomination/presentation/pages/register_denomination_page.dart';
+import '../../features/employee_setting/presentation/pages/employee_setting_page.dart';
+import '../../features/my_page/presentation/pages/my_page.dart';
+import '../../features/my_page/presentation/pages/edit_profile_page.dart';
+import '../../features/my_page/presentation/pages/notifications_settings_page.dart';
+import '../../features/my_page/presentation/pages/privacy_security_page.dart';
+import '../../features/journal_input/presentation/pages/journal_input_page.dart';
+import '../../features/transaction_history/presentation/pages/transaction_history_page.dart';
+import '../../features/store_shift/presentation/pages/store_shift_page.dart';
+import '../../features/delegate_role/presentation/pages/delegate_role_page.dart';
+import '../../features/balance_sheet/presentation/pages/balance_sheet_page.dart';
+import '../../features/counter_party/presentation/pages/counter_party_page.dart';
+import '../../features/add_fix_asset/presentation/pages/add_fix_asset_page.dart';
+import '../../features/debt_control/presentation/pages/smart_debt_control_page.dart';
+import '../../features/sale_product/presentation/pages/sale_product_page.dart';
+import '../../features/inventory_management/presentation/pages/inventory_management_page.dart';
+import '../../features/inventory_management/presentation/pages/add_product_page.dart';
+import '../../features/inventory_management/presentation/pages/product_detail_page.dart';
+import '../../features/inventory_management/presentation/pages/edit_product_page.dart';
+import '../../features/sales_invoice/presentation/pages/sales_invoice_page.dart';
 import '../../shared/themes/toss_colors.dart';
 import '../../shared/themes/toss_spacing.dart';
 import '../../shared/themes/toss_text_styles.dart';
 import '../../shared/widgets/common/toss_scaffold.dart';
+import '../../shared/widgets/common/toss_app_bar_1.dart';
 
 // Router notifier to listen to auth and app state changes
 class RouterNotifier extends ChangeNotifier {
@@ -162,11 +188,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
 
         // 🔍 DEBUG: Current path
         debugPrint('┌─────────────────────────────────────────────────────');
-        debugPrint('│ [Router Debug] Current path: $currentPath');
 
         // Skip redirects during active navigation
         if (routerNotifier.isNavigationLocked) {
-          debugPrint('│ [Router Debug] Navigation locked, skipping redirect');
           debugPrint('└─────────────────────────────────────────────────────');
           return null;
         }
@@ -174,15 +198,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         // Helper function for safe redirect with loop detection
         String? safeRedirect(String targetPath, String reason) {
           if (routerNotifier._checkForRedirectLoop(targetPath)) {
-            debugPrint('│ [Router Debug] ⚠️ Redirect loop detected!');
-            debugPrint('│ [Router Debug] Returning to /');
             debugPrint('└─────────────────────────────────────────────────────');
             routerNotifier._clearRedirectHistory();
             return '/';
           }
 
-          debugPrint('│ [Router Debug] ➡️ REDIRECTING: $currentPath -> $targetPath');
-          debugPrint('│ [Router Debug] Reason: $reason');
           debugPrint('└─────────────────────────────────────────────────────');
           routerNotifier._trackRedirect(targetPath);
           return targetPath;
@@ -190,32 +210,22 @@ final appRouterProvider = Provider<GoRouter>((ref) {
 
         // Check authentication
         final authState = ref.read(authStateProvider);
-        debugPrint('│ [Router Debug] Auth State: ${authState.runtimeType}');
 
         authState.when(
           data: (user) {
-            debugPrint('│ [Router Debug] Auth State = AsyncData');
-            debugPrint('│ [Router Debug] User: ${user != null ? user.id : 'null'}');
           },
           loading: () {
-            debugPrint('│ [Router Debug] Auth State = AsyncLoading');
           },
           error: (error, stack) {
-            debugPrint('│ [Router Debug] Auth State = AsyncError: $error');
           },
         );
 
         final isAuth = ref.read(isAuthenticatedProvider);
-        debugPrint('│ [Router Debug] isAuthenticated: $isAuth');
 
         final appState = ref.read(appStateProvider);
-        debugPrint('│ [Router Debug] App State: ${appState.runtimeType}');
-        debugPrint('│ [Router Debug] App State user: ${appState.user}');
 
         final isOnboardingRoute = currentPath.startsWith('/onboarding');
         final isAuthRoute = currentPath.startsWith('/auth');
-        debugPrint('│ [Router Debug] Is onboarding route: $isOnboardingRoute');
-        debugPrint('│ [Router Debug] Is auth route: $isAuthRoute');
 
         // Get company count from app state
         final userData = appState.user;
@@ -227,61 +237,46 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           companyCount = (userData['companies'] as List).length;
         }
 
-        debugPrint('│ [Router Debug] Has user data: $hasUserData');
-        debugPrint('│ [Router Debug] Company count: $companyCount');
 
         // Redirect to login if not authenticated AND trying to access protected pages
         if (!isAuth && !isAuthRoute && !isOnboardingRoute) {
-          debugPrint('│ [Router Debug] ❌ User NOT authenticated, redirecting to login');
           return safeRedirect('/auth/login', 'Not authenticated');
         }
 
         // Allow unauthenticated users to access auth pages (login, signup)
         if (!isAuth && isAuthRoute) {
-          debugPrint('│ [Router Debug] ✅ Unauthenticated user on auth page, allowing access');
           debugPrint('└─────────────────────────────────────────────────────');
           return null;
         }
 
-        debugPrint('│ [Router Debug] ✅ User IS authenticated');
 
         // ✅ Redirect authenticated users away from auth pages
         if (isAuth && isAuthRoute) {
-          debugPrint('│ [Router Debug] 🔄 Authenticated user on auth page, redirecting...');
 
           // If user has companies, go straight to home
           if (hasUserData && companyCount > 0) {
-            debugPrint('│ [Router Debug] 📊 User has companies, going to home');
             return safeRedirect('/', 'Authenticated, has companies');
           }
 
           // ⚠️ CRITICAL FIX: Check if AppState data is still loading
           // If AppState is empty, stay on auth page and wait for data to load
           if (!hasUserData) {
-            debugPrint('│ [Router Debug] ⏳ AppState empty, staying on auth page (data loading)');
             debugPrint('└─────────────────────────────────────────────────────');
             return null;  // Stay on current page, wait for data to load
           }
 
           // If user has NO companies (data loaded but empty), go to onboarding
-          debugPrint('│ [Router Debug] 📊 User has no companies, going to onboarding');
           return safeRedirect('/onboarding/choose-role', 'Authenticated, needs onboarding');
         }
 
         // Redirect to onboarding if authenticated but no companies (from homepage)
         if (isAuth && !isOnboardingRoute && hasUserData && companyCount == 0) {
-          debugPrint('│ [Router Debug] ⚠️ No companies found, redirecting to onboarding');
-          debugPrint('│ [Router Debug] 🔍 hasUserData: $hasUserData, companyCount: $companyCount');
-          debugPrint('│ [Router Debug] 🔍 userData.companies: ${userData['companies']}');
           return safeRedirect('/onboarding/choose-role', 'No companies');
         }
 
-        debugPrint('│ [Router Debug] ✅ No redirect needed, continuing to: $currentPath');
         debugPrint('└─────────────────────────────────────────────────────');
         return null;
       } catch (error, stackTrace) {
-        debugPrint('│ [Router Debug] ❌ ERROR: $error');
-        debugPrint('│ [Router Debug] Stack trace: $stackTrace');
         debugPrint('└─────────────────────────────────────────────────────');
         return '/';
       }
@@ -345,18 +340,20 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/',
         builder: (context, state) => Homepage(), // ✅ Removed const to allow rebuilds
-      ),
-
-      // Test Route (독립 route) - TransactionTemplatePage 연결
-      GoRoute(
-        path: '/test',
-        name: 'test',
-        builder: (context, state) {
-          print('🟢 [AppRouter] /test route builder 호출됨!');
-          print('🟢 [AppRouter] state.uri: ${state.uri}');
-          print('🟢 [AppRouter] state.matchedLocation: ${state.matchedLocation}');
-          return const TransactionTemplatePage();
-        },
+        routes: [
+          // Time Table Management (nested route)
+          GoRoute(
+            path: 'timetableManage',
+            name: 'timetableManage',
+            builder: (context, state) => const TimeTableManagePage(),
+          ),
+          // Transaction Template (nested route)
+          GoRoute(
+            path: 'transactionTemplate',
+            name: 'transactionTemplate',
+            builder: (context, state) => const TransactionTemplatePage(),
+          ),
+        ],
       ),
 
       // Auth Routes
@@ -406,6 +403,201 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '/cashEnding',
         name: 'cashEnding',
         builder: (context, state) => const CashEndingPage(),
+      ),
+
+      // Cash Location Route
+      GoRoute(
+        path: '/cashLocation',
+        name: 'cashLocation',
+        builder: (context, state) => const CashLocationPage(),
+        routes: [
+          GoRoute(
+            path: 'account/:accountName',
+            name: 'accountDetail',
+            builder: (context, state) {
+              final accountName = state.pathParameters['accountName'] ?? '';
+              final extra = state.extra as Map<String, dynamic>?;
+
+              return AccountDetailPage(
+                locationId: extra?['locationId'] as String?,
+                accountName: accountName,
+                locationType: extra?['locationType'] as String? ?? 'cash',
+                balance: extra?['balance'] as int? ?? 0,
+                errors: extra?['errors'] as int? ?? 0,
+                totalJournal: extra?['totalJournal'] as int?,
+                totalReal: extra?['totalReal'] as int?,
+                cashDifference: extra?['cashDifference'] as int?,
+                currencySymbol: extra?['currencySymbol'] as String?,
+              );
+            },
+          ),
+        ],
+      ),
+
+      // Register Denomination Route
+      GoRoute(
+        path: '/registerDenomination',
+        name: 'registerDenomination',
+        builder: (context, state) => const RegisterDenominationPage(),
+      ),
+
+      // Journal Input Route
+      GoRoute(
+        path: '/journal-input',
+        name: 'journal-input',
+        builder: (context, state) => const JournalInputPage(),
+      ),
+
+      // Journal Input Route (legacy alias for database compatibility)
+      GoRoute(
+        path: '/journalInput',
+        name: 'journalInput',
+        builder: (context, state) => const JournalInputPage(),
+      ),
+
+      // Employee Setting Route
+      GoRoute(
+        path: '/employeeSetting',
+        name: 'employeeSetting',
+        builder: (context, state) => const EmployeeSettingPageV2(),
+      ),
+
+      // Transaction History Route
+      GoRoute(
+        path: '/transactionHistory',
+        name: 'transactionHistory',
+        builder: (context, state) {
+          final counterpartyId = state.uri.queryParameters['counterpartyId'];
+          final counterpartyName = state.uri.queryParameters['counterpartyName'];
+          final scope = state.uri.queryParameters['scope'];
+          return TransactionHistoryPage(
+            counterpartyId: counterpartyId,
+            counterpartyName: counterpartyName,
+            scope: scope,
+          );
+        },
+      ),
+
+      // My Page Routes
+      GoRoute(
+        path: '/my-page',
+        name: 'my-page',
+        builder: (context, state) => const MyPage(),
+      ),
+      GoRoute(
+        path: '/edit-profile',
+        name: 'edit-profile',
+        builder: (context, state) => const EditProfilePage(),
+      ),
+      GoRoute(
+        path: '/notifications-settings',
+        name: 'notifications-settings',
+        builder: (context, state) => const NotificationsSettingsPage(),
+      ),
+      GoRoute(
+        path: '/privacy-security',
+        name: 'privacy-security',
+        builder: (context, state) => const PrivacySecurityPage(),
+      ),
+
+      // Store Shift Route
+      GoRoute(
+        path: '/storeShiftSetting',
+        name: 'storeShiftSetting',
+        builder: (context, state) => const StoreShiftPage(),
+      ),
+
+      // Delegate Role Route
+      GoRoute(
+        path: '/delegateRolePage',
+        name: 'delegateRolePage',
+        builder: (context, state) => const DelegateRolePage(),
+      ),
+
+      // Balance Sheet Route
+      GoRoute(
+        path: '/balanceSheet',
+        name: 'balanceSheet',
+        builder: (context, state) => const BalanceSheetPage(),
+      ),
+
+      // Counter Party Route
+      GoRoute(
+        path: '/registerCounterparty',
+        name: 'registerCounterparty',
+        builder: (context, state) => const CounterPartyPage(),
+      ),
+
+      // Add Fix Asset Route
+      GoRoute(
+        path: '/addFixAsset',
+        name: 'addFixAsset',
+        builder: (context, state) => const AddFixAssetPage(),
+      ),
+
+      // Debt Control Route
+      GoRoute(
+        path: '/debtControl',
+        name: 'debtControl',
+        builder: (context, state) => const SmartDebtControlPage(),
+      ),
+
+      // Inventory Management Route
+      GoRoute(
+        path: '/inventoryManagement',
+        name: 'inventoryManagement',
+        builder: (context, state) => const InventoryManagementPage(),
+        routes: [
+          GoRoute(
+            path: 'addProduct',
+            name: 'addProduct',
+            builder: (context, state) => const AddProductPage(),
+          ),
+          GoRoute(
+            path: 'product/:productId',
+            name: 'productDetail',
+            builder: (context, state) {
+              final productId = state.pathParameters['productId']!;
+              return ProductDetailPage(productId: productId);
+            },
+          ),
+          GoRoute(
+            path: 'editProduct/:productId',
+            name: 'editProduct',
+            builder: (context, state) {
+              final productId = state.pathParameters['productId']!;
+              return EditProductPage(productId: productId);
+            },
+          ),
+        ],
+      ),
+
+      // Attendance Routes
+      GoRoute(
+        path: '/attendance',
+        name: 'attendance',
+        builder: (context, state) => const AttendanceMainPage(),
+        routes: [
+          GoRoute(
+            path: 'qr-scanner',
+            name: 'qr-scanner',
+            builder: (context, state) => const QRScannerPage(),
+          ),
+        ],
+      ),
+
+      // Sale Product Route
+      GoRoute(
+        path: '/saleProduct',
+        name: 'saleProduct',
+        builder: (context, state) => const SaleProductPage(),
+      ),
+
+      // Sales Invoice Route
+      GoRoute(
+        path: '/salesInvoice',
+        name: 'salesInvoice',
+        builder: (context, state) => const SalesInvoicePage(),
       ),
     ],
   );

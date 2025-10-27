@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:myfinance_improved/features/homepage/data/repositories/repository_providers.dart';
 import 'package:myfinance_improved/features/homepage/domain/entities/category_with_features.dart';
@@ -10,13 +9,21 @@ import 'package:myfinance_improved/app/providers/app_state_provider.dart';
 
 // === Revenue Provider ===
 
+/// Revenue view tab (Company or Store)
+enum RevenueViewTab { company, store }
+
+/// Provider for selected revenue view tab
+final selectedRevenueTabProvider = StateProvider<RevenueViewTab>((ref) {
+  return RevenueViewTab.company;
+});
+
 /// Provider for fetching revenue data
 ///
-/// Depends on app state for company/store selection.
+/// Depends on app state for company/store selection AND selected tab.
+/// - Company tab: Returns revenue for the entire company
+/// - Store tab: Returns revenue for the selected store only
 final revenueProvider = FutureProvider.family<Revenue, RevenuePeriod>(
   (ref, period) async {
-    debugPrint('🔵 [revenueProvider] Provider called with period: ${period.name}');
-
     // Check authentication first
     final authState = ref.watch(authStateProvider);
     final isAuthenticated = authState.when(
@@ -26,37 +33,36 @@ final revenueProvider = FutureProvider.family<Revenue, RevenuePeriod>(
     );
 
     if (!isAuthenticated) {
-      debugPrint('🔵 [revenueProvider] User not authenticated, throwing exception');
       throw Exception('User not authenticated');
     }
 
     final appState = ref.watch(appStateProvider);
     final repository = ref.watch(homepageRepositoryProvider);
 
+    // Watch selected tab to determine which revenue to fetch
+    final selectedTab = ref.watch(selectedRevenueTabProvider);
+
     // Get selected company/store from app state
     final companyId = appState.companyChoosen;
     final storeId = appState.storeChoosen;
 
-    debugPrint('🔵 [revenueProvider] companyId: $companyId, storeId: $storeId');
-
     if (companyId.isEmpty) {
-      debugPrint('🔵 [revenueProvider] ERROR: No company selected');
       throw Exception('No company selected');
     }
 
-    try {
-      final revenue = await repository.getRevenue(
-        companyId: companyId,
-        storeId: storeId.isNotEmpty ? storeId : null,
-        period: period,
-      );
-      debugPrint('🔵 [revenueProvider] Successfully fetched revenue: ${revenue.amount}');
-      return revenue;
-    } catch (e, stack) {
-      debugPrint('🔵 [revenueProvider] ERROR: $e');
-      debugPrint('🔵 [revenueProvider] Stack: $stack');
-      rethrow;
-    }
+    // Determine storeId based on selected tab:
+    // - Company tab: pass null to get company-wide revenue
+    // - Store tab: pass storeId to get store-specific revenue
+    final effectiveStoreId = (selectedTab == RevenueViewTab.store && storeId.isNotEmpty)
+        ? storeId
+        : null;
+
+    final revenue = await repository.getRevenue(
+      companyId: companyId,
+      storeId: effectiveStoreId,
+      period: period,
+    );
+    return revenue;
   },
 );
 
@@ -67,15 +73,11 @@ final revenueProvider = FutureProvider.family<Revenue, RevenuePeriod>(
 /// Caches data in AppState to avoid frequent API calls.
 final categoriesWithFeaturesProvider =
     FutureProvider<List<CategoryWithFeatures>>((ref) async {
-  debugPrint('🔵 [categoriesWithFeaturesProvider] Provider called');
-
   final appState = ref.watch(appStateProvider);
   final appStateNotifier = ref.read(appStateProvider.notifier);
 
   // Check if we have cached data in AppState
   if (appState.categoryFeatures.isNotEmpty) {
-    debugPrint('🔵 [categoriesWithFeaturesProvider] Using cached data from AppState (${appState.categoryFeatures.length} categories)');
-
     // Convert cached data back to domain entities
     // AppState stores dynamic data, so we need to reconstruct entities
     try {
@@ -84,41 +86,24 @@ final categoriesWithFeaturesProvider =
 
       // Only update if data has changed
       if (freshCategories.length != appState.categoryFeatures.length) {
-        debugPrint('🔵 [categoriesWithFeaturesProvider] Cache outdated, updating AppState');
         appStateNotifier.updateCategoryFeatures(_convertCategoriesToDynamic(freshCategories));
       }
 
       return freshCategories;
     } catch (e) {
-      debugPrint('🔵 [categoriesWithFeaturesProvider] Error refreshing, using cache');
       // On error, return empty list if cache is empty
       return [];
     }
   }
 
   // No cache, fetch fresh data
-  try {
-    final repository = ref.watch(homepageRepositoryProvider);
-    debugPrint('🔵 [categoriesWithFeaturesProvider] Fetching from repository...');
+  final repository = ref.watch(homepageRepositoryProvider);
+  final categories = await repository.getCategoriesWithFeatures();
 
-    final categories = await repository.getCategoriesWithFeatures();
-    debugPrint('🔵 [categoriesWithFeaturesProvider] Successfully fetched ${categories.length} categories');
+  // Save to AppState for caching
+  appStateNotifier.updateCategoryFeatures(_convertCategoriesToDynamic(categories));
 
-    for (var i = 0; i < categories.length; i++) {
-      final category = categories[i];
-      debugPrint('🔵 [categoriesWithFeaturesProvider]   Category $i: ${category.categoryName} (${category.features.length} features)');
-    }
-
-    // Save to AppState for caching
-    appStateNotifier.updateCategoryFeatures(_convertCategoriesToDynamic(categories));
-    debugPrint('🔵 [categoriesWithFeaturesProvider] Saved to AppState cache');
-
-    return categories;
-  } catch (e, stack) {
-    debugPrint('🔵 [categoriesWithFeaturesProvider] ERROR: $e');
-    debugPrint('🔵 [categoriesWithFeaturesProvider] Stack: $stack');
-    rethrow;
-  }
+  return categories;
 });
 
 /// Helper: Convert categories to dynamic for AppState storage
@@ -143,8 +128,6 @@ List<dynamic> _convertCategoriesToDynamic(List<CategoryWithFeatures> categories)
 ///
 /// Depends on app state for user and company selection.
 final quickAccessFeaturesProvider = FutureProvider<List<TopFeature>>((ref) async {
-  debugPrint('🔵 [quickAccessFeaturesProvider] Provider called');
-
   // Wait for authentication state first
   final authState = ref.watch(authStateProvider);
   final isAuthenticated = authState.when(
@@ -154,7 +137,6 @@ final quickAccessFeaturesProvider = FutureProvider<List<TopFeature>>((ref) async
   );
 
   if (!isAuthenticated) {
-    debugPrint('🔵 [quickAccessFeaturesProvider] User not authenticated, returning empty list');
     return [];
   }
 
@@ -162,7 +144,6 @@ final quickAccessFeaturesProvider = FutureProvider<List<TopFeature>>((ref) async
   final userCompanies = await ref.watch(userCompaniesProvider.future);
 
   if (userCompanies == null) {
-    debugPrint('🔵 [quickAccessFeaturesProvider] No user companies data, returning empty list');
     return [];
   }
 
@@ -173,30 +154,15 @@ final quickAccessFeaturesProvider = FutureProvider<List<TopFeature>>((ref) async
   final userId = appState.userId;
   final companyId = appState.companyChoosen;
 
-  debugPrint('🔵 [quickAccessFeaturesProvider] userId: $userId, companyId: $companyId');
-
-  if (userId.isEmpty) {
-    debugPrint('🔵 [quickAccessFeaturesProvider] ERROR: User not logged in, returning empty list');
+  if (userId.isEmpty || companyId.isEmpty) {
     return [];
   }
 
-  if (companyId.isEmpty) {
-    debugPrint('🔵 [quickAccessFeaturesProvider] No company selected, returning empty list');
-    return [];
-  }
-
-  try {
-    final features = await repository.getQuickAccessFeatures(
-      userId: userId,
-      companyId: companyId,
-    );
-    debugPrint('🔵 [quickAccessFeaturesProvider] Successfully fetched ${features.length} features');
-    return features;
-  } catch (e, stack) {
-    debugPrint('🔵 [quickAccessFeaturesProvider] ERROR: $e');
-    debugPrint('🔵 [quickAccessFeaturesProvider] Stack: $stack');
-    rethrow;
-  }
+  final features = await repository.getQuickAccessFeatures(
+    userId: userId,
+    companyId: companyId,
+  );
+  return features;
 });
 
 // === User Companies Provider ===
@@ -205,8 +171,6 @@ final quickAccessFeaturesProvider = FutureProvider<List<TopFeature>>((ref) async
 ///
 /// Caches data in AppState and auto-selects company/store
 final userCompaniesProvider = FutureProvider<Map<String, dynamic>?>((ref) async {
-  debugPrint('🔵 [userCompaniesProvider] Provider called');
-
   final authState = ref.watch(authStateProvider);
   final appStateNotifier = ref.read(appStateProvider.notifier);
   final appState = ref.read(appStateProvider);
@@ -219,102 +183,119 @@ final userCompaniesProvider = FutureProvider<Map<String, dynamic>?>((ref) async 
   );
 
   if (user == null) {
-    debugPrint('🔵 [userCompaniesProvider] No user authenticated');
     return null;
   }
-
-  debugPrint('🔵 [userCompaniesProvider] User authenticated: ${user.id}');
 
   // Fetch user companies data (either from cache or repository)
   Map<String, dynamic> userData;
   List<dynamic> companiesData;
 
   if (appState.user.isNotEmpty && appState.user['user_id'] == user.id) {
-    debugPrint('🔵 [userCompaniesProvider] Using cached user data from AppState');
     userData = appState.user;
     companiesData = (userData['companies'] as List<dynamic>?) ?? [];
   } else {
     // Fetch fresh user companies data from repository
-    try {
-      final repository = ref.watch(homepageRepositoryProvider);
-      debugPrint('🔵 [userCompaniesProvider] Fetching user companies from repository...');
+    final repository = ref.watch(homepageRepositoryProvider);
+    final userCompanies = await repository.getUserCompanies(user.id);
 
-      final userCompanies = await repository.getUserCompanies(user.id);
-      debugPrint('🔵 [userCompaniesProvider] Successfully fetched user companies');
-
-      // Convert to Map for AppState
-      userData = {
-        'user_id': userCompanies.userId,
-        'user_first_name': userCompanies.userFirstName,
-        'user_last_name': userCompanies.userLastName,
-        'profile_image': userCompanies.profileImage,
-        'companies': userCompanies.companies.map((company) => {
-          'company_id': company.id,
-          'company_name': company.companyName,
-          'company_code': company.companyCode,  // ✅ Add company code
-          'stores': company.stores.map((store) => {
-            'store_id': store.id,
-            'store_name': store.storeName,
-            'store_code': store.storeCode,  // ✅ Add store code
-          }).toList(),
-          'role': {
-            'role_name': company.role.roleName,
-            'permissions': company.role.permissions,
-          },
+    // Convert to Map for AppState
+    userData = {
+      'user_id': userCompanies.userId,
+      'user_first_name': userCompanies.userFirstName,
+      'user_last_name': userCompanies.userLastName,
+      'profile_image': userCompanies.profileImage,
+      'companies': userCompanies.companies.map((company) => {
+        'company_id': company.id,
+        'company_name': company.companyName,
+        'company_code': company.companyCode,
+        'stores': company.stores.map((store) => {
+          'store_id': store.id,
+          'store_name': store.storeName,
+          'store_code': store.storeCode,
         }).toList(),
-      };
+        'role': {
+          'role_name': company.role.roleName,
+          'permissions': company.role.permissions,
+        },
+      }).toList(),
+    };
 
-      companiesData = userData['companies'] as List<dynamic>;
+    companiesData = userData['companies'] as List<dynamic>;
 
-      // Save to AppState
-      appStateNotifier.updateUser(
-        user: userData,
-        isAuthenticated: true,
-      );
-      debugPrint('🔵 [userCompaniesProvider] Saved user data to AppState');
-    } catch (e, stack) {
-      debugPrint('🔵 [userCompaniesProvider] ERROR: $e');
-      debugPrint('🔵 [userCompaniesProvider] Stack: $stack');
-      rethrow;
-    }
+    // Save to AppState
+    appStateNotifier.updateUser(
+      user: userData,
+      isAuthenticated: true,
+    );
   }
 
-  // Auto-select first company and store if not selected
-  debugPrint('🔵 [userCompaniesProvider] Total companies: ${companiesData.length}');
-  debugPrint('🔵 [userCompaniesProvider] Current companyChoosen: "${appState.companyChoosen}"');
-
+  // Auto-select company and store
   if (companiesData.isNotEmpty && appState.companyChoosen.isEmpty) {
-    final firstCompany = companiesData.first as Map<String, dynamic>;
-    final companyId = firstCompany['company_id'] as String;
-    final companyName = firstCompany['company_name'] as String;
-    final stores = (firstCompany['stores'] as List<dynamic>?) ?? [];
+    // Try to load last selected company/store from cache
+    final lastSelection = await appStateNotifier.loadLastSelection();
+    final lastCompanyId = lastSelection['companyId'];
+    final lastStoreId = lastSelection['storeId'];
 
-    debugPrint('🔵 [userCompaniesProvider] Auto-selecting company: $companyName (ID: $companyId)');
-    appStateNotifier.selectCompany(companyId, companyName: companyName);
+    String? selectedCompanyId;
+    String? selectedCompanyName;
+    List<dynamic>? selectedCompanyStores;
 
-    // Verify it was set
-    final updatedAppState = ref.read(appStateProvider);
-    debugPrint('🔵 [userCompaniesProvider] After selectCompany - companyChoosen: "${updatedAppState.companyChoosen}", companyName: "${updatedAppState.companyName}"');
+    // Check if last selected company still exists
+    if (lastCompanyId != null && lastCompanyId.isNotEmpty) {
+      try {
+        final cachedCompany = companiesData.firstWhere(
+          (company) => (company as Map<String, dynamic>)['company_id'] == lastCompanyId,
+        );
 
-    // Auto-select first store
-    if (stores.isNotEmpty) {
-      final firstStore = stores.first as Map<String, dynamic>;
-      final storeId = firstStore['store_id'] as String;
-      final storeName = firstStore['store_name'] as String;
-
-      debugPrint('🔵 [userCompaniesProvider] Auto-selecting store: $storeName (ID: $storeId)');
-      appStateNotifier.selectStore(storeId, storeName: storeName);
-
-      // Verify it was set
-      final finalAppState = ref.read(appStateProvider);
-      debugPrint('🔵 [userCompaniesProvider] After selectStore - storeChoosen: "${finalAppState.storeChoosen}", storeName: "${finalAppState.storeName}"');
-    } else {
-      debugPrint('⚠️ [userCompaniesProvider] No stores found for company: $companyName');
+        final companyMap = cachedCompany as Map<String, dynamic>;
+        selectedCompanyId = companyMap['company_id'] as String;
+        selectedCompanyName = companyMap['company_name'] as String;
+        selectedCompanyStores = (companyMap['stores'] as List<dynamic>?) ?? [];
+      } catch (e) {
+        // Cached company not found, will use first company
+      }
     }
-  } else if (companiesData.isEmpty) {
-    debugPrint('⚠️ [userCompaniesProvider] No companies available for user');
-  } else {
-    debugPrint('ℹ️ [userCompaniesProvider] Company already selected: ${appState.companyChoosen}');
+
+    // If no cached company found, use first company
+    if (selectedCompanyId == null) {
+      final firstCompany = companiesData.first as Map<String, dynamic>;
+      selectedCompanyId = firstCompany['company_id'] as String;
+      selectedCompanyName = firstCompany['company_name'] as String;
+      selectedCompanyStores = (firstCompany['stores'] as List<dynamic>?) ?? [];
+    }
+
+    // Select company
+    appStateNotifier.selectCompany(selectedCompanyId, companyName: selectedCompanyName);
+
+    // Auto-select store
+    if (selectedCompanyStores!.isNotEmpty) {
+      String? selectedStoreId;
+      String? selectedStoreName;
+
+      // Check if last selected store still exists in this company
+      if (lastStoreId != null && lastStoreId.isNotEmpty) {
+        try {
+          final cachedStore = selectedCompanyStores.firstWhere(
+            (store) => (store as Map<String, dynamic>)['store_id'] == lastStoreId,
+          );
+
+          final storeMap = cachedStore as Map<String, dynamic>;
+          selectedStoreId = storeMap['store_id'] as String;
+          selectedStoreName = storeMap['store_name'] as String;
+        } catch (e) {
+          // Cached store not found, will use first store
+        }
+      }
+
+      // If no cached store found, use first store
+      if (selectedStoreId == null) {
+        final firstStore = selectedCompanyStores.first as Map<String, dynamic>;
+        selectedStoreId = firstStore['store_id'] as String;
+        selectedStoreName = firstStore['store_name'] as String;
+      }
+
+      appStateNotifier.selectStore(selectedStoreId, storeName: selectedStoreName);
+    }
   }
 
   return userData;

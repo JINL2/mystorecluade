@@ -25,7 +25,7 @@ class CashEndingNotifier extends StateNotifier<CashEndingState> {
 
   /// Load stores for a company
   Future<void> loadStores(String companyId) async {
-    state = state.copyWith(isLoadingStores: true, clearError: true);
+    state = state.copyWith(isLoadingStores: true, errorMessage: null);
 
     try {
       final stores = await _locationRepository.getStores(companyId);
@@ -36,7 +36,7 @@ class CashEndingNotifier extends StateNotifier<CashEndingState> {
     } catch (e) {
       state = state.copyWith(
         isLoadingStores: false,
-        error: e is CashEndingException ? e.message : 'Failed to load stores',
+        errorMessage: e is CashEndingException ? e.message : 'Failed to load stores',
       );
     }
   }
@@ -49,11 +49,11 @@ class CashEndingNotifier extends StateNotifier<CashEndingState> {
   }) async {
     // Set appropriate loading state
     if (locationType == 'cash') {
-      state = state.copyWith(isLoadingCashLocations: true, clearError: true);
+      state = state.copyWith(isLoadingCashLocations: true, errorMessage: null);
     } else if (locationType == 'bank') {
-      state = state.copyWith(isLoadingBankLocations: true, clearError: true);
+      state = state.copyWith(isLoadingBankLocations: true, errorMessage: null);
     } else if (locationType == 'vault') {
-      state = state.copyWith(isLoadingVaultLocations: true, clearError: true);
+      state = state.copyWith(isLoadingVaultLocations: true, errorMessage: null);
     }
 
     try {
@@ -81,47 +81,41 @@ class CashEndingNotifier extends StateNotifier<CashEndingState> {
         );
       }
     } catch (e) {
-      final errorMessage =
+      final errorMsg =
           e is CashEndingException ? e.message : 'Failed to load $locationType locations';
 
       if (locationType == 'cash') {
-        state = state.copyWith(isLoadingCashLocations: false, error: errorMessage);
+        state = state.copyWith(isLoadingCashLocations: false, errorMessage: errorMsg);
       } else if (locationType == 'bank') {
-        state = state.copyWith(isLoadingBankLocations: false, error: errorMessage);
+        state = state.copyWith(isLoadingBankLocations: false, errorMessage: errorMsg);
       } else if (locationType == 'vault') {
-        state = state.copyWith(isLoadingVaultLocations: false, error: errorMessage);
+        state = state.copyWith(isLoadingVaultLocations: false, errorMessage: errorMsg);
       }
     }
   }
 
   /// Load company currencies with denominations
   Future<void> loadCurrencies(String companyId) async {
-    state = state.copyWith(isLoadingCurrencies: true, clearError: true);
+    state = state.copyWith(isLoadingCurrencies: true, errorMessage: null);
 
     try {
       final currencies = await _currencyRepository.getCompanyCurrencies(companyId);
 
-      // Set first currency as default selected for all tabs
-      final defaultCurrencyId = currencies.isNotEmpty ? currencies.first.currencyId : null;
-
       state = state.copyWith(
         currencies: currencies,
-        selectedCashCurrencyId: defaultCurrencyId,
-        selectedBankCurrencyId: defaultCurrencyId,
-        selectedVaultCurrencyId: defaultCurrencyId,
         isLoadingCurrencies: false,
       );
     } catch (e) {
       state = state.copyWith(
         isLoadingCurrencies: false,
-        error: e is CashEndingException ? e.message : 'Failed to load currencies',
+        errorMessage: e is CashEndingException ? e.message : 'Failed to load currencies',
       );
     }
   }
 
   /// Load recent cash endings for a location
   Future<void> loadRecentCashEndings(String locationId) async {
-    state = state.copyWith(isLoadingRecentEndings: true, clearError: true);
+    state = state.copyWith(isLoadingRecentEndings: true, errorMessage: null);
 
     try {
       final recentEndings = await _cashEndingRepository.getCashEndingHistory(
@@ -136,19 +130,23 @@ class CashEndingNotifier extends StateNotifier<CashEndingState> {
     } catch (e) {
       state = state.copyWith(
         isLoadingRecentEndings: false,
-        error: e is CashEndingException ? e.message : 'Failed to load recent cash endings',
+        errorMessage: e is CashEndingException ? e.message : 'Failed to load recent cash endings',
       );
     }
   }
 
   /// Save cash ending
   Future<bool> saveCashEnding(CashEnding cashEnding) async {
-    state = state.copyWith(isSaving: true, clearError: true);
+    state = state.copyWith(isSaving: true, errorMessage: null);
 
     try {
+
       await _cashEndingRepository.saveCashEnding(cashEnding);
 
-      state = state.copyWith(isSaving: false);
+      state = state.copyWith(
+        isSaving: false,
+        successMessage: 'Cash ending saved successfully',
+      );
 
       // Reload recent cash endings for the location
       if (cashEnding.locationId.isNotEmpty) {
@@ -157,10 +155,14 @@ class CashEndingNotifier extends StateNotifier<CashEndingState> {
 
       return true;
     } catch (e) {
+
+      final errorMsg = e is CashEndingException ? e.message : 'Failed to save cash ending';
+
       state = state.copyWith(
         isSaving: false,
-        error: e is CashEndingException ? e.message : 'Failed to save cash ending',
+        errorMessage: errorMsg,
       );
+
       return false;
     }
   }
@@ -172,8 +174,16 @@ class CashEndingNotifier extends StateNotifier<CashEndingState> {
 
   /// Select store and auto-load all locations (like lib_old)
   Future<void> selectStore(String storeId, String companyId) async {
-    // Set selected store
-    state = state.copyWith(selectedStoreId: storeId);
+    // Clear all location selections when store changes
+    state = state.copyWith(
+      selectedStoreId: storeId,
+      selectedCashLocationId: null,
+      selectedBankLocationId: null,
+      selectedVaultLocationId: null,
+      cashLocations: [],
+      bankLocations: [],
+      vaultLocations: [],
+    );
 
     // Auto-load all location types (cash, bank, vault) like lib_old
     await Future.wait([
@@ -220,6 +230,6 @@ class CashEndingNotifier extends StateNotifier<CashEndingState> {
 
   /// Clear error message
   void clearError() {
-    state = state.copyWith(clearError: true);
+    state = state.copyWith(errorMessage: null, successMessage: null);
   }
 }

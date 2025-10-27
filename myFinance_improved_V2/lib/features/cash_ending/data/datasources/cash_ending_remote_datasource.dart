@@ -21,13 +21,18 @@ class CashEndingRemoteDataSource {
   Future<Map<String, dynamic>?> saveCashEnding(
     Map<String, dynamic> params,
   ) async {
-    final response = await _client.rpc<Map<String, dynamic>>(
-      'insert_cashier_amount_lines',
-      params: params,
-    );
+    try {
+      // RPC returns void on success, explicitly specify void type
+      await _client.rpc<void>(
+        'insert_cashier_amount_lines',
+        params: params,
+      );
 
-    // RPC may return null on success
-    return response as Map<String, dynamic>?;
+      // RPC returns void on success, return null to indicate success
+      return null;
+    } catch (e) {
+      rethrow;
+    }
   }
 
   /// Get cash ending history from view

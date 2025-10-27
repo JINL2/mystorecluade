@@ -24,7 +24,8 @@ class LocationModel {
   /// Create from JSON (from database)
   factory LocationModel.fromJson(Map<String, dynamic> json) {
     return LocationModel(
-      locationId: json['location_id']?.toString() ?? '',
+      // Database uses 'cash_location_id' not 'location_id'
+      locationId: json['cash_location_id']?.toString() ?? '',
       locationName: json['location_name']?.toString() ?? '',
       locationType: json['location_type']?.toString() ?? 'cash',
       storeId: json['store_id']?.toString(),

@@ -35,7 +35,7 @@ class CurrencyRepositoryImpl implements CurrencyRepository {
         return [];
       }
 
-      // Step 2: Extract currency IDs
+      // Step 2: Extract currency IDs (preserving order from companyCurrencies)
       final currencyIds = companyCurrencies
           .map((item) => item['currency_id']?.toString() ?? '')
           .where((id) => id.isNotEmpty)
@@ -45,11 +45,20 @@ class CurrencyRepositoryImpl implements CurrencyRepository {
       final currencyTypes =
           await _remoteDataSource.getCurrencyTypes(currencyIds: currencyIds);
 
-      // Step 4: Get all denominations for this company
+      // Step 4: Create a map of currency_id to currency type for quick lookup
+      final Map<String, Map<String, dynamic>> currencyTypeMap = {};
+      for (var currencyType in currencyTypes) {
+        final currencyId = currencyType['currency_id']?.toString() ?? '';
+        if (currencyId.isNotEmpty) {
+          currencyTypeMap[currencyId] = currencyType;
+        }
+      }
+
+      // Step 5: Get all denominations for this company
       final allDenominations =
           await _remoteDataSource.getAllDenominations(companyId);
 
-      // Step 5: Group denominations by currency
+      // Step 6: Group denominations by currency
       final Map<String, List<DenominationModel>> denominationsByCurrency = {};
       for (var denomJson in allDenominations) {
         final currencyId = denomJson['currency_id']?.toString() ?? '';
@@ -60,24 +69,27 @@ class CurrencyRepositoryImpl implements CurrencyRepository {
         }
       }
 
-      // Step 6: Combine into currency entities
+      // Step 7: Combine into currency entities (maintaining created_at order from companyCurrencies)
       final List<Currency> entities = [];
-      for (var currencyTypeJson in currencyTypes) {
-        final currencyId = currencyTypeJson['currency_id']?.toString() ?? '';
+      for (var companyCurrency in companyCurrencies) {
+        final currencyId = companyCurrency['currency_id']?.toString() ?? '';
+        final currencyTypeJson = currencyTypeMap[currencyId];
 
-        // Get denominations for this currency
-        final denomModels = denominationsByCurrency[currencyId] ?? [];
+        if (currencyTypeJson != null) {
+          // Get denominations for this currency
+          final denomModels = denominationsByCurrency[currencyId] ?? [];
 
-        // Build currency model with denominations
-        final currencyModel = CurrencyModel(
-          currencyId: currencyId,
-          currencyCode: currencyTypeJson['currency_code']?.toString() ?? '',
-          currencyName: currencyTypeJson['currency_name']?.toString() ?? '',
-          symbol: currencyTypeJson['symbol']?.toString() ?? '',
-          denominations: denomModels,
-        );
+          // Build currency model with denominations
+          final currencyModel = CurrencyModel(
+            currencyId: currencyId,
+            currencyCode: currencyTypeJson['currency_code']?.toString() ?? '',
+            currencyName: currencyTypeJson['currency_name']?.toString() ?? '',
+            symbol: currencyTypeJson['symbol']?.toString() ?? '',
+            denominations: denomModels,
+          );
 
-        entities.add(currencyModel.toEntity());
+          entities.add(currencyModel.toEntity());
+        }
       }
 
       return entities;

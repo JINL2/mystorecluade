@@ -28,7 +28,6 @@ class _HomepageState extends ConsumerState<Homepage> {
 
   @override
   Widget build(BuildContext context) {
-    debugPrint('🔴🔴🔴 [Homepage.build] Building Homepage widget');
     // Watch user companies provider to ensure AppState is initialized
     final userCompaniesAsync = ref.watch(userCompaniesProvider);
 
@@ -96,7 +95,6 @@ class _HomepageState extends ConsumerState<Homepage> {
   }
 
   Widget _buildAppBar() {
-    debugPrint('🔴 [Homepage._buildAppBar] Building AppBar');
     return SliverAppBar(
       pinned: true,
       floating: false,
@@ -191,7 +189,10 @@ class _HomepageState extends ConsumerState<Homepage> {
                 if (value == 'logout') {
                   await _handleLogout();
                 } else if (value == 'profile') {
-                  // Navigate to profile page if needed
+                  // Navigate to My Page
+                  if (mounted) {
+                    context.go('/my-page');
+                  }
                 }
               });
             },
@@ -220,13 +221,9 @@ class _HomepageState extends ConsumerState<Homepage> {
     final profileImage = appState.user['profile_image'] as String? ?? '';
 
     // Debug: Log profile image URL
-    debugPrint('🟢 [Homepage._buildProfileAvatar] AppState user map: ${appState.user}');
-    debugPrint('🟢 [Homepage._buildProfileAvatar] Profile image URL: "$profileImage"');
-    debugPrint('🟢 [Homepage._buildProfileAvatar] Is empty: ${profileImage.isEmpty}');
 
     // If profile image exists and is not empty, show image
     if (profileImage.isNotEmpty) {
-      debugPrint('🟢 [Homepage._buildProfileAvatar] Showing profile image from URL');
       return CircleAvatar(
         radius: 20,
         backgroundColor: TossColors.primary.withValues(alpha: 0.1),
@@ -238,8 +235,6 @@ class _HomepageState extends ConsumerState<Homepage> {
             fit: BoxFit.cover,
             errorBuilder: (context, error, stackTrace) {
               // If image fails to load, show initials
-              debugPrint('🔴 [Homepage] Profile image failed to load: $error');
-              debugPrint('🔴 [Homepage] Stack trace: $stackTrace');
               return Center(
                 child: Text(
                   _getUserInitials(),
@@ -252,11 +247,9 @@ class _HomepageState extends ConsumerState<Homepage> {
             },
             loadingBuilder: (context, child, loadingProgress) {
               if (loadingProgress == null) {
-                debugPrint('🟢 [Homepage] Profile image loaded successfully');
                 return child;
               }
               // Show loading indicator while image is loading
-              debugPrint('🟡 [Homepage] Loading profile image: ${loadingProgress.cumulativeBytesLoaded}/${loadingProgress.expectedTotalBytes}');
               return Center(
                 child: SizedBox(
                   width: 20,
@@ -276,8 +269,6 @@ class _HomepageState extends ConsumerState<Homepage> {
         ),
       );
     }
-
-    debugPrint('🟡 [Homepage._buildProfileAvatar] Profile image is empty, showing initials');
 
     // Fallback to initials
     return CircleAvatar(
@@ -336,8 +327,6 @@ class _HomepageState extends ConsumerState<Homepage> {
   /// 4. NO manual pop() - let the menu close naturally during navigation
   Future<void> _handleLogout() async {
     try {
-      debugPrint('🔵 [Homepage] Logging out...');
-
       // ✅ Read all providers BEFORE logout starts
       // This prevents "Cannot use ref after dispose" errors
       final authService = ref.read(authServiceProvider);
@@ -377,13 +366,11 @@ class _HomepageState extends ConsumerState<Homepage> {
       // 4. Trigger GoRouter redirect (auth state changes to null)
       // 5. PopupMenu will close automatically during navigation
       await authService.signOut();
-      debugPrint('🔵 [Homepage] Auth logout completed');
 
       // ✅ Clear app state AFTER auth logout
       if (mounted) {
         final appStateNotifier = ref.read(appStateProvider.notifier);
         appStateNotifier.signOut();
-        debugPrint('🔵 [Homepage] App state cleared');
       }
 
       // Note: Widget is disposed here due to GoRouter redirect
@@ -398,8 +385,6 @@ class _HomepageState extends ConsumerState<Homepage> {
       // No manual navigation needed!
 
     } catch (e) {
-      debugPrint('🔵 [Homepage] Logout failed: $e');
-
       if (mounted) {
         ScaffoldMessenger.of(context).hideCurrentSnackBar();
         ScaffoldMessenger.of(context).showSnackBar(
@@ -417,14 +402,11 @@ class _HomepageState extends ConsumerState<Homepage> {
   }
 
   Future<void> _handleRefresh() async {
-    debugPrint('🔵 [Homepage] Refreshing all data...');
-
     final appStateNotifier = ref.read(appStateProvider.notifier);
 
     try {
       // Clear AppState cache to force fresh fetch
       appStateNotifier.updateCategoryFeatures([]);
-      debugPrint('🔵 [Homepage] Cleared category cache');
 
       // Invalidate all homepage providers to refresh data
       ref.invalidate(userCompaniesProvider);
@@ -437,8 +419,6 @@ class _HomepageState extends ConsumerState<Homepage> {
         ref.read(userCompaniesProvider.future),
         ref.read(categoriesWithFeaturesProvider.future),
       ]);
-
-      debugPrint('🔵 [Homepage] Refresh completed successfully');
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -453,8 +433,6 @@ class _HomepageState extends ConsumerState<Homepage> {
         );
       }
     } catch (e) {
-      debugPrint('🔵 [Homepage] Refresh failed: $e');
-
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -491,12 +469,6 @@ class _PinnedHelloDelegate extends SliverPersistentHeaderDelegate {
     bool overlapsContent,
   ) {
     // Debug: Check AppState values
-    debugPrint('🟢 [UI.HelloSection] Building with AppState:');
-    debugPrint('🟢 [UI.HelloSection]   user: ${appState.user}');
-    debugPrint('🟢 [UI.HelloSection]   companyName: "${appState.companyName}"');
-    debugPrint('🟢 [UI.HelloSection]   storeName: "${appState.storeName}"');
-    debugPrint('🟢 [UI.HelloSection]   companyChoosen: "${appState.companyChoosen}"');
-    debugPrint('🟢 [UI.HelloSection]   storeChoosen: "${appState.storeChoosen}"');
 
     // Extract user name from AppState
     final firstName = appState.user['user_first_name'] as String? ?? '';
@@ -505,7 +477,6 @@ class _PinnedHelloDelegate extends SliverPersistentHeaderDelegate {
         ? (lastName.isNotEmpty ? '$firstName $lastName' : firstName)
         : 'User';
 
-    debugPrint('🟢 [UI.HelloSection]   Computed userName: "$userName"');
 
     // Get company and store names from AppState
     final companyName = appState.companyName.isNotEmpty
@@ -513,8 +484,6 @@ class _PinnedHelloDelegate extends SliverPersistentHeaderDelegate {
         : (appState.companyChoosen.isNotEmpty ? 'Company Selected' : 'No Company');
     final storeName = appState.storeName;
 
-    debugPrint('🟢 [UI.HelloSection]   Computed companyName: "$companyName"');
-    debugPrint('🟢 [UI.HelloSection]   Computed storeName: "$storeName"');
 
     return Container(
       color: TossColors.gray100,

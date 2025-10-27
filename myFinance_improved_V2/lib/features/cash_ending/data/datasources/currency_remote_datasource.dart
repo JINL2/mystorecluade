@@ -16,15 +16,17 @@ class CurrencyRemoteDataSource {
   /// Get company currencies
   ///
   /// Returns list of currency_id and company_currency_id pairs
+  /// Ordered by created_at to ensure consistent default currency (first added)
   /// Throws exception on error
   Future<List<Map<String, dynamic>>> getCompanyCurrencies(
     String companyId,
   ) async {
     final response = await _client
         .from('company_currency')
-        .select('currency_id, company_currency_id')
+        .select('currency_id, company_currency_id, created_at')
         .eq('company_id', companyId)
-        .eq('is_deleted', false);
+        .eq('is_deleted', false)
+        .order('created_at', ascending: true);
 
     return List<Map<String, dynamic>>.from(response);
   }

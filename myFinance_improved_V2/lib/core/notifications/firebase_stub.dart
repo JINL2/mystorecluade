@@ -164,12 +164,18 @@ class FirebaseOptions {
   final String appId;
   final String messagingSenderId;
   final String projectId;
-  
-  FirebaseOptions({
+  final String? authDomain;
+  final String? storageBucket;
+  final String? iosBundleId;
+
+  const FirebaseOptions({
     required this.apiKey,
     required this.appId,
     required this.messagingSenderId,
     required this.projectId,
+    this.authDomain,
+    this.storageBucket,
+    this.iosBundleId,
   });
 }
 

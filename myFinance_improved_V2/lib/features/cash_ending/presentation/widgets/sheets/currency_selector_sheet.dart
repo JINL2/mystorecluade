@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
+import '../../../../../shared/themes/toss_icons.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../domain/entities/currency.dart';
@@ -127,7 +128,7 @@ class CurrencySelectorSheet extends ConsumerWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(
-            Icons.currency_exchange,
+            TossIcons.currency,
             size: 64,
             color: TossColors.gray400,
           ),
@@ -274,7 +275,7 @@ class CurrencySelectorSheet extends ConsumerWidget {
             // Check icon
             if (isSelected)
               const Icon(
-                Icons.check,
+                TossIcons.check,
                 size: 20,
                 color: TossColors.primary,
               ),
