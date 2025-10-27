@@ -1,5 +1,7 @@
 // Domain Entity - Vault Real Entry Business Object
 
+import '../../../../core/utils/datetime_utils.dart';
+
 class VaultRealEntry {
   final String createdAt;
   final String recordDate;
@@ -20,12 +22,19 @@ class VaultRealEntry {
   // Business logic methods
   String getFormattedTime() {
     try {
-      final dateTime = DateTime.parse(createdAt);
-      final hour = dateTime.hour.toString().padLeft(2, '0');
-      final minute = dateTime.minute.toString().padLeft(2, '0');
-      return '$hour:$minute';
+      // Parse timestamp as UTC (DB stores without timezone info but it's UTC)
+      // Example: "2025-10-27 17:54:41.715" should be treated as UTC
+      final utcDateTime = DateTime.parse('${createdAt}Z'); // Add Z to force UTC parsing
+      final localDateTime = utcDateTime.toLocal();
+      return DateTimeUtils.formatTimeOnly(localDateTime);
     } catch (e) {
-      return '';
+      // Fallback: try parsing with toLocal if Z format fails
+      try {
+        final localDateTime = DateTimeUtils.toLocal(createdAt);
+        return DateTimeUtils.formatTimeOnly(localDateTime);
+      } catch (e2) {
+        return '';
+      }
     }
   }
 

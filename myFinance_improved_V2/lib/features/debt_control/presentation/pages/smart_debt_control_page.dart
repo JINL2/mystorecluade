@@ -13,6 +13,7 @@ import '../../../../shared/widgets/common/toss_scaffold.dart';
 import '../../../../shared/widgets/toss/toss_refresh_indicator.dart';
 import '../../../../shared/widgets/toss/toss_tab_bar_1.dart';
 import '../../domain/entities/prioritized_debt.dart';
+import '../providers/currency_provider.dart';
 import '../providers/debt_control_providers.dart';
 import '../providers/perspective_provider.dart';
 import '../widgets/perspective_summary_card.dart';
@@ -287,6 +288,7 @@ class _SmartDebtControlPageState extends ConsumerState<SmartDebtControlPage>
 
   Widget _buildCompanyCard(PrioritizedDebt debt) {
     final isPositive = debt.amount > 0;
+    final currency = ref.watch(debtCurrencyProvider);
 
     return Container(
       margin: const EdgeInsets.symmetric(
@@ -345,7 +347,7 @@ class _SmartDebtControlPageState extends ConsumerState<SmartDebtControlPage>
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Text(
-                  NumberFormatter.formatCurrency(debt.amount.abs(), 'KRW'),
+                  NumberFormatter.formatCurrency(debt.amount.abs(), currency),
                   style: TossTextStyles.body.copyWith(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,

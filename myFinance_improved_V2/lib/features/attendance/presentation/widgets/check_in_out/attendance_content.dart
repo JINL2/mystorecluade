@@ -1411,99 +1411,68 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
         // Parse times - check both confirm_* and actual_* fields
         final actualStart = card['confirm_start_time'] ?? card['actual_start_time'];
         final actualEnd = card['confirm_end_time'] ?? card['actual_end_time'];
-        String checkInTime = '--:--';
-        String checkOutTime = '--:--';
+        final requestDate = card['request_date']?.toString();
+
+        // Use _formatTime() to properly convert UTC to local time
+        String checkInTime = _formatTime(actualStart, requestDate: requestDate);
+        String checkOutTime = _formatTime(actualEnd, requestDate: requestDate);
         String hoursWorked = '0h 0m';
-        
-        if (actualStart != null && actualStart.toString().isNotEmpty) {
+
+        // Calculate hours worked if we have both times
+        if (actualStart != null && actualStart.toString().isNotEmpty &&
+            actualEnd != null && actualEnd.toString().isNotEmpty) {
           try {
-            // If it's just a time (HH:mm:ss), extract hours and minutes
-            if (actualStart.toString().contains(':') && !actualStart.toString().contains('T')) {
-              final timeParts = actualStart.toString().split(':');
-              if (timeParts.length >= 2) {
-                checkInTime = '${timeParts[0].padLeft(2, '0')}:${timeParts[1].padLeft(2, '0')}';
-              }
+            // Parse the request_date and combine with times to get full DateTime
+            final baseDate = date;
+
+            // Parse start time (UTC from DB - convert to local time)
+            DateTime startDateTime;
+            if (actualStart.toString().contains('T')) {
+              startDateTime = DateTimeUtils.toLocal(actualStart.toString());
             } else {
-              // It's a full datetime string (UTC from DB - convert to local time)
-              final startTime = DateTimeUtils.toLocal(actualStart.toString());
-              checkInTime = '${startTime.hour.toString().padLeft(2, '0')}:${startTime.minute.toString().padLeft(2, '0')}';
+              // Time-only format from RPC - combine with date and convert
+              final startParts = actualStart.toString().split(':');
+              if (startParts.length >= 2 && requestDate != null) {
+                final utcTimestamp = '${requestDate}T${actualStart.toString().padRight(8, ':00')}Z';
+                startDateTime = DateTimeUtils.toLocal(utcTimestamp);
+              } else {
+                final hour = int.tryParse(startParts[0]) ?? 0;
+                final minute = startParts.length > 1 ? int.tryParse(startParts[1]) ?? 0 : 0;
+                startDateTime = DateTime(baseDate.year, baseDate.month, baseDate.day, hour, minute);
+              }
             }
+
+            // Parse end time (UTC from DB - convert to local time)
+            DateTime endDateTime;
+            if (actualEnd.toString().contains('T')) {
+              endDateTime = DateTimeUtils.toLocal(actualEnd.toString());
+            } else {
+              // Time-only format from RPC - combine with date and convert
+              final endParts = actualEnd.toString().split(':');
+              if (endParts.length >= 2 && requestDate != null) {
+                final utcTimestamp = '${requestDate}T${actualEnd.toString().padRight(8, ':00')}Z';
+                endDateTime = DateTimeUtils.toLocal(utcTimestamp);
+              } else {
+                final hour = int.tryParse(endParts[0]) ?? 0;
+                final minute = endParts.length > 1 ? int.tryParse(endParts[1]) ?? 0 : 0;
+                endDateTime = DateTime(baseDate.year, baseDate.month, baseDate.day, hour, minute);
+              }
+            }
+
+            // Calculate hours worked based on converted local times
+            final duration = endDateTime.difference(startDateTime);
+            final hours = duration.inHours;
+            final minutes = duration.inMinutes % 60;
+            hoursWorked = '${hours}h ${minutes}m';
           } catch (e) {
-            checkInTime = actualStart.toString().substring(0, 5); // Try to get first 5 chars (HH:mm)
+            // Error calculating duration
           }
         }
-        
-        if (actualEnd != null && actualEnd.toString().isNotEmpty) {
-          try {
-            // If it's just a time (HH:mm:ss), extract hours and minutes
-            if (actualEnd.toString().contains(':') && !actualEnd.toString().contains('T')) {
-              final timeParts = actualEnd.toString().split(':');
-              if (timeParts.length >= 2) {
-                checkOutTime = '${timeParts[0].padLeft(2, '0')}:${timeParts[1].padLeft(2, '0')}';
-              }
-            } else {
-              // It's a full datetime string (UTC from DB - convert to local time)
-              final endTime = DateTimeUtils.toLocal(actualEnd.toString());
-              checkOutTime = '${endTime.hour.toString().padLeft(2, '0')}:${endTime.minute.toString().padLeft(2, '0')}';
-            }
-            
-            // Calculate hours worked if we have both times
-            if (actualStart != null && actualStart.toString().isNotEmpty) {
-              try {
-                // Parse the request_date and combine with times to get full DateTime
-                final baseDate = date;
-                
-                // Parse start time (UTC from DB - convert to local time)
-                DateTime startDateTime;
-                if (actualStart.toString().contains('T')) {
-                  startDateTime = DateTimeUtils.toLocal(actualStart.toString());
-                } else {
-                  final startParts = actualStart.toString().split(':');
-                  startDateTime = DateTime(
-                    baseDate.year, 
-                    baseDate.month, 
-                    baseDate.day,
-                    int.parse(startParts[0]),
-                    int.parse(startParts[1]),
-                  );
-                }
-                
-                // Parse end time (UTC from DB - convert to local time)
-                DateTime endDateTime;
-                if (actualEnd.toString().contains('T')) {
-                  endDateTime = DateTimeUtils.toLocal(actualEnd.toString());
-                } else {
-                  final endParts = actualEnd.toString().split(':');
-                  endDateTime = DateTime(
-                    baseDate.year, 
-                    baseDate.month, 
-                    baseDate.day,
-                    int.parse(endParts[0]),
-                    int.parse(endParts[1]),
-                  );
-                  
-                  // If end time is before start time, it's the next day
-                  if (endDateTime.isBefore(startDateTime)) {
-                    endDateTime = endDateTime.add(const Duration(days: 1));
-                  }
-                }
-                
-                final duration = endDateTime.difference(startDateTime);
-                final hours = duration.inHours;
-                final minutes = duration.inMinutes % 60;
-                hoursWorked = '${hours}h ${minutes}m';
-              } catch (e) {
-              }
-            }
-          } catch (e) {
-            checkOutTime = actualEnd.toString().substring(0, 5); // Try to get first 5 chars (HH:mm)
-          }
-        }
-        
+
         // Check if shift is approved and reported
         final isApproved = card['is_approved'] ?? card['approval_status'] == 'approved' ?? false;
         final isReported = card['is_reported'] ?? false;
-        
+
         // Determine the actual working status
         String workStatus = 'pending';
         if (isApproved) {
@@ -1515,14 +1484,18 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
             workStatus = 'approved'; // Approved but not started yet
           }
         }
-        
+
+        // Convert shift time from UTC to local time
+        final rawShiftTime = (card['shift_time'] ?? '--:-- ~ --:--').toString();
+        final localShiftTime = _formatShiftTime(rawShiftTime, requestDate: requestDate);
+
         return {
           'date': date,
           'checkIn': checkInTime,
           'checkOut': checkOutTime,
           'hours': hoursWorked,
           'store': card['store_name'] ?? 'Store',
-          'shiftInfo': '${card['shift_name'] ?? 'Shift'} • ${card['shift_time'] ?? '--:-- ~ --:--'}',
+          'shiftInfo': '${card['shift_name'] ?? 'Shift'} • $localShiftTime',
           'status': actualEnd != null ? 'completed' : 'in_progress',
           'lateMinutes': card['late_minutes'] ?? 0,
           'overtimeMinutes': card['overtime_minutes'] ?? 0,

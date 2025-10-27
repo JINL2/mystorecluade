@@ -1,5 +1,7 @@
 // lib/features/cash_ending/domain/entities/stock_flow.dart
 
+import '../../../../core/utils/datetime_utils.dart';
+
 /// Domain entity for location summary
 class LocationSummary {
   final String cashLocationId;
@@ -58,10 +60,19 @@ class ActualFlow {
 
   String getFormattedTime() {
     try {
-      final date = DateTime.parse(createdAt);
-      return '${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
+      // Parse timestamp as UTC (DB stores without timezone info but it's UTC)
+      // Example: "2025-10-27 17:54:41.715" should be treated as UTC
+      final utcDateTime = DateTime.parse('${createdAt}Z'); // Add Z to force UTC parsing
+      final localDateTime = utcDateTime.toLocal();
+      return DateTimeUtils.formatTimeOnly(localDateTime);
     } catch (e) {
-      return '';
+      // Fallback: try parsing with toLocal if Z format fails
+      try {
+        final localDateTime = DateTimeUtils.toLocal(createdAt);
+        return DateTimeUtils.formatTimeOnly(localDateTime);
+      } catch (e2) {
+        return '';
+      }
     }
   }
 }
