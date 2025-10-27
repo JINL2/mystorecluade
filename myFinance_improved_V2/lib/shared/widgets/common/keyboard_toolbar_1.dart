@@ -170,26 +170,38 @@ class _KeyboardToolbar1State extends State<KeyboardToolbar1> {
     // Remove existing overlay if any
     _hideToolbar();
 
+    // Get overlay from the root navigator context
+    final overlay = Overlay.of(context, rootOverlay: true);
+
     _overlayEntry = OverlayEntry(
-      builder: (context) => Positioned(
-        bottom: MediaQuery.of(context).viewInsets.bottom,
-        left: 0,
-        right: 0,
-        child: Material(
-          color: widget.backgroundColor ?? TossColors.gray100,
-          elevation: 0,
-          child: Container(
-            height: widget.height,
-            decoration: BoxDecoration(
-              color: widget.backgroundColor ?? TossColors.gray100,
-              border: const Border(
-                top: BorderSide(
+      builder: (context) {
+        final keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
+
+        // Hide toolbar when keyboard is hidden
+        if (keyboardHeight == 0) {
+          return const SizedBox.shrink();
+        }
+
+        return Positioned(
+          bottom: keyboardHeight,
+          left: 0,
+          right: 0,
+          child: Material(
+            color: Colors.transparent,
+            elevation: 0,
+            child: Container(
+              height: widget.height,
+              decoration: BoxDecoration(
+                color: widget.backgroundColor ?? TossColors.gray100,
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(12),
+                ),
+                border: Border.all(
                   color: TossColors.gray200,
                   width: 0.5,
                 ),
               ),
-            ),
-            child: Row(
+              child: Row(
               children: [
                 // Previous/Next buttons (left side)
                 if (widget.showNavigation) ...[
@@ -230,11 +242,12 @@ class _KeyboardToolbar1State extends State<KeyboardToolbar1> {
             ),
           ),
         ),
-      ),
+        );
+      },
     );
 
     // Insert overlay
-    Overlay.of(context).insert(_overlayEntry!);
+    overlay.insert(_overlayEntry!);
   }
 
   /// Hide the toolbar overlay

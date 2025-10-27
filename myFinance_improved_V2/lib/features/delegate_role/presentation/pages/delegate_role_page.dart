@@ -21,6 +21,7 @@ import 'package:myfinance_improved/shared/widgets/toss/toss_list_tile.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_primary_button.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_search_field.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_text_field.dart';
+import 'package:myfinance_improved/shared/widgets/common/keyboard_toolbar_1.dart';
 
 class DelegateRolePage extends ConsumerStatefulWidget {
   const DelegateRolePage({super.key});
@@ -549,6 +550,9 @@ class _CreateRoleBottomSheetState extends ConsumerState<_CreateRoleBottomSheet> 
     super.initState();
     _roleNameFocus.addListener(_onTextEditingStateChanged);
     _descriptionFocus.addListener(_onTextEditingStateChanged);
+    _roleNameController.addListener(() {
+      setState(() {}); // Rebuild to update button state
+    });
   }
 
   @override
@@ -573,117 +577,141 @@ class _CreateRoleBottomSheetState extends ConsumerState<_CreateRoleBottomSheet> 
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: TossColors.white,
-        borderRadius: BorderRadius.vertical(
-          top: Radius.circular(TossBorderRadius.xxl),
-        ),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      child: Stack(
         children: [
           Container(
-            margin: EdgeInsets.only(top: TossSpacing.space3),
-            width: 40,
-            height: 4,
             decoration: BoxDecoration(
-              color: TossColors.border,
-              borderRadius: BorderRadius.circular(TossBorderRadius.xs),
+              color: TossColors.white,
+              borderRadius: BorderRadius.vertical(
+                top: Radius.circular(TossBorderRadius.xxl),
+              ),
             ),
-          ),
-          Padding(
-            padding: EdgeInsets.all(TossSpacing.space5),
-            child: Row(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                if (_currentStep > 0)
-                  IconButton(
-                    icon: Icon(Icons.arrow_back, color: TossColors.textSecondary),
-                    onPressed: () {
-                      setState(() {
-                        _currentStep--;
-                      });
-                    },
+                Container(
+                  margin: EdgeInsets.only(top: TossSpacing.space3),
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: TossColors.border,
+                    borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                   ),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                ),
+                Padding(
+                  padding: EdgeInsets.all(TossSpacing.space5),
+                  child: Row(
                     children: [
-                      Text(
-                        _getStepTitle(),
-                        style: TossTextStyles.h3,
-                      ),
-                      SizedBox(height: TossSpacing.space1),
-                      Text(
-                        _getStepDescription(),
-                        style: TossTextStyles.caption.copyWith(
-                          color: TossColors.textSecondary,
+                      if (_currentStep > 0)
+                        IconButton(
+                          icon: Icon(Icons.arrow_back, color: TossColors.textSecondary),
+                          onPressed: () {
+                            setState(() {
+                              _currentStep--;
+                            });
+                          },
                         ),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              _getStepTitle(),
+                              style: TossTextStyles.h3,
+                            ),
+                            SizedBox(height: TossSpacing.space1),
+                            Text(
+                              _getStepDescription(),
+                              style: TossTextStyles.caption.copyWith(
+                                color: TossColors.textSecondary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      IconButton(
+                        icon: Icon(Icons.close, color: TossColors.textSecondary),
+                        onPressed: () {
+                          FocusScope.of(context).unfocus();
+                          Navigator.pop(context);
+                        },
                       ),
                     ],
                   ),
                 ),
-                IconButton(
-                  icon: Icon(Icons.close, color: TossColors.textSecondary),
-                  onPressed: () {
-                    FocusScope.of(context).unfocus();
-                    Navigator.pop(context);
-                  },
+                Container(
+                  padding: EdgeInsets.symmetric(horizontal: TossSpacing.space5),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      _buildStepIndicator(0, _currentStep == 0),
+                      Container(
+                        width: 30,
+                        height: 2,
+                        color: _currentStep >= 1 ? Color.alphaBlend(
+                          TossColors.primary.withOpacity(0.3),
+                          TossColors.background,
+                        ) : TossColors.borderLight,
+                      ),
+                      _buildStepIndicator(1, _currentStep == 1),
+                      Container(
+                        width: 30,
+                        height: 2,
+                        color: _currentStep >= 2 ? Color.alphaBlend(
+                          TossColors.primary.withOpacity(0.3),
+                          TossColors.background,
+                        ) : TossColors.borderLight,
+                      ),
+                      _buildStepIndicator(2, _currentStep == 2),
+                    ],
+                  ),
                 ),
+                SizedBox(height: TossSpacing.space3),
+                Expanded(
+                  child: SingleChildScrollView(
+                    keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                    child: _buildCurrentStep(),
+                  ),
+                ),
+                if (!(_currentStep == 0 && _isEditingText))
+                  Container(
+                    padding: EdgeInsets.all(TossSpacing.space5),
+                    decoration: BoxDecoration(
+                      color: TossColors.white,
+                      border: Border(top: BorderSide(color: TossColors.borderLight)),
+                    ),
+                    child: SafeArea(
+                      top: false,
+                      child: TossPrimaryButton(
+                        onPressed: _handleStepAction,
+                        isLoading: _isCreating,
+                        isEnabled: !_isCreating && _canProceed(),
+                        text: _getActionButtonText(),
+                        fullWidth: true,
+                      ),
+                    ),
+                  ),
               ],
             ),
           ),
-          Container(
-            padding: EdgeInsets.symmetric(horizontal: TossSpacing.space5),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                _buildStepIndicator(0, _currentStep == 0),
-                Container(
-                  width: 30,
-                  height: 2,
-                  color: _currentStep >= 1 ? Color.alphaBlend(
-                    TossColors.primary.withOpacity(0.3),
-                    TossColors.background,
-                  ) : TossColors.borderLight,
-                ),
-                _buildStepIndicator(1, _currentStep == 1),
-                Container(
-                  width: 30,
-                  height: 2,
-                  color: _currentStep >= 2 ? Color.alphaBlend(
-                    TossColors.primary.withOpacity(0.3),
-                    TossColors.background,
-                  ) : TossColors.borderLight,
-                ),
-                _buildStepIndicator(2, _currentStep == 2),
-              ],
-            ),
+
+          // Keyboard Toolbar for Role Name field
+          KeyboardToolbar1(
+            focusNode: _roleNameFocus,
+            showToolbar: true,
+            showNavigation: false,
+            onDone: () => FocusScope.of(context).unfocus(),
           ),
-          SizedBox(height: TossSpacing.space3),
-          Expanded(
-            child: SingleChildScrollView(
-              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-              child: _buildCurrentStep(),
-            ),
+
+          // Keyboard Toolbar for Description field
+          KeyboardToolbar1(
+            focusNode: _descriptionFocus,
+            showToolbar: true,
+            showNavigation: false,
+            onDone: () => FocusScope.of(context).unfocus(),
           ),
-          if (!(_currentStep == 0 && _isEditingText))
-            Container(
-              padding: EdgeInsets.all(TossSpacing.space5),
-              decoration: BoxDecoration(
-                color: TossColors.white,
-                border: Border(top: BorderSide(color: TossColors.borderLight)),
-              ),
-              child: SafeArea(
-                top: false,
-                child: TossPrimaryButton(
-                  onPressed: _isCreating ? null : _handleStepAction,
-                  isLoading: _isCreating,
-                  text: _getActionButtonText(),
-                  fullWidth: true,
-                ),
-              ),
-            ),
         ],
       ),
     );
@@ -747,6 +775,20 @@ class _CreateRoleBottomSheetState extends ConsumerState<_CreateRoleBottomSheet> 
     }
   }
 
+  bool _canProceed() {
+    switch (_currentStep) {
+      case 0:
+        // Step 0: Role name is required
+        return _roleNameController.text.trim().isNotEmpty;
+      case 1:
+      case 2:
+        // Steps 1 and 2: Always can proceed
+        return true;
+      default:
+        return true;
+    }
+  }
+
   void _handleStepAction() {
     switch (_currentStep) {
       case 0:
@@ -773,47 +815,44 @@ class _CreateRoleBottomSheetState extends ConsumerState<_CreateRoleBottomSheet> 
   }
 
   Widget _buildBasicInfoStep() {
-    return GestureDetector(
-      onTap: () => FocusScope.of(context).unfocus(),
-      child: Padding(
-        padding: EdgeInsets.all(TossSpacing.space5),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Role Name',
-              style: TossTextStyles.h4.copyWith(
-                fontWeight: FontWeight.w700,
-                color: TossColors.gray900,
-              ),
+    return Padding(
+      padding: EdgeInsets.all(TossSpacing.space5),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Role Name',
+            style: TossTextStyles.h4.copyWith(
+              fontWeight: FontWeight.w700,
+              color: TossColors.gray900,
             ),
-            SizedBox(height: TossSpacing.space3),
-            TossTextField(
-              controller: _roleNameController,
-              focusNode: _roleNameFocus,
-              hintText: 'Enter role name',
-              textInputAction: TextInputAction.next,
-              onFieldSubmitted: (_) => _descriptionFocus.requestFocus(),
+          ),
+          SizedBox(height: TossSpacing.space3),
+          TossTextField(
+            controller: _roleNameController,
+            focusNode: _roleNameFocus,
+            hintText: 'Enter role name',
+            textInputAction: TextInputAction.next,
+            onFieldSubmitted: (_) => _descriptionFocus.requestFocus(),
+          ),
+          SizedBox(height: TossSpacing.space6),
+          Text(
+            'Description',
+            style: TossTextStyles.h4.copyWith(
+              fontWeight: FontWeight.w700,
+              color: TossColors.gray900,
             ),
-            SizedBox(height: TossSpacing.space6),
-            Text(
-              'Description',
-              style: TossTextStyles.h4.copyWith(
-                fontWeight: FontWeight.w700,
-                color: TossColors.gray900,
-              ),
-            ),
-            SizedBox(height: TossSpacing.space3),
-            TossTextField(
-              controller: _descriptionController,
-              focusNode: _descriptionFocus,
-              hintText: 'Describe what this role does',
-              maxLines: 4,
-              textInputAction: TextInputAction.done,
-              onFieldSubmitted: (_) => FocusScope.of(context).unfocus(),
-            ),
-          ],
-        ),
+          ),
+          SizedBox(height: TossSpacing.space3),
+          TossTextField(
+            controller: _descriptionController,
+            focusNode: _descriptionFocus,
+            hintText: 'Describe what this role does',
+            maxLines: 4,
+            textInputAction: TextInputAction.done,
+            onFieldSubmitted: (_) => FocusScope.of(context).unfocus(),
+          ),
+        ],
       ),
     );
   }

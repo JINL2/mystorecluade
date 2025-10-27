@@ -47,15 +47,20 @@ class _RoleManagementModalState extends ConsumerState<RoleManagementModal> {
   Widget build(BuildContext context) {
     final rolesAsync = ref.watch(rolesProvider);
 
-    return Container(
-      height: MediaQuery.of(context).size.height * 0.8,
-      decoration: BoxDecoration(
-        color: TossColors.background,
-        borderRadius: BorderRadius.vertical(
-          top: Radius.circular(16),
+    return GestureDetector(
+      onTap: () {
+        // Dismiss keyboard when tapping outside text field
+        FocusScope.of(context).unfocus();
+      },
+      child: Container(
+        height: MediaQuery.of(context).size.height * 0.8,
+        decoration: BoxDecoration(
+          color: TossColors.background,
+          borderRadius: BorderRadius.vertical(
+            top: Radius.circular(16),
+          ),
         ),
-      ),
-      child: Column(
+        child: Column(
         children: [
           // Drag handle for visual cue
           Container(
@@ -179,6 +184,7 @@ class _RoleManagementModalState extends ConsumerState<RoleManagementModal> {
           // Bottom Actions
           _buildBottomActions(),
         ],
+        ),
       ),
     );
   }

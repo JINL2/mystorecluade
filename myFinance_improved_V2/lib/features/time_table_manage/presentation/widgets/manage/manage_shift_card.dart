@@ -30,9 +30,9 @@ class ManageShiftCard extends StatelessWidget {
     final isProblem = (card['is_problem'] as bool?) ?? false;
     final isProblemSolved = (card['is_problem_solved'] as bool?) ?? false;
     final isLate = (card['is_late'] as bool?) ?? false;
-    final lateMinute = (card['late_minute'] as int?) ?? 0;
+    final lateMinute = ((card['late_minute'] as num?) ?? 0).toInt();
     final isOverTime = (card['is_over_time'] as bool?) ?? false;
-    final overTimeMinute = (card['over_time_minute'] as int?) ?? 0;
+    final overTimeMinute = ((card['over_time_minute'] as num?) ?? 0).toInt();
     final paidHour = (card['paid_hour'] as num?) ?? 0;
     final isReported = (card['is_reported'] as bool?) ?? false;
 

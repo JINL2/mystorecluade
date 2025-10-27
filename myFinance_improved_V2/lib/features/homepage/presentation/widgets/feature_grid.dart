@@ -28,6 +28,13 @@ class FeatureGrid extends ConsumerWidget {
           return const _EmptyFeatures();
         }
 
+        // Sort categories: Setting should be at the bottom
+        categoriesWithFeatures.sort((a, b) {
+          if (a.categoryName == 'Setting') return 1;
+          if (b.categoryName == 'Setting') return -1;
+          return 0;
+        });
+
         return Container(
           color: TossColors.gray100,
           child: Padding(
@@ -80,6 +87,14 @@ class _CategorySection extends StatelessWidget {
     'Manager Transaction Template',
     'Bank Vault Ending',
     'Cash Control',
+    'Survey Dashboard',
+    'Contents Helper',
+    'Edit Employee Salary',
+    'Role & Permission',
+    'Timetable',
+    'test',
+    'dashboard revenue',
+    'Inventory Analysis',
   ];
 
   @override

@@ -23,6 +23,7 @@ class ManageTabView extends ConsumerWidget {
   final Map<String, Map<String, dynamic>> managerCardsDataByMonth;
   final void Function(String?) onFilterChanged;
   final void Function(DateTime) onDateChanged;
+  final Future<void> Function(DateTime)? onMonthChanged;
   final void Function(Map<String, dynamic>) onCardTap;
   final String Function(int) getMonthName;
 
@@ -36,6 +37,7 @@ class ManageTabView extends ConsumerWidget {
     required this.managerCardsDataByMonth,
     required this.onFilterChanged,
     required this.onDateChanged,
+    this.onMonthChanged,
     required this.onCardTap,
     required this.getMonthName,
   });
@@ -152,8 +154,12 @@ class ManageTabView extends ConsumerWidget {
   }
 
   Map<String, TossCalendarIndicatorType> _buildDateIndicatorsForCalendar() {
+    return _buildDateIndicatorsForMonth(manageSelectedDate);
+  }
+
+  Map<String, TossCalendarIndicatorType> _buildDateIndicatorsForMonth(DateTime targetMonth) {
     final indicators = <String, TossCalendarIndicatorType>{};
-    final monthKey = '${manageSelectedDate.year}-${manageSelectedDate.month.toString().padLeft(2, '0')}';
+    final monthKey = '${targetMonth.year}-${targetMonth.month.toString().padLeft(2, '0')}';
     final monthData = managerCardsDataByMonth[monthKey];
 
     if (monthData != null && monthData['stores'] != null) {
@@ -357,6 +363,8 @@ class ManageTabView extends ConsumerWidget {
                           onDateSelected: (date) async {
                             onDateChanged(date);
                           },
+                          onMonthChanged: onMonthChanged,
+                          onGetIndicators: _buildDateIndicatorsForMonth,
                         );
                       },
                       borderRadius: BorderRadius.circular(TossBorderRadius.lg),
