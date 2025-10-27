@@ -4,6 +4,7 @@ import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import '../../../../shared/widgets/common/toss_date_picker.dart';
+import '../../../../shared/widgets/common/toss_success_error_dialog.dart';
 import '../../../../shared/widgets/toss/toss_enhanced_text_field.dart';
 import '../../domain/entities/fixed_asset.dart';
 import '../../domain/value_objects/asset_financial_info.dart';
@@ -701,11 +702,13 @@ class _AssetFormSheetState extends State<AssetFormSheet> {
   }
 
   void _showError(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: TossColors.error,
-        behavior: SnackBarBehavior.floating,
+    showDialog<bool>(
+      context: context,
+      barrierDismissible: true,
+      builder: (context) => TossDialog.error(
+        title: 'Validation Error',
+        message: message,
+        primaryButtonText: 'OK',
       ),
     );
   }

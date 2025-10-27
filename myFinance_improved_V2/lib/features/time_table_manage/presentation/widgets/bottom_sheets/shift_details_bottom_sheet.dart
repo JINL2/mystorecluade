@@ -12,6 +12,7 @@ import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../../shared/widgets/common/toss_loading_view.dart';
+import '../../../../../shared/widgets/common/toss_success_error_dialog.dart';
 import '../../../../../shared/widgets/toss/toss_time_picker.dart';
 import '../../providers/time_table_providers.dart';
 
@@ -375,19 +376,15 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<ShiftDetailsBottomShee
       if (Navigator.canPop(context)) {
         Navigator.of(context).pop();
       }
-      
+
       // Show error message
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Failed to update bonus: $e',
-            style: TossTextStyles.body.copyWith(color: TossColors.white),
-          ),
-          backgroundColor: TossColors.error,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-          ),
+      await showDialog<bool>(
+        context: context,
+        barrierDismissible: true,
+        builder: (context) => TossDialog.error(
+          title: 'Error',
+          message: 'Failed to update bonus: $e',
+          primaryButtonText: 'OK',
         ),
       );
     }
@@ -565,24 +562,16 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<ShiftDetailsBottomShee
       
       // Show success message
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Shift request changed to pending successfully',
-              style: TossTextStyles.body.copyWith(
-                color: TossColors.white,
-              ),
-            ),
-            backgroundColor: TossColors.success,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-            ),
-            margin: const EdgeInsets.all(TossSpacing.space4),
-            duration: const Duration(seconds: 2),
+        await showDialog<bool>(
+          context: context,
+          barrierDismissible: true,
+          builder: (context) => TossDialog.success(
+            title: 'Success',
+            message: 'Shift request changed to pending successfully',
+            primaryButtonText: 'OK',
           ),
         );
-        
+
         // Close the bottom sheet and return true to trigger refresh in parent
         Navigator.of(context).pop(true);
       }
@@ -594,21 +583,13 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<ShiftDetailsBottomShee
       
       // Show error message
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Error: ${e.toString()}',
-              style: TossTextStyles.body.copyWith(
-                color: TossColors.white,
-              ),
-            ),
-            backgroundColor: TossColors.error,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-            ),
-            margin: const EdgeInsets.all(TossSpacing.space4),
-            duration: const Duration(seconds: 3),
+        await showDialog<bool>(
+          context: context,
+          barrierDismissible: true,
+          builder: (context) => TossDialog.error(
+            title: 'Error',
+            message: e.toString(),
+            primaryButtonText: 'OK',
           ),
         );
       }
@@ -618,17 +599,13 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<ShiftDetailsBottomShee
   Future<void> _deleteTag(String tagId) async {
     // Validate tag ID
     if (tagId.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Invalid tag ID',
-            style: TossTextStyles.body.copyWith(color: TossColors.white),
-          ),
-          backgroundColor: TossColors.error,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-          ),
+      await showDialog<bool>(
+        context: context,
+        barrierDismissible: true,
+        builder: (context) => TossDialog.error(
+          title: 'Error',
+          message: 'Invalid tag ID',
+          primaryButtonText: 'OK',
         ),
       );
       return;
@@ -678,21 +655,16 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<ShiftDetailsBottomShee
           final errorMessage = response['message'] ?? 'Failed to delete tag';
           final errorCode = response['error'] ?? 'UNKNOWN_ERROR';
           
-          
+
+
           if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(
-                  errorMessage,
-                  style: TossTextStyles.body.copyWith(color: TossColors.white),
-                ),
-                backgroundColor: TossColors.error,
-                behavior: SnackBarBehavior.floating,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-                ),
-                margin: const EdgeInsets.all(TossSpacing.space4),
-                duration: const Duration(seconds: 3),
+            await showDialog<bool>(
+              context: context,
+              barrierDismissible: true,
+              builder: (context) => TossDialog.error(
+                title: 'Error',
+                message: errorMessage,
+                primaryButtonText: 'OK',
               ),
             );
           }
@@ -702,22 +674,16 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<ShiftDetailsBottomShee
       
       // Show success message
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Tag deleted successfully',
-              style: TossTextStyles.body.copyWith(color: TossColors.white),
-            ),
-            backgroundColor: TossColors.success,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-            ),
-            margin: const EdgeInsets.all(TossSpacing.space4),
-            duration: const Duration(seconds: 2),
+        await showDialog<bool>(
+          context: context,
+          barrierDismissible: true,
+          builder: (context) => TossDialog.success(
+            title: 'Success',
+            message: 'Tag deleted successfully',
+            primaryButtonText: 'OK',
           ),
         );
-        
+
         // Don't modify widget.card directly, just close with success flag
         // The parent will refresh the data
         Navigator.of(context).pop(true);
@@ -730,19 +696,13 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<ShiftDetailsBottomShee
       
       // Show error message
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Failed to delete tag: ${e.toString()}',
-              style: TossTextStyles.body.copyWith(color: TossColors.white),
-            ),
-            backgroundColor: TossColors.error,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-            ),
-            margin: const EdgeInsets.all(TossSpacing.space4),
-            duration: const Duration(seconds: 3),
+        await showDialog<bool>(
+          context: context,
+          barrierDismissible: true,
+          builder: (context) => TossDialog.error(
+            title: 'Error',
+            message: 'Failed to delete tag: ${e.toString()}',
+            primaryButtonText: 'OK',
           ),
         );
       }
@@ -1897,17 +1857,13 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<ShiftDetailsBottomShee
                     final hasTagContent = tagContent != null && tagContent!.trim().isNotEmpty;
                     
                     if (hasTagType != hasTagContent) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            'Please fill both tag type and content or leave both empty',
-                            style: TossTextStyles.body.copyWith(color: TossColors.white),
-                          ),
-                          backgroundColor: TossColors.error,
-                          behavior: SnackBarBehavior.floating,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-                          ),
+                      await showDialog<bool>(
+                        context: context,
+                        barrierDismissible: true,
+                        builder: (context) => TossDialog.error(
+                          title: 'Error',
+                          message: 'Please fill both tag type and content or leave both empty',
+                          primaryButtonText: 'OK',
                         ),
                       );
                       return;
@@ -1915,17 +1871,13 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<ShiftDetailsBottomShee
                     
                     // Additional validation for tag content length
                     if (hasTagContent && tagContent!.trim().length > 500) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            'Tag content cannot exceed 500 characters',
-                            style: TossTextStyles.body.copyWith(color: TossColors.white),
-                          ),
-                          backgroundColor: TossColors.error,
-                          behavior: SnackBarBehavior.floating,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-                          ),
+                      await showDialog<bool>(
+                        context: context,
+                        barrierDismissible: true,
+                        builder: (context) => TossDialog.error(
+                          title: 'Error',
+                          message: 'Tag content cannot exceed 500 characters',
+                          primaryButtonText: 'OK',
                         ),
                       );
                       return;
@@ -2107,41 +2059,33 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<ShiftDetailsBottomShee
                       
                       // Close loading dialog
                       Navigator.pop(context);
-                      
+
                       // Show success message
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            'Successfully saved',
-                            style: TossTextStyles.body.copyWith(color: TossColors.white),
-                          ),
-                          backgroundColor: TossColors.success,
-                          behavior: SnackBarBehavior.floating,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-                          ),
+                      await showDialog<bool>(
+                        context: context,
+                        barrierDismissible: true,
+                        builder: (context) => TossDialog.success(
+                          title: 'Success',
+                          message: 'Successfully saved',
+                          primaryButtonText: 'OK',
                         ),
                       );
-                      
+
                       // Close bottom sheet and trigger refresh
                       Navigator.pop(context, true); // Return true to indicate data changed
                       
                     } catch (e) {
                       // Close loading dialog
                       Navigator.pop(context);
-                      
+
                       // Show error message
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            'Failed to save: ${e.toString()}',
-                            style: TossTextStyles.body.copyWith(color: TossColors.white),
-                          ),
-                          backgroundColor: TossColors.error,
-                          behavior: SnackBarBehavior.floating,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-                          ),
+                      await showDialog<bool>(
+                        context: context,
+                        barrierDismissible: true,
+                        builder: (context) => TossDialog.error(
+                          title: 'Error',
+                          message: 'Failed to save: ${e.toString()}',
+                          primaryButtonText: 'OK',
                         ),
                       );
                     }

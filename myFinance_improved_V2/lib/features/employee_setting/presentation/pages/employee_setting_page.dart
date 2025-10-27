@@ -42,12 +42,14 @@ class _EmployeeSettingPageV2State extends ConsumerState<EmployeeSettingPageV2>
   late Animation<double> _filterAnimation;
   late Animation<double> _cardAnimation;
 
+  bool _isFirstBuild = true;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _scrollController.addListener(_onScroll);
-    
+
     // Initialize animation controllers
     _filterAnimationController = AnimationController(
       duration: TossAnimations.normal,
@@ -57,7 +59,7 @@ class _EmployeeSettingPageV2State extends ConsumerState<EmployeeSettingPageV2>
       duration: TossAnimations.medium,
       vsync: this,
     );
-    
+
     _filterAnimation = CurvedAnimation(
       parent: _filterAnimationController,
       curve: TossAnimations.standard,
@@ -66,20 +68,46 @@ class _EmployeeSettingPageV2State extends ConsumerState<EmployeeSettingPageV2>
       parent: _cardAnimationController,
       curve: TossAnimations.standard,
     );
-    
+
     // Start animations
     _filterAnimationController.forward();
     _cardAnimationController.forward();
-    
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    // Refresh data every time the page becomes visible
+    if (_isFirstBuild) {
+      _isFirstBuild = false;
+    }
+
     // Reset loading states and refresh data on page entry
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(isUpdatingSalaryProvider.notifier).state = false;
       ref.read(isSyncingProvider.notifier).state = false;
 
+      // Reset all filters
+      ref.read(selectedRoleFilterProvider.notifier).state = null;
+      ref.read(selectedDepartmentFilterProvider.notifier).state = null;
+      ref.read(selectedSalaryTypeFilterProvider.notifier).state = null;
+
+      // Reset search query
+      ref.read(employeeSearchQueryProvider.notifier).state = '';
+      _searchController.clear();
+
+      // Reset sort to default (name, ascending)
+      ref.read(employeeSortOptionProvider.notifier).state = 'name';
+      ref.read(employeeSortDirectionProvider.notifier).state = true;
+
       // Invalidate providers to force fresh data load from database
       ref.invalidate(employeeSalaryListProvider);
       ref.invalidate(currencyTypesProvider);
       ref.invalidate(rolesProvider);
+
+      // Also clear mutable employee list to force reload
+      ref.read(mutableEmployeeListProvider.notifier).state = null;
     });
   }
 
@@ -146,13 +174,18 @@ class _EmployeeSettingPageV2State extends ConsumerState<EmployeeSettingPageV2>
     final employeesAsync = ref.watch(filteredEmployeesProvider);
     final searchQuery = ref.watch(employeeSearchQueryProvider);
 
-    return TossScaffold(
-      backgroundColor: TossColors.gray100,
-      appBar: TossAppBar1(
-        title: 'Team Management',
+    return GestureDetector(
+      onTap: () {
+        // Dismiss keyboard when tapping outside text field
+        FocusScope.of(context).unfocus();
+      },
+      child: TossScaffold(
         backgroundColor: TossColors.gray100,
-      ),
-      body: RefreshIndicator(
+        appBar: TossAppBar1(
+          title: 'Team Management',
+          backgroundColor: TossColors.gray100,
+        ),
+        body: RefreshIndicator(
         onRefresh: _handleRefresh,
         color: TossColors.primary,
         child: employeesAsync.when(
@@ -228,7 +261,8 @@ class _EmployeeSettingPageV2State extends ConsumerState<EmployeeSettingPageV2>
           ),
         ),
         ),
-      );
+      ),
+    );
   }
   
   void _showEmployeeDetails(EmployeeSalary employee) {

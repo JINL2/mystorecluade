@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:myfinance_improved/features/homepage/presentation/providers/store_providers.dart';
-import 'package:myfinance_improved/features/homepage/presentation/providers/store_state.dart';
+import 'package:myfinance_improved/features/homepage/presentation/providers/states/store_state.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
@@ -79,80 +79,87 @@ class _CreateStoreSheetState extends ConsumerState<CreateStoreSheet> {
   Widget build(BuildContext context) {
     // Listen to store state changes
     ref.listen<StoreState>(storeNotifierProvider, (previous, next) {
-      if (next is StoreLoading) {
-        // Show loading snackbar
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Row(
-              children: [
-                SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+      next.when(
+        initial: () {
+          // Do nothing
+        },
+        loading: () {
+          // Show loading snackbar
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Row(
+                children: [
+                  SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                    ),
                   ),
-                ),
-                SizedBox(width: 12),
-                Text('Creating store...'),
-              ],
+                  SizedBox(width: 12),
+                  Text('Creating store...'),
+                ],
+              ),
+              backgroundColor: Theme.of(context).colorScheme.primary,
+              duration: const Duration(seconds: 30),
             ),
-            backgroundColor: Theme.of(context).colorScheme.primary,
-            duration: const Duration(seconds: 30),
-          ),
-        );
-      } else if (next is StoreError) {
-        // Hide loading, show error
-        ScaffoldMessenger.of(context).hideCurrentSnackBar();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                const Icon(Icons.error_outline, color: Colors.white),
-                const SizedBox(width: 12),
-                Expanded(child: Text(next.message)),
-              ],
+          );
+        },
+        error: (message, errorCode) {
+          // Hide loading, show error
+          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                  const Icon(Icons.error_outline, color: Colors.white),
+                  const SizedBox(width: 12),
+                  Expanded(child: Text(message)),
+                ],
+              ),
+              backgroundColor: Colors.red,
+              duration: const Duration(seconds: 4),
+              action: SnackBarAction(
+                label: 'Retry',
+                textColor: Colors.white,
+                onPressed: _createStore,
+              ),
             ),
-            backgroundColor: Colors.red,
-            duration: const Duration(seconds: 4),
-            action: SnackBarAction(
-              label: 'Retry',
-              textColor: Colors.white,
-              onPressed: _createStore,
-            ),
-          ),
-        );
-      } else if (next is StoreCreated) {
-        // Hide loading
-        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+          );
+        },
+        created: (store) {
+          // Hide loading
+          ScaffoldMessenger.of(context).hideCurrentSnackBar();
 
-        // Close bottom sheet and return store
-        Navigator.of(context).pop(next.store);
+          // Close bottom sheet and return store
+          Navigator.of(context).pop(store);
 
-        // Show success message
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                const Icon(Icons.check_circle_outline, color: Colors.white),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text('Store "${next.store.name}" created successfully!'),
-                ),
-              ],
+          // Show success message
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                  const Icon(Icons.check_circle_outline, color: Colors.white),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text('Store "${store.name}" created successfully!'),
+                  ),
+                ],
+              ),
+              backgroundColor: Colors.green,
+              duration: const Duration(seconds: 3),
+              action: store.code.isNotEmpty
+                  ? SnackBarAction(
+                      label: 'Share Code',
+                      textColor: Colors.white,
+                      onPressed: () => _copyToClipboard(store.code),
+                    )
+                  : null,
             ),
-            backgroundColor: Colors.green,
-            duration: const Duration(seconds: 3),
-            action: next.store.code.isNotEmpty
-                ? SnackBarAction(
-                    label: 'Share Code',
-                    textColor: Colors.white,
-                    onPressed: () => _copyToClipboard(next.store.code),
-                  )
-                : null,
-          ),
-        );
-      }
+          );
+        },
+      );
     });
 
     final state = ref.watch(storeNotifierProvider);
@@ -316,8 +323,11 @@ class _CreateStoreSheetState extends ConsumerState<CreateStoreSheet> {
                       width: double.infinity,
                       child: TossPrimaryButton(
                         text: 'Create Store',
-                        onPressed: _isFormValid && state is! StoreLoading
-                            ? _createStore
+                        onPressed: _isFormValid
+                            ? state.maybeWhen(
+                                loading: () => null,
+                                orElse: () => _createStore,
+                              )
                             : null,
                       ),
                     ),

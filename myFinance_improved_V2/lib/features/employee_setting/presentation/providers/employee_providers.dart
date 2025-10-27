@@ -52,7 +52,7 @@ final roleRepositoryProvider = Provider<RoleRepository>((ref) {
 // ============================================================================
 
 /// Employee Salary List Provider
-final employeeSalaryListProvider = FutureProvider<List<EmployeeSalary>>((ref) async {
+final employeeSalaryListProvider = FutureProvider.autoDispose<List<EmployeeSalary>>((ref) async {
   try {
     final repository = ref.read(employeeRepositoryProvider);
     final appState = ref.watch(appStateProvider);
@@ -70,7 +70,7 @@ final employeeSalaryListProvider = FutureProvider<List<EmployeeSalary>>((ref) as
 });
 
 /// Currency Types Provider
-final currencyTypesProvider = FutureProvider<List<CurrencyType>>((ref) async {
+final currencyTypesProvider = FutureProvider.autoDispose<List<CurrencyType>>((ref) async {
   try {
     final repository = ref.read(employeeRepositoryProvider);
     return await repository.getCurrencyTypes();
@@ -119,7 +119,7 @@ final selectedEmployeeProvider = StateProvider<EmployeeSalary?>((ref) => null);
 // Filtered and Sorted Employees Provider
 // ============================================================================
 
-final filteredEmployeesProvider = Provider<AsyncValue<List<EmployeeSalary>>>((ref) {
+final filteredEmployeesProvider = Provider.autoDispose<AsyncValue<List<EmployeeSalary>>>((ref) {
   final searchQuery = ref.watch(employeeSearchQueryProvider);
   final sortOption = ref.watch(employeeSortOptionProvider);
   final sortAscending = ref.watch(employeeSortDirectionProvider);
@@ -219,7 +219,7 @@ final salaryUpdatesStreamProvider = StreamProvider<List<EmployeeSalary>>((ref) {
 // Roles Providers
 // ============================================================================
 
-final rolesProvider = FutureProvider<List<Role>>((ref) async {
+final rolesProvider = FutureProvider.autoDispose<List<Role>>((ref) async {
   try {
     final repository = ref.read(roleRepositoryProvider);
     final appState = ref.watch(appStateProvider);

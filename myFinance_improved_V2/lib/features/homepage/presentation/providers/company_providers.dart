@@ -8,7 +8,7 @@ import 'package:myfinance_improved/features/homepage/domain/usecases/get_company
 import 'package:myfinance_improved/features/homepage/domain/usecases/get_currencies.dart';
 import 'package:myfinance_improved/features/homepage/domain/entities/company_type.dart';
 import 'package:myfinance_improved/features/homepage/domain/entities/currency.dart';
-import 'package:myfinance_improved/features/homepage/presentation/providers/company_state.dart';
+import 'package:myfinance_improved/features/homepage/presentation/providers/states/company_state.dart';
 import 'package:myfinance_improved/features/homepage/presentation/providers/company_notifier.dart';
 
 /// Supabase client provider

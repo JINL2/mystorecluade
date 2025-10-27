@@ -7,6 +7,7 @@ import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_animations.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
+import 'package:myfinance_improved/shared/widgets/common/toss_success_error_dialog.dart';
 import '../../domain/entities/denomination.dart';
 import '../providers/denomination_providers.dart';
 import '../providers/currency_providers.dart';
@@ -197,11 +198,13 @@ class DenominationGrid extends ConsumerWidget {
       
       // Show success message after successful deletion
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('${denomination.formattedValue} denomination removed successfully!'),
-            backgroundColor: TossColors.success,
-            duration: const Duration(seconds: 2),
+        await showDialog<bool>(
+          context: context,
+          barrierDismissible: true,
+          builder: (context) => TossDialog.success(
+            title: 'Success',
+            message: '${denomination.formattedValue} denomination removed successfully!',
+            primaryButtonText: 'OK',
           ),
         );
       }
@@ -215,11 +218,13 @@ class DenominationGrid extends ConsumerWidget {
       
       // Show error message
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to remove denomination: ${e.toString().replaceAll('Exception: ', '')}'),
-            backgroundColor: TossColors.error,
-            duration: const Duration(seconds: 3),
+        await showDialog<bool>(
+          context: context,
+          barrierDismissible: true,
+          builder: (context) => TossDialog.error(
+            title: 'Error',
+            message: 'Failed to remove denomination: ${e.toString().replaceAll('Exception: ', '')}',
+            primaryButtonText: 'OK',
           ),
         );
       }

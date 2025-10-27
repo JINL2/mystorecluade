@@ -7,6 +7,7 @@ import 'package:myfinance_improved/shared/themes/toss_animations.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_loading_view.dart';
+import 'package:myfinance_improved/shared/widgets/common/toss_success_error_dialog.dart';
 import 'package:myfinance_improved/shared/widgets/toss/keyboard/toss_numberpad_modal.dart';
 import 'package:myfinance_improved/app/providers/app_state_provider.dart';
 import '../../domain/entities/currency.dart';
@@ -267,13 +268,16 @@ class _AddDenominationBottomSheetState extends ConsumerState<AddDenominationBott
 
   void _addDenomination() async {
     if (_amountController.text.isEmpty) return;
-    
+
     final amount = double.tryParse(_amountController.text);
     if (amount == null || amount <= 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please enter a valid amount'),
-          backgroundColor: TossColors.error,
+      await showDialog<bool>(
+        context: context,
+        barrierDismissible: true,
+        builder: (context) => TossDialog.error(
+          title: 'Invalid Amount',
+          message: 'Please enter a valid amount',
+          primaryButtonText: 'OK',
         ),
       );
       return;
@@ -292,12 +296,15 @@ class _AddDenominationBottomSheetState extends ConsumerState<AddDenominationBott
     // Close bottom sheet immediately for better UX
     if (mounted) {
       Navigator.of(context).pop();
-      
+
       // Show immediate success message (optimistic)
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('$displayValue ${selectedType.name} added successfully!'),
-          backgroundColor: TossColors.success,
+      await showDialog<bool>(
+        context: context,
+        barrierDismissible: true,
+        builder: (context) => TossDialog.success(
+          title: 'Success',
+          message: '$displayValue ${selectedType.name} added successfully!',
+          primaryButtonText: 'OK',
         ),
       );
     }
@@ -326,10 +333,13 @@ class _AddDenominationBottomSheetState extends ConsumerState<AddDenominationBott
       
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to add denomination: $e. Change reverted.'),
-            backgroundColor: TossColors.error,
+        await showDialog<bool>(
+          context: context,
+          barrierDismissible: true,
+          builder: (context) => TossDialog.error(
+            title: 'Error',
+            message: 'Failed to add denomination: $e. Change reverted.',
+            primaryButtonText: 'OK',
           ),
         );
       }

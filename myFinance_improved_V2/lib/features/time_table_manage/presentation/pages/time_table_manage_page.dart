@@ -274,6 +274,10 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
                       await fetchManagerOverview(forDate: date);
                       await fetchManagerCards(forDate: date);
                     },
+                    onMonthChanged: (month) async {
+                      await fetchManagerOverview(forDate: month);
+                      await fetchManagerCards(forDate: month);
+                    },
                     onCardTap: _showShiftDetailsBottomSheet,
                     getMonthName: _getMonthName,
                   ),

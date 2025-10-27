@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 // Shared - Widgets
 import 'package:myfinance_improved/shared/widgets/toss/toss_card.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_loading_view.dart';
+import 'package:myfinance_improved/shared/widgets/common/toss_success_error_dialog.dart';
 
 // Shared - Themes
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
@@ -358,10 +359,13 @@ class CurrencyOverviewCard extends ConsumerWidget {
     final companyId = appState.companyChoosen;
     
     if (companyId.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('No company selected'),
-          backgroundColor: TossColors.error,
+      await showDialog<bool>(
+        context: context,
+        barrierDismissible: true,
+        builder: (context) => TossDialog.error(
+          title: 'Error',
+          message: 'No company selected',
+          primaryButtonText: 'OK',
         ),
       );
       return;
@@ -527,10 +531,13 @@ class CurrencyOverviewCard extends ConsumerWidget {
       
     } catch (e) {
       // Show error if check fails
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to check currency status: $e'),
-          backgroundColor: TossColors.error,
+      await showDialog<bool>(
+        context: context,
+        barrierDismissible: true,
+        builder: (context) => TossDialog.error(
+          title: 'Error',
+          message: 'Failed to check currency status: $e',
+          primaryButtonText: 'OK',
         ),
       );
     }
@@ -596,11 +603,13 @@ class CurrencyOverviewCard extends ConsumerWidget {
       
       // Show success message only after successful removal
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('${currency.code} currency removed successfully!'),
-            backgroundColor: TossColors.success,
-            duration: const Duration(seconds: 2),
+        await showDialog<bool>(
+          context: context,
+          barrierDismissible: true,
+          builder: (context) => TossDialog.success(
+            title: 'Success',
+            message: '${currency.code} currency removed successfully!',
+            primaryButtonText: 'OK',
           ),
         );
       }
@@ -624,12 +633,14 @@ class CurrencyOverviewCard extends ConsumerWidget {
       }
       
       if (context.mounted) {
-        // Show snackbar for errors
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(errorMessage),
-            backgroundColor: TossColors.error,
-            duration: const Duration(seconds: 3),
+        // Show dialog for errors
+        await showDialog<bool>(
+          context: context,
+          barrierDismissible: true,
+          builder: (context) => TossDialog.error(
+            title: 'Error',
+            message: errorMessage,
+            primaryButtonText: 'OK',
           ),
         );
       }

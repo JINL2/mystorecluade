@@ -12,6 +12,7 @@ import '../../../../../shared/themes/toss_shadows.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../../shared/widgets/common/toss_loading_view.dart';
+import '../../../../../shared/widgets/common/toss_success_error_dialog.dart';
 import '../../../domain/entities/shift_overview.dart';
 import '../../modals/calendar_bottom_sheet.dart';
 import '../../providers/attendance_provider.dart';
@@ -3093,10 +3094,13 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                                 if (shiftRequestId == null) {
                                   // Show error if no shift request ID
                                   if (mounted) {
-                                    ScaffoldMessenger.of(rootContext).showSnackBar(
-                                      SnackBar(
-                                        content: Text('Unable to report issue: Missing shift ID'),
-                                        backgroundColor: TossColors.error,
+                                    await showDialog<bool>(
+                                      context: rootContext,
+                                      barrierDismissible: true,
+                                      builder: (context) => TossDialog.error(
+                                        title: 'Unable to Report Issue',
+                                        message: 'Missing shift ID',
+                                        primaryButtonText: 'OK',
                                       ),
                                     );
                                   }
@@ -3451,10 +3455,13 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                                 : () async {
                                     final reason = reasonController.text.trim();
                                     if (reason.isEmpty) {
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        SnackBar(
-                                          content: Text('Please enter a reason'),
-                                          backgroundColor: TossColors.error,
+                                      await showDialog<bool>(
+                                        context: context,
+                                        barrierDismissible: true,
+                                        builder: (context) => TossDialog.error(
+                                          title: 'Validation Error',
+                                          message: 'Please enter a reason',
+                                          primaryButtonText: 'OK',
                                         ),
                                       );
                                       return;

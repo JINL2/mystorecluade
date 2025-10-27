@@ -4,7 +4,7 @@ import 'package:myfinance_improved/features/homepage/data/datasources/store_remo
 import 'package:myfinance_improved/features/homepage/data/repositories/store_repository_impl.dart';
 import 'package:myfinance_improved/features/homepage/domain/repositories/store_repository.dart';
 import 'package:myfinance_improved/features/homepage/domain/usecases/create_store.dart';
-import 'package:myfinance_improved/features/homepage/presentation/providers/store_state.dart';
+import 'package:myfinance_improved/features/homepage/presentation/providers/states/store_state.dart';
 import 'package:myfinance_improved/features/homepage/presentation/providers/store_notifier.dart';
 
 /// Store Remote Data Source provider

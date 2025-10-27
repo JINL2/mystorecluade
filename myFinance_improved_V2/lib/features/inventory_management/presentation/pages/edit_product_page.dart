@@ -9,6 +9,7 @@ import '../../../../app/providers/app_state_provider.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import '../../../../shared/widgets/common/toss_scaffold.dart';
+import '../../../../shared/widgets/common/toss_success_error_dialog.dart';
 import '../../../../shared/widgets/toss/toss_selection_bottom_sheet.dart';
 import '../../data/repositories/repository_providers.dart';
 import '../../domain/entities/inventory_metadata.dart';
@@ -123,8 +124,14 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to pick images: $e')),
+        await showDialog<bool>(
+          context: context,
+          barrierDismissible: true,
+          builder: (context) => TossDialog.error(
+            title: 'Image Selection Failed',
+            message: 'Failed to pick images: $e',
+            primaryButtonText: 'OK',
+          ),
         );
       }
     }
@@ -152,8 +159,14 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
     final storeId = appState.storeChoosen as String?;
 
     if (companyId == null || storeId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Company or store not selected')),
+      await showDialog<bool>(
+        context: context,
+        barrierDismissible: true,
+        builder: (context) => TossDialog.error(
+          title: 'Validation Error',
+          message: 'Company or store not selected',
+          primaryButtonText: 'OK',
+        ),
       );
       return;
     }
@@ -194,24 +207,42 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
         // Refresh the inventory list
         ref.read(inventoryPageProvider.notifier).refresh();
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Product updated successfully'),
-            backgroundColor: TossColors.success,
+        if (!context.mounted) return;
+        await showDialog<bool>(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => TossDialog.success(
+            title: 'Product Updated',
+            message: 'Product updated successfully',
+            primaryButtonText: 'OK',
           ),
         );
 
         // Navigate back
-        context.pop();
+        if (mounted) {
+          context.pop();
+        }
       } else if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to update product')),
+        await showDialog<bool>(
+          context: context,
+          barrierDismissible: true,
+          builder: (context) => TossDialog.error(
+            title: 'Update Failed',
+            message: 'Failed to update product',
+            primaryButtonText: 'OK',
+          ),
         );
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
+        await showDialog<bool>(
+          context: context,
+          barrierDismissible: true,
+          builder: (context) => TossDialog.error(
+            title: 'Error',
+            message: 'Error: $e',
+            primaryButtonText: 'OK',
+          ),
         );
       }
     } finally {
@@ -1258,9 +1289,14 @@ class _CategoryCreationDialogState
 
                           if (companyId == null) {
                             if (!context.mounted) return;
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                  content: Text('Company not selected')),
+                            await showDialog<bool>(
+                              context: context,
+                              barrierDismissible: true,
+                              builder: (context) => TossDialog.error(
+                                title: 'Validation Error',
+                                message: 'Company not selected',
+                                primaryButtonText: 'OK',
+                              ),
                             );
                             setState(() {
                               _isCreating = false;
@@ -1291,15 +1327,25 @@ class _CategoryCreationDialogState
                             Navigator.of(context).pop();
 
                             // Show success message
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                  content: Text('Category "$name" created')),
+                            await showDialog<bool>(
+                              context: context,
+                              barrierDismissible: false,
+                              builder: (context) => TossDialog.success(
+                                title: 'Category Created',
+                                message: 'Category "$name" created',
+                                primaryButtonText: 'OK',
+                              ),
                             );
                           } else {
                             if (!context.mounted) return;
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                  content: Text('Failed to create category')),
+                            await showDialog<bool>(
+                              context: context,
+                              barrierDismissible: true,
+                              builder: (context) => TossDialog.error(
+                                title: 'Creation Failed',
+                                message: 'Failed to create category',
+                                primaryButtonText: 'OK',
+                              ),
                             );
                             setState(() {
                               _isCreating = false;
@@ -1307,8 +1353,14 @@ class _CategoryCreationDialogState
                           }
                         } catch (e) {
                           if (!context.mounted) return;
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Error: $e')),
+                          await showDialog<bool>(
+                            context: context,
+                            barrierDismissible: true,
+                            builder: (context) => TossDialog.error(
+                              title: 'Error',
+                              message: 'Error: $e',
+                              primaryButtonText: 'OK',
+                            ),
                           );
                           setState(() {
                             _isCreating = false;
@@ -1495,9 +1547,14 @@ class _BrandCreationDialogState extends ConsumerState<_BrandCreationDialog> {
 
                           if (companyId == null) {
                             if (!context.mounted) return;
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                  content: Text('Company not selected')),
+                            await showDialog<bool>(
+                              context: context,
+                              barrierDismissible: true,
+                              builder: (context) => TossDialog.error(
+                                title: 'Validation Error',
+                                message: 'Company not selected',
+                                primaryButtonText: 'OK',
+                              ),
                             );
                             setState(() {
                               _isCreating = false;
@@ -1528,14 +1585,25 @@ class _BrandCreationDialogState extends ConsumerState<_BrandCreationDialog> {
                             Navigator.of(context).pop();
 
                             // Show success message
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Brand "$name" created')),
+                            await showDialog<bool>(
+                              context: context,
+                              barrierDismissible: false,
+                              builder: (context) => TossDialog.success(
+                                title: 'Brand Created',
+                                message: 'Brand "$name" created',
+                                primaryButtonText: 'OK',
+                              ),
                             );
                           } else {
                             if (!context.mounted) return;
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                  content: Text('Failed to create brand')),
+                            await showDialog<bool>(
+                              context: context,
+                              barrierDismissible: true,
+                              builder: (context) => TossDialog.error(
+                                title: 'Creation Failed',
+                                message: 'Failed to create brand',
+                                primaryButtonText: 'OK',
+                              ),
                             );
                             setState(() {
                               _isCreating = false;
@@ -1543,8 +1611,14 @@ class _BrandCreationDialogState extends ConsumerState<_BrandCreationDialog> {
                           }
                         } catch (e) {
                           if (!context.mounted) return;
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Error: $e')),
+                          await showDialog<bool>(
+                            context: context,
+                            barrierDismissible: true,
+                            builder: (context) => TossDialog.error(
+                              title: 'Error',
+                              message: 'Error: $e',
+                              primaryButtonText: 'OK',
+                            ),
                           );
                           setState(() {
                             _isCreating = false;

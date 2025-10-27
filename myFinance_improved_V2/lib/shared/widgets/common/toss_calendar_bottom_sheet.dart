@@ -26,6 +26,7 @@ class TossCalendarBottomSheet {
   /// [onDateSelected] - Callback when date is selected (required)
   /// [onMonthChanged] - Optional callback when month changes (for data loading)
   /// [dateIndicators] - Map of date string (yyyy-MM-dd) to indicator type
+  /// [onGetIndicators] - Optional callback to dynamically get indicators for a specific month
   /// [enableHaptic] - Enable haptic feedback on selection (defaults to true)
   /// [showTodayIndicator] - Show special indicator for today (defaults to true)
   static Future<DateTime?> show({
@@ -36,6 +37,7 @@ class TossCalendarBottomSheet {
     required Future<void> Function(DateTime date) onDateSelected,
     Future<void> Function(DateTime month)? onMonthChanged,
     Map<String, TossCalendarIndicatorType>? dateIndicators,
+    Map<String, TossCalendarIndicatorType> Function(DateTime month)? onGetIndicators,
     bool enableHaptic = true,
     bool showTodayIndicator = true,
   }) async {
@@ -55,6 +57,7 @@ class TossCalendarBottomSheet {
         },
         onMonthChanged: onMonthChanged,
         dateIndicators: dateIndicators ?? {},
+        onGetIndicators: onGetIndicators,
         enableHaptic: enableHaptic,
         showTodayIndicator: showTodayIndicator,
       ),
@@ -71,6 +74,7 @@ class _TossCalendarBottomSheetContent extends StatefulWidget {
   final Future<void> Function(DateTime date) onDateSelected;
   final Future<void> Function(DateTime month)? onMonthChanged;
   final Map<String, TossCalendarIndicatorType> dateIndicators;
+  final Map<String, TossCalendarIndicatorType> Function(DateTime month)? onGetIndicators;
   final bool enableHaptic;
   final bool showTodayIndicator;
 
@@ -81,6 +85,7 @@ class _TossCalendarBottomSheetContent extends StatefulWidget {
     required this.onDateSelected,
     this.onMonthChanged,
     required this.dateIndicators,
+    this.onGetIndicators,
     required this.enableHaptic,
     required this.showTodayIndicator,
   });
@@ -92,12 +97,14 @@ class _TossCalendarBottomSheetContent extends StatefulWidget {
 class _TossCalendarBottomSheetContentState extends State<_TossCalendarBottomSheetContent> {
   late DateTime _displayMonth;
   late DateTime _selectedDate;
+  late Map<String, TossCalendarIndicatorType> _currentIndicators;
 
   @override
   void initState() {
     super.initState();
     _displayMonth = widget.displayMonth;
     _selectedDate = widget.initialDate;
+    _currentIndicators = widget.onGetIndicators?.call(_displayMonth) ?? widget.dateIndicators;
   }
 
   String _getMonthName(int month) {
@@ -117,9 +124,12 @@ class _TossCalendarBottomSheetContentState extends State<_TossCalendarBottomShee
     // Call onMonthChanged callback if provided
     if (widget.onMonthChanged != null) {
       await widget.onMonthChanged!(newMonth);
-      // Force refresh to show updated indicators
-      setState(() {});
     }
+
+    // Update indicators for the new month
+    setState(() {
+      _currentIndicators = widget.onGetIndicators?.call(newMonth) ?? widget.dateIndicators;
+    });
   }
 
   Color _getIndicatorColor(TossCalendarIndicatorType type) {
@@ -181,7 +191,7 @@ class _TossCalendarBottomSheetContentState extends State<_TossCalendarBottomShee
                       date.month == today.month &&
                       date.year == today.year;
 
-      final indicatorType = widget.dateIndicators[dateStr] ?? TossCalendarIndicatorType.none;
+      final indicatorType = _currentIndicators[dateStr] ?? TossCalendarIndicatorType.none;
 
       calendarDays.add(
         InkWell(

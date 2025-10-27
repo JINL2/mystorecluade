@@ -1,10 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:myfinance_improved/features/homepage/domain/usecases/create_company.dart';
-import 'package:myfinance_improved/features/homepage/presentation/providers/company_state.dart';
+import 'package:myfinance_improved/features/homepage/presentation/providers/states/company_state.dart';
 
 /// StateNotifier for managing Company creation state
 class CompanyNotifier extends StateNotifier<CompanyState> {
-  CompanyNotifier(this._createCompany) : super(const CompanyInitial());
+  CompanyNotifier(this._createCompany) : super(const CompanyState.initial());
 
   final CreateCompany _createCompany;
 
@@ -19,7 +19,7 @@ class CompanyNotifier extends StateNotifier<CompanyState> {
     print('🔵 [CompanyNotifier] companyTypeId: $companyTypeId');
     print('🔵 [CompanyNotifier] baseCurrencyId: $baseCurrencyId');
 
-    state = const CompanyLoading();
+    state = const CompanyState.loading();
     print('🔵 [CompanyNotifier] State set to CompanyLoading');
 
     final result = await _createCompany(CreateCompanyParams(
@@ -32,17 +32,17 @@ class CompanyNotifier extends StateNotifier<CompanyState> {
     result.fold(
       (failure) {
         print('🔴 [CompanyNotifier] Error: ${failure.message}');
-        state = CompanyError(failure.message, failure.code);
+        state = CompanyState.error(failure.message, failure.code);
       },
       (company) {
         print('✅ [CompanyNotifier] Success: Company created with ID ${company.id}');
-        state = CompanyCreated(company);
+        state = CompanyState.created(company);
       },
     );
   }
 
   /// Reset state to initial
   void reset() {
-    state = const CompanyInitial();
+    state = const CompanyState.initial();
   }
 }

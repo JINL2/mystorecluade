@@ -9,6 +9,7 @@ import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import '../../../../shared/widgets/common/toss_loading_view.dart';
 import '../../../../shared/widgets/common/toss_scaffold.dart';
+import '../../../../shared/widgets/common/toss_success_error_dialog.dart';
 import '../../../../shared/widgets/toss/toss_selection_bottom_sheet.dart';
 import '../../domain/entities/fixed_asset.dart';
 import '../providers/fixed_asset_providers.dart';
@@ -262,12 +263,27 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
       final success = await ref.read(fixedAssetProvider.notifier).deleteAsset(assetId);
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(success ? 'Asset deleted successfully' : 'Failed to delete asset'),
-            backgroundColor: success ? TossColors.success : TossColors.error,
-          ),
-        );
+        if (success) {
+          await showDialog<bool>(
+            context: context,
+            barrierDismissible: false,
+            builder: (context) => TossDialog.success(
+              title: 'Asset Deleted',
+              message: 'Asset deleted successfully',
+              primaryButtonText: 'OK',
+            ),
+          );
+        } else {
+          await showDialog<bool>(
+            context: context,
+            barrierDismissible: true,
+            builder: (context) => TossDialog.error(
+              title: 'Delete Failed',
+              message: 'Failed to delete asset',
+              primaryButtonText: 'OK',
+            ),
+          );
+        }
       }
     }
   }
@@ -300,37 +316,36 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
 
             if (mounted && success) {
               Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: const Row(
-                    children: [
-                      Icon(Icons.check_circle, color: TossColors.white, size: 20),
-                      SizedBox(width: TossSpacing.space3),
-                      Text('Asset added successfully'),
-                    ],
-                  ),
-                  backgroundColor: TossColors.success,
-                  behavior: SnackBarBehavior.floating,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-                  ),
+              await showDialog<bool>(
+                context: context,
+                barrierDismissible: false,
+                builder: (context) => TossDialog.success(
+                  title: 'Asset Added',
+                  message: 'Asset added successfully',
+                  primaryButtonText: 'OK',
                 ),
               );
             } else if (mounted && !success) {
               final errorMsg = ref.read(fixedAssetProvider).errorMessage ?? 'Unknown error';
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('Failed to add asset: $errorMsg'),
-                  backgroundColor: TossColors.error,
+              await showDialog<bool>(
+                context: context,
+                barrierDismissible: true,
+                builder: (context) => TossDialog.error(
+                  title: 'Failed to Add Asset',
+                  message: errorMsg,
+                  primaryButtonText: 'OK',
                 ),
               );
             }
           } catch (e) {
             if (mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('Failed to add asset: $e'),
-                  backgroundColor: TossColors.error,
+              await showDialog<bool>(
+                context: context,
+                barrierDismissible: true,
+                builder: (context) => TossDialog.error(
+                  title: 'Failed to Add Asset',
+                  message: e.toString(),
+                  primaryButtonText: 'OK',
                 ),
               );
             }
@@ -357,31 +372,36 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
 
             if (mounted && success) {
               Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: const Text('Asset updated successfully'),
-                  backgroundColor: TossColors.success,
-                  behavior: SnackBarBehavior.floating,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-                  ),
+              await showDialog<bool>(
+                context: context,
+                barrierDismissible: false,
+                builder: (context) => TossDialog.success(
+                  title: 'Asset Updated',
+                  message: 'Asset updated successfully',
+                  primaryButtonText: 'OK',
                 ),
               );
             } else if (mounted && !success) {
               final errorMsg = ref.read(fixedAssetProvider).errorMessage ?? 'Unknown error';
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('Failed to update asset: $errorMsg'),
-                  backgroundColor: TossColors.error,
+              await showDialog<bool>(
+                context: context,
+                barrierDismissible: true,
+                builder: (context) => TossDialog.error(
+                  title: 'Failed to Update Asset',
+                  message: errorMsg,
+                  primaryButtonText: 'OK',
                 ),
               );
             }
           } catch (e) {
             if (mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('Failed to update asset: $e'),
-                  backgroundColor: TossColors.error,
+              await showDialog<bool>(
+                context: context,
+                barrierDismissible: true,
+                builder: (context) => TossDialog.error(
+                  title: 'Failed to Update Asset',
+                  message: e.toString(),
+                  primaryButtonText: 'OK',
                 ),
               );
             }

@@ -10,6 +10,7 @@ import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../../shared/widgets/common/toss_loading_view.dart';
+import '../../../../../shared/widgets/common/toss_success_error_dialog.dart';
 import '../../../domain/entities/shift_data.dart';
 import '../../providers/attendance_provider.dart';
 
@@ -1058,10 +1059,13 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
                               }
                             } catch (e) {
                               if (mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text('Failed to register shift: ${e.toString()}'),
-                                    backgroundColor: TossColors.error,
+                                await showDialog<bool>(
+                                  context: context,
+                                  barrierDismissible: true,
+                                  builder: (context) => TossDialog.error(
+                                    title: 'Registration Failed',
+                                    message: 'Failed to register shift: ${e.toString()}',
+                                    primaryButtonText: 'OK',
                                   ),
                                 );
                               }

@@ -33,14 +33,13 @@ class ScheduleApproveButton extends StatelessWidget {
     HapticFeedback.mediumImpact();
 
     if (userId.isEmpty || selectedShiftRequestIds.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Error: Missing user ID or shift request ID'),
-          backgroundColor: TossColors.error,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(TossBorderRadius.md),
-          ),
+      await showDialog<bool>(
+        context: context,
+        barrierDismissible: true,
+        builder: (context) => TossDialog.error(
+          title: 'Error',
+          message: 'Missing user ID or shift request ID',
+          primaryButtonText: 'OK',
         ),
       );
       return;
@@ -82,14 +81,13 @@ class ScheduleApproveButton extends StatelessWidget {
       onSuccess();
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: ${e.toString()}'),
-            backgroundColor: TossColors.error,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(TossBorderRadius.md),
-            ),
+        await showDialog<bool>(
+          context: context,
+          barrierDismissible: true,
+          builder: (context) => TossDialog.error(
+            title: 'Error',
+            message: e.toString(),
+            primaryButtonText: 'OK',
           ),
         );
       }

@@ -12,6 +12,7 @@ import 'package:myfinance_improved/shared/widgets/common/toss_loading_view.dart'
 import 'package:myfinance_improved/shared/widgets/toss/modal_keyboard_patterns.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_enhanced_text_field.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_modal.dart';
+import 'package:myfinance_improved/shared/widgets/common/toss_success_error_dialog.dart';
 import '../providers/role_providers.dart';
 
 class RoleManagementSheet extends ConsumerStatefulWidget {
@@ -1235,24 +1236,33 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
       // Update role permissions
       final updatePermissions = ref.read(updateRolePermissionsProvider);
       await updatePermissions(widget.roleId, _selectedPermissions);
-      
+
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Role updated successfully'),
-            backgroundColor: TossColors.success,
-            behavior: SnackBarBehavior.floating,
+        Navigator.pop(context);
+
+        // Show success dialog
+        await showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => TossDialog.success(
+            title: 'Role Updated Successfully!',
+            message: 'Role permissions have been updated',
+            primaryButtonText: 'Done',
+            onPrimaryPressed: () => Navigator.of(context).pop(),
           ),
         );
-        Navigator.pop(context);
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to update role: $e'),
-            backgroundColor: TossColors.error,
-            behavior: SnackBarBehavior.floating,
+        // Show error dialog
+        await showDialog(
+          context: context,
+          barrierDismissible: true,
+          builder: (context) => TossDialog.error(
+            title: 'Failed to Update Role',
+            message: 'Could not update role permissions: $e',
+            primaryButtonText: 'OK',
+            onPrimaryPressed: () => Navigator.of(context).pop(),
           ),
         );
       }
@@ -1869,30 +1879,38 @@ class _AddMemberBottomSheetState extends ConsumerState<_AddMemberBottomSheet> {
 
       if (mounted) {
         Navigator.pop(context);
-        
+
         // Reactive state management: invalidate providers for cross-screen updates
         ref.invalidate(companyUsersProvider); // Refresh user roles in Add Member modal
         ref.invalidate(allCompanyRolesProvider); // Refresh role member counts
-        
+
         // Update local role assignments to reflect the change immediately
         _userRoleAssignments[_selectedUserId!] = widget.roleId;
-        
+
         widget.onMemberAdded();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Member added to ${widget.roleName} successfully'),
-            backgroundColor: TossColors.success,
-            behavior: SnackBarBehavior.floating,
+
+        // Show success dialog
+        await showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => TossDialog.success(
+            title: 'Member Added Successfully!',
+            message: 'Member has been added to ${widget.roleName}',
+            primaryButtonText: 'Done',
+            onPrimaryPressed: () => Navigator.of(context).pop(),
           ),
         );
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to add member: $e'),
-            backgroundColor: TossColors.error,
-            behavior: SnackBarBehavior.floating,
+        await showDialog(
+          context: context,
+          barrierDismissible: true,
+          builder: (context) => TossDialog.error(
+            title: 'Failed to Add Member',
+            message: 'Could not add member to role: $e',
+            primaryButtonText: 'OK',
+            onPrimaryPressed: () => Navigator.of(context).pop(),
           ),
         );
       }
@@ -1967,12 +1985,18 @@ class _TagSelectionBottomSheetState extends State<_TagSelectionBottomSheet> {
         if (_selectedTags.length < TagValidator.MAX_TAGS) {
           _selectedTags.add(tag);
         } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Maximum ${TagValidator.MAX_TAGS} tags allowed'),
-              backgroundColor: TossColors.warning,
+          // Show warning dialog
+          showDialog(
+            context: context,
+            barrierDismissible: true,
+            builder: (context) => TossDialog.error(
+              title: 'Maximum Tags Reached',
+              message: 'You can only add up to ${TagValidator.MAX_TAGS} tags',
+              primaryButtonText: 'OK',
+              onPrimaryPressed: () => Navigator.of(context).pop(),
             ),
           );
+          return;
         }
       }
     });

@@ -1,10 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:myfinance_improved/features/homepage/domain/usecases/create_store.dart';
-import 'package:myfinance_improved/features/homepage/presentation/providers/store_state.dart';
+import 'package:myfinance_improved/features/homepage/presentation/providers/states/store_state.dart';
 
 /// StateNotifier for managing Store creation state
 class StoreNotifier extends StateNotifier<StoreState> {
-  StoreNotifier(this._createStore) : super(const StoreInitial());
+  StoreNotifier(this._createStore) : super(const StoreState.initial());
 
   final CreateStore _createStore;
 
@@ -18,7 +18,7 @@ class StoreNotifier extends StateNotifier<StoreState> {
     int? paymentTime,
     int? allowedDistance,
   }) async {
-    state = const StoreLoading();
+    state = const StoreState.loading();
 
     final result = await _createStore(CreateStoreParams(
       storeName: storeName,
@@ -31,13 +31,13 @@ class StoreNotifier extends StateNotifier<StoreState> {
     ));
 
     result.fold(
-      (failure) => state = StoreError(failure.message, failure.code),
-      (store) => state = StoreCreated(store),
+      (failure) => state = StoreState.error(failure.message, failure.code),
+      (store) => state = StoreState.created(store),
     );
   }
 
   /// Reset state to initial
   void reset() {
-    state = const StoreInitial();
+    state = const StoreState.initial();
   }
 }

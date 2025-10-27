@@ -20,6 +20,7 @@ import 'package:myfinance_improved/shared/widgets/toss/toss_secondary_button.dar
 import 'package:myfinance_improved/shared/widgets/toss/toss_text_field.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_dropdown.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_loading_view.dart';
+import 'package:myfinance_improved/shared/widgets/common/toss_success_error_dialog.dart';
 import 'package:myfinance_improved/shared/themes/toss_design_system.dart';
 import 'package:myfinance_improved/shared/themes/toss_shadows.dart';
 import '../widgets/common/store_selector.dart';
@@ -789,13 +790,16 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
     final validationResult = _getValidationResult();
 
     if (!validationResult.isValid) {
-      // Show first error in snackbar
+      // Show first error in dialog
       if (mounted && validationResult.firstError != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(validationResult.firstError!),
-            backgroundColor: TossColors.error,
-            duration: Duration(seconds: 3),
+        showDialog(
+          context: context,
+          barrierDismissible: true,
+          builder: (context) => TossDialog.error(
+            title: 'Validation Error',
+            message: validationResult.firstError!,
+            primaryButtonText: 'OK',
+            onPrimaryPressed: () => Navigator.of(context).pop(),
           ),
         );
       }
@@ -818,17 +822,14 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
 
       // 5. Success feedback
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                Icon(Icons.check_circle, color: TossColors.white),
-                SizedBox(width: TossSpacing.space2),
-                Text('Transaction created successfully'),
-              ],
-            ),
-            backgroundColor: TossColors.success,
-            duration: Duration(seconds: 2),
+        await showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => TossDialog.success(
+            title: 'Transaction Created!',
+            message: 'Transaction created successfully',
+            primaryButtonText: 'Done',
+            onPrimaryPressed: () => Navigator.of(context).pop(),
           ),
         );
 
@@ -839,24 +840,14 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
     } catch (e, stackTrace) {
       // 6. Error feedback
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                Icon(Icons.error, color: TossColors.white),
-                SizedBox(width: TossSpacing.space2),
-                Expanded(
-                  child: Text('Failed to create transaction: ${e.toString()}'),
-                ),
-              ],
-            ),
-            backgroundColor: TossColors.error,
-            duration: Duration(seconds: 4),
-            action: SnackBarAction(
-              label: 'Retry',
-              textColor: TossColors.white,
-              onPressed: () => _handleSubmit(),
-            ),
+        showDialog(
+          context: context,
+          barrierDismissible: true,
+          builder: (context) => TossDialog.error(
+            title: 'Transaction Failed',
+            message: 'Failed to create transaction: ${e.toString()}',
+            primaryButtonText: 'OK',
+            onPrimaryPressed: () => Navigator.of(context).pop(),
           ),
         );
       }

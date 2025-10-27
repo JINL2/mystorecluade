@@ -11,6 +11,7 @@ import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_loading_view.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_scaffold.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_confirm_cancel_dialog.dart';
+import 'package:myfinance_improved/shared/widgets/common/toss_success_error_dialog.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../providers/user_profile_providers.dart';
@@ -204,10 +205,14 @@ class _MyPageState extends ConsumerState<MyPage> with TickerProviderStateMixin {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to pick image: $e'),
-            backgroundColor: TossColors.error,
+        await showDialog(
+          context: context,
+          barrierDismissible: true,
+          builder: (context) => TossDialog.error(
+            title: 'Image Selection Failed',
+            message: 'Failed to pick image: $e',
+            primaryButtonText: 'OK',
+            onPrimaryPressed: () => Navigator.of(context).pop(),
           ),
         );
       }
@@ -266,18 +271,15 @@ class _MyPageState extends ConsumerState<MyPage> with TickerProviderStateMixin {
         // Refresh profile
         ref.invalidate(currentUserProfileProvider);
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                const Icon(Icons.check_circle, color: TossColors.white, size: 20),
-                SizedBox(width: TossSpacing.space2),
-                const Text('Profile picture updated successfully'),
-              ],
-            ),
-            backgroundColor: TossColors.success,
-            behavior: SnackBarBehavior.floating,
-            duration: const Duration(seconds: 2),
+        // Show success dialog
+        await showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => TossDialog.success(
+            title: 'Profile Picture Updated!',
+            message: 'Your profile picture has been updated successfully',
+            primaryButtonText: 'Done',
+            onPrimaryPressed: () => Navigator.of(context).pop(),
           ),
         );
 
@@ -299,17 +301,15 @@ class _MyPageState extends ConsumerState<MyPage> with TickerProviderStateMixin {
 
         Navigator.pop(context); // Close loading dialog
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                const Icon(Icons.error_outline, color: TossColors.white, size: 20),
-                SizedBox(width: TossSpacing.space2),
-                Expanded(child: Text(e.toString())),
-              ],
-            ),
-            backgroundColor: TossColors.error,
-            behavior: SnackBarBehavior.floating,
+        // Show error dialog
+        await showDialog(
+          context: context,
+          barrierDismissible: true,
+          builder: (context) => TossDialog.error(
+            title: 'Upload Failed',
+            message: 'Failed to upload profile picture: ${e.toString()}',
+            primaryButtonText: 'OK',
+            onPrimaryPressed: () => Navigator.of(context).pop(),
           ),
         );
       }
@@ -341,20 +341,31 @@ class _MyPageState extends ConsumerState<MyPage> with TickerProviderStateMixin {
         // Refresh profile
         ref.invalidate(currentUserProfileProvider);
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Profile picture removed'),
-            backgroundColor: TossColors.success,
+        // Show success dialog
+        await showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => TossDialog.success(
+            title: 'Profile Picture Removed!',
+            message: 'Your profile picture has been removed successfully',
+            primaryButtonText: 'Done',
+            onPrimaryPressed: () => Navigator.of(context).pop(),
           ),
         );
       }
     } catch (e) {
       if (mounted) {
         Navigator.pop(context); // Close loading dialog
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(e.toString()),
-            backgroundColor: TossColors.error,
+
+        // Show error dialog
+        await showDialog(
+          context: context,
+          barrierDismissible: true,
+          builder: (context) => TossDialog.error(
+            title: 'Remove Failed',
+            message: 'Failed to remove profile picture: ${e.toString()}',
+            primaryButtonText: 'OK',
+            onPrimaryPressed: () => Navigator.of(context).pop(),
           ),
         );
       }
@@ -400,10 +411,14 @@ class _MyPageState extends ConsumerState<MyPage> with TickerProviderStateMixin {
         }
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Error signing out: $e'),
-              backgroundColor: TossColors.error,
+          await showDialog(
+            context: context,
+            barrierDismissible: true,
+            builder: (context) => TossDialog.error(
+              title: 'Sign Out Failed',
+              message: 'Failed to sign out: $e',
+              primaryButtonText: 'OK',
+              onPrimaryPressed: () => Navigator.of(context).pop(),
             ),
           );
         }
