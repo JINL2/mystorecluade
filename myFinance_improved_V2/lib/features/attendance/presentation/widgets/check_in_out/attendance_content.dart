@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../../app/providers/app_state_provider.dart';
 import '../../../../../app/providers/auth_providers.dart';
+import '../../../../../core/utils/datetime_utils.dart';
 import '../../../../../shared/themes/toss_animations.dart';
 import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
@@ -1423,8 +1424,8 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                 checkInTime = '${timeParts[0].padLeft(2, '0')}:${timeParts[1].padLeft(2, '0')}';
               }
             } else {
-              // It's a full datetime string (already converted to local time by datasource)
-              final startTime = DateTime.parse(actualStart.toString());
+              // It's a full datetime string (UTC from DB - convert to local time)
+              final startTime = DateTimeUtils.toLocal(actualStart.toString());
               checkInTime = '${startTime.hour.toString().padLeft(2, '0')}:${startTime.minute.toString().padLeft(2, '0')}';
             }
           } catch (e) {
@@ -1441,8 +1442,8 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                 checkOutTime = '${timeParts[0].padLeft(2, '0')}:${timeParts[1].padLeft(2, '0')}';
               }
             } else {
-              // It's a full datetime string (already converted to local time by datasource)
-              final endTime = DateTime.parse(actualEnd.toString());
+              // It's a full datetime string (UTC from DB - convert to local time)
+              final endTime = DateTimeUtils.toLocal(actualEnd.toString());
               checkOutTime = '${endTime.hour.toString().padLeft(2, '0')}:${endTime.minute.toString().padLeft(2, '0')}';
             }
             
@@ -1452,10 +1453,10 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                 // Parse the request_date and combine with times to get full DateTime
                 final baseDate = date;
                 
-                // Parse start time (already converted to local time by datasource)
+                // Parse start time (UTC from DB - convert to local time)
                 DateTime startDateTime;
                 if (actualStart.toString().contains('T')) {
-                  startDateTime = DateTime.parse(actualStart.toString());
+                  startDateTime = DateTimeUtils.toLocal(actualStart.toString());
                 } else {
                   final startParts = actualStart.toString().split(':');
                   startDateTime = DateTime(
@@ -1467,10 +1468,10 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                   );
                 }
                 
-                // Parse end time (already converted to local time by datasource)
+                // Parse end time (UTC from DB - convert to local time)
                 DateTime endDateTime;
                 if (actualEnd.toString().contains('T')) {
-                  endDateTime = DateTime.parse(actualEnd.toString());
+                  endDateTime = DateTimeUtils.toLocal(actualEnd.toString());
                 } else {
                   final endParts = actualEnd.toString().split(':');
                   endDateTime = DateTime(
@@ -3284,29 +3285,30 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
     if (time == null || time.toString().isEmpty) {
       return '--:--';
     }
-    
+
     final timeStr = time.toString();
-    
+
     try {
-      // If it's already in HH:mm format
-      if (timeStr.contains(':') && !timeStr.contains('T')) {
+      // If it's already in HH:mm format (just time, no date)
+      if (timeStr.contains(':') && !timeStr.contains('T') && timeStr.length < 10) {
         final parts = timeStr.split(':');
         if (parts.length >= 2) {
           return '${parts[0].padLeft(2, '0')}:${parts[1].padLeft(2, '0')}';
         }
       }
-      
-      // If it's a datetime string (already converted to local time by datasource)
+
+      // If it's a datetime string (UTC from DB - need to convert to local time)
       if (timeStr.contains('T') || timeStr.length > 10) {
-        final dateTime = DateTime.parse(timeStr);
+        // Convert UTC to local time using DateTimeUtils
+        final dateTime = DateTimeUtils.toLocal(timeStr);
         return '${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
       }
-      
+
       // If it's just HH:mm:ss format, take first 5 chars
       if (timeStr.length >= 5) {
         return timeStr.substring(0, 5);
       }
-      
+
       return timeStr;
     } catch (e) {
       // If all parsing fails, try to extract HH:mm from the string

@@ -12,6 +12,7 @@ import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import '../../../../shared/widgets/common/toss_loading_view.dart';
 import '../../../../shared/widgets/common/toss_scaffold.dart';
+import '../../../../shared/widgets/common/toss_success_error_dialog.dart';
 import '../../domain/entities/attendance_location.dart';
 import '../providers/attendance_provider.dart';
 class QRScannerPage extends ConsumerStatefulWidget {
@@ -28,6 +29,7 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
   );
   bool isProcessing = false;
   bool hasScanned = false; // Add flag to prevent multiple scans
+  bool isShowingDialog = false; // Add flag to prevent multiple dialogs
 
   @override
   void dispose() {
@@ -40,7 +42,7 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
       // Check if location services are enabled
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
-        _showErrorDialog('Location services are disabled. Please enable location services.');
+        await _showErrorDialog('Location services are disabled. Please enable location services.');
         return null;
       }
 
@@ -49,101 +51,68 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
         if (permission == LocationPermission.denied) {
-          _showErrorDialog('Location permissions are denied. Please allow location access.');
+          await _showErrorDialog('Location permissions are denied. Please allow location access.');
           return null;
         }
       }
 
       if (permission == LocationPermission.deniedForever) {
-        _showErrorDialog('Location permissions are permanently denied. Please enable in settings.');
+        await _showErrorDialog('Location permissions are permanently denied. Please enable in settings.');
         return null;
       }
 
       // Get current location
       return await Geolocator.getCurrentPosition();
     } catch (e) {
-      _showErrorDialog('Error getting location: $e');
+      await _showErrorDialog('Error getting location: $e');
       return null;
     }
   }
 
-  void _showErrorDialog(String message) {
-    showDialog(
+  Future<void> _showErrorDialog(String message) async {
+    // Prevent showing multiple dialogs at once
+    if (isShowingDialog) return;
+
+    setState(() {
+      isShowingDialog = true;
+    });
+
+    await showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        title: const Text('Error'),
-        content: Text(message),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('OK'),
-          ),
-        ],
+      builder: (context) => TossDialog.error(
+        title: 'Error',
+        message: message,
+        primaryButtonText: 'OK',
+        onPrimaryPressed: () {
+          Navigator.of(context).pop(); // Close dialog
+          Navigator.of(context).pop(); // Return to attendance page
+        },
+        dismissible: false,
       ),
     );
+
+    // After dialog is closed, user should be back at attendance page
+    // No need to reset flags or restart camera
   }
   
   void _showSuccessDialog(String message, Map<String, dynamic> resultData) {
+    // Show TossDialog.success with auto-dismiss
     showDialog(
       context: context,
       barrierDismissible: false,
-      barrierColor: TossColors.black.withOpacity(0.7),
-      builder: (context) => Center(
-        child: Container(
-          margin: const EdgeInsets.symmetric(horizontal: 40),
-          padding: const EdgeInsets.all(TossSpacing.space6),
-          decoration: BoxDecoration(
-            color: TossColors.white,
-            borderRadius: BorderRadius.circular(TossBorderRadius.xl),
-            boxShadow: [
-              BoxShadow(
-                color: TossColors.black.withOpacity(0.1),
-                blurRadius: 20,
-                offset: const Offset(0, 10),
-              ),
-            ],
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Success Icon
-              Container(
-                width: 64,
-                height: 64,
-                decoration: BoxDecoration(
-                  color: TossColors.success.withOpacity(0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.check_circle,
-                  color: TossColors.success,
-                  size: 40,
-                ),
-              ),
-              const SizedBox(height: TossSpacing.space4),
-              // Success Message
-              Text(
-                message,
-                style: TossTextStyles.h3.copyWith(
-                  fontWeight: FontWeight.w700,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: TossSpacing.space2),
-              Text(
-                DateTimeUtils.format(DateTime.now()),
-                style: TossTextStyles.body.copyWith(
-                  color: TossColors.gray500,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
-        ),
+      builder: (context) => TossDialog.success(
+        title: message,
+        subtitle: DateTimeUtils.format(DateTime.now()),
+        primaryButtonText: 'OK',
+        onPrimaryPressed: () {
+          Navigator.of(context).pop(); // Close dialog
+          Navigator.of(context).pop(resultData); // Return to previous screen with result data
+        },
+        dismissible: false,
       ),
     );
-    
+
     // Auto close after 2 seconds and return to previous screen with result data
     Future.delayed(const Duration(seconds: 2), () {
       if (mounted) {
@@ -189,23 +158,17 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
               // Get current location
               final Position? position = await _getCurrentLocation();
               if (position == null) {
-                setState(() {
-                  isProcessing = false;
-                });
+                // Error dialog already shown in _getCurrentLocation
+                // User will be returned to attendance page
                 return;
               }
-              
+
               // Process attendance
               final authStateAsync = ref.read(authStateProvider);
               final user = authStateAsync.value;
               if (user == null) {
-                _showErrorDialog('User not authenticated');
-                setState(() {
-                  isProcessing = false;
-                  hasScanned = false;
-                });
-                // Restart camera on error
-                await cameraController.start();
+                await _showErrorDialog('User not authenticated');
+                // User will be returned to attendance page
                 return;
               }
               final userId = user.id;
@@ -248,16 +211,19 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
                   throw Exception('Failed to update shift request. Please try again.');
                 }
 
-                // Verify that actual DB modification occurred
-                // If no shift exists, RPC returns status but no actual_start_time/actual_end_time
-                final hasActualData = result.containsKey('actual_start_time') ||
-                                     result.containsKey('actual_end_time') ||
-                                     result.containsKey('shift_request_id');
-
-                if (!hasActualData) {
-                  // RPC returned status but didn't actually modify any records
-                  throw Exception('No shift found for today or previous day. Please contact your manager.');
+                // Check if RPC explicitly indicates failure
+                // The datasource returns {'success': true/false} for various cases
+                if (result.containsKey('success') && result['success'] == false) {
+                  final errorMsg = result['message'] ?? result['error'] ?? 'Failed to update shift request';
+                  throw Exception(errorMsg);
                 }
+
+                // If RPC returns success or contains actual data, consider it successful
+                // RPC may return:
+                // 1. {'success': true, 'action': 'check_in', ...} - successful operation
+                // 2. {'actual_start_time': ..., 'actual_end_time': ..., ...} - actual data
+                // 3. {'shift_request_id': ..., ...} - shift data
+                // All of these indicate success
 
                 // NO RPC REFRESH - Just pass the result back to update local state
                 // The attendance main page will handle local state updates
@@ -272,20 +238,23 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
 
                   // Check various possible response formats from the RPC
                   // The RPC might return different formats depending on the action
-                  {
-                    // Check for action field
-                    final action = result['action']?.toString().toLowerCase() ?? '';
-                    final type = result['type']?.toString().toLowerCase() ?? '';
-                    final status = result['status']?.toString().toLowerCase() ?? '';
-                    final checkinTime = result['actual_start_time'];
-                    final checkoutTime = result['actual_end_time'];
+                  final action = result['action']?.toString().toLowerCase() ?? '';
+                  final type = result['type']?.toString().toLowerCase() ?? '';
+                  final status = result['status']?.toString().toLowerCase() ?? '';
+                  final checkinTime = result['actual_start_time'];
+                  final checkoutTime = result['actual_end_time'];
 
-                    if (action.contains('out') || type.contains('out') ||
-                        status.contains('out') || checkoutTime != null) {
-                      message = 'Check-out Successful';
-                    } else if (checkinTime != null && checkoutTime == null) {
-                      message = 'Check-in Successful';
-                    }
+                  // Determine action based on available fields
+                  if (action.contains('out') || type.contains('out') || status.contains('out')) {
+                    message = 'Check-out Successful';
+                  } else if (action.contains('in') || type.contains('in') || status.contains('in')) {
+                    message = 'Check-in Successful';
+                  } else if (checkoutTime != null) {
+                    // If checkout time exists in result, it was a checkout
+                    message = 'Check-out Successful';
+                  } else {
+                    // Default to check-in (most common case)
+                    message = 'Check-in Successful';
                   }
                   
                   // Prepare data to pass back to attendance page
@@ -301,14 +270,9 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
                   _showSuccessDialog(message, checkInOutData);
                 }
               } catch (e) {
-                _showErrorDialog('Failed to process QR code: ${e.toString()}');
-                
-                // Reset state and restart camera on error
-                setState(() {
-                  isProcessing = false;
-                  hasScanned = false;
-                });
-                await cameraController.start();
+                // Show error and return to attendance page
+                await _showErrorDialog('Failed to process QR code: ${e.toString()}');
+                // No need to reset state or restart camera - user will be back at attendance page
               }
             },
           ),
