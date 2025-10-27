@@ -12,42 +12,35 @@ class AttendanceDatasource {
 
   AttendanceDatasource(this._supabase);
 
-  /// Convert UTC datetime fields to local time in a Map
+  /// Process data from database - keeps UTC strings as-is
   ///
-  /// Only converts fields that represent actual events (timestamps):
-  /// - actual_start_time, actual_end_time (실제 근무 시간)
+  /// **중요:** UTC 문자열을 그대로 유지합니다!
+  /// 변환은 Model 레이어에서 수행됩니다:
+  /// - ShiftRequestModel.fromJson()에서 DateTimeUtils.toLocal() 사용
+  /// - attendance_content.dart의 _formatTime()에서 DateTimeUtils.toLocal() 사용
+  ///
+  /// 이렇게 하면:
+  /// 1. 데이터 일관성 유지 (항상 UTC 문자열로 저장)
+  /// 2. 중복 변환 방지
+  /// 3. 타임존 정보 손실 방지
+  ///
+  /// Datetime 필드:
+  /// - actual_start_time, actual_end_time (실제 QR 스캔 시간)
   /// - confirm_start_time, confirm_end_time (관리자 확정 시간)
   /// - created_at, updated_at (레코드 생성/수정 시각)
   /// - report_time (문제 신고 시각)
   ///
-  /// Does NOT convert schedule times (these are time-of-day only):
-  /// - scheduled_start_time, scheduled_end_time (예정된 근무 시간 - HH:mm:ss)
-  /// - shift_start_time, shift_end_time (시프트 시간 - HH:mm:ss)
-  /// - plan_start_time, plan_end_time (계획된 시간 - HH:mm:ss)
+  /// Time-only 필드 (변환 불필요):
+  /// - scheduled_start_time, scheduled_end_time (HH:mm:ss)
+  /// - shift_start_time, shift_end_time (HH:mm:ss)
   Map<String, dynamic> _convertToLocalTime(Map<String, dynamic> data) {
     final result = Map<String, dynamic>.from(data);
 
-    // List of datetime fields to convert (actual events only)
-    const timeFields = [
-      'actual_start_time',      // 실제 출근 시각 (QR 스캔)
-      'actual_end_time',        // 실제 퇴근 시각 (QR 스캔)
-      'confirm_start_time',     // 관리자 확정 출근 시각
-      'confirm_end_time',       // 관리자 확정 퇴근 시각
-      'created_at',             // 레코드 생성 시각
-      'updated_at',             // 레코드 수정 시각
-      'report_time',            // 문제 신고 시각
-    ];
+    // Keep UTC strings as-is
+    // Conversion will be done in Model layer (ShiftRequestModel.fromJson)
+    // This prevents double conversion and maintains data consistency
 
-    for (final field in timeFields) {
-      if (result[field] != null && result[field] is String) {
-        final localTime = DateTimeUtils.toLocalSafe(result[field] as String);
-        if (localTime != null) {
-          result[field] = localTime.toIso8601String();
-        }
-      }
-    }
-
-    // If there's nested store_shifts data, convert it too
+    // If there's nested store_shifts data, process it too
     if (result['store_shifts'] is Map<String, dynamic>) {
       result['store_shifts'] = _convertToLocalTime(result['store_shifts'] as Map<String, dynamic>);
     }

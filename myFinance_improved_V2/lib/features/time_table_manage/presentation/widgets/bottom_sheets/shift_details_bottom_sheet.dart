@@ -58,9 +58,10 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<ShiftDetailsBottomShee
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
-    // Initialize with confirmed times
-    editedStartTime = widget.card['confirm_start_time'];
-    editedEndTime = widget.card['confirm_end_time'];
+    // Initialize with confirmed times - convert UTC to local time for display
+    final requestDate = widget.card['request_date'] as String?;
+    editedStartTime = _formatTime(widget.card['confirm_start_time'], requestDate);
+    editedEndTime = _formatTime(widget.card['confirm_end_time'], requestDate);
     // Store original values
     originalStartTime = editedStartTime;
     originalEndTime = editedEndTime;
@@ -1125,11 +1126,11 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<ShiftDetailsBottomShee
                                     ),
                                     const SizedBox(height: TossSpacing.space2),
                                     Text(
-                                      card['confirm_start_time'] ?? '--:--',
+                                      _formatTime(card['confirm_start_time'], card['request_date']),
                                       style: TossTextStyles.display.copyWith(
                                         fontWeight: FontWeight.w700,
-                                        color: card['confirm_start_time'] != null 
-                                          ? TossColors.gray900 
+                                        color: card['confirm_start_time'] != null
+                                          ? TossColors.gray900
                                           : TossColors.gray400,
                                         fontFamily: 'JetBrains Mono',
                                       ),
@@ -1156,11 +1157,11 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<ShiftDetailsBottomShee
                                     ),
                                     const SizedBox(height: TossSpacing.space2),
                                     Text(
-                                      card['confirm_end_time'] ?? '--:--',
+                                      _formatTime(card['confirm_end_time'], card['request_date']),
                                       style: TossTextStyles.display.copyWith(
                                         fontWeight: FontWeight.w700,
-                                        color: card['confirm_end_time'] != null 
-                                          ? TossColors.gray900 
+                                        color: card['confirm_end_time'] != null
+                                          ? TossColors.gray900
                                           : TossColors.gray400,
                                         fontFamily: 'JetBrains Mono',
                                       ),
@@ -1276,7 +1277,7 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<ShiftDetailsBottomShee
                           const SizedBox(height: TossSpacing.space3),
                           _buildDetailRow('Store', card['store_name'] ?? 'N/A'),
                           _buildDetailRow('Shift Type', card['shift_name'] ?? 'N/A'),
-                          _buildDetailRow('Scheduled Time', card['shift_time'] ?? 'N/A'),
+                          _buildDetailRow('Scheduled Time', _formatShiftTime(card['shift_time'], card['request_date'])),
                         ],
                       ),
                     ),
@@ -1301,8 +1302,8 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<ShiftDetailsBottomShee
                             ),
                           ),
                           const SizedBox(height: TossSpacing.space3),
-                          _buildDetailRow('Actual Check-in', card['actual_start'] ?? 'Not checked in'),
-                          _buildDetailRow('Actual Check-out', card['actual_end'] ?? 'Not checked out'),
+                          _buildDetailRow('Actual Check-in', _formatTime(card['actual_start'], card['request_date']) != '--:--' ? _formatTime(card['actual_start'], card['request_date']) : 'Not checked in'),
+                          _buildDetailRow('Actual Check-out', _formatTime(card['actual_end'], card['request_date']) != '--:--' ? _formatTime(card['actual_end'], card['request_date']) : 'Not checked out'),
                         ],
                       ),
                     ),
@@ -2632,6 +2633,54 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<ShiftDetailsBottomShee
   String _formatTimeOfDay(TimeOfDay time) {
     return '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
   }
-  
+
+  /// Convert time string from UTC to local time
+  /// Input: "14:56" or "14:56:00" (UTC), requestDate: "2025-10-27"
+  /// Output: "21:56" (Local time, Vietnam = UTC+7)
+  String _formatTime(String? time, String? requestDate) {
+    if (time == null || time.isEmpty || time == '--:--' || requestDate == null) {
+      return time ?? '--:--';
+    }
+
+    try {
+      // Combine date + time and treat as UTC
+      final utcTimestamp = '${requestDate}T$time${time.contains(':') && time.split(':').length == 2 ? ':00' : ''}Z';
+      final dateTime = DateTimeUtils.toLocal(utcTimestamp);
+      return '${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
+    } catch (e) {
+      return time;
+    }
+  }
+
+  /// Convert shift time string from UTC to local time
+  /// Input: "14:56-17:56" or "14:56 ~ 17:56" (UTC), requestDate: "2025-10-27"
+  /// Output: "21:56-00:56" (Local time, Vietnam = UTC+7)
+  String _formatShiftTime(String? shiftTime, String? requestDate) {
+    if (shiftTime == null || shiftTime.isEmpty || shiftTime == '--:--' || shiftTime == 'N/A' || requestDate == null) {
+      return shiftTime ?? 'N/A';
+    }
+
+    try {
+      // Parse shift time format: "14:56-17:56" or "14:56 ~ 17:56"
+      final separator = shiftTime.contains('~') ? '~' : '-';
+      final parts = shiftTime.split(separator).map((e) => e.trim()).toList();
+
+      if (parts.length != 2) {
+        return shiftTime;
+      }
+
+      final startTime = parts[0].trim();
+      final endTime = parts[1].trim();
+
+      // Convert each time from UTC to local
+      final localStartTime = _formatTime(startTime, requestDate);
+      final localEndTime = _formatTime(endTime, requestDate);
+
+      return '$localStartTime$separator$localEndTime';
+    } catch (e) {
+      return shiftTime;
+    }
+  }
+
   // Build stat card widget
 }
