@@ -87,7 +87,7 @@ class TransactionDetailSheet extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                DateFormat('MMMM d, yyyy • HH:mm').format(transaction.entryDate),
+                DateFormat('MMMM d, yyyy • HH:mm').format(transaction.createdAt),
                 style: TossTextStyles.caption.copyWith(
                   color: TossColors.gray500,
                 ),

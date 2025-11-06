@@ -1,0 +1,305 @@
+/**
+ * TossButton Component Styles
+ * Based on Toss Design System
+ */
+
+/* Base button styles */
+.tossButton {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-family);
+  font-weight: 600;
+  line-height: 1.5;
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: middle;
+  user-select: none;
+  border: 1px solid transparent;
+  border-radius: var(--border-radius-md);
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  overflow: hidden;
+  text-decoration: none;
+  outline: none;
+}
+
+.tossButton:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(0, 100, 255, 0.15);
+}
+
+/* Size variants */
+.size-sm {
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--font-size-sm);
+  min-height: 32px;
+}
+
+.size-md {
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--font-size-base);
+  min-height: 40px;
+}
+
+.size-lg {
+  padding: var(--space-4) var(--space-6);
+  font-size: var(--font-size-lg);
+  min-height: 48px;
+}
+
+.size-xl {
+  padding: var(--space-5) var(--space-8);
+  font-size: var(--font-size-xl);
+  min-height: 56px;
+}
+
+/* Full width */
+.fullWidth {
+  width: 100%;
+  display: flex;
+}
+
+/* Variant styles */
+.variant-primary {
+  background-color: var(--toss-primary);
+  color: var(--toss-text-inverse);
+  border-color: var(--toss-primary);
+}
+
+.variant-primary:hover:not(:disabled) {
+  background-color: var(--toss-primary-dark);
+  border-color: var(--toss-primary-dark);
+}
+
+.variant-primary:active:not(:disabled) {
+  background-color: var(--toss-primary-darker);
+  border-color: var(--toss-primary-darker);
+}
+
+.variant-secondary {
+  background-color: var(--toss-secondary);
+  color: var(--toss-text-primary);
+  border-color: var(--toss-secondary);
+}
+
+.variant-secondary:hover:not(:disabled) {
+  background-color: var(--toss-secondary-dark);
+  border-color: var(--toss-secondary-dark);
+}
+
+.variant-outline {
+  background-color: transparent;
+  color: var(--toss-primary);
+  border-color: var(--toss-border);
+}
+
+.variant-outline:hover:not(:disabled) {
+  background-color: var(--toss-bg-secondary);
+  border-color: var(--toss-primary);
+}
+
+.variant-ghost {
+  background-color: transparent;
+  color: var(--toss-text-primary);
+  border-color: transparent;
+}
+
+.variant-ghost:hover:not(:disabled) {
+  background-color: var(--toss-bg-secondary);
+}
+
+.variant-text {
+  background-color: transparent;
+  color: var(--toss-primary);
+  border-color: transparent;
+  padding-left: var(--space-2);
+  padding-right: var(--space-2);
+}
+
+.variant-text:hover:not(:disabled) {
+  background-color: var(--toss-bg-secondary);
+}
+
+.variant-success {
+  background-color: var(--toss-success);
+  color: var(--toss-text-inverse);
+  border-color: var(--toss-success);
+}
+
+.variant-success:hover:not(:disabled) {
+  background-color: var(--toss-success-dark);
+  border-color: var(--toss-success-dark);
+}
+
+.variant-error {
+  background-color: var(--toss-error);
+  color: var(--toss-text-inverse);
+  border-color: var(--toss-error);
+}
+
+.variant-error:hover:not(:disabled) {
+  background-color: var(--toss-error-dark);
+  border-color: var(--toss-error-dark);
+}
+
+.variant-warning {
+  background-color: var(--toss-warning);
+  color: var(--toss-text-primary);
+  border-color: var(--toss-warning);
+}
+
+.variant-warning:hover:not(:disabled) {
+  background-color: var(--toss-warning-dark);
+  border-color: var(--toss-warning-dark);
+}
+
+.variant-info {
+  background-color: var(--toss-info);
+  color: var(--toss-text-inverse);
+  border-color: var(--toss-info);
+}
+
+.variant-info:hover:not(:disabled) {
+  background-color: var(--toss-info-dark);
+  border-color: var(--toss-info-dark);
+}
+
+/* Disabled state */
+.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* Loading state */
+.loading {
+  cursor: wait;
+  position: relative;
+}
+
+/* Content wrapper */
+.content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  position: relative;
+  z-index: 1;
+}
+
+.label {
+  display: inline-block;
+}
+
+/* Icon styles */
+.iconLeft,
+.iconRight {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.iconLeft {
+  margin-right: calc(var(--space-1) * -1);
+}
+
+.iconRight {
+  margin-left: calc(var(--space-1) * -1);
+}
+
+/* Loading spinner */
+.spinner {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.spinnerSvg {
+  width: 1em;
+  height: 1em;
+  animation: spin 0.8s linear infinite;
+}
+
+.spinnerCircle {
+  stroke: currentColor;
+  stroke-dasharray: 50;
+  stroke-dashoffset: 25;
+  stroke-linecap: round;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Ripple effect */
+.rippleContainer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow: hidden;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+.ripple {
+  position: absolute;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.5);
+  transform: translate(-50%, -50%) scale(0);
+  animation: rippleEffect 0.6s ease-out;
+  pointer-events: none;
+  width: 20px;
+  height: 20px;
+}
+
+@keyframes rippleEffect {
+  0% {
+    transform: translate(-50%, -50%) scale(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(20);
+    opacity: 0;
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .tossButton {
+    font-size: var(--font-size-sm);
+  }
+
+  .size-lg,
+  .size-xl {
+    padding: var(--space-3) var(--space-5);
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .variant-outline {
+    border-color: var(--toss-border-dark);
+  }
+
+  .variant-outline:hover:not(:disabled) {
+    background-color: var(--toss-bg-tertiary);
+  }
+
+  .variant-ghost:hover:not(:disabled) {
+    background-color: var(--toss-bg-tertiary);
+  }
+
+  .variant-text:hover:not(:disabled) {
+    background-color: var(--toss-bg-tertiary);
+  }
+}

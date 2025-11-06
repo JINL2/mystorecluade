@@ -1,0 +1,112 @@
+/**
+ * OverviewCard Component Styles
+ */
+
+.card {
+  background: var(--color-white);
+  border-radius: 16px;
+  padding: 24px;
+  border: 1px solid var(--color-gray-200);
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.card:hover {
+  border-color: var(--color-blue-300);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+/* Header */
+.header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.iconWrapper {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: var(--color-blue-50);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-blue-600);
+  flex-shrink: 0;
+}
+
+.title {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-gray-600);
+}
+
+/* Value */
+.value {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--color-gray-900);
+  line-height: 1.2;
+}
+
+/* Change Indicator */
+.change {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.change.positive {
+  color: var(--color-green-600);
+}
+
+.change.negative {
+  color: var(--color-red-600);
+}
+
+.arrow {
+  font-size: 16px;
+}
+
+/* Loading State */
+.skeleton {
+  height: 32px;
+  background: linear-gradient(
+    90deg,
+    var(--color-gray-200) 25%,
+    var(--color-gray-100) 50%,
+    var(--color-gray-200) 75%
+  );
+  background-size: 200% 100%;
+  animation: loading 1.5s ease-in-out infinite;
+  border-radius: 8px;
+}
+
+@keyframes loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .card {
+    padding: 20px;
+  }
+
+  .value {
+    font-size: 28px;
+  }
+
+  .iconWrapper {
+    width: 36px;
+    height: 36px;
+  }
+}

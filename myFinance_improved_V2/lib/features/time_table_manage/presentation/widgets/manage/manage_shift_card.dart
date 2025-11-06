@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../../../../core/utils/datetime_utils.dart';
 import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
@@ -25,7 +26,10 @@ class ManageShiftCard extends StatelessWidget {
     final userName = card['user_name'] as String? ?? 'Unknown';
     final profileImage = card['profile_image'] as String?;
     final shiftName = card['shift_name'] as String? ?? 'Unknown Shift';
-    final shiftTime = card['shift_time'] as String? ?? '--:--';
+    final rawShiftTime = card['shift_time'] as String? ?? '--:--';
+    final requestDate = card['request_date'] as String?;
+    // Convert shift time from UTC to local time
+    final shiftTime = _formatShiftTime(rawShiftTime, requestDate);
     final isApproved = (card['is_approved'] as bool?) ?? false;
     final isProblem = (card['is_problem'] as bool?) ?? false;
     final isProblemSolved = (card['is_problem_solved'] as bool?) ?? false;
@@ -349,6 +353,54 @@ class ManageShiftCard extends StatelessWidget {
       return TossColors.success.withValues(alpha: 0.05);
     } else {
       return TossColors.warning.withValues(alpha: 0.05);
+    }
+  }
+
+  /// Convert shift time from UTC to local time
+  /// Input: "14:56-17:56" or "14:56 ~ 17:56" (UTC), requestDate: "2025-10-27"
+  /// Output: "21:56-00:56" (Local time, Vietnam = UTC+7)
+  String _formatShiftTime(String shiftTime, String? requestDate) {
+    if (shiftTime == '--:--' || requestDate == null) {
+      return shiftTime;
+    }
+
+    try {
+      // Parse shift time format: "14:56-17:56" or "14:56 ~ 17:56"
+      final separator = shiftTime.contains('~') ? '~' : '-';
+      final parts = shiftTime.split(separator).map((e) => e.trim()).toList();
+
+      if (parts.length != 2) {
+        return shiftTime;
+      }
+
+      final startTime = parts[0].trim();
+      final endTime = parts[1].trim();
+
+      // Convert each time from UTC to local
+      final localStartTime = _formatTime(startTime, requestDate);
+      final localEndTime = _formatTime(endTime, requestDate);
+
+      return '$localStartTime$separator$localEndTime';
+    } catch (e) {
+      return shiftTime;
+    }
+  }
+
+  /// Convert time string from UTC to local time
+  /// Input: "14:56" (UTC), requestDate: "2025-10-27"
+  /// Output: "21:56" (Local time, Vietnam = UTC+7)
+  String _formatTime(String time, String requestDate) {
+    if (time.isEmpty || time == '--:--') {
+      return time;
+    }
+
+    try {
+      // Combine date + time and treat as UTC
+      final utcTimestamp = '${requestDate}T$time:00Z';
+      final dateTime = DateTimeUtils.toLocal(utcTimestamp);
+      return '${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
+    } catch (e) {
+      return time;
     }
   }
 }

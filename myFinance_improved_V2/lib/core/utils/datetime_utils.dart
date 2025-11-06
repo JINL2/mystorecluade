@@ -45,20 +45,37 @@ class DateTimeUtils {
 
   /// Converts UTC string from database to local DateTime
   ///
+  /// Handles both:
+  /// - ISO 8601 with timezone: "2025-01-15T05:30:00.000Z"
+  /// - Timestamp without timezone: "2025-10-27 17:54:41.715" (treats as UTC)
+  ///
   /// Example:
   /// ```dart
-  /// final utcString = "2025-01-15T05:30:00.000Z"; // UTC from DB
-  /// final local = DateTimeUtils.toLocal(utcString);
-  /// // Korea: 2025-01-15 14:30:00 (KST +9)
-  /// // Vietnam: 2025-01-15 12:30:00 (ICT +7)
+  /// final utcString1 = "2025-01-15T05:30:00.000Z"; // ISO 8601 UTC
+  /// final utcString2 = "2025-10-27 17:54:41.715"; // timestamp without timezone
+  /// final local1 = DateTimeUtils.toLocal(utcString1);
+  /// final local2 = DateTimeUtils.toLocal(utcString2);
+  /// // Both converted to local time correctly
   /// ```
   ///
   /// Throws FormatException if string is invalid
   static DateTime toLocal(String utcString) {
+    // If string doesn't contain timezone info (no Z, +, or -), add Z to force UTC parsing
+    if (!utcString.contains('Z') &&
+        !utcString.contains('+') &&
+        !utcString.contains('-', utcString.length - 6)) {
+      // Replace space with T for ISO 8601 format, then add Z
+      final isoFormat = utcString.replaceFirst(' ', 'T');
+      return DateTime.parse('${isoFormat}Z').toLocal();
+    }
     return DateTime.parse(utcString).toLocal();
   }
 
   /// Safely converts UTC string to local DateTime (null-safe version)
+  ///
+  /// Handles both:
+  /// - ISO 8601 with timezone: "2025-01-15T05:30:00.000Z"
+  /// - Timestamp without timezone: "2025-10-27 17:54:41.715" (treats as UTC)
   ///
   /// Returns null if:
   /// - Input is null
@@ -75,7 +92,7 @@ class DateTimeUtils {
   static DateTime? toLocalSafe(String? utcString) {
     if (utcString == null || utcString.isEmpty) return null;
     try {
-      return DateTime.parse(utcString).toLocal();
+      return toLocal(utcString);
     } catch (e) {
       return null;
     }

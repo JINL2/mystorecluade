@@ -101,6 +101,11 @@ class IconMapper {
       'pen': FontAwesomeIcons.pen,
       'pencil': FontAwesomeIcons.pencil,
       'editRegular': FontAwesomeIcons.penToSquare, // Clean edit icon
+
+      // 삭제 & 액션
+      'trash': FontAwesomeIcons.trash,
+      'trashCan': FontAwesomeIcons.trashCan,
+      'trashAlt': FontAwesomeIcons.trashCan,
       
       // 위치 & 지도 - Regular versions
       'mapPin': FontAwesomeIcons.locationDot,

@@ -8,7 +8,7 @@ import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
-import '../../../../shared/widgets/common/store_selector_popup.dart';
+import '../../../../shared/widgets/toss/toss_selection_bottom_sheet.dart';
 import '../../../../shared/widgets/common/toss_app_bar_1.dart';
 import '../../../../shared/widgets/common/toss_empty_view.dart';
 import '../../../../shared/widgets/common/toss_loading_view.dart';
@@ -66,32 +66,32 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage>
     showAddShiftDialog(context, ref, appState.storeChoosen);
   }
 
+  // Extract stores from user data
+  List<dynamic> _extractStores(Map<String, dynamic> userData) {
+    if (userData.isEmpty) return [];
+
+    try {
+      final companies = userData['companies'] as List<dynamic>?;
+      if (companies == null || companies.isEmpty) return [];
+
+      final firstCompany = companies[0] as Map<String, dynamic>;
+      final stores = firstCompany['stores'] as List<dynamic>?;
+      if (stores == null) return [];
+
+      return stores;
+    } catch (e) {
+      return [];
+    }
+  }
+
   // Store Selector Widget
   Widget _buildStoreSelector(BuildContext context) {
     final appState = ref.watch(appStateProvider);
 
-    // Get selected store name
-    String storeName = 'Select Store';
-    if (appState.storeChoosen.isNotEmpty && appState.user.isNotEmpty) {
-      try {
-        final companies = appState.user['companies'] as List<dynamic>?;
-        if (companies != null && companies.isNotEmpty) {
-          final firstCompany = companies[0] as Map<String, dynamic>;
-          final stores = firstCompany['stores'] as List<dynamic>?;
-          if (stores != null) {
-            final selectedStore = stores.firstWhere(
-              (store) => store['store_id'] == appState.storeChoosen,
-              orElse: () => null,
-            );
-            if (selectedStore != null) {
-              storeName = (selectedStore['store_name'] ?? 'Select Store').toString();
-            }
-          }
-        }
-      } catch (e) {
-        // Fallback to default
-      }
-    }
+    // Get selected store name from AppState (single source of truth)
+    final storeName = appState.storeName.isNotEmpty
+        ? appState.storeName
+        : 'Select Store';
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -105,15 +105,31 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage>
         ),
         const SizedBox(height: TossSpacing.space2),
         InkWell(
-          onTap: () {
-            StoreSelectorPopup.show(
-              context,
-              onStoreSelected: (storeId, storeName) {
-                ref.read(appStateProvider.notifier).selectStore(storeId, storeName: storeName);
-                Navigator.pop(context);
+          onTap: () async {
+            // Extract stores from user data
+            final stores = _extractStores(appState.user);
+
+            // Show store selector using TossSelectionBottomSheet
+            final selectedItem = await TossSelectionBottomSheet.show<TossSelectionItem>(
+              context: context,
+              title: 'Select Store',
+              items: stores.map((store) {
+                final storeMap = store as Map<String, dynamic>;
+                return TossSelectionItem.fromStore(storeMap);
+              }).toList(),
+              selectedId: appState.storeChoosen,
+              showSubtitle: false, // Hide store code subtitle
+              onItemSelected: (item) {
+                // Item will be returned when bottom sheet closes
               },
-              currentStoreId: appState.storeChoosen,
             );
+
+            // Update app state if store was selected
+            if (selectedItem != null && selectedItem.data != null) {
+              final storeId = selectedItem.data!['store_id'] as String? ?? '';
+              final storeName = selectedItem.data!['store_name'] as String? ?? '';
+              ref.read(appStateProvider.notifier).selectStore(storeId, storeName: storeName);
+            }
           },
           borderRadius: BorderRadius.circular(TossBorderRadius.lg),
           child: Container(

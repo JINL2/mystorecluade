@@ -7,6 +7,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 // App-level providers
 import '../../../../../app/providers/app_state_provider.dart';
 
+// Core utilities
+import '../../../../../core/utils/datetime_utils.dart';
+
 // Feature providers
 import '../../providers/time_table_providers.dart';
 
@@ -39,20 +42,49 @@ class _AddShiftBottomSheetState extends ConsumerState<AddShiftBottomSheet> {
   bool _isLoading = true;
   bool _isSaving = false;
   String? _error;
-  
+
   // Data from RPC
   List<Map<String, dynamic>> _employees = [];
   List<Map<String, dynamic>> _shifts = [];
-  
+
   // Selected values
   String? _selectedEmployeeId;
   String? _selectedShiftId;
   DateTime? _selectedDate;
-  
+
   @override
   void initState() {
     super.initState();
     _fetchScheduleData();
+  }
+
+  /// Helper method to format UTC time string to local time (HH:mm format)
+  ///
+  /// The database stores times in UTC format. This method converts them
+  /// to the user's local timezone for display.
+  String _formatShiftTime(String? utcTime) {
+    if (utcTime == null || utcTime.isEmpty) {
+      return '--:--';
+    }
+
+    try {
+      // Try to parse as full DateTime first (e.g., "2024-01-01T09:00:00Z")
+      if (utcTime.contains('T') || utcTime.contains('Z')) {
+        final localTime = DateTimeUtils.toLocal(utcTime);
+        return DateTimeUtils.formatTimeOnly(localTime);
+      }
+
+      // If it's just a time string (e.g., "09:00:00"), treat as UTC time
+      // Create a dummy date to parse the time
+      final today = DateTime.now().toUtc();
+      final dateStr = '${today.year}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}';
+      final fullUtcString = '${dateStr}T$utcTime${utcTime.endsWith('Z') ? '' : 'Z'}';
+      final localTime = DateTimeUtils.toLocal(fullUtcString);
+      return DateTimeUtils.formatTimeOnly(localTime);
+    } catch (e) {
+      // If conversion fails, return original time
+      return utcTime;
+    }
   }
   
   Future<void> _fetchScheduleData() async {
@@ -420,6 +452,10 @@ class _AddShiftBottomSheetState extends ConsumerState<AddShiftBottomSheet> {
                                     ),
                                   ),
                                   items: _shifts.map((shift) {
+                                    // Convert UTC times to local time for display
+                                    final startTime = _formatShiftTime(shift['start_time']);
+                                    final endTime = _formatShiftTime(shift['end_time']);
+
                                     return DropdownMenuItem<String>(
                                       value: shift['shift_id'],
                                       child: Padding(
@@ -427,7 +463,7 @@ class _AddShiftBottomSheetState extends ConsumerState<AddShiftBottomSheet> {
                                           horizontal: TossSpacing.space3,
                                         ),
                                         child: Text(
-                                          '${shift['shift_name']} (${shift['start_time']} - ${shift['end_time']})',
+                                          '${shift['shift_name']} ($startTime - $endTime)',
                                           style: TossTextStyles.body.copyWith(
                                             color: TossColors.gray900,
                                           ),

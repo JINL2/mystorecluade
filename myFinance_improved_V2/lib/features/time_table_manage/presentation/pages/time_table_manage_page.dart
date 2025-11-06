@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
+import '../../../../core/utils/datetime_utils.dart';
 import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
@@ -645,8 +646,12 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
             ).map((shift) {
               final shiftId = shift['shift_id'] as String;
               final shiftName = shift['shift_name'] as String? ?? 'Unknown Shift';
-              final startTime = shift['start_time'] as String? ?? shift['shift_start_time'] as String? ?? '--:--';
-              final endTime = shift['end_time'] as String? ?? shift['shift_end_time'] as String? ?? '--:--';
+
+              // Get UTC times from database and convert to local time for display
+              final startTimeUtc = shift['start_time'] as String? ?? shift['shift_start_time'] as String? ?? '--:--';
+              final endTimeUtc = shift['end_time'] as String? ?? shift['shift_end_time'] as String? ?? '--:--';
+              final startTime = _formatShiftTime(startTimeUtc);
+              final endTime = _formatShiftTime(endTimeUtc);
 
               // Get assigned employees for this shift using helper
               final assignedEmployees = _getAssignedEmployeesForShift(
@@ -708,6 +713,35 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
       }
     }
     return [];
+  }
+
+  // Helper: Format UTC time string to local time (HH:mm format)
+  ///
+  /// The database stores times in UTC format. This method converts them
+  /// to the user's local timezone for display.
+  String _formatShiftTime(String? utcTime) {
+    if (utcTime == null || utcTime.isEmpty || utcTime == '--:--') {
+      return '--:--';
+    }
+
+    try {
+      // Try to parse as full DateTime first (e.g., "2024-01-01T09:00:00Z")
+      if (utcTime.contains('T') || utcTime.contains('Z')) {
+        final localTime = DateTimeUtils.toLocal(utcTime);
+        return DateTimeUtils.formatTimeOnly(localTime);
+      }
+
+      // If it's just a time string (e.g., "09:00:00"), treat as UTC time
+      // Create a dummy date to parse the time
+      final today = DateTime.now().toUtc();
+      final dateStr = '${today.year}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}';
+      final fullUtcString = '${dateStr}T$utcTime${utcTime.endsWith('Z') ? '' : 'Z'}';
+      final localTime = DateTimeUtils.toLocal(fullUtcString);
+      return DateTimeUtils.formatTimeOnly(localTime);
+    } catch (e) {
+      // If conversion fails, return original time
+      return utcTime;
+    }
   }
 
   // Helper: Get assigned employees for a specific shift

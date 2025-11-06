@@ -1,0 +1,242 @@
+/**
+ * TossInput Component Styles
+ * Based on Toss Design System
+ */
+
+/* Input group container */
+.inputGroup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  width: 100%;
+}
+
+.inputGroup.fullWidth {
+  width: 100%;
+}
+
+/* Label */
+.label {
+  display: block;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--toss-text-primary);
+  margin-bottom: var(--space-1);
+}
+
+.required {
+  color: var(--toss-error);
+  margin-left: var(--space-1);
+}
+
+/* Input wrapper */
+.inputWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+/* Input field */
+.input {
+  width: 100%;
+  font-family: var(--font-family);
+  font-size: var(--font-size-base);
+  line-height: 1.5;
+  color: var(--toss-text-primary);
+  background-color: var(--toss-bg-primary);
+  border: 1px solid var(--toss-border);
+  border-radius: var(--border-radius-md);
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+.input::placeholder {
+  color: var(--toss-text-tertiary);
+}
+
+.input:hover:not(:disabled) {
+  border-color: var(--toss-border-hover);
+}
+
+.input:focus {
+  border-color: var(--toss-primary);
+  box-shadow: 0 0 0 3px rgba(0, 100, 255, 0.1);
+}
+
+.input:disabled {
+  background-color: var(--toss-bg-secondary);
+  color: var(--toss-text-tertiary);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Size variants */
+.size-sm {
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--font-size-sm);
+  min-height: 36px;
+}
+
+.size-md {
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--font-size-base);
+  min-height: 44px;
+}
+
+.size-lg {
+  padding: var(--space-4) var(--space-5);
+  font-size: var(--font-size-lg);
+  min-height: 52px;
+}
+
+/* Variant styles */
+.variant-default {
+  border-color: var(--toss-border);
+}
+
+.variant-error {
+  border-color: var(--toss-error);
+}
+
+.variant-error:focus {
+  border-color: var(--toss-error);
+  box-shadow: 0 0 0 3px rgba(255, 88, 71, 0.1);
+}
+
+.variant-success {
+  border-color: var(--toss-success);
+}
+
+.variant-success:focus {
+  border-color: var(--toss-success);
+  box-shadow: 0 0 0 3px rgba(0, 200, 150, 0.1);
+}
+
+.variant-warning {
+  border-color: var(--toss-warning);
+}
+
+.variant-warning:focus {
+  border-color: var(--toss-warning);
+  box-shadow: 0 0 0 3px rgba(255, 184, 0, 0.1);
+}
+
+/* With icons */
+.withIconLeft {
+  padding-left: var(--space-10);
+}
+
+.withIconRight {
+  padding-right: var(--space-10);
+}
+
+.iconLeft,
+.iconRight {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--toss-text-secondary);
+  pointer-events: none;
+  width: 20px;
+  height: 20px;
+}
+
+.iconLeft {
+  left: var(--space-3);
+}
+
+.iconRight {
+  right: var(--space-3);
+}
+
+/* Password toggle button */
+.iconRight:is(button) {
+  pointer-events: auto;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.2s ease;
+}
+
+.iconRight:is(button):hover {
+  color: var(--toss-primary);
+}
+
+.iconRight:is(button):focus {
+  outline: none;
+  color: var(--toss-primary);
+}
+
+/* Footer */
+.footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 20px;
+}
+
+/* Messages */
+.errorMessage,
+.successMessage,
+.helperText {
+  font-size: var(--font-size-sm);
+  line-height: 1.4;
+}
+
+.errorMessage {
+  color: var(--toss-error);
+}
+
+.successMessage {
+  color: var(--toss-success);
+}
+
+.helperText {
+  color: var(--toss-text-secondary);
+}
+
+/* Character count */
+.charCount {
+  font-size: var(--font-size-sm);
+  color: var(--toss-text-tertiary);
+  white-space: nowrap;
+  margin-left: auto;
+}
+
+/* Full width */
+.fullWidth {
+  width: 100%;
+}
+
+/* Focused state */
+.focused {
+  /* Additional focused styles if needed */
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .size-lg {
+    padding: var(--space-3) var(--space-4);
+    font-size: var(--font-size-base);
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .input {
+    background-color: var(--toss-bg-secondary);
+    border-color: var(--toss-border-dark);
+    color: var(--toss-text-inverse);
+  }
+
+  .input::placeholder {
+    color: var(--toss-text-tertiary-dark);
+  }
+
+  .input:disabled {
+    background-color: var(--toss-bg-tertiary);
+  }
+}

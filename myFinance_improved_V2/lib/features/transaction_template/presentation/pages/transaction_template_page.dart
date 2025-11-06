@@ -118,6 +118,7 @@ class _TransactionTemplatePageState extends ConsumerState<TransactionTemplatePag
       backgroundColor: TossColors.gray50,
       appBar: TossAppBar1(
         title: 'Transaction Templates',
+        backgroundColor: TossColors.gray50,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.of(context).pop(),
