@@ -263,7 +263,7 @@ class _CreateStorePageState extends ConsumerState<CreateStorePage>
         children: [
           IconButton(
             icon: Icon(Icons.arrow_back, color: TossColors.textPrimary),
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () => context.pop(),
           ),
           const SizedBox(width: TossSpacing.space2),
           Container(

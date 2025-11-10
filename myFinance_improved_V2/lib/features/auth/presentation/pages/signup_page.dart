@@ -764,10 +764,8 @@ class _SignupPageState extends ConsumerState<SignupPage>
 
             _animationController.stop();
 
-            // Direct navigation back - bypasses router issues
-            if (mounted) {
-              Navigator.of(context).pop();
-            }
+            // Navigate back to login using GoRouter
+            context.go('/auth/login');
           },
           style: TextButton.styleFrom(
             padding: EdgeInsets.zero,
