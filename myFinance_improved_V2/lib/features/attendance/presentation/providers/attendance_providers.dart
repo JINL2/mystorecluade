@@ -2,8 +2,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
 import '../../../../app/providers/auth_providers.dart';
-import '../../data/providers/attendance_data_providers.dart';
-import '../../domain/repositories/attendance_repository.dart';
+import '../../domain/entities/shift_card_data.dart';
+import '../../domain/providers/repository_providers.dart';
 import '../../domain/usecases/check_in_shift.dart';
 import '../../domain/usecases/delete_shift_request.dart';
 import '../../domain/usecases/get_current_shift.dart';
@@ -19,10 +19,10 @@ import 'states/shift_overview_state.dart';
 // Re-export Repository Provider (for complex operations)
 // ========================================
 
-/// Re-export repository provider from data layer
+/// Re-export repository provider from domain layer
 /// Use this ONLY for complex operations that combine multiple use cases
 /// Prefer individual use case providers for simple operations
-export '../../data/providers/attendance_data_providers.dart' show attendanceRepositoryProvider;
+export '../../domain/providers/repository_providers.dart' show attendanceRepositoryProvider;
 
 // ========================================
 // Use Case Providers
@@ -170,9 +170,9 @@ class ShiftOverviewNotifier extends StateNotifier<ShiftOverviewState> {
   }
 }
 
-/// Provider for current shift status
+/// Provider for current shift status (strongly typed)
 final currentShiftProvider =
-    FutureProvider<Map<String, dynamic>?>((ref) async {
+    FutureProvider<ShiftCardData?>((ref) async {
   final getCurrentShift = ref.read(getCurrentShiftProvider);
   final authStateAsync = ref.read(authStateProvider);
   final appState = ref.read(appStateProvider);
@@ -198,9 +198,8 @@ final isWorkingProvider = Provider<bool>((ref) {
   return currentShift.when(
     data: (shift) {
       if (shift == null) return false;
-      // Check if user has checked in but not checked out
-      return shift['actual_start_time'] != null &&
-          shift['actual_end_time'] == null;
+      // Check if user has checked in but not checked out (working status)
+      return shift.workStatus == WorkStatus.working;
     },
     loading: () => false,
     error: (_, __) => false,

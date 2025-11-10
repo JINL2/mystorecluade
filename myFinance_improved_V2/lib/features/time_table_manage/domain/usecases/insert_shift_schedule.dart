@@ -1,6 +1,10 @@
+import 'package:freezed_annotation/freezed_annotation.dart';
+
 import '../entities/operation_result.dart';
 import '../repositories/time_table_repository.dart';
 import 'base_usecase.dart';
+
+part 'insert_shift_schedule.freezed.dart';
 
 /// Insert Shift Schedule UseCase
 ///
@@ -34,35 +38,11 @@ class InsertShiftSchedule
 }
 
 /// Parameters for InsertShiftSchedule UseCase
-class InsertShiftScheduleParams {
-  final String storeId;
-  final String shiftId;
-  final List<String> employeeIds;
-
-  const InsertShiftScheduleParams({
-    required this.storeId,
-    required this.shiftId,
-    required this.employeeIds,
-  });
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    return other is InsertShiftScheduleParams &&
-        other.storeId == storeId &&
-        other.shiftId == shiftId &&
-        _listEquals(other.employeeIds, employeeIds);
-  }
-
-  @override
-  int get hashCode =>
-      storeId.hashCode ^ shiftId.hashCode ^ employeeIds.hashCode;
-
-  bool _listEquals(List<String> a, List<String> b) {
-    if (a.length != b.length) return false;
-    for (int i = 0; i < a.length; i++) {
-      if (a[i] != b[i]) return false;
-    }
-    return true;
-  }
+@freezed
+class InsertShiftScheduleParams with _$InsertShiftScheduleParams {
+  const factory InsertShiftScheduleParams({
+    required String storeId,
+    required String shiftId,
+    required List<String> employeeIds,
+  }) = _InsertShiftScheduleParams;
 }

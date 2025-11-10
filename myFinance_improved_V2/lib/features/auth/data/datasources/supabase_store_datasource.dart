@@ -1,7 +1,7 @@
 // lib/features/auth/data/datasources/supabase_store_datasource.dart
 
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../models/store_model.dart';
+import '../../domain/entities/store_entity.dart';
 
 /// Supabase Store DataSource
 ///
@@ -13,13 +13,13 @@ import '../models/store_model.dart';
 /// - 네트워크 에러 처리
 abstract class StoreDataSource {
   /// Create a new store
-  Future<StoreModel> createStore(Map<String, dynamic> storeData);
+  Future<Store> createStore(Map<String, dynamic> storeData);
 
   /// Get store by ID
-  Future<StoreModel?> getStoreById(String storeId);
+  Future<Store?> getStoreById(String storeId);
 
   /// Get stores by company ID
-  Future<List<StoreModel>> getStoresByCompanyId(String companyId);
+  Future<List<Store>> getStoresByCompanyId(String companyId);
 
   /// Check if store code exists
   Future<bool> isStoreCodeExists({
@@ -28,7 +28,7 @@ abstract class StoreDataSource {
   });
 
   /// Update store
-  Future<StoreModel> updateStore(String storeId, Map<String, dynamic> updateData);
+  Future<Store> updateStore(String storeId, Map<String, dynamic> updateData);
 
   /// Delete store (soft delete)
   Future<void> deleteStore(String storeId);
@@ -41,7 +41,7 @@ class SupabaseStoreDataSource implements StoreDataSource {
   SupabaseStoreDataSource(this._client);
 
   @override
-  Future<StoreModel> createStore(Map<String, dynamic> storeData) async {
+  Future<Store> createStore(Map<String, dynamic> storeData) async {
     try {
       // Insert store
       final createdData = await _client
@@ -50,14 +50,14 @@ class SupabaseStoreDataSource implements StoreDataSource {
           .select()
           .single();
 
-      return StoreModel.fromJson(createdData);
+      return Store.fromJson(createdData);
     } catch (e) {
-      throw Exception('Failed to create store: $e');
+      rethrow;
     }
   }
 
   @override
-  Future<StoreModel?> getStoreById(String storeId) async {
+  Future<Store?> getStoreById(String storeId) async {
     try {
       final storeData = await _client
           .from('stores')
@@ -68,14 +68,14 @@ class SupabaseStoreDataSource implements StoreDataSource {
 
       if (storeData == null) return null;
 
-      return StoreModel.fromJson(storeData);
+      return Store.fromJson(storeData);
     } catch (e) {
-      throw Exception('Failed to get store: $e');
+      rethrow;
     }
   }
 
   @override
-  Future<List<StoreModel>> getStoresByCompanyId(String companyId) async {
+  Future<List<Store>> getStoresByCompanyId(String companyId) async {
     try {
       final storesData = await _client
           .from('stores')
@@ -84,10 +84,10 @@ class SupabaseStoreDataSource implements StoreDataSource {
           .eq('is_deleted', false);
 
       return storesData
-          .map((data) => StoreModel.fromJson(data))
+          .map((data) => Store.fromJson(data))
           .toList();
     } catch (e) {
-      throw Exception('Failed to get stores: $e');
+      rethrow;
     }
   }
 
@@ -106,12 +106,12 @@ class SupabaseStoreDataSource implements StoreDataSource {
 
       return duplicates.isNotEmpty;
     } catch (e) {
-      throw Exception('Failed to check store code: $e');
+      rethrow;
     }
   }
 
   @override
-  Future<StoreModel> updateStore(
+  Future<Store> updateStore(
     String storeId,
     Map<String, dynamic> updateData,
   ) async {
@@ -126,9 +126,9 @@ class SupabaseStoreDataSource implements StoreDataSource {
           .select()
           .single();
 
-      return StoreModel.fromJson(updatedData);
+      return Store.fromJson(updatedData);
     } catch (e) {
-      throw Exception('Failed to update store: $e');
+      rethrow;
     }
   }
 
@@ -140,7 +140,7 @@ class SupabaseStoreDataSource implements StoreDataSource {
         'deleted_at': DateTime.now().toIso8601String(),
       }).eq('store_id', storeId);
     } catch (e) {
-      throw Exception('Failed to delete store: $e');
+      rethrow;
     }
   }
 }

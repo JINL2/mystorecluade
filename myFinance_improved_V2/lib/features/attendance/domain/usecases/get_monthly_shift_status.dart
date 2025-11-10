@@ -1,21 +1,22 @@
+import '../entities/monthly_shift_status.dart';
 import '../repositories/attendance_repository.dart';
 
-/// Get monthly shift status for manager view
+/// Get monthly shift status for user view (strongly typed)
 ///
-/// Matches RPC: get_monthly_shift_status_manager
+/// Matches RPC: get_monthly_shift_status
 class GetMonthlyShiftStatus {
   final AttendanceRepository _repository;
 
   GetMonthlyShiftStatus(this._repository);
 
-  Future<List<Map<String, dynamic>>> call({
+  Future<List<MonthlyShiftStatus>> call({
     required String storeId,
-    required String companyId,
+    required String userId,
     required String requestDate,
   }) {
-    return _repository.getMonthlyShiftStatusManager(
+    return _repository.getMonthlyShiftStatus(
       storeId: storeId,
-      companyId: companyId,
+      userId: userId,
       requestDate: requestDate,
     );
   }

@@ -1,8 +1,13 @@
 import '../../domain/entities/attendance_location.dart';
+import '../../domain/entities/monthly_shift_status.dart';
+import '../../domain/entities/shift_card_data.dart';
+import '../../domain/entities/shift_metadata.dart';
 import '../../domain/entities/shift_overview.dart';
 import '../../domain/entities/shift_request.dart';
 import '../../domain/repositories/attendance_repository.dart';
 import '../datasources/attendance_datasource.dart';
+import '../models/monthly_shift_status_model.dart';
+import '../models/shift_metadata_model.dart';
 import '../models/shift_overview_model.dart';
 import '../models/shift_request_model.dart';
 
@@ -52,14 +57,14 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
   }
 
   @override
-  Future<Map<String, dynamic>> updateShiftRequest({
+  Future<ShiftCardData> updateShiftRequest({
     required String userId,
     required String storeId,
     required String requestDate,
     required String timestamp,
     required AttendanceLocation location,
   }) async {
-    final result = await _datasource.updateShiftRequest(
+    final json = await _datasource.updateShiftRequest(
       userId: userId,
       storeId: storeId,
       requestDate: requestDate,
@@ -67,7 +72,7 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
       location: location,
     );
 
-    return result ?? {};
+    return ShiftCardData.fromJson(json ?? {});
   }
 
   @override
@@ -93,29 +98,36 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
   }
 
   @override
-  Future<List<Map<String, dynamic>>> getUserShiftCards({
+  Future<List<ShiftCardData>> getUserShiftCards({
     required String requestDate,
     required String userId,
     required String companyId,
     required String storeId,
   }) async {
-    return await _datasource.getUserShiftCards(
+    final jsonList = await _datasource.getUserShiftCards(
       requestDate: requestDate,
       userId: userId,
       companyId: companyId,
       storeId: storeId,
     );
+
+    return jsonList
+        .map((json) => ShiftCardData.fromJson(json))
+        .toList();
   }
 
   @override
-  Future<Map<String, dynamic>?> getCurrentShift({
+  Future<ShiftCardData?> getCurrentShift({
     required String userId,
     required String storeId,
   }) async {
-    return await _datasource.getCurrentShift(
+    final json = await _datasource.getCurrentShift(
       userId: userId,
       storeId: storeId,
     );
+
+    if (json == null) return null;
+    return ShiftCardData.fromJson(json);
   }
 
   @override
@@ -130,38 +142,46 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
   }
 
   @override
-  Future<List<Map<String, dynamic>>> getShiftMetadata({
+  Future<List<ShiftMetadata>> getShiftMetadata({
     required String storeId,
   }) async {
-    return await _datasource.getShiftMetadata(storeId: storeId);
+    final jsonList = await _datasource.getShiftMetadata(storeId: storeId);
+    return jsonList
+        .map((json) => ShiftMetadataModel.fromJson(json).toEntity())
+        .toList();
   }
 
   @override
-  Future<List<Map<String, dynamic>>> getMonthlyShiftStatusManager({
+  Future<List<MonthlyShiftStatus>> getMonthlyShiftStatus({
     required String storeId,
-    required String companyId,
+    required String userId,
     required String requestDate,
   }) async {
-    return await _datasource.getMonthlyShiftStatusManager(
+    final jsonList = await _datasource.getMonthlyShiftStatus(
       storeId: storeId,
-      companyId: companyId,
+      userId: userId,
       requestDate: requestDate,
     );
+    return jsonList
+        .map((json) => MonthlyShiftStatusModel.fromJson(json).toEntity())
+        .toList();
   }
 
   @override
-  Future<Map<String, dynamic>?> insertShiftRequest({
+  Future<ShiftCardData?> insertShiftRequest({
     required String userId,
     required String shiftId,
     required String storeId,
     required String requestDate,
   }) async {
-    return await _datasource.insertShiftRequest(
+    final json = await _datasource.insertShiftRequest(
       userId: userId,
       shiftId: shiftId,
       storeId: storeId,
       requestDate: requestDate,
     );
+    if (json == null) return null;
+    return ShiftCardData.fromJson(json);
   }
 
   @override

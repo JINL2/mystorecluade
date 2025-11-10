@@ -1,24 +1,35 @@
+import 'package:freezed_annotation/freezed_annotation.dart';
+
+part 'manager_overview.freezed.dart';
+part 'manager_overview.g.dart';
+
 /// Manager Overview Entity
 ///
 /// Represents overview statistics for manager's shift management dashboard.
-class ManagerOverview {
-  final String month; // yyyy-MM
-  final int totalShifts;
-  final int totalApprovedRequests;
-  final int totalPendingRequests;
-  final int totalEmployees;
-  final double totalEstimatedCost;
-  final Map<String, dynamic> additionalStats;
+@freezed
+class ManagerOverview with _$ManagerOverview {
+  const ManagerOverview._();
 
-  const ManagerOverview({
-    required this.month,
-    required this.totalShifts,
-    required this.totalApprovedRequests,
-    required this.totalPendingRequests,
-    required this.totalEmployees,
-    required this.totalEstimatedCost,
-    this.additionalStats = const {},
-  });
+  const factory ManagerOverview({
+    /// Month in yyyy-MM format
+    required String month,
+    @JsonKey(name: 'total_shifts')
+    required int totalShifts,
+    @JsonKey(name: 'total_approved_requests')
+    required int totalApprovedRequests,
+    @JsonKey(name: 'total_pending_requests')
+    required int totalPendingRequests,
+    @JsonKey(name: 'total_employees')
+    required int totalEmployees,
+    @JsonKey(name: 'total_estimated_cost')
+    required double totalEstimatedCost,
+    @JsonKey(name: 'additional_stats', defaultValue: <String, dynamic>{})
+    required Map<String, dynamic> additionalStats,
+  }) = _ManagerOverview;
+
+  /// Create from JSON
+  factory ManagerOverview.fromJson(Map<String, dynamic> json) =>
+      _$ManagerOverviewFromJson(json);
 
   /// Get approval rate (approved / total requests)
   double get approvalRate {
@@ -40,28 +51,4 @@ class ManagerOverview {
     if (totalShifts == 0) return 0.0;
     return totalApprovedRequests / totalShifts;
   }
-
-  /// Copy with method for immutability
-  ManagerOverview copyWith({
-    String? month,
-    int? totalShifts,
-    int? totalApprovedRequests,
-    int? totalPendingRequests,
-    int? totalEmployees,
-    double? totalEstimatedCost,
-    Map<String, dynamic>? additionalStats,
-  }) {
-    return ManagerOverview(
-      month: month ?? this.month,
-      totalShifts: totalShifts ?? this.totalShifts,
-      totalApprovedRequests: totalApprovedRequests ?? this.totalApprovedRequests,
-      totalPendingRequests: totalPendingRequests ?? this.totalPendingRequests,
-      totalEmployees: totalEmployees ?? this.totalEmployees,
-      totalEstimatedCost: totalEstimatedCost ?? this.totalEstimatedCost,
-      additionalStats: additionalStats ?? this.additionalStats,
-    );
-  }
-
-  @override
-  String toString() => 'ManagerOverview(month: $month, shifts: $totalShifts, approved: $totalApprovedRequests, pending: $totalPendingRequests)';
 }

@@ -3,20 +3,19 @@
 import '../../domain/entities/user_entity.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../datasources/supabase_auth_datasource.dart';
-import 'base_repository.dart';
+import '../../../../core/data/base_repository.dart';
 
 /// Auth Repository Implementation
 ///
-/// 📜 계약 이행자 - Domain Repository Interface를 구현
+/// 📜 Responsibilities:
+/// - Implements Domain Repository Interface (AuthRepository)
+/// - Delegates authentication operations to AuthDataSource
+/// - Applies consistent error handling via BaseRepository
 ///
-/// 책임:
-/// - Domain 계약 준수 (AuthRepository interface)
-/// - AuthDataSource 호출
-/// - Model ↔ Entity 변환
-/// - Exception 처리 및 변환 (BaseRepository 상속)
-///
-/// 이 계층은 Domain과 Data 사이의 변환을 담당합니다.
-/// Supabase에 대한 지식은 없으며, AuthDataSource를 통해서만 데이터에 접근합니다.
+/// ✅ Improvements:
+/// - Uses core BaseRepository for standardized error handling
+/// - Clear operation names for debugging
+/// - No Model → Entity conversion (Freezed handles it)
 class AuthRepositoryImpl extends BaseRepository implements AuthRepository {
   final AuthDataSource _dataSource;
 
@@ -27,16 +26,13 @@ class AuthRepositoryImpl extends BaseRepository implements AuthRepository {
     required String email,
     required String password,
   }) {
-    return executeNullable(() async {
-      // Call DataSource
-      final userModel = await _dataSource.signIn(
+    return executeFetch(
+      () => _dataSource.signIn(
         email: email,
         password: password,
-      );
-
-      // Convert Model to Entity
-      return userModel.toEntity();
-    });
+      ),
+      operationName: 'user login',
+    );
   }
 
   @override
@@ -46,22 +42,22 @@ class AuthRepositoryImpl extends BaseRepository implements AuthRepository {
     String? firstName,
     String? lastName,
   }) {
-    return execute(() async {
-      // Call DataSource
-      final userModel = await _dataSource.signUp(
+    return executeWithErrorHandling(
+      () => _dataSource.signUp(
         email: email,
         password: password,
         firstName: firstName,
         lastName: lastName,
-      );
-
-      // Convert Model to Entity
-      return userModel.toEntity();
-    });
+      ),
+      operationName: 'user signup',
+    );
   }
 
   @override
   Future<void> logout() {
-    return execute(() => _dataSource.signOut());
+    return executeWithErrorHandling(
+      () => _dataSource.signOut(),
+      operationName: 'user logout',
+    );
   }
 }

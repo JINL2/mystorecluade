@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../domain/policies/cache_policy.dart';
 
 /// Session state tracking for smart data fetching decisions
 ///
@@ -99,21 +100,17 @@ class SessionState {
 ///
 /// Manages session lifecycle, cache TTL, and provides intelligent
 /// decisions about when to fetch fresh data vs reuse cached data.
-///
-/// Cache TTL Settings:
-/// - User data: 2 hours
-/// - Features: 6 hours
-/// - Fresh login window: 5 minutes
 class SessionManagerNotifier extends StateNotifier<SessionState> {
-  SessionManagerNotifier() : super(const SessionState()) {
+  SessionManagerNotifier({CachePolicy? cachePolicy})
+      : _cachePolicy = cachePolicy ?? const ProductionCachePolicy(),
+        super(const SessionState()) {
     _loadFromStorage();
   }
 
   static const String _storageKey = 'session_state';
 
-  // Cache TTL settings (configurable based on data sensitivity)
-  static const Duration _userDataTTL = Duration(hours: 2);
-  static const Duration _featuresTTL = Duration(hours: 6);
+  // Cache policy from domain layer
+  final CachePolicy _cachePolicy;
 
   /// Load session state from persistent storage
   Future<void> _loadFromStorage() async {
@@ -167,10 +164,10 @@ class SessionManagerNotifier extends StateNotifier<SessionState> {
 
   /// Record successful user data fetch
   ///
-  /// Updates cache expiry for user data (2 hour TTL).
+  /// Updates cache expiry for user data based on cache policy.
   Future<void> recordUserDataFetch() async {
     final now = DateTime.now();
-    final expiry = now.add(_userDataTTL);
+    final expiry = now.add(_cachePolicy.userDataTTL);
 
     state = state.copyWith(
       lastDataFetchTime: now,
@@ -185,10 +182,10 @@ class SessionManagerNotifier extends StateNotifier<SessionState> {
 
   /// Record successful features data fetch
   ///
-  /// Updates cache expiry for features (6 hour TTL).
+  /// Updates cache expiry for features based on cache policy.
   Future<void> recordFeaturesFetch() async {
     final now = DateTime.now();
-    final expiry = now.add(_featuresTTL);
+    final expiry = now.add(_cachePolicy.featuresTTL);
 
     state = state.copyWith(
       featuresCacheExpiry: expiry,

@@ -1,6 +1,10 @@
+import 'package:freezed_annotation/freezed_annotation.dart';
+
 import '../entities/operation_result.dart';
 import '../repositories/time_table_repository.dart';
 import 'base_usecase.dart';
+
+part 'add_bonus.freezed.dart';
 
 /// Add Bonus UseCase
 ///
@@ -33,27 +37,11 @@ class AddBonus implements UseCase<OperationResult, AddBonusParams> {
 }
 
 /// Parameters for AddBonus UseCase
-class AddBonusParams {
-  final String shiftRequestId;
-  final double bonusAmount;
-  final String bonusReason;
-
-  const AddBonusParams({
-    required this.shiftRequestId,
-    required this.bonusAmount,
-    required this.bonusReason,
-  });
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    return other is AddBonusParams &&
-        other.shiftRequestId == shiftRequestId &&
-        other.bonusAmount == bonusAmount &&
-        other.bonusReason == bonusReason;
-  }
-
-  @override
-  int get hashCode =>
-      shiftRequestId.hashCode ^ bonusAmount.hashCode ^ bonusReason.hashCode;
+@freezed
+class AddBonusParams with _$AddBonusParams {
+  const factory AddBonusParams({
+    required String shiftRequestId,
+    required double bonusAmount,
+    required String bonusReason,
+  }) = _AddBonusParams;
 }

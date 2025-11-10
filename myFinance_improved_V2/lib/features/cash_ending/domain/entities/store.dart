@@ -1,44 +1,47 @@
 // lib/features/cash_ending/domain/entities/store.dart
 
+import 'package:freezed_annotation/freezed_annotation.dart';
+
+part 'store.freezed.dart';
+
 /// Domain entity representing a store
-class Store {
-  final String storeId;
-  final String storeName;
-  final String? storeCode;
+///
+/// Uses Freezed for:
+/// - Immutability guarantee
+/// - Auto-generated copyWith, ==, hashCode
+/// - Manual JSON serialization (no .g.dart needed)
+///
+/// ✅ Refactored with:
+/// - Removed @JsonKey warnings
+/// - Manual fromJson for consistency with other entities
+@freezed
+class Store with _$Store {
+  const Store._();
 
-  const Store({
-    required this.storeId,
-    required this.storeName,
-    this.storeCode,
-  });
-
-  /// Check if this represents the headquarter (special case)
-  bool get isHeadquarter => storeId == 'headquarter';
-
-  /// Create a copy with updated fields
-  Store copyWith({
-    String? storeId,
-    String? storeName,
+  const factory Store({
+    required String storeId,
+    required String storeName,
     String? storeCode,
-  }) {
+  }) = _Store;
+
+  /// Custom fromJson factory for database deserialization
+  factory Store.fromJson(Map<String, dynamic> json) {
     return Store(
-      storeId: storeId ?? this.storeId,
-      storeName: storeName ?? this.storeName,
-      storeCode: storeCode ?? this.storeCode,
+      storeId: json['store_id']?.toString() ?? '',
+      storeName: json['store_name']?.toString() ?? '',
+      storeCode: json['store_code']?.toString(),
     );
   }
 
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    return other is Store &&
-        other.storeId == storeId &&
-        other.storeName == storeName &&
-        other.storeCode == storeCode;
+  /// Convert to JSON for database storage
+  Map<String, dynamic> toJson() {
+    return {
+      'store_id': storeId,
+      'store_name': storeName,
+      'store_code': storeCode,
+    };
   }
 
-  @override
-  int get hashCode {
-    return Object.hash(storeId, storeName, storeCode);
-  }
+  /// Check if this represents the headquarter (special case)
+  bool get isHeadquarter => storeId == 'headquarter';
 }

@@ -11,6 +11,8 @@ import '../../../../../app/providers/app_state_provider.dart';
 import '../../../../../core/utils/datetime_utils.dart';
 
 // Feature providers
+import '../../../domain/usecases/get_schedule_data.dart';
+import '../../../domain/usecases/insert_schedule.dart';
 import '../../providers/time_table_providers.dart';
 
 // Shared themes
@@ -107,10 +109,11 @@ class _AddShiftBottomSheetState extends ConsumerState<AddShiftBottomSheet> {
         return;
       }
 
-      // Use repository instead of direct Supabase call
-      final scheduleData = await ref.read(timeTableRepositoryProvider).getScheduleData(
+      // Use GetScheduleData UseCase
+      final getScheduleData = ref.read(getScheduleDataUseCaseProvider);
+      final scheduleData = await getScheduleData(GetScheduleDataParams(
         storeId: storeId,
-      );
+      ));
 
       setState(() {
         _employees = scheduleData.employees.map((emp) => {
@@ -122,8 +125,8 @@ class _AddShiftBottomSheetState extends ConsumerState<AddShiftBottomSheet> {
           'shift_id': shift.shiftId,
           'shift_name': shift.shiftName ?? 'Shift',
           'required_employees': shift.targetCount,
-          'start_time': DateTimeUtils.formatTimeOnly(shift.planStartTime),
-          'end_time': DateTimeUtils.formatTimeOnly(shift.planEndTime),
+          'start_time': shift.planStartTime != null ? DateTimeUtils.formatTimeOnly(shift.planStartTime!) : '00:00',
+          'end_time': shift.planEndTime != null ? DateTimeUtils.formatTimeOnly(shift.planEndTime!) : '00:00',
         },).toList();
         _isLoading = false;
       });
@@ -201,14 +204,15 @@ class _AddShiftBottomSheetState extends ConsumerState<AddShiftBottomSheet> {
       // Format the date as yyyy-MM-dd
       final formattedDate = '${_selectedDate!.year}-${_selectedDate!.month.toString().padLeft(2, '0')}-${_selectedDate!.day.toString().padLeft(2, '0')}';
 
-      // Use repository instead of direct Supabase call
-      await ref.read(timeTableRepositoryProvider).insertSchedule(
+      // Use InsertSchedule UseCase
+      final insertSchedule = ref.read(insertScheduleUseCaseProvider);
+      await insertSchedule(InsertScheduleParams(
         userId: _selectedEmployeeId!,
         shiftId: _selectedShiftId!,
         storeId: storeId,
         requestDate: formattedDate,
         approvedBy: approvedBy,
-      );
+      ));
 
       // Notify parent widget to refresh data BEFORE showing success dialog
       // This ensures the UI updates immediately when user sees success message

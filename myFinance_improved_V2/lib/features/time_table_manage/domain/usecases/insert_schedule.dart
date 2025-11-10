@@ -1,6 +1,10 @@
+import 'package:freezed_annotation/freezed_annotation.dart';
+
 import '../entities/operation_result.dart';
 import '../repositories/time_table_repository.dart';
 import 'base_usecase.dart';
+
+part 'insert_schedule.freezed.dart';
 
 /// Insert Schedule UseCase
 ///
@@ -43,37 +47,13 @@ class InsertSchedule implements UseCase<OperationResult, InsertScheduleParams> {
 }
 
 /// Parameters for InsertSchedule UseCase
-class InsertScheduleParams {
-  final String userId;
-  final String shiftId;
-  final String storeId;
-  final String requestDate;
-  final String approvedBy;
-
-  const InsertScheduleParams({
-    required this.userId,
-    required this.shiftId,
-    required this.storeId,
-    required this.requestDate,
-    required this.approvedBy,
-  });
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    return other is InsertScheduleParams &&
-        other.userId == userId &&
-        other.shiftId == shiftId &&
-        other.storeId == storeId &&
-        other.requestDate == requestDate &&
-        other.approvedBy == approvedBy;
-  }
-
-  @override
-  int get hashCode =>
-      userId.hashCode ^
-      shiftId.hashCode ^
-      storeId.hashCode ^
-      requestDate.hashCode ^
-      approvedBy.hashCode;
+@freezed
+class InsertScheduleParams with _$InsertScheduleParams {
+  const factory InsertScheduleParams({
+    required String userId,
+    required String shiftId,
+    required String storeId,
+    required String requestDate,
+    required String approvedBy,
+  }) = _InsertScheduleParams;
 }

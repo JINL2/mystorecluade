@@ -15,6 +15,7 @@ import '../../../../shared/widgets/common/toss_loading_view.dart';
 import '../../../../shared/widgets/common/toss_scaffold.dart';
 import '../../../../shared/widgets/common/toss_success_error_dialog.dart';
 import '../../domain/entities/attendance_location.dart';
+import '../../domain/validators/store_id_validator.dart';
 import '../providers/attendance_providers.dart';
 
 class QRScannerPage extends ConsumerStatefulWidget {
@@ -178,14 +179,11 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
               try {
                 // QR code contains only the store_id (e.g., "d3dfa42c-9c18-46ed-8dbc-a6d67a2ab7ff")
                 final storeId = code.trim();
-                
-                // Validate store ID format (UUID)
-                final uuidRegex = RegExp(
-                  r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$'
-                );
-                
-                if (!uuidRegex.hasMatch(storeId)) {
-                  throw Exception('Invalid store ID format');
+
+                // Validate store ID format using domain validator
+                final validationError = StoreIdValidator.validateWithMessage(storeId);
+                if (validationError != null) {
+                  throw Exception(validationError);
                 }
                 
                 // Get current date and time
@@ -208,27 +206,10 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
                   ),
                 );
 
-                // Check if the RPC call was successful
-                if (result == null || result.isEmpty) {
+                // Check if the RPC call was successful (strongly typed)
+                if (result == null) {
                   throw Exception('Failed to update shift request. Please try again.');
                 }
-
-                // Check if RPC explicitly indicates failure
-                // The datasource returns {'success': true/false} for various cases
-                if (result.containsKey('success') && result['success'] == false) {
-                  final errorMsg = result['message'] ?? result['error'] ?? 'Failed to update shift request';
-                  throw Exception(errorMsg);
-                }
-
-                // If RPC returns success or contains actual data, consider it successful
-                // RPC may return:
-                // 1. {'success': true, 'action': 'check_in', ...} - successful operation
-                // 2. {'actual_start_time': ..., 'actual_end_time': ..., ...} - actual data
-                // 3. {'shift_request_id': ..., ...} - shift data
-                // All of these indicate success
-
-                // NO RPC REFRESH - Just pass the result back to update local state
-                // The attendance main page will handle local state updates
 
                 // Add a small delay for UX
                 await Future<void>.delayed(const Duration(milliseconds: 100));
@@ -236,38 +217,23 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
                 // Show success popup
                 if (mounted) {
                   // Determine if it was check-in or check-out based on result
+                  final checkoutTime = result.actualEndTime;
+                  final checkinTime = result.actualStartTime;
+
                   String message = 'Check-in Successful';
-
-                  // Check various possible response formats from the RPC
-                  // The RPC might return different formats depending on the action
-                  final action = result['action']?.toString().toLowerCase() ?? '';
-                  final type = result['type']?.toString().toLowerCase() ?? '';
-                  final status = result['status']?.toString().toLowerCase() ?? '';
-                  final checkinTime = result['actual_start_time'];
-                  final checkoutTime = result['actual_end_time'];
-
-                  // Determine action based on available fields
-                  if (action.contains('out') || type.contains('out') || status.contains('out')) {
+                  if (checkoutTime != null) {
                     message = 'Check-out Successful';
-                  } else if (action.contains('in') || type.contains('in') || status.contains('in')) {
-                    message = 'Check-in Successful';
-                  } else if (checkoutTime != null) {
-                    // If checkout time exists in result, it was a checkout
-                    message = 'Check-out Successful';
-                  } else {
-                    // Default to check-in (most common case)
-                    message = 'Check-in Successful';
                   }
-                  
+
                   // Prepare data to pass back to attendance page
                   final checkInOutData = <String, dynamic>{
-                    ...result,  // Include all result data from RPC
+                    'shift_card_data': result,
                     'message': message,
                     'request_date': requestDate,
                     'timestamp': currentTime,
                     'action': message.contains('out') ? 'check_out' : 'check_in',
                   };
-                  
+
                   // Show the success dialog with result data
                   _showSuccessDialog(message, checkInOutData);
                 }

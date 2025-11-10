@@ -1,17 +1,28 @@
+import 'package:freezed_annotation/freezed_annotation.dart';
+
 import 'shift.dart';
 import 'shift_request.dart';
+
+part 'daily_shift_data.freezed.dart';
+part 'daily_shift_data.g.dart';
 
 /// Daily Shift Data Entity
 ///
 /// Represents all shifts and their requests for a specific date.
-class DailyShiftData {
-  final String date; // yyyy-MM-dd
-  final List<ShiftWithRequests> shifts;
+@freezed
+class DailyShiftData with _$DailyShiftData {
+  const DailyShiftData._();
 
-  const DailyShiftData({
-    required this.date,
-    required this.shifts,
-  });
+  const factory DailyShiftData({
+    /// Date in yyyy-MM-dd format
+    required String date,
+    @JsonKey(defaultValue: <ShiftWithRequests>[])
+    required List<ShiftWithRequests> shifts,
+  }) = _DailyShiftData;
+
+  /// Create from JSON
+  factory DailyShiftData.fromJson(Map<String, dynamic> json) =>
+      _$DailyShiftDataFromJson(json);
 
   /// Check if date has any shifts
   bool get hasShifts => shifts.isNotEmpty;
@@ -39,26 +50,29 @@ class DailyShiftData {
 
   /// Check if all shifts are fully staffed
   bool get allShiftsFullyStaffed {
-    return shifts.isNotEmpty && shifts.every((shift) => shift.shift.isFullyStaffed);
+    return shifts.isNotEmpty &&
+        shifts.every((shift) => shift.shift.isFullyStaffed);
   }
-
-  @override
-  String toString() => 'DailyShiftData(date: $date, shifts: $shiftCount)';
 }
 
 /// Shift with Requests
 ///
 /// Combines a shift with its pending and approved requests.
-class ShiftWithRequests {
-  final Shift shift;
-  final List<ShiftRequest> pendingRequests;
-  final List<ShiftRequest> approvedRequests;
+@freezed
+class ShiftWithRequests with _$ShiftWithRequests {
+  const ShiftWithRequests._();
 
-  const ShiftWithRequests({
-    required this.shift,
-    required this.pendingRequests,
-    required this.approvedRequests,
-  });
+  const factory ShiftWithRequests({
+    required Shift shift,
+    @JsonKey(name: 'pending_requests', defaultValue: <ShiftRequest>[])
+    required List<ShiftRequest> pendingRequests,
+    @JsonKey(name: 'approved_requests', defaultValue: <ShiftRequest>[])
+    required List<ShiftRequest> approvedRequests,
+  }) = _ShiftWithRequests;
+
+  /// Create from JSON
+  factory ShiftWithRequests.fromJson(Map<String, dynamic> json) =>
+      _$ShiftWithRequestsFromJson(json);
 
   /// Get total requests (pending + approved)
   int get totalRequests => pendingRequests.length + approvedRequests.length;
@@ -70,7 +84,4 @@ class ShiftWithRequests {
   bool get isUnderStaffedWithPending {
     return shift.isUnderStaffed && hasPendingRequests;
   }
-
-  @override
-  String toString() => 'ShiftWithRequests(shift: ${shift.shiftId}, pending: ${pendingRequests.length}, approved: ${approvedRequests.length})';
 }

@@ -3,8 +3,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
 import '../../../../shared/themes/toss_colors.dart';
@@ -14,6 +12,8 @@ import '../../../../shared/widgets/common/toss_success_error_dialog.dart';
 import '../../../../shared/widgets/toss/toss_tab_bar_1.dart';
 import '../../domain/entities/cash_ending.dart';
 import '../../domain/entities/currency.dart';
+import '../../domain/entities/bank_balance.dart';
+import '../../domain/entities/vault_transaction.dart';
 import '../providers/cash_ending_provider.dart';
 import '../providers/cash_ending_state.dart';
 import '../widgets/tabs/bank_tab.dart';
@@ -63,14 +63,24 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
       final companyId = appState.companyChoosen;
       final storeId = appState.storeChoosen;
 
+      debugPrint('🔍 [CashEndingPage] Initial load');
+      debugPrint('   Company ID: $companyId');
+      debugPrint('   Store ID: $storeId');
+
       if (companyId.isNotEmpty) {
+        debugPrint('✅ [CashEndingPage] Loading stores and currencies...');
         ref.read(cashEndingProvider.notifier).loadStores(companyId);
         ref.read(cashEndingProvider.notifier).loadCurrencies(companyId);
 
         // Auto-select store from AppState (like lib_old)
         if (storeId.isNotEmpty) {
+          debugPrint('✅ [CashEndingPage] Auto-selecting store: $storeId');
           ref.read(cashEndingProvider.notifier).selectStore(storeId, companyId);
+        } else {
+          debugPrint('⚠️ [CashEndingPage] No store selected in AppState');
         }
+      } else {
+        debugPrint('❌ [CashEndingPage] Company ID is empty!');
       }
     });
   }
@@ -217,14 +227,13 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
     }
   }
 
-  /// Save Bank Balance (from legacy bank_service.dart)
-  /// Uses bank_amount_insert_v2 RPC (different from Cash tab's RPC)
+  /// Save Bank Balance
   Future<void> _saveBankBalance(
     BuildContext context,
     CashEndingState state,
     String currencyId,
   ) async {
-
+    // Validation
     if (state.selectedBankLocationId == null) {
       await TossDialogs.showCashEndingError(
         context: context,
@@ -233,11 +242,10 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
       return;
     }
 
-    // Get company and user IDs
     final companyId = ref.read(appStateProvider).companyChoosen;
-    final userId = ref.read(appStateProvider).user['user_id'] as String?;
+    final userId = ref.read(appStateProvider).user['user_id']?.toString() ?? '';
 
-    if (companyId.isEmpty || userId == null) {
+    if (companyId.isEmpty || userId.isEmpty) {
       await TossDialogs.showCashEndingError(
         context: context,
         error: 'Invalid company or user',
@@ -248,82 +256,53 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
     final dynamic bankTabState = _bankTabKey.currentState;
     final amount = bankTabState?.bankAmount as String? ?? '0';
 
-    // Note: Allow saving even if amount is empty (defaults to 0)
-    // Bank balance can be 0
-
-    // Parse amount (remove commas if any) as integer
+    // Parse amount (remove commas) as integer
     final amountText = amount.replaceAll(',', '');
     final totalAmount = int.tryParse(amountText) ?? 0;
 
-    // Get current date and time
+    // Create BankBalance entity
     final now = DateTime.now();
-    final recordDate = DateFormat('yyyy-MM-dd').format(now);
+    final bankBalance = BankBalance(
+      companyId: companyId,
+      locationId: state.selectedBankLocationId!,
+      storeId: state.selectedStoreId,
+      userId: userId,
+      currencyId: currencyId,
+      totalAmount: totalAmount,
+      recordDate: now,
+      createdAt: now,
+    );
 
-    // Format created_at with microseconds like "2025-06-07 23:40:55.948829"
-    final createdAt = DateFormat('yyyy-MM-dd HH:mm:ss').format(now) +
-                     '.${now.microsecond.toString().padLeft(6, '0')}';
+    // Save through repository
+    final success = await ref.read(cashEndingProvider.notifier).saveBankBalance(bankBalance);
 
-    // Prepare parameters for RPC call (from lib_old bank_service.dart lines 58-67)
-    final Map<String, dynamic> params = {
-      'p_company_id': companyId,
-      'p_store_id': state.selectedStoreId == 'headquarter' ? null : state.selectedStoreId,
-      'p_record_date': recordDate,
-      'p_location_id': state.selectedBankLocationId,
-      'p_currency_id': currencyId,
-      'p_total_amount': totalAmount,
-      'p_created_by': userId,
-      'p_created_at': createdAt,
-    };
+    if (!mounted) return;
 
-
-    try {
-      // Call bank_amount_insert_v2 RPC (from lib_old lines 70-71)
-      await Supabase.instance.client
-          .rpc<dynamic>('bank_amount_insert_v2', params: params);
-
-      if (!mounted) return;
-
-      // Trigger haptic feedback for success
+    if (success) {
       HapticFeedback.mediumImpact();
-
       await TossDialogs.showBankBalanceSaved(context: context);
       bankTabState?.clearAmount?.call();
 
       // Reload stock flows
-      if (state.selectedBankLocationId != null &&
-          state.selectedBankLocationId!.isNotEmpty) {
+      if (state.selectedBankLocationId != null && state.selectedBankLocationId!.isNotEmpty) {
         bankTabState?.reloadStockFlows?.call();
       }
-    } catch (e) {
-
-      if (!mounted) return;
-
-      // Parse error message for user-friendly display (from lib_old lines 91-101)
-      String errorMessage = 'Failed to save bank balance';
-      if (e.toString().contains('network')) {
-        errorMessage = 'Network error. Please check your connection and try again.';
-      } else if (e.toString().contains('duplicate')) {
-        errorMessage = 'Bank balance for today already exists.';
-      } else if (e.toString().contains('permission')) {
-        errorMessage = 'You do not have permission to save bank balance.';
-      } else {
-        errorMessage = 'An unexpected error occurred. Please try again.';
-      }
-
+    } else {
       await TossDialogs.showCashEndingError(
         context: context,
-        error: errorMessage,
+        error: state.errorMessage ?? 'Failed to save bank balance',
       );
     }
   }
 
-  /// Save Vault Transaction (from legacy vault_service.dart)
+  /// Save Vault Transaction
   Future<void> _saveVaultTransaction(
     BuildContext context,
     CashEndingState state,
     String currencyId,
     String transactionType,
   ) async {
+    // Validation
     if (state.selectedVaultLocationId == null) {
       await TossDialogs.showCashEndingError(
         context: context,
@@ -332,108 +311,76 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
       return;
     }
 
-    final dynamic vaultTabState = _vaultTabKey.currentState;
-    final quantities = (vaultTabState?.denominationQuantities as Map<String, Map<String, int>>?)?[currencyId] ?? {};
+    final companyId = ref.read(appStateProvider).companyChoosen;
+    final userId = ref.read(appStateProvider).user['user_id']?.toString() ?? '';
 
-    // Note: Unlike Cash tab, Vault allows empty denominations (saves as empty transaction)
-    // This matches lib_old behavior where validation is not performed
-
-    // Get user ID and company ID
-    final appState = ref.read(appStateProvider);
-    final userId = appState.user['user_id'] as String?;
-    final companyId = appState.companyChoosen;
-
-    if (userId == null || companyId.isEmpty) {
+    if (companyId.isEmpty || userId.isEmpty) {
       await TossDialogs.showCashEndingError(
         context: context,
-        error: 'Missing user or company information',
+        error: 'Invalid company or user',
       );
       return;
     }
 
-    // Get current date and time
-    final now = DateTime.now();
-    final recordDate = DateFormat('yyyy-MM-dd').format(now);
-
-    // Format created_at with microseconds (matching lib_old line 40)
-    final createdAt = DateFormat('yyyy-MM-dd HH:mm:ss').format(now) +
-                     '.${now.microsecond.toString().padLeft(6, '0')}';
-
-    // Build vault_amount_line_json with denomination details
-    // This matches lib_old lines 43-66
-    final List<Map<String, dynamic>> vaultAmountLineJson = [];
-
-    // Get currency denominations from state
+    // Get currency and quantities
     final currency = state.currencies.firstWhere(
       (c) => c.currencyId == currencyId,
       orElse: () => state.currencies.first,
     );
 
-    for (final denom in currency.denominations) {
-      final denominationId = denom.denominationId;
-      final quantity = quantities[denominationId];
+    final dynamic vaultTabState = _vaultTabKey.currentState;
+    final quantities = (vaultTabState?.denominationQuantities as Map<String, Map<String, int>>?)?[currencyId] ?? {};
 
-      if (quantity != null && quantity > 0) {
-        vaultAmountLineJson.add({
-          'quantity': quantity.toString(),
-          'denomination_id': denominationId,
-          'denomination_value': denom.value.toString(),
-          'denomination_type': 'BILL', // Default type as in lib_old line 61
-        });
-      }
-    }
+    // Build denominations with quantities
+    final denominationsWithQuantity = currency.denominations.map((denom) {
+      final quantity = quantities[denom.denominationId] ?? 0;
+      return denom.copyWith(quantity: quantity);
+    }).toList();
 
-    // Prepare parameters for RPC call (matching lib_old lines 69-80)
-    final Map<String, dynamic> params = {
-      'p_location_id': state.selectedVaultLocationId,
-      'p_company_id': companyId,
-      'p_created_at': createdAt,
-      'p_created_by': userId,
-      'p_credit': transactionType == 'credit',
-      'p_debit': transactionType == 'debit',
-      'p_currency_id': currencyId,
-      'p_record_date': recordDate,
-      'p_store_id': state.selectedStoreId == 'headquarter' ? null : state.selectedStoreId,
-      'p_vault_amount_line_json': vaultAmountLineJson,
-    };
+    final currencyWithData = Currency(
+      currencyId: currency.currencyId,
+      currencyCode: currency.currencyCode,
+      currencyName: currency.currencyName,
+      symbol: currency.symbol,
+      denominations: denominationsWithQuantity,
+    );
 
+    // Create VaultTransaction entity
+    final now = DateTime.now();
+    final vaultTransaction = VaultTransaction(
+      companyId: companyId,
+      locationId: state.selectedVaultLocationId!,
+      storeId: state.selectedStoreId,
+      userId: userId,
+      currencyId: currencyId,
+      isCredit: transactionType == 'credit',
+      isDebit: transactionType == 'debit',
+      recordDate: now,
+      createdAt: now,
+      currency: currencyWithData,
+    );
 
-    try {
-      // Call vault_amount_insert RPC (from lib_old line 83-84)
-      await Supabase.instance.client
-          .rpc<dynamic>('vault_amount_insert', params: params);
+    // Save through repository
+    final success = await ref.read(cashEndingProvider.notifier).saveVaultTransaction(vaultTransaction);
 
-      if (!mounted) return;
+    if (!mounted) return;
 
-      // Trigger haptic feedback for success
+    if (success) {
       HapticFeedback.mediumImpact();
-
       await TossDialogs.showVaultTransactionSaved(
         context: context,
         transactionType: transactionType,
       );
-
       vaultTabState?.clearQuantities?.call();
 
       // Reload stock flows
-      if (state.selectedVaultLocationId != null &&
-          state.selectedVaultLocationId!.isNotEmpty) {
+      if (state.selectedVaultLocationId != null && state.selectedVaultLocationId!.isNotEmpty) {
         vaultTabState?.reloadStockFlows?.call();
       }
-    } catch (e) {
-
-      if (!mounted) return;
-
-      String errorMessage;
-      if (e.toString().contains('permission')) {
-        errorMessage = 'You do not have permission to save vault transactions.';
-      } else {
-        errorMessage = 'An unexpected error occurred. Please try again.';
-      }
-
+    } else {
       await TossDialogs.showCashEndingError(
         context: context,
-        error: errorMessage,
+        error: state.errorMessage ?? 'Failed to save vault transaction',
       );
     }
   }

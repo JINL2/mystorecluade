@@ -1,6 +1,10 @@
+import 'package:freezed_annotation/freezed_annotation.dart';
+
 import '../entities/monthly_shift_status.dart';
 import '../repositories/time_table_repository.dart';
 import 'base_usecase.dart';
+
+part 'get_monthly_shift_status.freezed.dart';
 
 /// Get Monthly Shift Status UseCase
 ///
@@ -23,27 +27,11 @@ class GetMonthlyShiftStatus
 }
 
 /// Parameters for GetMonthlyShiftStatus UseCase
-class GetMonthlyShiftStatusParams {
-  final String requestDate;
-  final String companyId;
-  final String storeId;
-
-  const GetMonthlyShiftStatusParams({
-    required this.requestDate,
-    required this.companyId,
-    required this.storeId,
-  });
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    return other is GetMonthlyShiftStatusParams &&
-        other.requestDate == requestDate &&
-        other.companyId == companyId &&
-        other.storeId == storeId;
-  }
-
-  @override
-  int get hashCode =>
-      requestDate.hashCode ^ companyId.hashCode ^ storeId.hashCode;
+@freezed
+class GetMonthlyShiftStatusParams with _$GetMonthlyShiftStatusParams {
+  const factory GetMonthlyShiftStatusParams({
+    required String requestDate,
+    required String companyId,
+    required String storeId,
+  }) = _GetMonthlyShiftStatusParams;
 }

@@ -16,6 +16,16 @@ abstract class StoreRepository {
   /// Throws [ValidationException] if data is invalid.
   Future<Store> create(Store store);
 
+  /// Find store by ID
+  ///
+  /// Returns the [Store] if found, null otherwise.
+  Future<Store?> findById(String storeId);
+
+  /// Find stores by company ID
+  ///
+  /// Returns list of stores in the company.
+  Future<List<Store>> findByCompany(String companyId);
+
   /// Check if store code exists in company
   ///
   /// Returns `true` if the code already exists.
@@ -23,4 +33,14 @@ abstract class StoreRepository {
     required String companyId,
     required String storeCode,
   });
+
+  /// Update store
+  ///
+  /// Returns the updated [Store].
+  Future<Store> update(Store store);
+
+  /// Delete store (soft delete)
+  ///
+  /// Marks the store as deleted.
+  Future<void> delete(String storeId);
 }

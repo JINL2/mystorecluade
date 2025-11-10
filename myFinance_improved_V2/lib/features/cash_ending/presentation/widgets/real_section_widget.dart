@@ -37,77 +37,32 @@ class RealSectionWidget extends StatefulWidget {
 }
 
 class _RealSectionWidgetState extends State<RealSectionWidget> {
-  String _selectedFilter = 'All';
+  String _selectedTab = 'Real'; // 'Journal' or 'Real'
 
-  /// Filter flows based on selected filter
-  List<ActualFlow> get _filteredFlows {
-    if (_selectedFilter == 'All') {
-      return widget.actualFlows;
-    }
-    // Add other filters if needed (Cash, Bank, Vault)
-    return widget.actualFlows;
-  }
-
-  void _showFilterBottomSheet() {
-    showModalBottomSheet<void>(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (context) {
-        return Container(
-          decoration: const BoxDecoration(
-            color: TossColors.white,
-            borderRadius: BorderRadius.vertical(
-              top: Radius.circular(TossBorderRadius.lg),
-            ),
-          ),
-          padding: const EdgeInsets.symmetric(
-            vertical: TossSpacing.space4,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _buildFilterOption('All'),
-              _buildFilterOption('Cash'),
-              _buildFilterOption('Bank'),
-              _buildFilterOption('Vault'),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildFilterOption(String filter) {
-    final isSelected = _selectedFilter == filter;
-    return InkWell(
+  Widget _buildTabButton(String tab) {
+    final isSelected = _selectedTab == tab;
+    return GestureDetector(
       onTap: () {
         setState(() {
-          _selectedFilter = filter;
+          _selectedTab = tab;
         });
-        Navigator.pop(context);
       },
       child: Container(
         padding: const EdgeInsets.symmetric(
-          horizontal: TossSpacing.space5,
-          vertical: TossSpacing.space3,
+          horizontal: TossSpacing.space4,
+          vertical: TossSpacing.space2,
         ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              filter,
-              style: TossTextStyles.body.copyWith(
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                color: isSelected ? TossColors.primary : TossColors.gray900,
-              ),
-            ),
-            if (isSelected)
-              const Icon(
-                TossIcons.check,
-                color: TossColors.primary,
-                size: 20,
-              ),
-          ],
+        decoration: BoxDecoration(
+          color: isSelected ? TossColors.primary : Colors.transparent,
+          borderRadius: BorderRadius.circular(TossBorderRadius.md),
+        ),
+        child: Text(
+          tab,
+          style: TossTextStyles.body.copyWith(
+            fontWeight: FontWeight.w600,
+            fontSize: 15,
+            color: isSelected ? TossColors.white : TossColors.gray600,
+          ),
         ),
       ),
     );
@@ -128,7 +83,7 @@ class _RealSectionWidgetState extends State<RealSectionWidget> {
           ),
           child: Column(
             children: [
-              // Header
+              // Header with Journal/Real Tabs
               Container(
                 height: 48,
                 padding: const EdgeInsets.symmetric(
@@ -142,63 +97,20 @@ class _RealSectionWidgetState extends State<RealSectionWidget> {
                     ),
                   ),
                 ),
-                child: Center(
-                  child: Text(
-                    'Real',
-                    style: TossTextStyles.body.copyWith(
-                      fontWeight: FontWeight.w700,
-                      fontSize: 17,
-                      color: TossColors.black87,
-                    ),
-                  ),
-                ),
-              ),
-              // Filter Header
-              Container(
-                padding: const EdgeInsets.only(
-                  left: TossSpacing.space5,
-                  right: TossSpacing.space4,
-                  top: TossSpacing.space5,
-                  bottom: TossSpacing.space3,
-                ),
-                child: GestureDetector(
-                  onTap: _showFilterBottomSheet,
-                  child: Row(
-                    children: [
-                      Text(
-                        _selectedFilter,
-                        style: TossTextStyles.body.copyWith(
-                          color: TossColors.gray600,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 14,
-                        ),
-                      ),
-                      const Icon(
-                        Icons.keyboard_arrow_down,
-                        size: 18,
-                        color: TossColors.gray600,
-                      ),
-                    ],
-                  ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    _buildTabButton('Journal'),
+                    const SizedBox(width: TossSpacing.space2),
+                    _buildTabButton('Real'),
+                  ],
                 ),
               ),
               // Content Area
               Expanded(
-                child: widget.isLoading && widget.actualFlows.isEmpty
-                    ? const Center(child: TossLoadingView())
-                    : _filteredFlows.isEmpty
-                        ? Container(
-                            padding: const EdgeInsets.all(TossSpacing.space5),
-                            child: Center(
-                              child: Text(
-                                'No real data available',
-                                style: TossTextStyles.body.copyWith(
-                                  color: TossColors.gray500,
-                                ),
-                              ),
-                            ),
-                          )
-                        : _buildFlowList(),
+                child: _selectedTab == 'Journal'
+                    ? _buildJournalContent()
+                    : _buildRealContent(),
               ),
             ],
           ),
@@ -207,13 +119,70 @@ class _RealSectionWidgetState extends State<RealSectionWidget> {
     );
   }
 
+  Widget _buildJournalContent() {
+    // TODO: Implement journal flow display when journal data is available
+    return Container(
+      padding: const EdgeInsets.all(TossSpacing.space5),
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.description_outlined,
+              size: 48,
+              color: TossColors.gray400,
+            ),
+            const SizedBox(height: TossSpacing.space3),
+            Text(
+              'Journal entries coming soon',
+              style: TossTextStyles.body.copyWith(
+                color: TossColors.gray500,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            const SizedBox(height: TossSpacing.space2),
+            Text(
+              'Theoretical balance calculations will be displayed here',
+              style: TossTextStyles.caption.copyWith(
+                color: TossColors.gray400,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRealContent() {
+    if (widget.isLoading && widget.actualFlows.isEmpty) {
+      return const Center(child: TossLoadingView());
+    }
+
+    if (widget.actualFlows.isEmpty) {
+      return Container(
+        padding: const EdgeInsets.all(TossSpacing.space5),
+        child: Center(
+          child: Text(
+            'No real data available',
+            style: TossTextStyles.body.copyWith(
+              color: TossColors.gray500,
+            ),
+          ),
+        ),
+      );
+    }
+
+    return _buildFlowList();
+  }
+
   Widget _buildFlowList() {
     return ListView.builder(
       padding: const EdgeInsets.symmetric(vertical: TossSpacing.space3),
-      itemCount: _filteredFlows.length + (widget.hasMore ? 1 : 0),
+      itemCount: widget.actualFlows.length + (widget.hasMore ? 1 : 0),
       itemBuilder: (context, index) {
         // Load More button at the end
-        if (index >= _filteredFlows.length) {
+        if (index >= widget.actualFlows.length) {
           return InkWell(
             onTap: widget.onLoadMore,
             child: Container(
@@ -233,10 +202,10 @@ class _RealSectionWidgetState extends State<RealSectionWidget> {
           );
         }
 
-        final flow = _filteredFlows[index];
+        final flow = widget.actualFlows[index];
         final showDate = index == 0 ||
             flow.getFormattedDate() !=
-                _filteredFlows[index - 1].getFormattedDate();
+                widget.actualFlows[index - 1].getFormattedDate();
 
         return RealItemWidget(
           flow: flow,

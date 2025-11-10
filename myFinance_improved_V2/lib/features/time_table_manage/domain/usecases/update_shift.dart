@@ -1,6 +1,10 @@
+import 'package:freezed_annotation/freezed_annotation.dart';
+
 import '../entities/shift_request.dart';
 import '../repositories/time_table_repository.dart';
 import 'base_usecase.dart';
+
+part 'update_shift.freezed.dart';
 
 /// Update Shift UseCase
 ///
@@ -33,33 +37,12 @@ class UpdateShift implements UseCase<ShiftRequest, UpdateShiftParams> {
 }
 
 /// Parameters for UpdateShift UseCase
-class UpdateShiftParams {
-  final String shiftRequestId;
-  final String? startTime;
-  final String? endTime;
-  final bool? isProblemSolved;
-
-  const UpdateShiftParams({
-    required this.shiftRequestId,
-    this.startTime,
-    this.endTime,
-    this.isProblemSolved,
-  });
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    return other is UpdateShiftParams &&
-        other.shiftRequestId == shiftRequestId &&
-        other.startTime == startTime &&
-        other.endTime == endTime &&
-        other.isProblemSolved == isProblemSolved;
-  }
-
-  @override
-  int get hashCode =>
-      shiftRequestId.hashCode ^
-      startTime.hashCode ^
-      endTime.hashCode ^
-      isProblemSolved.hashCode;
+@freezed
+class UpdateShiftParams with _$UpdateShiftParams {
+  const factory UpdateShiftParams({
+    required String shiftRequestId,
+    String? startTime,
+    String? endTime,
+    bool? isProblemSolved,
+  }) = _UpdateShiftParams;
 }

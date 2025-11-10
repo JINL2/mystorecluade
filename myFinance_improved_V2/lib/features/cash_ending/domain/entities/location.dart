@@ -1,30 +1,58 @@
 // lib/features/cash_ending/domain/entities/location.dart
 
-/// Domain entity representing a cash location (cash drawer, bank, vault)
-class Location {
-  final String locationId;
-  final String locationName;
-  final String locationType; // 'cash', 'bank', or 'vault'
-  final String? storeId;
-  final String? currencyId;
-  final String? accountId;
+import 'package:freezed_annotation/freezed_annotation.dart';
 
-  Location({
-    required this.locationId,
-    required this.locationName,
-    required this.locationType,
-    this.storeId,
-    this.currencyId,
-    this.accountId,
-  }) {
-    // Simple validation
-    if (locationType != 'cash' &&
-        locationType != 'bank' &&
-        locationType != 'vault') {
-      throw ArgumentError(
-        'Invalid location type: $locationType. Must be cash, bank, or vault',
-      );
-    }
+part 'location.freezed.dart';
+
+/// Domain entity representing a cash location (cash drawer, bank, vault)
+///
+/// Uses Freezed for:
+/// - Immutability guarantee
+/// - Auto-generated copyWith, ==, hashCode
+/// - Manual JSON serialization (no .g.dart needed)
+///
+/// ✅ Refactored with:
+/// - Removed @JsonKey warnings
+/// - Manual fromJson for consistency with other entities
+@freezed
+class Location with _$Location {
+  const Location._();
+
+  @Assert(
+    "locationType == 'cash' || locationType == 'bank' || locationType == 'vault'",
+    'Invalid location type. Must be cash, bank, or vault',
+  )
+  const factory Location({
+    required String locationId,
+    required String locationName,
+    required String locationType,
+    String? storeId,
+    String? currencyId,
+    String? accountId,
+  }) = _Location;
+
+  /// Custom fromJson factory for database deserialization
+  factory Location.fromJson(Map<String, dynamic> json) {
+    return Location(
+      locationId: json['cash_location_id']?.toString() ?? '',
+      locationName: json['location_name']?.toString() ?? '',
+      locationType: json['location_type']?.toString() ?? 'cash',
+      storeId: json['store_id']?.toString(),
+      currencyId: json['currency_id']?.toString(),
+      accountId: json['account_id']?.toString(),
+    );
+  }
+
+  /// Convert to JSON for database storage
+  Map<String, dynamic> toJson() {
+    return {
+      'cash_location_id': locationId,
+      'location_name': locationName,
+      'location_type': locationType,
+      'store_id': storeId,
+      'currency_id': currencyId,
+      'account_id': accountId,
+    };
   }
 
   /// Check if this is a cash location
@@ -38,47 +66,4 @@ class Location {
 
   /// Check if location is at headquarters (no store assigned)
   bool get isHeadquarter => storeId == null || storeId == 'headquarter';
-
-  /// Create a copy with updated fields
-  Location copyWith({
-    String? locationId,
-    String? locationName,
-    String? locationType,
-    String? storeId,
-    String? currencyId,
-    String? accountId,
-  }) {
-    return Location(
-      locationId: locationId ?? this.locationId,
-      locationName: locationName ?? this.locationName,
-      locationType: locationType ?? this.locationType,
-      storeId: storeId ?? this.storeId,
-      currencyId: currencyId ?? this.currencyId,
-      accountId: accountId ?? this.accountId,
-    );
-  }
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    return other is Location &&
-        other.locationId == locationId &&
-        other.locationName == locationName &&
-        other.locationType == locationType &&
-        other.storeId == storeId &&
-        other.currencyId == currencyId &&
-        other.accountId == accountId;
-  }
-
-  @override
-  int get hashCode {
-    return Object.hash(
-      locationId,
-      locationName,
-      locationType,
-      storeId,
-      currencyId,
-      accountId,
-    );
-  }
 }

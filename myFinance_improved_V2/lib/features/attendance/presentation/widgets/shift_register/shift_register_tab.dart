@@ -12,8 +12,13 @@ import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../../shared/widgets/common/toss_loading_view.dart';
 import '../../../../../shared/widgets/common/toss_success_error_dialog.dart';
+import '../../../domain/entities/monthly_shift_status.dart';
 import '../../../domain/entities/shift_data.dart';
+import '../../../domain/entities/shift_metadata.dart';
 import '../../providers/attendance_providers.dart';
+import '../../utils/date_format_utils.dart';
+import 'date_header_card.dart';
+import 'shift_calendar.dart';
 
 class ShiftRegisterTab extends ConsumerStatefulWidget {
   const ShiftRegisterTab({super.key});
@@ -27,9 +32,9 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab>
   DateTime selectedDate = DateTime.now();
   DateTime focusedMonth = DateTime.now();
   String? selectedStoreId;
-  dynamic shiftMetadata; // Store shift metadata from RPC (can be List or Map)
+  List<ShiftMetadata>? shiftMetadata; // Store shift metadata (strongly typed)
   bool isLoadingMetadata = false;
-  List<Map<String, dynamic>>? monthlyShiftStatus; // Store monthly shift status from RPC
+  List<MonthlyShiftStatus>? monthlyShiftStatus; // Store monthly shift status (strongly typed)
   bool isLoadingShiftStatus = false;
 
   // ScrollController for auto-scroll functionality
@@ -43,19 +48,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab>
   // Keep state alive when switching tabs
   @override
   bool get wantKeepAlive => true;
-  
-  // Remove mock data - will use real data from RPC
-  Map<DateTime, ShiftData> registeredShifts = {
-    DateTime(2024, 11, 11): ShiftData('09:00', '18:00', 'Store A'),
-    DateTime(2024, 11, 12): ShiftData('09:00', '18:00', 'Store A'),
-    DateTime(2024, 11, 13): ShiftData('14:00', '22:00', 'Store B'),
-    DateTime(2024, 11, 14): ShiftData('09:00', '18:00', 'Store A'),
-    DateTime(2024, 11, 15): ShiftData('09:00', '18:00', 'Store A'),
-    DateTime(2024, 11, 18): ShiftData('10:00', '19:00', 'Store A'),
-    DateTime(2024, 11, 19): ShiftData('09:00', '18:00', 'Store A'),
-    DateTime(2024, 11, 20): ShiftData('14:00', '22:00', 'Store B'),
-  };
-  
+
   @override
   void dispose() {
     _scrollController.dispose();
@@ -64,7 +57,12 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab>
   
   // Fetch shift metadata from Supabase RPC
   Future<void> fetchShiftMetadata(String storeId) async {
-    if (storeId.isEmpty) return;
+    print('🔍 [ShiftRegister] fetchShiftMetadata 시작 - storeId: $storeId');
+
+    if (storeId.isEmpty) {
+      print('❌ [ShiftRegister] storeId가 비어있음');
+      return;
+    }
 
     if (mounted) {
       setState(() {
@@ -75,10 +73,18 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab>
     try {
       // Use get shift metadata use case
       final getShiftMetadata = ref.read(getShiftMetadataProvider);
+      print('📡 [ShiftRegister] getShiftMetadata 호출 중...');
 
       final response = await getShiftMetadata(
         storeId: storeId,
       );
+
+      print('✅ [ShiftRegister] shiftMetadata 응답 받음 - 개수: ${response.length}');
+      if (response.isNotEmpty) {
+        print('📋 [ShiftRegister] 첫 번째 shift: ${response.first}');
+      } else {
+        print('⚠️ [ShiftRegister] shiftMetadata가 비어있음 (store에 shift가 설정되지 않았을 수 있음)');
+      }
 
       if (mounted) {
         setState(() {
@@ -88,7 +94,10 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab>
         });
       }
 
-    } catch (e) {
+    } catch (e, stackTrace) {
+      print('❌ [ShiftRegister] fetchShiftMetadata 에러: $e');
+      print('📚 [ShiftRegister] 스택 트레이스: $stackTrace');
+
       if (mounted) {
         setState(() {
           isLoadingMetadata = false;
@@ -100,12 +109,19 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab>
   
   // Fetch monthly shift status from Supabase RPC (Shows all employees' registrations)
   Future<void> fetchMonthlyShiftStatus() async {
-    if (selectedStoreId == null || selectedStoreId!.isEmpty) return;
-    
+    print('🔍 [ShiftRegister] fetchMonthlyShiftStatus 시작');
+    print('   - selectedStoreId: $selectedStoreId');
+    print('   - focusedMonth: ${focusedMonth.year}-${focusedMonth.month}');
+
+    if (selectedStoreId == null || selectedStoreId!.isEmpty) {
+      print('❌ [ShiftRegister] selectedStoreId가 없음');
+      return;
+    }
+
     setState(() {
       isLoadingShiftStatus = true;
     });
-    
+
     try {
       // Format date as YYYY-MM-DD for the first day of the focused month
       final requestDate = '${focusedMonth.year}-${focusedMonth.month.toString().padLeft(2, '0')}-01';
@@ -113,20 +129,49 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab>
       // Use get monthly shift status use case
       final getMonthlyShiftStatus = ref.read(getMonthlyShiftStatusProvider);
       final appState = ref.read(appStateProvider);
-      final companyId = appState.companyChoosen;
+      final authStateAsync = ref.read(authStateProvider);
+      final user = authStateAsync.value;
+      final userId = user?.id;
+
+      if (userId == null) {
+        print('❌ [ShiftRegister] userId가 없습니다');
+        setState(() {
+          isLoadingShiftStatus = false;
+        });
+        return;
+      }
+
+      print('📡 [ShiftRegister] getMonthlyShiftStatus 호출 중...');
+      print('   - storeId: $selectedStoreId');
+      print('   - userId: $userId');
+      print('   - requestDate: $requestDate');
 
       final response = await getMonthlyShiftStatus(
         storeId: selectedStoreId!,
-        companyId: companyId,
+        userId: userId,
         requestDate: requestDate,
       );
+
+      print('✅ [ShiftRegister] monthlyShiftStatus 응답 받음 - 개수: ${response.length}');
+      if (response.isNotEmpty) {
+        print('📋 [ShiftRegister] 첫 번째 status: ${response.first}');
+        print('👥 [ShiftRegister] otherStaffs 개수: ${response.first.otherStaffs.length}');
+        if (response.first.otherStaffs.isNotEmpty) {
+          print('👤 [ShiftRegister] 첫 번째 otherStaff: ${response.first.otherStaffs.first}');
+        }
+      } else {
+        print('⚠️ [ShiftRegister] monthlyShiftStatus가 비어있음 (아직 신청된 shift가 없을 수 있음)');
+      }
 
       setState(() {
         monthlyShiftStatus = response;
         isLoadingShiftStatus = false;
       });
-      
-    } catch (e) {
+
+    } catch (e, stackTrace) {
+      print('❌ [ShiftRegister] fetchMonthlyShiftStatus 에러: $e');
+      print('📚 [ShiftRegister] 스택 트레이스: $stackTrace');
+
       setState(() {
         isLoadingShiftStatus = false;
         monthlyShiftStatus = [];
@@ -137,14 +182,24 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab>
   @override
   void initState() {
     super.initState();
+    print('🚀 [ShiftRegister] initState 시작');
+
     // Initialize selectedStoreId from app state
     final appState = ref.read(appStateProvider);
     selectedStoreId = appState.storeChoosen.isNotEmpty ? appState.storeChoosen : null;
-    
+
+    print('🏪 [ShiftRegister] App State 확인:');
+    print('   - storeChoosen: ${appState.storeChoosen}');
+    print('   - companyChoosen: ${appState.companyChoosen}');
+    print('   - selectedStoreId: $selectedStoreId');
+
     // Fetch shift metadata and monthly status for the default store
     if (selectedStoreId != null) {
+      print('✅ [ShiftRegister] selectedStoreId 있음 - 데이터 fetch 시작');
       fetchShiftMetadata(selectedStoreId!);
       fetchMonthlyShiftStatus();
+    } else {
+      print('❌ [ShiftRegister] selectedStoreId가 null - store가 선택되지 않음');
     }
   }
   
@@ -270,230 +325,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab>
       selectionMode = null;
     });
   }
-  
-  
-  // Optimistically update local shift status to prevent race condition
-  void _updateLocalShiftStatusOptimistically({
-    required String shiftId,
-    required String userId,
-    required String userName,
-    required String profileImage,
-    required String requestDate,
-  }) {
-    if (monthlyShiftStatus == null) {
-      monthlyShiftStatus = [];
-    }
-    
-    
-    // We don't have shift_request_id since we're not calling RPC after registration
-    // Set it to null for local state update
-    
-    // Find the existing shift data for this date
-    Map<String, dynamic>? existingDayData;
-    int existingIndex = -1;
-    
-    for (int i = 0; i < monthlyShiftStatus!.length; i++) {
-      if (monthlyShiftStatus![i]['request_date'] == requestDate) {
-        existingDayData = monthlyShiftStatus![i];
-        existingIndex = i;
-        break;
-      }
-    }
-    
-    // Create new employee entry for optimistic update
-    final newEmployee = {
-      'user_id': userId,
-      'user_name': userName,
-      'profile_image': profileImage,
-      'is_approved': false, // New registrations start as not approved
-      'shift_request_id': null, // Set to null since we don't have it from RPC
-    };
-    
-    if (existingDayData != null && existingIndex != -1) {
-      // Update existing day data
-      var shifts = existingDayData['shifts'] as List<dynamic>?;
-      if (shifts == null) {
-        shifts = [];
-        existingDayData['shifts'] = shifts;
-      }
-      
-      // Find the specific shift
-      bool shiftFound = false;
-      for (var shift in shifts) {
-        if (shift['shift_id'].toString() == shiftId) {
-          shiftFound = true;
-          // Add to pending_employees list
-          var pendingEmployees = shift['pending_employees'] as List<dynamic>? ?? [];
-          
-          // Check if user is not already registered
-          bool alreadyRegistered = false;
-          for (var emp in pendingEmployees) {
-            if (emp['user_id'] == userId) {
-              alreadyRegistered = true;
-              break;
-            }
-          }
-          
-          // Also check approved employees
-          var approvedEmployees = shift['approved_employees'] as List<dynamic>? ?? [];
-          for (var emp in approvedEmployees) {
-            if (emp['user_id'] == userId) {
-              alreadyRegistered = true;
-              break;
-            }
-          }
-          
-          if (!alreadyRegistered) {
-            pendingEmployees.add(newEmployee);
-            shift['pending_employees'] = pendingEmployees;
-            
-            // Update the total_pending count for the day
-            existingDayData['total_pending'] = (existingDayData['total_pending'] ?? 0) + 1;
-          } else {
-          }
-          break;
-        }
-      }
-      
-      // If shift doesn't exist in this day, create it
-      if (!shiftFound) {
-        // Get shift metadata to properly create the shift structure
-        final allStoreShifts = _getAllStoreShifts();
-        
-        Map<String, dynamic>? shiftMetadata;
-        for (final storeShift in allStoreShifts) {
-          final storeShiftId = (storeShift['shift_id'] ?? storeShift['id'] ?? storeShift['store_shift_id'])?.toString();
-          if (storeShiftId == shiftId) {
-            shiftMetadata = storeShift;
-            break;
-          }
-        }
-        
-        if (shiftMetadata == null) {
-        }
-        
-        final newShift = {
-          'shift_id': shiftId,
-          'shift_name': shiftMetadata?['shift_name'] ?? shiftMetadata?['name'] ?? 'Unknown Shift',
-          'start_time': shiftMetadata?['start_time'] ?? '00:00:00',
-          'end_time': shiftMetadata?['end_time'] ?? '00:00:00',
-          'pending_employees': [newEmployee],
-          'approved_employees': [],
-        };
-        shifts.add(newShift);
-        
-        // Update the total_pending count for the day
-        existingDayData['total_pending'] = (existingDayData['total_pending'] ?? 0) + 1;
-      }
-    } else {
-      // Create new day data if it doesn't exist
-      // Get shift metadata to properly create the shift structure
-      final allStoreShifts = _getAllStoreShifts();
-      
-      Map<String, dynamic>? shiftMetadata;
-      for (final storeShift in allStoreShifts) {
-        final storeShiftId = (storeShift['shift_id'] ?? storeShift['id'] ?? storeShift['store_shift_id'])?.toString();
-        if (storeShiftId == shiftId) {
-          shiftMetadata = storeShift;
-          break;
-        }
-      }
-      
-      if (shiftMetadata == null) {
-      }
-      
-      final newDayData = {
-        'request_date': requestDate,
-        'total_pending': 1, // Starting with 1 pending employee
-        'total_approved': 0,
-        'shifts': [
-          {
-            'shift_id': shiftId,
-            'shift_name': shiftMetadata?['shift_name'] ?? shiftMetadata?['name'] ?? 'Unknown Shift',
-            'start_time': shiftMetadata?['start_time'] ?? '00:00:00',
-            'end_time': shiftMetadata?['end_time'] ?? '00:00:00',
-            'pending_employees': [newEmployee],
-            'approved_employees': [],
-          }
-        ],
-      };
-      monthlyShiftStatus!.add(newDayData);
-    }
-    
-    // Trigger UI update
-    setState(() {
-      // Force a new list to trigger rebuild
-      monthlyShiftStatus = List<Map<String, dynamic>>.from(monthlyShiftStatus!);
-    });
-    
-    
-  }
-  
-  // Optimistically remove user from local shift status to prevent race condition on cancellation
-  void _removeFromLocalShiftStatusOptimistically({
-    required String shiftId,
-    required String userId,
-    required String requestDate,
-  }) {
-    if (monthlyShiftStatus == null || monthlyShiftStatus!.isEmpty) return;
-    
-    
-    // Find the existing shift data for this date
-    for (int dayIndex = 0; dayIndex < monthlyShiftStatus!.length; dayIndex++) {
-      if (monthlyShiftStatus![dayIndex]['request_date'] == requestDate) {
-        final dayData = monthlyShiftStatus![dayIndex];
-        final shifts = dayData['shifts'] as List<dynamic>?;
-        
-        bool removedFromPending = false;
-        bool removedFromApproved = false;
-        
-        if (shifts != null) {
-          // Find the specific shift and remove the employee
-          for (var shift in shifts) {
-            if (shift['shift_id'].toString() == shiftId) {
-              // Remove from pending_employees list
-              var pendingEmployees = shift['pending_employees'] as List<dynamic>? ?? [];
-              int pendingCountBefore = pendingEmployees.length;
-              pendingEmployees.removeWhere((emp) => emp['user_id'] == userId);
-              shift['pending_employees'] = pendingEmployees;
-              if (pendingCountBefore > pendingEmployees.length) {
-                removedFromPending = true;
-              }
-              
-              // Remove from approved_employees list
-              var approvedEmployees = shift['approved_employees'] as List<dynamic>? ?? [];
-              int approvedCountBefore = approvedEmployees.length;
-              approvedEmployees.removeWhere((emp) => emp['user_id'] == userId);
-              shift['approved_employees'] = approvedEmployees;
-              if (approvedCountBefore > approvedEmployees.length) {
-                removedFromApproved = true;
-              }
-              
-              break;
-            }
-          }
-        }
-        
-        // Update the total counts for the day
-        if (removedFromPending) {
-          dayData['total_pending'] = (dayData['total_pending'] ?? 1) - 1;
-        }
-        if (removedFromApproved) {
-          dayData['total_approved'] = (dayData['total_approved'] ?? 1) - 1;
-        }
-        
-        break;
-      }
-    }
-    
-    
-    // Trigger UI update
-    setState(() {
-      // Force a new list to trigger rebuild
-      monthlyShiftStatus = List<Map<String, dynamic>>.from(monthlyShiftStatus!);
-    });
-  }
-  
+
   // Show store selector with Toss-style bottom sheet
   void _showStoreSelector(List<dynamic> stores) {
     showModalBottomSheet(
@@ -629,30 +461,35 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab>
   }
   
   // Handle cancel shifts
+  // TODO: Refactor - MonthlyShiftStatus entity doesn't match nested structure expected
   Future<void> _handleCancelShifts() async {
-    
-    if (selectedShift == null) {
+    // FIXME: This method assumes monthlyShiftStatus contains nested Map structures
+    // but monthlyShiftStatus is List<MonthlyShiftStatus> which is a flat entity
+    // Need to redesign the data model or use different entity
+    return; // Temporarily disabled
+
+    /* if (selectedShift == null) {
       return;
     }
-    
+
     // Get the selected shift details
     final allStoreShifts = _getAllStoreShifts();
     Map<String, dynamic>? selectedShiftDetail;
-    
+
     // Get user's shift data for the selected date
     final dateStr = '${selectedDate.year}-${selectedDate.month.toString().padLeft(2, '0')}-${selectedDate.day.toString().padLeft(2, '0')}';
-    
+
     // monthlyShiftStatus contains days with nested shifts and employee arrays
     // We need to find the day data first, then look for the user in the shift's employee arrays
     final dayData = monthlyShiftStatus?.firstWhere(
       (day) => day['request_date'] == dateStr,
       orElse: () => <String, dynamic>{},
     );
-    
+
     if (dayData != null && dayData.isNotEmpty) {
     } else {
     }
-    
+
     // Extract user's shift information from the nested structure
     final authStateAsync = ref.read(authStateProvider);
     final user = authStateAsync.value;
@@ -741,7 +578,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab>
       _showApprovedShiftAlert();
     } else {
       _showCancelConfirmationDialog([selectedShiftDetail]);
-    }
+    } */
   }
   
   // Handle register shift
@@ -937,34 +774,6 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab>
                               
                               // Get user data from app state for more accurate information
                               final appState = ref.read(appStateProvider);
-                              final userData = appState.user as Map<String, dynamic>? ?? {};
-                              
-                              // Use app state data first, fallback to auth metadata
-                              final firstName = userData['user_first_name'] ?? '';
-                              final lastName = userData['user_last_name'] ?? '';
-                              final fullName = '$firstName $lastName'.trim();
-                              
-                              final userName = fullName.isNotEmpty 
-                                             ? fullName
-                                             : (user.userMetadata?['full_name'] as String?) ?? 
-                                               (user.userMetadata?['name'] as String?) ?? 
-                                               user.email?.split('@')[0] ?? 
-                                               'Unknown';
-                              
-                              // Get profile image from app state
-                              final profileImage = userData['profile_image'] ?? 
-                                                 (user.userMetadata?['avatar_url'] as String?) ?? 
-                                                 '';
-                              
-                              
-                              // Update UI immediately - data already saved to DB
-                              _updateLocalShiftStatusOptimistically(
-                                shiftId: selectedShift!,
-                                userId: user.id,
-                                userName: userName,
-                                profileImage: profileImage?.toString() ?? '',
-                                requestDate: dateStr,
-                              );
 
                               _resetSelections();
 
@@ -1638,31 +1447,14 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab>
             shiftId: shiftId,
             requestDate: dateStr,
           );
-
-
-          // Optimistic UI update: immediately remove from local state
-          // This prevents the race condition where fetch happens before DB commit
-          _removeFromLocalShiftStatusOptimistically(
-            shiftId: shiftId,
-            userId: user.id,
-            requestDate: dateStr,
-          );
         }
       }
-      
+
       // Close loading indicator
       if (mounted) context.pop();
-      
+
       // Reset selections first
       _resetSelections();
-      
-      // Force immediate UI update with local state changes
-      // NO RPC CALL - just use the updated local state
-      if (mounted) {
-        setState(() {
-          // The UI will now reflect the changes made by _removeFromLocalShiftStatusOptimistically
-        });
-      }
 
       // Show success message
       if (mounted) {
@@ -1801,6 +1593,12 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab>
     super.build(context); // Required for AutomaticKeepAliveClientMixin
     final appState = ref.watch(appStateProvider);
 
+    print('🎨 [ShiftRegister] build() 호출');
+    print('   - isLoadingMetadata: $isLoadingMetadata');
+    print('   - shiftMetadata: ${shiftMetadata?.length ?? 0}개');
+    print('   - isLoadingShiftStatus: $isLoadingShiftStatus');
+    print('   - monthlyShiftStatus: ${monthlyShiftStatus?.length ?? 0}개');
+
     // Get selected company from user's companies based on companyChoosen
     final companies = (appState.user['companies'] as List<dynamic>?) ?? [];
     Map<String, dynamic>? selectedCompany;
@@ -1817,12 +1615,18 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab>
     }
 
     final stores = selectedCompany?['stores'] as List<dynamic>? ?? [];
-    
+    print('   - stores 개수: ${stores.length}');
+    print('   - selectedStoreId: $selectedStoreId');
+
     // If selectedStoreId is null and stores are available, use the first store
     if (selectedStoreId == null && stores.isNotEmpty) {
+      print('⚠️ [ShiftRegister] selectedStoreId가 null - 첫 번째 store 자동 선택');
       selectedStoreId = stores.first['store_id']?.toString();
+      print('   - 자동 선택된 storeId: $selectedStoreId');
+
       // Fetch metadata and monthly status for the auto-selected store
       if (shiftMetadata == null && !isLoadingMetadata) {
+        print('✅ [ShiftRegister] shiftMetadata가 없음 - fetch 시작');
         fetchShiftMetadata(selectedStoreId!);
         fetchMonthlyShiftStatus();
       }
@@ -1984,7 +1788,19 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab>
                   // Calendar - Toss Style
                   Container(
                     margin: const EdgeInsets.symmetric(horizontal: TossSpacing.space5),
-                    child: _buildCalendar(),
+                    child: ShiftCalendar(
+                      focusedMonth: focusedMonth,
+                      selectedDate: selectedDate,
+                      currentUserId: (ref.read(appStateProvider).user['user_id'] ?? '') as String,
+                      onDateSelected: (date) {
+                        setState(() {
+                          selectedDate = date;
+                          _resetSelections();
+                        });
+                      },
+                      hasShiftOnDate: _hasShiftOnDate,
+                      getShiftForDate: _getShiftForDate,
+                    ),
                   ),
                   
                   const SizedBox(height: TossSpacing.space4),
@@ -2070,287 +1886,6 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab>
     );
   }
   
-  Widget _buildCalendar() {
-    final firstDayOfMonth = DateTime(focusedMonth.year, focusedMonth.month, 1);
-    final lastDayOfMonth = DateTime(focusedMonth.year, focusedMonth.month + 1, 0);
-    final daysInMonth = lastDayOfMonth.day;
-    final firstWeekday = firstDayOfMonth.weekday;
-    
-    List<Widget> calendarDays = [];
-    
-    // Week day headers - Toss Style
-    const weekDays = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
-    for (int i = 0; i < weekDays.length; i++) {
-      final isWeekend = i >= 5;
-      calendarDays.add(
-        Center(
-          child: Text(
-            weekDays[i],
-            style: TossTextStyles.caption.copyWith(
-              color: isWeekend ? TossColors.gray400 : TossColors.gray500,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ),
-      );
-    }
-    
-    // Empty cells before first day of month
-    for (int i = 1; i < firstWeekday; i++) {
-      calendarDays.add(const SizedBox());
-    }
-    
-    // Days of the month - Toss Style
-    for (int day = 1; day <= daysInMonth; day++) {
-      final date = DateTime(focusedMonth.year, focusedMonth.month, day);
-      final isSelected = selectedDate.year == date.year &&
-          selectedDate.month == date.month &&
-          selectedDate.day == date.day;
-      final isToday = DateTime.now().year == date.year &&
-          DateTime.now().month == date.month &&
-          DateTime.now().day == date.day;
-      final isWeekend = date.weekday >= 6;
-      final hasShift = _hasShiftOnDate(date);
-      final shiftData = _getShiftForDate(date);
-      
-      // Get current user ID from app state
-      final appState = ref.read(appStateProvider);
-      final String currentUserId = (appState.user['user_id'] ?? '') as String;
-
-      // Check user registration status for this date
-      bool userIsApproved = false;
-      bool userIsPending = false;
-
-      if (shiftData != null && currentUserId.isNotEmpty) {
-        // Check all shifts for this date
-        final shifts = shiftData['shifts'] as List<dynamic>? ?? [];
-        
-        for (var shift in shifts) {
-          // Check approved employees
-          final approvedEmployees = shift['approved_employees'] as List<dynamic>? ?? [];
-          for (var employee in approvedEmployees) {
-            if (employee['user_id'] == currentUserId) {
-              userIsApproved = true;
-              break;
-            }
-          }
-          
-          // Check pending employees if not already approved
-          if (!userIsApproved) {
-            final pendingEmployees = shift['pending_employees'] as List<dynamic>? ?? [];
-            for (var employee in pendingEmployees) {
-              if (employee['user_id'] == currentUserId) {
-                userIsPending = true;
-                break;
-              }
-            }
-          }
-          
-          if (userIsApproved || userIsPending) break;
-        }
-      }
-      
-      final isPast = date.isBefore(DateTime.now().subtract(const Duration(days: 1)));
-      
-      calendarDays.add(
-        InkWell(
-          onTap: () {
-            setState(() {
-              selectedDate = date;
-              _resetSelections();
-            });
-            HapticFeedback.selectionClick();
-          },
-          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-          child: Container(
-            margin: EdgeInsets.all(TossSpacing.space1 * 0.75),
-            decoration: BoxDecoration(
-              color: isSelected
-                  ? TossColors.primary
-                  : isToday
-                      ? TossColors.gray100
-                      : TossColors.transparent,
-              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-            ),
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      day.toString(),
-                      style: TossTextStyles.body.copyWith(
-                        color: isSelected
-                            ? TossColors.white
-                            : isPast
-                                ? TossColors.gray300
-                                : isWeekend
-                                    ? TossColors.gray500
-                                    : TossColors.gray900,
-                        fontWeight: isSelected || isToday
-                            ? FontWeight.w700
-                            : FontWeight.w500,
-                      ),
-                    ),
-                    if (hasShift && (userIsApproved || userIsPending)) ...[
-                      const SizedBox(height: 2),
-                      Container(
-                        width: 6,
-                        height: 6,
-                        decoration: BoxDecoration(
-                          color: isSelected
-                              ? TossColors.white
-                              : userIsApproved
-                                  ? TossColors.success  // Green - user is approved
-                                  : TossColors.warning,  // Orange - user is pending
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                    ] else
-                      const SizedBox(height: TossSpacing.space2),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
-      );
-    }
-    
-    return GridView.count(
-      crossAxisCount: 7,
-      childAspectRatio: 1.0,
-      mainAxisSpacing: 0,
-      crossAxisSpacing: 0,
-      children: calendarDays,
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-    );
-  }
-  
-  Widget _buildSelectedDateDetails() {
-    final shift = registeredShifts[DateTime(selectedDate.year, selectedDate.month, selectedDate.day)];
-    
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: TossSpacing.space5),
-      padding: const EdgeInsets.all(TossSpacing.space4),
-      decoration: BoxDecoration(
-        color: TossColors.gray50,
-        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-        border: Border.all(
-          color: TossColors.gray200,
-          width: 1,
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(TossSpacing.space2),
-                decoration: BoxDecoration(
-                  color: TossColors.primary.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                ),
-                child: const Icon(
-                  Icons.calendar_today,
-                  size: 20,
-                  color: TossColors.primary,
-                ),
-              ),
-              const SizedBox(width: TossSpacing.space3),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      _getWeekdayFull(selectedDate.weekday),
-                      style: TossTextStyles.caption.copyWith(
-                        color: TossColors.gray500,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    Text(
-                      '${selectedDate.day} ${_getMonthName(selectedDate.month)} ${selectedDate.year}',
-                      style: TossTextStyles.body.copyWith(
-                        color: TossColors.gray900,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          
-          if (shift != null) ...[
-            const SizedBox(height: TossSpacing.space3),
-            const Divider(color: TossColors.gray200),
-            const SizedBox(height: TossSpacing.space3),
-            
-            Row(
-              children: [
-                Expanded(
-                  child: _buildShiftInfo(
-                    icon: Icons.login,
-                    label: 'Start',
-                    value: shift.startTime,
-                  ),
-                ),
-                const SizedBox(width: TossSpacing.space3),
-                Expanded(
-                  child: _buildShiftInfo(
-                    icon: Icons.logout,
-                    label: 'End',
-                    value: shift.endTime,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: TossSpacing.space2),
-            _buildShiftInfo(
-              icon: Icons.store,
-              label: 'Store',
-              value: shift.store,
-            ),
-          ] else ...[
-            const SizedBox(height: TossSpacing.space3),
-            Container(
-              padding: const EdgeInsets.all(TossSpacing.space3),
-              decoration: BoxDecoration(
-                color: TossColors.warning.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                border: Border.all(
-                  color: TossColors.warning.withOpacity(0.3),
-                  width: 1,
-                ),
-              ),
-              child: Row(
-                children: [
-                  const Icon(
-                    Icons.info_outline,
-                    size: 16,
-                    color: TossColors.warning,
-                  ),
-                  const SizedBox(width: TossSpacing.space2),
-                  Text(
-                    'No shift registered for this date',
-                    style: TossTextStyles.caption.copyWith(
-                      color: TossColors.warning,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-  
   Widget _buildShiftInfo({
     required IconData icon,
     required String label,
@@ -2379,30 +1914,22 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab>
     );
   }
   
+  /// Check if user has any registered shift on a specific date
   bool _hasShiftOnDate(DateTime date) {
     if (monthlyShiftStatus == null || monthlyShiftStatus!.isEmpty) return false;
-    
-    // Check if there are any shifts registered for this date (for any employee)
+
     final dateStr = '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
-    return monthlyShiftStatus!.any((dayData) {
-      return dayData['request_date'] == dateStr && 
-             (((dayData['total_approved'] ?? 0) as int) > 0 || 
-              ((dayData['total_pending'] ?? 0) as int) > 0);
+    return monthlyShiftStatus!.any((shiftStatus) {
+      return shiftStatus.requestDate == dateStr && shiftStatus.isRegisteredByMe;
     });
   }
-  
-  // Get shift details for a specific date (returns the day's data with all employees)
+
+  /// Get shift data for calendar display (not used in user view)
+  /// Returns null as user view uses different data structure
   Map<String, dynamic>? _getShiftForDate(DateTime date) {
-    if (monthlyShiftStatus == null || monthlyShiftStatus!.isEmpty) return null;
-    
-    final dateStr = '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
-    try {
-      return monthlyShiftStatus!.firstWhere(
-        (dayData) => dayData['request_date'] == dateStr,
-      );
-    } catch (e) {
-      return null;
-    }
+    // User view doesn't need detailed shift data for calendar
+    // Calendar only shows if user has registered shift (via hasShiftOnDate)
+    return null;
   }
   
   Widget _buildSelectedDateShiftDetails() {
@@ -2416,69 +1943,11 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Date header - Toss Style
-          Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: TossSpacing.space4,
-              vertical: TossSpacing.space3,
-            ),
-            decoration: BoxDecoration(
-              color: TossColors.background,
-              borderRadius: BorderRadius.circular(TossBorderRadius.xl),
-              border: Border.all(
-                color: TossColors.gray200,
-                width: 1,
-              ),
-            ),
-            child: Row(
-              children: [
-                Text(
-                  '${selectedDate.day}',
-                  style: TossTextStyles.h1.copyWith(
-                    color: TossColors.primary,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const SizedBox(width: TossSpacing.space3),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      _getWeekdayFull(selectedDate.weekday),
-                      style: TossTextStyles.small.copyWith(
-                        color: TossColors.gray500,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    Text(
-                      '${_getMonthName(selectedDate.month)} ${selectedDate.year}',
-                      style: TossTextStyles.body.copyWith(
-                        color: TossColors.gray900,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ),
-                const Spacer(),
-                if (selectedShift != null)
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: TossSpacing.space2,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: TossColors.primary.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(TossBorderRadius.xxl),
-                    ),
-                    child: Text(
-                      '1 Selected',
-                      style: TossTextStyles.caption.copyWith(
-                        color: TossColors.primary,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-              ],
-            ),
+          DateHeaderCard(
+            selectedDate: selectedDate,
+            selectedShift: selectedShift,
+            getWeekdayFull: _getWeekdayFull,
+            getMonthName: _getMonthName,
           ),
           
           const SizedBox(height: TossSpacing.space3),
@@ -2568,41 +2037,32 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab>
               final dateStr = '${selectedDate.year}-${selectedDate.month.toString().padLeft(2, '0')}-${selectedDate.day.toString().padLeft(2, '0')}';
               
               if (monthlyShiftStatus != null && monthlyShiftStatus!.isNotEmpty) {
-                // Find the data for the selected date
-                bool foundDate = false;
-                for (final dayData in monthlyShiftStatus!) {
-                  if (dayData['request_date'] == dateStr) {
-                    foundDate = true;
-                    final shifts = dayData['shifts'] as List? ?? [];
-                    
-                    // Find the matching shift by ID
-                    for (final shiftData in shifts) {
-                      // Compare shift IDs as strings to avoid type issues
-                      if (shiftData['shift_id'].toString() == shiftId.toString()) {
-                        // Extract pending employees
-                        if (shiftData['pending_employees'] != null) {
-                          final pending = shiftData['pending_employees'] as List;
-                          pendingEmployees = List<Map<String, dynamic>>.from(
-                            pending.map((e) => Map<String, dynamic>.from(e as Map))
-                          );
-                        }
-                        
-                        // Extract approved employees
-                        if (shiftData['approved_employees'] != null) {
-                          final approved = shiftData['approved_employees'] as List;
-                          approvedEmployees = List<Map<String, dynamic>>.from(
-                            approved.map((e) => Map<String, dynamic>.from(e as Map))
-                          );
-                        }
-                        break;
-                      }
+                // MonthlyShiftStatus has flat structure: each row is one shift on one date
+                // Find the MonthlyShiftStatus for this date and shift
+                final shiftStatusForDate = monthlyShiftStatus!.firstWhere(
+                  (status) => status.requestDate == dateStr && status.shiftId == shiftId,
+                  orElse: () => monthlyShiftStatus!.first, // Dummy fallback to avoid null
+                );
+
+                // Check if we found valid data (not just the fallback)
+                if (shiftStatusForDate.requestDate == dateStr && shiftStatusForDate.shiftId == shiftId) {
+                  // Get other employees from otherStaffs array
+                  final otherStaffs = shiftStatusForDate.otherStaffs;
+
+                  // Separate into approved and pending based on is_approved field
+                  for (final employee in otherStaffs) {
+                    final isApproved = employee['is_approved'] == true;
+                    if (isApproved) {
+                      approvedEmployees.add(employee);
+                    } else {
+                      pendingEmployees.add(employee);
                     }
-                    break;
                   }
+
+                  print('📊 [ShiftRegister] Employees for shift $shiftName on $dateStr:');
+                  print('   ✅ Approved: ${approvedEmployees.length}');
+                  print('   ⏳ Pending: ${pendingEmployees.length}');
                 }
-                if (!foundDate) {
-                }
-              } else {
               }
               
               // Check if the current user has registered for this shift
@@ -2868,7 +2328,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab>
                                     // Name
                                     Expanded(
                                       child: Text(
-                                        (employee['user_name'] ?? 'Unknown').toString(),
+                                        (employee['employee_full_name'] ?? 'Unknown').toString(),
                                         style: TossTextStyles.body.copyWith(
                                           color: TossColors.gray900,
                                           fontWeight: FontWeight.w500,
@@ -2947,7 +2407,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab>
                                     // Name
                                     Expanded(
                                       child: Text(
-                                        (employee['user_name'] ?? 'Unknown').toString(),
+                                        (employee['employee_full_name'] ?? 'Unknown').toString(),
                                         style: TossTextStyles.body.copyWith(
                                           color: TossColors.gray900,
                                           fontWeight: FontWeight.w500,
@@ -3034,26 +2494,62 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab>
   
   // Get ALL shifts from store metadata
   List<Map<String, dynamic>> _getAllStoreShifts() {
+    print('🔍 [ShiftRegister] _getAllStoreShifts() 호출');
+    print('   - shiftMetadata: $shiftMetadata');
+    print('   - shiftMetadata type: ${shiftMetadata.runtimeType}');
+
     if (shiftMetadata == null) {
+      print('❌ [ShiftRegister] shiftMetadata가 null - 빈 리스트 반환');
       return [];
     }
-    
-    
+
     // The RPC response should be a list directly
     if (shiftMetadata is List) {
-      // Convert each item to Map<String, dynamic> and filter for active shifts only
-      return (shiftMetadata as List).map((item) {
+      print('✅ [ShiftRegister] shiftMetadata는 List 타입 - 개수: ${shiftMetadata!.length}');
+
+      // Convert ShiftMetadata entities to Map and filter for active shifts only
+      final shifts = (shiftMetadata as List).where((item) {
+        // If it's a ShiftMetadata entity, check isActive directly
+        if (item is ShiftMetadata) {
+          print('   📦 ShiftMetadata entity 발견: ${item.shiftName}, isActive: ${item.isActive}');
+          return item.isActive;
+        }
+        // If it's a Map, check is_active field
+        if (item is Map) {
+          print('   📦 Map 발견: ${item['shift_name']}, is_active: ${item['is_active']}');
+          return item['is_active'] == true;
+        }
+        return false;
+      }).map((item) {
+        // Convert ShiftMetadata entity to Map
+        if (item is ShiftMetadata) {
+          return {
+            'shift_id': item.shiftId,
+            'shift_name': item.shiftName,
+            'start_time': item.startTime,
+            'end_time': item.endTime,
+            'is_active': item.isActive,
+            'description': item.description,
+          };
+        }
+        // If already a Map, use it
         if (item is Map<String, dynamic>) {
           return item;
-        } else if (item is Map) {
-          return Map<String, dynamic>.from(item);
-        } else {
-          return <String, dynamic>{};
         }
-      }).where((item) => 
-        item.isNotEmpty && 
-        item['is_active'] == true  // Filter only active shifts
-      ).toList();
+        if (item is Map) {
+          return Map<String, dynamic>.from(item);
+        }
+        return <String, dynamic>{};
+      }).where((item) => item.isNotEmpty).toList();
+
+      print('📋 [ShiftRegister] active shifts 필터링 완료 - ${shifts.length}개');
+      if (shifts.isNotEmpty) {
+        print('   - 첫 번째 shift: ${shifts.first}');
+      } else {
+        print('⚠️ [ShiftRegister] active shift가 없음! (is_active가 false일 수 있음)');
+      }
+
+      return shifts;
     }
     
     // If somehow it's still a Map, check if it contains shift data
@@ -3199,18 +2695,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab>
     );
   }
   
-  static String _getMonthName(int month) {
-    const months = [
-      'January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December'
-    ];
-    return months[month - 1];
-  }
-  
-  String _getWeekdayFull(int weekday) {
-    const weekdays = [
-      'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'
-    ];
-    return weekdays[weekday - 1];
-  }
+  String _getMonthName(int month) => DateFormatUtils.getMonthName(month);
+  String _getWeekdayFull(int weekday) => DateFormatUtils.getWeekdayFull(weekday);
 }
+

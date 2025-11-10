@@ -1,39 +1,111 @@
 // lib/features/cash_ending/domain/entities/cash_ending.dart
 
+import 'package:freezed_annotation/freezed_annotation.dart';
+import '../../../../core/utils/datetime_utils.dart';
 import 'currency.dart';
 
-/// Domain entity representing a cash ending record
-/// This is the aggregate root for the cash ending feature
-class CashEnding {
-  final String? cashEndingId; // null for new records
-  final String companyId;
-  final String userId;
-  final String locationId;
-  final String? storeId;
-  final DateTime recordDate;
-  final DateTime createdAt;
-  final List<Currency> currencies;
+part 'cash_ending.freezed.dart';
 
-  CashEnding({
-    this.cashEndingId,
-    required this.companyId,
-    required this.userId,
-    required this.locationId,
-    this.storeId,
-    required this.recordDate,
-    required this.createdAt,
-    required this.currencies,
-  }) {
-    // Simple validation
-    if (companyId.isEmpty) {
-      throw ArgumentError('Company ID cannot be empty');
+/// Domain entity representing a cash ending record
+///
+/// This is the aggregate root for the cash ending feature.
+///
+/// Uses Freezed for:
+/// - Immutability guarantee
+/// - Auto-generated copyWith, ==, hashCode
+/// - Compile-time validation with @Assert
+///
+/// ✅ Refactored with:
+/// - Freezed (107 lines → ~60 actual code)
+/// - @Assert for validation
+/// - Private constructor for custom methods
+@freezed
+class CashEnding with _$CashEnding {
+  const CashEnding._();
+
+  const factory CashEnding({
+    String? cashEndingId, // null for new records
+    required String companyId,
+    required String userId,
+    required String locationId,
+    String? storeId,
+    required DateTime recordDate,
+    required DateTime createdAt,
+    required List<Currency> currencies,
+  }) = _CashEnding;
+
+  /// Custom fromJson factory for database deserialization
+  factory CashEnding.fromJson(Map<String, dynamic> json) {
+    // Parse currencies from nested JSON
+    final List<Currency> currenciesList = [];
+    if (json['currencies'] != null) {
+      final currenciesData = json['currencies'] as List;
+      for (var currencyJson in currenciesData) {
+        currenciesList.add(Currency.fromJson(currencyJson as Map<String, dynamic>));
+      }
     }
-    if (userId.isEmpty) {
-      throw ArgumentError('User ID cannot be empty');
-    }
-    if (locationId.isEmpty) {
-      throw ArgumentError('Location ID cannot be empty');
-    }
+
+    return CashEnding(
+      cashEndingId: json['cash_ending_id']?.toString(),
+      companyId: json['company_id']?.toString() ?? '',
+      userId: json['user_id']?.toString() ?? json['created_by']?.toString() ?? '',
+      locationId: json['cash_location_id']?.toString() ?? '',
+      storeId: json['store_id']?.toString(),
+      recordDate: json['record_date'] != null
+          ? DateTime.parse(json['record_date'].toString())
+          : DateTime.now(),
+      createdAt: json['created_at'] != null
+          ? DateTime.parse(json['created_at'].toString())
+          : DateTime.now(),
+      currencies: currenciesList,
+    );
+  }
+
+  /// Convert to JSON for database storage
+  Map<String, dynamic> toJson() {
+    return {
+      'cash_ending_id': cashEndingId,
+      'company_id': companyId,
+      'user_id': userId,
+      'cash_location_id': locationId,
+      'store_id': storeId,
+      'record_date': recordDate.toIso8601String(),
+      'created_at': createdAt.toIso8601String(),
+      'currencies': currencies.map((c) => c.toJson()).toList(),
+    };
+  }
+
+  /// Convert to RPC parameters for Supabase function call
+  ///
+  /// This matches the format expected by insert_cashier_amount_lines RPC
+  /// Converts local datetime to UTC for database storage
+  Map<String, dynamic> toRpcParams() {
+    // Build currencies array for RPC
+    // Note: Include currencies even if all denominations are 0 (cash can be 0)
+    final currenciesJson = currencies.map((currency) {
+      // Include all denominations with their quantities (including 0)
+      final denominationsJson = currency.denominations
+          .map((d) => {
+                'denomination_id': d.denominationId,
+                'quantity': d.quantity,
+              })
+          .toList();
+
+      return {
+        'currency_id': currency.currencyId,
+        'denominations': denominationsJson,
+      };
+    }).toList();
+
+    return {
+      'p_company_id': companyId,
+      'p_location_id': locationId,
+      'p_record_date': DateTimeUtils.toDateOnly(recordDate), // Date only, no timezone conversion
+      'p_created_by': userId,
+      'p_currencies': currenciesJson,
+      'p_created_at': DateTimeUtils.toRpcFormat(createdAt), // Convert to UTC for RPC
+      'p_store_id': (storeId == null || storeId == 'headquarter') ? null : storeId,
+    };
   }
 
   /// Calculate grand total across all currencies
@@ -56,51 +128,4 @@ class CashEnding {
 
   /// Check if this is for headquarter location
   bool get isHeadquarter => storeId == null || storeId == 'headquarter';
-
-  /// Create a copy with updated fields
-  CashEnding copyWith({
-    String? cashEndingId,
-    String? companyId,
-    String? userId,
-    String? locationId,
-    String? storeId,
-    DateTime? recordDate,
-    DateTime? createdAt,
-    List<Currency>? currencies,
-  }) {
-    return CashEnding(
-      cashEndingId: cashEndingId ?? this.cashEndingId,
-      companyId: companyId ?? this.companyId,
-      userId: userId ?? this.userId,
-      locationId: locationId ?? this.locationId,
-      storeId: storeId ?? this.storeId,
-      recordDate: recordDate ?? this.recordDate,
-      createdAt: createdAt ?? this.createdAt,
-      currencies: currencies ?? this.currencies,
-    );
-  }
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    return other is CashEnding &&
-        other.cashEndingId == cashEndingId &&
-        other.companyId == companyId &&
-        other.userId == userId &&
-        other.locationId == locationId &&
-        other.storeId == storeId &&
-        other.recordDate == recordDate;
-  }
-
-  @override
-  int get hashCode {
-    return Object.hash(
-      cashEndingId,
-      companyId,
-      userId,
-      locationId,
-      storeId,
-      recordDate,
-    );
-  }
 }

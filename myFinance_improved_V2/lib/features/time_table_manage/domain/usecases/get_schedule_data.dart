@@ -1,6 +1,10 @@
+import 'package:freezed_annotation/freezed_annotation.dart';
+
 import '../entities/schedule_data.dart';
 import '../repositories/time_table_repository.dart';
 import 'base_usecase.dart';
+
+part 'get_schedule_data.freezed.dart';
 
 /// Get Schedule Data UseCase
 ///
@@ -21,19 +25,9 @@ class GetScheduleData implements UseCase<ScheduleData, GetScheduleDataParams> {
 }
 
 /// Parameters for GetScheduleData UseCase
-class GetScheduleDataParams {
-  final String storeId;
-
-  const GetScheduleDataParams({
-    required this.storeId,
-  });
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    return other is GetScheduleDataParams && other.storeId == storeId;
-  }
-
-  @override
-  int get hashCode => storeId.hashCode;
+@freezed
+class GetScheduleDataParams with _$GetScheduleDataParams {
+  const factory GetScheduleDataParams({
+    required String storeId,
+  }) = _GetScheduleDataParams;
 }

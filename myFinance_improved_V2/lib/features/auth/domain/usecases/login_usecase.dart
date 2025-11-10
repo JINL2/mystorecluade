@@ -49,8 +49,8 @@ class LoginUseCase {
     }
 
     // Step 4: Check email verification
-    // TODO: Enable email verification in production
-    // For now, skip email verification check to allow development/testing
+    // NOTE: Disabled for development - enable in production
+    // In production, uncomment the following:
     // if (!user.isEmailVerified) {
     //   throw EmailNotVerifiedException();
     // }

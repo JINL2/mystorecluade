@@ -1,46 +1,52 @@
 // lib/features/auth/domain/entities/store_entity.dart
 
+import 'package:freezed_annotation/freezed_annotation.dart';
 import '../value_objects/validation_result.dart';
 
-/// Store entity representing a physical or virtual location of a company.
+part 'store_entity.freezed.dart';
+part 'store_entity.g.dart';
+
+/// Store Entity (Freezed Version)
 ///
-/// A store belongs to a company and can have multiple employees.
-/// This entity contains all business rules for store validation.
-class Store {
-  final String id;
-  final String name;
-  final String companyId;
-  final String? storeCode; // Unique code within company
-  final String? phone;
-  final String? address;
-  final String? timezone; // e.g., "Asia/Seoul", "America/New_York"
-  final String? description;
-  final bool isActive;
+/// 🎯 Improvements:
+/// - Auto-generates: copyWith, ==, hashCode, toString, fromJson, toJson
+/// - Combines Entity + Model (no separate StoreModel needed)
+/// - Type-safe JSON serialization
+/// - Immutable by default
+///
+/// 📊 Code Reduction:
+/// - Old: Store entity (164 lines) + StoreModel (130 lines) = 294 lines
+/// - New: Store entity (this file) = ~140 lines (52% reduction)
+@freezed
+class Store with _$Store {
+  const Store._();
 
-  // Operational settings
-  final int? huddleTimeMinutes; // Meeting duration in minutes
-  final int? paymentTimeDays; // Payment terms in days
-  final double? allowedDistanceMeters; // Allowed distance for attendance
+  const factory Store({
+    @JsonKey(name: 'store_id') required String id,
+    @JsonKey(name: 'store_name') required String name,
+    @JsonKey(name: 'company_id') required String companyId,
+    @JsonKey(name: 'store_code') String? storeCode,
+    @JsonKey(name: 'store_phone') String? phone,
+    @JsonKey(name: 'store_address') String? address,
+    String? timezone,
+    String? description,
+    @JsonKey(name: 'is_active') @Default(true) bool isActive,
 
-  final DateTime createdAt;
-  final DateTime? updatedAt;
+    // Operational settings
+    @JsonKey(name: 'huddle_time') int? huddleTimeMinutes,
+    @JsonKey(name: 'payment_time') int? paymentTimeDays,
+    @JsonKey(name: 'allowed_distance') double? allowedDistanceMeters,
 
-  const Store({
-    required this.id,
-    required this.name,
-    required this.companyId,
-    this.storeCode,
-    this.phone,
-    this.address,
-    this.timezone,
-    this.description,
-    this.isActive = true,
-    this.huddleTimeMinutes,
-    this.paymentTimeDays,
-    this.allowedDistanceMeters,
-    required this.createdAt,
-    this.updatedAt,
-  });
+    @JsonKey(name: 'created_at') required DateTime createdAt,
+    @JsonKey(name: 'updated_at') DateTime? updatedAt,
+    @JsonKey(name: 'is_deleted') @Default(false) bool isDeleted,
+  }) = _Store;
+
+  factory Store.fromJson(Map<String, dynamic> json) => _$StoreFromJson(json);
+
+  // ============================================================
+  // Business Logic
+  // ============================================================
 
   /// Validates the store entity
   ValidationResult validate() {
@@ -112,53 +118,24 @@ class Store {
     return name;
   }
 
-  /// Create a copy with updated fields
-  Store copyWith({
-    String? id,
-    String? name,
-    String? companyId,
-    String? storeCode,
-    String? phone,
-    String? address,
-    String? timezone,
-    String? description,
-    bool? isActive,
-    int? huddleTimeMinutes,
-    int? paymentTimeDays,
-    double? allowedDistanceMeters,
-    DateTime? createdAt,
-    DateTime? updatedAt,
-  }) {
-    return Store(
-      id: id ?? this.id,
-      name: name ?? this.name,
-      companyId: companyId ?? this.companyId,
-      storeCode: storeCode ?? this.storeCode,
-      phone: phone ?? this.phone,
-      address: address ?? this.address,
-      timezone: timezone ?? this.timezone,
-      description: description ?? this.description,
-      isActive: isActive ?? this.isActive,
-      huddleTimeMinutes: huddleTimeMinutes ?? this.huddleTimeMinutes,
-      paymentTimeDays: paymentTimeDays ?? this.paymentTimeDays,
-      allowedDistanceMeters: allowedDistanceMeters ?? this.allowedDistanceMeters,
-      createdAt: createdAt ?? this.createdAt,
-      updatedAt: updatedAt ?? this.updatedAt,
-    );
-  }
+  // ============================================================
+  // Data Layer Methods
+  // ============================================================
 
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is Store &&
-          runtimeType == other.runtimeType &&
-          id == other.id;
+  /// Create insert map for Supabase
+  Map<String, dynamic> toInsertMap() {
+    final map = <String, dynamic>{
+      'store_name': name,
+      'company_id': companyId,
+    };
 
-  @override
-  int get hashCode => id.hashCode;
+    if (storeCode != null) map['store_code'] = storeCode;
+    if (address != null) map['store_address'] = address;
+    if (phone != null) map['store_phone'] = phone;
+    if (huddleTimeMinutes != null) map['huddle_time'] = huddleTimeMinutes;
+    if (paymentTimeDays != null) map['payment_time'] = paymentTimeDays;
+    if (allowedDistanceMeters != null) map['allowed_distance'] = allowedDistanceMeters?.toInt();
 
-  @override
-  String toString() {
-    return 'Store(id: $id, name: $name, companyId: $companyId, storeCode: $storeCode, isActive: $isActive)';
+    return map;
   }
 }

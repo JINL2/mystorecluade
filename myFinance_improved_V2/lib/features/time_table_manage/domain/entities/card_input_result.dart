@@ -1,45 +1,55 @@
+import 'package:freezed_annotation/freezed_annotation.dart';
+
 import 'shift_request.dart';
 import 'tag.dart';
+
+part 'card_input_result.freezed.dart';
+part 'card_input_result.g.dart';
 
 /// Card Input Result Entity
 ///
 /// Represents the result of inputting/updating shift card data,
 /// including confirmed times, problem status, and tags.
-class CardInputResult {
-  /// The shift request ID that was updated
-  final String shiftRequestId;
+@freezed
+class CardInputResult with _$CardInputResult {
+  const CardInputResult._();
 
-  /// Confirmed start time (actual start time)
-  final DateTime confirmedStartTime;
+  const factory CardInputResult({
+    /// The shift request ID that was updated
+    @JsonKey(name: 'shift_request_id')
+    required String shiftRequestId,
 
-  /// Confirmed end time (actual end time)
-  final DateTime confirmedEndTime;
+    /// Confirmed start time (actual start time)
+    @JsonKey(name: 'confirmed_start_time')
+    required DateTime confirmedStartTime,
 
-  /// Whether the employee was late
-  final bool isLate;
+    /// Confirmed end time (actual end time)
+    @JsonKey(name: 'confirmed_end_time')
+    required DateTime confirmedEndTime,
 
-  /// Whether any problem was solved
-  final bool isProblemSolved;
+    /// Whether the employee was late
+    @JsonKey(name: 'is_late')
+    required bool isLate,
 
-  /// The new tag that was created (if any)
-  final Tag? newTag;
+    /// Whether any problem was solved
+    @JsonKey(name: 'is_problem_solved')
+    required bool isProblemSolved,
 
-  /// The updated shift request entity after input
-  final ShiftRequest updatedRequest;
+    /// The new tag that was created (if any)
+    @JsonKey(name: 'new_tag')
+    Tag? newTag,
 
-  /// Optional message about the result
-  final String? message;
+    /// The updated shift request entity after input
+    @JsonKey(name: 'updated_request')
+    required ShiftRequest updatedRequest,
 
-  const CardInputResult({
-    required this.shiftRequestId,
-    required this.confirmedStartTime,
-    required this.confirmedEndTime,
-    required this.isLate,
-    required this.isProblemSolved,
-    this.newTag,
-    required this.updatedRequest,
-    this.message,
-  });
+    /// Optional message about the result
+    String? message,
+  }) = _CardInputResult;
+
+  /// Create from JSON
+  factory CardInputResult.fromJson(Map<String, dynamic> json) =>
+      _$CardInputResultFromJson(json);
 
   /// Calculate actual work duration in hours
   double get actualWorkDurationInHours {
@@ -52,32 +62,4 @@ class CardInputResult {
 
   /// Check if employee was on time
   bool get wasOnTime => !isLate;
-
-  /// Copy with method for immutability
-  CardInputResult copyWith({
-    String? shiftRequestId,
-    DateTime? confirmedStartTime,
-    DateTime? confirmedEndTime,
-    bool? isLate,
-    bool? isProblemSolved,
-    Tag? newTag,
-    ShiftRequest? updatedRequest,
-    String? message,
-  }) {
-    return CardInputResult(
-      shiftRequestId: shiftRequestId ?? this.shiftRequestId,
-      confirmedStartTime: confirmedStartTime ?? this.confirmedStartTime,
-      confirmedEndTime: confirmedEndTime ?? this.confirmedEndTime,
-      isLate: isLate ?? this.isLate,
-      isProblemSolved: isProblemSolved ?? this.isProblemSolved,
-      newTag: newTag ?? this.newTag,
-      updatedRequest: updatedRequest ?? this.updatedRequest,
-      message: message ?? this.message,
-    );
-  }
-
-  @override
-  String toString() {
-    return 'CardInputResult(id: $shiftRequestId, start: $confirmedStartTime, end: $confirmedEndTime, late: $isLate)';
-  }
 }

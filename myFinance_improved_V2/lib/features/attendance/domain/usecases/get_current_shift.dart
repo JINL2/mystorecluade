@@ -1,6 +1,7 @@
+import '../entities/shift_card_data.dart';
 import '../repositories/attendance_repository.dart';
 
-/// Get current active shift for a user
+/// Get current active shift for a user (strongly typed)
 ///
 /// Returns the currently active shift if any
 class GetCurrentShift {
@@ -8,7 +9,7 @@ class GetCurrentShift {
 
   GetCurrentShift(this._repository);
 
-  Future<Map<String, dynamic>?> call({
+  Future<ShiftCardData?> call({
     required String userId,
     required String storeId,
   }) {

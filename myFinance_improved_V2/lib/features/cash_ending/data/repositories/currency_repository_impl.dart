@@ -1,19 +1,23 @@
 // lib/features/cash_ending/data/repositories/currency_repository_impl.dart
 
+import '../../../../core/data/base_repository.dart';
+import '../../../../core/errors/failures.dart';
+import '../../../../core/types/result.dart';
 import '../../domain/entities/currency.dart';
 import '../../domain/entities/denomination.dart';
 import '../../domain/repositories/currency_repository.dart';
-import '../../domain/exceptions/cash_ending_exception.dart';
 import '../datasources/currency_remote_datasource.dart';
-import '../models/currency_model.dart';
-import '../models/denomination_model.dart';
 
 /// Repository Implementation for Currencies (Data Layer)
 ///
 /// Implements the domain repository interface.
 /// Coordinates between datasource (Supabase) and domain entities.
-/// Handles data transformation and error mapping.
-class CurrencyRepositoryImpl implements CurrencyRepository {
+///
+/// ✅ Refactored with:
+/// - Freezed Entity (no Model needed)
+/// - BaseRepository (unified error handling)
+/// - 30% less boilerplate
+class CurrencyRepositoryImpl extends BaseRepository implements CurrencyRepository {
   final CurrencyRemoteDataSource _remoteDataSource;
 
   CurrencyRepositoryImpl({
@@ -21,125 +25,119 @@ class CurrencyRepositoryImpl implements CurrencyRepository {
   }) : _remoteDataSource = remoteDataSource ?? CurrencyRemoteDataSource();
 
   @override
-  Future<List<Currency>> getCompanyCurrencies(String companyId) async {
-    try {
-      if (companyId.isEmpty) {
-        return [];
-      }
-
-      // Step 1: Get company currency associations
-      final companyCurrencies =
-          await _remoteDataSource.getCompanyCurrencies(companyId);
-
-      if (companyCurrencies.isEmpty) {
-        return [];
-      }
-
-      // Step 2: Extract currency IDs (preserving order from companyCurrencies)
-      final currencyIds = companyCurrencies
-          .map((item) => item['currency_id']?.toString() ?? '')
-          .where((id) => id.isNotEmpty)
-          .toList();
-
-      // Step 3: Get currency type details
-      final currencyTypes =
-          await _remoteDataSource.getCurrencyTypes(currencyIds: currencyIds);
-
-      // Step 4: Create a map of currency_id to currency type for quick lookup
-      final Map<String, Map<String, dynamic>> currencyTypeMap = {};
-      for (var currencyType in currencyTypes) {
-        final currencyId = currencyType['currency_id']?.toString() ?? '';
-        if (currencyId.isNotEmpty) {
-          currencyTypeMap[currencyId] = currencyType;
+  Future<Result<List<Currency>, Failure>> getCompanyCurrencies(String companyId) {
+    return executeFetchWithResult(
+      () async {
+        if (companyId.isEmpty) {
+          return [];
         }
-      }
 
-      // Step 5: Get all denominations for this company
-      final allDenominations =
-          await _remoteDataSource.getAllDenominations(companyId);
+        // Step 1: Get company currency associations
+        final companyCurrencies =
+            await _remoteDataSource.getCompanyCurrencies(companyId);
 
-      // Step 6: Group denominations by currency
-      final Map<String, List<DenominationModel>> denominationsByCurrency = {};
-      for (var denomJson in allDenominations) {
-        final currencyId = denomJson['currency_id']?.toString() ?? '';
-        if (currencyId.isNotEmpty) {
-          denominationsByCurrency.putIfAbsent(currencyId, () => []);
-          denominationsByCurrency[currencyId]!
-              .add(DenominationModel.fromJson(denomJson));
+        if (companyCurrencies.isEmpty) {
+          return [];
         }
-      }
 
-      // Step 7: Combine into currency entities (maintaining created_at order from companyCurrencies)
-      final List<Currency> entities = [];
-      for (var companyCurrency in companyCurrencies) {
-        final currencyId = companyCurrency['currency_id']?.toString() ?? '';
-        final currencyTypeJson = currencyTypeMap[currencyId];
+        // Step 2: Extract currency IDs (preserving order from companyCurrencies)
+        final currencyIds = companyCurrencies
+            .map((item) => item['currency_id']?.toString() ?? '')
+            .where((id) => id.isNotEmpty)
+            .toList();
 
-        if (currencyTypeJson != null) {
-          // Get denominations for this currency
-          final denomModels = denominationsByCurrency[currencyId] ?? [];
+        // Step 3: Get currency type details
+        final currencyTypes =
+            await _remoteDataSource.getCurrencyTypes(currencyIds: currencyIds);
 
-          // Build currency model with denominations
-          final currencyModel = CurrencyModel(
-            currencyId: currencyId,
-            currencyCode: currencyTypeJson['currency_code']?.toString() ?? '',
-            currencyName: currencyTypeJson['currency_name']?.toString() ?? '',
-            symbol: currencyTypeJson['symbol']?.toString() ?? '',
-            denominations: denomModels,
-          );
-
-          entities.add(currencyModel.toEntity());
+        // Step 4: Create a map of currency_id to currency type for quick lookup
+        final Map<String, Map<String, dynamic>> currencyTypeMap = {};
+        for (var currencyType in currencyTypes) {
+          final currencyId = currencyType['currency_id']?.toString() ?? '';
+          if (currencyId.isNotEmpty) {
+            currencyTypeMap[currencyId] = currencyType;
+          }
         }
-      }
 
-      return entities;
-    } catch (e) {
-      throw FetchFailedException(
-        'Failed to fetch company currencies',
-        originalError: e,
-      );
-    }
+        // Step 5: Get all denominations for this company
+        final allDenominations =
+            await _remoteDataSource.getAllDenominations(companyId);
+
+        // Step 6: Group denominations by currency (using Entity directly)
+        final Map<String, List<Denomination>> denominationsByCurrency = {};
+        for (var denomJson in allDenominations) {
+          final currencyId = denomJson['currency_id']?.toString() ?? '';
+          if (currencyId.isNotEmpty) {
+            denominationsByCurrency.putIfAbsent(currencyId, () => []);
+            denominationsByCurrency[currencyId]!
+                .add(Denomination.fromJson(denomJson));
+          }
+        }
+
+        // Step 7: Combine into currency entities (maintaining created_at order from companyCurrencies)
+        final List<Currency> entities = [];
+        for (var companyCurrency in companyCurrencies) {
+          final currencyId = companyCurrency['currency_id']?.toString() ?? '';
+          final currencyTypeJson = currencyTypeMap[currencyId];
+
+          if (currencyTypeJson != null) {
+            // Get denominations for this currency
+            final denoms = denominationsByCurrency[currencyId] ?? [];
+
+            // Build currency entity directly (Freezed handles it)
+            final currency = Currency(
+              currencyId: currencyId,
+              currencyCode: currencyTypeJson['currency_code']?.toString() ?? '',
+              currencyName: currencyTypeJson['currency_name']?.toString() ?? '',
+              symbol: currencyTypeJson['symbol']?.toString() ?? '',
+              denominations: denoms,
+            );
+
+            entities.add(currency);
+          }
+        }
+
+        return entities;
+      },
+      operationName: 'company currencies',
+    );
   }
 
   @override
-  Future<List<Denomination>> getDenominationsByCurrency({
+  Future<Result<List<Denomination>, Failure>> getDenominationsByCurrency({
     required String companyId,
     required String currencyId,
-  }) async {
-    try {
-      if (companyId.isEmpty || currencyId.isEmpty) {
-        return [];
-      }
+  }) {
+    return executeFetchWithResult(
+      () async {
+        if (companyId.isEmpty || currencyId.isEmpty) {
+          return [];
+        }
 
-      // Call remote datasource
-      final data = await _remoteDataSource.getDenominationsByCurrency(
-        companyId: companyId,
-        currencyId: currencyId,
-      );
+        // Call remote datasource
+        final data = await _remoteDataSource.getDenominationsByCurrency(
+          companyId: companyId,
+          currencyId: currencyId,
+        );
 
-      // Convert JSON to models then to entities
-      return data.map((json) => DenominationModel.fromJson(json).toEntity()).toList();
-    } catch (e) {
-      throw FetchFailedException(
-        'Failed to fetch denominations for currency: $currencyId',
-        originalError: e,
-      );
-    }
+        // Convert JSON directly to entities (Freezed handles it)
+        return data.map((json) => Denomination.fromJson(json)).toList();
+      },
+      operationName: 'denominations for currency: $currencyId',
+    );
   }
 
   @override
-  Future<List<Currency>> getAllCurrencyTypes() async {
-    try {
-      // Call remote datasource
-      final data = await _remoteDataSource.getCurrencyTypes();
+  Future<Result<List<Currency>, Failure>> getAllCurrencyTypes() {
+    return executeFetchWithResult(
+      () async {
+        // Call remote datasource
+        final data = await _remoteDataSource.getCurrencyTypes();
 
-      // Convert JSON to models then to entities
-      return data.map((json) => CurrencyModel.fromJson(json).toEntity()).toList();
-    } catch (e) {
-      throw FetchFailedException(
-        'Failed to fetch currency types',
-        originalError: e,
-      );
-    }
+        // Convert JSON directly to entities (Freezed handles it)
+        return data.map((json) => Currency.fromJson(json)).toList();
+      },
+      operationName: 'currency types',
+    );
   }
 }

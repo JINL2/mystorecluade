@@ -1,29 +1,32 @@
 // lib/features/auth/data/datasources/supabase_company_datasource.dart
 
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../models/company_model.dart';
-import '../models/company_type_model.dart';
-import '../models/currency_model.dart';
+import '../../domain/entities/company_entity.dart';
+import '../../domain/exceptions/auth_exceptions.dart';
+import '../../domain/value_objects/company_type.dart';
+import '../../domain/value_objects/currency.dart';
 
 /// Supabase Company DataSource
 ///
-/// 🚚 배달 기사 - Supabase와 직접 통신하는 계층
+/// 🚚 Data Layer - Supabase와 직접 통신하는 계층
 ///
 /// 책임:
 /// - Supabase API 호출
-/// - JSON → Model 변환
+/// - JSON → Domain Entity/ValueObject 변환
 /// - 네트워크 에러 처리
 ///
-/// 이 계층은 Supabase에 대한 모든 지식을 가지고 있습니다.
+/// ✅ Clean Architecture 준수:
+/// - Data Layer가 Domain Layer에 의존 (정상)
+/// - Domain ValueObject를 직접 반환 (Model 없이)
 abstract class CompanyDataSource {
   /// Create a new company
-  Future<CompanyModel> createCompany(Map<String, dynamic> companyData);
+  Future<Company> createCompany(Map<String, dynamic> companyData);
 
   /// Get company by ID
-  Future<CompanyModel?> getCompanyById(String companyId);
+  Future<Company?> getCompanyById(String companyId);
 
   /// Get companies by owner ID
-  Future<List<CompanyModel>> getCompaniesByOwnerId(String ownerId);
+  Future<List<Company>> getCompaniesByOwnerId(String ownerId);
 
   /// Check if company name exists
   Future<bool> isCompanyNameExists({
@@ -32,19 +35,23 @@ abstract class CompanyDataSource {
   });
 
   /// Update company
-  Future<CompanyModel> updateCompany(String companyId, Map<String, dynamic> updateData);
+  Future<Company> updateCompany(String companyId, Map<String, dynamic> updateData);
 
   /// Delete company (soft delete)
   Future<void> deleteCompany(String companyId);
 
   /// Get all company types
-  Future<List<CompanyTypeModel>> getCompanyTypes();
+  ///
+  /// ✅ Improvement: Returns CompanyType directly (no Model layer)
+  Future<List<CompanyType>> getCompanyTypes();
 
   /// Get all currencies
-  Future<List<CurrencyModel>> getCurrencies();
+  ///
+  /// ✅ Improvement: Returns Currency directly (no Model layer)
+  Future<List<Currency>> getCurrencies();
 
   /// Join company by code using RPC
-  Future<CompanyModel> joinCompanyByCode({
+  Future<Company> joinCompanyByCode({
     required String companyCode,
     required String userId,
   });
@@ -57,24 +64,25 @@ class SupabaseCompanyDataSource implements CompanyDataSource {
   SupabaseCompanyDataSource(this._client);
 
   @override
-  Future<CompanyModel> createCompany(Map<String, dynamic> companyData) async {
+  Future<Company> createCompany(Map<String, dynamic> companyData) async {
     try {
-      // DataSource는 단순히 데이터만 저장
-      // Validation은 UseCase/Domain layer에서 처리됨
       final createdData = await _client
           .from('companies')
           .insert(companyData)
           .select()
           .single();
 
-      return CompanyModel.fromJson(createdData);
-    } catch (e) {
-      throw Exception('Failed to create company: $e');
+      return Company.fromJson(createdData);
+    } on PostgrestException catch (e) {
+      if (e.code == '23505') {
+        throw CompanyNameExistsException(name: companyData['company_name'] as String?);
+      }
+      rethrow;
     }
   }
 
   @override
-  Future<CompanyModel?> getCompanyById(String companyId) async {
+  Future<Company?> getCompanyById(String companyId) async {
     try {
       final companyData = await _client
           .from('companies')
@@ -85,14 +93,14 @@ class SupabaseCompanyDataSource implements CompanyDataSource {
 
       if (companyData == null) return null;
 
-      return CompanyModel.fromJson(companyData);
+      return Company.fromJson(companyData);
     } catch (e) {
-      throw Exception('Failed to get company: $e');
+      rethrow;
     }
   }
 
   @override
-  Future<List<CompanyModel>> getCompaniesByOwnerId(String ownerId) async {
+  Future<List<Company>> getCompaniesByOwnerId(String ownerId) async {
     try {
       final companiesData = await _client
           .from('companies')
@@ -101,10 +109,10 @@ class SupabaseCompanyDataSource implements CompanyDataSource {
           .eq('is_deleted', false);
 
       return companiesData
-          .map((data) => CompanyModel.fromJson(data))
+          .map((data) => Company.fromJson(data))
           .toList();
     } catch (e) {
-      throw Exception('Failed to get companies: $e');
+      rethrow;
     }
   }
 
@@ -123,12 +131,12 @@ class SupabaseCompanyDataSource implements CompanyDataSource {
 
       return duplicates.isNotEmpty;
     } catch (e) {
-      throw Exception('Failed to check company name: $e');
+      rethrow;
     }
   }
 
   @override
-  Future<CompanyModel> updateCompany(
+  Future<Company> updateCompany(
     String companyId,
     Map<String, dynamic> updateData,
   ) async {
@@ -143,9 +151,9 @@ class SupabaseCompanyDataSource implements CompanyDataSource {
           .select()
           .single();
 
-      return CompanyModel.fromJson(updatedData);
+      return Company.fromJson(updatedData);
     } catch (e) {
-      throw Exception('Failed to update company: $e');
+      rethrow;
     }
   }
 
@@ -157,36 +165,40 @@ class SupabaseCompanyDataSource implements CompanyDataSource {
         'deleted_at': DateTime.now().toIso8601String(),
       }).eq('company_id', companyId);
     } catch (e) {
-      throw Exception('Failed to delete company: $e');
+      rethrow;
     }
   }
 
   @override
-  Future<List<CompanyTypeModel>> getCompanyTypes() async {
+  Future<List<CompanyType>> getCompanyTypes() async {
     try {
       final typesData = await _client.from('company_types').select();
+
+      // ✅ Direct conversion to Domain ValueObject
       return typesData
-          .map((data) => CompanyTypeModel.fromJson(data))
+          .map((data) => CompanyType.fromJson(data))
           .toList();
     } catch (e) {
-      throw Exception('Failed to get company types: $e');
+      rethrow;
     }
   }
 
   @override
-  Future<List<CurrencyModel>> getCurrencies() async {
+  Future<List<Currency>> getCurrencies() async {
     try {
       final currenciesData = await _client.from('currency_types').select();
+
+      // ✅ Direct conversion to Domain ValueObject
       return currenciesData
-          .map((data) => CurrencyModel.fromJson(data))
+          .map((data) => Currency.fromJson(data))
           .toList();
     } catch (e) {
-      throw Exception('Failed to get currencies: $e');
+      rethrow;
     }
   }
 
   @override
-  Future<CompanyModel> joinCompanyByCode({
+  Future<Company> joinCompanyByCode({
     required String companyCode,
     required String userId,
   }) async {
@@ -202,28 +214,41 @@ class SupabaseCompanyDataSource implements CompanyDataSource {
 
       final result = response as Map<String, dynamic>;
 
-      if (result['success'] == true) {
-        // Return company model with the data from RPC
-        return CompanyModel(
-          companyId: result['company_id'] as String,
-          companyName: result['company_name'] as String? ??
-                       result['business_name'] as String? ??
-                       'Unknown Company',
-          companyCode: companyCode,
-          ownerId: result['owner_id'] as String? ?? userId,
-          companyTypeId: result['company_type_id'] as String? ?? '',
-          baseCurrencyId: result['base_currency_id'] as String? ?? '',
-          createdAt: result['created_at'] as String? ?? DateTime.now().toIso8601String(),
-          updatedAt: result['updated_at'] as String? ?? DateTime.now().toIso8601String(),
-        );
-      } else {
-        // RPC returned an error
-        final errorCode = result['error_code'] ?? 'UNKNOWN_ERROR';
-        final errorMessage = result['error'] ?? 'Failed to join company';
-        throw Exception('$errorCode: $errorMessage');
+      // Check RPC success
+      final success = result['success'] as bool?;
+      if (success != true) {
+        // Handle RPC errors
+        final errorCode = result['error_code'] as String?;
+        final errorMessage = result['error'] as String? ?? 'Failed to join company';
+
+        if (errorCode == 'INVALID_CODE') {
+          throw InvalidCompanyCodeException();
+        } else if (errorCode == 'ALREADY_MEMBER') {
+          throw AlreadyMemberException();
+        } else if (errorCode == 'COMPANY_NOT_FOUND') {
+          throw CompanyNotFoundException();
+        }
+
+        throw NetworkException(details: errorMessage);
       }
+
+      // Parse Company data from RPC response
+      return Company(
+        id: result['company_id'] as String,
+        name: result['company_name'] as String,
+        companyCode: companyCode,
+        ownerId: result['owner_id'] as String,
+        companyTypeId: result['company_type_id'] as String? ?? '',
+        currencyId: result['base_currency_id'] as String? ?? '',
+        createdAt: result['created_at'] != null
+            ? DateTime.parse(result['created_at'] as String)
+            : DateTime.now(),
+        updatedAt: result['updated_at'] != null
+            ? DateTime.parse(result['updated_at'] as String)
+            : null,
+      );
     } catch (e) {
-      throw Exception('Failed to join company: $e');
+      rethrow;
     }
   }
 }

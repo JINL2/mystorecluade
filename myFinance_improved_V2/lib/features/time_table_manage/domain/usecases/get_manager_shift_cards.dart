@@ -1,6 +1,10 @@
+import 'package:freezed_annotation/freezed_annotation.dart';
+
 import '../entities/manager_shift_cards.dart';
 import '../repositories/time_table_repository.dart';
 import 'base_usecase.dart';
+
+part 'get_manager_shift_cards.freezed.dart';
 
 /// Get Manager Shift Cards UseCase
 ///
@@ -23,33 +27,12 @@ class GetManagerShiftCards
 }
 
 /// Parameters for GetManagerShiftCards UseCase
-class GetManagerShiftCardsParams {
-  final String startDate;
-  final String endDate;
-  final String companyId;
-  final String storeId;
-
-  const GetManagerShiftCardsParams({
-    required this.startDate,
-    required this.endDate,
-    required this.companyId,
-    required this.storeId,
-  });
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    return other is GetManagerShiftCardsParams &&
-        other.startDate == startDate &&
-        other.endDate == endDate &&
-        other.companyId == companyId &&
-        other.storeId == storeId;
-  }
-
-  @override
-  int get hashCode =>
-      startDate.hashCode ^
-      endDate.hashCode ^
-      companyId.hashCode ^
-      storeId.hashCode;
+@freezed
+class GetManagerShiftCardsParams with _$GetManagerShiftCardsParams {
+  const factory GetManagerShiftCardsParams({
+    required String startDate,
+    required String endDate,
+    required String companyId,
+    required String storeId,
+  }) = _GetManagerShiftCardsParams;
 }

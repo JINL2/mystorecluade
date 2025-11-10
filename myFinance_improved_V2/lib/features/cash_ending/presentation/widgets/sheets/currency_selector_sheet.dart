@@ -35,7 +35,7 @@ class CurrencySelectorSheet extends ConsumerWidget {
     required String? selectedCurrencyId,
     required String tabType,
   }) {
-    showModalBottomSheet(
+    showModalBottomSheet<void>(
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,

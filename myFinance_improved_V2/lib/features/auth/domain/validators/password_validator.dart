@@ -127,10 +127,12 @@ class PasswordValidator {
       suggestions.add('Add special characters (!@#\$%^&*)');
     }
 
-    // Check for common weak patterns (DISABLED FOR TESTING)
-    // if (_isCommonPassword(password)) {
-    //   errors.add('This password is too common. Please choose a stronger password.');
-    // }
+    // Check for common weak patterns
+    // NOTE: For development/testing, you can temporarily bypass this by setting
+    // an environment variable or using a test-specific configuration
+    if (_isCommonPassword(password)) {
+      errors.add('This password is too common. Please choose a stronger password.');
+    }
 
     if (_hasRepeatingCharacters(password)) {
       suggestions.add('Avoid repeating characters');
@@ -170,8 +172,8 @@ class PasswordValidator {
 
   /// Check if password is in common password list
   ///
-  /// NOTE: Currently not used, but kept for future enhancement
-  // ignore: unused_element
+  /// Prevents users from using the most commonly compromised passwords.
+  /// This list should be expanded in production to include more common passwords.
   static bool _isCommonPassword(String password) {
     // List of most common passwords
     const commonPasswords = [

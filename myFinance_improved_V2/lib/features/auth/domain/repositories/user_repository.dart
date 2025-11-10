@@ -3,6 +3,7 @@
 import '../entities/user_entity.dart';
 import '../entities/company_entity.dart';
 import '../entities/store_entity.dart';
+import '../entities/user_complete_data.dart';
 
 /// User repository interface.
 ///
@@ -13,16 +14,6 @@ abstract class UserRepository {
   ///
   /// Returns the [User] or `null` if not found.
   Future<User?> findById(String userId);
-
-  /// Find user by email
-  ///
-  /// Returns the [User] or `null` if not found.
-  Future<User?> findByEmail(String email);
-
-  /// Check if email exists
-  ///
-  /// Returns `true` if email is already registered.
-  Future<bool> emailExists(String email);
 
   /// Update user profile
   ///
@@ -67,7 +58,12 @@ abstract class UserRepository {
 
   /// Get user's complete data including companies and stores
   ///
-  /// Returns raw data map with user info, companies, and stores.
+  /// Returns strongly-typed [UserCompleteData] with user info, companies, and stores.
   /// Used for app initialization and data refresh.
-  Future<Map<String, dynamic>> getUserCompleteData(String userId);
+  ///
+  /// ✅ Improvements:
+  /// - Type-safe: Returns UserCompleteData instead of Map<String, dynamic>
+  /// - IDE support: Autocomplete, refactoring, navigation
+  /// - Compile-time checks: No runtime Map access errors
+  Future<UserCompleteData> getUserCompleteData(String userId);
 }

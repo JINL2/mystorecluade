@@ -3,6 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../core/utils/datetime_utils.dart';
 import '../../domain/entities/attendance_location.dart';
 import '../../domain/exceptions/attendance_exceptions.dart';
+import '../mappers/location_mapper.dart';
 
 /// Attendance Data Source
 ///
@@ -332,17 +333,18 @@ class AttendanceDatasource {
     }
   }
 
-  /// Get monthly shift status for manager view
-  Future<List<Map<String, dynamic>>> getMonthlyShiftStatusManager({
+  /// Get monthly shift status for user view
+  Future<List<Map<String, dynamic>>> getMonthlyShiftStatus({
     required String storeId,
-    required String companyId,
+    required String userId,
     required String requestDate,
   }) async {
     try {
       final response = await _supabase.rpc<dynamic>(
-        'get_monthly_shift_status_manager',
+        'get_monthly_shift_status',
         params: {
           'p_store_id': storeId,
+          'p_user_id': userId,
           'p_request_date': requestDate,
         },
       );

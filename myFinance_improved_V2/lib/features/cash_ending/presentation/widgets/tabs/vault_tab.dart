@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 
 import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
@@ -12,10 +13,11 @@ import '../../../../../shared/widgets/toss/toss_button_1.dart';
 import '../../../../../shared/widgets/toss/toss_card.dart';
 import '../../../domain/entities/denomination.dart';
 import '../../../domain/entities/stock_flow.dart';
+import '../../../domain/providers/repository_providers.dart';
 import '../../providers/cash_ending_provider.dart';
 import '../../providers/cash_ending_state.dart';
-import '../../providers/repository_providers.dart';
 import '../denomination_input.dart';
+import '../error_banner.dart';
 import '../location_selector.dart';
 import '../real_section_widget.dart';
 import '../sheets/cash_ending_selection_helpers.dart';
@@ -32,6 +34,7 @@ import '../total_display.dart';
 /// Key difference from Cash: Has Debit/Credit toggle (In/Out transaction type)
 class VaultTab extends ConsumerStatefulWidget {
   final String companyId;
+  // ignore: inference_failure_on_function_return_type
   final Function(BuildContext, CashEndingState, String, String) onSave;
 
   const VaultTab({
@@ -64,6 +67,7 @@ class _VaultTabState extends ConsumerState<VaultTab> {
   bool _hasMoreFlows = false;
   int _flowsOffset = 0;
   String? _previousLocationId;
+  String? _errorMessage;
 
   @override
   void initState() {
@@ -94,20 +98,24 @@ class _VaultTabState extends ConsumerState<VaultTab> {
 
   @override
   void dispose() {
-    // Dispose all controllers
+    // Dispose all controllers first
     for (final currencyControllers in _controllers.values) {
       for (final controller in currencyControllers.values) {
         controller.dispose();
       }
     }
-    // Dispose all focus nodes
+
+    // Dispose all focus nodes (these are the ones we manage)
     for (final currencyFocusNodes in _focusNodes.values) {
       for (final focusNode in currencyFocusNodes.values) {
         focusNode.dispose();
       }
     }
-    // Dispose toolbar controller
-    _toolbarController?.dispose();
+
+    // Clear toolbar controller references without disposing
+    // (FocusNodes already disposed above)
+    _toolbarController = null;
+
     super.dispose();
   }
 
@@ -145,7 +153,7 @@ class _VaultTabState extends ConsumerState<VaultTab> {
     try {
       final repository = ref.read(stockFlowRepositoryProvider);
 
-      final result = await repository.getLocationStockFlow(
+      final resultWrapper = await repository.getLocationStockFlow(
         companyId: widget.companyId,
         storeId: state.selectedStoreId!,
         cashLocationId: state.selectedVaultLocationId!,
@@ -153,7 +161,9 @@ class _VaultTabState extends ConsumerState<VaultTab> {
         limit: 20,
       );
 
-      if (result.success) {
+      // Unwrap Result and check success
+      final result = resultWrapper.successOrNull;
+      if (result != null && result.success) {
         setState(() {
           if (loadMore) {
             _actualFlows.addAll(result.actualFlows);
@@ -165,8 +175,15 @@ class _VaultTabState extends ConsumerState<VaultTab> {
           _flowsOffset += result.actualFlows.length;
         });
       }
-    } catch (e) {
-      // Error loading stock flows
+    } catch (e, stackTrace) {
+      debugPrint('❌ [VaultTab] Failed to load stock flows: $e');
+      debugPrint('📍 Stack trace: $stackTrace');
+
+      if (mounted) {
+        setState(() {
+          _errorMessage = 'Failed to load transaction history. Please try again.';
+        });
+      }
     } finally {
       if (mounted) {
         setState(() {
@@ -185,7 +202,172 @@ class _VaultTabState extends ConsumerState<VaultTab> {
   }
 
   void _showFlowDetails(ActualFlow flow) {
-    // TODO: Implement flow details bottom sheet
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (context) => _buildFlowDetailsSheet(flow),
+    );
+  }
+
+  Widget _buildFlowDetailsSheet(ActualFlow flow) {
+    final state = ref.read(cashEndingProvider);
+    final currencySymbol = _locationSummary?.baseCurrencySymbol ??
+        (state.currencies.isNotEmpty ? state.currencies.first.symbol : '\$');
+
+    return Container(
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.of(context).size.height * 0.8,
+      ),
+      decoration: const BoxDecoration(
+        color: TossColors.white,
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(TossBorderRadius.lg),
+        ),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            margin: const EdgeInsets.only(top: TossSpacing.space3),
+            width: 40,
+            height: 4,
+            decoration: BoxDecoration(
+              color: TossColors.gray300,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(TossSpacing.space5),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Vault Transaction Details',
+                  style: TossTextStyles.body.copyWith(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 18,
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.close),
+                  onPressed: () => Navigator.pop(context),
+                ),
+              ],
+            ),
+          ),
+          const Divider(height: 1),
+          Flexible(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(TossSpacing.space5),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildDetailRow('User', flow.createdBy.fullName),
+                  _buildDetailRow('Date', flow.getFormattedDate()),
+                  _buildDetailRow('Time', flow.getFormattedTime()),
+                  _buildDetailRow('Balance Before',
+                    '$currencySymbol${NumberFormat('#,###').format(flow.balanceBefore)}'),
+                  _buildDetailRow('Flow Amount',
+                    '$currencySymbol${NumberFormat('#,###').format(flow.flowAmount)}',
+                    valueColor: flow.flowAmount >= 0 ? TossColors.primary : TossColors.error),
+                  _buildDetailRow('Balance After',
+                    '$currencySymbol${NumberFormat('#,###').format(flow.balanceAfter)}'),
+                  const SizedBox(height: TossSpacing.space5),
+                  const Divider(),
+                  const SizedBox(height: TossSpacing.space4),
+                  Text(
+                    'Denominations',
+                    style: TossTextStyles.body.copyWith(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 16,
+                    ),
+                  ),
+                  const SizedBox(height: TossSpacing.space3),
+                  if (flow.currentDenominations.isEmpty)
+                    Text(
+                      'No denomination details available',
+                      style: TossTextStyles.caption.copyWith(
+                        color: TossColors.gray500,
+                      ),
+                    )
+                  else
+                    ...flow.currentDenominations.map((deno) => _buildDenominationRow(deno, currencySymbol)),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDetailRow(String label, String value, {Color? valueColor}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: TossSpacing.space2),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label,
+            style: TossTextStyles.body.copyWith(
+              color: TossColors.gray600,
+            ),
+          ),
+          Text(
+            value,
+            style: TossTextStyles.body.copyWith(
+              fontWeight: FontWeight.w600,
+              color: valueColor ?? TossColors.black87,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDenominationRow(DenominationDetail deno, String currencySymbol) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        vertical: TossSpacing.space3,
+        horizontal: TossSpacing.space4,
+      ),
+      margin: const EdgeInsets.only(bottom: TossSpacing.space2),
+      decoration: BoxDecoration(
+        color: TossColors.gray50,
+        borderRadius: BorderRadius.circular(TossBorderRadius.md),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '$currencySymbol${NumberFormat('#,###').format(deno.denominationValue)}',
+                  style: TossTextStyles.body.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                Text(
+                  '${deno.denominationType} • Qty: ${deno.currentQuantity}',
+                  style: TossTextStyles.caption.copyWith(
+                    color: TossColors.gray600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Text(
+            '$currencySymbol${NumberFormat('#,###').format(deno.subtotal)}',
+            style: TossTextStyles.body.copyWith(
+              fontWeight: FontWeight.w600,
+              color: TossColors.primary,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   TextEditingController _getController(String currencyId, String denominationId) {
@@ -250,6 +432,19 @@ class _VaultTabState extends ConsumerState<VaultTab> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          // Error Banner
+          if (_errorMessage != null)
+            ErrorBanner(
+              message: _errorMessage!,
+              onRetry: () {
+                setState(() => _errorMessage = null);
+                _loadStockFlows();
+              },
+              onDismiss: () {
+                setState(() => _errorMessage = null);
+              },
+            ),
+
           // Card 1: Store and Location Selection
           _buildLocationSelectionCard(state),
 
@@ -447,9 +642,7 @@ class _VaultTabState extends ConsumerState<VaultTab> {
               return const SizedBox.shrink();
             },
           ),
-          ...currency.denominations.asMap().entries.map((entry) {
-            final index = entry.key;
-            final denom = entry.value;
+          ...currency.denominations.map((denom) {
             final controller = _getController(selectedCurrencyId, denom.denominationId);
             final focusNode = _getFocusNode(selectedCurrencyId, denom.denominationId);
 

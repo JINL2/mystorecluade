@@ -1,16 +1,22 @@
 // lib/features/auth/data/datasources/supabase_auth_datasource.dart
 
 import 'package:supabase_flutter/supabase_flutter.dart' hide User;
-import '../models/user_model.dart';
-import '../../../../core/utils/datetime_utils.dart';
+import '../../domain/entities/user_entity.dart';
+import '../../domain/exceptions/auth_exceptions.dart' as domain;
+import '../../domain/exceptions/validation_exception.dart';
 
-/// Supabase Auth DataSource
+/// Supabase Auth DataSource (Refactored with Freezed Entity)
 ///
 /// 🚚 배달 기사 - Supabase Auth API와 직접 통신하는 계층
 ///
+/// 🎯 Improvements:
+/// - Uses Freezed User entity directly (no UserModel needed)
+/// - Simpler: User.fromJson() instead of UserModel.fromJson() → toEntity()
+/// - Type-safe: Freezed guarantees JSON serialization
+///
 /// 책임:
 /// - Supabase Auth API 호출 (signIn, signUp, signOut)
-/// - Auth 응답 → UserModel 변환
+/// - Auth 응답 → User Entity 변환
 /// - 인증 관련 에러 처리
 ///
 /// 이 계층은 Supabase Auth에 대한 모든 지식을 가지고 있습니다.
@@ -18,18 +24,18 @@ import '../../../../core/utils/datetime_utils.dart';
 abstract class AuthDataSource {
   /// Sign in with email and password
   ///
-  /// Returns [UserModel] if successful.
+  /// Returns [User] entity if successful.
   /// Throws exception if credentials are invalid or network error occurs.
-  Future<UserModel> signIn({
+  Future<User> signIn({
     required String email,
     required String password,
   });
 
   /// Sign up with email and password
   ///
-  /// Creates a new user account and returns [UserModel].
+  /// Creates a new user account and returns [User] entity.
   /// Throws exception if email exists or validation fails.
-  Future<UserModel> signUp({
+  Future<User> signUp({
     required String email,
     required String password,
     String? firstName,
@@ -43,8 +49,8 @@ abstract class AuthDataSource {
 
   /// Get current authenticated user
   ///
-  /// Returns [UserModel] if user is authenticated, null otherwise.
-  Future<UserModel?> getCurrentUser();
+  /// Returns [User] entity if user is authenticated, null otherwise.
+  Future<User?> getCurrentUser();
 }
 
 /// Supabase implementation of AuthDataSource
@@ -54,7 +60,7 @@ class SupabaseAuthDataSource implements AuthDataSource {
   SupabaseAuthDataSource(this._client);
 
   @override
-  Future<UserModel> signIn({
+  Future<User> signIn({
     required String email,
     required String password,
   }) async {
@@ -66,7 +72,7 @@ class SupabaseAuthDataSource implements AuthDataSource {
       );
 
       if (response.user == null) {
-        throw Exception('Sign in failed - no user returned');
+        throw domain.InvalidCredentialsException();
       }
 
       // 2. Fetch user profile from database
@@ -77,18 +83,36 @@ class SupabaseAuthDataSource implements AuthDataSource {
           .maybeSingle();
 
       if (userData == null) {
-        throw Exception('User profile not found');
+        throw domain.UserNotFoundException(userId: response.user!.id);
       }
 
-      // 3. Convert to UserModel
-      return UserModel.fromJson(userData);
+      // 3. Convert to User Entity (Freezed)
+      return User.fromJson(userData);
+    } on AuthException catch (e) {
+      // Supabase Auth-specific exceptions (from Supabase)
+      if (e.message.toLowerCase().contains('invalid login credentials') ||
+          e.message.toLowerCase().contains('invalid_credentials')) {
+        throw domain.InvalidCredentialsException();
+      } else if (e.message.toLowerCase().contains('email not confirmed')) {
+        throw domain.EmailNotVerifiedException();
+      } else if (e.message.toLowerCase().contains('network')) {
+        throw domain.NetworkException(details: e.message);
+      }
+      throw domain.NetworkException(details: 'Authentication failed: ${e.message}');
+    } on PostgrestException catch (e) {
+      // Database-specific exceptions
+      throw domain.NetworkException(details: 'Database error: ${e.message}');
+    } on domain.AuthException catch (e) {
+      // Re-throw domain exceptions
+      rethrow;
     } catch (e) {
-      throw Exception('Failed to sign in: $e');
+      // Unknown errors
+      throw domain.NetworkException(details: 'Unexpected sign in error: $e');
     }
   }
 
   @override
-  Future<UserModel> signUp({
+  Future<User> signUp({
     required String email,
     required String password,
     String? firstName,
@@ -107,21 +131,21 @@ class SupabaseAuthDataSource implements AuthDataSource {
       );
 
       if (response.user == null) {
-        throw Exception('Sign up failed - no user returned');
+        throw domain.NetworkException(details: 'Sign up failed - no user returned');
       }
 
       // 2. Create user profile in users table
-      final now = DateTimeUtils.nowUtc();
+      final now = DateTime.now().toUtc();
       // Use default timezone for Vietnam
       // In the future, this can be detected from device settings or user preferences
       final timezone = 'Asia/Ho_Chi_Minh';
 
-      final userModel = UserModel(
-        userId: response.user!.id,
+      final user = User(
+        id: response.user!.id,
         email: email,
         firstName: firstName,
         lastName: lastName,
-        preferredTimezone: timezone,
+        timezone: timezone,
         createdAt: now,
         updatedAt: now,
       );
@@ -129,22 +153,48 @@ class SupabaseAuthDataSource implements AuthDataSource {
       try {
         // Use UPSERT to handle case where row already exists (e.g., created by trigger or elsewhere)
         await _client.from('users').upsert(
-          userModel.toInsertMap(),
+          user.toInsertMap(),
           onConflict: 'user_id',
         );
       } catch (e) {
-        // If profile creation fails, user is still created in auth
-        // Log this critical error for monitoring
-        print('🚨 ERROR: Failed to create user profile for ${response.user!.id}');
-        print('Error: $e');
-        // TODO: In production, use proper logging service (Sentry, Firebase Crashlytics)
-        // TODO: Add retry queue or compensating transaction
+        // CRITICAL: Profile creation failed but auth user exists
+        // Rollback by deleting the auth user to maintain consistency
+        try {
+          await _client.auth.signOut();
+          // Note: Supabase doesn't provide user deletion via client SDK
+          // This would need to be handled by a backend function or manual cleanup
+          print('⚠️ WARNING: Auth user created but profile failed. User: ${response.user!.id}');
+        } catch (rollbackError) {
+          print('🚨 CRITICAL: Failed to rollback auth user creation: $rollbackError');
+        }
+
+        // Throw domain exception with context
+        throw domain.NetworkException(
+          details: 'Failed to create user profile. Please contact support. User ID: ${response.user!.id}',
+        );
       }
 
-      // 3. Return UserModel
-      return userModel;
+      // 3. Return User Entity
+      return user;
+    } on AuthException catch (e) {
+      // Supabase Auth-specific exceptions (from Supabase SDK)
+      if (e.message.toLowerCase().contains('user already registered') ||
+          e.message.toLowerCase().contains('already exists')) {
+        throw domain.EmailAlreadyExistsException(email: email);
+      } else if (e.message.toLowerCase().contains('password') &&
+          e.message.toLowerCase().contains('weak')) {
+        throw domain.WeakPasswordException(['Password is too weak']);
+      } else if (e.message.toLowerCase().contains('invalid email')) {
+        throw ValidationException('Invalid email format');
+      }
+      throw domain.NetworkException(details: 'Sign up failed: ${e.message}');
+    } on PostgrestException catch (e) {
+      throw domain.NetworkException(details: 'Database error during sign up: ${e.message}');
+    } on domain.AuthException catch (e) {
+      // Re-throw domain exceptions
+      rethrow;
     } catch (e) {
-      throw Exception('Failed to sign up: $e');
+      throw domain.NetworkException(details: 'Unexpected sign up error: $e');
     }
   }
 
@@ -152,13 +202,15 @@ class SupabaseAuthDataSource implements AuthDataSource {
   Future<void> signOut() async {
     try {
       await _client.auth.signOut();
+    } on AuthException catch (e) {
+      throw domain.NetworkException(details: 'Sign out failed: ${e.message}');
     } catch (e) {
-      throw Exception('Failed to sign out: $e');
+      throw domain.NetworkException(details: 'Unexpected sign out error: $e');
     }
   }
 
   @override
-  Future<UserModel?> getCurrentUser() async {
+  Future<User?> getCurrentUser() async {
     try {
       final session = _client.auth.currentSession;
       if (session == null) return null;
@@ -174,9 +226,9 @@ class SupabaseAuthDataSource implements AuthDataSource {
 
       if (userData == null) return null;
 
-      return UserModel.fromJson(userData);
+      return User.fromJson(userData);
     } catch (e) {
-      throw Exception('Failed to get current user: $e');
+      rethrow;
     }
   }
 }

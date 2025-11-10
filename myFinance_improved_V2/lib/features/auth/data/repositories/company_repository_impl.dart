@@ -6,20 +6,20 @@ import '../../domain/value_objects/currency.dart';
 import '../../domain/repositories/company_repository.dart';
 import '../../domain/exceptions/auth_exceptions.dart';
 import '../datasources/supabase_company_datasource.dart';
-import '../models/company_model.dart';
-import 'base_repository.dart';
+import '../../../../core/data/base_repository.dart';
 
 /// Company Repository Implementation
 ///
-/// 📜 계약 이행자 - Domain Repository Interface를 구현
+/// 📜 Responsibilities:
+/// - Implements Domain Repository Interface (CompanyRepository)
+/// - Delegates data operations to CompanyDataSource
+/// - Maps RPC errors to domain exceptions
+/// - Applies consistent error handling via BaseRepository
 ///
-/// 책임:
-/// - Domain 계약 준수
-/// - DataSource 호출
-/// - Model ↔ Entity 변환
-/// - Exception 처리 및 변환
-///
-/// 이 계층은 Domain과 Data 사이의 변환을 담당합니다.
+/// ✅ Improvements:
+/// - Uses core BaseRepository for standardized error handling
+/// - Type-safe error mapping (no string contains checks)
+/// - Clear operation names for debugging
 class CompanyRepositoryImpl extends BaseRepository implements CompanyRepository {
   final CompanyDataSource _dataSource;
 
@@ -27,38 +27,25 @@ class CompanyRepositoryImpl extends BaseRepository implements CompanyRepository 
 
   @override
   Future<Company> create(Company company) {
-    return execute(() async {
-      // Convert Entity to Model
-      final model = CompanyModel.fromEntity(company);
-
-      // Call DataSource
-      final createdModel = await _dataSource.createCompany(model.toInsertMap());
-
-      // Convert Model back to Entity
-      return createdModel.toEntity();
-    });
+    return executeWithErrorHandling(
+      () => _dataSource.createCompany(company.toInsertMap()),
+      operationName: 'create company',
+    );
   }
 
   @override
   Future<Company?> findById(String companyId) {
-    return executeNullable(() async {
-      final model = await _dataSource.getCompanyById(companyId);
-      return model?.toEntity();
-    });
+    return executeFetch(
+      () => _dataSource.getCompanyById(companyId),
+      operationName: 'company by ID',
+    );
   }
 
   @override
   Future<List<Company>> findByOwner(String ownerId) {
-    return execute(() async {
-      final models = await _dataSource.getCompaniesByOwnerId(ownerId);
-      return models.map((m) => m.toEntity()).toList();
-    });
-  }
-
-  @override
-  Future<Company?> findByCode(String companyCode) async {
-    throw UnimplementedError(
-      'findByCode requires additional database query method',
+    return executeFetch(
+      () => _dataSource.getCompaniesByOwnerId(ownerId),
+      operationName: 'companies by owner',
     );
   }
 
@@ -67,57 +54,57 @@ class CompanyRepositoryImpl extends BaseRepository implements CompanyRepository 
     required String name,
     required String ownerId,
   }) {
-    return execute(() async {
-      return await _dataSource.isCompanyNameExists(
+    return executeFetch(
+      () => _dataSource.isCompanyNameExists(
         name: name,
         ownerId: ownerId,
-      );
-    });
+      ),
+      operationName: 'check company name existence',
+    );
   }
 
   @override
   Future<Company> update(Company company) {
-    return execute(() async {
-      final updateData = {
-        'company_name': company.name,
-        'company_business_number': company.businessNumber,
-        'company_email': company.email,
-        'company_phone': company.phone,
-        'company_address': company.address,
-        'company_type_id': company.companyTypeId,
-        'base_currency_id': company.currencyId,
-      };
+    return executeWithErrorHandling(
+      () async {
+        final updateData = {
+          'company_name': company.name,
+          'company_business_number': company.businessNumber,
+          'company_email': company.email,
+          'company_phone': company.phone,
+          'company_address': company.address,
+          'company_type_id': company.companyTypeId,
+          'base_currency_id': company.currencyId,
+        };
 
-      final updatedModel = await _dataSource.updateCompany(
-        company.id,
-        updateData,
-      );
-
-      return updatedModel.toEntity();
-    });
+        return await _dataSource.updateCompany(company.id, updateData);
+      },
+      operationName: 'update company',
+    );
   }
 
   @override
   Future<void> delete(String companyId) {
-    return execute(() async {
-      await _dataSource.deleteCompany(companyId);
-    });
+    return executeWithErrorHandling(
+      () => _dataSource.deleteCompany(companyId),
+      operationName: 'delete company',
+    );
   }
 
   @override
-  Future<List<CompanyType>> getCompanyTypes() async {
-    return execute(() async {
-      final models = await _dataSource.getCompanyTypes();
-      return models.map((m) => m.toValueObject()).toList();
-    });
+  Future<List<CompanyType>> getCompanyTypes() {
+    return executeFetch(
+      () => _dataSource.getCompanyTypes(),
+      operationName: 'company types',
+    );
   }
 
   @override
-  Future<List<Currency>> getCurrencies() async {
-    return execute(() async {
-      final models = await _dataSource.getCurrencies();
-      return models.map((m) => m.toValueObject()).toList();
-    });
+  Future<List<Currency>> getCurrencies() {
+    return executeFetch(
+      () => _dataSource.getCurrencies(),
+      operationName: 'currencies',
+    );
   }
 
   @override
@@ -125,24 +112,33 @@ class CompanyRepositoryImpl extends BaseRepository implements CompanyRepository 
     required String companyCode,
     required String userId,
   }) {
-    return execute(() async {
-      try {
-        final companyModel = await _dataSource.joinCompanyByCode(
-          companyCode: companyCode,
-          userId: userId,
-        );
-        return companyModel.toEntity();
-      } catch (e) {
-        // Map specific errors
-        if (e.toString().contains('INVALID_CODE') ||
-            e.toString().contains('Invalid company code')) {
-          throw InvalidCompanyCodeException();
-        } else if (e.toString().contains('ALREADY_MEMBER') ||
-                   e.toString().contains('already a member')) {
-          throw AlreadyMemberException();
+    return executeWithErrorHandling(
+      () async {
+        try {
+          return await _dataSource.joinCompanyByCode(
+            companyCode: companyCode,
+            userId: userId,
+          );
+        } on AuthException {
+          // ✅ Type-safe: Domain exceptions are re-thrown by BaseRepository
+          rethrow;
+        } catch (e) {
+          // ✅ Map RPC error codes to domain exceptions
+          final errorMessage = e.toString().toLowerCase();
+
+          if (errorMessage.contains('invalid_code') ||
+              errorMessage.contains('invalid company code')) {
+            throw const InvalidCompanyCodeException();
+          } else if (errorMessage.contains('already_member') ||
+                     errorMessage.contains('already a member')) {
+            throw const AlreadyMemberException();
+          }
+
+          // Unknown error - let BaseRepository handle it
+          rethrow;
         }
-        rethrow;
-      }
-    });
+      },
+      operationName: 'join company by code',
+    );
   }
 }

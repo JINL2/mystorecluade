@@ -1,25 +1,35 @@
-import '../../domain/entities/shift_request.dart';
-import '../../domain/entities/attendance_location.dart';
-import '../../../../core/utils/datetime_utils.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
 
-/// Shift Request Model (DTO + Mapper)
+import '../../../../core/utils/datetime_utils.dart';
+import '../../domain/entities/attendance_location.dart';
+import '../../domain/entities/shift_request.dart';
+import '../mappers/location_mapper.dart';
+
+part 'shift_request_model.freezed.dart';
+
+/// Shift Request Model (DTO)
 ///
-/// Handles JSON serialization/deserialization for ShiftRequest entity.
-class ShiftRequestModel extends ShiftRequest {
-  const ShiftRequestModel({
-    required super.shiftRequestId,
-    required super.userId,
-    required super.storeId,
-    required super.requestDate,
-    super.scheduledStartTime,
-    super.scheduledEndTime,
-    super.actualStartTime,
-    super.actualEndTime,
-    super.checkinLocation,
-    super.checkoutLocation,
-    required super.status,
-    super.storeShift,
-  });
+/// Data Transfer Object for ShiftRequest entity.
+/// Handles JSON serialization/deserialization with UTC/Local time conversion.
+/// Does NOT extend entity - proper separation of concerns.
+@freezed
+class ShiftRequestModel with _$ShiftRequestModel {
+  const ShiftRequestModel._();
+
+  const factory ShiftRequestModel({
+    required String shiftRequestId,
+    required String userId,
+    required String storeId,
+    required String requestDate,
+    DateTime? scheduledStartTime,
+    DateTime? scheduledEndTime,
+    DateTime? actualStartTime,
+    DateTime? actualEndTime,
+    AttendanceLocation? checkinLocation,
+    AttendanceLocation? checkoutLocation,
+    required String status,
+    Map<String, dynamic>? storeShift,
+  }) = _ShiftRequestModel;
 
   /// Create from JSON
   ///
@@ -43,29 +53,11 @@ class ShiftRequestModel extends ShiftRequest {
       actualEndTime: json['actual_end_time'] != null
           ? DateTimeUtils.toLocal(json['actual_end_time'] as String)
           : null,
-      checkinLocation: _parseLocation(json['checkin_location']),
-      checkoutLocation: _parseLocation(json['checkout_location']),
+      checkinLocation: LocationParser.fromPostGISPoint(json['checkin_location']),
+      checkoutLocation: LocationParser.fromPostGISPoint(json['checkout_location']),
       status: json['status'] as String? ?? 'pending',
       storeShift: json['store_shifts'] as Map<String, dynamic>?,
     );
-  }
-
-  /// Parse PostGIS POINT to AttendanceLocation
-  static AttendanceLocation? _parseLocation(dynamic locationData) {
-    if (locationData == null) return null;
-
-    // Handle PostGIS POINT format: "POINT(lng lat)"
-    if (locationData is String) {
-      final regex = RegExp(r'POINT\((-?\d+\.?\d*)\s+(-?\d+\.?\d*)\)');
-      final match = regex.firstMatch(locationData);
-      if (match != null) {
-        final lng = double.parse(match.group(1)!);
-        final lat = double.parse(match.group(2)!);
-        return AttendanceLocation(latitude: lat, longitude: lng);
-      }
-    }
-
-    return null;
   }
 
   /// Convert to JSON
@@ -97,7 +89,7 @@ class ShiftRequestModel extends ShiftRequest {
     };
   }
 
-  /// Convert to entity
+  /// Convert Model to Entity (Mapper pattern)
   ShiftRequest toEntity() {
     return ShiftRequest(
       shiftRequestId: shiftRequestId,

@@ -2,26 +2,28 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 
+import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../../shared/widgets/common/keyboard_toolbar_1.dart';
 import '../../../../../shared/widgets/toss/toss_button_1.dart';
 import '../../../../../shared/widgets/toss/toss_card.dart';
-import '../../../domain/entities/currency.dart';
 import '../../../domain/entities/denomination.dart';
 import '../../../domain/entities/stock_flow.dart';
+import '../../../domain/providers/repository_providers.dart';
 import '../../providers/cash_ending_provider.dart';
 import '../../providers/cash_ending_state.dart';
 import '../denomination_input.dart';
+import '../error_banner.dart';
 import '../location_selector.dart';
 import '../real_section_widget.dart';
 import '../sheets/cash_ending_selection_helpers.dart';
 import '../sheets/currency_selector_sheet.dart';
 import '../store_selector.dart';
 import '../total_display.dart';
-import '../../providers/repository_providers.dart';
 
 /// Cash Tab - Denomination-based cash counting
 ///
@@ -60,6 +62,7 @@ class _CashTabState extends ConsumerState<CashTab> {
   bool _hasMoreFlows = false;
   int _flowsOffset = 0;
   String? _previousLocationId;
+  String? _errorMessage;
 
   @override
   void initState() {
@@ -95,20 +98,24 @@ class _CashTabState extends ConsumerState<CashTab> {
 
   @override
   void dispose() {
-    // Dispose all controllers
+    // Dispose all controllers first
     for (final currencyControllers in _controllers.values) {
       for (final controller in currencyControllers.values) {
         controller.dispose();
       }
     }
-    // Dispose all focus nodes
+
+    // Dispose all focus nodes (these are the ones we manage)
     for (final currencyFocusNodes in _focusNodes.values) {
       for (final focusNode in currencyFocusNodes.values) {
         focusNode.dispose();
       }
     }
-    // Dispose toolbar controller
-    _toolbarController?.dispose();
+
+    // Clear toolbar controller references without disposing
+    // (FocusNodes already disposed above)
+    _toolbarController = null;
+
     super.dispose();
   }
 
@@ -204,7 +211,7 @@ class _CashTabState extends ConsumerState<CashTab> {
     try {
       final repository = ref.read(stockFlowRepositoryProvider);
 
-      final result = await repository.getLocationStockFlow(
+      final resultWrapper = await repository.getLocationStockFlow(
         companyId: widget.companyId,
         storeId: state.selectedStoreId!,
         cashLocationId: state.selectedCashLocationId!,
@@ -212,11 +219,9 @@ class _CashTabState extends ConsumerState<CashTab> {
         limit: 20,
       );
 
-
-      if (result.success) {
-        if (result.actualFlows.isNotEmpty) {
-        }
-
+      // Unwrap Result and check success
+      final result = resultWrapper.successOrNull;
+      if (result != null && result.success) {
         setState(() {
           if (loadMore) {
             _actualFlows.addAll(result.actualFlows);
@@ -227,9 +232,16 @@ class _CashTabState extends ConsumerState<CashTab> {
           _hasMoreFlows = result.pagination?.hasMore ?? false;
           _flowsOffset += result.actualFlows.length;
         });
-
       }
     } catch (e, stackTrace) {
+      debugPrint('❌ [CashTab] Failed to load stock flows: $e');
+      debugPrint('📍 Stack trace: $stackTrace');
+
+      if (mounted) {
+        setState(() {
+          _errorMessage = 'Failed to load transaction history. Please try again.';
+        });
+      }
     } finally {
       if (mounted) {
         setState(() {
@@ -252,7 +264,349 @@ class _CashTabState extends ConsumerState<CashTab> {
 
   /// Show flow details in bottom sheet
   void _showFlowDetails(ActualFlow flow) {
-    // TODO: Implement flow details bottom sheet
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (context) => _buildFlowDetailsSheet(flow),
+    );
+  }
+
+  Widget _buildFlowDetailsSheet(ActualFlow flow) {
+    final currencySymbol = _locationSummary?.baseCurrencySymbol ??
+        (ref.read(cashEndingProvider).currencies.isNotEmpty
+            ? ref.read(cashEndingProvider).currencies.first.symbol
+            : '\$');
+
+    return Container(
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.of(context).size.height * 0.8,
+      ),
+      decoration: const BoxDecoration(
+        color: TossColors.white,
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(TossBorderRadius.lg),
+        ),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Handle bar
+          Container(
+            margin: const EdgeInsets.only(top: TossSpacing.space3),
+            width: 40,
+            height: 4,
+            decoration: BoxDecoration(
+              color: TossColors.gray300,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+
+          // Header
+          Padding(
+            padding: const EdgeInsets.all(TossSpacing.space5),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Cash Count Details',
+                  style: TossTextStyles.body.copyWith(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 18,
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.close),
+                  onPressed: () => Navigator.pop(context),
+                ),
+              ],
+            ),
+          ),
+
+          // Content
+          Flexible(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space5),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: TossSpacing.space4),
+
+                  // Total Balance Card
+                  Container(
+                    padding: const EdgeInsets.all(TossSpacing.space5),
+                    decoration: BoxDecoration(
+                      color: TossColors.primary.withValues(alpha: 0.08),
+                      borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Total Balance',
+                          style: TossTextStyles.caption.copyWith(
+                            color: TossColors.gray600,
+                            fontSize: 14,
+                          ),
+                        ),
+                        const SizedBox(height: TossSpacing.space2),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              '$currencySymbol${NumberFormat('#,###').format(flow.balanceAfter)}',
+                              style: TossTextStyles.body.copyWith(
+                                color: TossColors.primary,
+                                fontWeight: FontWeight.w700,
+                                fontSize: 32,
+                              ),
+                            ),
+                            const Icon(
+                              Icons.copy,
+                              color: TossColors.primary,
+                              size: 24,
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: TossSpacing.space4),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Previous Balance',
+                                    style: TossTextStyles.caption.copyWith(
+                                      color: TossColors.gray600,
+                                      fontSize: 13,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    '$currencySymbol${NumberFormat('#,###').format(flow.balanceBefore)}',
+                                    style: TossTextStyles.body.copyWith(
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: TossSpacing.space4),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Change',
+                                    style: TossTextStyles.caption.copyWith(
+                                      color: TossColors.gray600,
+                                      fontSize: 13,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    '$currencySymbol${NumberFormat('#,###').format(flow.flowAmount)}',
+                                    style: TossTextStyles.body.copyWith(
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: TossSpacing.space6),
+
+                  // Denomination Breakdown
+                  Text(
+                    'Denomination Breakdown',
+                    style: TossTextStyles.body.copyWith(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 18,
+                    ),
+                  ),
+                  const SizedBox(height: TossSpacing.space4),
+
+                  if (flow.currentDenominations.isEmpty)
+                    Container(
+                      padding: const EdgeInsets.all(TossSpacing.space5),
+                      decoration: BoxDecoration(
+                        color: TossColors.gray50,
+                        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+                      ),
+                      child: Center(
+                        child: Text(
+                          'No denomination details available',
+                          style: TossTextStyles.body.copyWith(
+                            color: TossColors.gray500,
+                          ),
+                        ),
+                      ),
+                    )
+                  else
+                    ...flow.currentDenominations.map((deno) => _buildNewDenominationCard(deno, currencySymbol)),
+
+                  const SizedBox(height: TossSpacing.space6),
+
+                  // Bottom Info
+                  _buildInfoRow('Counted By', flow.createdBy.fullName),
+                  _buildInfoRow('Date', _formatFullDate(flow.createdAt)),
+                  _buildInfoRow('Time', flow.getFormattedTime()),
+
+                  const SizedBox(height: TossSpacing.space5),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _formatFullDate(String dateStr) {
+    try {
+      final date = DateTime.parse(dateStr);
+      final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      return '${months[date.month - 1]} ${date.day}, ${date.year}';
+    } catch (e) {
+      return dateStr;
+    }
+  }
+
+  Widget _buildInfoRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: TossSpacing.space3),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label,
+            style: TossTextStyles.body.copyWith(
+              color: TossColors.gray600,
+              fontSize: 15,
+            ),
+          ),
+          Text(
+            value,
+            style: TossTextStyles.body.copyWith(
+              fontWeight: FontWeight.w600,
+              fontSize: 15,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNewDenominationCard(DenominationDetail deno, String currencySymbol) {
+    return Container(
+      padding: const EdgeInsets.all(TossSpacing.space4),
+      margin: const EdgeInsets.only(bottom: TossSpacing.space3),
+      decoration: BoxDecoration(
+        color: TossColors.white,
+        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+        border: Border.all(color: TossColors.gray200, width: 1),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                '$currencySymbol${NumberFormat('#,###').format(deno.denominationValue)}',
+                style: TossTextStyles.body.copyWith(
+                  color: TossColors.primary,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 18,
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: TossSpacing.space3,
+                  vertical: TossSpacing.space1,
+                ),
+                decoration: BoxDecoration(
+                  color: TossColors.primary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.sm),
+                ),
+                child: Text(
+                  deno.denominationType,
+                  style: TossTextStyles.caption.copyWith(
+                    color: TossColors.primary,
+                    fontSize: 11,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: TossSpacing.space3),
+          Row(
+            children: [
+              Expanded(
+                child: _buildQuantityColumn('Previous Qty', deno.previousQuantity),
+              ),
+              Expanded(
+                child: _buildQuantityColumn('Change', deno.quantityChange),
+              ),
+              Expanded(
+                child: _buildQuantityColumn('Current Qty', deno.currentQuantity),
+              ),
+            ],
+          ),
+          const Divider(height: TossSpacing.space4),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Subtotal',
+                style: TossTextStyles.body.copyWith(
+                  color: TossColors.gray600,
+                  fontSize: 15,
+                ),
+              ),
+              Text(
+                '$currencySymbol${NumberFormat('#,###').format(deno.subtotal)}',
+                style: TossTextStyles.body.copyWith(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 16,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildQuantityColumn(String label, int value) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Text(
+          label,
+          style: TossTextStyles.caption.copyWith(
+            color: TossColors.gray500,
+            fontSize: 12,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          '$value',
+          style: TossTextStyles.body.copyWith(
+            fontWeight: FontWeight.w600,
+            fontSize: 16,
+          ),
+        ),
+      ],
+    );
   }
 
   @override
@@ -264,6 +618,19 @@ class _CashTabState extends ConsumerState<CashTab> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          // Error Banner
+          if (_errorMessage != null)
+            ErrorBanner(
+              message: _errorMessage!,
+              onRetry: () {
+                setState(() => _errorMessage = null);
+                _loadStockFlows();
+              },
+              onDismiss: () {
+                setState(() => _errorMessage = null);
+              },
+            ),
+
           // Card 1: Store and Location Selection
           _buildLocationSelectionCard(state),
 
@@ -459,9 +826,7 @@ class _CashTabState extends ConsumerState<CashTab> {
               return const SizedBox.shrink();
             },
           ),
-          ...currency.denominations.asMap().entries.map((entry) {
-            final index = entry.key;
-            final denom = entry.value;
+          ...currency.denominations.map((denom) {
             final controller = _getController(selectedCurrencyId, denom.denominationId);
             final focusNode = _getFocusNode(selectedCurrencyId, denom.denominationId);
 

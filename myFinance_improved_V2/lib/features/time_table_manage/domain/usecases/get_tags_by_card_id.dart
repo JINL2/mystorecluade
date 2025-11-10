@@ -1,6 +1,10 @@
+import 'package:freezed_annotation/freezed_annotation.dart';
+
 import '../entities/tag.dart';
 import '../repositories/time_table_repository.dart';
 import 'base_usecase.dart';
+
+part 'get_tags_by_card_id.freezed.dart';
 
 /// Get Tags By Card ID UseCase
 ///
@@ -21,19 +25,9 @@ class GetTagsByCardId implements UseCase<List<Tag>, GetTagsByCardIdParams> {
 }
 
 /// Parameters for GetTagsByCardId UseCase
-class GetTagsByCardIdParams {
-  final String cardId;
-
-  const GetTagsByCardIdParams({
-    required this.cardId,
-  });
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    return other is GetTagsByCardIdParams && other.cardId == cardId;
-  }
-
-  @override
-  int get hashCode => cardId.hashCode;
+@freezed
+class GetTagsByCardIdParams with _$GetTagsByCardIdParams {
+  const factory GetTagsByCardIdParams({
+    required String cardId,
+  }) = _GetTagsByCardIdParams;
 }

@@ -1,7 +1,7 @@
 // lib/features/cash_ending/presentation/providers/cash_ending_provider.dart
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'repository_providers.dart';
+import '../../domain/providers/repository_providers.dart';
 import 'cash_ending_state.dart';
 import 'cash_ending_notifier.dart';
 
@@ -11,11 +11,15 @@ final cashEndingProvider =
   final cashEndingRepo = ref.watch(cashEndingRepositoryProvider);
   final locationRepo = ref.watch(locationRepositoryProvider);
   final currencyRepo = ref.watch(currencyRepositoryProvider);
+  final bankRepo = ref.watch(bankRepositoryProvider);
+  final vaultRepo = ref.watch(vaultRepositoryProvider);
 
   return CashEndingNotifier(
     cashEndingRepository: cashEndingRepo,
     locationRepository: locationRepo,
     currencyRepository: currencyRepo,
+    bankRepository: bankRepo,
+    vaultRepository: vaultRepo,
   );
 });
 

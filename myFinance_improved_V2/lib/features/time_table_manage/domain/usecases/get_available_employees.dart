@@ -1,6 +1,10 @@
+import 'package:freezed_annotation/freezed_annotation.dart';
+
 import '../entities/available_employees_data.dart';
 import '../repositories/time_table_repository.dart';
 import 'base_usecase.dart';
+
+part 'get_available_employees.freezed.dart';
 
 /// Get Available Employees UseCase
 ///
@@ -30,23 +34,10 @@ class GetAvailableEmployees
 }
 
 /// Parameters for GetAvailableEmployees UseCase
-class GetAvailableEmployeesParams {
-  final String storeId;
-  final String shiftDate;
-
-  const GetAvailableEmployeesParams({
-    required this.storeId,
-    required this.shiftDate,
-  });
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    return other is GetAvailableEmployeesParams &&
-        other.storeId == storeId &&
-        other.shiftDate == shiftDate;
-  }
-
-  @override
-  int get hashCode => storeId.hashCode ^ shiftDate.hashCode;
+@freezed
+class GetAvailableEmployeesParams with _$GetAvailableEmployeesParams {
+  const factory GetAvailableEmployeesParams({
+    required String storeId,
+    required String shiftDate,
+  }) = _GetAvailableEmployeesParams;
 }

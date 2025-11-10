@@ -1,5 +1,9 @@
+import 'package:freezed_annotation/freezed_annotation.dart';
+
 import '../repositories/time_table_repository.dart';
 import 'base_usecase.dart';
+
+part 'update_bonus_amount.freezed.dart';
 
 /// Update Bonus Amount UseCase
 ///
@@ -27,23 +31,10 @@ class UpdateBonusAmount implements UseCase<void, UpdateBonusAmountParams> {
 }
 
 /// Parameters for UpdateBonusAmount UseCase
-class UpdateBonusAmountParams {
-  final String shiftRequestId;
-  final double bonusAmount;
-
-  const UpdateBonusAmountParams({
-    required this.shiftRequestId,
-    required this.bonusAmount,
-  });
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    return other is UpdateBonusAmountParams &&
-        other.shiftRequestId == shiftRequestId &&
-        other.bonusAmount == bonusAmount;
-  }
-
-  @override
-  int get hashCode => shiftRequestId.hashCode ^ bonusAmount.hashCode;
+@freezed
+class UpdateBonusAmountParams with _$UpdateBonusAmountParams {
+  const factory UpdateBonusAmountParams({
+    required String shiftRequestId,
+    required double bonusAmount,
+  }) = _UpdateBonusAmountParams;
 }

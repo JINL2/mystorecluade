@@ -11,16 +11,14 @@ class AttendanceLocation {
   });
 
   /// Validate if location coordinates are valid
+  ///
+  /// Latitude must be between -90 and 90
+  /// Longitude must be between -180 and 180
   bool get isValid {
     return latitude >= -90 &&
            latitude <= 90 &&
            longitude >= -180 &&
            longitude <= 180;
-  }
-
-  /// Convert to PostGIS POINT format for Supabase
-  String toPostGISPoint() {
-    return 'POINT($longitude $latitude)';
   }
 
   @override

@@ -1,13 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
-import '../../data/datasources/time_table_datasource.dart';
-import '../../data/repositories/time_table_repository_impl.dart';
 import '../../domain/entities/manager_overview.dart';
 import '../../domain/entities/monthly_shift_status.dart';
 import '../../domain/entities/shift_metadata.dart';
-import '../../domain/repositories/time_table_repository.dart';
+import '../../domain/providers/repository_providers.dart';
 import '../../domain/usecases/add_bonus.dart';
 import '../../domain/usecases/create_shift.dart';
 import '../../domain/usecases/delete_shift.dart';
@@ -29,25 +26,14 @@ import '../../domain/usecases/update_shift.dart';
 import 'states/time_table_state.dart';
 
 // ============================================================================
-// Data Layer Providers
+// Re-export Repository Provider from Domain Layer
 // ============================================================================
 
-/// Supabase Client Provider
-final _supabaseClientProvider = Provider<SupabaseClient>((ref) {
-  return Supabase.instance.client;
-});
-
-/// Time Table Datasource Provider
-final timeTableDatasourceProvider = Provider<TimeTableDatasource>((ref) {
-  final client = ref.watch(_supabaseClientProvider);
-  return TimeTableDatasource(client);
-});
-
-/// Time Table Repository Provider
-final timeTableRepositoryProvider = Provider<TimeTableRepository>((ref) {
-  final datasource = ref.watch(timeTableDatasourceProvider);
-  return TimeTableRepositoryImpl(datasource);
-});
+/// Re-export repository provider from domain layer
+/// Use this ONLY for complex operations that combine multiple use cases
+/// Prefer individual use case providers for simple operations
+export '../../domain/providers/repository_providers.dart'
+    show timeTableRepositoryProvider;
 
 // ============================================================================
 // UseCase Providers

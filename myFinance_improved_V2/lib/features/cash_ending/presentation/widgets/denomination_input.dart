@@ -338,7 +338,6 @@ class DenominationInput extends StatelessWidget {
   double _getUnifiedMonetaryFontSize(int effectiveLength, String containerType) {
     // Accessibility minimum: 12px for mobile readability (WCAG compliant)
     const double minAccessibleSize = 12.0;
-    const double maxOptimalSize = 16.0;
 
     // Unified breakpoints for both denomination and total
     double baseSize;

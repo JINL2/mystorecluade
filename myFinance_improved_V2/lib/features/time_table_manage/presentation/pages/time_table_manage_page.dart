@@ -20,6 +20,10 @@ import '../../../../shared/widgets/ai_chat/ai_chat_fab.dart';
 import '../../../../core/domain/entities/feature.dart';
 import '../../../homepage/domain/entities/top_feature.dart';
 import '../../domain/entities/manager_shift_cards.dart';
+import '../../domain/usecases/get_manager_overview.dart';
+import '../../domain/usecases/get_manager_shift_cards.dart';
+import '../../domain/usecases/get_monthly_shift_status.dart';
+import '../../domain/usecases/get_shift_metadata.dart';
 import '../providers/time_table_providers.dart';
 import '../widgets/bottom_sheets/add_shift_bottom_sheet.dart';
 import '../widgets/bottom_sheets/shift_details_bottom_sheet.dart';
@@ -370,9 +374,12 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
     });
 
     try {
-      // Get raw shift list directly from datasource (RPC returns List, not Map)
-      final rawData = await ref.read(timeTableDatasourceProvider).getShiftMetadata(storeId: storeId);
+      // Use GetShiftMetadata UseCase
+      final getShiftMetadata = ref.read(getShiftMetadataUseCaseProvider);
+      final metadata = await getShiftMetadata(GetShiftMetadataParams(storeId: storeId));
 
+      // Get shifts from settings - the RPC returns shifts in settings
+      final rawData = metadata.settings['shifts'] ?? <dynamic>[];
 
       setState(() {
         shiftMetadata = rawData;  // Store raw list for UI
@@ -385,6 +392,7 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
         isLoadingMetadata = false;
         shiftMetadata = <dynamic>[];  // Set empty list on error
       });
+      _handleError('시프트 메타데이터 로드', e);
     }
   }
   
@@ -413,12 +421,13 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
 
       final appState = ref.read(appStateProvider);
 
-
-      final statusList = await ref.read(timeTableRepositoryProvider).getMonthlyShiftStatus(
+      // Use GetMonthlyShiftStatus UseCase
+      final getMonthlyShiftStatus = ref.read(getMonthlyShiftStatusUseCaseProvider);
+      final statusList = await getMonthlyShiftStatus(GetMonthlyShiftStatusParams(
         requestDate: requestDate,
         companyId: appState.companyChoosen,
         storeId: selectedStoreId!,
-      );
+      ));
 
       // Convert entities to the Map format expected by UI
       final List<Map<String, dynamic>> response = statusList.expand((status) {
@@ -427,8 +436,12 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
             'request_date': daily.date, // yyyy-MM-dd format
             'shifts': daily.shifts.map((shiftWithReqs) {
               // Extract time strings from DateTime
-              final startTimeStr = '${shiftWithReqs.shift.planStartTime.hour.toString().padLeft(2, '0')}:${shiftWithReqs.shift.planStartTime.minute.toString().padLeft(2, '0')}';
-              final endTimeStr = '${shiftWithReqs.shift.planEndTime.hour.toString().padLeft(2, '0')}:${shiftWithReqs.shift.planEndTime.minute.toString().padLeft(2, '0')}';
+              final startTimeStr = shiftWithReqs.shift.planStartTime != null
+                  ? '${shiftWithReqs.shift.planStartTime!.hour.toString().padLeft(2, '0')}:${shiftWithReqs.shift.planStartTime!.minute.toString().padLeft(2, '0')}'
+                  : '00:00';
+              final endTimeStr = shiftWithReqs.shift.planEndTime != null
+                  ? '${shiftWithReqs.shift.planEndTime!.hour.toString().padLeft(2, '0')}:${shiftWithReqs.shift.planEndTime!.minute.toString().padLeft(2, '0')}'
+                  : '00:00';
 
               return {
                 'shift_id': shiftWithReqs.shift.shiftId,
@@ -538,13 +551,14 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
         return;
       }
 
-      // Use repository instead of direct Supabase call
-      final overview = await ref.read(timeTableRepositoryProvider).getManagerOverview(
+      // Use GetManagerOverview UseCase
+      final getManagerOverview = ref.read(getManagerOverviewUseCaseProvider);
+      final overview = await getManagerOverview(GetManagerOverviewParams(
         startDate: startDate,
         endDate: endDate,
         storeId: selectedStoreId!,
         companyId: companyId,
-      );
+      ));
 
 
       // Convert Entity to Map matching the expected format
@@ -619,13 +633,14 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
         return;
       }
 
-      // Use repository instead of direct Supabase call
-      final cardsData = await ref.read(timeTableRepositoryProvider).getManagerShiftCards(
+      // Use GetManagerShiftCards UseCase
+      final getManagerShiftCards = ref.read(getManagerShiftCardsUseCaseProvider);
+      final cardsData = await getManagerShiftCards(GetManagerShiftCardsParams(
         startDate: startDate,
         endDate: endDate,
         companyId: companyId,
         storeId: selectedStoreId!,
-      );
+      ));
 
       setState(() {
         managerCardsDataByMonth[monthKey] = cardsData;
@@ -1162,6 +1177,38 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
     }
   }
   
+  // Show error dialog to user
+  void _showErrorDialog(String title, String message) {
+    if (!mounted) return;
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(title),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('확인'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Log and show error to user
+  void _handleError(String operation, dynamic error, {bool showToUser = true}) {
+    // TODO: Add proper logging here (e.g., Firebase Crashlytics)
+    debugPrint('❌ ERROR in $operation: $error');
+
+    if (showToUser && mounted) {
+      _showErrorDialog(
+        '오류 발생',
+        '$operation 중 오류가 발생했습니다.\n\n${error.toString()}',
+      );
+    }
+  }
+
   // Show add shift bottom sheet
   void _showAddShiftBottomSheet() async {
     final result = await showModalBottomSheet<bool>(

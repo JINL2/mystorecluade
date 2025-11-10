@@ -1,6 +1,10 @@
+import 'package:freezed_annotation/freezed_annotation.dart';
+
 import '../entities/shift_approval_result.dart';
 import '../repositories/time_table_repository.dart';
 import 'base_usecase.dart';
+
+part 'toggle_shift_approval.freezed.dart';
 
 /// Toggle Shift Approval UseCase
 ///
@@ -21,23 +25,10 @@ class ToggleShiftApproval
 }
 
 /// Parameters for ToggleShiftApproval UseCase
-class ToggleShiftApprovalParams {
-  final String shiftRequestId;
-  final bool newApprovalState;
-
-  const ToggleShiftApprovalParams({
-    required this.shiftRequestId,
-    required this.newApprovalState,
-  });
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    return other is ToggleShiftApprovalParams &&
-        other.shiftRequestId == shiftRequestId &&
-        other.newApprovalState == newApprovalState;
-  }
-
-  @override
-  int get hashCode => shiftRequestId.hashCode ^ newApprovalState.hashCode;
+@freezed
+class ToggleShiftApprovalParams with _$ToggleShiftApprovalParams {
+  const factory ToggleShiftApprovalParams({
+    required String shiftRequestId,
+    required bool newApprovalState,
+  }) = _ToggleShiftApprovalParams;
 }

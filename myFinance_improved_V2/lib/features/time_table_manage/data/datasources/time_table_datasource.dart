@@ -1,8 +1,7 @@
-import 'dart:convert';
-
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../domain/exceptions/time_table_exceptions.dart';
+import '../../presentation/services/time_table_logger.dart';
 
 /// Time Table Data Source
 ///
@@ -13,24 +12,37 @@ class TimeTableDatasource {
   TimeTableDatasource(this._supabase);
 
   /// Fetch shift metadata from Supabase RPC
-  Future<dynamic> getShiftMetadata({
+  /// Returns Map<String, dynamic> containing shift metadata
+  Future<Map<String, dynamic>> getShiftMetadata({
     required String storeId,
   }) async {
     try {
-      final response = await _supabase.rpc<dynamic>(
-        'get_shift_metadata',
-        params: {
-          'p_store_id': storeId,
-        },
-      );
+      final params = {'p_store_id': storeId};
+      final response = await _supabase
+          .rpc<dynamic>('get_shift_metadata', params: params)
+          .logRpc('get_shift_metadata', params);
 
       if (response == null) {
-        return [];
+        return {'shifts': <dynamic>[]};
       }
 
-      // RPC can return List or Map
-      return response;
+      // Validate response type
+      if (response is Map<String, dynamic>) {
+        return response;
+      }
+
+      // Handle TABLE response (returns as List)
+      if (response is List) {
+        return {'shifts': response};
+      }
+
+      // Handle unexpected type - FAIL LOUDLY
+      throw ShiftMetadataException(
+        'RPC returned unexpected type: ${response.runtimeType}. Expected Map<String, dynamic> or List',
+        originalError: response,
+      );
     } catch (e, stackTrace) {
+      if (e is ShiftMetadataException) rethrow;
       throw ShiftMetadataException(
         'Failed to fetch shift metadata: $e',
         originalError: e,
@@ -45,13 +57,13 @@ class TimeTableDatasource {
     required String storeId,
   }) async {
     try {
-      final response = await _supabase.rpc<dynamic>(
-        'get_monthly_shift_status_manager',
-        params: {
-          'p_store_id': storeId,
-          'p_request_date': requestDate,
-        },
-      );
+      final params = {
+        'p_store_id': storeId,
+        'p_request_date': requestDate,
+      };
+      final response = await _supabase
+          .rpc<dynamic>('get_monthly_shift_status_manager', params: params)
+          .logRpc('get_monthly_shift_status_manager', params);
 
       if (response == null) {
         return [];
@@ -79,28 +91,35 @@ class TimeTableDatasource {
     required String storeId,
   }) async {
     try {
-      final response = await _supabase.rpc<dynamic>(
-        'manager_shift_get_overview',
-        params: {
-          'p_start_date': startDate,
-          'p_end_date': endDate,
-          'p_store_id': storeId,
-          'p_company_id': companyId,
-        },
-      );
+      final params = {
+        'p_start_date': startDate,
+        'p_end_date': endDate,
+        'p_store_id': storeId,
+        'p_company_id': companyId,
+      };
+      final response = await _supabase
+          .rpc<dynamic>('manager_shift_get_overview', params: params)
+          .logRpc('manager_shift_get_overview', params);
 
       if (response == null) {
+        TimeTableLogger.logInfo('manager_shift_get_overview returned null');
         return {};
       }
 
+      TimeTableLogger.logInfo('manager_shift_get_overview response type: ${response.runtimeType}');
+
       if (response is Map<String, dynamic>) {
+        TimeTableLogger.logInfo('Response keys: ${response.keys.toList()}');
         return response;
       }
 
       if (response is List && response.isNotEmpty) {
+        TimeTableLogger.logInfo('Response is List with ${response.length} items');
+        TimeTableLogger.logInfo('First item: ${response.first}');
         return response.first as Map<String, dynamic>;
       }
 
+      TimeTableLogger.logInfo('manager_shift_get_overview returning empty');
       return {};
     } catch (e, stackTrace) {
       throw TimeTableException(
@@ -119,31 +138,34 @@ class TimeTableDatasource {
     required String storeId,
   }) async {
     try {
-      final response = await _supabase.rpc<dynamic>(
-        'manager_shift_get_cards',
-        params: {
-          'p_start_date': startDate,
-          'p_end_date': endDate,
-          'p_store_id': storeId,
-          'p_company_id': companyId,
-        },
-      );
+      final params = {
+        'p_start_date': startDate,
+        'p_end_date': endDate,
+        'p_store_id': storeId,
+        'p_company_id': companyId,
+      };
+      final response = await _supabase
+          .rpc<dynamic>('manager_shift_get_cards', params: params)
+          .logRpc('manager_shift_get_cards', params);
 
       if (response == null) {
+        TimeTableLogger.logInfo('manager_shift_get_cards returned null');
         return {};
       }
 
+      TimeTableLogger.logInfo('manager_shift_get_cards response type: ${response.runtimeType}');
+
       if (response is Map<String, dynamic>) {
+        TimeTableLogger.logInfo('Response keys: ${response.keys.toList()}');
+        TimeTableLogger.logInfo('Response: $response');
         return response;
       }
 
-      // Try to convert to Map if possible
-      if (response is Map) {
-        final converted = Map<String, dynamic>.from(response);
-        return converted;
-      }
-
-      return {};
+      // Handle unexpected type - FAIL LOUDLY
+      throw TimeTableException(
+        'RPC returned unexpected type: ${response.runtimeType}. Expected Map<String, dynamic>',
+        originalError: response,
+      );
     } catch (e, stackTrace) {
       throw TimeTableException(
         'Failed to fetch manager shift cards: $e',
@@ -159,13 +181,13 @@ class TimeTableDatasource {
     required bool newApprovalState,
   }) async {
     try {
-      final response = await _supabase.rpc<dynamic>(
-        'toggle_shift_approval',
-        params: {
-          'p_shift_request_id': shiftRequestId,
-          'p_new_approval_state': newApprovalState,
-        },
-      );
+      final params = {
+        'p_shift_request_id': shiftRequestId,
+        'p_new_approval_state': newApprovalState,
+      };
+      final response = await _supabase
+          .rpc<dynamic>('toggle_shift_approval', params: params)
+          .logRpc('toggle_shift_approval', params);
 
       if (response == null) {
         return {};
@@ -190,10 +212,9 @@ class TimeTableDatasource {
     required Map<String, dynamic> params,
   }) async {
     try {
-      final response = await _supabase.rpc<dynamic>(
-        'insert_shift_schedule',
-        params: params,
-      );
+      final response = await _supabase
+          .rpc<dynamic>('insert_shift_schedule', params: params)
+          .logRpc('insert_shift_schedule', params);
 
       if (response == null) {
         return {};
@@ -234,13 +255,13 @@ class TimeTableDatasource {
     required String userId,
   }) async {
     try {
-      final response = await _supabase.rpc<dynamic>(
-        'manager_shift_delete_tag',
-        params: {
-          'p_tag_id': tagId,
-          'p_user_id': userId,
-        },
-      );
+      final params = {
+        'p_tag_id': tagId,
+        'p_user_id': userId,
+      };
+      final response = await _supabase
+          .rpc<dynamic>('manager_shift_delete_tag', params: params)
+          .logRpc('manager_shift_delete_tag', params);
 
       if (response == null) {
         return {};
@@ -269,16 +290,16 @@ class TimeTableDatasource {
     required String approvedBy,
   }) async {
     try {
-      final response = await _supabase.rpc<dynamic>(
-        'manager_shift_insert_schedule',
-        params: {
-          'p_user_id': userId,
-          'p_shift_id': shiftId,
-          'p_store_id': storeId,
-          'p_request_date': requestDate,
-          'p_approved_by': approvedBy,
-        },
-      );
+      final params = {
+        'p_user_id': userId,
+        'p_shift_id': shiftId,
+        'p_store_id': storeId,
+        'p_request_date': requestDate,
+        'p_approved_by': approvedBy,
+      };
+      final response = await _supabase
+          .rpc<dynamic>('manager_shift_insert_schedule', params: params)
+          .logRpc('manager_shift_insert_schedule', params);
 
       if (response == null) return {};
 
@@ -308,19 +329,19 @@ class TimeTableDatasource {
     required bool isProblemSolved,
   }) async {
     try {
-      final response = await _supabase.rpc<dynamic>(
-        'manager_shift_input_card',
-        params: {
-          'p_manager_id': managerId,
-          'p_shift_request_id': shiftRequestId,
-          'p_confirm_start_time': confirmStartTime,
-          'p_confirm_end_time': confirmEndTime,
-          'p_new_tag_content': newTagContent,
-          'p_new_tag_type': newTagType,
-          'p_is_late': isLate,
-          'p_is_problem_solved': isProblemSolved,
-        },
-      );
+      final params = {
+        'p_manager_id': managerId,
+        'p_shift_request_id': shiftRequestId,
+        'p_confirm_start_time': confirmStartTime,
+        'p_confirm_end_time': confirmEndTime,
+        'p_new_tag_content': newTagContent,
+        'p_new_tag_type': newTagType,
+        'p_is_late': isLate,
+        'p_is_problem_solved': isProblemSolved,
+      };
+      final response = await _supabase
+          .rpc<dynamic>('manager_shift_input_card', params: params)
+          .logRpc('manager_shift_input_card', params);
 
       if (response == null) return {};
 
@@ -344,13 +365,13 @@ class TimeTableDatasource {
     required String shiftDate,
   }) async {
     try {
-      final response = await _supabase.rpc<dynamic>(
-        'get_employees_and_shifts',
-        params: {
-          'p_store_id': storeId,
-          'p_shift_date': shiftDate,
-        },
-      );
+      final params = {
+        'p_store_id': storeId,
+        'p_shift_date': shiftDate,
+      };
+      final response = await _supabase
+          .rpc<dynamic>('get_employees_and_shifts', params: params)
+          .logRpc('get_employees_and_shifts', params);
 
       if (response == null) {
         return {'employees': <dynamic>[], 'shifts': <dynamic>[]};
@@ -377,14 +398,14 @@ class TimeTableDatasource {
     required List<String> employeeIds,
   }) async {
     try {
-      final response = await _supabase.rpc<dynamic>(
-        'insert_shift_schedule_bulk',
-        params: {
-          'p_store_id': storeId,
-          'p_shift_id': shiftId,
-          'p_employee_ids': employeeIds,
-        },
-      );
+      final params = {
+        'p_store_id': storeId,
+        'p_shift_id': shiftId,
+        'p_employee_ids': employeeIds,
+      };
+      final response = await _supabase
+          .rpc<dynamic>('insert_shift_schedule_bulk', params: params)
+          .logRpc('insert_shift_schedule_bulk', params);
 
       if (response == null) {
         return {};
@@ -409,12 +430,10 @@ class TimeTableDatasource {
     required String storeId,
   }) async {
     try {
-      final response = await _supabase.rpc<dynamic>(
-        'manager_shift_get_schedule',
-        params: {
-          'p_store_id': storeId,
-        },
-      );
+      final params = {'p_store_id': storeId};
+      final response = await _supabase
+          .rpc<dynamic>('manager_shift_get_schedule', params: params)
+          .logRpc('manager_shift_get_schedule', params);
 
       if (response == null) {
         return {};
@@ -440,13 +459,13 @@ class TimeTableDatasource {
     required List<bool> approvalStates,
   }) async {
     try {
-      final response = await _supabase.rpc<dynamic>(
-        'manager_shift_process_bulk_approval',
-        params: {
-          'p_shift_request_ids': shiftRequestIds,
-          'p_approval_states': approvalStates,
-        },
-      );
+      final params = {
+        'p_shift_request_ids': shiftRequestIds,
+        'p_approval_states': approvalStates,
+      };
+      final response = await _supabase
+          .rpc<dynamic>('manager_shift_process_bulk_approval', params: params)
+          .logRpc('manager_shift_process_bulk_approval', params);
 
       if (response == null) {
         return {};
@@ -474,15 +493,15 @@ class TimeTableDatasource {
     bool? isProblemSolved,
   }) async {
     try {
-      final response = await _supabase.rpc<dynamic>(
-        'manager_shift_update_shift',
-        params: {
-          'p_shift_request_id': shiftRequestId,
-          if (startTime != null) 'p_start_time': startTime,
-          if (endTime != null) 'p_end_time': endTime,
-          if (isProblemSolved != null) 'p_is_problem_solved': isProblemSolved,
-        },
-      );
+      final params = {
+        'p_shift_request_id': shiftRequestId,
+        if (startTime != null) 'p_start_time': startTime,
+        if (endTime != null) 'p_end_time': endTime,
+        if (isProblemSolved != null) 'p_is_problem_solved': isProblemSolved,
+      };
+      final response = await _supabase
+          .rpc<dynamic>('manager_shift_update_shift', params: params)
+          .logRpc('manager_shift_update_shift', params);
 
       if (response == null) {
         return {};
@@ -507,12 +526,10 @@ class TimeTableDatasource {
     required String cardId,
   }) async {
     try {
-      final response = await _supabase.rpc<dynamic>(
-        'get_tags_by_card_id',
-        params: {
-          'p_card_id': cardId,
-        },
-      );
+      final params = {'p_card_id': cardId};
+      final response = await _supabase
+          .rpc<dynamic>('get_tags_by_card_id', params: params)
+          .logRpc('get_tags_by_card_id', params);
 
       if (response == null) {
         return [];
@@ -539,14 +556,14 @@ class TimeTableDatasource {
     required String bonusReason,
   }) async {
     try {
-      final response = await _supabase.rpc<dynamic>(
-        'manager_shift_add_bonus',
-        params: {
-          'p_shift_request_id': shiftRequestId,
-          'p_bonus_amount': bonusAmount,
-          'p_bonus_reason': bonusReason,
-        },
-      );
+      final params = {
+        'p_shift_request_id': shiftRequestId,
+        'p_bonus_amount': bonusAmount,
+        'p_bonus_reason': bonusReason,
+      };
+      final response = await _supabase
+          .rpc<dynamic>('manager_shift_add_bonus', params: params)
+          .logRpc('manager_shift_add_bonus', params);
 
       if (response == null) {
         return {};

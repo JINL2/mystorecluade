@@ -1,26 +1,32 @@
 // lib/features/auth/data/datasources/supabase_user_datasource.dart
 
 import 'package:supabase_flutter/supabase_flutter.dart' hide User;
-import '../models/user_model.dart';
-import '../models/company_model.dart';
-import '../models/store_model.dart';
+import '../../domain/entities/user_entity.dart';
+import '../../domain/entities/company_entity.dart';
+import '../../domain/entities/store_entity.dart';
+import '../../domain/exceptions/auth_exceptions.dart' as domain;
 
-/// Supabase User DataSource
+/// Supabase User DataSource (Refactored with Freezed Entities)
 ///
-/// 🚚 배달 기사 - Supabase Database와 직접 통신하는 계층
+/// 🎯 Improvements:
+/// - Uses Freezed entities directly (no Model layer needed)
+/// - Simpler: UserModel.fromJson() → User.fromJson()
+/// - Type-safe: Freezed guarantees JSON serialization
 ///
-/// 책임:
-/// - Supabase Database 쿼리 (users, user_companies, user_stores)
-/// - JSON → UserModel, CompanyModel 변환
-/// - 사용자 프로필 및 권한 조회
+/// 📊 Benefits:
+/// - No toEntity() conversions needed
+/// - Reduced code duplication
+/// - Compile-time type safety
 ///
-/// 이 계층은 Supabase Database에 대한 모든 지식을 가지고 있습니다.
+/// 🔧 Migration:
+/// Before: UserModel.fromJson() → userModel.toEntity()
+/// After:  User.fromJson() (direct entity creation!)
 abstract class UserDataSource {
   /// Find user by ID
-  Future<UserModel?> getUserById(String userId);
+  Future<User?> getUserById(String userId);
 
   /// Update user profile
-  Future<UserModel> updateUserProfile({
+  Future<User> updateUserProfile({
     required String userId,
     required Map<String, dynamic> updates,
   });
@@ -29,10 +35,10 @@ abstract class UserDataSource {
   Future<void> updateLastLogin(String userId);
 
   /// Get user's companies (where user is owner or member)
-  Future<List<CompanyModel>> getUserCompanies(String userId);
+  Future<List<Company>> getUserCompanies(String userId);
 
   /// Get user's stores (where user has access)
-  Future<List<StoreModel>> getUserStores(String userId);
+  Future<List<Store>> getUserStores(String userId);
 
   /// Check if user has access to company
   Future<bool> hasCompanyAccess({
@@ -58,7 +64,7 @@ class SupabaseUserDataSource implements UserDataSource {
   SupabaseUserDataSource(this._client);
 
   @override
-  Future<UserModel?> getUserById(String userId) async {
+  Future<User?> getUserById(String userId) async {
     try {
       final userData = await _client
           .from('users')
@@ -69,14 +75,15 @@ class SupabaseUserDataSource implements UserDataSource {
 
       if (userData == null) return null;
 
-      return UserModel.fromJson(userData);
+      // Direct entity creation with Freezed!
+      return User.fromJson(userData);
     } catch (e) {
-      throw Exception('Failed to get user: $e');
+      rethrow;
     }
   }
 
   @override
-  Future<UserModel> updateUserProfile({
+  Future<User> updateUserProfile({
     required String userId,
     required Map<String, dynamic> updates,
   }) async {
@@ -91,9 +98,10 @@ class SupabaseUserDataSource implements UserDataSource {
           .select()
           .single();
 
-      return UserModel.fromJson(updatedData);
+      // Direct entity creation!
+      return User.fromJson(updatedData);
     } catch (e) {
-      throw Exception('Failed to update user profile: $e');
+      rethrow;
     }
   }
 
@@ -105,12 +113,12 @@ class SupabaseUserDataSource implements UserDataSource {
         'updated_at': DateTime.now().toIso8601String(),
       }).eq('user_id', userId);
     } catch (e) {
-      throw Exception('Failed to update last login: $e');
+      rethrow;
     }
   }
 
   @override
-  Future<List<CompanyModel>> getUserCompanies(String userId) async {
+  Future<List<Company>> getUserCompanies(String userId) async {
     try {
       // Get companies where user is owner
       final companiesData = await _client
@@ -119,16 +127,17 @@ class SupabaseUserDataSource implements UserDataSource {
           .eq('owner_id', userId)
           .eq('is_deleted', false);
 
+      // Direct entity list creation!
       return companiesData
-          .map((data) => CompanyModel.fromJson(data))
+          .map((data) => Company.fromJson(data))
           .toList();
     } catch (e) {
-      throw Exception('Failed to get user companies: $e');
+      rethrow;
     }
   }
 
   @override
-  Future<List<StoreModel>> getUserStores(String userId) async {
+  Future<List<Store>> getUserStores(String userId) async {
     try {
       // Get stores through user_stores junction table
       final userStoresData = await _client
@@ -137,17 +146,18 @@ class SupabaseUserDataSource implements UserDataSource {
           .eq('user_id', userId)
           .eq('is_deleted', false);
 
-      final stores = <StoreModel>[];
+      final stores = <Store>[];
       for (final userStore in userStoresData) {
         final storeData = userStore['stores'];
         if (storeData != null && storeData is Map<String, dynamic>) {
-          stores.add(StoreModel.fromJson(storeData));
+          // Direct entity creation!
+          stores.add(Store.fromJson(storeData));
         }
       }
 
       return stores;
     } catch (e) {
-      throw Exception('Failed to get user stores: $e');
+      rethrow;
     }
   }
 
@@ -181,7 +191,7 @@ class SupabaseUserDataSource implements UserDataSource {
 
       return membership != null;
     } catch (e) {
-      throw Exception('Failed to check company access: $e');
+      rethrow;
     }
   }
 
@@ -201,7 +211,7 @@ class SupabaseUserDataSource implements UserDataSource {
 
       return access != null;
     } catch (e) {
-      throw Exception('Failed to check store access: $e');
+      rethrow;
     }
   }
 
@@ -214,12 +224,52 @@ class SupabaseUserDataSource implements UserDataSource {
       );
 
       if (response == null) {
-        throw Exception('No user data returned');
+        throw domain.UserNotFoundException(userId: userId);
       }
 
-      return response as Map<String, dynamic>;
+      final result = response as Map<String, dynamic>;
+
+      // Extract companies array (stores are nested inside each company)
+      final companiesList = result['companies'] as List<dynamic>? ?? [];
+
+      // Flatten stores from all companies
+      final allStores = <Map<String, dynamic>>[];
+      final processedCompanies = <Map<String, dynamic>>[];
+
+      for (final company in companiesList) {
+        final companyMap = company as Map<String, dynamic>;
+
+        // Extract stores from this company
+        final stores = companyMap['stores'] as List<dynamic>? ?? [];
+        for (final store in stores) {
+          final storeMap = store as Map<String, dynamic>;
+          // Add company_id to each store
+          storeMap['company_id'] = companyMap['company_id'];
+          allStores.add(storeMap);
+        }
+
+        // Remove nested stores from company (not needed in flat structure)
+        final companyWithoutStores = Map<String, dynamic>.from(companyMap);
+        companyWithoutStores.remove('stores');
+        companyWithoutStores.remove('store_count');
+        processedCompanies.add(companyWithoutStores);
+      }
+
+      // Create user object from top-level fields with correct field names
+      final userMap = {
+        'user_id': result['user_id'],
+        'first_name': result['user_first_name'],
+        'last_name': result['user_last_name'],
+        'profile_image': result['profile_image'],
+      };
+
+      return {
+        'user': userMap,
+        'companies': processedCompanies,
+        'stores': allStores,
+      };
     } catch (e) {
-      throw Exception('Failed to get user complete data: $e');
+      rethrow;
     }
   }
 }

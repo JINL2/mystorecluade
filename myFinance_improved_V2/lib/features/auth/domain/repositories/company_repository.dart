@@ -1,8 +1,8 @@
 // lib/features/auth/domain/repositories/company_repository.dart
 
-import '../entities/company_entity.dart' hide CompanyType, Currency;
-import '../value_objects/company_type.dart' show CompanyType;
-import '../value_objects/currency.dart' show Currency;
+import '../entities/company_entity.dart';
+import '../value_objects/company_type.dart';
+import '../value_objects/currency.dart';
 
 /// Company repository interface.
 ///
@@ -18,6 +18,16 @@ abstract class CompanyRepository {
   /// Throws [ValidationException] if data is invalid.
   Future<Company> create(Company company);
 
+  /// Find company by ID
+  ///
+  /// Returns the [Company] if found, null otherwise.
+  Future<Company?> findById(String companyId);
+
+  /// Find companies by owner ID
+  ///
+  /// Returns list of companies owned by the user.
+  Future<List<Company>> findByOwner(String ownerId);
+
   /// Check if company name exists for user
   ///
   /// Returns `true` if the name already exists for this owner.
@@ -25,6 +35,16 @@ abstract class CompanyRepository {
     required String name,
     required String ownerId,
   });
+
+  /// Update company
+  ///
+  /// Returns the updated [Company].
+  Future<Company> update(Company company);
+
+  /// Delete company (soft delete)
+  ///
+  /// Marks the company as deleted.
+  Future<void> delete(String companyId);
 
   /// Get company types
   ///

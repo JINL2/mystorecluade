@@ -1,6 +1,7 @@
+import '../entities/shift_card_data.dart';
 import '../repositories/attendance_repository.dart';
 
-/// Register a new shift request
+/// Register a new shift request (strongly typed)
 ///
 /// Matches RPC: insert_shift_request_v2
 class RegisterShiftRequest {
@@ -8,7 +9,7 @@ class RegisterShiftRequest {
 
   RegisterShiftRequest(this._repository);
 
-  Future<Map<String, dynamic>?> call({
+  Future<ShiftCardData?> call({
     required String userId,
     required String shiftId,
     required String storeId,

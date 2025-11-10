@@ -1,134 +1,122 @@
+import 'package:freezed_annotation/freezed_annotation.dart';
+
 import 'employee_info.dart';
 import 'shift.dart';
 import 'tag.dart';
+
+part 'shift_card.freezed.dart';
+part 'shift_card.g.dart';
 
 /// Shift Card Entity
 ///
 /// Represents a comprehensive view of a shift assignment with all relevant
 /// information including employee, shift details, approval status, and tags.
-class ShiftCard {
-  /// The shift request ID
-  final String shiftRequestId;
+@freezed
+class ShiftCard with _$ShiftCard {
+  const ShiftCard._();
 
-  /// Employee information
-  final EmployeeInfo employee;
+  const factory ShiftCard({
+    /// The shift request ID
+    @JsonKey(name: 'shift_request_id') required String shiftRequestId,
 
-  /// Shift information
-  final Shift shift;
+    /// Employee information
+    required EmployeeInfo employee,
 
-  /// The date of the shift request (yyyy-MM-dd format)
-  final String requestDate;
+    /// Shift information
+    required Shift shift,
 
-  /// Whether the shift is approved
-  final bool isApproved;
+    /// The date of the shift request (yyyy-MM-dd format)
+    @JsonKey(name: 'request_date') required String requestDate,
 
-  /// Whether there's a problem with this shift
-  final bool hasProblem;
+    /// Whether the shift is approved
+    @JsonKey(name: 'is_approved') required bool isApproved,
 
-  /// Whether the problem has been solved
-  final bool isProblemSolved;
+    /// Whether there's a problem with this shift
+    @JsonKey(name: 'is_problem') required bool hasProblem,
 
-  /// Whether the employee was late
-  final bool isLate;
+    /// Whether the problem has been solved
+    @JsonKey(name: 'is_problem_solved', defaultValue: false)
+    required bool isProblemSolved,
 
-  /// Late duration in minutes
-  final int lateMinute;
+    /// Whether the employee was late
+    @JsonKey(name: 'is_late', defaultValue: false) required bool isLate,
 
-  /// Whether the employee worked overtime
-  final bool isOverTime;
+    /// Late duration in minutes
+    @JsonKey(name: 'late_minute', defaultValue: 0) required int lateMinute,
 
-  /// Overtime duration in minutes
-  final int overTimeMinute;
+    /// Whether the employee worked overtime
+    @JsonKey(name: 'is_over_time', defaultValue: false)
+    required bool isOverTime,
 
-  /// Paid hours for this shift
-  final double paidHour;
+    /// Overtime duration in minutes
+    @JsonKey(name: 'over_time_minute', defaultValue: 0)
+    required int overTimeMinute,
 
-  /// Whether this shift has been reported
-  final bool isReported;
+    /// Paid hours for this shift
+    @JsonKey(name: 'paid_hour', defaultValue: 0.0) required double paidHour,
 
-  /// Bonus amount (if any)
-  final double? bonusAmount;
+    /// Whether this shift has been reported
+    @JsonKey(name: 'is_reported', defaultValue: false)
+    required bool isReported,
 
-  /// Reason for bonus (if any)
-  final String? bonusReason;
+    /// Bonus amount (if any)
+    @JsonKey(name: 'bonus_amount') double? bonusAmount,
 
-  /// Confirmed start time (manager-confirmed start time)
-  final DateTime? confirmedStartTime;
+    /// Reason for bonus (if any)
+    @JsonKey(name: 'bonus_reason') String? bonusReason,
 
-  /// Confirmed end time (manager-confirmed end time)
-  final DateTime? confirmedEndTime;
+    /// Confirmed start time (manager-confirmed start time)
+    @JsonKey(name: 'confirm_start_time') DateTime? confirmedStartTime,
 
-  /// Actual start time (employee's actual check-in time from device)
-  final DateTime? actualStartTime;
+    /// Confirmed end time (manager-confirmed end time)
+    @JsonKey(name: 'confirm_end_time') DateTime? confirmedEndTime,
 
-  /// Actual end time (employee's actual check-out time from device)
-  final DateTime? actualEndTime;
+    /// Actual start time (employee's actual check-in time from device)
+    @JsonKey(name: 'actual_start') DateTime? actualStartTime,
 
-  /// Check-in location validity
-  final bool? isValidCheckinLocation;
+    /// Actual end time (employee's actual check-out time from device)
+    @JsonKey(name: 'actual_end') DateTime? actualEndTime,
 
-  /// Check-in distance from store in meters
-  final double? checkinDistanceFromStore;
+    /// Check-in location validity
+    @JsonKey(name: 'is_valid_checkin_location') bool? isValidCheckinLocation,
 
-  /// Check-out location validity
-  final bool? isValidCheckoutLocation;
+    /// Check-in distance from store in meters
+    @JsonKey(name: 'checkin_distance_from_store')
+    double? checkinDistanceFromStore,
 
-  /// Check-out distance from store in meters
-  final double? checkoutDistanceFromStore;
+    /// Check-out location validity
+    @JsonKey(name: 'is_valid_checkout_location')
+    bool? isValidCheckoutLocation,
 
-  /// Salary type ('hourly' or 'monthly')
-  final String? salaryType;
+    /// Check-out distance from store in meters
+    @JsonKey(name: 'checkout_distance_from_store')
+    double? checkoutDistanceFromStore,
 
-  /// Salary amount (hourly rate or monthly salary)
-  final String? salaryAmount;
+    /// Salary type ('hourly' or 'monthly')
+    @JsonKey(name: 'salary_type') String? salaryType,
 
-  /// List of tags associated with this shift card
-  final List<Tag> tags;
+    /// Salary amount (hourly rate or monthly salary)
+    @JsonKey(name: 'salary_amount') String? salaryAmount,
 
-  /// Problem type (e.g., "late", "early_checkout", etc.)
-  final String? problemType;
+    /// List of tags associated with this shift card
+    @JsonKey(name: 'notice_tag', defaultValue: <Tag>[]) required List<Tag> tags,
 
-  /// Report reason if this shift was reported
-  final String? reportReason;
+    /// Problem type (e.g., "late", "early_checkout", etc.)
+    @JsonKey(name: 'problem_type') String? problemType,
 
-  /// When the request was created
-  final DateTime createdAt;
+    /// Report reason if this shift was reported
+    @JsonKey(name: 'report_reason') String? reportReason,
 
-  /// When the request was approved (if approved)
-  final DateTime? approvedAt;
+    /// When the request was created (optional, not returned by RPC)
+    @JsonKey(name: 'created_at') DateTime? createdAt,
 
-  const ShiftCard({
-    required this.shiftRequestId,
-    required this.employee,
-    required this.shift,
-    required this.requestDate,
-    required this.isApproved,
-    required this.hasProblem,
-    this.isProblemSolved = false,
-    this.isLate = false,
-    this.lateMinute = 0,
-    this.isOverTime = false,
-    this.overTimeMinute = 0,
-    this.paidHour = 0.0,
-    this.isReported = false,
-    this.bonusAmount,
-    this.bonusReason,
-    this.confirmedStartTime,
-    this.confirmedEndTime,
-    this.actualStartTime,
-    this.actualEndTime,
-    this.isValidCheckinLocation,
-    this.checkinDistanceFromStore,
-    this.isValidCheckoutLocation,
-    this.checkoutDistanceFromStore,
-    this.salaryType,
-    this.salaryAmount,
-    this.tags = const [],
-    this.problemType,
-    this.reportReason,
-    required this.createdAt,
-    this.approvedAt,
-  });
+    /// When the request was approved (if approved)
+    @JsonKey(name: 'approved_at') DateTime? approvedAt,
+  }) = _ShiftCard;
+
+  /// Create from JSON
+  factory ShiftCard.fromJson(Map<String, dynamic> json) =>
+      _$ShiftCardFromJson(json);
 
   /// Check if shift is pending approval
   bool get isPending => !isApproved;
@@ -182,74 +170,10 @@ class ShiftCard {
     if (lateTags.isNotEmpty) return true;
 
     // Or check if confirmed start time is after planned start time
-    if (confirmedStartTime != null) {
-      return confirmedStartTime!.isAfter(shift.planStartTime);
+    if (confirmedStartTime != null && shift.planStartTime != null) {
+      return confirmedStartTime!.isAfter(shift.planStartTime!);
     }
 
     return false;
-  }
-
-  /// Copy with method for immutability
-  ShiftCard copyWith({
-    String? shiftRequestId,
-    EmployeeInfo? employee,
-    Shift? shift,
-    String? requestDate,
-    bool? isApproved,
-    bool? hasProblem,
-    bool? isProblemSolved,
-    bool? isLate,
-    int? lateMinute,
-    bool? isOverTime,
-    int? overTimeMinute,
-    double? paidHour,
-    bool? isReported,
-    double? bonusAmount,
-    String? bonusReason,
-    DateTime? confirmedStartTime,
-    DateTime? confirmedEndTime,
-    DateTime? actualStartTime,
-    DateTime? actualEndTime,
-    bool? isValidCheckinLocation,
-    double? checkinDistanceFromStore,
-    bool? isValidCheckoutLocation,
-    double? checkoutDistanceFromStore,
-    List<Tag>? tags,
-    DateTime? createdAt,
-    DateTime? approvedAt,
-  }) {
-    return ShiftCard(
-      shiftRequestId: shiftRequestId ?? this.shiftRequestId,
-      employee: employee ?? this.employee,
-      shift: shift ?? this.shift,
-      requestDate: requestDate ?? this.requestDate,
-      isApproved: isApproved ?? this.isApproved,
-      hasProblem: hasProblem ?? this.hasProblem,
-      isProblemSolved: isProblemSolved ?? this.isProblemSolved,
-      isLate: isLate ?? this.isLate,
-      lateMinute: lateMinute ?? this.lateMinute,
-      isOverTime: isOverTime ?? this.isOverTime,
-      overTimeMinute: overTimeMinute ?? this.overTimeMinute,
-      paidHour: paidHour ?? this.paidHour,
-      isReported: isReported ?? this.isReported,
-      bonusAmount: bonusAmount ?? this.bonusAmount,
-      bonusReason: bonusReason ?? this.bonusReason,
-      confirmedStartTime: confirmedStartTime ?? this.confirmedStartTime,
-      confirmedEndTime: confirmedEndTime ?? this.confirmedEndTime,
-      actualStartTime: actualStartTime ?? this.actualStartTime,
-      actualEndTime: actualEndTime ?? this.actualEndTime,
-      isValidCheckinLocation: isValidCheckinLocation ?? this.isValidCheckinLocation,
-      checkinDistanceFromStore: checkinDistanceFromStore ?? this.checkinDistanceFromStore,
-      isValidCheckoutLocation: isValidCheckoutLocation ?? this.isValidCheckoutLocation,
-      checkoutDistanceFromStore: checkoutDistanceFromStore ?? this.checkoutDistanceFromStore,
-      tags: tags ?? this.tags,
-      createdAt: createdAt ?? this.createdAt,
-      approvedAt: approvedAt ?? this.approvedAt,
-    );
-  }
-
-  @override
-  String toString() {
-    return 'ShiftCard(id: $shiftRequestId, employee: ${employee.userName}, date: $requestDate, approved: $isApproved)';
   }
 }

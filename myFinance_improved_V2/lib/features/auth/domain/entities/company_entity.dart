@@ -1,40 +1,49 @@
 // lib/features/auth/domain/entities/company_entity.dart
 
+import 'package:freezed_annotation/freezed_annotation.dart';
 import '../value_objects/validation_result.dart';
 import '../validators/email_validator.dart';
 
-/// Company entity representing a business organization in the system.
-///
-/// A company can have multiple stores and is owned by a user.
-/// This entity contains all business rules for company validation.
-class Company {
-  final String id;
-  final String name;
-  final String? businessNumber;
-  final String? email;
-  final String? phone;
-  final String? address;
-  final String companyTypeId;
-  final String currencyId;
-  final String? companyCode; // Unique code for employees to join
-  final String ownerId;
-  final DateTime createdAt;
-  final DateTime? updatedAt;
+part 'company_entity.freezed.dart';
+part 'company_entity.g.dart';
 
-  const Company({
-    required this.id,
-    required this.name,
-    this.businessNumber,
-    this.email,
-    this.phone,
-    this.address,
-    required this.companyTypeId,
-    required this.currencyId,
-    this.companyCode,
-    required this.ownerId,
-    required this.createdAt,
-    this.updatedAt,
-  });
+/// Company Entity (Freezed Version)
+///
+/// 🎯 Improvements:
+/// - Auto-generates: copyWith, ==, hashCode, toString, fromJson, toJson
+/// - Combines Entity + Model (no separate CompanyModel needed)
+/// - Type-safe JSON serialization
+/// - Immutable by default
+///
+/// 📊 Code Reduction:
+/// - Old: Company entity (137 lines) + CompanyModel (143 lines) = 280 lines
+/// - New: Company entity (this file) = ~110 lines (61% reduction)
+@freezed
+class Company with _$Company {
+  const Company._();
+
+  const factory Company({
+    @JsonKey(name: 'company_id') required String id,
+    @JsonKey(name: 'company_name') required String name,
+    @JsonKey(name: 'company_business_number') String? businessNumber,
+    @JsonKey(name: 'company_email') String? email,
+    @JsonKey(name: 'company_phone') String? phone,
+    @JsonKey(name: 'company_address') String? address,
+    @JsonKey(name: 'company_type_id') required String companyTypeId,
+    @JsonKey(name: 'base_currency_id') required String currencyId,
+    @JsonKey(name: 'company_code') String? companyCode,
+    @JsonKey(name: 'owner_id') required String ownerId,
+    @JsonKey(name: 'created_at') required DateTime createdAt,
+    @JsonKey(name: 'updated_at') DateTime? updatedAt,
+    @JsonKey(name: 'timezone') String? timezone,
+    @JsonKey(name: 'is_deleted') @Default(false) bool isDeleted,
+  }) = _Company;
+
+  factory Company.fromJson(Map<String, dynamic> json) => _$CompanyFromJson(json);
+
+  // ============================================================
+  // Business Logic
+  // ============================================================
 
   /// Validates the company entity
   ValidationResult validate() {
@@ -89,49 +98,25 @@ class Company {
   /// Check if company has a join code
   bool get hasJoinCode => companyCode != null && companyCode!.isNotEmpty;
 
-  /// Create a copy with updated fields
-  Company copyWith({
-    String? id,
-    String? name,
-    String? businessNumber,
-    String? email,
-    String? phone,
-    String? address,
-    String? companyTypeId,
-    String? currencyId,
-    String? companyCode,
-    String? ownerId,
-    DateTime? createdAt,
-    DateTime? updatedAt,
-  }) {
-    return Company(
-      id: id ?? this.id,
-      name: name ?? this.name,
-      businessNumber: businessNumber ?? this.businessNumber,
-      email: email ?? this.email,
-      phone: phone ?? this.phone,
-      address: address ?? this.address,
-      companyTypeId: companyTypeId ?? this.companyTypeId,
-      currencyId: currencyId ?? this.currencyId,
-      companyCode: companyCode ?? this.companyCode,
-      ownerId: ownerId ?? this.ownerId,
-      createdAt: createdAt ?? this.createdAt,
-      updatedAt: updatedAt ?? this.updatedAt,
-    );
-  }
+  // ============================================================
+  // Data Layer Methods
+  // ============================================================
 
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is Company &&
-          runtimeType == other.runtimeType &&
-          id == other.id;
+  /// Create insert map for Supabase
+  Map<String, dynamic> toInsertMap() {
+    final map = <String, dynamic>{
+      'company_name': name,
+      'company_type_id': companyTypeId,
+      'owner_id': ownerId,
+      'base_currency_id': currencyId,
+    };
 
-  @override
-  int get hashCode => id.hashCode;
+    if (businessNumber != null) map['company_business_number'] = businessNumber;
+    if (email != null) map['company_email'] = email;
+    if (phone != null) map['company_phone'] = phone;
+    if (address != null) map['company_address'] = address;
+    if (timezone != null) map['timezone'] = timezone;
 
-  @override
-  String toString() {
-    return 'Company(id: $id, name: $name, companyCode: $companyCode, ownerId: $ownerId)';
+    return map;
   }
 }

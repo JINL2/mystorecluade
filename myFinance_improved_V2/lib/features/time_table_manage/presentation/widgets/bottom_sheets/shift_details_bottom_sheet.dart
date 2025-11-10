@@ -1,19 +1,18 @@
 // ignore_for_file: avoid_dynamic_calls, inference_failure_on_function_invocation, argument_type_not_assignable, invalid_assignment, non_bool_condition, non_bool_negation_expression, non_bool_operand, use_of_void_result
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../../app/providers/app_state_provider.dart';
-import '../../../../../core/utils/datetime_utils.dart';
-import '../../../../../core/utils/input_formatters.dart';
 import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../../shared/widgets/common/toss_loading_view.dart';
 import '../../../../../shared/widgets/common/toss_success_error_dialog.dart';
+import '../../../domain/usecases/delete_shift_tag.dart';
+import '../../../domain/usecases/input_card.dart';
+import '../../../domain/usecases/process_bulk_approval.dart';
 import '../../../domain/value_objects/shift_time_formatter.dart';
 import '../../providers/time_table_providers.dart';
 import '../shift_details/bonus_management_tab.dart';
@@ -267,16 +266,17 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<ShiftDetailsBottomShee
       if (userId.isEmpty || shiftRequestId.isEmpty) {
         throw Exception('Missing user ID or shift request ID');
       }
-      
-      // Use repository instead of direct Supabase call
+
+      // Use ProcessBulkApproval UseCase
       // Toggle: if currently approved, make it pending (false), and vice versa
       final isCurrentlyApproved = widget.card['is_approved'] == true;
       final newState = !isCurrentlyApproved;
 
-      await ref.read(timeTableRepositoryProvider).processBulkApproval(
+      final processBulkApproval = ref.read(processBulkApprovalUseCaseProvider);
+      await processBulkApproval(ProcessBulkApprovalParams(
         shiftRequestIds: [shiftRequestId],
         approvalStates: [newState],
-      );
+      ));
 
       // Close loading dialog
       if (mounted) {
@@ -353,14 +353,15 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<ShiftDetailsBottomShee
       if (userId.isEmpty) {
         throw Exception('User ID not found');
       }
-      
+
       // Debug log
 
-      // Use repository instead of direct Supabase call
-      final response = await ref.read(timeTableRepositoryProvider).deleteShiftTag(
+      // Use DeleteShiftTag UseCase
+      final deleteShiftTag = ref.read(deleteShiftTagUseCaseProvider);
+      final response = await deleteShiftTag(DeleteShiftTagParams(
         tagId: tagId,
         userId: userId,
-      );
+      ));
 
       // Debug log response
       
@@ -725,7 +726,7 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<ShiftDetailsBottomShee
                           runSpacing: TossSpacing.space2,
                           children: (card['notice_tag'] as List).map((tag) {
                             // Parse tag as a Map if it's not already
-                            final tagData = tag is Map ? tag : {};
+                            final tagData = tag is Map ? tag : <String, dynamic>{};
                             final content = tagData['content'] ?? 'No content';
                             final tagId = tagData['id']?.toString() ?? '';
                             
@@ -1043,8 +1044,9 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<ShiftDetailsBottomShee
                         throw Exception('Invalid shift request ID');
                       }
 
-                      // Use repository instead of direct Supabase call
-                      final cardInputResult = await ref.read(timeTableRepositoryProvider).inputCard(
+                      // Use InputCard UseCase
+                      final inputCard = ref.read(inputCardUseCaseProvider);
+                      await inputCard(InputCardParams(
                         managerId: userId,
                         shiftRequestId: shiftRequestId,
                         confirmStartTime: startTimeForDb,
@@ -1053,7 +1055,7 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<ShiftDetailsBottomShee
                         newTagType: processedTagType,
                         isLate: isLate,
                         isProblemSolved: isProblemSolved,
-                      );
+                      ));
 
                       // Close loading dialog
                       Navigator.pop(context);

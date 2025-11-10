@@ -1,30 +1,41 @@
+import 'package:freezed_annotation/freezed_annotation.dart';
+
+part 'bulk_approval_result.freezed.dart';
+part 'bulk_approval_result.g.dart';
+
 /// Bulk Approval Result Entity
 ///
 /// Represents the result of processing multiple shift approval requests
 /// in a single batch operation.
-class BulkApprovalResult {
-  /// Total number of requests processed
-  final int totalProcessed;
+@freezed
+class BulkApprovalResult with _$BulkApprovalResult {
+  const BulkApprovalResult._();
 
-  /// Number of successfully processed requests
-  final int successCount;
+  const factory BulkApprovalResult({
+    /// Total number of requests processed
+    @JsonKey(name: 'total_processed')
+    required int totalProcessed,
 
-  /// Number of failed requests
-  final int failureCount;
+    /// Number of successfully processed requests
+    @JsonKey(name: 'success_count')
+    required int successCount,
 
-  /// List of successfully processed shift request IDs
-  final List<String> successfulIds;
+    /// Number of failed requests
+    @JsonKey(name: 'failure_count')
+    required int failureCount,
 
-  /// List of errors encountered during processing
-  final List<BulkApprovalError> errors;
+    /// List of successfully processed shift request IDs
+    @JsonKey(name: 'successful_ids', defaultValue: <String>[])
+    required List<String> successfulIds,
 
-  const BulkApprovalResult({
-    required this.totalProcessed,
-    required this.successCount,
-    required this.failureCount,
-    required this.successfulIds,
-    required this.errors,
-  });
+    /// List of errors encountered during processing
+    @JsonKey(defaultValue: <BulkApprovalError>[])
+    required List<BulkApprovalError> errors,
+  }) = _BulkApprovalResult;
+
+  /// Create from JSON
+  factory BulkApprovalResult.fromJson(Map<String, dynamic> json) =>
+      _$BulkApprovalResultFromJson(json);
 
   /// Check if there were any errors
   bool get hasErrors => errors.isNotEmpty;
@@ -48,66 +59,28 @@ class BulkApprovalResult {
   List<String> get errorMessages {
     return errors.map((e) => e.errorMessage).toList();
   }
-
-  /// Copy with method for immutability
-  BulkApprovalResult copyWith({
-    int? totalProcessed,
-    int? successCount,
-    int? failureCount,
-    List<String>? successfulIds,
-    List<BulkApprovalError>? errors,
-  }) {
-    return BulkApprovalResult(
-      totalProcessed: totalProcessed ?? this.totalProcessed,
-      successCount: successCount ?? this.successCount,
-      failureCount: failureCount ?? this.failureCount,
-      successfulIds: successfulIds ?? this.successfulIds,
-      errors: errors ?? this.errors,
-    );
-  }
-
-  @override
-  String toString() {
-    return 'BulkApprovalResult(total: $totalProcessed, success: $successCount, failed: $failureCount)';
-  }
 }
 
 /// Bulk Approval Error
 ///
 /// Represents an individual error that occurred during bulk approval processing.
-class BulkApprovalError {
-  /// The shift request ID that failed
-  final String shiftRequestId;
+@freezed
+class BulkApprovalError with _$BulkApprovalError {
+  const factory BulkApprovalError({
+    /// The shift request ID that failed
+    @JsonKey(name: 'shift_request_id')
+    required String shiftRequestId,
 
-  /// Error message describing what went wrong
-  final String errorMessage;
+    /// Error message describing what went wrong
+    @JsonKey(name: 'error_message')
+    required String errorMessage,
 
-  /// Optional error code
-  final String? errorCode;
+    /// Optional error code
+    @JsonKey(name: 'error_code')
+    String? errorCode,
+  }) = _BulkApprovalError;
 
-  const BulkApprovalError({
-    required this.shiftRequestId,
-    required this.errorMessage,
-    this.errorCode,
-  });
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-
-    return other is BulkApprovalError &&
-        other.shiftRequestId == shiftRequestId &&
-        other.errorMessage == errorMessage &&
-        other.errorCode == errorCode;
-  }
-
-  @override
-  int get hashCode {
-    return shiftRequestId.hashCode ^ errorMessage.hashCode ^ errorCode.hashCode;
-  }
-
-  @override
-  String toString() {
-    return 'BulkApprovalError(id: $shiftRequestId, message: $errorMessage)';
-  }
+  /// Create from JSON
+  factory BulkApprovalError.fromJson(Map<String, dynamic> json) =>
+      _$BulkApprovalErrorFromJson(json);
 }

@@ -1,6 +1,10 @@
+import 'package:freezed_annotation/freezed_annotation.dart';
+
 import '../entities/operation_result.dart';
 import '../repositories/time_table_repository.dart';
 import 'base_usecase.dart';
+
+part 'delete_shift.freezed.dart';
 
 /// Delete Shift UseCase
 ///
@@ -21,19 +25,9 @@ class DeleteShift implements UseCase<OperationResult, DeleteShiftParams> {
 }
 
 /// Parameters for DeleteShift UseCase
-class DeleteShiftParams {
-  final String shiftId;
-
-  const DeleteShiftParams({
-    required this.shiftId,
-  });
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    return other is DeleteShiftParams && other.shiftId == shiftId;
-  }
-
-  @override
-  int get hashCode => shiftId.hashCode;
+@freezed
+class DeleteShiftParams with _$DeleteShiftParams {
+  const factory DeleteShiftParams({
+    required String shiftId,
+  }) = _DeleteShiftParams;
 }

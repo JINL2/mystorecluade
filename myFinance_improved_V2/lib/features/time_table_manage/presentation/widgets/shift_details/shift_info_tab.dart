@@ -6,7 +6,6 @@ import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../domain/value_objects/shift_time_formatter.dart';
 import 'shift_detail_row.dart';
-import 'shift_section_title.dart';
 import 'shift_status_pill.dart';
 
 /// Shift Info Tab

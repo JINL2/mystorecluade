@@ -1,6 +1,10 @@
+import 'package:freezed_annotation/freezed_annotation.dart';
+
 import '../entities/card_input_result.dart';
 import '../repositories/time_table_repository.dart';
 import 'base_usecase.dart';
+
+part 'input_card.freezed.dart';
 
 /// Input Card UseCase
 ///
@@ -28,14 +32,14 @@ class InputCard implements UseCase<CardInputResult, InputCardParams> {
       throw ArgumentError('Confirm end time cannot be empty');
     }
 
-    // Validate time format (HH:mm)
-    final timeRegex = RegExp(r'^\d{2}:\d{2}$');
+    // Validate time format (HH:mm or HH:mm:ss)
+    final timeRegex = RegExp(r'^\d{2}:\d{2}(:\d{2})?$');
     if (!timeRegex.hasMatch(params.confirmStartTime)) {
-      throw ArgumentError('Invalid start time format. Expected HH:mm');
+      throw ArgumentError('Invalid start time format. Expected HH:mm or HH:mm:ss');
     }
 
     if (!timeRegex.hasMatch(params.confirmEndTime)) {
-      throw ArgumentError('Invalid end time format. Expected HH:mm');
+      throw ArgumentError('Invalid end time format. Expected HH:mm or HH:mm:ss');
     }
 
     return await _repository.inputCard(
@@ -52,49 +56,16 @@ class InputCard implements UseCase<CardInputResult, InputCardParams> {
 }
 
 /// Parameters for InputCard UseCase
-class InputCardParams {
-  final String managerId;
-  final String shiftRequestId;
-  final String confirmStartTime;
-  final String confirmEndTime;
-  final String? newTagContent;
-  final String? newTagType;
-  final bool isLate;
-  final bool isProblemSolved;
-
-  const InputCardParams({
-    required this.managerId,
-    required this.shiftRequestId,
-    required this.confirmStartTime,
-    required this.confirmEndTime,
-    this.newTagContent,
-    this.newTagType,
-    required this.isLate,
-    required this.isProblemSolved,
-  });
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    return other is InputCardParams &&
-        other.managerId == managerId &&
-        other.shiftRequestId == shiftRequestId &&
-        other.confirmStartTime == confirmStartTime &&
-        other.confirmEndTime == confirmEndTime &&
-        other.newTagContent == newTagContent &&
-        other.newTagType == newTagType &&
-        other.isLate == isLate &&
-        other.isProblemSolved == isProblemSolved;
-  }
-
-  @override
-  int get hashCode =>
-      managerId.hashCode ^
-      shiftRequestId.hashCode ^
-      confirmStartTime.hashCode ^
-      confirmEndTime.hashCode ^
-      newTagContent.hashCode ^
-      newTagType.hashCode ^
-      isLate.hashCode ^
-      isProblemSolved.hashCode;
+@freezed
+class InputCardParams with _$InputCardParams {
+  const factory InputCardParams({
+    required String managerId,
+    required String shiftRequestId,
+    required String confirmStartTime,
+    required String confirmEndTime,
+    String? newTagContent,
+    String? newTagType,
+    required bool isLate,
+    required bool isProblemSolved,
+  }) = _InputCardParams;
 }

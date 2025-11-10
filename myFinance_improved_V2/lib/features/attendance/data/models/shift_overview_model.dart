@@ -1,20 +1,29 @@
+import 'package:freezed_annotation/freezed_annotation.dart';
+
 import '../../domain/entities/shift_overview.dart';
 
-/// Shift Overview Model (DTO + Mapper)
+part 'shift_overview_model.freezed.dart';
+
+/// Shift Overview Model (DTO)
 ///
-/// Handles JSON serialization/deserialization for ShiftOverview entity.
-class ShiftOverviewModel extends ShiftOverview {
-  const ShiftOverviewModel({
-    required super.requestMonth,
-    required super.actualWorkDays,
-    required super.actualWorkHours,
-    required super.estimatedSalary,
-    required super.currencySymbol,
-    required super.salaryAmount,
-    required super.salaryType,
-    required super.lateDeductionTotal,
-    required super.overtimeTotal,
-  });
+/// Data Transfer Object for ShiftOverview entity.
+/// Handles JSON serialization/deserialization.
+/// Does NOT extend entity - proper separation of concerns.
+@freezed
+class ShiftOverviewModel with _$ShiftOverviewModel {
+  const ShiftOverviewModel._();
+
+  const factory ShiftOverviewModel({
+    required String requestMonth,
+    required int actualWorkDays,
+    required double actualWorkHours,
+    required String estimatedSalary,
+    required String currencySymbol,
+    required double salaryAmount,
+    required String salaryType,
+    required int lateDeductionTotal,
+    required int overtimeTotal,
+  }) = _ShiftOverviewModel;
 
   /// Create from JSON
   factory ShiftOverviewModel.fromJson(Map<String, dynamic> json) {
@@ -46,7 +55,7 @@ class ShiftOverviewModel extends ShiftOverview {
     };
   }
 
-  /// Convert to entity
+  /// Convert Model to Entity (Mapper pattern)
   ShiftOverview toEntity() {
     return ShiftOverview(
       requestMonth: requestMonth,

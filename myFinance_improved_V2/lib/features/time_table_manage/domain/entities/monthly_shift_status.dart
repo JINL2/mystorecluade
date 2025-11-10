@@ -1,18 +1,29 @@
+import 'package:freezed_annotation/freezed_annotation.dart';
+
 import 'daily_shift_data.dart';
+
+part 'monthly_shift_status.freezed.dart';
+part 'monthly_shift_status.g.dart';
 
 /// Monthly Shift Status Entity
 ///
 /// Represents shift status data for a month in manager view.
-class MonthlyShiftStatus {
-  final String month; // yyyy-MM
-  final List<DailyShiftData> dailyShifts;
-  final Map<String, int> statistics;
+@freezed
+class MonthlyShiftStatus with _$MonthlyShiftStatus {
+  const MonthlyShiftStatus._();
 
-  const MonthlyShiftStatus({
-    required this.month,
-    required this.dailyShifts,
-    this.statistics = const {},
-  });
+  const factory MonthlyShiftStatus({
+    /// Month in yyyy-MM format
+    required String month,
+    @JsonKey(name: 'daily_shifts', defaultValue: <DailyShiftData>[])
+    required List<DailyShiftData> dailyShifts,
+    @JsonKey(defaultValue: <String, dynamic>{})
+    required Map<String, dynamic> statistics,
+  }) = _MonthlyShiftStatus;
+
+  /// Create from JSON
+  factory MonthlyShiftStatus.fromJson(Map<String, dynamic> json) =>
+      _$MonthlyShiftStatusFromJson(json);
 
   /// Get total number of shifts in the month
   int get totalShifts {
@@ -53,7 +64,4 @@ class MonthlyShiftStatus {
       return null;
     }
   }
-
-  @override
-  String toString() => 'MonthlyShiftStatus(month: $month, shifts: $totalShifts, pending: $totalPendingRequests)';
 }

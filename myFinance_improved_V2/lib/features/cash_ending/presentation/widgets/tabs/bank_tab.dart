@@ -12,9 +12,10 @@ import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../../shared/widgets/toss/toss_card.dart';
 import '../../../../../shared/widgets/toss/toss_button_1.dart';
 import '../../../domain/entities/stock_flow.dart';
+import '../../../domain/providers/repository_providers.dart';
 import '../../providers/cash_ending_provider.dart';
 import '../../providers/cash_ending_state.dart';
-import '../../providers/repository_providers.dart';
+import '../error_banner.dart';
 import '../location_selector.dart';
 import '../real_section_widget.dart';
 import '../sheets/cash_ending_selection_helpers.dart';
@@ -27,6 +28,7 @@ import '../store_selector.dart';
 /// Key difference from Cash: No denominations, just one amount field
 class BankTab extends ConsumerStatefulWidget {
   final String companyId;
+  // ignore: inference_failure_on_function_return_type
   final Function(BuildContext, CashEndingState, String) onSave;
   const BankTab({
     super.key,
@@ -45,6 +47,7 @@ class _BankTabState extends ConsumerState<BankTab> {
   bool _hasMoreFlows = false;
   int _flowsOffset = 0;
   String? _previousLocationId;
+  String? _errorMessage;
   @override
   void initState() {
     super.initState();
@@ -99,14 +102,17 @@ class _BankTabState extends ConsumerState<BankTab> {
     });
     try {
       final repository = ref.read(stockFlowRepositoryProvider);
-      final result = await repository.getLocationStockFlow(
+      final resultWrapper = await repository.getLocationStockFlow(
         companyId: widget.companyId,
         storeId: state.selectedStoreId!,
         cashLocationId: state.selectedBankLocationId!,
         offset: _flowsOffset,
         limit: 20,
       );
-      if (result.success) {
+
+      // Unwrap Result and check success
+      final result = resultWrapper.successOrNull;
+      if (result != null && result.success) {
         setState(() {
           if (loadMore) {
             _actualFlows.addAll(result.actualFlows);
@@ -118,8 +124,15 @@ class _BankTabState extends ConsumerState<BankTab> {
           _flowsOffset += result.actualFlows.length;
         });
       }
-    } catch (e) {
-      // Error loading stock flows
+    } catch (e, stackTrace) {
+      debugPrint('❌ [BankTab] Failed to load stock flows: $e');
+      debugPrint('📍 Stack trace: $stackTrace');
+
+      if (mounted) {
+        setState(() {
+          _errorMessage = 'Failed to load transaction history. Please try again.';
+        });
+      }
     } finally {
       if (mounted) {
         setState(() {
@@ -134,9 +147,112 @@ class _BankTabState extends ConsumerState<BankTab> {
   void reloadStockFlows() {
     _loadStockFlows();
   }
+
   void _showFlowDetails(ActualFlow flow) {
-    // TODO: Implement flow details bottom sheet
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (context) => _buildFlowDetailsSheet(flow),
+    );
   }
+
+  Widget _buildFlowDetailsSheet(ActualFlow flow) {
+    final state = ref.read(cashEndingProvider);
+    final currencySymbol = _locationSummary?.baseCurrencySymbol ??
+        (state.currencies.isNotEmpty ? state.currencies.first.symbol : '\$');
+
+    return Container(
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.of(context).size.height * 0.8,
+      ),
+      decoration: const BoxDecoration(
+        color: TossColors.white,
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(TossBorderRadius.lg),
+        ),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            margin: const EdgeInsets.only(top: TossSpacing.space3),
+            width: 40,
+            height: 4,
+            decoration: BoxDecoration(
+              color: TossColors.gray300,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(TossSpacing.space5),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Bank Transaction Details',
+                  style: TossTextStyles.body.copyWith(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 18,
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.close),
+                  onPressed: () => Navigator.pop(context),
+                ),
+              ],
+            ),
+          ),
+          const Divider(height: 1),
+          Flexible(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(TossSpacing.space5),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildDetailRow('User', flow.createdBy.fullName),
+                  _buildDetailRow('Date', flow.getFormattedDate()),
+                  _buildDetailRow('Time', flow.getFormattedTime()),
+                  _buildDetailRow('Balance Before',
+                    '$currencySymbol${NumberFormat('#,###').format(flow.balanceBefore)}'),
+                  _buildDetailRow('Flow Amount',
+                    '$currencySymbol${NumberFormat('#,###').format(flow.flowAmount)}',
+                    valueColor: flow.flowAmount >= 0 ? TossColors.primary : TossColors.error),
+                  _buildDetailRow('Balance After',
+                    '$currencySymbol${NumberFormat('#,###').format(flow.balanceAfter)}'),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDetailRow(String label, String value, {Color? valueColor}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: TossSpacing.space2),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label,
+            style: TossTextStyles.body.copyWith(
+              color: TossColors.gray600,
+            ),
+          ),
+          Text(
+            value,
+            style: TossTextStyles.body.copyWith(
+              fontWeight: FontWeight.w600,
+              color: valueColor ?? TossColors.black87,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(cashEndingProvider);
@@ -145,6 +261,19 @@ class _BankTabState extends ConsumerState<BankTab> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          // Error Banner
+          if (_errorMessage != null)
+            ErrorBanner(
+              message: _errorMessage!,
+              onRetry: () {
+                setState(() => _errorMessage = null);
+                _loadStockFlows();
+              },
+              onDismiss: () {
+                setState(() => _errorMessage = null);
+              },
+            ),
+
           // Card 1: Store and Location Selection
           _buildLocationSelectionCard(state),
           // Card 2: Bank Balance Input (show if location selected)

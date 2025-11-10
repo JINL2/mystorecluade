@@ -1,6 +1,10 @@
+import 'package:freezed_annotation/freezed_annotation.dart';
+
 import '../entities/shift_metadata.dart';
 import '../repositories/time_table_repository.dart';
 import 'base_usecase.dart';
+
+part 'get_shift_metadata.freezed.dart';
 
 /// Get Shift Metadata UseCase
 ///
@@ -17,19 +21,9 @@ class GetShiftMetadata implements UseCase<ShiftMetadata, GetShiftMetadataParams>
 }
 
 /// Parameters for GetShiftMetadata UseCase
-class GetShiftMetadataParams {
-  final String storeId;
-
-  const GetShiftMetadataParams({
-    required this.storeId,
-  });
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    return other is GetShiftMetadataParams && other.storeId == storeId;
-  }
-
-  @override
-  int get hashCode => storeId.hashCode;
+@freezed
+class GetShiftMetadataParams with _$GetShiftMetadataParams {
+  const factory GetShiftMetadataParams({
+    required String storeId,
+  }) = _GetShiftMetadataParams;
 }

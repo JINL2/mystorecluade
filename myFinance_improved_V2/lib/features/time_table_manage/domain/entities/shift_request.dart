@@ -1,50 +1,38 @@
+import 'package:freezed_annotation/freezed_annotation.dart';
+
 import 'employee_info.dart';
+
+part 'shift_request.freezed.dart';
+part 'shift_request.g.dart';
 
 /// Shift Request Entity
 ///
 /// Represents an employee's request to work a specific shift.
-class ShiftRequest {
-  final String shiftRequestId;
-  final String shiftId;
-  final EmployeeInfo employee;
-  final bool isApproved;
-  final DateTime createdAt;
-  final DateTime? approvedAt;
+@freezed
+class ShiftRequest with _$ShiftRequest {
+  const ShiftRequest._();
 
-  const ShiftRequest({
-    required this.shiftRequestId,
-    required this.shiftId,
-    required this.employee,
-    required this.isApproved,
-    required this.createdAt,
-    this.approvedAt,
-  });
+  const factory ShiftRequest({
+    @JsonKey(name: 'shift_request_id')
+    required String shiftRequestId,
+    @JsonKey(name: 'shift_id')
+    required String shiftId,
+    required EmployeeInfo employee,
+    @JsonKey(name: 'is_approved')
+    required bool isApproved,
+    @JsonKey(name: 'created_at')
+    required DateTime createdAt,
+    @JsonKey(name: 'approved_at')
+    DateTime? approvedAt,
+  }) = _ShiftRequest;
+
+  /// Create from JSON
+  factory ShiftRequest.fromJson(Map<String, dynamic> json) =>
+      _$ShiftRequestFromJson(json);
 
   /// Check if request is pending approval
   bool get isPending => !isApproved;
 
   /// Get request status text
   String get statusText => isApproved ? 'Approved' : 'Pending';
-
-  /// Copy with method for immutability
-  ShiftRequest copyWith({
-    String? shiftRequestId,
-    String? shiftId,
-    EmployeeInfo? employee,
-    bool? isApproved,
-    DateTime? createdAt,
-    DateTime? approvedAt,
-  }) {
-    return ShiftRequest(
-      shiftRequestId: shiftRequestId ?? this.shiftRequestId,
-      shiftId: shiftId ?? this.shiftId,
-      employee: employee ?? this.employee,
-      isApproved: isApproved ?? this.isApproved,
-      createdAt: createdAt ?? this.createdAt,
-      approvedAt: approvedAt ?? this.approvedAt,
-    );
-  }
-
-  @override
-  String toString() => 'ShiftRequest(id: $shiftRequestId, employee: ${employee.userName}, approved: $isApproved)';
 }

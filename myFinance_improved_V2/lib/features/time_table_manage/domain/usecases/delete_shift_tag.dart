@@ -1,6 +1,10 @@
+import 'package:freezed_annotation/freezed_annotation.dart';
+
 import '../entities/operation_result.dart';
 import '../repositories/time_table_repository.dart';
 import 'base_usecase.dart';
+
+part 'delete_shift_tag.freezed.dart';
 
 /// Delete Shift Tag UseCase
 ///
@@ -28,23 +32,10 @@ class DeleteShiftTag implements UseCase<OperationResult, DeleteShiftTagParams> {
 }
 
 /// Parameters for DeleteShiftTag UseCase
-class DeleteShiftTagParams {
-  final String tagId;
-  final String userId;
-
-  const DeleteShiftTagParams({
-    required this.tagId,
-    required this.userId,
-  });
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    return other is DeleteShiftTagParams &&
-        other.tagId == tagId &&
-        other.userId == userId;
-  }
-
-  @override
-  int get hashCode => tagId.hashCode ^ userId.hashCode;
+@freezed
+class DeleteShiftTagParams with _$DeleteShiftTagParams {
+  const factory DeleteShiftTagParams({
+    required String tagId,
+    required String userId,
+  }) = _DeleteShiftTagParams;
 }

@@ -10,6 +10,7 @@ import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../../shared/widgets/common/toss_success_error_dialog.dart';
+import '../../../domain/usecases/update_bonus_amount.dart';
 import '../../providers/time_table_providers.dart';
 import 'bonus_confirmation_dialog.dart';
 
@@ -102,11 +103,12 @@ class _BonusManagementTabState extends ConsumerState<BonusManagementTab> {
         throw Exception('Shift request ID not found');
       }
 
-      // Use repository instead of direct Supabase call
-      await ref.read(timeTableRepositoryProvider).updateBonusAmount(
+      // Use UpdateBonusAmount UseCase
+      final updateBonusAmount = ref.read(updateBonusAmountUseCaseProvider);
+      await updateBonusAmount(UpdateBonusAmountParams(
         shiftRequestId: shiftRequestId,
         bonusAmount: newBonus.toDouble(),
-      );
+      ));
 
       // Close loading dialog
       if (mounted) {

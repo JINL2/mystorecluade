@@ -1,25 +1,36 @@
+import 'package:freezed_annotation/freezed_annotation.dart';
+
 import 'employee_info.dart';
 import 'shift.dart';
+
+part 'schedule_data.freezed.dart';
+part 'schedule_data.g.dart';
 
 /// Schedule Data Entity
 ///
 /// Contains complete schedule information including employees and shifts
 /// for a specific store. Used for viewing and managing the overall schedule.
-class ScheduleData {
-  /// List of all employees in the store
-  final List<EmployeeInfo> employees;
+@freezed
+class ScheduleData with _$ScheduleData {
+  const ScheduleData._();
 
-  /// List of all shifts in the store
-  final List<Shift> shifts;
+  const factory ScheduleData({
+    /// List of all employees in the store
+    @JsonKey(defaultValue: <EmployeeInfo>[])
+    required List<EmployeeInfo> employees,
 
-  /// The store ID this schedule data is for
-  final String storeId;
+    /// List of all shifts in the store
+    @JsonKey(defaultValue: <Shift>[])
+    required List<Shift> shifts,
 
-  const ScheduleData({
-    required this.employees,
-    required this.shifts,
-    required this.storeId,
-  });
+    /// The store ID this schedule data is for
+    @JsonKey(name: 'store_id')
+    required String storeId,
+  }) = _ScheduleData;
+
+  /// Create from JSON
+  factory ScheduleData.fromJson(Map<String, dynamic> json) =>
+      _$ScheduleDataFromJson(json);
 
   /// Get the count of employees
   int get employeesCount => employees.length;
@@ -67,23 +78,5 @@ class ScheduleData {
   /// Get under-staffed shifts
   List<Shift> get underStaffedShifts {
     return shifts.where((shift) => shift.isUnderStaffed).toList();
-  }
-
-  /// Copy with method for immutability
-  ScheduleData copyWith({
-    List<EmployeeInfo>? employees,
-    List<Shift>? shifts,
-    String? storeId,
-  }) {
-    return ScheduleData(
-      employees: employees ?? this.employees,
-      shifts: shifts ?? this.shifts,
-      storeId: storeId ?? this.storeId,
-    );
-  }
-
-  @override
-  String toString() {
-    return 'ScheduleData(employees: $employeesCount, shifts: $shiftsCount, store: $storeId)';
   }
 }

@@ -1,28 +1,39 @@
+import 'package:freezed_annotation/freezed_annotation.dart';
+
 import 'shift_card.dart';
+
+part 'manager_shift_cards.freezed.dart';
+part 'manager_shift_cards.g.dart';
 
 /// Manager Shift Cards Entity
 ///
 /// Contains a collection of shift cards for a specific store and date range.
 /// Used by managers to view and manage all shift assignments.
-class ManagerShiftCards {
-  /// The store ID these cards belong to
-  final String storeId;
+@freezed
+class ManagerShiftCards with _$ManagerShiftCards {
+  const ManagerShiftCards._();
 
-  /// Start date of the range (yyyy-MM-dd format)
-  final String startDate;
+  const factory ManagerShiftCards({
+    /// The store ID these cards belong to
+    @JsonKey(name: 'store_id', defaultValue: '')
+    required String storeId,
 
-  /// End date of the range (yyyy-MM-dd format)
-  final String endDate;
+    /// Start date of the range (yyyy-MM-dd format)
+    @JsonKey(name: 'start_date', defaultValue: '')
+    required String startDate,
 
-  /// List of all shift cards in the date range
-  final List<ShiftCard> cards;
+    /// End date of the range (yyyy-MM-dd format)
+    @JsonKey(name: 'end_date', defaultValue: '')
+    required String endDate,
 
-  const ManagerShiftCards({
-    required this.storeId,
-    required this.startDate,
-    required this.endDate,
-    required this.cards,
-  });
+    /// List of all shift cards in the date range
+    @JsonKey(defaultValue: <ShiftCard>[])
+    required List<ShiftCard> cards,
+  }) = _ManagerShiftCards;
+
+  /// Create from JSON
+  factory ManagerShiftCards.fromJson(Map<String, dynamic> json) =>
+      _$ManagerShiftCardsFromJson(json);
 
   /// Get total number of cards
   int get totalCards => cards.length;
@@ -127,25 +138,5 @@ class ManagerShiftCards {
     }
 
     return grouped;
-  }
-
-  /// Copy with method for immutability
-  ManagerShiftCards copyWith({
-    String? storeId,
-    String? startDate,
-    String? endDate,
-    List<ShiftCard>? cards,
-  }) {
-    return ManagerShiftCards(
-      storeId: storeId ?? this.storeId,
-      startDate: startDate ?? this.startDate,
-      endDate: endDate ?? this.endDate,
-      cards: cards ?? this.cards,
-    );
-  }
-
-  @override
-  String toString() {
-    return 'ManagerShiftCards(store: $storeId, period: $startDate to $endDate, cards: $totalCards)';
   }
 }

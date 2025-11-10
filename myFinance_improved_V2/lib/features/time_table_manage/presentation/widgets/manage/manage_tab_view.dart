@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -47,12 +48,21 @@ class ManageTabView extends ConsumerWidget {
     final monthKey = '${manageSelectedDate.year}-${manageSelectedDate.month.toString().padLeft(2, '0')}';
     final monthData = managerOverviewDataByMonth[monthKey];
 
+    if (kDebugMode) {
+      debugPrint('🔍 [UI] _getMonthlyStatValue($statKey)');
+      debugPrint('   monthKey: $monthKey');
+      debugPrint('   managerOverviewDataByMonth keys: ${managerOverviewDataByMonth.keys.toList()}');
+      debugPrint('   monthData: ${monthData != null ? "EXISTS" : "NULL"}');
+    }
+
     if (monthData == null || monthData['stores'] == null) {
+      if (kDebugMode) debugPrint('   ❌ monthData is null or no stores → returning 0');
       return '0';
     }
 
     final stores = monthData['stores'] as List<dynamic>? ?? [];
     if (stores.isEmpty) {
+      if (kDebugMode) debugPrint('   ❌ stores is empty → returning 0');
       return '0';
     }
 
@@ -60,11 +70,16 @@ class ManageTabView extends ConsumerWidget {
     final monthlyStats = storeData['monthly_stats'] as List<dynamic>? ?? [];
 
     if (monthlyStats.isEmpty) {
+      if (kDebugMode) debugPrint('   ❌ monthlyStats is empty → returning 0');
       return '0';
     }
 
     final monthStat = monthlyStats.first as Map<String, dynamic>;
     final value = monthStat[statKey];
+
+    if (kDebugMode) {
+      debugPrint('   ✅ Found value: $value');
+    }
 
     return value?.toString() ?? '0';
   }
@@ -107,25 +122,45 @@ class ManageTabView extends ConsumerWidget {
     final monthKey = '${manageSelectedDate.year}-${manageSelectedDate.month.toString().padLeft(2, '0')}';
     final monthData = managerCardsDataByMonth[monthKey];
 
+    if (kDebugMode) {
+      debugPrint('🔍 [Cards] _getFilteredCards()');
+      debugPrint('   monthKey: $monthKey');
+      debugPrint('   managerCardsDataByMonth keys: ${managerCardsDataByMonth.keys.toList()}');
+      debugPrint('   monthData: ${monthData != null ? "EXISTS (${monthData.totalCards} cards)" : "NULL"}');
+    }
+
     if (monthData == null) {
+      if (kDebugMode) debugPrint('   ❌ monthData is NULL → returning []');
       return [];
     }
 
     // First filter by selected date
     final selectedDateStr = '${manageSelectedDate.year}-${manageSelectedDate.month.toString().padLeft(2, '0')}-${manageSelectedDate.day.toString().padLeft(2, '0')}';
-    final dateCards = monthData.getCardsByDate(selectedDateStr);
+
+    if (kDebugMode) {
+      debugPrint('   selectedDateStr: $selectedDateStr');
+      debugPrint('   selectedFilter: $selectedFilter');
+    }
 
     // Then apply status filter
     final filteredCards = monthData.filterByStatus(selectedFilter);
     final filteredByDate = filteredCards.where((card) => card.requestDate == selectedDateStr).toList();
 
+    if (kDebugMode) {
+      debugPrint('   filteredCards count: ${filteredCards.length}');
+      debugPrint('   filteredByDate count: ${filteredByDate.length}');
+      if (filteredByDate.isNotEmpty) {
+        debugPrint('   Sample card dates: ${filteredByDate.take(3).map((c) => c.requestDate).toList()}');
+      }
+    }
+
     // Convert ShiftCard entities to Map for compatibility with existing widgets
     final result = filteredByDate.map((card) {
       // Format shift time as "HH:mm-HH:mm" in UTC for the widget to convert to local
-      final startHour = card.shift.planStartTime.toUtc().hour.toString().padLeft(2, '0');
-      final startMin = card.shift.planStartTime.toUtc().minute.toString().padLeft(2, '0');
-      final endHour = card.shift.planEndTime.toUtc().hour.toString().padLeft(2, '0');
-      final endMin = card.shift.planEndTime.toUtc().minute.toString().padLeft(2, '0');
+      final startHour = card.shift.planStartTime?.toUtc().hour.toString().padLeft(2, '0') ?? '00';
+      final startMin = card.shift.planStartTime?.toUtc().minute.toString().padLeft(2, '0') ?? '00';
+      final endHour = card.shift.planEndTime?.toUtc().hour.toString().padLeft(2, '0') ?? '00';
+      final endMin = card.shift.planEndTime?.toUtc().minute.toString().padLeft(2, '0') ?? '00';
       final shiftTime = '$startHour:$startMin-$endHour:$endMin';
 
       final noticeTagList = card.tags.map((tag) => {
@@ -151,8 +186,8 @@ class ManageTabView extends ConsumerWidget {
         'profile_image': card.employee.profileImage,
         'shift_name': card.shift.shiftName ?? 'Unknown Shift',
         'shift_time': shiftTime, // Required by ManageShiftCard widget
-        'plan_start_time': card.shift.planStartTime.toIso8601String(),
-        'plan_end_time': card.shift.planEndTime.toIso8601String(),
+        'plan_start_time': card.shift.planStartTime?.toIso8601String() ?? '',
+        'plan_end_time': card.shift.planEndTime?.toIso8601String() ?? '',
         'confirm_start_time': card.confirmedStartTime?.toIso8601String(),
         'confirm_end_time': card.confirmedEndTime?.toIso8601String(),
         // Actual times from Entity (employee's check-in/out times from device)

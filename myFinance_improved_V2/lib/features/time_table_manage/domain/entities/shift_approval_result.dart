@@ -1,85 +1,50 @@
+import 'package:freezed_annotation/freezed_annotation.dart';
+
 import 'shift_request.dart';
+
+part 'shift_approval_result.freezed.dart';
+part 'shift_approval_result.g.dart';
 
 /// Shift Approval Result Entity
 ///
 /// Represents the result of toggling a shift request approval status.
 /// Contains information about the approval action and the updated request.
-class ShiftApprovalResult {
-  /// The shift request ID that was processed
-  final String shiftRequestId;
+@freezed
+class ShiftApprovalResult with _$ShiftApprovalResult {
+  const ShiftApprovalResult._();
 
-  /// New approval status (true = approved, false = not approved/pending)
-  final bool isApproved;
+  const factory ShiftApprovalResult({
+    /// The shift request ID that was processed
+    @JsonKey(name: 'shift_request_id')
+    required String shiftRequestId,
 
-  /// When the approval status was changed
-  final DateTime approvedAt;
+    /// New approval status (true = approved, false = not approved/pending)
+    @JsonKey(name: 'is_approved')
+    required bool isApproved,
 
-  /// User ID who performed the approval action
-  final String? approvedBy;
+    /// When the approval status was changed
+    @JsonKey(name: 'approved_at')
+    required DateTime approvedAt,
 
-  /// The updated shift request entity after approval
-  final ShiftRequest updatedRequest;
+    /// User ID who performed the approval action
+    @JsonKey(name: 'approved_by')
+    String? approvedBy,
 
-  /// Optional message about the approval result
-  final String? message;
+    /// The updated shift request entity after approval
+    @JsonKey(name: 'updated_request')
+    required ShiftRequest updatedRequest,
 
-  const ShiftApprovalResult({
-    required this.shiftRequestId,
-    required this.isApproved,
-    required this.approvedAt,
-    this.approvedBy,
-    required this.updatedRequest,
-    this.message,
-  });
+    /// Optional message about the approval result
+    String? message,
+  }) = _ShiftApprovalResult;
+
+  /// Create from JSON
+  factory ShiftApprovalResult.fromJson(Map<String, dynamic> json) =>
+      _$ShiftApprovalResultFromJson(json);
 
   /// Check if this was an approval action (vs. un-approval)
   bool get wasApproved => isApproved;
 
   /// Check if this was a rejection/un-approval action
   bool get wasRejected => !isApproved;
-
-  /// Copy with method for immutability
-  ShiftApprovalResult copyWith({
-    String? shiftRequestId,
-    bool? isApproved,
-    DateTime? approvedAt,
-    String? approvedBy,
-    ShiftRequest? updatedRequest,
-    String? message,
-  }) {
-    return ShiftApprovalResult(
-      shiftRequestId: shiftRequestId ?? this.shiftRequestId,
-      isApproved: isApproved ?? this.isApproved,
-      approvedAt: approvedAt ?? this.approvedAt,
-      approvedBy: approvedBy ?? this.approvedBy,
-      updatedRequest: updatedRequest ?? this.updatedRequest,
-      message: message ?? this.message,
-    );
-  }
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-
-    return other is ShiftApprovalResult &&
-        other.shiftRequestId == shiftRequestId &&
-        other.isApproved == isApproved &&
-        other.approvedAt == approvedAt &&
-        other.approvedBy == approvedBy &&
-        other.message == message;
-  }
-
-  @override
-  int get hashCode {
-    return shiftRequestId.hashCode ^
-        isApproved.hashCode ^
-        approvedAt.hashCode ^
-        approvedBy.hashCode ^
-        message.hashCode;
-  }
-
-  @override
-  String toString() {
-    return 'ShiftApprovalResult(id: $shiftRequestId, approved: $isApproved, at: $approvedAt)';
-  }
 }

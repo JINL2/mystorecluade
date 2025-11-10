@@ -3,22 +3,23 @@
 import '../../domain/entities/user_entity.dart';
 import '../../domain/entities/company_entity.dart';
 import '../../domain/entities/store_entity.dart';
+import '../../domain/entities/user_complete_data.dart';
 import '../../domain/repositories/user_repository.dart';
 import '../datasources/supabase_user_datasource.dart';
-import 'base_repository.dart';
+import '../../../../core/data/base_repository.dart';
 
 /// User Repository Implementation
 ///
-/// 📜 계약 이행자 - Domain Repository Interface를 구현
+/// 📜 Responsibilities:
+/// - Implements Domain Repository Interface (UserRepository)
+/// - Delegates data operations to UserDataSource
+/// - Applies consistent error handling via BaseRepository
 ///
-/// 책임:
-/// - Domain 계약 준수 (UserRepository interface)
-/// - UserDataSource 호출
-/// - Model ↔ Entity 변환
-/// - Exception 처리 및 변환 (BaseRepository 상속)
-///
-/// 이 계층은 Domain과 Data 사이의 변환을 담당합니다.
-/// Supabase에 대한 지식은 없으며, UserDataSource를 통해서만 데이터에 접근합니다.
+/// ✅ Improvements:
+/// - Uses core BaseRepository for standardized error handling
+/// - Clear operation names for debugging
+/// - No Model → Entity conversion (Freezed handles it)
+/// - Strong typing: getUserCompleteData returns UserCompleteData (not Map)
 class UserRepositoryImpl extends BaseRepository implements UserRepository {
   final UserDataSource _dataSource;
 
@@ -26,29 +27,9 @@ class UserRepositoryImpl extends BaseRepository implements UserRepository {
 
   @override
   Future<User?> findById(String userId) {
-    return executeNullable(() async {
-      final userModel = await _dataSource.getUserById(userId);
-      return userModel?.toEntity();
-    });
-  }
-
-  @override
-  Future<User?> findByEmail(String email) async {
-    // Note: This would require adding email query to UserDataSource
-    // For now, not implemented as it's not currently used in the app
-    throw UnimplementedError(
-      'findByEmail requires email query in UserDataSource. '
-      'Add this method to UserDataSource if needed.',
-    );
-  }
-
-  @override
-  Future<bool> emailExists(String email) async {
-    // Note: This would require adding email existence check to UserDataSource
-    // For now, not implemented as it's not currently used in the app
-    throw UnimplementedError(
-      'emailExists requires email query in UserDataSource. '
-      'Add this method to UserDataSource if needed.',
+    return executeFetch(
+      () => _dataSource.getUserById(userId),
+      operationName: 'user by ID',
     );
   }
 
@@ -58,40 +39,43 @@ class UserRepositoryImpl extends BaseRepository implements UserRepository {
     String? firstName,
     String? lastName,
   }) {
-    return execute(() async {
-      final updates = <String, dynamic>{};
+    return executeWithErrorHandling(
+      () async {
+        final updates = <String, dynamic>{};
+        if (firstName != null) updates['first_name'] = firstName;
+        if (lastName != null) updates['last_name'] = lastName;
 
-      if (firstName != null) updates['first_name'] = firstName;
-      if (lastName != null) updates['last_name'] = lastName;
-
-      final updatedModel = await _dataSource.updateUserProfile(
-        userId: userId,
-        updates: updates,
-      );
-
-      return updatedModel.toEntity();
-    });
+        return await _dataSource.updateUserProfile(
+          userId: userId,
+          updates: updates,
+        );
+      },
+      operationName: 'update user profile',
+    );
   }
 
   @override
   Future<void> updateLastLogin({required String userId}) {
-    return execute(() => _dataSource.updateLastLogin(userId));
+    return executeWithErrorHandling(
+      () => _dataSource.updateLastLogin(userId),
+      operationName: 'update last login',
+    );
   }
 
   @override
   Future<List<Company>> getCompanies(String userId) {
-    return execute(() async {
-      final companyModels = await _dataSource.getUserCompanies(userId);
-      return companyModels.map((model) => model.toEntity()).toList();
-    });
+    return executeFetch(
+      () => _dataSource.getUserCompanies(userId),
+      operationName: 'user companies',
+    );
   }
 
   @override
   Future<List<Store>> getStores(String userId) {
-    return execute(() async {
-      final storeModels = await _dataSource.getUserStores(userId);
-      return storeModels.map((model) => model.toEntity()).toList();
-    });
+    return executeFetch(
+      () => _dataSource.getUserStores(userId),
+      operationName: 'user stores',
+    );
   }
 
   @override
@@ -99,12 +83,13 @@ class UserRepositoryImpl extends BaseRepository implements UserRepository {
     required String userId,
     required String companyId,
   }) {
-    return execute(() async {
-      return await _dataSource.hasCompanyAccess(
+    return executeFetch(
+      () => _dataSource.hasCompanyAccess(
         userId: userId,
         companyId: companyId,
-      );
-    });
+      ),
+      operationName: 'company access check',
+    );
   }
 
   @override
@@ -112,16 +97,23 @@ class UserRepositoryImpl extends BaseRepository implements UserRepository {
     required String userId,
     required String storeId,
   }) {
-    return execute(() async {
-      return await _dataSource.hasStoreAccess(
+    return executeFetch(
+      () => _dataSource.hasStoreAccess(
         userId: userId,
         storeId: storeId,
-      );
-    });
+      ),
+      operationName: 'store access check',
+    );
   }
 
   @override
-  Future<Map<String, dynamic>> getUserCompleteData(String userId) {
-    return execute(() => _dataSource.getUserCompleteData(userId));
+  Future<UserCompleteData> getUserCompleteData(String userId) {
+    return executeFetch(
+      () async {
+        final rawData = await _dataSource.getUserCompleteData(userId);
+        return UserCompleteData.fromJson(rawData);
+      },
+      operationName: 'user complete data',
+    );
   }
 }

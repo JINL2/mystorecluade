@@ -1,6 +1,10 @@
+import 'package:freezed_annotation/freezed_annotation.dart';
+
 import '../entities/manager_overview.dart';
 import '../repositories/time_table_repository.dart';
 import 'base_usecase.dart';
+
+part 'get_manager_overview.freezed.dart';
 
 /// Get Manager Overview UseCase
 ///
@@ -23,33 +27,12 @@ class GetManagerOverview
 }
 
 /// Parameters for GetManagerOverview UseCase
-class GetManagerOverviewParams {
-  final String startDate;
-  final String endDate;
-  final String companyId;
-  final String storeId;
-
-  const GetManagerOverviewParams({
-    required this.startDate,
-    required this.endDate,
-    required this.companyId,
-    required this.storeId,
-  });
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    return other is GetManagerOverviewParams &&
-        other.startDate == startDate &&
-        other.endDate == endDate &&
-        other.companyId == companyId &&
-        other.storeId == storeId;
-  }
-
-  @override
-  int get hashCode =>
-      startDate.hashCode ^
-      endDate.hashCode ^
-      companyId.hashCode ^
-      storeId.hashCode;
+@freezed
+class GetManagerOverviewParams with _$GetManagerOverviewParams {
+  const factory GetManagerOverviewParams({
+    required String startDate,
+    required String endDate,
+    required String companyId,
+    required String storeId,
+  }) = _GetManagerOverviewParams;
 }

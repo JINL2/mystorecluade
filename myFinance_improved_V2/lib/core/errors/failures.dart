@@ -1,6 +1,14 @@
 import 'package:equatable/equatable.dart';
 
 /// Base failure class for all domain errors
+///
+/// Used with Result<S, Failure> for type-safe error handling.
+///
+/// ✅ Benefits:
+/// - Sealed class pattern for exhaustive error handling
+/// - User-friendly error messages
+/// - Machine-readable error codes
+/// - Equatable for easy comparison
 abstract class Failure extends Equatable {
   const Failure({
     required this.message,
@@ -23,6 +31,14 @@ class ServerFailure extends Failure {
     required super.message,
     required super.code,
   });
+
+  /// Factory for common server errors
+  factory ServerFailure.database([String? details]) {
+    return ServerFailure(
+      message: details ?? '데이터베이스 오류가 발생했습니다',
+      code: 'SERVER_ERROR',
+    );
+  }
 
   @override
   String toString() => 'ServerFailure(message: $message, code: $code)';
@@ -78,6 +94,21 @@ class NetworkFailure extends Failure {
     required super.message,
     required super.code,
   });
+
+  /// Factory for common network errors
+  factory NetworkFailure.noConnection() {
+    return const NetworkFailure(
+      message: '인터넷 연결을 확인해주세요',
+      code: 'NO_CONNECTION',
+    );
+  }
+
+  factory NetworkFailure.timeout() {
+    return const NetworkFailure(
+      message: '요청 시간이 초과되었습니다',
+      code: 'TIMEOUT',
+    );
+  }
 
   @override
   String toString() => 'NetworkFailure(message: $message, code: $code)';

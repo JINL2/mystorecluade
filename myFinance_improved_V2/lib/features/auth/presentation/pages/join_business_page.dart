@@ -424,16 +424,16 @@ class _JoinBusinessPageState extends ConsumerState<JoinBusinessPage> {
 
       // Update app state
       ref.read(appStateProvider.notifier).updateUser(
-        user: filteredResponse,
+        user: filteredResponse.user.toJson(),
         isAuthenticated: true,
       );
 
       // ✅ Auto-select the newly joined company
-      final companies = filteredResponse['companies'] as List?;
-      if (companies != null && companies.isNotEmpty) {
-        final firstCompany = companies.first as Map<String, dynamic>;
-        final companyId = firstCompany['company_id'] as String;
-        final companyName = firstCompany['company_name'] as String;
+      final companies = filteredResponse.companies;
+      if (companies.isNotEmpty) {
+        final firstCompany = companies.first;
+        final companyId = firstCompany.id;
+        final companyName = firstCompany.name;
 
         ref.read(appStateProvider.notifier).selectCompany(
           companyId,
@@ -441,11 +441,11 @@ class _JoinBusinessPageState extends ConsumerState<JoinBusinessPage> {
         );
 
         // Auto-select first store if available
-        final stores = firstCompany['stores'] as List?;
-        if (stores != null && stores.isNotEmpty) {
-          final firstStore = stores.first as Map<String, dynamic>;
-          final storeId = firstStore['store_id'] as String;
-          final storeName = firstStore['store_name'] as String;
+        final stores = filteredResponse.stores.where((s) => s.companyId == companyId).toList();
+        if (stores.isNotEmpty) {
+          final firstStore = stores.first;
+          final storeId = firstStore.id;
+          final storeName = firstStore.name;
 
           ref.read(appStateProvider.notifier).selectStore(
             storeId,
