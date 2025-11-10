@@ -330,11 +330,15 @@ class _HomepageState extends ConsumerState<Homepage> {
       // ✅ Read all providers BEFORE logout starts
       // This prevents "Cannot use ref after dispose" errors
       final authService = ref.read(authServiceProvider);
+      final appStateNotifier = ref.read(appStateProvider.notifier);
 
       if (!mounted) return;
 
+      // ✅ Save ScaffoldMessenger reference BEFORE async operations
+      final messenger = ScaffoldMessenger.of(context);
+
       // Show loading indicator
-      ScaffoldMessenger.of(context).showSnackBar(
+      messenger.showSnackBar(
         SnackBar(
           content: Row(
             children: [
@@ -368,25 +372,21 @@ class _HomepageState extends ConsumerState<Homepage> {
       await authService.signOut();
 
       // ✅ Clear app state AFTER auth logout
-      if (mounted) {
-        final appStateNotifier = ref.read(appStateProvider.notifier);
-        appStateNotifier.signOut();
-      }
+      appStateNotifier.signOut();
 
       // Note: Widget is disposed here due to GoRouter redirect
       // PopupMenu closes automatically, no manual pop() needed
       // This prevents "You have popped the last page" error
 
-      if (mounted) {
-        ScaffoldMessenger.of(context).hideCurrentSnackBar();
-      }
+      // ✅ Use saved messenger reference (safe even after dispose)
+      messenger.hideCurrentSnackBar();
 
       // GoRouter will automatically redirect to /auth/login
       // No manual navigation needed!
 
     } catch (e) {
+      // ✅ Only show error if widget is still mounted
       if (mounted) {
-        ScaffoldMessenger.of(context).hideCurrentSnackBar();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Logout failed: $e'),
