@@ -169,60 +169,6 @@ class _ChooseRolePageState extends ConsumerState<ChooseRolePage> {
               ),
 
               const SizedBox(height: 40),
-
-              // Sign in option for existing users
-              const Divider(color: TossColors.gray200),
-              const SizedBox(height: 20),
-
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    'Already have an account?',
-                    style: TossTextStyles.body.copyWith(
-                      color: TossColors.textSecondary,
-                    ),
-                  ),
-                  const SizedBox(width: TossSpacing.space2),
-                  TextButton(
-                    onPressed: () async {
-                      // Sign out using Clean Architecture (AuthService)
-                      try {
-                        // Use AuthService instead of direct Supabase access
-                        final authService = ref.read(authServiceProvider);
-                        await authService.signOut();
-
-                        // TODO: Clear app state - need to add clearData() method to AppStateNotifier
-                        // await ref.read(appStateProvider.notifier).clearData();
-
-                        // Now navigate to login page
-                        if (context.mounted) {
-                          context.go('/auth/login');
-                        }
-                      } catch (e) {
-                        // If sign out fails, still try to navigate
-                        if (context.mounted) {
-                          context.go('/auth/login');
-                        }
-                      }
-                    },
-                    style: TextButton.styleFrom(
-                      padding: EdgeInsets.zero,
-                      minimumSize: Size.zero,
-                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    ),
-                    child: Text(
-                      'Go to Sign In',
-                      style: TossTextStyles.body.copyWith(
-                        color: TossColors.primary,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 20),
             ],
           ),
         ),
