@@ -1,0 +1,272 @@
+/**
+ * ConfirmModal Component Styles
+ * Toss Design System compliant confirmation modal
+ */
+
+/* Modal Overlay - Semi-transparent backdrop */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5); /* Toss standard overlay */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 200ms ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Modal Container - Main modal box */
+.modalContainer {
+  background: white;
+  border-radius: 12px; /* LG radius per Toss Design System */
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08); /* Level 4 shadow for modals */
+  width: 90%;
+  max-height: 90vh;
+  overflow: hidden;
+  animation: slideUp 250ms ease;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Modal Header */
+.modalHeader {
+  /* Default: background set via inline style based on variant */
+  /* info: #4169E1, warning: #FF9500, error: #FF5847, success: #00C896 */
+  color: white;
+  padding: 20px 24px; /* Toss spacing: 20px vertical, 24px horizontal */
+  display: flex;
+  align-items: center;
+  gap: 16px; /* Gap LG per Toss system */
+}
+
+.headerIcon {
+  width: 40px;
+  height: 40px;
+  border-radius: 999px; /* Full rounded circle */
+  background: rgba(255, 255, 255, 0.2); /* Semi-transparent white overlay */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.headerContent {
+  flex: 1;
+}
+
+.modalTitle {
+  font-size: 20px; /* H3 size per Toss Design System */
+  font-weight: 700; /* Bold */
+  margin: 0;
+  color: white;
+  line-height: 1.4;
+}
+
+/* Modal Body */
+.modalBody {
+  padding: 24px; /* Padding XL per Toss system */
+}
+
+/* Warning Section */
+.warningSection {
+  /* Default background: #FFF9E6 (yellow tint) */
+  /* Can be customized via inline style */
+  border: 1px solid; /* Border color set via inline style */
+  border-radius: 8px; /* MD radius per Toss system */
+  padding: 16px; /* Padding MD */
+  display: flex;
+  align-items: flex-start;
+  gap: 12px; /* Gap MD */
+  margin-bottom: 20px; /* Margin LG */
+}
+
+.warningIcon {
+  font-size: 24px;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.warningContent {
+  flex: 1;
+}
+
+.warningText {
+  font-size: 14px; /* Body size */
+  font-weight: 500; /* Medium weight */
+  color: #856404; /* Warning text color */
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Content Section - Flexible custom content area */
+.contentSection {
+  display: flex;
+  flex-direction: column;
+  gap: 12px; /* Gap MD */
+}
+
+/* Modal Footer */
+.modalFooter {
+  padding: 16px 24px; /* Toss spacing */
+  background: #F8F9FA; /* Gray 50 - subtle background */
+  border-top: 1px solid #E9ECEF; /* Gray 200 - light border */
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px; /* Gap MD */
+}
+
+/* Cancel Button */
+.cancelButton {
+  padding: 12px 32px; /* Toss button padding */
+  background: white;
+  color: #6C757D; /* Gray 600 - secondary text */
+  border: 1px solid #DEE2E6; /* Gray 300 - default border */
+  border-radius: 8px; /* MD radius */
+  font-size: 16px; /* Body Large */
+  font-weight: 500; /* Medium */
+  cursor: pointer;
+  transition: all 150ms ease; /* Fast transition */
+}
+
+.cancelButton:hover:not(:disabled) {
+  background: #F8F9FA; /* Gray 50 */
+  border-color: #ADB5BD; /* Gray 500 */
+}
+
+.cancelButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Confirm Button Base */
+.confirmButton {
+  padding: 12px 32px; /* Toss button padding */
+  border: none;
+  border-radius: 8px; /* MD radius */
+  font-size: 16px; /* Body Large */
+  font-weight: 500; /* Medium */
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px; /* Gap SM */
+  transition: all 150ms ease; /* Fast transition */
+}
+
+.confirmButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Confirm Button Variants */
+
+/* Primary variant - Toss Blue */
+.confirmButtonPrimary {
+  background: #0064FF; /* Toss Blue */
+  color: white;
+}
+
+.confirmButtonPrimary:hover:not(:disabled) {
+  background: #0050CC; /* Toss Blue Dark */
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 100, 255, 0.2);
+}
+
+/* Error variant - Toss Red (default) */
+.confirmButtonError {
+  background: #dc3545; /* Red variant */
+  color: white;
+}
+
+.confirmButtonError:hover:not(:disabled) {
+  background: #c82333; /* Darker red */
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+}
+
+/* Success variant - Toss Green */
+.confirmButtonSuccess {
+  background: #00C896; /* Toss Green */
+  color: white;
+}
+
+.confirmButtonSuccess:hover:not(:disabled) {
+  background: #00A67E; /* Toss Green Dark */
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 200, 150, 0.3);
+}
+
+/* Warning variant - Toss Orange */
+.confirmButtonWarning {
+  background: #FF9500; /* Toss Orange */
+  color: #212529; /* Dark text for contrast */
+}
+
+.confirmButtonWarning:hover:not(:disabled) {
+  background: #E68600; /* Toss Orange Dark */
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 149, 0, 0.3);
+}
+
+/* Loading Spinner */
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 600ms linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Responsive Design - Mobile First */
+@media (max-width: 768px) {
+  .modalContainer {
+    width: 95%;
+    max-width: none;
+  }
+
+  .modalHeader {
+    padding: 16px 20px;
+  }
+
+  .modalBody {
+    padding: 20px;
+  }
+
+  .modalFooter {
+    padding: 12px 20px;
+    flex-direction: column-reverse; /* Stack buttons vertically on mobile */
+  }
+
+  .cancelButton,
+  .confirmButton {
+    width: 100%; /* Full width on mobile */
+    justify-content: center;
+  }
+}

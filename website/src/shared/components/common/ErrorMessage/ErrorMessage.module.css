@@ -1,0 +1,361 @@
+/**
+ * ErrorMessage Component Styles
+ * Toss-style centered modal/toast error message
+ */
+
+/* Backdrop overlay */
+.backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--toss-overlay);
+  z-index: var(--z-modal-backdrop);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.backdropHidden {
+  background-color: transparent;
+  pointer-events: none;
+}
+
+/* Container positioning */
+.container {
+  position: fixed;
+  z-index: var(--z-toast);
+  max-width: 480px;
+  width: calc(100% - 32px);
+  animation: slideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Position variants */
+.positionTopCenter {
+  top: var(--space-6);
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.positionTopRight {
+  top: var(--space-6);
+  right: var(--space-4);
+}
+
+.positionTopLeft {
+  top: var(--space-6);
+  left: var(--space-4);
+}
+
+.positionBottomCenter {
+  bottom: var(--space-6);
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.positionBottomRight {
+  bottom: var(--space-6);
+  right: var(--space-4);
+}
+
+.positionBottomLeft {
+  bottom: var(--space-6);
+  left: var(--space-4);
+}
+
+.positionCenter {
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+/* Message box */
+.messageBox {
+  background: var(--toss-white);
+  border-radius: var(--radius-dialog);
+  box-shadow: var(--shadow-modal);
+  padding: var(--space-6);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Colored top border indicator */
+.messageBox::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  border-radius: var(--radius-dialog) var(--radius-dialog) 0 0;
+}
+
+.variantError .messageBox::before {
+  background: var(--toss-error);
+}
+
+.variantWarning .messageBox::before {
+  background: var(--toss-warning);
+}
+
+.variantInfo .messageBox::before {
+  background: var(--toss-info);
+}
+
+.variantSuccess .messageBox::before {
+  background: var(--toss-success);
+}
+
+/* Header section */
+.header {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+/* Icon container */
+.iconContainer {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+}
+
+.variantError .iconContainer {
+  background: var(--toss-error-light);
+  color: var(--toss-error);
+}
+
+.variantWarning .iconContainer {
+  background: var(--toss-warning-light);
+  color: var(--toss-warning);
+}
+
+.variantInfo .iconContainer {
+  background: var(--toss-info-light);
+  color: var(--toss-info);
+}
+
+.variantSuccess .iconContainer {
+  background: var(--toss-success-light);
+  color: var(--toss-success);
+}
+
+/* Content section */
+.content {
+  flex: 1;
+  min-width: 0;
+}
+
+.title {
+  font-size: var(--font-h4);
+  font-weight: var(--font-bold);
+  color: var(--toss-text-primary);
+  margin: 0 0 var(--space-2) 0;
+  line-height: var(--line-height-tight);
+}
+
+.message {
+  font-size: var(--font-body);
+  font-weight: var(--font-regular);
+  color: var(--toss-text-secondary);
+  margin: 0;
+  line-height: var(--line-height-normal);
+  word-break: keep-all;
+}
+
+.details {
+  font-size: var(--font-body-small);
+  color: var(--toss-text-tertiary);
+  margin: var(--space-3) 0 0 0;
+  padding: var(--space-3);
+  background: var(--toss-gray-50);
+  border-radius: var(--radius-md);
+  line-height: var(--line-height-normal);
+  font-family: var(--font-family-mono);
+}
+
+/* Close button */
+.closeButton {
+  position: absolute;
+  top: var(--space-4);
+  right: var(--space-4);
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-full);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--toss-text-tertiary);
+  transition: all var(--transition-fast);
+  padding: 0;
+}
+
+.closeButton:hover {
+  background: var(--toss-gray-100);
+  color: var(--toss-text-primary);
+}
+
+.closeButton:active {
+  background: var(--toss-gray-200);
+}
+
+/* Actions section */
+.actions {
+  display: flex;
+  gap: var(--space-3);
+  margin-top: var(--space-5);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--toss-border-light);
+}
+
+.actionButton {
+  flex: 1;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-button);
+  font-size: var(--font-body);
+  font-weight: var(--font-semibold);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  border: none;
+  outline: none;
+}
+
+.actionButtonPrimary {
+  background: var(--toss-primary);
+  color: var(--toss-text-inverse);
+}
+
+.actionButtonPrimary:hover {
+  background: var(--toss-primary-light);
+}
+
+.actionButtonPrimary:active {
+  background: var(--toss-primary-dark);
+}
+
+.actionButtonSecondary {
+  background: var(--toss-gray-100);
+  color: var(--toss-text-primary);
+}
+
+.actionButtonSecondary:hover {
+  background: var(--toss-gray-200);
+}
+
+.actionButtonSecondary:active {
+  background: var(--toss-gray-300);
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+@keyframes slideInCenter {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+.positionCenter.container {
+  animation: slideInCenter 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .container {
+    max-width: calc(100% - 32px);
+  }
+
+  .messageBox {
+    padding: var(--space-5);
+  }
+
+  .title {
+    font-size: var(--font-h4);
+  }
+
+  .message {
+    font-size: var(--font-body-small);
+  }
+
+  .iconContainer {
+    width: 40px;
+    height: 40px;
+    font-size: 18px;
+  }
+
+  .actions {
+    flex-direction: column;
+  }
+
+  .actionButton {
+    width: 100%;
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .messageBox {
+    background: var(--toss-gray-900);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  }
+
+  .title {
+    color: var(--toss-white);
+  }
+
+  .message {
+    color: var(--toss-gray-300);
+  }
+
+  .details {
+    background: var(--toss-gray-800);
+    color: var(--toss-gray-400);
+  }
+
+  .closeButton:hover {
+    background: var(--toss-gray-800);
+  }
+
+  .actionButtonSecondary {
+    background: var(--toss-gray-800);
+    color: var(--toss-white);
+  }
+
+  .actionButtonSecondary:hover {
+    background: var(--toss-gray-700);
+  }
+}

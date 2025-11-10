@@ -35,10 +35,26 @@ export class Employee {
    * Get formatted salary with currency
    */
   get formattedSalary(): string {
-    return `${this.currencySymbol}${this.salaryAmount.toLocaleString('en-US', {
+    return `${this.currencyCode}${this.salaryAmount.toLocaleString('en-US', {
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
     })}`;
+  }
+
+  /**
+   * Get salary type label (per hour or per month)
+   */
+  get salaryTypeLabel(): string {
+    // This should come from API, but defaulting to 'per hour' for now
+    return 'per hour';
+  }
+
+  /**
+   * Check if employee is active
+   */
+  get isActive(): boolean {
+    // For now, all employees are considered active
+    return true;
   }
 
   /**

@@ -42,16 +42,16 @@
   font-family: var(--font-family);
   font-size: var(--font-size-base);
   line-height: 1.5;
-  color: var(--toss-text-primary);
-  background-color: var(--toss-bg-primary);
-  border: 1px solid var(--toss-border);
-  border-radius: var(--border-radius-md);
+  color: #212529 !important;
+  background-color: #FFFFFF !important;
+  border: 1px solid #E9ECEF;
+  border-radius: 8px;
   transition: all 0.2s ease;
   outline: none;
 }
 
 .input::placeholder {
-  color: var(--toss-text-tertiary);
+  color: #ADB5BD !important;
 }
 
 .input:hover:not(:disabled) {

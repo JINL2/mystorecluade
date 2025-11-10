@@ -1,0 +1,187 @@
+/**
+ * StoreSelector Styles
+ * CSS Module for the reusable StoreSelector component
+ *
+ * Default Sizes:
+ * - Width: 280px
+ * - Max Height (dropdown): 380px
+ * - Control Height: 48px
+ * - Option Height: 48px
+ */
+
+.storeSelector {
+  position: relative;
+  width: var(--store-selector-width, 280px);
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+}
+
+.storeSelector.disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+/* Control Section */
+.control {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  height: 48px;
+  background-color: #FFFFFF;
+  border: 1px solid #E5E8EB;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.control:hover {
+  border-color: #0064FF;
+  background-color: #F8FAFB;
+}
+
+.control.open {
+  border-color: #0064FF;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.controlIcon {
+  width: 20px;
+  height: 20px;
+  color: #4E5968;
+  flex-shrink: 0;
+}
+
+.controlLabel {
+  flex: 1;
+  font-size: 15px;
+  font-weight: 500;
+  color: #191F28;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.controlArrow {
+  width: 20px;
+  height: 20px;
+  color: #8B95A1;
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+
+.control.open .controlArrow {
+  transform: rotate(180deg);
+}
+
+/* Dropdown Section */
+.dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  max-height: 0;
+  overflow: hidden;
+  background-color: #FFFFFF;
+  border: 1px solid #0064FF;
+  border-top: none;
+  border-bottom-left-radius: 12px;
+  border-bottom-right-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 100, 255, 0.1);
+  transition: max-height 0.3s ease, opacity 0.3s ease;
+  opacity: 0;
+  z-index: 1000;
+}
+
+.dropdown.active {
+  max-height: var(--store-selector-max-height, 380px);
+  overflow-y: auto;
+  opacity: 1;
+}
+
+/* Custom Scrollbar */
+.dropdown::-webkit-scrollbar {
+  width: 6px;
+}
+
+.dropdown::-webkit-scrollbar-track {
+  background: #F8FAFB;
+  border-bottom-right-radius: 12px;
+}
+
+.dropdown::-webkit-scrollbar-thumb {
+  background: #D1D6DB;
+  border-radius: 3px;
+}
+
+.dropdown::-webkit-scrollbar-thumb:hover {
+  background: #B0B8C1;
+}
+
+/* Dropdown Options */
+.option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  height: 48px;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+  user-select: none;
+}
+
+.option:hover {
+  background-color: #F8FAFB;
+}
+
+.option.selected {
+  background-color: #F0F6FF;
+}
+
+.option:last-child {
+  border-bottom-left-radius: 12px;
+  border-bottom-right-radius: 12px;
+}
+
+.optionIcon {
+  width: 20px;
+  height: 20px;
+  color: #8B95A1;
+  flex-shrink: 0;
+}
+
+.option.selected .optionIcon {
+  color: #0064FF;
+}
+
+.optionText {
+  flex: 1;
+  font-size: 15px;
+  font-weight: 400;
+  color: #4E5968;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.option.selected .optionText {
+  color: #0064FF;
+  font-weight: 500;
+}
+
+.checkmarkIcon {
+  width: 18px;
+  height: 18px;
+  color: #0064FF;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+/* Empty State */
+.emptyState {
+  padding: 24px 16px;
+  text-align: center;
+  color: #8B95A1;
+  font-size: 14px;
+}

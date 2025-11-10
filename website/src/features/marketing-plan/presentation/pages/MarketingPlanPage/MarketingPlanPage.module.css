@@ -1,0 +1,125 @@
+/**
+ * MarketingPlanPage Styles
+ */
+
+.container {
+  min-height: 100vh;
+  padding: var(--space-6);
+  background: var(--toss-gray-50);
+}
+
+.header {
+  margin-bottom: var(--space-8);
+}
+
+.title {
+  font-size: var(--font-h1);
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 var(--space-2) 0;
+}
+
+.subtitle {
+  font-size: var(--font-large);
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.comingSoonCard {
+  background: white;
+  border-radius: var(--radius-large);
+  padding: var(--space-6);
+  box-shadow: var(--shadow-card);
+}
+
+.comingSoon {
+  text-align: center;
+  padding: var(--space-16) var(--space-6);
+}
+
+.icon {
+  width: 120px;
+  height: 120px;
+  margin: 0 auto var(--space-6);
+  background: var(--toss-blue-50);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--toss-primary);
+}
+
+.comingSoonTitle {
+  font-size: var(--font-h2);
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 var(--space-3) 0;
+}
+
+.comingSoonText {
+  font-size: var(--font-large);
+  color: var(--text-secondary);
+  margin: 0 0 var(--space-8) 0;
+}
+
+.features {
+  max-width: 500px;
+  margin: 0 auto;
+  text-align: left;
+  background: var(--toss-gray-50);
+  padding: var(--space-5);
+  border-radius: var(--radius-large);
+}
+
+.features h3 {
+  font-size: var(--font-h4);
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 var(--space-3) 0;
+  text-align: center;
+}
+
+.features ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.features li {
+  padding: var(--space-3);
+  font-size: var(--font-base);
+  color: var(--text-primary);
+  border-bottom: 1px solid var(--toss-gray-200);
+}
+
+.features li:last-child {
+  border-bottom: none;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .container {
+    padding: var(--space-4);
+  }
+
+  .title {
+    font-size: var(--font-h2);
+  }
+
+  .subtitle {
+    font-size: var(--font-base);
+  }
+
+  .icon {
+    width: 80px;
+    height: 80px;
+  }
+
+  .comingSoonTitle {
+    font-size: var(--font-h3);
+  }
+
+  .comingSoonText {
+    font-size: var(--font-base);
+  }
+}

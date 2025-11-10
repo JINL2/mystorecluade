@@ -1,0 +1,15 @@
+.container { min-height: 100vh; padding: var(--space-6); background: var(--toss-gray-50); }
+.header { margin-bottom: var(--space-6); }
+.title { font-size: var(--font-h1); font-weight: 700; margin: 0 0 var(--space-2) 0; }
+.subtitle { font-size: var(--font-large); color: var(--text-secondary); margin: 0; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: var(--space-4); }
+.card { background: white; padding: var(--space-5); border-radius: var(--radius-large); box-shadow: var(--shadow-card); display: flex; align-items: center; gap: var(--space-4); border: 2px solid transparent; }
+.card.default { border-color: var(--toss-primary); background: var(--toss-blue-50); }
+.symbol { width: 56px; height: 56px; background: var(--toss-gray-100); color: var(--text-primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: var(--font-h3); font-weight: 700; }
+.info { flex: 1; }
+.code { font-weight: 600; font-size: var(--font-large); margin-bottom: var(--space-1); }
+.name { font-size: var(--font-small); color: var(--text-secondary); }
+.setBtn { padding: var(--space-2) var(--space-3); background: var(--toss-primary); color: white; border: none; border-radius: var(--radius-medium); font-size: var(--font-small); font-weight: 600; cursor: pointer; }
+.badge { padding: var(--space-2) var(--space-3); background: var(--toss-primary); color: white; border-radius: var(--radius-medium); font-size: var(--font-small); font-weight: 600; }
+.spinner { width: 40px; height: 40px; border: 3px solid var(--toss-gray-200); border-top-color: var(--toss-primary); border-radius: 50%; animation: spin 1s linear infinite; margin: var(--space-8) auto; }
+@keyframes spin { to { transform: rotate(360deg); } }

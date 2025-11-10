@@ -4,18 +4,13 @@
 
 .card {
   background: var(--color-white);
-  border-radius: 16px;
+  border-radius: 12px; /* LG - DESIGN_SYSTEM.md Card radius */
   padding: 24px;
-  border: 1px solid var(--color-gray-200);
-  transition: all 0.2s ease;
+  border: 1px solid var(--color-blue-300);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04); /* Level 1 - DESIGN_SYSTEM.md */
   display: flex;
   flex-direction: column;
   gap: 16px;
-}
-
-.card:hover {
-  border-color: var(--color-blue-300);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 /* Header */
@@ -26,14 +21,14 @@
 }
 
 .iconWrapper {
-  width: 40px;
-  height: 40px;
-  border-radius: 12px;
-  background: var(--color-blue-50);
+  width: 48px;
+  height: 48px;
+  border-radius: 50%; /* Toss Style - Perfect Circle */
+  background: #F0F6FF; /* Light Blue Background - Toss Style */
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--color-blue-600);
+  color: #0064FF; /* Toss Blue - Primary Icon Color */
   flex-shrink: 0;
 }
 
@@ -47,6 +42,7 @@
 .value {
   font-size: 32px;
   font-weight: 700;
+  font-family: 'JetBrains Mono', monospace; /* DESIGN_SYSTEM.md - Financial numbers */
   color: var(--color-gray-900);
   line-height: 1.2;
 }
@@ -86,6 +82,17 @@
   border-radius: 8px;
 }
 
+.skeletonIcon {
+  background: linear-gradient(
+    90deg,
+    #E9ECEF 25%,
+    #F8F9FA 50%,
+    #E9ECEF 75%
+  );
+  background-size: 200% 100%;
+  animation: loading 1.5s ease-in-out infinite;
+}
+
 @keyframes loading {
   0% {
     background-position: 200% 0;
@@ -106,7 +113,7 @@
   }
 
   .iconWrapper {
-    width: 36px;
-    height: 36px;
+    width: 44px;
+    height: 44px;
   }
 }

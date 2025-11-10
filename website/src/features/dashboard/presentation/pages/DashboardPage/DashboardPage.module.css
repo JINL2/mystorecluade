@@ -1,25 +1,30 @@
 /**
  * DashboardPage Component Styles
+ * Based on backup design system
  */
 
+/* Dashboard Container */
 .container {
   min-height: 100vh;
-  padding: 32px;
-  background: var(--color-gray-50);
+  background: #FFFFFF; /* White - Consistent with other pages */
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 }
 
 /* Page Header */
 .header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 32px;
+  padding: 0 0 24px 0;
+  margin-bottom: 0;
+}
+
+.headerContent {
+  max-width: 1400px;
+  margin: 0 auto;
 }
 
 .title {
-  font-size: 32px;
-  font-weight: 700;
-  color: var(--color-gray-900);
+  font-size: 32px; /* Display - DESIGN_SYSTEM.md */
+  font-weight: 700; /* Bold - DESIGN_SYSTEM.md */
+  color: #212529; /* Gray 900 */
   margin: 0;
 }
 
@@ -31,10 +36,20 @@
 
 .lastUpdated {
   font-size: 14px;
-  color: var(--color-gray-600);
+  color: #6C757D;
 }
 
-/* Overview Grid */
+/* Dashboard Main */
+.dashboardMain {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 32px;
+  background: #FFFFFF;
+  border-radius: 12px; /* LG - Card */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04); /* Level 1 - DESIGN_SYSTEM.md */
+}
+
+/* Financial Overview Cards */
 .overviewGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -42,23 +57,82 @@
   margin-bottom: 32px;
 }
 
-/* Charts Section */
-.chartsSection {
+.overviewCard {
+  background: #F8F9FA;
+  border-radius: 12px;
+  padding: 24px;
+  border: 1px solid #DEE2E6;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+  position: relative;
+  overflow: hidden;
+  transform: translateY(-4px);
+}
+
+/* Content Grid - 2 Column Layout */
+.contentGrid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 24px;
   margin-bottom: 32px;
 }
 
-.chartCard {
-  background: var(--color-white);
-  border-radius: 16px;
+.contentSection {
+  background: #FFFFFF;
+  border-radius: 12px; /* LG - Card */
+  border: 1px solid #E9ECEF; /* Gray 200 */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04); /* Level 1 - DESIGN_SYSTEM.md */
+}
+
+.sectionHeader {
+  padding: 20px 24px;
+  border-bottom: 1px solid #E9ECEF;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.sectionTitle {
+  font-size: 18px; /* H4 */
+  font-weight: 600; /* Semibold */
+  color: #212529; /* Gray 900 */
+  margin: 0;
+}
+
+.viewAllLink {
+  font-size: 14px; /* Body */
+  color: #0064FF; /* Toss Blue */
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.viewAllLink:hover {
+  color: #4D94FF; /* Toss Blue Light */
+}
+
+.sectionContent {
   padding: 24px;
-  border: 1px solid var(--color-gray-200);
+}
+
+/* Charts Section */
+.chartsSection {
+  background: #FFFFFF;
+  border-radius: 12px;
+  padding: 24px;
+  border: 1px solid #E9ECEF;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 .chartTitle {
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 600;
-  color: var(--color-gray-900);
+  color: #212529;
   margin: 0 0 24px 0;
+}
+
+.chartContainer {
+  position: relative;
+  height: 300px;
+  margin-bottom: 16px;
 }
 
 .chartPlaceholder {
@@ -66,6 +140,9 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
+  align-items: center;
+  justify-content: center;
+  color: #ADB5BD;
 }
 
 .expenseList {
@@ -78,19 +155,20 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px;
-  background: var(--color-gray-50);
+  padding: 12px 16px;
+  background: #F8F9FA;
   border-radius: 8px;
 }
 
 .expenseCategory {
   font-weight: 500;
-  color: var(--color-gray-700);
+  color: #495057;
 }
 
 .expenseAmount {
   font-weight: 600;
-  color: var(--color-gray-900);
+  font-family: 'JetBrains Mono', monospace; /* DESIGN_SYSTEM.md - Financial numbers */
+  color: #212529; /* Gray 900 */
 }
 
 .emptyChart {
@@ -98,72 +176,83 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--color-gray-500);
+  color: #ADB5BD;
+  font-size: 14px;
 }
 
-/* Transactions Section */
+/* Recent Transactions */
 .transactionsSection {
-  background: var(--color-white);
-  border-radius: 16px;
+  background: #FFFFFF;
+  border-radius: 12px;
   padding: 24px;
-  border: 1px solid var(--color-gray-200);
-}
-
-.sectionTitle {
-  font-size: 20px;
-  font-weight: 600;
-  color: var(--color-gray-900);
-  margin: 0 0 24px 0;
+  border: 1px solid #E9ECEF;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 .transactionsList {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 0;
 }
 
 .transactionItem {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 16px;
-  border-radius: 8px;
-  border: 1px solid var(--color-gray-200);
-  transition: all 0.2s ease;
+  justify-content: space-between;
+  padding: 16px 0;
+  border-bottom: 1px solid #F1F3F5;
 }
 
-.transactionItem:hover {
-  border-color: var(--color-blue-300);
-  background: var(--color-gray-50);
+.transactionItem:last-child {
+  border-bottom: none;
+}
+
+.transactionIcon {
+  width: 40px;
+  height: 40px;
+  background: #F8F9FA;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 16px;
+  color: #6C757D;
+  flex-shrink: 0;
 }
 
 .transactionInfo {
+  flex: 1;
   display: flex;
   flex-direction: column;
   gap: 4px;
 }
 
 .transactionDescription {
-  font-weight: 500;
-  color: var(--color-gray-900);
+  font-size: 14px; /* Body - DESIGN_SYSTEM.md */
+  font-weight: 500; /* Medium */
+  color: #212529; /* Gray 900 */
+  margin: 0;
 }
 
 .transactionDate {
-  font-size: 14px;
-  color: var(--color-gray-600);
+  font-size: 13px;
+  color: #ADB5BD;
+  margin: 0;
 }
 
 .transactionAmount {
-  font-size: 18px;
+  font-size: 14px; /* Body - DESIGN_SYSTEM.md */
   font-weight: 600;
+  font-family: 'JetBrains Mono', monospace; /* DESIGN_SYSTEM.md - Financial numbers */
+  text-align: right;
 }
 
 .transactionAmount.income {
-  color: var(--color-green-600);
+  color: #00C896; /* Toss Success - DESIGN_SYSTEM.md */
 }
 
 .transactionAmount.expense {
-  color: var(--color-red-600);
+  color: #FF5847; /* Toss Error - DESIGN_SYSTEM.md */
 }
 
 .emptyTransactions {
@@ -171,7 +260,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--color-gray-500);
+  color: #ADB5BD;
+  font-size: 14px;
 }
 
 /* Error State */
@@ -193,13 +283,13 @@
 .errorTitle {
   font-size: 24px;
   font-weight: 600;
-  color: var(--color-gray-900);
+  color: #212529;
   margin: 0 0 12px 0;
 }
 
 .errorMessage {
   font-size: 16px;
-  color: var(--color-gray-600);
+  color: #6C757D;
   margin: 0;
 }
 
@@ -209,19 +299,56 @@
   align-items: center;
   justify-content: center;
   min-height: 400px;
-  color: var(--color-gray-500);
+  color: #ADB5BD;
+  font-size: 14px;
 }
 
-/* Responsive */
+/* Loading States */
+.skeleton {
+  background: linear-gradient(90deg, #E9ECEF 25%, #F8F9FA 50%, #E9ECEF 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+  border-radius: 4px;
+}
+
+@keyframes loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.skeletonText {
+  height: 1em;
+  margin-bottom: 8px;
+}
+
+.skeletonTitle {
+  height: 1.5em;
+  width: 60%;
+}
+
+.skeletonValue {
+  height: 2em;
+  width: 40%;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .contentGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 768px) {
-  .container {
-    padding: 16px;
+  .header {
+    padding: 16px 20px;
   }
 
-  .header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 16px;
+  .dashboardMain {
+    padding: 0 20px 20px;
   }
 
   .overviewGrid {
@@ -231,5 +358,10 @@
 
   .title {
     font-size: 24px;
+  }
+
+  .contentGrid {
+    grid-template-columns: 1fr;
+    gap: 16px;
   }
 }

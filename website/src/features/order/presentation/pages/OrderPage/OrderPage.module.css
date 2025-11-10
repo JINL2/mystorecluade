@@ -1,0 +1,417 @@
+/**
+ * OrderPage Styles
+ * Matching backup layout with tabs, padding, and max-width
+ */
+
+/* Page Container */
+.pageContainer {
+  min-height: 100vh;
+  background: white;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Page Content - with padding and max-width like backup */
+.pageContent {
+  flex: 1;
+  padding: var(--space-6);
+  max-width: 1400px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* Page Header */
+.pageHeader {
+  margin-bottom: var(--space-6);
+}
+
+.pageTitle {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 var(--space-2) 0;
+}
+
+.pageSubtitle {
+  font-size: var(--font-base);
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+/* Tabs Container */
+.tabsContainer {
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Tabs Navigation */
+.tabsNav {
+  display: flex;
+  border-bottom: 2px solid var(--toss-gray-100);
+  background: var(--toss-gray-50);
+}
+
+.tabItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 24px;
+  background: transparent;
+  border: none;
+  border-bottom: 3px solid transparent;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  transition: all 0.2s ease;
+}
+
+.tabItem:hover {
+  background: rgba(0, 100, 255, 0.05);
+  color: var(--toss-primary);
+}
+
+.tabItem.active {
+  color: var(--toss-primary);
+  border-bottom-color: var(--toss-primary);
+  background: white;
+}
+
+.tabIcon {
+  flex-shrink: 0;
+}
+
+.tabBadge {
+  display: inline-block;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  background: var(--toss-primary);
+  color: white;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 20px;
+  text-align: center;
+}
+
+/* Tab Content */
+.tabContent {
+  padding: var(--space-6);
+  min-height: 400px;
+}
+
+/* Coming Soon Placeholder */
+.comingSoon {
+  text-align: center;
+  padding: 80px 32px;
+}
+
+.comingSoon h3 {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 12px 0;
+}
+
+.comingSoon p {
+  font-size: var(--font-base);
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+/* Loading & Error States */
+.loadingSpinner {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 80px 32px;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--toss-gray-200);
+  border-top-color: var(--toss-primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.errorState {
+  text-align: center;
+  padding: 80px 32px;
+}
+
+.errorMessage {
+  color: var(--toss-error);
+  font-size: var(--font-base);
+  margin-bottom: var(--space-4);
+}
+
+.retryButton {
+  padding: var(--space-3) var(--space-4);
+  background: var(--toss-primary);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: var(--font-base);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.retryButton:hover {
+  background: var(--toss-primary-dark);
+  transform: translateY(-1px);
+}
+
+/* Empty State */
+.emptyState {
+  text-align: center;
+  padding: 80px 32px;
+}
+
+.emptyIcon {
+  width: 120px;
+  height: 120px;
+  margin: 0 auto 24px;
+  display: block;
+}
+
+.emptyTitle {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 12px 0;
+}
+
+.emptyDescription {
+  font-size: var(--font-base);
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+/* Table Container */
+.tableContainer {
+  overflow-x: auto;
+}
+
+/* Orders Table */
+.ordersTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.ordersTable thead {
+  background: var(--toss-gray-50);
+  border-bottom: 2px solid var(--toss-gray-200);
+}
+
+.ordersTable th {
+  padding: 16px;
+  text-align: left;
+  font-weight: 600;
+  color: var(--text-secondary);
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.ordersTable th:first-child {
+  width: 40px;
+  text-align: center;
+}
+
+.ordersTable th:last-child {
+  width: 100px;
+  text-align: center;
+}
+
+.ordersTable tbody tr {
+  border-bottom: 1px solid var(--toss-gray-100);
+  transition: background-color 0.15s ease;
+}
+
+.ordersTable tbody tr:hover {
+  background: var(--toss-gray-50);
+}
+
+.ordersTable td {
+  padding: 16px;
+  color: var(--text-primary);
+  vertical-align: middle;
+}
+
+.ordersTable td:first-child {
+  text-align: center;
+}
+
+.ordersTable td:last-child {
+  text-align: center;
+}
+
+/* Order Number */
+.orderNumber {
+  font-weight: 600;
+  color: var(--toss-primary);
+  cursor: pointer;
+}
+
+.orderNumber:hover {
+  text-decoration: underline;
+}
+
+/* Currency Amount */
+.currencyAmount {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+/* Receiving Progress */
+.receivingProgress {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.progressText {
+  font-size: 13px;
+  color: var(--text-secondary);
+  min-width: 60px;
+}
+
+.progressBar {
+  flex: 1;
+  height: 6px;
+  background: var(--toss-gray-200);
+  border-radius: 3px;
+  overflow: hidden;
+  min-width: 80px;
+  max-width: 120px;
+}
+
+.progressFill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--toss-primary), var(--toss-blue-400));
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+.progressPercentage {
+  font-size: 11px;
+  color: var(--text-tertiary);
+}
+
+/* Status Badge */
+.statusBadge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.statusBadge.pending {
+  background: #FFF4E6;
+  color: #FF8A00;
+}
+
+.statusBadge.approved {
+  background: #E3F2FD;
+  color: #0064FF;
+}
+
+.statusBadge.partial {
+  background: #FFF9E6;
+  color: #F59E0B;
+}
+
+.statusBadge.received {
+  background: #E8F5E9;
+  color: #2E7D32;
+}
+
+.statusBadge.cancelled {
+  background: var(--toss-gray-100);
+  color: var(--toss-gray-600);
+}
+
+/* Action Button */
+.actionBtn {
+  padding: 6px 16px;
+  background: var(--toss-primary);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.actionBtn:hover {
+  background: var(--toss-primary-dark);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 100, 255, 0.2);
+}
+
+.actionBtn:active {
+  transform: translateY(0);
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .ordersTable {
+    font-size: 13px;
+  }
+
+  .ordersTable th,
+  .ordersTable td {
+    padding: 12px;
+  }
+
+  .progressBar {
+    min-width: 60px;
+    max-width: 80px;
+  }
+}
+
+@media (max-width: 768px) {
+  .pageContent {
+    padding: var(--space-4);
+  }
+
+  .pageTitle {
+    font-size: 24px;
+  }
+
+  .tabContent {
+    padding: var(--space-4);
+  }
+
+  .ordersTable {
+    min-width: 900px;
+  }
+
+  .ordersTable th,
+  .ordersTable td {
+    padding: 10px;
+    font-size: 12px;
+  }
+
+  .tabItem {
+    padding: 12px 16px;
+    font-size: 13px;
+  }
+}

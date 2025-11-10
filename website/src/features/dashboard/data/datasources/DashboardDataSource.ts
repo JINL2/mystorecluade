@@ -3,7 +3,7 @@
  * Data layer - Handles Supabase RPC calls for dashboard
  */
 
-import { supabaseService } from '@/core/services/supabase-service';
+import { supabaseService } from '@/core/services/supabase_service';
 
 export interface DashboardRawData {
   today_revenue: number;
@@ -40,6 +40,7 @@ export class DashboardDataSource {
     date: string
   ): Promise<{ success: boolean; data?: DashboardRawData; error?: string }> {
     try {
+      console.log('📊 Fetching dashboard data for:', { companyId, date });
       const supabase = supabaseService.getClient();
 
       const { data, error } = await supabase.rpc('get_dashboard_page', {
@@ -47,8 +48,10 @@ export class DashboardDataSource {
         p_date: date,
       });
 
+      console.log('📦 Dashboard RPC Response:', { data, error });
+
       if (error) {
-        console.error('Dashboard RPC error:', error);
+        console.error('❌ Dashboard RPC error:', error);
         return {
           success: false,
           error: error.message || 'Failed to fetch dashboard data',
@@ -56,18 +59,20 @@ export class DashboardDataSource {
       }
 
       if (!data) {
+        console.warn('⚠️ No data returned from dashboard RPC');
         return {
           success: false,
           error: 'No data returned from dashboard',
         };
       }
 
+      console.log('✅ Dashboard data fetched successfully');
       return {
         success: true,
         data: data as DashboardRawData,
       };
     } catch (error) {
-      console.error('Dashboard datasource error:', error);
+      console.error('💥 Dashboard datasource error:', error);
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error occurred',

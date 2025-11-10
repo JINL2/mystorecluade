@@ -1,0 +1,280 @@
+/**
+ * TransactionForm Module CSS
+ * Matches backup HTML design exactly
+ */
+
+/* ==================== TRANSACTION FORM ==================== */
+.transactionForm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.formSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.formTitle {
+  font-size: var(--font-body);
+  font-weight: 600;
+  color: var(--toss-gray-700);
+}
+
+.required {
+  color: var(--toss-error);
+}
+
+/* ==================== TRANSACTION TYPE TOGGLE ==================== */
+.transactionTypeToggle {
+  display: flex;
+  background: var(--toss-gray-50);
+  border-radius: var(--radius-lg);
+  padding: var(--space-1);
+  position: relative;
+}
+
+.transactionTypeOption {
+  flex: 1;
+  padding: var(--space-3);
+  text-align: center;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  z-index: 1;
+  position: relative;
+  border: none;
+  background: transparent;
+  color: var(--toss-gray-600);
+}
+
+.transactionTypeOption.active {
+  color: white;
+}
+
+.transactionTypeToggle::before {
+  content: '';
+  position: absolute;
+  top: var(--space-1);
+  left: var(--space-1);
+  width: calc(50% - var(--space-1));
+  height: calc(100% - var(--space-2));
+  background: var(--toss-primary);
+  border-radius: var(--radius-md);
+  transition: transform var(--transition-base);
+  box-shadow: 0 2px 8px rgba(0, 100, 255, 0.3);
+}
+
+.transactionTypeToggle.credit::before {
+  transform: translateX(100%);
+  background: var(--toss-success);
+  box-shadow: 0 2px 8px rgba(0, 200, 150, 0.3);
+}
+
+/* ==================== ACCOUNT SELECT ==================== */
+.selectContainer {
+  position: relative;
+  width: 100%;
+}
+
+.selectButton {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-3) var(--space-4);
+  background: var(--toss-white);
+  color: var(--toss-gray-900);
+  border: 1px solid var(--toss-gray-300);
+  border-radius: var(--radius-md);
+  font-size: var(--font-body);
+  font-family: inherit;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  text-align: left;
+}
+
+.selectButton:hover {
+  background: var(--toss-gray-50);
+  border-color: var(--toss-primary);
+}
+
+.selectButton:focus {
+  outline: none;
+  border-color: var(--toss-primary);
+  box-shadow: 0 0 0 3px rgba(0, 100, 255, 0.1);
+}
+
+.selectPlaceholder {
+  color: var(--toss-gray-500);
+}
+
+.selectValue {
+  color: var(--toss-gray-900);
+  font-weight: 500;
+}
+
+.selectArrow {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  color: var(--toss-gray-600);
+  transition: transform var(--transition-fast);
+}
+
+.selectButton.open .selectArrow {
+  transform: rotate(180deg);
+}
+
+/* ==================== ACCOUNT DROPDOWN ==================== */
+.accountDropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: var(--toss-white);
+  border: 1px solid var(--toss-gray-300);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  max-height: 400px;
+  display: flex;
+  flex-direction: column;
+  z-index: 100;
+}
+
+.accountSearchContainer {
+  padding: var(--space-3);
+  border-bottom: 1px solid var(--toss-gray-200);
+  background: var(--toss-white);
+}
+
+.accountSearch {
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--toss-gray-300);
+  border-radius: var(--radius-md);
+  font-size: var(--font-body);
+  font-family: inherit;
+  transition: all var(--transition-fast);
+}
+
+.accountSearch:hover {
+  border-color: var(--toss-primary);
+}
+
+.accountSearch:focus {
+  outline: none;
+  border-color: var(--toss-primary);
+  box-shadow: 0 0 0 3px rgba(0, 100, 255, 0.1);
+}
+
+.accountSearch::placeholder {
+  color: var(--toss-gray-400);
+}
+
+.accountOptionsList {
+  overflow-y: auto;
+  max-height: 350px;
+}
+
+.accountOption {
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--toss-gray-100);
+  background: var(--toss-white);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.accountOption:last-child {
+  border-bottom: none;
+}
+
+.accountOption:hover {
+  background: var(--toss-gray-50);
+}
+
+.accountOptionName {
+  flex: 1;
+  font-weight: 500;
+  color: var(--toss-gray-900);
+  font-size: 15px;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.accountOptionType {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  flex-shrink: 0;
+  background: rgba(0, 100, 255, 0.1);
+  color: var(--toss-primary);
+}
+
+.accountNoResults {
+  padding: var(--space-5) var(--space-4);
+  text-align: center;
+  color: var(--toss-gray-500);
+  font-size: var(--font-small);
+}
+
+/* ==================== CONDITIONAL FIELDS ==================== */
+.conditionalFields {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+/* ==================== INPUT FIELDS ==================== */
+.input {
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--toss-gray-300);
+  border-radius: var(--radius-md);
+  font-size: var(--font-body);
+  font-family: inherit;
+  transition: all var(--transition-fast);
+}
+
+.input:hover {
+  border-color: var(--toss-primary);
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--toss-primary);
+  box-shadow: 0 0 0 3px rgba(0, 100, 255, 0.1);
+}
+
+.input::placeholder {
+  color: var(--toss-gray-400);
+}
+
+/* ==================== RESPONSIVE DESIGN ==================== */
+@media (max-width: 768px) {
+  .transactionForm {
+    gap: var(--space-4);
+  }
+
+  .formSection {
+    gap: var(--space-2);
+  }
+
+  .input,
+  .selectButton {
+    font-size: 16px; /* Prevent zoom on iOS */
+  }
+}

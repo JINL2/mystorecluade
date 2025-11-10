@@ -33,9 +33,9 @@
 
 ### 1. Clean Architecture (3개 레이어)
 우리는 **Clean Architecture**를 따릅니다:
-- **Domain Layer** (도메인): 비즈니스 엔티티, repository 인터페이스, 검증 로직
+- **Domain Layer** (도메인): 비즈니스 엔티티, repository 인터페이스, 검증 규칙 정의
 - **Data Layer** (데이터): Repository 구현체, data source (Supabase RPC), models (DTO)
-- **Presentation Layer** (프레젠테이션): React 컴포넌트, Hooks, 페이지
+- **Presentation Layer** (프레젠테이션): React 컴포넌트, Custom Hooks (비즈니스 로직 실행), 페이지
 
 ### 2. Feature-First Organization
 각 feature는 **완전히 독립**되어 있으며 자체 domain/data/presentation 레이어를 가집니다.
@@ -175,11 +175,11 @@ website/
     │   │           ├── CompanySelector.tsx
     │   │           └── CompanySelector.module.css
     │   │
-    │   └── hooks/                # ✅ 공통 Custom Hooks
-    │       ├── useAuth.ts       # 인증 관련 hook
-    │       ├── useLocalStorage.ts # LocalStorage hook
-    │       ├── useDebounce.ts   # Debounce hook
-    │       └── useAsync.ts      # 비동기 처리 hook
+    │   └── hooks/                # ✅ 전역 Custom Hooks (여러 feature에서 사용)
+    │       ├── useAuth.ts       # 전역 인증 상태 관리
+    │       ├── useLocalStorage.ts # LocalStorage hook (UI 전용)
+    │       ├── useDebounce.ts   # Debounce hook (UI 전용)
+    │       └── useAsync.ts      # 비동기 처리 hook (UI 전용)
     │
     ├── features/                 # 🎯 Feature Modules (Clean Architecture)
     │   ├── auth/                # 인증 feature
@@ -212,9 +212,9 @@ website/
     │   │       │       └── RegisterForm.module.css
     │   │       │
     │   │       └── hooks/                   # Feature 전용 Custom Hooks
-    │   │           ├── useLogin.ts
-    │   │           ├── useRegister.ts
-    │   │           └── useAuthForm.ts
+    │   │           ├── useLogin.ts          # 로그인 로직 (Validation + Repository)
+    │   │           ├── useRegister.ts       # 회원가입 로직 (Validation + Repository)
+    │   │           └── useAuthForm.ts       # 폼 상태 관리
     │   │
     │   ├── dashboard/            # 대시보드 feature
     │   │   ├── domain/
@@ -243,7 +243,7 @@ website/
     │   │       │       ├── QuickActions.tsx
     │   │       │       └── QuickActions.module.css
     │   │       └── hooks/
-    │   │           └── useDashboard.ts
+    │   │           └── useDashboard.ts      # 대시보드 로직 (Repository 호출)
     │   │
     │   ├── inventory/            # 재고 관리 feature
     │   │   ├── domain/
@@ -283,9 +283,9 @@ website/
     │   │       │       └── ProductRow.module.css
     │   │       │
     │   │       └── hooks/
-    │   │           ├── useInventory.ts
-    │   │           ├── useProducts.ts
-    │   │           └── useExcelImport.ts
+    │   │           ├── useInventory.ts      # 재고 관리 로직 (Repository 호출)
+    │   │           ├── useProducts.ts       # 상품 관리 로직 (Validation + Repository)
+    │   │           └── useExcelImport.ts    # Excel 가져오기 로직 (Validation + Repository)
     │   │
     │   ├── finance/              # 재무 관리 feature
     │   │   ├── domain/
@@ -558,6 +558,47 @@ export const TossButton: React.FC<TossButtonProps> = ({
 }
 ```
 
+**`shared/hooks/` - 전역 Custom Hooks**:
+```
+shared/hooks/
+├── useAuth.ts           # 전역 인증 상태 관리 (여러 feature에서 사용)
+├── useLocalStorage.ts   # LocalStorage hook (UI 전용)
+├── useDebounce.ts       # Debounce hook (UI 전용)
+└── useAsync.ts          # 비동기 처리 hook (UI 전용)
+```
+
+**포함되어야 하는 것**:
+- ✅ 전역 인증 상태 관리 (useAuth)
+- ✅ UI 전용 hooks (useToggle, useDebounce, useMediaQuery)
+- ✅ 브라우저 API hooks (useLocalStorage, useSessionStorage)
+
+**포함되면 안 되는 것**:
+- ❌ Feature-specific 비즈니스 로직 (→ `features/*/presentation/hooks/`)
+- ❌ 복잡한 Validation + Repository 로직 (→ `features/*/presentation/hooks/`)
+- ❌ Feature 특화 데이터 관리 (→ `features/*/presentation/hooks/`)
+
+**예제**:
+```typescript
+// ✅ shared/hooks/useAuth.ts - 전역 인증 상태
+import { useState, useEffect } from 'react';
+import { AuthRepositoryImpl } from '@/features/auth/data/repositories/AuthRepositoryImpl';
+
+export const useAuth = () => {
+  const [user, setUser] = useState(null);
+  const [authenticated, setAuthenticated] = useState(false);
+
+  const repository = new AuthRepositoryImpl();
+
+  const checkAuth = async () => {
+    const currentUser = await repository.getCurrentUser();
+    setUser(currentUser);
+    setAuthenticated(currentUser !== null);
+  };
+
+  return { user, authenticated, signOut: repository.signOut };
+};
+```
+
 ---
 
 ### 🎯 `features/` - Complete Feature Implementation
@@ -574,32 +615,39 @@ export const TossButton: React.FC<TossButtonProps> = ({
 **각 feature의 구조**:
 ```
 features/my_feature/
-├── domain/                    # 비즈니스 로직
+├── domain/                    # 비즈니스 규칙 정의
 │   ├── entities/             # 비즈니스 객체
-│   │   └── MyEntity.js
+│   │   └── MyEntity.ts
 │   ├── repositories/         # Repository 인터페이스 (추상)
-│   │   └── MyRepository.js
-│   └── validators/           # 검증 로직
-│       └── MyValidator.js
+│   │   └── IMyRepository.ts
+│   └── validators/           # 검증 규칙 정의 (정적 메서드)
+│       └── MyValidator.ts
 ├── data/                      # 데이터 처리
 │   ├── datasources/          # API 호출, RPC 실행
-│   │   └── MyDataSource.js
+│   │   └── MyDataSource.ts
 │   ├── models/               # DTO + Mapper
-│   │   └── MyModel.js
+│   │   └── MyModel.ts
 │   └── repositories/         # Repository 구현체
-│       └── MyRepositoryImpl.js
-└── presentation/              # UI
+│       └── MyRepositoryImpl.ts
+└── presentation/              # UI + 비즈니스 로직 실행
     ├── pages/                # 전체 페이지
-    │   └── my_page/
-    │       ├── my_page.html  # HTML 구조만
-    │       ├── my_page.css   # 스타일
-    │       └── my_page.js    # 페이지 로직
-    ├── widgets/              # Feature 전용 위젯
-    │   └── MyWidget/
-    │       ├── MyWidget.js
-    │       └── MyWidget.css
-    └── state/                # 상태 관리
-        └── MyState.js
+    │   └── MyPage/
+    │       ├── MyPage.tsx         # React 컴포넌트
+    │       ├── MyPage.module.css  # CSS Module
+    │       ├── MyPage.types.ts    # Type 정의
+    │       └── index.ts           # Barrel export
+    ├── components/           # Feature 전용 컴포넌트
+    │   └── MyComponent/
+    │       ├── MyComponent.tsx
+    │       ├── MyComponent.module.css
+    │       └── MyComponent.types.ts
+    └── hooks/                # Feature 전용 Custom Hooks
+        └── useMyFeature.ts   # Validation 실행 + Repository 호출
+```
+
+**🔑 중요**:
+- `domain/validators/`: 검증 **규칙만 정의** (정적 메서드)
+- `presentation/hooks/`: 검증 **실행** + Repository 호출 (비즈니스 로직 실행)
 ```
 
 **예제**: [실전 예제](#실전-예제-practical-examples) 섹션 참고
@@ -621,16 +669,24 @@ features/my_feature/
 ❌ core/inventory/InventoryPage.js        # → features/inventory/
 ```
 
-### 규칙 2: `shared/` = UI만, 비즈니스 로직 없음
+### 규칙 2: `shared/` = UI + 전역 Hooks만, Feature 비즈니스 로직 없음
 
 ```
-✅ shared/components/toss/TossButton/TossButton.js       # UI 컴포넌트
-✅ shared/components/common/TossDialog/TossDialog.js     # 공통 위젯
+✅ shared/components/toss/TossButton/TossButton.tsx      # UI 컴포넌트
+✅ shared/components/common/TossDialog/TossDialog.tsx    # 공통 위젯
 ✅ shared/themes/toss-colors.css                         # 디자인 토큰
+✅ shared/hooks/useAuth.ts                               # 전역 인증 상태
+✅ shared/hooks/useDebounce.ts                           # UI 전용 Hook
 
-❌ shared/services/api-service.js                        # → core/services/
-❌ shared/domain/Product.js                              # → features/*/domain/
-❌ shared/data/repositories/ProductRepository.js         # → features/*/data/
+❌ shared/services/api-service.ts                        # → core/services/
+❌ shared/domain/Product.ts                              # → features/*/domain/
+❌ shared/data/repositories/ProductRepository.ts         # → features/*/data/
+❌ shared/hooks/useInventory.ts                          # → features/inventory/presentation/hooks/
+```
+
+**핵심**:
+- `shared/hooks/`: 전역 상태 관리 + UI 전용 Hook만
+- `features/*/presentation/hooks/`: Feature-specific 비즈니스 로직 (Validation + Repository)
 ```
 
 ### 규칙 3: `features/` = 완전한 feature (domain/data/presentation)
@@ -865,44 +921,96 @@ features/inventory/presentation/components/InventoryTable/
 └── index.ts                   # Barrel export
 ```
 
-### 규칙 3: 비즈니스 로직은 **Hooks로 분리**
+### 규칙 3: 비즈니스 로직은 **Hooks로 분리** (Validation 실행 + Repository 호출)
+
+**핵심 패턴**: Custom Hooks는 Validator를 호출하여 검증을 실행하고, Repository를 호출합니다.
 
 ```typescript
-// ✅ hooks/useInventory.ts - 비즈니스 로직
-import { useState, useEffect, useCallback } from 'react';
-import { InventoryRepository } from '@/features/inventory/data/repositories/InventoryRepositoryImpl';
-import type { Product } from '@/features/inventory/domain/entities/Product';
+// ✅ 1. domain/validators/AuthValidator.ts - 검증 규칙 정의
+export class AuthValidator {
+  static validateEmail(email: string): ValidationError | null {
+    if (!email.trim()) {
+      return { field: 'email', message: 'Email is required' };
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return { field: 'email', message: 'Invalid email format' };
+    }
+    return null;
+  }
 
-export const useInventory = (companyId: string, storeId: string) => {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
+  static validatePassword(password: string): ValidationError | null {
+    if (!password.trim()) {
+      return { field: 'password', message: 'Password is required' };
+    }
+    if (password.length < 6) {
+      return { field: 'password', message: 'Password must be at least 6 characters' };
+    }
+    return null;
+  }
+
+  static validateLoginCredentials(email: string, password: string): ValidationError[] {
+    const errors: ValidationError[] = [];
+    const emailError = this.validateEmail(email);
+    if (emailError) errors.push(emailError);
+    const passwordError = this.validatePassword(password);
+    if (passwordError) errors.push(passwordError);
+    return errors;
+  }
+}
+```
+
+```typescript
+// ✅ 2. presentation/hooks/useLogin.ts - 검증 실행 + Repository 호출
+import { useState } from 'react';
+import { AuthRepositoryImpl } from '../../data/repositories/AuthRepositoryImpl';
+import { AuthValidator } from '../../domain/validators/AuthValidator';
+
+export const useLogin = () => {
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
-  const repository = new InventoryRepository();
+  const repository = new AuthRepositoryImpl();
 
-  const loadProducts = useCallback(async () => {
+  const login = async (email: string, password: string) => {
+    // 1. Validator 호출 (검증 실행)
+    const validationErrors = AuthValidator.validateLoginCredentials(email, password);
+    if (validationErrors.length > 0) {
+      const errors: Record<string, string> = {};
+      validationErrors.forEach((err) => {
+        errors[err.field] = err.message;
+      });
+      setFieldErrors(errors);
+      return { success: false };
+    }
+
+    // 2. Repository 호출 (데이터 처리)
+    setLoading(true);
     try {
-      setLoading(true);
-      const data = await repository.getProducts(companyId, storeId);
-      setProducts(data);
+      const result = await repository.signIn({ email, password });
+      if (!result.success) {
+        setError(result.error || 'Login failed');
+        return { success: false };
+      }
+      return { success: true, user: result.user };
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unknown error');
+      setError(err instanceof Error ? err.message : 'An error occurred');
+      return { success: false };
     } finally {
       setLoading(false);
     }
-  }, [companyId, storeId]);
+  };
 
-  useEffect(() => {
-    loadProducts();
-  }, [loadProducts]);
-
-  const handleImport = useCallback(async (products: Product[]) => {
-    await repository.importExcel(companyId, storeId, 'userId', products);
-    await loadProducts();
-  }, [companyId, storeId]);
-
-  return { products, loading, error, handleImport, handleExport: () => {} };
+  return { login, loading, error, fieldErrors };
 };
+```
+
+**흐름**:
+```
+Page → Custom Hook (Validator 호출 → Repository 호출) → Repository → DataSource → DB
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                     비즈니스 로직 실행 위치
 ```
 
 ### 규칙 4: Domain/Data Layer는 **클래스 기반 유지**
@@ -1737,9 +1845,9 @@ export class ExcelImporter {
 ```
 
 **왜 이 구조인가?**
-- `domain/` - 비즈니스 엔티티와 검증 로직
+- `domain/` - 비즈니스 엔티티와 검증 규칙 정의
 - `data/` - API 호출과 데이터 변환
-- `presentation/` - UI 로직과 위젯
+- `presentation/` - UI 로직과 비즈니스 로직 실행 (Validators + Repository 호출)
 - 각 레이어는 독립적이며 테스트 가능
 
 ---
@@ -1771,7 +1879,7 @@ export const TossCard: React.FC<TossCardProps> = ({ onClick, children }) => {
 };
 ```
 
-**왜 틀렸나?** `shared/`는 **순수 UI 컴포넌트 전용**입니다. 비즈니스 로직은 `features/*/hooks/` 또는 `features/*/data/`에 속합니다.
+**왜 틀렸나?** `shared/`는 **UI 컴포넌트 + 전역/UI hooks 전용**입니다. Feature-specific 비즈니스 로직은 `features/*/presentation/hooks/` 또는 `features/*/data/`에 속합니다.
 
 ---
 
@@ -1880,7 +1988,7 @@ import { SupabaseService } from '@/core/services/supabase.service';
 ### 1. 코드 리뷰 체크리스트
 
 PR을 승인하기 전에 확인:
-- [ ] `shared/`에 비즈니스 로직이 없음 (순수 UI 컴포넌트만)
+- [ ] `shared/`에 Feature-specific 비즈니스 로직이 없음 (UI 컴포넌트 + 전역/UI hooks만)
 - [ ] `core/`에 UI 컴포넌트가 없음 (서비스 & 유틸리티만)
 - [ ] `core/`에 완전한 feature가 없음
 - [ ] 모든 CSS가 CSS Module로 작성됨 (`.module.css`)
@@ -1891,8 +1999,10 @@ PR을 승인하기 전에 확인:
   - TS: ≤30KB
   - CSS: ≤20KB
 - [ ] Feature가 domain/data/presentation 구조를 따름
+- [ ] 검증 규칙은 `domain/validators/`에 정의 (static methods)
+- [ ] 검증 실행 + Repository 호출은 `presentation/hooks/`에 구현
 - [ ] 컴포넌트가 폴더 단위로 구성됨 (TSX + CSS Module + Types + Index)
-- [ ] 비즈니스 로직이 커스텀 훅으로 분리됨
+- [ ] 비즈니스 로직이 커스텀 훅으로 분리됨 (Validator 호출 → Repository 호출)
 
 ### 2. 파일 크기 검사
 
@@ -1936,9 +2046,12 @@ npm run format
 ### 5. 구조 검증
 
 ```bash
-# shared/에 hooks나 비즈니스 로직이 있는지 확인
-find src/shared -name "*service.ts" -o -name "*repository.ts" -o -name "use*.ts"
-# 결과가 없어야 함 (hooks는 features에 있어야 함)
+# shared/에 비즈니스 로직이 있는지 확인 (service, repository는 금지)
+find src/shared -name "*service.ts" -o -name "*repository.ts"
+# 결과가 없어야 함
+
+# shared/hooks/는 전역 hooks만 (useAuth, useDebounce 등)
+# Feature-specific hooks (useInventory, useLogin 등)는 features/*/presentation/hooks/에 있어야 함
 
 # core/에 React 컴포넌트가 있는지 확인
 find src/core -name "*.tsx"
@@ -1973,8 +2086,8 @@ core/
 └── types/        # 전역 타입 정의
 ```
 
-### 2. **`shared/` = 순수 UI 컴포넌트만**
-디자인 시스템, 재사용 가능한 UI 컴포넌트. **비즈니스 로직 & hooks 금지**.
+### 2. **`shared/` = UI 컴포넌트 + 전역 Hooks만**
+디자인 시스템, 재사용 가능한 UI 컴포넌트, 전역 상태 관리 hooks. **Feature-specific 비즈니스 로직 금지**.
 
 ```
 shared/
@@ -1982,7 +2095,8 @@ shared/
 │   ├── common/     # 공통 컴포넌트 (Loading, Modal 등)
 │   ├── toss/       # Toss 디자인 시스템 컴포넌트
 │   └── selectors/  # Selector 컴포넌트
-├── hooks/          # UI 전용 hooks (useToggle, useDebounce 등)
+├── hooks/          # ✅ 전역 hooks (useAuth) + UI 전용 hooks (useToggle, useDebounce)
+│                   # ❌ Feature-specific 비즈니스 로직 → features/*/presentation/hooks/
 └── themes/         # CSS 변수, 테마
 ```
 
@@ -1991,13 +2105,18 @@ shared/
 
 ```
 features/[feature-name]/
-├── domain/           # 비즈니스 로직 (엔티티, 검증)
+├── domain/           # 비즈니스 규칙 정의 (엔티티, 검증 규칙 정의)
+│   └── validators/   # 검증 규칙만 정의 (정적 메서드)
 ├── data/             # 데이터 접근 (Repository, DataSource, DTO)
-└── presentation/     # UI 레이어 (컴포넌트, 페이지, hooks)
+└── presentation/     # UI 레이어 + 비즈니스 로직 실행
     ├── pages/
     ├── components/
-    └── hooks/        # Feature-specific 커스텀 훅
+    └── hooks/        # Feature-specific 커스텀 훅 (Validation 실행 + Repository 호출)
 ```
+
+**🔑 핵심 패턴**:
+- `domain/validators/`: 검증 **규칙만 정의** (static methods)
+- `presentation/hooks/`: 검증 **실행** + Repository 호출 (비즈니스 로직 흐름)
 
 ### 4. **파일 크기 제한 = 엄격히 준수**
 React + TypeScript 파일 크기 규칙:
@@ -2039,15 +2158,19 @@ ComponentName/
 └── index.ts                  # Barrel export
 ```
 
-### 8. **비즈니스 로직 = Hooks로 분리**
-컴포넌트는 UI 렌더링만 담당. 복잡한 로직은 커스텀 훅으로 분리.
+### 8. **비즈니스 로직 = Validators + Hooks 패턴**
+컴포넌트는 UI 렌더링만 담당. 검증 규칙은 Domain/Validators에 정의, 실행은 Presentation/Hooks에서.
 
 ```typescript
-// ✅ 올바름
-export const InventoryPage: React.FC = () => {
-  const { products, loading, handleImport } = useInventory();
-  return <InventoryTable products={products} />;
+// ✅ 올바름: 컴포넌트 → Hook → Validator + Repository
+export const LoginPage: React.FC = () => {
+  const { login, loading, error } = useLogin();
+  return <LoginForm onSubmit={login} />;
 };
+
+// useLogin Hook 내부:
+// 1. AuthValidator.validateLoginCredentials() 호출 (검증 실행)
+// 2. repository.signIn() 호출 (데이터 처리)
 ```
 
 ---
@@ -2083,7 +2206,7 @@ export const InventoryPage: React.FC = () => {
 - [ ] `src/shared/` 폴더 생성
   - [ ] `shared/components/common/` - 공통 컴포넌트
   - [ ] `shared/components/toss/` - Toss 디자인 시스템
-  - [ ] `shared/hooks/` - UI 전용 hooks
+  - [ ] `shared/hooks/` - 전역 hooks (useAuth) + UI 전용 hooks (useDebounce)
   - [ ] `shared/themes/` - CSS 변수, 테마
 - [ ] `src/features/` 폴더 생성
 - [ ] `src/routes/` 폴더 생성 - React Router 설정
@@ -2107,9 +2230,9 @@ export const InventoryPage: React.FC = () => {
 - [ ] **2. `features/dashboard/`** (대시보드)
   - [ ] Clean Architecture 3-layer 구조 생성
 - [ ] **3. `features/inventory/`** (재고 관리 - 가장 복잡)
-  - [ ] domain/ (Product 엔티티, 검증 로직)
+  - [ ] domain/ (Product 엔티티, 검증 규칙 정의)
   - [ ] data/ (Repository, DataSource, DTO)
-  - [ ] presentation/ (InventoryPage, 컴포넌트, hooks)
+  - [ ] presentation/ (InventoryPage, 컴포넌트, hooks - 검증 실행 + Repository 호출)
 - [ ] **4. 기타 Features**
   - [ ] features/finance/
   - [ ] features/employee/

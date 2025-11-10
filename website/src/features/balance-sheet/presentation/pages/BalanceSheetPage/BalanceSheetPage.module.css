@@ -1,0 +1,319 @@
+/**
+ * BalanceSheetPage Component Styles
+ * Following Toss Design System standards
+ */
+
+/* Page Container - Full White Background */
+.pageContainer {
+  min-height: 100vh;
+  background: #FFFFFF; /* White - Full page background */
+}
+
+/* Page Content - Centered Container */
+.pageContent {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 32px;
+}
+
+/* Page Header */
+.pageHeader {
+  margin-bottom: 24px;
+}
+
+.pageTitle {
+  font-size: 32px; /* Display size */
+  font-weight: 700; /* Bold */
+  color: #212529; /* Gray 900 - Primary text */
+  margin: 0 0 8px 0;
+}
+
+.pageSubtitle {
+  font-size: 16px; /* Body Large */
+  font-weight: 400; /* Regular */
+  color: #6C757D; /* Gray 600 - Secondary text */
+  margin: 0;
+}
+
+/* Content Card - WHITE CARD */
+.contentCard {
+  background: #FFFFFF; /* White */
+  border-radius: 12px; /* Card radius */
+  padding: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04); /* Level 1 shadow */
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  min-height: 400px;
+}
+
+/* Empty State with Toss Style Illustration */
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 64px 32px;
+}
+
+.emptyIcon {
+  width: 120px;
+  height: 120px;
+  margin-bottom: 24px;
+}
+
+.emptyTitle {
+  font-size: 24px; /* H2 */
+  font-weight: 600; /* Semibold */
+  color: #212529; /* Gray 900 */
+  margin: 0 0 8px 0;
+}
+
+.emptyText {
+  font-size: 16px; /* Body Large */
+  font-weight: 400; /* Regular */
+  color: #6C757D; /* Gray 600 */
+  margin: 0;
+  max-width: 400px;
+}
+
+/* Loading State */
+.loadingState {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+}
+
+.spinner {
+  font-size: 16px;
+  font-weight: 500;
+  color: #6C757D; /* Gray 600 */
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* Error State */
+.errorContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  text-align: center;
+  padding: 48px;
+}
+
+.errorIcon {
+  font-size: 64px;
+  margin-bottom: 24px;
+}
+
+.errorTitle {
+  font-size: 24px; /* H2 */
+  font-weight: 600; /* Semibold */
+  color: #212529; /* Gray 900 */
+  margin: 0 0 12px 0;
+}
+
+.errorMessage {
+  font-size: 16px; /* Body Large */
+  font-weight: 400; /* Regular */
+  color: #6C757D; /* Gray 600 */
+  margin: 0 0 24px 0;
+  max-width: 500px;
+}
+
+/* Summary Cards */
+.summaryCards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.summaryCard {
+  background: #F8F9FA; /* Gray 50 */
+  border-radius: 12px; /* Card radius */
+  padding: 20px;
+  border-left: 4px solid;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.summaryCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); /* Level 2 shadow */
+}
+
+.summaryCard.assets {
+  border-left-color: #0064FF; /* Toss Blue */
+  background: linear-gradient(135deg, #F0F6FF 0%, #FFFFFF 100%); /* Toss Blue Surface */
+}
+
+.summaryCard.liabilities {
+  border-left-color: #FF9500; /* Toss Orange */
+  background: linear-gradient(135deg, #FFF4E6 0%, #FFFFFF 100%); /* Warning Light */
+}
+
+.summaryCard.equity {
+  border-left-color: #00C896; /* Toss Green */
+  background: linear-gradient(135deg, #E3FFF4 0%, #FFFFFF 100%); /* Success Light */
+}
+
+.summaryCardLabel {
+  font-size: 12px; /* Label */
+  font-weight: 600; /* Semibold */
+  color: #6C757D; /* Gray 600 */
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+
+.summaryCardValue {
+  font-size: 28px;
+  font-weight: 700; /* Bold */
+  color: #212529; /* Gray 900 */
+  font-family: var(--font-family-mono); /* USE CSS VARIABLE! */
+  text-decoration: none; /* Remove any underline */
+  margin-bottom: 4px;
+}
+
+.summaryCardPercent {
+  font-size: 13px; /* Body Small */
+  font-weight: 400; /* Regular */
+  color: #6C757D; /* Gray 600 */
+}
+
+/* Balance Sheet Columns (Two Column Layout) */
+.balanceSheetColumns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  align-items: start;
+}
+
+@media (max-width: 1024px) {
+  .balanceSheetColumns {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Section Card */
+.sectionCard {
+  background: #FFFFFF; /* White */
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 12px; /* Card radius */
+  padding: 20px;
+  margin-bottom: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #E9ECEF; /* Gray 200 */
+}
+
+.sectionTitle {
+  font-size: 14px; /* Body - DESIGN SYSTEM SPEC */
+  font-weight: 700; /* Bold */
+  color: #212529; /* Gray 900 */
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.sectionTotal {
+  font-size: 18px; /* H4 */
+  font-weight: 700; /* Bold */
+  color: #212529; /* Gray 900 */
+  font-family: var(--font-family-mono); /* USE CSS VARIABLE! */
+  text-decoration: none; /* Remove any underline */
+}
+
+/* Account List */
+.accountList {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.accountItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 12px;
+  border-radius: 6px; /* Chip radius */
+  transition: background 0.15s ease;
+}
+
+.accountItem:hover {
+  background: #F8F9FA; /* Gray 50 */
+}
+
+.accountName {
+  font-size: 14px; /* Body */
+  font-weight: 500; /* Medium */
+  color: #495057; /* Gray 700 */
+}
+
+.accountBalance {
+  font-size: 14px; /* Body */
+  font-weight: 600; /* Semibold */
+  color: #212529; /* Gray 900 */
+  font-family: var(--font-family-mono); /* USE CSS VARIABLE! */
+  text-decoration: none; /* Remove any underline */
+}
+
+/* Responsive - Mobile */
+@media (max-width: 768px) {
+  .pageContent {
+    padding: 16px;
+  }
+
+  .pageTitle {
+    font-size: 28px; /* H1 on mobile */
+  }
+
+  .pageSubtitle {
+    font-size: 14px; /* Body on mobile */
+  }
+
+  .summaryCards {
+    grid-template-columns: 1fr;
+  }
+
+  .summaryCardValue {
+    font-size: 24px;
+  }
+
+  .contentCard {
+    padding: 16px;
+  }
+
+  .emptyState {
+    padding: 40px 16px;
+  }
+
+  .emptyIcon {
+    width: 80px;
+    height: 80px;
+  }
+}
+
+/* Responsive - Tablet */
+@media (min-width: 768px) and (max-width: 1024px) {
+  .pageContent {
+    padding: 24px;
+  }
+}

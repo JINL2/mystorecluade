@@ -1,0 +1,448 @@
+/**
+ * AccountMappingPage Styles
+ * Account mapping configuration page styling
+ */
+
+.container {
+  min-height: 100vh;
+  padding: var(--space-6);
+  background: var(--toss-gray-50);
+}
+
+.pageHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-6);
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.pageTitle {
+  font-size: var(--font-h1);
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 var(--space-2) 0;
+}
+
+.pageSubtitle {
+  font-size: var(--font-large);
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.addButton {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-5);
+  background: var(--toss-primary);
+  color: white;
+  border: none;
+  border-radius: var(--radius-medium);
+  font-size: var(--font-base);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.addButton:hover {
+  background: var(--toss-blue-600);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-medium);
+}
+
+/* Loading & Error States */
+.loadingSpinner {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: var(--space-8);
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--toss-gray-200);
+  border-top-color: var(--toss-primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.errorState {
+  text-align: center;
+  padding: var(--space-8);
+}
+
+.errorMessage {
+  color: var(--toss-red-500);
+  font-size: var(--font-base);
+  margin-bottom: var(--space-4);
+}
+
+.retryButton {
+  padding: var(--space-3) var(--space-4);
+  background: var(--toss-primary);
+  color: white;
+  border: none;
+  border-radius: var(--radius-medium);
+  font-size: var(--font-base);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.retryButton:hover {
+  background: var(--toss-blue-600);
+}
+
+/* Empty State */
+.emptyState {
+  text-align: center;
+  padding: var(--space-8);
+  background: white;
+  border-radius: var(--radius-large);
+  box-shadow: var(--shadow-card);
+}
+
+.emptySection {
+  text-align: center;
+  padding: var(--space-6);
+  color: var(--text-tertiary);
+  background: white;
+  border-radius: var(--radius-large);
+  box-shadow: var(--shadow-card);
+}
+
+/* Section */
+.section {
+  margin-bottom: var(--space-8);
+}
+
+.sectionTitle {
+  font-size: var(--font-h3);
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 var(--space-1) 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.sectionSubtitle {
+  font-size: var(--font-base);
+  color: var(--text-secondary);
+  margin: 0 0 var(--space-4) 0;
+}
+
+.lockBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  background: var(--toss-gray-100);
+  border-radius: var(--radius-small);
+  font-size: 12px;
+  color: var(--toss-gray-600);
+  font-weight: 500;
+}
+
+/* Cards Grid */
+.cardsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: var(--space-4);
+}
+
+.card {
+  background: white;
+  border: 1px solid var(--toss-gray-200);
+  border-radius: var(--radius-large);
+  padding: var(--space-4);
+  box-shadow: var(--shadow-card);
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-medium);
+  border-color: var(--toss-primary);
+}
+
+.card.readOnly {
+  background: var(--toss-gray-50);
+  opacity: 0.9;
+}
+
+.card.readOnly:hover {
+  transform: none;
+  box-shadow: var(--shadow-card);
+  border-color: var(--toss-gray-200);
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.accountCode {
+  font-family: monospace;
+  font-size: var(--font-large);
+  font-weight: 600;
+  color: var(--toss-primary);
+}
+
+.typeBadge {
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-small);
+  font-size: var(--font-small);
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.typeBadge.payable {
+  background: rgba(239, 68, 68, 0.1);
+  color: rgb(239, 68, 68);
+}
+
+.typeBadge.receivable {
+  background: rgba(59, 130, 246, 0.1);
+  color: rgb(59, 130, 246);
+}
+
+.typeBadge.contra_asset {
+  background: rgba(107, 114, 128, 0.1);
+  color: rgb(107, 114, 128);
+}
+
+.typeBadge.cash {
+  background: rgba(34, 197, 94, 0.1);
+  color: rgb(34, 197, 94);
+}
+
+.typeBadge.general {
+  background: rgba(107, 114, 128, 0.1);
+  color: rgb(107, 114, 128);
+}
+
+.typeBadge.fixed_asset {
+  background: rgba(168, 85, 247, 0.1);
+  color: rgb(168, 85, 247);
+}
+
+.typeBadge.equity {
+  background: rgba(14, 165, 233, 0.1);
+  color: rgb(14, 165, 233);
+}
+
+.cardBody {
+  flex: 1;
+}
+
+.accountName {
+  font-size: var(--font-base);
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: var(--space-1);
+}
+
+.description {
+  font-size: var(--font-small);
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.cardFooter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--toss-gray-100);
+}
+
+.createdDate {
+  font-size: var(--font-small);
+  color: var(--text-tertiary);
+}
+
+.deleteButton {
+  padding: var(--space-2) var(--space-3);
+  background: transparent;
+  color: var(--toss-red-500);
+  border: 1px solid var(--toss-red-500);
+  border-radius: var(--radius-small);
+  font-size: var(--font-small);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.deleteButton:hover {
+  background: var(--toss-red-500);
+  color: white;
+}
+
+/* Modal */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal {
+  background: white;
+  border-radius: var(--radius-large);
+  width: 90%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow: auto;
+  box-shadow: var(--shadow-large);
+}
+
+.modalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-5);
+  border-bottom: 1px solid var(--toss-gray-200);
+}
+
+.modalHeader h2 {
+  font-size: var(--font-h3);
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.closeButton {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-small);
+  cursor: pointer;
+  color: var(--text-tertiary);
+  transition: all 0.2s ease;
+}
+
+.closeButton:hover {
+  background: var(--toss-gray-100);
+  color: var(--text-primary);
+}
+
+.modalBody {
+  padding: var(--space-5);
+}
+
+.formGroup {
+  margin-bottom: var(--space-4);
+}
+
+.formGroup label {
+  display: block;
+  font-size: var(--font-base);
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: var(--space-2);
+}
+
+.formGroup input,
+.formGroup select,
+.formGroup textarea {
+  width: 100%;
+  padding: var(--space-3);
+  border: 1px solid var(--toss-gray-200);
+  border-radius: var(--radius-medium);
+  font-size: var(--font-base);
+  transition: all 0.2s ease;
+}
+
+.formGroup input:focus,
+.formGroup select:focus,
+.formGroup textarea:focus {
+  outline: none;
+  border-color: var(--toss-primary);
+  box-shadow: 0 0 0 3px rgba(0, 100, 255, 0.1);
+}
+
+.modalFooter {
+  display: flex;
+  gap: var(--space-3);
+  padding: var(--space-5);
+  border-top: 1px solid var(--toss-gray-200);
+}
+
+.cancelButton,
+.saveButton {
+  flex: 1;
+  padding: var(--space-3);
+  border: none;
+  border-radius: var(--radius-medium);
+  font-size: var(--font-base);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cancelButton {
+  background: var(--toss-gray-100);
+  color: var(--text-primary);
+}
+
+.cancelButton:hover {
+  background: var(--toss-gray-200);
+}
+
+.saveButton {
+  background: var(--toss-primary);
+  color: white;
+}
+
+.saveButton:hover {
+  background: var(--toss-blue-600);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .container {
+    padding: var(--space-4);
+  }
+
+  .pageHeader {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .addButton {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .cardsGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .modal {
+    width: 95%;
+  }
+}
