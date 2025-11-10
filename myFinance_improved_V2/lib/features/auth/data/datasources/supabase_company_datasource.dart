@@ -59,19 +59,8 @@ class SupabaseCompanyDataSource implements CompanyDataSource {
   @override
   Future<CompanyModel> createCompany(Map<String, dynamic> companyData) async {
     try {
-      // Check for duplicates
-      final duplicates = await _client
-          .from('companies')
-          .select('company_id')
-          .eq('owner_id', companyData['owner_id'] as Object)
-          .ilike('company_name', companyData['company_name'] as String)
-          .eq('is_deleted', false);
-
-      if (duplicates.isNotEmpty) {
-        throw Exception('Company name already exists');
-      }
-
-      // Insert company
+      // DataSource는 단순히 데이터만 저장
+      // Validation은 UseCase/Domain layer에서 처리됨
       final createdData = await _client
           .from('companies')
           .insert(companyData)

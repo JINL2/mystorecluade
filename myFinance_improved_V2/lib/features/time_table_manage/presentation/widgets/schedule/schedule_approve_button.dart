@@ -70,7 +70,8 @@ class ScheduleApproveButton extends StatelessWidget {
           context: context,
           barrierDismissible: true,
           builder: (context) => TossDialog.success(
-            title: '${selectedShiftRequests.length} shift request(s) $action successfully',
+            title: 'Success',
+            message: 'Shift request(s) $action successfully',
             primaryButtonText: 'OK',
             onPrimaryPressed: () => Navigator.of(context).pop(),
           ),

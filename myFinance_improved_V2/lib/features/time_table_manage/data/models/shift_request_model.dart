@@ -55,7 +55,7 @@ class ShiftRequestModel {
       shiftId: shiftId,
       employee: employee.toEntity(),
       isApproved: isApproved,
-      createdAt: DateTimeUtils.toLocal(createdAt),
+      createdAt: createdAt.isNotEmpty ? DateTimeUtils.toLocal(createdAt) : DateTime.now(),
       approvedAt: DateTimeUtils.toLocalSafe(approvedAt),
     );
   }

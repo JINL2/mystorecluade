@@ -3,6 +3,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:uuid/uuid.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
 import '../../../../core/utils/datetime_utils.dart';
@@ -15,6 +16,10 @@ import '../../../../shared/widgets/common/toss_loading_view.dart';
 import '../../../../shared/widgets/common/toss_scaffold.dart';
 import '../../../../shared/widgets/common/toss_success_error_dialog.dart';
 import '../../../../shared/widgets/toss/toss_selection_bottom_sheet.dart';
+import '../../../../shared/widgets/ai_chat/ai_chat_fab.dart';
+import '../../../../core/domain/entities/feature.dart';
+import '../../../homepage/domain/entities/top_feature.dart';
+import '../../domain/entities/manager_shift_cards.dart';
 import '../providers/time_table_providers.dart';
 import '../widgets/bottom_sheets/add_shift_bottom_sheet.dart';
 import '../widgets/bottom_sheets/shift_details_bottom_sheet.dart';
@@ -26,7 +31,9 @@ import '../widgets/schedule/schedule_approve_button.dart';
 import '../widgets/schedule/schedule_shift_card.dart';
 
 class TimeTableManagePage extends ConsumerStatefulWidget {
-  const TimeTableManagePage({super.key});
+  final dynamic feature;
+
+  const TimeTableManagePage({super.key, this.feature});
 
   @override
   ConsumerState<TimeTableManagePage> createState() => _TimeTableManagePageState();
@@ -37,12 +44,20 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
   DateTime selectedDate = DateTime.now();
   DateTime focusedMonth = DateTime.now();
   String? selectedStoreId;
-  
+
   // ScrollController for Schedule tab
   final ScrollController _scheduleScrollController = ScrollController();
-  
+
   // Store shift metadata and monthly status
   dynamic shiftMetadata; // Store shift metadata from RPC
+
+  // Feature info extracted once
+  String? _featureName;
+  String? _featureId;
+  bool _featureInfoExtracted = false;
+
+  // AI Chat session ID - persists while page is active
+  late final String _aiChatSessionId;
   List<dynamic> monthlyShiftData = []; // Store the array response from get_monthly_shift_status_manager
   Set<String> loadedMonths = {}; // Track which months we've already loaded (format: "YYYY-MM")
   bool isLoadingMetadata = false;
@@ -85,10 +100,10 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
   DateTime manageSelectedDate = DateTime.now();
   
   // Manager shift cards data - store by month key "YYYY-MM"
-  Map<String, Map<String, dynamic>> managerCardsDataByMonth = {};
+  Map<String, ManagerShiftCards> managerCardsDataByMonth = {};
   bool isLoadingCards = false;
   
-  // Filter state for manage tab - default to 'approved'
+  // Filter state for manage tab - default to show approved shifts
   String? selectedFilter = 'approved'; // null = 'all', 'problem', 'approved', 'pending'
   
   @override
@@ -105,7 +120,13 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
         }
       }
     });
-    
+
+    // Generate AI Chat session ID - persists for entire page lifecycle
+    _aiChatSessionId = const Uuid().v4();
+
+    // Extract feature info once
+    _extractFeatureInfo();
+
     // Initialize selectedStoreId from app state
     final appState = ref.read(appStateProvider);
     selectedStoreId = appState.storeChoosen.isNotEmpty ? appState.storeChoosen : null;
@@ -119,6 +140,23 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
       fetchManagerCards();
     } else {
     }
+  }
+
+  void _extractFeatureInfo() {
+    if (_featureInfoExtracted) return;
+
+    final feature = widget.feature;
+    if (feature != null) {
+      if (feature is Feature) {
+        _featureName = feature.featureName;
+        _featureId = feature.featureId;
+      } else if (feature is TopFeature) {
+        _featureName = feature.featureName;
+        _featureId = feature.featureId;
+      }
+    }
+
+    _featureInfoExtracted = true;
   }
   
   @override
@@ -289,7 +327,37 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
           ],
         ),
       ),
+      floatingActionButton: AnimatedBuilder(
+        animation: _tabController,
+        builder: (context, child) {
+          if (_tabController.index != 0) {
+            return const SizedBox.shrink();
+          }
+
+          return AiChatFab(
+            featureName: _featureName ?? 'Time Table Manage',
+            pageContext: _buildPageContext(),
+            featureId: _featureId,
+            sessionId: _aiChatSessionId,
+          );
+        },
+      ),
     );
+  }
+
+  Map<String, dynamic> _buildPageContext() {
+    final monthKey = '${manageSelectedDate.year}-${manageSelectedDate.month.toString().padLeft(2, '0')}';
+    final managerOverview = managerOverviewDataByMonth[monthKey];
+    return {
+      'current_tab': _tabController.index == 0 ? 'Manage' : 'Schedule',
+      'selected_date': manageSelectedDate.toIso8601String().split('T')[0],
+      if (managerOverview != null) ...{
+        'total_requests': managerOverview['totalRequests'] ?? 0,
+        'approved_count': managerOverview['approvedCount'] ?? 0,
+        'pending_count': managerOverview['pendingCount'] ?? 0,
+        'problem_count': managerOverview['problemCount'] ?? 0,
+      },
+    };
   }
   
   // Fetch shift metadata from Repository
@@ -514,7 +582,9 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
   
   // Fetch manager shift cards from Supabase RPC
   Future<void> fetchManagerCards({DateTime? forDate, bool forceRefresh = false}) async {
-    if (selectedStoreId == null || selectedStoreId!.isEmpty) return;
+    if (selectedStoreId == null || selectedStoreId!.isEmpty) {
+      return;
+    }
 
     // Use provided date or manageSelectedDate for Manage tab
     final targetDate = forDate ?? manageSelectedDate;
@@ -556,7 +626,6 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
         companyId: companyId,
         storeId: selectedStoreId!,
       );
-
 
       setState(() {
         managerCardsDataByMonth[monthKey] = cardsData;
@@ -725,21 +794,51 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
     }
 
     try {
-      // Try to parse as full DateTime first (e.g., "2024-01-01T09:00:00Z")
+      // 1. Full ISO 8601 format with timezone (e.g., "2024-01-01T09:00:00Z")
       if (utcTime.contains('T') || utcTime.contains('Z')) {
         final localTime = DateTimeUtils.toLocal(utcTime);
-        return DateTimeUtils.formatTimeOnly(localTime);
+        final formattedTime = DateTimeUtils.formatTimeOnly(localTime);
+        return formattedTime;
       }
 
-      // If it's just a time string (e.g., "09:00:00"), treat as UTC time
-      // Create a dummy date to parse the time
-      final today = DateTime.now().toUtc();
-      final dateStr = '${today.year}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}';
-      final fullUtcString = '${dateStr}T$utcTime${utcTime.endsWith('Z') ? '' : 'Z'}';
+      // 2. Time-only format (e.g., "09:00:00", "09:00")
+      // Remove any timezone info and normalize format
+      final cleanTime = utcTime.split('+')[0].split('Z')[0].trim();
+
+      // Create a dummy UTC datetime for today with this time
+      final now = DateTime.now().toUtc();
+      final dateStr = DateTimeUtils.toDateOnly(now);
+
+      // Build full UTC datetime string
+      final fullUtcString = '${dateStr}T${cleanTime}Z';
+
+      // Convert to local and extract time only
       final localTime = DateTimeUtils.toLocal(fullUtcString);
-      return DateTimeUtils.formatTimeOnly(localTime);
+      final formattedTime = DateTimeUtils.formatTimeOnly(localTime);
+
+      return formattedTime;
+
     } catch (e) {
-      // If conversion fails, return original time
+      // Try one more fallback: parse as HH:mm format
+      try {
+        final parts = utcTime.split(':');
+        if (parts.length >= 2) {
+          final hour = int.parse(parts[0]);
+          final minute = int.parse(parts[1]);
+
+          // Create UTC datetime and convert to local
+          final now = DateTime.now().toUtc();
+          final utcDateTime = DateTime.utc(now.year, now.month, now.day, hour, minute);
+          final localDateTime = utcDateTime.toLocal();
+          final formattedTime = DateTimeUtils.formatTimeOnly(localDateTime);
+
+          return formattedTime;
+        }
+      } catch (e2) {
+        // Silently handle fallback failure
+      }
+
+      // Final fallback: return original
       return utcTime;
     }
   }
@@ -1044,28 +1143,11 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
         await fetchManagerCards(forDate: manageSelectedDate, forceRefresh: true);
       }
     } else if (result is Map && result['updated'] == true && result['bonus_amount'] != null) {
-      // Bonus update - update local state directly
-      final monthKey = '${manageSelectedDate.year}-${manageSelectedDate.month.toString().padLeft(2, '0')}';
-      final monthData = managerCardsDataByMonth[monthKey];
-      
-      if (monthData != null && monthData['stores'] != null) {
-        final stores = monthData['stores'] as List<dynamic>;
-        if (stores.isNotEmpty) {
-          final storeData = stores.first as Map<String, dynamic>;
-          final cards = storeData['cards'] as List<dynamic>? ?? [];
-          
-          // Find and update the specific card
-          for (var i = 0; i < cards.length; i++) {
-            if (cards[i]['shift_request_id'] == result['shift_request_id']) {
-              setState(() {
-                cards[i]['bonus_amount'] = result['bonus_amount'];
-              });
-              break;
-            }
-          }
-        }
+      // Bonus update - refresh the data
+      if (mounted) {
+        await fetchManagerCards(forDate: manageSelectedDate, forceRefresh: true);
       }
-      
+
       // Show success dialog
       if (!mounted) return;
       showDialog(
@@ -1087,19 +1169,22 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
       backgroundColor: TossColors.transparent,
       isScrollControlled: true,
       builder: (context) => AddShiftBottomSheet(
-        onShiftAdded: () {
-          // Refresh data when shift is added
-          if (selectedStoreId != null) {
-            fetchManagerOverview();
-            fetchManagerCards();
+        onShiftAdded: () async {
+          // Refresh data immediately when shift is added (before closing bottom sheet)
+          if (selectedStoreId != null && mounted) {
+            // Refresh Schedule tab data - this will update the UI immediately
+            await fetchMonthlyShiftStatus(forDate: focusedMonth, forceRefresh: true);
+            // Refresh Manage tab data
+            await fetchManagerOverview(forDate: manageSelectedDate, forceRefresh: true);
+            await fetchManagerCards(forDate: manageSelectedDate, forceRefresh: true);
           }
         },
       ),
     );
 
-    // If result is true, a shift was added, so refresh
-    if (result == true) {
-      // Refresh the shift data
+    // Additional refresh after bottom sheet closes (for safety)
+    if (result == true && mounted) {
+      // Refresh the shift data one more time to ensure everything is up-to-date
       await fetchMonthlyShiftStatus(forDate: focusedMonth, forceRefresh: true);
     }
   }

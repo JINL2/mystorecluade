@@ -56,6 +56,7 @@ class RoleManagementSheet extends ConsumerStatefulWidget {
       enableKeyboardToolbar: true,
       enableTapDismiss: true,
       keyboardDoneText: 'Done',
+      padding: EdgeInsets.zero, // Remove TossModal's default padding to prevent double scroll
       child: RoleManagementSheet(
         roleId: roleId,
         roleName: roleName,
@@ -148,22 +149,10 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
   @override
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
-    
-    return Container(
-      constraints: BoxConstraints(
-        maxHeight: screenHeight * 0.8,
-      ),
-      decoration: BoxDecoration(
-        color: TossColors.background,
-        borderRadius: BorderRadius.vertical(
-          top: Radius.circular(TossBorderRadius.xl),
-        ),
-      ),
-      child: Column(
-        children: [
-          // Top spacing only (no duplicate header - TossModal handles header)
-          SizedBox(height: TossSpacing.space4),
 
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
           // Underline-style tabs
           Container(
             margin: EdgeInsets.symmetric(horizontal: TossSpacing.space5),
@@ -175,13 +164,13 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
               ],
             ),
           ),
-          SizedBox(height: TossSpacing.space4),
 
-          // Tab content - Use Flexible instead of Expanded to prevent overflow
-          Flexible(
+          // Tab content with fixed height
+          SizedBox(
+            height: screenHeight * 0.5, // Fixed height for TabBarView
             child: TabBarView(
               controller: _tabController,
-              physics: const NeverScrollableScrollPhysics(), // Disable swipe to prevent conflicts
+              physics: const NeverScrollableScrollPhysics(),
               children: [
                 _buildDetailsTab(),
                 _buildPermissionsTab(),
@@ -243,8 +232,7 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
                 ),
               ),
             ),
-        ],
-      ),
+      ],
     );
   }
 
@@ -531,114 +519,98 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
 
   Widget _buildPermissionsTab() {
     final rolePermissionsAsync = ref.watch(rolePermissionsProvider(widget.roleId));
-    
+
     return rolePermissionsAsync.when(
       data: (permissionData) {
         final categories = permissionData['categories'] as List;
-        
-        return Column(
-          children: [
-            // Header section with padding
-            Container(
-              padding: EdgeInsets.fromLTRB(
-                TossSpacing.space5,
-                TossSpacing.space5,
-                TossSpacing.space5,
-                TossSpacing.space3,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+
+        return SingleChildScrollView(
+          primary: true,
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: EdgeInsets.fromLTRB(
+            TossSpacing.space5,
+            TossSpacing.space5,
+            TossSpacing.space5,
+            TossSpacing.space10,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header section
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Role Permissions',
-                              style: TossTextStyles.h3.copyWith(
-                                fontWeight: FontWeight.w700,
-                                color: TossColors.gray900,
-                              ),
-                            ),
-                            SizedBox(height: TossSpacing.space1),
-                            Text(
-                              widget.roleName.toLowerCase() == 'owner' 
-                                  ? 'Owner role always has full permissions'
-                                  : widget.canEdit 
-                                      ? 'Configure what this role can access and do'
-                                      : 'View permissions for this role',
-                              style: TossTextStyles.body.copyWith(
-                                color: TossColors.gray600,
-                              ),
-                            ),
-                          ],
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Role Permissions',
+                          style: TossTextStyles.h3.copyWith(
+                            fontWeight: FontWeight.w700,
+                            color: TossColors.gray900,
+                          ),
+                        ),
+                        SizedBox(height: TossSpacing.space1),
+                        Text(
+                          widget.roleName.toLowerCase() == 'owner'
+                              ? 'Owner role always has full permissions'
+                              : widget.canEdit
+                                  ? 'Configure what this role can access and do'
+                                  : 'View permissions for this role',
+                          style: TossTextStyles.body.copyWith(
+                            color: TossColors.gray600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  // Quick actions
+                  if (widget.canEdit)
+                    TextButton(
+                      onPressed: () {
+                        setState(() {
+                          if (_selectedPermissions.isEmpty) {
+                            // Select all available permissions
+                            final allFeatureIds = <String>[];
+                            for (final category in categories) {
+                              final features = (category['features'] as List? ?? [])
+                                  .cast<Map<String, dynamic>>();
+                              for (final feature in features) {
+                                allFeatureIds.add(feature['feature_id'] as String);
+                              }
+                            }
+                            _selectedPermissions.addAll(allFeatureIds);
+                          } else {
+                            // Clear all selected permissions
+                            _selectedPermissions.clear();
+                          }
+                        });
+                      },
+                      child: Text(
+                        _selectedPermissions.isEmpty ? 'Select all' : 'Clear all',
+                        style: TossTextStyles.body.copyWith(
+                          color: TossColors.gray600,
                         ),
                       ),
-                      // Quick actions
-                      if (widget.canEdit)
-                        Row(
-                          children: [
-                            TextButton(
-                              onPressed: () {
-                                setState(() {
-                                  if (_selectedPermissions.isEmpty) {
-                                    // Select all available permissions
-                                    final allFeatureIds = <String>[];
-                                    for (final category in categories) {
-                                      final features = (category['features'] as List? ?? [])
-                                          .cast<Map<String, dynamic>>();
-                                      for (final feature in features) {
-                                        allFeatureIds.add(feature['feature_id'] as String);
-                                      }
-                                    }
-                                    _selectedPermissions.addAll(allFeatureIds);
-                                  } else {
-                                    // Clear all selected permissions
-                                    _selectedPermissions.clear();
-                                  }
-                                });
-                              },
-                              child: Text(
-                                _selectedPermissions.isEmpty ? 'Select all' : 'Clear all',
-                                style: TossTextStyles.body.copyWith(
-                                  color: TossColors.gray600,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                    ],
-                  ),
+                    ),
                 ],
               ),
-            ),
-            
-            // Scrollable permission categories
-            Expanded(
-              child: SingleChildScrollView(
-                padding: EdgeInsets.fromLTRB(
-                  TossSpacing.space5,
-                  0,
-                  TossSpacing.space5,
-                  TossSpacing.space10,
-                ),
-                child: Column(
-                  children: categories.map((category) {
-                    final categoryName = category['category_name'] as String;
-                    final features = (category['features'] as List? ?? [])
-                        .cast<Map<String, dynamic>>();
-                    
-                    if (features.isEmpty) return SizedBox.shrink();
-                    
-                    return _buildPermissionCategory(categoryName, features);
-                  }).toList(),
-                ),
-              ),
-            ),
-          ],
+              SizedBox(height: TossSpacing.space4),
+
+              // Permission categories
+              ...categories.map((category) {
+                final categoryName = category['category_name'] as String;
+                final features = (category['features'] as List? ?? [])
+                    .cast<Map<String, dynamic>>();
+
+                if (features.isEmpty) return SizedBox.shrink();
+
+                return _buildPermissionCategory(categoryName, features);
+              }).toList(),
+            ],
+          ),
         );
       },
       loading: () => Center(
@@ -823,6 +795,7 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
         ),
       ),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
           // Collapsible header with select all
           Material(
@@ -833,6 +806,7 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
             ),
             child: InkWell(
               splashFactory: InkRipple.splashFactory, // Better ripple effect
+              excludeFromSemantics: true,
               onTap: () {
                 setState(() {
                   if (isExpanded) {
@@ -968,6 +942,7 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
                   return Material(
                     color: TossColors.transparent,
                     child: InkWell(
+                      excludeFromSemantics: true,
                       onTap: widget.canEdit ? () => _togglePermission(featureId) : null,
                       child: Container(
                         padding: EdgeInsets.symmetric(

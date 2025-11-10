@@ -369,46 +369,27 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<ShiftDetailsBottomShee
       }
       
       // Check response
-      if (response != null && response is Map) {
-        final success = response['success'] ?? false;
-        
-        if (!success) {
-          // Handle error response
-          final errorMessage = response['message'] ?? 'Failed to delete tag';
-          final errorCode = response['error'] ?? 'UNKNOWN_ERROR';
-          
-
-
-          if (mounted) {
-            await showDialog<bool>(
-              context: context,
-              barrierDismissible: true,
-              builder: (context) => TossDialog.error(
-                title: 'Error',
-                message: errorMessage,
-                primaryButtonText: 'OK',
-              ),
-            );
-          }
-          return;
+      if (response.isSuccess) {
+        // Success - tag deleted
+        if (mounted) {
+          // Trigger parent refresh by returning true
+          Navigator.of(context).pop(true);
         }
-      }
-      
-      // Show success message
-      if (mounted) {
-        await showDialog<bool>(
-          context: context,
-          barrierDismissible: true,
-          builder: (context) => TossDialog.success(
-            title: 'Success',
-            message: 'Tag deleted successfully',
-            primaryButtonText: 'OK',
-          ),
-        );
+      } else {
+        // Handle error response
+        final errorMessage = response.message ?? 'Failed to delete tag';
 
-        // Don't modify widget.card directly, just close with success flag
-        // The parent will refresh the data
-        Navigator.of(context).pop(true);
+        if (mounted) {
+          await showDialog<bool>(
+            context: context,
+            barrierDismissible: true,
+            builder: (context) => TossDialog.error(
+              title: 'Error',
+              message: errorMessage,
+              primaryButtonText: 'OK',
+            ),
+          );
+        }
       }
     } catch (e) {
       // Close loading dialog if still open
@@ -1007,13 +988,27 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<ShiftDetailsBottomShee
                         }
                       }
                       
-                      // Format times - these should already be in HH:mm format from _formatTimeOfDay
-                      final startTimeHHmm = formatTimeToHHmm(editedStartTime);
-                      final endTimeHHmm = formatTimeToHHmm(editedEndTime);
+                      // Format times - use edited times if available, otherwise use existing confirm times
+                      String? startTimeHHmm = formatTimeToHHmm(editedStartTime);
+                      String? endTimeHHmm = formatTimeToHHmm(editedEndTime);
 
-                      // Validate times are not null
-                      if (startTimeHHmm == null || endTimeHHmm == null) {
-                        throw Exception('Start time and end time are required');
+                      // If times weren't edited, try to use existing confirm times from card
+                      if (startTimeHHmm == null || startTimeHHmm.isEmpty) {
+                        final existingStart = widget.card['confirm_start_time'] as String?;
+                        startTimeHHmm = formatTimeToHHmm(existingStart);
+                      }
+                      if (endTimeHHmm == null || endTimeHHmm.isEmpty) {
+                        final existingEnd = widget.card['confirm_end_time'] as String?;
+                        endTimeHHmm = formatTimeToHHmm(existingEnd);
+                      }
+
+                      // Convert times to UTC - both times are required for inputCard
+                      String startTimeForDb;
+                      String endTimeForDb;
+
+                      if (startTimeHHmm == null || startTimeHHmm.isEmpty ||
+                          endTimeHHmm == null || endTimeHHmm.isEmpty) {
+                        throw Exception('Both start and end times are required');
                       }
 
                       // Get request date for full DateTime conversion
@@ -1022,13 +1017,17 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<ShiftDetailsBottomShee
                         throw Exception('Request date is required for time conversion');
                       }
 
-                      // Convert HH:mm to full DateTime and then to UTC for DB storage
+                      // Convert local time to UTC time
+                      // Manager inputs local time (e.g., 13:00), we need to convert to UTC (e.g., 06:00)
                       final startDateTime = DateTime.parse('$requestDate $startTimeHHmm:00');
                       final endDateTime = DateTime.parse('$requestDate $endTimeHHmm:00');
 
-                      // Convert to UTC ISO8601 string for RPC
-                      final startTimeUtc = DateTimeUtils.toUtc(startDateTime);
-                      final endTimeUtc = DateTimeUtils.toUtc(endDateTime);
+                      // Convert to UTC and extract time only (HH:mm:ss)
+                      final startUtc = startDateTime.toUtc();
+                      final endUtc = endDateTime.toUtc();
+
+                      startTimeForDb = '${startUtc.hour.toString().padLeft(2, '0')}:${startUtc.minute.toString().padLeft(2, '0')}:${startUtc.second.toString().padLeft(2, '0')}';
+                      endTimeForDb = '${endUtc.hour.toString().padLeft(2, '0')}:${endUtc.minute.toString().padLeft(2, '0')}:${endUtc.second.toString().padLeft(2, '0')}';
 
                       // Prepare tag parameters - ensure null instead of empty strings
                       final processedTagContent = (tagContent != null && tagContent!.trim().isNotEmpty)
@@ -1044,24 +1043,17 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<ShiftDetailsBottomShee
                       }
 
                       // Use repository instead of direct Supabase call
-                      final response = await ref.read(timeTableRepositoryProvider).inputCard(
+                      final cardInputResult = await ref.read(timeTableRepositoryProvider).inputCard(
                         managerId: userId,
                         shiftRequestId: shiftRequestId,
-                        confirmStartTime: startTimeUtc,
-                        confirmEndTime: endTimeUtc,
+                        confirmStartTime: startTimeForDb,
+                        confirmEndTime: endTimeForDb,
                         newTagContent: processedTagContent,
                         newTagType: processedTagType,
                         isLate: isLate,
                         isProblemSolved: isProblemSolved,
                       );
 
-                      // Check if RPC returned an error structure
-                      if (response['success'] == false) {
-                        final errorMessage = response['message'] ?? 'Unknown error occurred';
-                        final errorCode = response['error'] ?? 'UNKNOWN_ERROR';
-                        throw Exception('$errorCode: $errorMessage');
-                      }
-                      
                       // Close loading dialog
                       Navigator.pop(context);
 

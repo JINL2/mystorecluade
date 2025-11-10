@@ -117,4 +117,63 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
       storeId: storeId,
     );
   }
+
+  @override
+  Future<bool> reportShiftIssue({
+    required String shiftRequestId,
+    String? reportReason,
+  }) async {
+    return await _datasource.reportShiftIssue(
+      shiftRequestId: shiftRequestId,
+      reportReason: reportReason,
+    );
+  }
+
+  @override
+  Future<List<Map<String, dynamic>>> getShiftMetadata({
+    required String storeId,
+  }) async {
+    return await _datasource.getShiftMetadata(storeId: storeId);
+  }
+
+  @override
+  Future<List<Map<String, dynamic>>> getMonthlyShiftStatusManager({
+    required String storeId,
+    required String companyId,
+    required String requestDate,
+  }) async {
+    return await _datasource.getMonthlyShiftStatusManager(
+      storeId: storeId,
+      companyId: companyId,
+      requestDate: requestDate,
+    );
+  }
+
+  @override
+  Future<Map<String, dynamic>?> insertShiftRequest({
+    required String userId,
+    required String shiftId,
+    required String storeId,
+    required String requestDate,
+  }) async {
+    return await _datasource.insertShiftRequest(
+      userId: userId,
+      shiftId: shiftId,
+      storeId: storeId,
+      requestDate: requestDate,
+    );
+  }
+
+  @override
+  Future<void> deleteShiftRequest({
+    required String userId,
+    required String shiftId,
+    required String requestDate,
+  }) async {
+    return await _datasource.deleteShiftRequest(
+      userId: userId,
+      shiftId: shiftId,
+      requestDate: requestDate,
+    );
+  }
 }

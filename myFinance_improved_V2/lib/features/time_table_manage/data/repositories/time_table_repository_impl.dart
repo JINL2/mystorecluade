@@ -1,14 +1,34 @@
 import '../../../../core/utils/datetime_utils.dart';
+import '../../domain/entities/available_employees_data.dart';
+import '../../domain/entities/bulk_approval_result.dart';
+import '../../domain/entities/card_input_result.dart';
 import '../../domain/entities/manager_overview.dart';
+import '../../domain/entities/manager_shift_cards.dart';
 import '../../domain/entities/monthly_shift_status.dart';
+import '../../domain/entities/operation_result.dart';
+import '../../domain/entities/schedule_data.dart';
+import '../../domain/entities/shift.dart';
+import '../../domain/entities/shift_approval_result.dart';
 import '../../domain/entities/shift_metadata.dart';
+import '../../domain/entities/shift_request.dart';
+import '../../domain/entities/tag.dart';
 import '../../domain/exceptions/time_table_exceptions.dart';
 import '../../domain/repositories/time_table_repository.dart';
 import '../../domain/value_objects/create_shift_params.dart';
 import '../datasources/time_table_datasource.dart';
+import '../models/available_employees_data_model.dart';
+import '../models/bulk_approval_result_model.dart';
+import '../models/card_input_result_model.dart';
 import '../models/manager_overview_model.dart';
+import '../models/manager_shift_cards_model.dart';
 import '../models/monthly_shift_status_model.dart';
+import '../models/operation_result_model.dart';
+import '../models/schedule_data_model.dart';
+import '../models/shift_approval_result_model.dart';
 import '../models/shift_metadata_model.dart';
+import '../models/shift_model.dart';
+import '../models/shift_request_model.dart';
+import '../models/tag_model.dart';
 
 /// Time Table Repository Implementation
 ///
@@ -29,7 +49,7 @@ class TimeTableRepositoryImpl implements TimeTableRepository {
     } catch (e) {
       if (e is ShiftMetadataException) rethrow;
       throw ShiftMetadataException(
-        '시프트 메타데이터 조회 실패: $e',
+        'Failed to fetch shift metadata: $e',
         originalError: e,
       );
     }
@@ -158,7 +178,7 @@ class TimeTableRepositoryImpl implements TimeTableRepository {
     } catch (e) {
       if (e is ShiftStatusException) rethrow;
       throw ShiftStatusException(
-        '월별 시프트 상태 조회 실패: $e',
+        'Failed to fetch monthly shift status: $e',
         originalError: e,
       );
     }
@@ -227,14 +247,14 @@ class TimeTableRepositoryImpl implements TimeTableRepository {
     } catch (e) {
       if (e is TimeTableException) rethrow;
       throw TimeTableException(
-        '매니저 오버뷰 조회 실패: $e',
+        'Failed to fetch manager overview: $e',
         originalError: e,
       );
     }
   }
 
   @override
-  Future<Map<String, dynamic>> getManagerShiftCards({
+  Future<ManagerShiftCards> getManagerShiftCards({
     required String startDate,
     required String endDate,
     required String companyId,
@@ -248,189 +268,213 @@ class TimeTableRepositoryImpl implements TimeTableRepository {
         storeId: storeId,
       );
 
-      return data;
+      final model = ManagerShiftCardsModel.fromJson(data);
+      final entity = model.toEntity();
+      return entity;
     } catch (e) {
       if (e is TimeTableException) rethrow;
       throw TimeTableException(
-        '매니저 시프트 카드 조회 실패: $e',
+        'Failed to fetch manager shift cards: $e',
         originalError: e,
       );
     }
   }
 
   @override
-  Future<Map<String, dynamic>> toggleShiftApproval({
+  Future<ShiftApprovalResult> toggleShiftApproval({
     required String shiftRequestId,
     required bool newApprovalState,
   }) async {
     try {
-      return await _datasource.toggleShiftApproval(
+      final data = await _datasource.toggleShiftApproval(
         shiftRequestId: shiftRequestId,
         newApprovalState: newApprovalState,
       );
+
+      final model = ShiftApprovalResultModel.fromJson(data);
+      return model.toEntity();
     } catch (e) {
       if (e is ShiftApprovalException) rethrow;
       throw ShiftApprovalException(
-        '시프트 승인 토글 실패: $e',
+        'Failed to toggle shift approval: $e',
         originalError: e,
       );
     }
   }
 
   @override
-  Future<Map<String, dynamic>> createShift({
+  Future<Shift> createShift({
     required CreateShiftParams params,
   }) async {
     try {
       // Validate parameters
       if (!params.isValid) {
         throw InvalidShiftParametersException(
-          '잘못된 시프트 파라미터: ${params.validationErrors.join(", ")}',
+          'Invalid shift parameters: ${params.validationErrors.join(", ")}',
         );
       }
 
-      return await _datasource.createShift(params: params.toJson());
+      final data = await _datasource.createShift(params: params.toJson());
+      final model = ShiftModel.fromJson(data);
+      return model.toEntity();
     } catch (e) {
       if (e is ShiftCreationException || e is InvalidShiftParametersException) {
         rethrow;
       }
       throw ShiftCreationException(
-        '시프트 생성 실패: $e',
+        'Failed to create shift: $e',
         originalError: e,
       );
     }
   }
 
   @override
-  Future<void> deleteShift({
+  Future<OperationResult> deleteShift({
     required String shiftId,
   }) async {
     try {
       await _datasource.deleteShift(shiftId: shiftId);
+      return OperationResult.success(message: 'Shift deleted successfully');
     } catch (e) {
       if (e is ShiftDeletionException) rethrow;
       throw ShiftDeletionException(
-        '시프트 삭제 실패: $e',
+        'Failed to delete shift: $e',
         originalError: e,
       );
     }
   }
 
   @override
-  Future<Map<String, dynamic>> deleteShiftTag({
+  Future<OperationResult> deleteShiftTag({
     required String tagId,
     required String userId,
   }) async {
     try {
-      return await _datasource.deleteShiftTag(tagId: tagId, userId: userId);
+      final data = await _datasource.deleteShiftTag(tagId: tagId, userId: userId);
+      final model = OperationResultModel.fromJson(data);
+      return model.toEntity();
     } catch (e) {
       if (e is TimeTableException) rethrow;
       throw TimeTableException(
-        '시프트 태그 삭제 실패: $e',
+        'Failed to delete shift tag: $e',
         originalError: e,
       );
     }
   }
 
   @override
-  Future<Map<String, dynamic>> getAvailableEmployees({
+  Future<AvailableEmployeesData> getAvailableEmployees({
     required String storeId,
     required String shiftDate,
   }) async {
     try {
-      return await _datasource.getAvailableEmployees(
+      final data = await _datasource.getAvailableEmployees(
         storeId: storeId,
         shiftDate: shiftDate,
       );
+
+      final model = AvailableEmployeesDataModel.fromJson(data);
+      return model.toEntity();
     } catch (e) {
       if (e is TimeTableException) rethrow;
       throw TimeTableException(
-        '직원 목록 조회 실패: $e',
+        'Failed to fetch employee list: $e',
         originalError: e,
       );
     }
   }
 
   @override
-  Future<Map<String, dynamic>> insertShiftSchedule({
+  Future<OperationResult> insertShiftSchedule({
     required String storeId,
     required String shiftId,
     required List<String> employeeIds,
   }) async {
     try {
-      return await _datasource.insertShiftSchedule(
+      final data = await _datasource.insertShiftSchedule(
         storeId: storeId,
         shiftId: shiftId,
         employeeIds: employeeIds,
       );
+
+      final model = OperationResultModel.fromJson(data);
+      return model.toEntity();
     } catch (e) {
       if (e is TimeTableException) rethrow;
       throw TimeTableException(
-        '시프트 일정 추가 실패: $e',
+        'Failed to add shift schedule: $e',
         originalError: e,
       );
     }
   }
 
   @override
-  Future<Map<String, dynamic>> getScheduleData({
+  Future<ScheduleData> getScheduleData({
     required String storeId,
   }) async {
     try {
-      return await _datasource.getScheduleData(storeId: storeId);
+      final data = await _datasource.getScheduleData(storeId: storeId);
+      final model = ScheduleDataModel.fromJson(data);
+      return model.toEntity();
     } catch (e) {
       if (e is TimeTableException) rethrow;
       throw TimeTableException(
-        '스케줄 데이터 조회 실패: $e',
+        'Failed to fetch schedule data: $e',
         originalError: e,
       );
     }
   }
 
   @override
-  Future<Map<String, dynamic>> processBulkApproval({
+  Future<BulkApprovalResult> processBulkApproval({
     required List<String> shiftRequestIds,
     required List<bool> approvalStates,
   }) async {
     try {
-      return await _datasource.processBulkApproval(
+      final data = await _datasource.processBulkApproval(
         shiftRequestIds: shiftRequestIds,
         approvalStates: approvalStates,
       );
+
+      final model = BulkApprovalResultModel.fromJson(data);
+      return model.toEntity();
     } catch (e) {
       if (e is TimeTableException) rethrow;
       throw TimeTableException(
-        '일괄 승인 처리 실패: $e',
+        'Failed to process bulk approval: $e',
         originalError: e,
       );
     }
   }
 
   @override
-  Future<Map<String, dynamic>> updateShift({
+  Future<ShiftRequest> updateShift({
     required String shiftRequestId,
     String? startTime,
     String? endTime,
     bool? isProblemSolved,
   }) async {
     try {
-      return await _datasource.updateShift(
+      final data = await _datasource.updateShift(
         shiftRequestId: shiftRequestId,
         startTime: startTime,
         endTime: endTime,
         isProblemSolved: isProblemSolved,
       );
+
+      final model = ShiftRequestModel.fromJson(data);
+      return model.toEntity();
     } catch (e) {
       if (e is TimeTableException) rethrow;
       throw TimeTableException(
-        '시프트 업데이트 실패: $e',
+        'Failed to update shift: $e',
         originalError: e,
       );
     }
   }
 
   @override
-  Future<Map<String, dynamic>> insertSchedule({
+  Future<OperationResult> insertSchedule({
     required String userId,
     required String shiftId,
     required String storeId,
@@ -438,24 +482,27 @@ class TimeTableRepositoryImpl implements TimeTableRepository {
     required String approvedBy,
   }) async {
     try {
-      return await _datasource.insertSchedule(
+      final data = await _datasource.insertSchedule(
         userId: userId,
         shiftId: shiftId,
         storeId: storeId,
         requestDate: requestDate,
         approvedBy: approvedBy,
       );
+
+      final model = OperationResultModel.fromJson(data);
+      return model.toEntity();
     } catch (e) {
       if (e is TimeTableException) rethrow;
       throw TimeTableException(
-        '스케줄 추가 실패: $e',
+        'Failed to add schedule: $e',
         originalError: e,
       );
     }
   }
 
   @override
-  Future<Map<String, dynamic>> inputCard({
+  Future<CardInputResult> inputCard({
     required String managerId,
     required String shiftRequestId,
     required String confirmStartTime,
@@ -466,7 +513,7 @@ class TimeTableRepositoryImpl implements TimeTableRepository {
     required bool isProblemSolved,
   }) async {
     try {
-      return await _datasource.inputCard(
+      final data = await _datasource.inputCard(
         managerId: managerId,
         shiftRequestId: shiftRequestId,
         confirmStartTime: confirmStartTime,
@@ -476,46 +523,53 @@ class TimeTableRepositoryImpl implements TimeTableRepository {
         isLate: isLate,
         isProblemSolved: isProblemSolved,
       );
+
+      final model = CardInputResultModel.fromJson(data);
+      return model.toEntity();
     } catch (e) {
       if (e is TimeTableException) rethrow;
       throw TimeTableException(
-        '카드 입력 실패: $e',
+        'Failed to input card: $e',
         originalError: e,
       );
     }
   }
 
   @override
-  Future<List<Map<String, dynamic>>> getTagsByCardId({
+  Future<List<Tag>> getTagsByCardId({
     required String cardId,
   }) async {
     try {
-      return await _datasource.getTagsByCardId(cardId: cardId);
+      final data = await _datasource.getTagsByCardId(cardId: cardId);
+      return data.map((json) => TagModel.fromJson(json).toEntity()).toList();
     } catch (e) {
       if (e is TimeTableException) rethrow;
       throw TimeTableException(
-        '태그 조회 실패: $e',
+        'Failed to fetch tags: $e',
         originalError: e,
       );
     }
   }
 
   @override
-  Future<Map<String, dynamic>> addBonus({
+  Future<OperationResult> addBonus({
     required String shiftRequestId,
     required double bonusAmount,
     required String bonusReason,
   }) async {
     try {
-      return await _datasource.addBonus(
+      final data = await _datasource.addBonus(
         shiftRequestId: shiftRequestId,
         bonusAmount: bonusAmount,
         bonusReason: bonusReason,
       );
+
+      final model = OperationResultModel.fromJson(data);
+      return model.toEntity();
     } catch (e) {
       if (e is TimeTableException) rethrow;
       throw TimeTableException(
-        '보너스 추가 실패: $e',
+        'Failed to add bonus: $e',
         originalError: e,
       );
     }
@@ -534,7 +588,7 @@ class TimeTableRepositoryImpl implements TimeTableRepository {
     } catch (e) {
       if (e is TimeTableException) rethrow;
       throw TimeTableException(
-        '보너스 업데이트 실패: $e',
+        'Failed to update bonus: $e',
         originalError: e,
       );
     }

@@ -86,7 +86,7 @@ class ShiftInfoTab extends StatelessWidget {
                     ),
                   ],
                   // Display report reason if the problem has been reported
-                  if (card['is_reported'] == true && card['report_reason'] != null) ...[
+                  if (card['is_reported'] == true && card['report_reason'] != null && card['report_reason'].toString().isNotEmpty) ...[
                     const SizedBox(height: TossSpacing.space2),
                     Text(
                       card['report_reason'].toString(),
@@ -94,6 +94,51 @@ class ShiftInfoTab extends StatelessWidget {
                         color: TossColors.gray700,
                       ),
                     ),
+                  ],
+                  // Display notice tags if available
+                  if (card['notice_tag'] != null && (card['notice_tag'] as List).isNotEmpty) ...[
+                    const SizedBox(height: TossSpacing.space3),
+                    Text(
+                      'Report Details:',
+                      style: TossTextStyles.caption.copyWith(
+                        color: TossColors.error,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: TossSpacing.space2),
+                    ...(card['notice_tag'] as List).map((tag) {
+                      final tagData = tag is Map ? tag : <String, dynamic>{};
+                      final type = tagData['type']?.toString() ?? '';
+                      final content = tagData['content']?.toString() ?? '';
+
+                      return Padding(
+                        padding: const EdgeInsets.only(top: TossSpacing.space1),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text('• ', style: TextStyle(color: TossColors.error)),
+                            Expanded(
+                              child: RichText(
+                                text: TextSpan(
+                                  style: TossTextStyles.bodySmall.copyWith(
+                                    color: TossColors.gray700,
+                                  ),
+                                  children: [
+                                    if (type.isNotEmpty) ...[
+                                      TextSpan(
+                                        text: '$type: ',
+                                        style: const TextStyle(fontWeight: FontWeight.w600),
+                                      ),
+                                    ],
+                                    TextSpan(text: content),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    }).toList(),
                   ],
                 ],
               ),
@@ -358,16 +403,72 @@ class ShiftInfoTab extends StatelessWidget {
                           const SizedBox(height: TossSpacing.space3),
                           ShiftDetailRow(
                             label: 'Actual Check-in',
-                            value: ShiftTimeFormatter.formatTime(card['actual_start']?.toString(), card['request_date']?.toString()) != '--:--' ? ShiftTimeFormatter.formatTime(card['actual_start']?.toString(), card['request_date']?.toString()) : 'Not checked in',
+                            value: card['actual_start'] != null
+                              ? ShiftTimeFormatter.formatTimeWithSeconds(card['actual_start']?.toString(), card['request_date']?.toString())
+                              : 'Not checked in',
                           ),
                           ShiftDetailRow(
                             label: 'Actual Check-out',
-                            value: ShiftTimeFormatter.formatTime(card['actual_end']?.toString(), card['request_date']?.toString()) != '--:--' ? ShiftTimeFormatter.formatTime(card['actual_end']?.toString(), card['request_date']?.toString()) : 'Not checked out',
+                            value: card['actual_end'] != null
+                              ? ShiftTimeFormatter.formatTimeWithSeconds(card['actual_end']?.toString(), card['request_date']?.toString())
+                              : 'Not checked out',
                           ),
                         ],
                       ),
                     ),
                     const SizedBox(height: TossSpacing.space3),
+
+                    // Additional info
+                    if (card['notice_tag'] != null && (card['notice_tag'] as List).isNotEmpty) ...[
+                      Container(
+                        margin: const EdgeInsets.symmetric(horizontal: TossSpacing.space5),
+                        padding: const EdgeInsets.all(TossSpacing.space4),
+                        decoration: BoxDecoration(
+                          color: TossColors.gray50,
+                          borderRadius: BorderRadius.circular(TossBorderRadius.xl),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Notice Tags',
+                              style: TossTextStyles.body.copyWith(
+                                color: TossColors.gray900,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            const SizedBox(height: TossSpacing.space3),
+                            Wrap(
+                              spacing: TossSpacing.space2,
+                              runSpacing: TossSpacing.space2,
+                              children: (card['notice_tag'] as List).map((tag) {
+                                // Parse tag as a Map and extract only content
+                                final tagData = tag is Map ? tag : <String, dynamic>{};
+                                final content = tagData['content']?.toString() ?? 'No content';
+
+                                return Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: TossSpacing.space3,
+                                    vertical: TossSpacing.space1,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: TossColors.primary.withValues(alpha: 0.1),
+                                    borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+                                  ),
+                                  child: Text(
+                                    content,
+                                    style: TossTextStyles.caption.copyWith(
+                                      color: TossColors.primary,
+                                    ),
+                                  ),
+                                );
+                              }).toList(),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: TossSpacing.space4),
+                    ],
 
                     // Location section (if available)
                     if (card['is_valid_checkin_location'] != null || card['is_valid_checkout_location'] != null) ...[
@@ -412,45 +513,6 @@ class ShiftInfoTab extends StatelessWidget {
                                 value: '${card['checkout_distance_from_store']}m from store',
                               ),
                           ],
-                        ),
-                      ),
-                      const SizedBox(height: TossSpacing.space4),
-                    ],
-
-                    // Additional info
-                    if (card['notice_tag'] != null && (card['notice_tag'] as List).isNotEmpty) ...[
-                      const ShiftSectionTitle(title: 'Notice Tags'),
-                      Container(
-                        padding: const EdgeInsets.all(TossSpacing.space4),
-                        decoration: BoxDecoration(
-                          color: TossColors.gray50,
-                          borderRadius: BorderRadius.circular(TossBorderRadius.xl),
-                        ),
-                        child: Wrap(
-                          spacing: TossSpacing.space2,
-                          runSpacing: TossSpacing.space2,
-                          children: (card['notice_tag'] as List).map((tag) {
-                            // Parse tag as a Map and extract only content
-                            final tagData = tag is Map ? tag : <String, dynamic>{};
-                            final content = tagData['content']?.toString() ?? 'No content';
-
-                            return Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: TossSpacing.space3,
-                                vertical: TossSpacing.space1,
-                              ),
-                              decoration: BoxDecoration(
-                                color: TossColors.primary.withValues(alpha: 0.1),
-                                borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-                              ),
-                              child: Text(
-                                content,
-                                style: TossTextStyles.caption.copyWith(
-                                  color: TossColors.primary,
-                                ),
-                              ),
-                            );
-                          }).toList(),
                         ),
                       ),
                       const SizedBox(height: TossSpacing.space4),

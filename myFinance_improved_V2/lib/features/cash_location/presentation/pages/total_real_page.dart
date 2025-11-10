@@ -712,7 +712,7 @@ class _DenominationDetailBottomSheet extends StatelessWidget {
               children: [
                 Expanded(
                   child: Text(
-                    'Cash Count Details',
+                    'Cash Count Details ^^',
                     style: TossTextStyles.h2.copyWith(
                       fontWeight: FontWeight.w700,
                     ),
@@ -793,12 +793,12 @@ class _DenominationDetailBottomSheet extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: TossSpacing.space3),
-                    
-                    ...realEntry.currencySummary.expand((currency) => 
-                      currency.denominations
-                        .where((d) => d.quantity > 0) // Only show denominations with quantity
-                        .map((denomination) => _buildDenominationItem(denomination, currency.symbol))
-                    ),
+
+                    ...realEntry.currencySummary.expand((currency) {
+                      return currency.denominations
+                        .where((d) => d.quantity > 0)
+                        .map((denomination) => _buildDenominationItem(denomination, currency.symbol));
+                    }),
                   ],
                   
                   // Bottom padding

@@ -50,7 +50,7 @@ class _ScheduleTabViewState extends ConsumerState<ScheduleTabView> {
     if (state.error != null) {
       return TossErrorView(
         error: state.error!,
-        title: '데이터 로딩 실패',
+        title: 'Failed to Load Data',
         onRetry: _loadData,
       );
     }
@@ -65,7 +65,7 @@ class _ScheduleTabViewState extends ConsumerState<ScheduleTabView> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                '2024년 1월', // TODO: Dynamic month
+                'January 2024', // TODO: Dynamic month
                 style: TossTextStyles.h3,
               ),
               Row(
@@ -92,7 +92,7 @@ class _ScheduleTabViewState extends ConsumerState<ScheduleTabView> {
         Expanded(
           child: Center(
             child: Text(
-              '캘린더 뷰 (개발 중)',
+              'Calendar View (In Development)',
               style: TossTextStyles.body.copyWith(
                 color: TossColors.gray500,
               ),

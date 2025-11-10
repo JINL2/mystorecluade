@@ -3,6 +3,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../app/providers/app_state_provider.dart';
 import '../../data/repositories/repository_providers.dart';
 import '../../domain/entities/store_shift.dart';
+import '../../domain/usecases/create_shift.dart';
+import '../../domain/usecases/delete_shift.dart';
+import '../../domain/usecases/get_shifts.dart';
+import '../../domain/usecases/update_operational_settings.dart';
+import '../../domain/usecases/update_shift.dart';
+import '../../domain/usecases/update_store_location.dart';
+import '../../domain/value_objects/shift_params.dart';
 import 'states/shift_form_state.dart';
 import 'states/shift_page_state.dart';
 import 'states/store_settings_state.dart';
@@ -14,6 +21,40 @@ import 'states/store_settings_state.dart';
 /// This file contains presentation logic providers.
 /// It only imports domain layer (entities, repository interfaces).
 /// Data layer providers are imported from data/repositories/repository_providers.dart
+
+/// ========================================
+/// UseCase Providers
+/// ========================================
+
+final getShiftsUseCaseProvider = Provider<GetShifts>((ref) {
+  final repository = ref.watch(storeShiftRepositoryProvider);
+  return GetShifts(repository);
+});
+
+final createShiftUseCaseProvider = Provider<CreateShift>((ref) {
+  final repository = ref.watch(storeShiftRepositoryProvider);
+  return CreateShift(repository);
+});
+
+final updateShiftUseCaseProvider = Provider<UpdateShift>((ref) {
+  final repository = ref.watch(storeShiftRepositoryProvider);
+  return UpdateShift(repository);
+});
+
+final deleteShiftUseCaseProvider = Provider<DeleteShift>((ref) {
+  final repository = ref.watch(storeShiftRepositoryProvider);
+  return DeleteShift(repository);
+});
+
+final updateStoreLocationUseCaseProvider = Provider<UpdateStoreLocation>((ref) {
+  final repository = ref.watch(storeShiftRepositoryProvider);
+  return UpdateStoreLocation(repository);
+});
+
+final updateOperationalSettingsUseCaseProvider = Provider<UpdateOperationalSettings>((ref) {
+  final repository = ref.watch(storeShiftRepositoryProvider);
+  return UpdateOperationalSettings(repository);
+});
 
 /// ========================================
 /// Business Logic Providers
@@ -109,14 +150,14 @@ final createShiftProvider = Provider.autoDispose<
     required String endTime,
     required int shiftBonus,
   }) async {
-    final repository = ref.read(storeShiftRepositoryProvider);
-    return await repository.createShift(
+    final useCase = ref.read(createShiftUseCaseProvider);
+    return await useCase(CreateShiftParams(
       storeId: storeId,
       shiftName: shiftName,
       startTime: startTime,
       endTime: endTime,
       shiftBonus: shiftBonus,
-    );
+    ));
   };
 });
 
@@ -136,14 +177,14 @@ final updateShiftProvider = Provider.autoDispose<
     String? endTime,
     int? shiftBonus,
   }) async {
-    final repository = ref.read(storeShiftRepositoryProvider);
-    return await repository.updateShift(
+    final useCase = ref.read(updateShiftUseCaseProvider);
+    return await useCase(UpdateShiftParams(
       shiftId: shiftId,
       shiftName: shiftName,
       startTime: startTime,
       endTime: endTime,
       shiftBonus: shiftBonus,
-    );
+    ));
   };
 });
 
@@ -151,8 +192,8 @@ final updateShiftProvider = Provider.autoDispose<
 final deleteShiftProvider = Provider.autoDispose<
     Future<void> Function(String shiftId)>((ref) {
   return (String shiftId) async {
-    final repository = ref.read(storeShiftRepositoryProvider);
-    await repository.deleteShift(shiftId);
+    final useCase = ref.read(deleteShiftUseCaseProvider);
+    await useCase(DeleteShiftParams(shiftId));
   };
 });
 
@@ -170,12 +211,12 @@ final updateStoreLocationProvider = Provider.autoDispose<
     required double longitude,
     required String address,
   }) async {
-    final repository = ref.read(storeShiftRepositoryProvider);
-    await repository.updateStoreLocation(
+    final useCase = ref.read(updateStoreLocationUseCaseProvider);
+    await useCase(UpdateStoreLocationParams(
       storeId: storeId,
       latitude: latitude,
       longitude: longitude,
       address: address,
-    );
+    ));
   };
 });

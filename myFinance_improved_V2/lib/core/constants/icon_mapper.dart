@@ -126,8 +126,20 @@ class IconMapper {
       'info': FontAwesomeIcons.info,
       'infoCircle': FontAwesomeIcons.circleInfo,
       'infoCircleRegular': FontAwesomeIcons.circleInfo,
-      
-      // 거래 & 히스토리  
+
+      // Chevron & Navigation arrows
+      'chevronDown': FontAwesomeIcons.chevronDown,
+      'chevronUp': FontAwesomeIcons.chevronUp,
+      'chevronLeft': FontAwesomeIcons.chevronLeft,
+      'chevronRight': FontAwesomeIcons.chevronRight,
+      'angleDown': FontAwesomeIcons.angleDown,
+      'angleUp': FontAwesomeIcons.angleUp,
+      'angleLeft': FontAwesomeIcons.angleLeft,
+      'angleRight': FontAwesomeIcons.angleRight,
+      'caretDown': FontAwesomeIcons.caretDown,
+      'caretUp': FontAwesomeIcons.caretUp,
+
+      // 거래 & 히스토리
       'history': FontAwesomeIcons.clockRotateLeft,
       'transactionHistory': FontAwesomeIcons.clockRotateLeft,
     };

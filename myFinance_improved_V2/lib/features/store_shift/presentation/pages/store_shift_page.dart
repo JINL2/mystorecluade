@@ -350,9 +350,7 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage>
                       // Store Info Card
                       StoreInfoCard(
                         store: store,
-                        onEdit: () {
-                          // TODO: Show edit store dialog
-                        },
+                        // onEdit removed - no edit functionality for store info
                       ),
                       const SizedBox(height: TossSpacing.space4),
 
@@ -360,7 +358,7 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage>
                       StoreConfigSection(
                         store: store,
                         onEditSettings: () {
-                          // TODO: Show edit settings dialog
+                          _showEditOperationalSettingsSheet(context, store);
                         },
                         onEditLocation: () {
                           // TODO: Show location setting dialog
@@ -429,5 +427,10 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage>
         ],
       ),
     );
+  }
+
+  /// Show Edit Operational Settings Bottom Sheet
+  void _showEditOperationalSettingsSheet(BuildContext context, Map<String, dynamic> store) {
+    showOperationalSettingsDialog(context, store);
   }
 }

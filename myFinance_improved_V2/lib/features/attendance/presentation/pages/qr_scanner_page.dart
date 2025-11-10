@@ -14,7 +14,8 @@ import '../../../../shared/widgets/common/toss_loading_view.dart';
 import '../../../../shared/widgets/common/toss_scaffold.dart';
 import '../../../../shared/widgets/common/toss_success_error_dialog.dart';
 import '../../domain/entities/attendance_location.dart';
-import '../providers/attendance_provider.dart';
+import '../providers/attendance_providers.dart';
+
 class QRScannerPage extends ConsumerStatefulWidget {
   const QRScannerPage({super.key});
 
@@ -192,10 +193,10 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
                 // Convert to UTC for database storage
                 final currentTime = DateTimeUtils.toUtc(now);
                 
-                // Submit attendance
-                final attendanceRepository = ref.read(attendanceRepositoryProvider);
+                // Submit attendance using check in use case
+                final checkInShift = ref.read(checkInShiftProvider);
 
-                final result = await attendanceRepository.updateShiftRequest(
+                final result = await checkInShift(
                   userId: userId,
                   storeId: storeId,
                   requestDate: requestDate,
@@ -205,9 +206,9 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
                     longitude: position.longitude,
                   ),
                 );
-                
+
                 // Check if the RPC call was successful
-                if (result.isEmpty) {
+                if (result == null || result.isEmpty) {
                   throw Exception('Failed to update shift request. Please try again.');
                 }
 

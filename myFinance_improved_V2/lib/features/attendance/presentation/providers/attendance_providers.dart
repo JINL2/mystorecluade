@@ -1,32 +1,85 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
 import '../../../../app/providers/auth_providers.dart';
-import '../../data/datasources/attendance_datasource.dart';
-import '../../data/repositories/attendance_repository_impl.dart';
+import '../../data/providers/attendance_data_providers.dart';
 import '../../domain/repositories/attendance_repository.dart';
+import '../../domain/usecases/check_in_shift.dart';
+import '../../domain/usecases/delete_shift_request.dart';
+import '../../domain/usecases/get_current_shift.dart';
+import '../../domain/usecases/get_monthly_shift_status.dart';
+import '../../domain/usecases/get_shift_metadata.dart';
+import '../../domain/usecases/get_shift_overview.dart';
+import '../../domain/usecases/get_user_shift_cards.dart';
+import '../../domain/usecases/register_shift_request.dart';
+import '../../domain/usecases/report_shift_issue.dart';
 import 'states/shift_overview_state.dart';
 
 // ========================================
-// Data Layer Providers
+// Re-export Repository Provider (for complex operations)
 // ========================================
 
-/// Supabase Client Provider
-final _supabaseClientProvider = Provider<SupabaseClient>((ref) {
-  return Supabase.instance.client;
+/// Re-export repository provider from data layer
+/// Use this ONLY for complex operations that combine multiple use cases
+/// Prefer individual use case providers for simple operations
+export '../../data/providers/attendance_data_providers.dart' show attendanceRepositoryProvider;
+
+// ========================================
+// Use Case Providers
+// ========================================
+
+/// Get shift overview use case provider
+final getShiftOverviewProvider = Provider<GetShiftOverview>((ref) {
+  final repository = ref.watch(attendanceRepositoryProvider);
+  return GetShiftOverview(repository);
 });
 
-/// Attendance Datasource Provider
-final attendanceDatasourceProvider = Provider<AttendanceDatasource>((ref) {
-  final client = ref.watch(_supabaseClientProvider);
-  return AttendanceDatasource(client);
+/// Check in shift use case provider
+final checkInShiftProvider = Provider<CheckInShift>((ref) {
+  final repository = ref.watch(attendanceRepositoryProvider);
+  return CheckInShift(repository);
 });
 
-/// Attendance Repository Provider
-final attendanceRepositoryProvider = Provider<AttendanceRepository>((ref) {
-  final datasource = ref.watch(attendanceDatasourceProvider);
-  return AttendanceRepositoryImpl(datasource: datasource);
+/// Register shift request use case provider
+final registerShiftRequestProvider = Provider<RegisterShiftRequest>((ref) {
+  final repository = ref.watch(attendanceRepositoryProvider);
+  return RegisterShiftRequest(repository);
+});
+
+/// Get shift metadata use case provider
+final getShiftMetadataProvider = Provider<GetShiftMetadata>((ref) {
+  final repository = ref.watch(attendanceRepositoryProvider);
+  return GetShiftMetadata(repository);
+});
+
+/// Get monthly shift status use case provider
+final getMonthlyShiftStatusProvider = Provider<GetMonthlyShiftStatus>((ref) {
+  final repository = ref.watch(attendanceRepositoryProvider);
+  return GetMonthlyShiftStatus(repository);
+});
+
+/// Delete shift request use case provider
+final deleteShiftRequestProvider = Provider<DeleteShiftRequest>((ref) {
+  final repository = ref.watch(attendanceRepositoryProvider);
+  return DeleteShiftRequest(repository);
+});
+
+/// Report shift issue use case provider
+final reportShiftIssueProvider = Provider<ReportShiftIssue>((ref) {
+  final repository = ref.watch(attendanceRepositoryProvider);
+  return ReportShiftIssue(repository);
+});
+
+/// Get user shift cards use case provider
+final getUserShiftCardsProvider = Provider<GetUserShiftCards>((ref) {
+  final repository = ref.watch(attendanceRepositoryProvider);
+  return GetUserShiftCards(repository);
+});
+
+/// Get current shift use case provider
+final getCurrentShiftProvider = Provider<GetCurrentShift>((ref) {
+  final repository = ref.watch(attendanceRepositoryProvider);
+  return GetCurrentShift(repository);
 });
 
 // ========================================
@@ -58,7 +111,7 @@ class ShiftOverviewNotifier extends StateNotifier<ShiftOverviewState> {
     state = ShiftOverviewState.loading();
 
     try {
-      final repository = ref.read(attendanceRepositoryProvider);
+      final getShiftOverview = ref.read(getShiftOverviewProvider);
       final authStateAsync = ref.read(authStateProvider);
       final appState = ref.read(appStateProvider);
 
@@ -93,7 +146,7 @@ class ShiftOverviewNotifier extends StateNotifier<ShiftOverviewState> {
       final requestDate =
           '${lastDayOfMonth.year}-${lastDayOfMonth.month.toString().padLeft(2, '0')}-${lastDayOfMonth.day.toString().padLeft(2, '0')}';
 
-      final overview = await repository.getUserShiftOverview(
+      final overview = await getShiftOverview(
         requestDate: requestDate,
         userId: userId,
         companyId: companyId,
@@ -120,7 +173,7 @@ class ShiftOverviewNotifier extends StateNotifier<ShiftOverviewState> {
 /// Provider for current shift status
 final currentShiftProvider =
     FutureProvider<Map<String, dynamic>?>((ref) async {
-  final datasource = ref.read(attendanceDatasourceProvider);
+  final getCurrentShift = ref.read(getCurrentShiftProvider);
   final authStateAsync = ref.read(authStateProvider);
   final appState = ref.read(appStateProvider);
 
@@ -132,7 +185,7 @@ final currentShiftProvider =
     return null;
   }
 
-  return await datasource.getCurrentShift(
+  return await getCurrentShift(
     userId: userId,
     storeId: storeId,
   );

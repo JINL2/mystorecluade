@@ -6,6 +6,7 @@ import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/core/constants/icon_mapper.dart';
 import 'package:myfinance_improved/features/homepage/presentation/providers/homepage_providers.dart';
+import 'package:myfinance_improved/features/homepage/domain/entities/top_feature.dart';
 import 'package:go_router/go_router.dart';
 
 class QuickAccessSection extends ConsumerWidget {
@@ -106,9 +107,7 @@ class QuickAccessSection extends ConsumerWidget {
                         itemBuilder: (context, index) {
                           final feature = displayFeatures[index];
                           return _QuickAccessItem(
-                            featureName: feature.featureName,
-                            iconKey: feature.iconKey,
-                            route: feature.route,
+                            feature: feature,
                           );
                         },
                       ),
@@ -129,14 +128,10 @@ class QuickAccessSection extends ConsumerWidget {
 
 class _QuickAccessItem extends StatelessWidget {
   const _QuickAccessItem({
-    required this.featureName,
-    required this.iconKey,
-    required this.route,
+    required this.feature,
   });
 
-  final String featureName;
-  final String? iconKey;
-  final String route;
+  final TopFeature feature;
 
   @override
   Widget build(BuildContext context) {
@@ -144,8 +139,8 @@ class _QuickAccessItem extends StatelessWidget {
       color: TossColors.transparent,
       child: InkWell(
         onTap: () {
-          final fullRoute = route.startsWith('/') ? route : '/$route';
-          context.push(fullRoute);
+          final fullRoute = feature.route.startsWith('/') ? feature.route : '/${feature.route}';
+          context.push(fullRoute, extra: feature);
         },
         borderRadius: BorderRadius.circular(TossBorderRadius.lg),
         splashColor: TossColors.primary.withOpacity(0.1),
@@ -169,8 +164,8 @@ class _QuickAccessItem extends StatelessWidget {
                   borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                 ),
                 child: DynamicIcon(
-                  iconKey: iconKey,
-                  featureName: featureName,
+                  iconKey: feature.iconKey,
+                  featureName: feature.featureName,
                   size: 20,
                   color: TossColors.gray700,
                   useDefaultColor: false,
@@ -180,7 +175,7 @@ class _QuickAccessItem extends StatelessWidget {
               // Text
               Flexible(
                 child: Text(
-                  featureName,
+                  feature.featureName,
                   style: TossTextStyles.caption.copyWith(
                     color: TossColors.textPrimary,
                     fontWeight: FontWeight.w600,

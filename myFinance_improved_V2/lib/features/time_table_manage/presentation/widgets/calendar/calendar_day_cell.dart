@@ -116,7 +116,7 @@ class CalendarDayCell extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.only(top: TossSpacing.marginXS / 2),
                 child: Text(
-                  '${dailyData!.shifts.length}개',
+                  '${dailyData!.shifts.length} shifts',
                   style: TossTextStyles.caption.copyWith(
                     color: TossColors.gray600,
                     fontSize: 10,

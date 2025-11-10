@@ -196,7 +196,7 @@ class _FeatureListItem extends StatelessWidget {
           final route = feature.featureRoute.startsWith('/')
               ? feature.featureRoute
               : '/${feature.featureRoute}';
-          context.push(route);
+          context.push(route, extra: feature);
         },
         borderRadius: BorderRadius.circular(TossBorderRadius.lg),
         splashColor: TossColors.primary.withOpacity(0.08),

@@ -16,7 +16,7 @@ import '../../../../../shared/widgets/common/toss_loading_view.dart';
 import '../../../../../shared/widgets/common/toss_success_error_dialog.dart';
 import '../../../domain/entities/shift_overview.dart';
 import '../../modals/calendar_bottom_sheet.dart';
-import '../../providers/attendance_provider.dart';
+import '../../providers/attendance_providers.dart';
 import '../../pages/qr_scanner_page.dart';
 
 class AttendanceContent extends ConsumerStatefulWidget {
@@ -191,13 +191,17 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
       final authStateAsync = ref.read(authStateProvider);
       final user = authStateAsync.value;
       final appState = ref.read(appStateProvider);
-      final repository = ref.read(attendanceRepositoryProvider);
+
+      // Get Use Cases
+      final getShiftOverview = ref.read(getShiftOverviewProvider);
+      final getUserShiftCards = ref.read(getUserShiftCardsProvider);
+      final getCurrentShift = ref.read(getCurrentShiftProvider);
 
       final userId = user?.id;
       final companyId = appState.companyChoosen;
       final storeId = appState.storeChoosen;
-      
-      
+
+
       if (userId == null || companyId.isEmpty || storeId.isEmpty) {
         setState(() {
           isLoading = false;
@@ -205,28 +209,28 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
         });
         return;
       }
-      
+
       // IMPORTANT: RPC functions require the LAST day of the month as p_request_date
       // Calculate the last day of the month for the target date
       final lastDayOfMonth = DateTime(targetDate.year, targetDate.month + 1, 0);
       final requestDate = '${lastDayOfMonth.year}-${lastDayOfMonth.month.toString().padLeft(2, '0')}-${lastDayOfMonth.day.toString().padLeft(2, '0')}';
-      
-      
-      // Call both APIs in parallel
+
+
+      // Call both APIs in parallel using Use Cases
       final results = await Future.wait<dynamic>([
-        repository.getUserShiftOverview(
+        getShiftOverview(
           requestDate: requestDate,
           userId: userId,
           companyId: companyId,
           storeId: storeId,
         ),
-        repository.getUserShiftCards(
+        getUserShiftCards(
           requestDate: requestDate,
           userId: userId,
           companyId: companyId,
           storeId: storeId,
         ),
-        repository.getCurrentShift(
+        getCurrentShift(
           userId: userId,
           storeId: storeId,
         ),
@@ -3500,9 +3504,9 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                                     });
 
                                     try {
-                                      // Report shift issue via datasource (handles UTC conversion)
-                                      final datasource = ref.read(attendanceDatasourceProvider);
-                                      final success = await datasource.reportShiftIssue(
+                                      // Report shift issue via use case (handles UTC conversion)
+                                      final reportShiftIssue = ref.read(reportShiftIssueProvider);
+                                      final success = await reportShiftIssue(
                                         shiftRequestId: shiftRequestId,
                                         reportReason: reason,
                                       );

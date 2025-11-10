@@ -343,7 +343,6 @@ class AttendanceDatasource {
         'get_monthly_shift_status_manager',
         params: {
           'p_store_id': storeId,
-          'p_company_id': companyId,
           'p_request_date': requestDate,
         },
       );

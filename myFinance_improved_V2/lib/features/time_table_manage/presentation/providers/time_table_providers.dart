@@ -8,6 +8,24 @@ import '../../domain/entities/manager_overview.dart';
 import '../../domain/entities/monthly_shift_status.dart';
 import '../../domain/entities/shift_metadata.dart';
 import '../../domain/repositories/time_table_repository.dart';
+import '../../domain/usecases/add_bonus.dart';
+import '../../domain/usecases/create_shift.dart';
+import '../../domain/usecases/delete_shift.dart';
+import '../../domain/usecases/delete_shift_tag.dart';
+import '../../domain/usecases/get_available_employees.dart';
+import '../../domain/usecases/get_manager_overview.dart';
+import '../../domain/usecases/get_manager_shift_cards.dart';
+import '../../domain/usecases/get_monthly_shift_status.dart';
+import '../../domain/usecases/get_schedule_data.dart';
+import '../../domain/usecases/get_shift_metadata.dart';
+import '../../domain/usecases/get_tags_by_card_id.dart';
+import '../../domain/usecases/input_card.dart';
+import '../../domain/usecases/insert_schedule.dart';
+import '../../domain/usecases/insert_shift_schedule.dart';
+import '../../domain/usecases/process_bulk_approval.dart';
+import '../../domain/usecases/toggle_shift_approval.dart';
+import '../../domain/usecases/update_bonus_amount.dart';
+import '../../domain/usecases/update_shift.dart';
 import 'states/time_table_state.dart';
 
 // ============================================================================
@@ -29,6 +47,124 @@ final timeTableDatasourceProvider = Provider<TimeTableDatasource>((ref) {
 final timeTableRepositoryProvider = Provider<TimeTableRepository>((ref) {
   final datasource = ref.watch(timeTableDatasourceProvider);
   return TimeTableRepositoryImpl(datasource);
+});
+
+// ============================================================================
+// UseCase Providers
+// ============================================================================
+
+/// Get Shift Metadata UseCase Provider
+final getShiftMetadataUseCaseProvider = Provider<GetShiftMetadata>((ref) {
+  final repository = ref.watch(timeTableRepositoryProvider);
+  return GetShiftMetadata(repository);
+});
+
+/// Get Monthly Shift Status UseCase Provider
+final getMonthlyShiftStatusUseCaseProvider =
+    Provider<GetMonthlyShiftStatus>((ref) {
+  final repository = ref.watch(timeTableRepositoryProvider);
+  return GetMonthlyShiftStatus(repository);
+});
+
+/// Get Manager Overview UseCase Provider
+final getManagerOverviewUseCaseProvider = Provider<GetManagerOverview>((ref) {
+  final repository = ref.watch(timeTableRepositoryProvider);
+  return GetManagerOverview(repository);
+});
+
+/// Get Manager Shift Cards UseCase Provider
+final getManagerShiftCardsUseCaseProvider =
+    Provider<GetManagerShiftCards>((ref) {
+  final repository = ref.watch(timeTableRepositoryProvider);
+  return GetManagerShiftCards(repository);
+});
+
+/// Toggle Shift Approval UseCase Provider
+final toggleShiftApprovalUseCaseProvider =
+    Provider<ToggleShiftApproval>((ref) {
+  final repository = ref.watch(timeTableRepositoryProvider);
+  return ToggleShiftApproval(repository);
+});
+
+/// Create Shift UseCase Provider
+final createShiftUseCaseProvider = Provider<CreateShift>((ref) {
+  final repository = ref.watch(timeTableRepositoryProvider);
+  return CreateShift(repository);
+});
+
+/// Delete Shift UseCase Provider
+final deleteShiftUseCaseProvider = Provider<DeleteShift>((ref) {
+  final repository = ref.watch(timeTableRepositoryProvider);
+  return DeleteShift(repository);
+});
+
+/// Delete Shift Tag UseCase Provider
+final deleteShiftTagUseCaseProvider = Provider<DeleteShiftTag>((ref) {
+  final repository = ref.watch(timeTableRepositoryProvider);
+  return DeleteShiftTag(repository);
+});
+
+/// Get Available Employees UseCase Provider
+final getAvailableEmployeesUseCaseProvider =
+    Provider<GetAvailableEmployees>((ref) {
+  final repository = ref.watch(timeTableRepositoryProvider);
+  return GetAvailableEmployees(repository);
+});
+
+/// Insert Shift Schedule UseCase Provider
+final insertShiftScheduleUseCaseProvider =
+    Provider<InsertShiftSchedule>((ref) {
+  final repository = ref.watch(timeTableRepositoryProvider);
+  return InsertShiftSchedule(repository);
+});
+
+/// Get Schedule Data UseCase Provider
+final getScheduleDataUseCaseProvider = Provider<GetScheduleData>((ref) {
+  final repository = ref.watch(timeTableRepositoryProvider);
+  return GetScheduleData(repository);
+});
+
+/// Insert Schedule UseCase Provider
+final insertScheduleUseCaseProvider = Provider<InsertSchedule>((ref) {
+  final repository = ref.watch(timeTableRepositoryProvider);
+  return InsertSchedule(repository);
+});
+
+/// Process Bulk Approval UseCase Provider
+final processBulkApprovalUseCaseProvider =
+    Provider<ProcessBulkApproval>((ref) {
+  final repository = ref.watch(timeTableRepositoryProvider);
+  return ProcessBulkApproval(repository);
+});
+
+/// Update Shift UseCase Provider
+final updateShiftUseCaseProvider = Provider<UpdateShift>((ref) {
+  final repository = ref.watch(timeTableRepositoryProvider);
+  return UpdateShift(repository);
+});
+
+/// Input Card UseCase Provider
+final inputCardUseCaseProvider = Provider<InputCard>((ref) {
+  final repository = ref.watch(timeTableRepositoryProvider);
+  return InputCard(repository);
+});
+
+/// Get Tags By Card ID UseCase Provider
+final getTagsByCardIdUseCaseProvider = Provider<GetTagsByCardId>((ref) {
+  final repository = ref.watch(timeTableRepositoryProvider);
+  return GetTagsByCardId(repository);
+});
+
+/// Add Bonus UseCase Provider
+final addBonusUseCaseProvider = Provider<AddBonus>((ref) {
+  final repository = ref.watch(timeTableRepositoryProvider);
+  return AddBonus(repository);
+});
+
+/// Update Bonus Amount UseCase Provider
+final updateBonusAmountUseCaseProvider = Provider<UpdateBonusAmount>((ref) {
+  final repository = ref.watch(timeTableRepositoryProvider);
+  return UpdateBonusAmount(repository);
 });
 
 // ============================================================================
@@ -68,8 +204,8 @@ final shiftMetadataProvider =
     throw Exception('Store ID is required');
   }
 
-  final repository = ref.watch(timeTableRepositoryProvider);
-  return await repository.getShiftMetadata(storeId: storeId);
+  final useCase = ref.watch(getShiftMetadataUseCaseProvider);
+  return await useCase(GetShiftMetadataParams(storeId: storeId));
 });
 
 // ============================================================================
@@ -79,12 +215,12 @@ final shiftMetadataProvider =
 /// Monthly Shift Status Notifier
 class MonthlyShiftStatusNotifier
     extends StateNotifier<MonthlyShiftStatusState> {
-  final TimeTableRepository _repository;
+  final GetMonthlyShiftStatus _getMonthlyShiftStatusUseCase;
   final String _companyId;
   final String _storeId;
 
   MonthlyShiftStatusNotifier(
-    this._repository,
+    this._getMonthlyShiftStatusUseCase,
     this._companyId,
     this._storeId,
   ) : super(const MonthlyShiftStatusState());
@@ -108,10 +244,12 @@ class MonthlyShiftStatusNotifier
       final requestDate =
           '${month.year}-${month.month.toString().padLeft(2, '0')}-01';
 
-      final data = await _repository.getMonthlyShiftStatus(
-        requestDate: requestDate,
-        companyId: _companyId,
-        storeId: _storeId,
+      final data = await _getMonthlyShiftStatusUseCase(
+        GetMonthlyShiftStatusParams(
+          requestDate: requestDate,
+          companyId: _companyId,
+          storeId: _storeId,
+        ),
       );
 
       // Update state with new data
@@ -157,11 +295,11 @@ final monthlyShiftStatusProvider = StateNotifierProvider.family<
     MonthlyShiftStatusNotifier,
     MonthlyShiftStatusState,
     String>((ref, storeId) {
-  final repository = ref.watch(timeTableRepositoryProvider);
+  final useCase = ref.watch(getMonthlyShiftStatusUseCaseProvider);
   final appState = ref.watch(appStateProvider);
   final companyId = appState.companyChoosen;
 
-  return MonthlyShiftStatusNotifier(repository, companyId, storeId);
+  return MonthlyShiftStatusNotifier(useCase, companyId, storeId);
 });
 
 // ============================================================================
@@ -170,12 +308,12 @@ final monthlyShiftStatusProvider = StateNotifierProvider.family<
 
 /// Manager Overview Notifier
 class ManagerOverviewNotifier extends StateNotifier<ManagerOverviewState> {
-  final TimeTableRepository _repository;
+  final GetManagerOverview _getManagerOverviewUseCase;
   final String _companyId;
   final String _storeId;
 
   ManagerOverviewNotifier(
-    this._repository,
+    this._getManagerOverviewUseCase,
     this._companyId,
     this._storeId,
   ) : super(const ManagerOverviewState());
@@ -201,11 +339,13 @@ class ManagerOverviewNotifier extends StateNotifier<ManagerOverviewState> {
       final startDate = '${firstDay.year}-${firstDay.month.toString().padLeft(2, '0')}-${firstDay.day.toString().padLeft(2, '0')}';
       final endDate = '${lastDay.year}-${lastDay.month.toString().padLeft(2, '0')}-${lastDay.day.toString().padLeft(2, '0')}';
 
-      final data = await _repository.getManagerOverview(
-        startDate: startDate,
-        endDate: endDate,
-        companyId: _companyId,
-        storeId: _storeId,
+      final data = await _getManagerOverviewUseCase(
+        GetManagerOverviewParams(
+          startDate: startDate,
+          endDate: endDate,
+          companyId: _companyId,
+          storeId: _storeId,
+        ),
       );
 
       final newDataByMonth = Map<String, ManagerOverview>.from(state.dataByMonth);
@@ -240,11 +380,11 @@ final managerOverviewProvider = StateNotifierProvider.family<
     ManagerOverviewNotifier,
     ManagerOverviewState,
     String>((ref, storeId) {
-  final repository = ref.watch(timeTableRepositoryProvider);
+  final useCase = ref.watch(getManagerOverviewUseCaseProvider);
   final appState = ref.watch(appStateProvider);
   final companyId = appState.companyChoosen;
 
-  return ManagerOverviewNotifier(repository, companyId, storeId);
+  return ManagerOverviewNotifier(useCase, companyId, storeId);
 });
 
 // ============================================================================

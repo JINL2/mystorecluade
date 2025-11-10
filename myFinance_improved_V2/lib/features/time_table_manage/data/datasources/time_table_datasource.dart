@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../domain/exceptions/time_table_exceptions.dart';
@@ -30,7 +32,7 @@ class TimeTableDatasource {
       return response;
     } catch (e, stackTrace) {
       throw ShiftMetadataException(
-        '시프트 메타데이터 조회 실패: $e',
+        'Failed to fetch shift metadata: $e',
         originalError: e,
         stackTrace: stackTrace,
       );
@@ -62,7 +64,7 @@ class TimeTableDatasource {
       return [];
     } catch (e, stackTrace) {
       throw ShiftStatusException(
-        '월별 시프트 상태 조회 실패: $e',
+        'Failed to fetch monthly shift status: $e',
         originalError: e,
         stackTrace: stackTrace,
       );
@@ -102,7 +104,7 @@ class TimeTableDatasource {
       return {};
     } catch (e, stackTrace) {
       throw TimeTableException(
-        '매니저 오버뷰 조회 실패: $e',
+        'Failed to fetch manager overview: $e',
         originalError: e,
         stackTrace: stackTrace,
       );
@@ -137,13 +139,14 @@ class TimeTableDatasource {
 
       // Try to convert to Map if possible
       if (response is Map) {
-        return Map<String, dynamic>.from(response);
+        final converted = Map<String, dynamic>.from(response);
+        return converted;
       }
 
       return {};
     } catch (e, stackTrace) {
       throw TimeTableException(
-        '매니저 시프트 카드 조회 실패: $e',
+        'Failed to fetch manager shift cards: $e',
         originalError: e,
         stackTrace: stackTrace,
       );
@@ -175,7 +178,7 @@ class TimeTableDatasource {
       return {};
     } catch (e, stackTrace) {
       throw ShiftApprovalException(
-        '시프트 승인 토글 실패: $e',
+        'Failed to toggle shift approval: $e',
         originalError: e,
         stackTrace: stackTrace,
       );
@@ -203,7 +206,7 @@ class TimeTableDatasource {
       return {};
     } catch (e, stackTrace) {
       throw ShiftCreationException(
-        '시프트 생성 실패: $e',
+        'Failed to create shift: $e',
         originalError: e,
         stackTrace: stackTrace,
       );
@@ -218,7 +221,7 @@ class TimeTableDatasource {
       await _supabase.from('store_shifts').delete().eq('shift_id', shiftId);
     } catch (e, stackTrace) {
       throw ShiftDeletionException(
-        '시프트 삭제 실패: $e',
+        'Failed to delete shift: $e',
         originalError: e,
         stackTrace: stackTrace,
       );
@@ -250,7 +253,7 @@ class TimeTableDatasource {
       return {};
     } catch (e, stackTrace) {
       throw TimeTableException(
-        '시프트 태그 삭제 실패: $e',
+        'Failed to delete shift tag: $e',
         originalError: e,
         stackTrace: stackTrace,
       );
@@ -286,7 +289,7 @@ class TimeTableDatasource {
       return {};
     } catch (e, stackTrace) {
       throw TimeTableException(
-        '스케줄 추가 실패: $e',
+        'Failed to add schedule: $e',
         originalError: e,
         stackTrace: stackTrace,
       );
@@ -328,7 +331,7 @@ class TimeTableDatasource {
       return {};
     } catch (e, stackTrace) {
       throw TimeTableException(
-        '카드 입력 실패: $e',
+        'Failed to input card: $e',
         originalError: e,
         stackTrace: stackTrace,
       );
@@ -360,7 +363,7 @@ class TimeTableDatasource {
       return {'employees': <dynamic>[], 'shifts': <dynamic>[]};
     } catch (e, stackTrace) {
       throw TimeTableException(
-        '직원 목록 조회 실패: $e',
+        'Failed to fetch employee list: $e',
         originalError: e,
         stackTrace: stackTrace,
       );
@@ -394,7 +397,7 @@ class TimeTableDatasource {
       return {};
     } catch (e, stackTrace) {
       throw TimeTableException(
-        '시프트 일정 추가 실패: $e',
+        'Failed to add shift schedule: $e',
         originalError: e,
         stackTrace: stackTrace,
       );
@@ -424,7 +427,7 @@ class TimeTableDatasource {
       return {};
     } catch (e, stackTrace) {
       throw TimeTableException(
-        '스케줄 데이터 조회 실패: $e',
+        'Failed to fetch schedule data: $e',
         originalError: e,
         stackTrace: stackTrace,
       );
@@ -456,7 +459,7 @@ class TimeTableDatasource {
       return {};
     } catch (e, stackTrace) {
       throw TimeTableException(
-        '일괄 승인 처리 실패: $e',
+        'Failed to process bulk approval: $e',
         originalError: e,
         stackTrace: stackTrace,
       );
@@ -492,7 +495,7 @@ class TimeTableDatasource {
       return {};
     } catch (e, stackTrace) {
       throw TimeTableException(
-        '시프트 업데이트 실패: $e',
+        'Failed to update shift: $e',
         originalError: e,
         stackTrace: stackTrace,
       );
@@ -522,7 +525,7 @@ class TimeTableDatasource {
       return [];
     } catch (e, stackTrace) {
       throw TimeTableException(
-        '태그 조회 실패: $e',
+        'Failed to fetch tags: $e',
         originalError: e,
         stackTrace: stackTrace,
       );
@@ -556,7 +559,7 @@ class TimeTableDatasource {
       return {};
     } catch (e, stackTrace) {
       throw TimeTableException(
-        '보너스 추가 실패: $e',
+        'Failed to add bonus: $e',
         originalError: e,
         stackTrace: stackTrace,
       );
@@ -575,7 +578,7 @@ class TimeTableDatasource {
           .eq('shift_request_id', shiftRequestId);
     } catch (e, stackTrace) {
       throw TimeTableException(
-        '보너스 업데이트 실패: $e',
+        'Failed to update bonus: $e',
         originalError: e,
         stackTrace: stackTrace,
       );

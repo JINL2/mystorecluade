@@ -179,4 +179,36 @@ class StoreShiftDataSource {
       );
     }
   }
+
+  /// Update operational settings
+  ///
+  /// Uses direct UPDATE on 'stores' table
+  Future<void> updateOperationalSettings({
+    required String storeId,
+    int? huddleTime,
+    int? paymentTime,
+    int? allowedDistance,
+  }) async {
+    try {
+      final updateData = <String, dynamic>{};
+
+      if (huddleTime != null) updateData['huddle_time'] = huddleTime;
+      if (paymentTime != null) updateData['payment_time'] = paymentTime;
+      if (allowedDistance != null) updateData['allowed_distance'] = allowedDistance;
+
+      if (updateData.isEmpty) {
+        return;
+      }
+
+      await _client
+          .from('stores')
+          .update(updateData)
+          .eq('store_id', storeId);
+    } catch (e, stackTrace) {
+      throw StoreLocationUpdateException(
+        'Failed to update operational settings: $e',
+        stackTrace,
+      );
+    }
+  }
 }

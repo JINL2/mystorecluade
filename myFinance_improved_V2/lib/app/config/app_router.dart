@@ -345,7 +345,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: 'timetableManage',
             name: 'timetableManage',
-            builder: (context, state) => const TimeTableManagePage(),
+            builder: (context, state) {
+              final feature = state.extra;
+              return TimeTableManagePage(feature: feature);
+            },
           ),
           // Transaction Template (nested route)
           GoRoute(

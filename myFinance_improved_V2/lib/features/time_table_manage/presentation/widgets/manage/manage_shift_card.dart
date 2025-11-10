@@ -40,6 +40,12 @@ class ManageShiftCard extends StatelessWidget {
     final paidHour = (card['paid_hour'] as num?) ?? 0;
     final isReported = (card['is_reported'] as bool?) ?? false;
 
+    // Parse confirmed times
+    final confirmStartTimeStr = card['confirm_start_time'] as String?;
+    final confirmEndTimeStr = card['confirm_end_time'] as String?;
+    // Show confirmed time if at least one is present
+    final hasConfirmedTime = confirmStartTimeStr != null || confirmEndTimeStr != null;
+
     // Check if problem is unsolved
     final hasUnsolvedProblem = isProblem && !isProblemSolved;
 
@@ -148,22 +154,59 @@ class ManageShiftCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Time and paid hours row
+                  // Show confirmed time if available, otherwise show plan time
                   Row(
                     children: [
-                      Icon(
-                        Icons.schedule,
-                        size: 16,
-                        color: TossColors.gray500,
-                      ),
-                      const SizedBox(width: TossSpacing.space1),
-                      Text(
-                        shiftTime,
-                        style: TossTextStyles.bodySmall.copyWith(
-                          color: TossColors.gray700,
+                      if (hasConfirmedTime) ...[
+                        // Confirmed time with arrow icons
+                        Icon(
+                          Icons.arrow_forward,
+                          size: 14,
+                          color: TossColors.gray500,
                         ),
-                      ),
+                        const SizedBox(width: TossSpacing.space1),
+                        Text(
+                          confirmStartTimeStr != null
+                              ? _formatConfirmedTime(confirmStartTimeStr)
+                              : '--:--',
+                          style: TossTextStyles.bodySmall.copyWith(
+                            color: TossColors.gray700,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const SizedBox(width: TossSpacing.space2),
+                        Icon(
+                          Icons.arrow_forward,
+                          size: 14,
+                          color: TossColors.gray500,
+                        ),
+                        const SizedBox(width: TossSpacing.space1),
+                        Text(
+                          confirmEndTimeStr != null
+                              ? _formatConfirmedTime(confirmEndTimeStr)
+                              : '--:--',
+                          style: TossTextStyles.bodySmall.copyWith(
+                            color: TossColors.gray700,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ] else ...[
+                        // Plan time with clock icon (when no confirmed time yet)
+                        Icon(
+                          Icons.schedule,
+                          size: 16,
+                          color: TossColors.gray500,
+                        ),
+                        const SizedBox(width: TossSpacing.space1),
+                        Text(
+                          shiftTime,
+                          style: TossTextStyles.bodySmall.copyWith(
+                            color: TossColors.gray700,
+                          ),
+                        ),
+                      ],
                       const Spacer(),
+                      // Show paid hours if available
                       if (paidHour > 0) ...[
                         Icon(
                           Icons.access_time,
@@ -401,6 +444,22 @@ class ManageShiftCard extends StatelessWidget {
       return '${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
     } catch (e) {
       return time;
+    }
+  }
+
+  /// Format confirmed time from ISO8601 string to HH:mm format
+  /// Input: "2025-11-07T11:40:00.000Z" or "2025-11-07T11:40:00.000"
+  /// Output: "11:40" (already in local time from Entity)
+  String _formatConfirmedTime(String isoString) {
+    if (isoString.isEmpty) {
+      return '--:--';
+    }
+
+    try {
+      final dateTime = DateTime.parse(isoString);
+      return DateTimeUtils.formatTimeOnly(dateTime);
+    } catch (e) {
+      return '--:--';
     }
   }
 }

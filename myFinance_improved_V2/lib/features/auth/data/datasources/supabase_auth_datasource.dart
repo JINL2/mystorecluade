@@ -1,7 +1,6 @@
 // lib/features/auth/data/datasources/supabase_auth_datasource.dart
 
 import 'package:supabase_flutter/supabase_flutter.dart' hide User;
-import 'package:flutter_timezone/flutter_timezone.dart';
 import '../models/user_model.dart';
 import '../../../../core/utils/datetime_utils.dart';
 
@@ -113,19 +112,9 @@ class SupabaseAuthDataSource implements AuthDataSource {
 
       // 2. Create user profile in users table
       final now = DateTimeUtils.nowUtc();
-      // Get device timezone using flutter_timezone (IANA standard format)
-      String timezone;
-      try {
-        timezone = await FlutterTimezone.getLocalTimezone();
-        // Validate that it's in IANA format (e.g., "Asia/Ho_Chi_Minh")
-        if (timezone.startsWith('+') || timezone.startsWith('-') || timezone.length < 3) {
-          timezone = 'Asia/Ho_Chi_Minh';  // Fallback if invalid format
-        }
-      } catch (e) {
-        // Fallback to Hanoi, Vietnam if detection fails
-        timezone = 'Asia/Ho_Chi_Minh';
-        print('⚠️ Failed to detect timezone, using default: $e');
-      }
+      // Use default timezone for Vietnam
+      // In the future, this can be detected from device settings or user preferences
+      final timezone = 'Asia/Ho_Chi_Minh';
 
       final userModel = UserModel(
         userId: response.user!.id,

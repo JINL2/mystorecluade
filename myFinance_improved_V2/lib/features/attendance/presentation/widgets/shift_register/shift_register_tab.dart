@@ -12,7 +12,7 @@ import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../../shared/widgets/common/toss_loading_view.dart';
 import '../../../../../shared/widgets/common/toss_success_error_dialog.dart';
 import '../../../domain/entities/shift_data.dart';
-import '../../providers/attendance_provider.dart';
+import '../../providers/attendance_providers.dart';
 
 class ShiftRegisterTab extends ConsumerStatefulWidget {
   const ShiftRegisterTab({super.key});
@@ -21,7 +21,8 @@ class ShiftRegisterTab extends ConsumerStatefulWidget {
   ConsumerState<ShiftRegisterTab> createState() => _ShiftRegisterTabState();
 }
 
-class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
+class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab>
+    with AutomaticKeepAliveClientMixin {
   DateTime selectedDate = DateTime.now();
   DateTime focusedMonth = DateTime.now();
   String? selectedStoreId;
@@ -29,14 +30,18 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
   bool isLoadingMetadata = false;
   List<Map<String, dynamic>>? monthlyShiftStatus; // Store monthly shift status from RPC
   bool isLoadingShiftStatus = false;
-  
+
   // ScrollController for auto-scroll functionality
   final ScrollController _scrollController = ScrollController();
   bool _isAutoScrolling = false; // Prevent conflicting scroll animations
-  
+
   // Selection state for shift cards
   String? selectedShift; // Store single selected shift ID
   String? selectionMode; // 'registered' or 'unregistered' - determined by selection
+
+  // Keep state alive when switching tabs
+  @override
+  bool get wantKeepAlive => true;
   
   // Remove mock data - will use real data from RPC
   Map<DateTime, ShiftData> registeredShifts = {
@@ -67,10 +72,10 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
     }
 
     try {
-      // Use datasource instead of direct Supabase call
-      final datasource = ref.read(attendanceDatasourceProvider);
+      // Use get shift metadata use case
+      final getShiftMetadata = ref.read(getShiftMetadataProvider);
 
-      final response = await datasource.getShiftMetadata(
+      final response = await getShiftMetadata(
         storeId: storeId,
       );
 
@@ -104,12 +109,12 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
       // Format date as YYYY-MM-DD for the first day of the focused month
       final requestDate = '${focusedMonth.year}-${focusedMonth.month.toString().padLeft(2, '0')}-01';
 
-      // Use datasource instead of direct Supabase call
-      final datasource = ref.read(attendanceDatasourceProvider);
+      // Use get monthly shift status use case
+      final getMonthlyShiftStatus = ref.read(getMonthlyShiftStatusProvider);
       final appState = ref.read(appStateProvider);
       final companyId = appState.companyChoosen;
 
-      final response = await datasource.getMonthlyShiftStatusManager(
+      final response = await getMonthlyShiftStatus(
         storeId: selectedStoreId!,
         companyId: companyId,
         requestDate: requestDate,
@@ -741,11 +746,14 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
   // Handle register shift
   Future<void> _handleRegisterShift() async {
     if (selectedShift == null) return;
-    
+
+    // Store parent context before showing dialog
+    final scaffoldContext = context;
+
     // Get the selected shift details
     final allStoreShifts = _getAllStoreShifts();
     Map<String, dynamic>? selectedShiftDetail;
-    
+
     // Find the selected shift details
     for (final shift in allStoreShifts) {
       final shiftId = shift['shift_id'] ?? shift['id'] ?? shift['store_shift_id'];
@@ -754,32 +762,32 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
         break;
       }
     }
-    
+
     if (selectedShiftDetail == null) return;
-    
+
     // Extract shift information
-    final shiftName = selectedShiftDetail['shift_name'] ?? 
-                     selectedShiftDetail['name'] ?? 
-                     selectedShiftDetail['shift_type'] ?? 
+    final shiftName = selectedShiftDetail['shift_name'] ??
+                     selectedShiftDetail['name'] ??
+                     selectedShiftDetail['shift_type'] ??
                      'Shift';
-    final startTime = selectedShiftDetail['start_time'] ?? 
-                     selectedShiftDetail['shift_start_time'] ?? 
-                     selectedShiftDetail['default_start_time'] ?? 
+    final startTime = selectedShiftDetail['start_time'] ??
+                     selectedShiftDetail['shift_start_time'] ??
+                     selectedShiftDetail['default_start_time'] ??
                      '--:--';
-    final endTime = selectedShiftDetail['end_time'] ?? 
-                   selectedShiftDetail['shift_end_time'] ?? 
-                   selectedShiftDetail['default_end_time'] ?? 
+    final endTime = selectedShiftDetail['end_time'] ??
+                   selectedShiftDetail['shift_end_time'] ??
+                   selectedShiftDetail['default_end_time'] ??
                    '--:--';
-    
+
     // Format the date
     final dateStr = '${selectedDate.year}-${selectedDate.month.toString().padLeft(2, '0')}-${selectedDate.day.toString().padLeft(2, '0')}';
     final displayDate = '${selectedDate.day} ${_getMonthName(selectedDate.month)} ${selectedDate.year}';
-    
+
     // Show confirmation dialog
     showDialog(
-      context: context,
+      context: scaffoldContext,
       barrierDismissible: true,
-      builder: (BuildContext context) {
+      builder: (BuildContext dialogContext) {
         return Dialog(
           backgroundColor: TossColors.transparent,
           child: Container(
@@ -883,7 +891,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
                     children: [
                       Expanded(
                         child: TextButton(
-                          onPressed: () => Navigator.of(context).pop(),
+                          onPressed: () => Navigator.of(dialogContext).pop(),
                           style: TextButton.styleFrom(
                             padding: const EdgeInsets.symmetric(vertical: TossSpacing.space4),
                           ),
@@ -904,7 +912,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
                       Expanded(
                         child: TextButton(
                           onPressed: () async {
-                            Navigator.of(context).pop();
+                            Navigator.of(dialogContext).pop();
 
                             // Get user ID
                             final authStateAsync = ref.read(authStateProvider);
@@ -913,9 +921,9 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
                             
                             
                             try {
-                              // Use datasource instead of direct Supabase call
-                              final datasource = ref.read(attendanceDatasourceProvider);
-                              await datasource.insertShiftRequest(
+                              // Use register shift request use case
+                              final registerShiftRequest = ref.read(registerShiftRequestProvider);
+                              await registerShiftRequest(
                                 userId: user.id,
                                 shiftId: selectedShift!,
                                 storeId: selectedStoreId!,
@@ -948,6 +956,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
                                                  '';
                               
                               
+                              // Update UI immediately - data already saved to DB
                               _updateLocalShiftStatusOptimistically(
                                 shiftId: selectedShift!,
                                 userId: user.id,
@@ -955,23 +964,15 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
                                 profileImage: profileImage?.toString() ?? '',
                                 requestDate: dateStr,
                               );
-                              
+
                               _resetSelections();
-                              
-                              // Force immediate UI update with local state changes
-                              // NO RPC CALL - just use the updated local state
-                              if (mounted) {
-                                setState(() {
-                                  // The UI will now reflect the changes made by _updateLocalShiftStatusOptimistically
-                                });
-                              }
 
                               // Show success message
                               if (mounted) {
                                 showDialog(
-                                  context: context,
+                                  context: scaffoldContext,
                                   barrierDismissible: true,
-                                  builder: (BuildContext context) {
+                                  builder: (BuildContext successContext) {
                                     return Dialog(
                                       backgroundColor: TossColors.transparent,
                                       child: Container(
@@ -1035,7 +1036,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
                                               ),
                                               child: TextButton(
                                                 onPressed: () {
-                                                  Navigator.of(context).pop();
+                                                  Navigator.of(successContext).pop();
                                                 },
                                                 style: TextButton.styleFrom(
                                                   padding: const EdgeInsets.symmetric(vertical: TossSpacing.space4),
@@ -1060,9 +1061,9 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
                             } catch (e) {
                               if (mounted) {
                                 await showDialog<bool>(
-                                  context: context,
+                                  context: scaffoldContext,
                                   barrierDismissible: true,
-                                  builder: (context) => TossDialog.error(
+                                  builder: (errorContext) => TossDialog.error(
                                     title: 'Registration Failed',
                                     message: 'Failed to register shift: ${e.toString()}',
                                     primaryButtonText: 'OK',
@@ -1628,10 +1629,10 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
         
         if (shiftId.isNotEmpty) {
 
-          // Delete using the three-column filter approach via datasource
+          // Delete using the three-column filter approach via use case
           // This uniquely identifies the row without needing shift_request_id
-          final datasource = ref.read(attendanceDatasourceProvider);
-          await datasource.deleteShiftRequest(
+          final deleteShiftRequest = ref.read(deleteShiftRequestProvider);
+          await deleteShiftRequest(
             userId: user.id,
             shiftId: shiftId,
             requestDate: dateStr,
@@ -1796,6 +1797,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context); // Required for AutomaticKeepAliveClientMixin
     final appState = ref.watch(appStateProvider);
 
     // Get selected company from user's companies based on companyChoosen

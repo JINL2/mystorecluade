@@ -22,12 +22,13 @@ import '../../../../../shared/themes/toss_border_radius.dart';
 // Shared widgets
 import '../../../../../shared/widgets/common/toss_loading_view.dart';
 import '../../../../../shared/widgets/common/toss_success_error_dialog.dart';
+import '../../../../../shared/widgets/toss/toss_dropdown.dart';
 
 /// AddShiftBottomSheet
 ///
 /// Bottom sheet for adding new shifts to the schedule
 class AddShiftBottomSheet extends ConsumerStatefulWidget {
-  final VoidCallback? onShiftAdded;
+  final Future<void> Function()? onShiftAdded;
 
   const AddShiftBottomSheet({
     super.key,
@@ -93,11 +94,11 @@ class _AddShiftBottomSheetState extends ConsumerState<AddShiftBottomSheet> {
         _isLoading = true;
         _error = null;
       });
-      
+
       // Get store_id from app state
       final appState = ref.read(appStateProvider);
       final storeId = appState.storeChoosen.isNotEmpty ? appState.storeChoosen : null;
-      
+
       if (storeId == null || storeId.isEmpty) {
         setState(() {
           _error = 'Please select a store first';
@@ -105,17 +106,28 @@ class _AddShiftBottomSheetState extends ConsumerState<AddShiftBottomSheet> {
         });
         return;
       }
-      
+
       // Use repository instead of direct Supabase call
-      final response = await ref.read(timeTableRepositoryProvider).getScheduleData(
+      final scheduleData = await ref.read(timeTableRepositoryProvider).getScheduleData(
         storeId: storeId,
       );
 
       setState(() {
-        _employees = List<Map<String, dynamic>>.from(response['store_employees'] ?? []);
-        _shifts = List<Map<String, dynamic>>.from(response['store_shifts'] ?? []);
+        _employees = scheduleData.employees.map((emp) => {
+          'user_id': emp.userId,
+          'user_name': emp.userName,
+          'profile_image': emp.profileImage,
+        },).toList();
+        _shifts = scheduleData.shifts.map((shift) => {
+          'shift_id': shift.shiftId,
+          'shift_name': shift.shiftName ?? 'Shift',
+          'required_employees': shift.targetCount,
+          'start_time': DateTimeUtils.formatTimeOnly(shift.planStartTime),
+          'end_time': DateTimeUtils.formatTimeOnly(shift.planEndTime),
+        },).toList();
         _isLoading = false;
       });
+
     } catch (e) {
       setState(() {
         _error = 'Error: ${e.toString()}';
@@ -153,17 +165,23 @@ class _AddShiftBottomSheetState extends ConsumerState<AddShiftBottomSheet> {
   }
   
   Future<void> _saveShift() async {
+    // Prevent duplicate saves
+    if (_isSaving) return;
+
     try {
+      if (!mounted) return;
+
       setState(() {
         _isSaving = true;
       });
-      
+
       // Get required data from app state
       final appState = ref.read(appStateProvider);
       final storeId = appState.storeChoosen.isNotEmpty ? appState.storeChoosen : null;
       final approvedBy = appState.user['user_id'] ?? '';
-      
+
       if (storeId == null || storeId.isEmpty || approvedBy.isEmpty) {
+        if (!mounted) return;
         await showDialog<bool>(
           context: context,
           barrierDismissible: true,
@@ -173,12 +191,13 @@ class _AddShiftBottomSheetState extends ConsumerState<AddShiftBottomSheet> {
             primaryButtonText: 'OK',
           ),
         );
+        if (!mounted) return;
         setState(() {
           _isSaving = false;
         });
         return;
       }
-      
+
       // Format the date as yyyy-MM-dd
       final formattedDate = '${_selectedDate!.year}-${_selectedDate!.month.toString().padLeft(2, '0')}-${_selectedDate!.day.toString().padLeft(2, '0')}';
 
@@ -191,7 +210,14 @@ class _AddShiftBottomSheetState extends ConsumerState<AddShiftBottomSheet> {
         approvedBy: approvedBy,
       );
 
+      // Notify parent widget to refresh data BEFORE showing success dialog
+      // This ensures the UI updates immediately when user sees success message
+      if (mounted && widget.onShiftAdded != null) {
+        await widget.onShiftAdded!();
+      }
+
       // Show success message
+      if (!mounted) return;
       await showDialog<bool>(
         context: context,
         barrierDismissible: true,
@@ -201,9 +227,6 @@ class _AddShiftBottomSheetState extends ConsumerState<AddShiftBottomSheet> {
           primaryButtonText: 'OK',
         ),
       );
-
-      // Notify parent widget
-      widget.onShiftAdded?.call();
 
       // Close the bottom sheet
       if (mounted) {
@@ -222,11 +245,11 @@ class _AddShiftBottomSheetState extends ConsumerState<AddShiftBottomSheet> {
             primaryButtonText: 'OK',
           ),
         );
-      }
 
-      setState(() {
-        _isSaving = false;
-      });
+        setState(() {
+          _isSaving = false;
+        });
+      }
     }
   }
   
@@ -353,131 +376,48 @@ class _AddShiftBottomSheetState extends ConsumerState<AddShiftBottomSheet> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             // Employee Dropdown
-                            Text(
-                              'Employee',
-                              style: TossTextStyles.bodyLarge.copyWith(
-                                color: TossColors.gray900,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            const SizedBox(height: TossSpacing.space2),
-                            Container(
-                              decoration: BoxDecoration(
-                                border: Border.all(color: TossColors.gray300),
-                                borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-                              ),
-                              child: DropdownButtonHideUnderline(
-                                child: DropdownButton<String>(
-                                  value: _selectedEmployeeId,
-                                  hint: Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: TossSpacing.space3,
-                                    ),
-                                    child: Text(
-                                      'Select Employee',
-                                      style: TossTextStyles.body.copyWith(
-                                        color: TossColors.gray500,
-                                      ),
-                                    ),
-                                  ),
-                                  isExpanded: true,
-                                  icon: const Padding(
-                                    padding: EdgeInsets.only(right: TossSpacing.space3),
-                                    child: Icon(
-                                      Icons.arrow_drop_down,
-                                      color: TossColors.gray600,
-                                    ),
-                                  ),
-                                  items: _employees.map((employee) {
-                                    return DropdownMenuItem<String>(
-                                      value: employee['user_id'],
-                                      child: Padding(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: TossSpacing.space3,
-                                        ),
-                                        child: Text(
-                                          employee['full_name'] ?? 'Unknown',
-                                          style: TossTextStyles.body.copyWith(
-                                            color: TossColors.gray900,
-                                          ),
-                                        ),
-                                      ),
-                                    );
-                                  }).toList(),
-                                  onChanged: _isSaving ? null : (value) {
-                                    setState(() {
-                                      _selectedEmployeeId = value;
-                                    });
-                                  },
-                                ),
-                              ),
+                            TossDropdown<String>(
+                              label: 'Employee',
+                              hint: 'Select Employee',
+                              value: _selectedEmployeeId,
+                              items: _employees.map((employee) {
+                                return TossDropdownItem<String>(
+                                  value: employee['user_id'] as String,
+                                  label: employee['user_name'] as String? ?? 'Unknown',
+                                );
+                              }).toList(),
+                              onChanged: _isSaving ? null : (value) {
+                                setState(() {
+                                  _selectedEmployeeId = value;
+                                });
+                              },
+                              isLoading: false,
                             ),
                             
                             const SizedBox(height: TossSpacing.space5),
-                            
-                            // Shift Dropdown
-                            Text(
-                              'Shift',
-                              style: TossTextStyles.bodyLarge.copyWith(
-                                color: TossColors.gray900,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            const SizedBox(height: TossSpacing.space2),
-                            Container(
-                              decoration: BoxDecoration(
-                                border: Border.all(color: TossColors.gray300),
-                                borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-                              ),
-                              child: DropdownButtonHideUnderline(
-                                child: DropdownButton<String>(
-                                  value: _selectedShiftId,
-                                  hint: Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: TossSpacing.space3,
-                                    ),
-                                    child: Text(
-                                      'Select Shift',
-                                      style: TossTextStyles.body.copyWith(
-                                        color: TossColors.gray500,
-                                      ),
-                                    ),
-                                  ),
-                                  isExpanded: true,
-                                  icon: const Padding(
-                                    padding: EdgeInsets.only(right: TossSpacing.space3),
-                                    child: Icon(
-                                      Icons.arrow_drop_down,
-                                      color: TossColors.gray600,
-                                    ),
-                                  ),
-                                  items: _shifts.map((shift) {
-                                    // Convert UTC times to local time for display
-                                    final startTime = _formatShiftTime(shift['start_time']);
-                                    final endTime = _formatShiftTime(shift['end_time']);
 
-                                    return DropdownMenuItem<String>(
-                                      value: shift['shift_id'],
-                                      child: Padding(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: TossSpacing.space3,
-                                        ),
-                                        child: Text(
-                                          '${shift['shift_name']} ($startTime - $endTime)',
-                                          style: TossTextStyles.body.copyWith(
-                                            color: TossColors.gray900,
-                                          ),
-                                        ),
-                                      ),
-                                    );
-                                  }).toList(),
-                                  onChanged: _isSaving ? null : (value) {
-                                    setState(() {
-                                      _selectedShiftId = value;
-                                    });
-                                  },
-                                ),
-                              ),
+                            // Shift Dropdown
+                            TossDropdown<String>(
+                              label: 'Shift',
+                              hint: 'Select Shift',
+                              value: _selectedShiftId,
+                              items: _shifts.map((shift) {
+                                // Convert UTC times to local time for display
+                                final startTime = _formatShiftTime(shift['start_time']);
+                                final endTime = _formatShiftTime(shift['end_time']);
+
+                                return TossDropdownItem<String>(
+                                  value: shift['shift_id'] as String,
+                                  label: shift['shift_name'] as String? ?? 'Shift',
+                                  subtitle: '$startTime - $endTime',
+                                );
+                              }).toList(),
+                              onChanged: _isSaving ? null : (value) {
+                                setState(() {
+                                  _selectedShiftId = value;
+                                });
+                              },
+                              isLoading: false,
                             ),
                             
                             const SizedBox(height: TossSpacing.space5),
@@ -638,7 +578,12 @@ class _AddShiftBottomSheetState extends ConsumerState<AddShiftBottomSheet> {
                                 ? const SizedBox(
                                     width: 20,
                                     height: 20,
-                                    child: TossLoadingView(),
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      valueColor: AlwaysStoppedAnimation<Color>(
+                                        TossColors.white,
+                                      ),
+                                    ),
                                   )
                                 : Text(
                                     'Save',

@@ -2260,7 +2260,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
                           ),
                         ),
                         const SizedBox(height: TossSpacing.space3),
-                        
+
                         ...flow.currentDenominations.map((denomination) => 
                           Container(
                             margin: const EdgeInsets.only(bottom: 8),
