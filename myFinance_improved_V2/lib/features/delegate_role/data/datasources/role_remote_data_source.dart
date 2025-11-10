@@ -72,13 +72,9 @@ class RoleRemoteDataSource {
 
       return response['role_id'] as String;
     } on PostgrestException catch (e) {
-      if (e.message.contains('jsonb')) {
-        throw Exception('Failed to save tags: Invalid tag format');
-      } else if (e.message.contains('duplicate')) {
-        throw Exception('Role name already exists');
-      } else {
-        throw Exception('Database error: ${e.message}');
-      }
+      // Data layer only handles database errors, not business validation
+      // Business rules are enforced in Domain layer (UseCases/Validators)
+      throw Exception('Database error: ${e.message}');
     } catch (e) {
       throw Exception('Failed to create role: $e');
     }
@@ -104,13 +100,8 @@ class RoleRemoteDataSource {
 
       await _supabase.from('roles').update(updateData).eq('role_id', roleId);
     } on PostgrestException catch (e) {
-      if (e.message.contains('jsonb')) {
-        throw Exception('Failed to save tags: Invalid tag format');
-      } else if (e.message.contains('duplicate')) {
-        throw Exception('Role name already exists');
-      } else {
-        throw Exception('Database error: ${e.message}');
-      }
+      // Data layer only handles database errors, not business validation
+      throw Exception('Database error: ${e.message}');
     } catch (e) {
       throw Exception('Failed to update role details: $e');
     }
@@ -365,8 +356,10 @@ class RoleRemoteDataSource {
           .eq('is_deleted', false)
           .timeout(const Duration(seconds: 10));
 
+      // Business validation moved to Domain layer (AssignUserToRoleUseCase)
+      // Data layer just performs the operation
       if (existingExactRole.isNotEmpty) {
-        throw Exception('User is already assigned to this role');
+        throw Exception('Database constraint: User already has this role');
       }
 
       // Get all roles for this company to find any existing role

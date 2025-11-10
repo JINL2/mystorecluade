@@ -1,7 +1,6 @@
 import 'package:go_router/go_router.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:supabase_flutter/supabase_flutter.dart' hide AuthException;
 
 // Shared - Themes
 import '../../../../shared/themes/toss_colors.dart';
@@ -19,6 +18,8 @@ import '../../../../app/providers/app_state_provider.dart';
 
 // Presentation - Providers
 import '../providers/company_service.dart';
+import '../../infrastructure/providers/current_user_provider.dart';
+import '../providers/usecase_providers.dart';
 
 // Domain - Value Objects
 import '../../domain/value_objects/company_type.dart';
@@ -27,12 +28,6 @@ import '../../domain/value_objects/currency.dart';
 // Domain - Exceptions
 import '../../domain/exceptions/auth_exceptions.dart';
 import '../../domain/exceptions/validation_exception.dart';
-
-// Homepage Data Source (for filtering helper)
-import '../../../homepage/data/datasources/homepage_data_source.dart';
-
-// Core - Infrastructure
-import '../../../../core/cache/auth_data_cache.dart';
 
 /// Create Business Page - Clean Architecture Version
 ///
@@ -710,8 +705,7 @@ class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
       final companyService = ref.read(companyServiceProvider);
 
       // Get current user ID
-      final supabase = Supabase.instance.client;
-      final userId = supabase.auth.currentUser?.id;
+      final userId = ref.read(currentUserIdProvider);
 
       if (userId == null) {
         throw AuthException('User not authenticated');
@@ -795,7 +789,7 @@ class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
       if (mounted) {
         _showErrorSnackbar(e.message);
       }
-    } on NetworkException catch (e) {
+    } on NetworkException {
       if (mounted) {
         _showErrorSnackbar('Connection issue. Please check your internet and try again.');
       }
@@ -818,77 +812,53 @@ class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
 
   Future<void> _navigateToDashboard() async {
     try {
-      final supabase = Supabase.instance.client;
-      final userId = supabase.auth.currentUser?.id;
+      final userId = ref.read(currentUserIdProvider);
 
-      if (userId != null) {
-        // Small delay for backend to update
-        await Future.delayed(const Duration(milliseconds: 500));
+      if (userId == null) {
+        throw AuthException('User not authenticated');
+      }
 
-        final cache = AuthDataCache.instance;
+      // Small delay for backend to update
+      await Future.delayed(const Duration(milliseconds: 500));
 
-        // Fetch user data and categories using cache
-        final results = await Future.wait([
-          cache.deduplicate(
-            'user_data_$userId',
-            () => supabase.rpc(
-              'get_user_companies_and_stores',
-              params: {'p_user_id': userId},
-            ),
-          ),
-          cache.deduplicate(
-            'categories_features',
-            () => supabase.rpc('get_categories_with_features'),
-          ),
-        ]);
+      // ✅ Use GetUserDataUseCase instead of direct RPC call
+      final getUserDataUseCase = ref.read(getUserDataUseCaseProvider);
+      final filteredResponse = await getUserDataUseCase.execute(userId);
 
-        final userResponse = results[0];
-        final categoriesResponse = results[1];
+      // Update app state
+      ref.read(appStateProvider.notifier).updateUser(
+        user: filteredResponse,
+        isAuthenticated: true,
+      );
 
-        // Update app state
-        if (userResponse is Map<String, dynamic>) {
-          // ✅ Filter out deleted companies and stores
-          final filteredResponse = HomepageDataSource.filterDeletedCompaniesAndStores(userResponse);
+      // ✅ Auto-select first company and store for better UX
+      final companies = filteredResponse['companies'] as List?;
+      if (companies != null && companies.isNotEmpty) {
+        final firstCompany = companies.first as Map<String, dynamic>;
+        final companyId = firstCompany['company_id'] as String;
+        final companyName = firstCompany['company_name'] as String;
 
-          ref.read(appStateProvider.notifier).updateUser(
-            user: filteredResponse,
-            isAuthenticated: true,
+        ref.read(appStateProvider.notifier).selectCompany(
+          companyId,
+          companyName: companyName,
+        );
+
+        // Auto-select first store if available
+        final stores = firstCompany['stores'] as List?;
+        if (stores != null && stores.isNotEmpty) {
+          final firstStore = stores.first as Map<String, dynamic>;
+          final storeId = firstStore['store_id'] as String;
+          final storeName = firstStore['store_name'] as String;
+
+          ref.read(appStateProvider.notifier).selectStore(
+            storeId,
+            storeName: storeName,
           );
-
-          // ✅ Auto-select first company and store for better UX
-          final companies = filteredResponse['companies'] as List?;
-          if (companies != null && companies.isNotEmpty) {
-            final firstCompany = companies.first as Map<String, dynamic>;
-            final companyId = firstCompany['company_id'] as String;
-            final companyName = firstCompany['company_name'] as String;
-
-            ref.read(appStateProvider.notifier).selectCompany(
-              companyId,
-              companyName: companyName,
-            );
-
-            // Auto-select first store if available
-            final stores = firstCompany['stores'] as List?;
-            if (stores != null && stores.isNotEmpty) {
-              final firstStore = stores.first as Map<String, dynamic>;
-              final storeId = firstStore['store_id'] as String;
-              final storeName = firstStore['store_name'] as String;
-
-              ref.read(appStateProvider.notifier).selectStore(
-                storeId,
-                storeName: storeName,
-              );
-            }
-          }
         }
+      }
 
-        if (categoriesResponse is List) {
-          ref.read(appStateProvider.notifier).updateCategoryFeatures(categoriesResponse);
-        }
-
-        if (mounted) {
-          context.go('/');
-        }
+      if (mounted) {
+        context.go('/');
       }
     } catch (e) {
       if (mounted) {

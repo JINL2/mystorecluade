@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 // Core - Theme System
 import '../../../../shared/themes/toss_colors.dart';
@@ -11,18 +10,13 @@ import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/widgets/common/toss_scaffold.dart';
 
 // Presentation - Providers
-import '../providers/repository_providers.dart';
+import '../../infrastructure/providers/current_user_provider.dart';
+import '../providers/usecase_providers.dart';
 import '../../../../app/providers/app_state_provider.dart';
 
 // Domain Layer
-import '../../domain/usecases/join_company_usecase.dart';
 import '../../domain/exceptions/auth_exceptions.dart';
 import '../../domain/exceptions/validation_exception.dart';
-
-// Homepage Data Source (for filtering helper)
-import '../../../homepage/data/datasources/homepage_data_source.dart';
-
-// Navigation
 
 /// Join Business Page - Clean Architecture Version
 ///
@@ -412,65 +406,51 @@ class _JoinBusinessPageState extends ConsumerState<JoinBusinessPage> {
     });
 
     try {
-      final userId = Supabase.instance.client.auth.currentUser?.id;
+      final userId = ref.read(currentUserIdProvider);
       if (userId == null) {
-        throw Exception('Not authenticated');
+        throw AuthException('Not authenticated');
       }
 
-      // Get repository
-      final companyRepository = ref.read(companyRepositoryProvider);
-
-      // Create UseCase
-      final joinCompanyUseCase = JoinCompanyUseCase(
-        companyRepository: companyRepository,
-      );
-
-      // Execute UseCase
+      // ✅ Use JoinCompanyUseCase provider
+      final joinCompanyUseCase = ref.read(joinCompanyUseCaseProvider);
       final company = await joinCompanyUseCase.execute(
         companyCode: _codeController.text.trim(),
         userId: userId,
       );
 
-      // Reload user data with new company
-      final supabase = Supabase.instance.client;
-      final userResponse = await supabase.rpc(
-        'get_user_companies_and_stores',
-        params: {'p_user_id': userId},
+      // ✅ Use GetUserDataUseCase instead of direct RPC call
+      final getUserDataUseCase = ref.read(getUserDataUseCaseProvider);
+      final filteredResponse = await getUserDataUseCase.execute(userId);
+
+      // Update app state
+      ref.read(appStateProvider.notifier).updateUser(
+        user: filteredResponse,
+        isAuthenticated: true,
       );
 
-      if (userResponse is Map<String, dynamic>) {
-        // ✅ Filter out deleted companies and stores
-        final filteredResponse = HomepageDataSource.filterDeletedCompaniesAndStores(userResponse);
+      // ✅ Auto-select the newly joined company
+      final companies = filteredResponse['companies'] as List?;
+      if (companies != null && companies.isNotEmpty) {
+        final firstCompany = companies.first as Map<String, dynamic>;
+        final companyId = firstCompany['company_id'] as String;
+        final companyName = firstCompany['company_name'] as String;
 
-        ref.read(appStateProvider.notifier).updateUser(
-          user: filteredResponse,
-          isAuthenticated: true,
+        ref.read(appStateProvider.notifier).selectCompany(
+          companyId,
+          companyName: companyName,
         );
 
-        // ✅ Auto-select the newly joined company
-        final companies = filteredResponse['companies'] as List?;
-        if (companies != null && companies.isNotEmpty) {
-          final firstCompany = companies.first as Map<String, dynamic>;
-          final companyId = firstCompany['company_id'] as String;
-          final companyName = firstCompany['company_name'] as String;
+        // Auto-select first store if available
+        final stores = firstCompany['stores'] as List?;
+        if (stores != null && stores.isNotEmpty) {
+          final firstStore = stores.first as Map<String, dynamic>;
+          final storeId = firstStore['store_id'] as String;
+          final storeName = firstStore['store_name'] as String;
 
-          ref.read(appStateProvider.notifier).selectCompany(
-            companyId,
-            companyName: companyName,
+          ref.read(appStateProvider.notifier).selectStore(
+            storeId,
+            storeName: storeName,
           );
-
-          // Auto-select first store if available
-          final stores = firstCompany['stores'] as List?;
-          if (stores != null && stores.isNotEmpty) {
-            final firstStore = stores.first as Map<String, dynamic>;
-            final storeId = firstStore['store_id'] as String;
-            final storeName = firstStore['store_name'] as String;
-
-            ref.read(appStateProvider.notifier).selectStore(
-              storeId,
-              storeName: storeName,
-            );
-          }
         }
       }
 

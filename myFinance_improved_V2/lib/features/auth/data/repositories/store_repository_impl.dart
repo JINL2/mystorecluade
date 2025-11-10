@@ -66,8 +66,6 @@ class StoreRepositoryImpl extends BaseRepository implements StoreRepository {
   @override
   Future<Store> update(Store store) {
     return execute(() async {
-      final model = StoreModel.fromEntity(store);
-
       final updateData = {
         'store_name': store.name,
         'store_code': store.storeCode,

@@ -1,11 +1,16 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:myfinance_improved/features/homepage/data/repositories/repository_providers.dart';
-import 'package:myfinance_improved/features/homepage/domain/entities/category_with_features.dart';
-import 'package:myfinance_improved/features/homepage/domain/entities/revenue.dart';
-import 'package:myfinance_improved/features/homepage/domain/entities/top_feature.dart';
-import 'package:myfinance_improved/features/homepage/domain/revenue_period.dart';
-import 'package:myfinance_improved/app/providers/auth_providers.dart';
-import 'package:myfinance_improved/app/providers/app_state_provider.dart';
+
+import '../../../../app/providers/app_state_provider.dart';
+import '../../../../app/providers/auth_providers.dart';
+import '../../../../core/domain/entities/feature.dart';
+import '../../domain/entities/category_with_features.dart';
+import '../../domain/entities/company_type.dart';
+import '../../domain/entities/currency.dart';
+import '../../domain/entities/revenue.dart';
+import '../../domain/entities/top_feature.dart';
+import '../../domain/providers/repository_providers.dart';
+import '../../domain/providers/use_case_providers.dart';
+import '../../domain/revenue_period.dart';
 
 // === Revenue Provider ===
 
@@ -71,40 +76,51 @@ final revenueProvider = FutureProvider.family<Revenue, RevenuePeriod>(
 /// Provider for fetching all categories with features
 ///
 /// Caches data in AppState to avoid frequent API calls.
+/// Returns cached data immediately if available, fetches fresh data on invalidation.
 final categoriesWithFeaturesProvider =
     FutureProvider<List<CategoryWithFeatures>>((ref) async {
   final appState = ref.watch(appStateProvider);
   final appStateNotifier = ref.read(appStateProvider.notifier);
 
-  // Check if we have cached data in AppState
+  // ✅ Check if we have cached data in AppState
   if (appState.categoryFeatures.isNotEmpty) {
-    // Convert cached data back to domain entities
-    // AppState stores dynamic data, so we need to reconstruct entities
-    try {
-      final repository = ref.watch(homepageRepositoryProvider);
-      final freshCategories = await repository.getCategoriesWithFeatures();
-
-      // Only update if data has changed
-      if (freshCategories.length != appState.categoryFeatures.length) {
-        appStateNotifier.updateCategoryFeatures(_convertCategoriesToDynamic(freshCategories));
-      }
-
-      return freshCategories;
-    } catch (e) {
-      // On error, return empty list if cache is empty
-      return [];
-    }
+    // Return cached data immediately (no API call)
+    return _convertDynamicToCategories(appState.categoryFeatures);
   }
 
-  // No cache, fetch fresh data
+  // ✅ No cache, fetch fresh data from repository
   final repository = ref.watch(homepageRepositoryProvider);
   final categories = await repository.getCategoriesWithFeatures();
 
-  // Save to AppState for caching
+  // ✅ Save to AppState for future caching
   appStateNotifier.updateCategoryFeatures(_convertCategoriesToDynamic(categories));
 
   return categories;
 });
+
+/// Helper: Convert dynamic data back to domain entities
+List<CategoryWithFeatures> _convertDynamicToCategories(List<dynamic> dynamicCategories) {
+  return dynamicCategories.map((categoryData) {
+    final category = categoryData as Map<String, dynamic>;
+    final featuresData = category['features'] as List<dynamic>;
+
+    return CategoryWithFeatures(
+      categoryId: category['category_id'] as String,
+      categoryName: category['category_name'] as String,
+      features: featuresData.map((featureData) {
+        final feature = featureData as Map<String, dynamic>;
+        return Feature(
+          featureId: feature['feature_id'] as String,
+          featureName: feature['feature_name'] as String,
+          featureRoute: feature['feature_route'] as String,
+          featureIcon: feature['feature_icon'] as String,
+          iconKey: feature['icon_key'] as String?,
+          isShowMain: feature['is_show_main'] as bool? ?? true,
+        );
+      }).toList(),
+    );
+  }).toList();
+}
 
 /// Helper: Convert categories to dynamic for AppState storage
 List<dynamic> _convertCategoriesToDynamic(List<CategoryWithFeatures> categories) {
@@ -307,3 +323,33 @@ final userCompaniesProvider = FutureProvider<Map<String, dynamic>?>((ref) async 
 final selectedRevenuePeriodProvider = StateProvider<RevenuePeriod>(
   (ref) => RevenuePeriod.today,
 );
+
+// === Company & Currency Providers ===
+
+/// Company Types FutureProvider for dropdown
+///
+/// Used in create company sheet to populate company type options.
+/// Auto-disposed when sheet is closed to free memory.
+final companyTypesProvider = FutureProvider.autoDispose<List<CompanyType>>((ref) async {
+  final getCompanyTypes = ref.watch(getCompanyTypesUseCaseProvider);
+  final result = await getCompanyTypes();
+
+  return result.fold(
+    (failure) => throw Exception(failure.message),
+    (companyTypes) => companyTypes,
+  );
+});
+
+/// Currencies FutureProvider for dropdown
+///
+/// Used in create company sheet to populate currency options.
+/// Auto-disposed when sheet is closed to free memory.
+final currenciesProvider = FutureProvider.autoDispose<List<Currency>>((ref) async {
+  final getCurrencies = ref.watch(getCurrenciesUseCaseProvider);
+  final result = await getCurrencies();
+
+  return result.fold(
+    (failure) => throw Exception(failure.message),
+    (currencies) => currencies,
+  );
+});

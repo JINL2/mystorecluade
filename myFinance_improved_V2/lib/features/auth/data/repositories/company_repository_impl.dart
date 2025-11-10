@@ -5,7 +5,6 @@ import '../../domain/value_objects/company_type.dart';
 import '../../domain/value_objects/currency.dart';
 import '../../domain/repositories/company_repository.dart';
 import '../../domain/exceptions/auth_exceptions.dart';
-import '../../domain/exceptions/validation_exception.dart';
 import '../datasources/supabase_company_datasource.dart';
 import '../models/company_model.dart';
 import 'base_repository.dart';
@@ -79,8 +78,6 @@ class CompanyRepositoryImpl extends BaseRepository implements CompanyRepository 
   @override
   Future<Company> update(Company company) {
     return execute(() async {
-      final model = CompanyModel.fromEntity(company);
-
       final updateData = {
         'company_name': company.name,
         'company_business_number': company.businessNumber,

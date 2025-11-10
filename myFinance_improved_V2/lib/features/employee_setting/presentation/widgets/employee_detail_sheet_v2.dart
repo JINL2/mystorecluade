@@ -156,28 +156,25 @@ class _EmployeeDetailSheetV2State extends ConsumerState<EmployeeDetailSheetV2>
           ),
           
           SizedBox(height: TossSpacing.space2),
-          
-          
-          if (employee.roleName != null) ...[
-            SizedBox(height: TossSpacing.space1),
-            Container(
-              padding: EdgeInsets.symmetric(
-                horizontal: TossSpacing.space3,
-                vertical: TossSpacing.space1,
-              ),
-              decoration: BoxDecoration(
-                color: TossColors.gray100,
-                borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-              ),
-              child: Text(
-                employee.roleName!,
-                style: TossTextStyles.bodySmall.copyWith(
-                  color: TossColors.gray900,
-                  fontWeight: FontWeight.w500,
-                ),
+
+          SizedBox(height: TossSpacing.space1),
+          Container(
+            padding: EdgeInsets.symmetric(
+              horizontal: TossSpacing.space3,
+              vertical: TossSpacing.space1,
+            ),
+            decoration: BoxDecoration(
+              color: TossColors.gray100,
+              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+            ),
+            child: Text(
+              employee.roleName,
+              style: TossTextStyles.bodySmall.copyWith(
+                color: TossColors.gray900,
+                fontWeight: FontWeight.w500,
               ),
             ),
-          ],
+          ),
         ],
       ),
     );
@@ -552,8 +549,8 @@ class _RoleTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final hasRole = employee.roleName != null;
-    
+    final hasRole = employee.roleName.isNotEmpty;
+
     return Column(
       children: [
         // Scrollable content
@@ -590,7 +587,7 @@ class _RoleTab extends StatelessWidget {
                       ),
                       SizedBox(height: TossSpacing.space3),
                       Text(
-                        hasRole ? employee.roleName! : 'No Role Assigned',
+                        hasRole ? employee.roleName : 'No Role Assigned',
                         style: TossTextStyles.h3.copyWith(
                           color: hasRole ? TossColors.gray900 : TossColors.gray600,
                           fontWeight: FontWeight.w700,
@@ -628,30 +625,6 @@ class _RoleTab extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-  
-  Widget _buildDetailRow(String label, String value) {
-    return Padding(
-      padding: EdgeInsets.only(bottom: TossSpacing.space2),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            label,
-            style: TossTextStyles.bodySmall.copyWith(
-              color: TossColors.gray600,
-            ),
-          ),
-          Text(
-            value,
-            style: TossTextStyles.bodySmall.copyWith(
-              color: TossColors.gray900,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ],
-      ),
     );
   }
 }

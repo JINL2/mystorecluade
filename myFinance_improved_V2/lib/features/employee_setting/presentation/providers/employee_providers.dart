@@ -1,51 +1,22 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
-import '../../data/datasources/employee_remote_datasource.dart';
-import '../../data/datasources/role_remote_datasource.dart';
-import '../../data/repositories/employee_repository_impl.dart';
-import '../../data/repositories/role_repository_impl.dart';
+import '../../data/repositories/repository_providers.dart';
 import '../../domain/entities/currency_type.dart';
 import '../../domain/entities/employee_salary.dart';
 import '../../domain/entities/role.dart';
-import '../../domain/repositories/employee_repository.dart';
-import '../../domain/repositories/role_repository.dart';
 import 'employee_notifier.dart';
 import 'states/employee_state.dart';
-
-// ============================================================================
-// Data Source Providers
-// ============================================================================
-
-final _supabaseClientProvider = Provider<SupabaseClient>((ref) {
-  return Supabase.instance.client;
-});
-
-final _employeeRemoteDataSourceProvider = Provider<EmployeeRemoteDataSource>((ref) {
-  final supabase = ref.watch(_supabaseClientProvider);
-  return EmployeeRemoteDataSource(supabase);
-});
-
-final _roleRemoteDataSourceProvider = Provider<RoleRemoteDataSource>((ref) {
-  final supabase = ref.watch(_supabaseClientProvider);
-  return RoleRemoteDataSource(supabase);
-});
+import 'use_case_providers.dart';
 
 // ============================================================================
 // Repository Providers
 // ============================================================================
-
-final employeeRepositoryProvider = Provider<EmployeeRepository>((ref) {
-  final dataSource = ref.watch(_employeeRemoteDataSourceProvider);
-  return EmployeeRepositoryImpl(dataSource);
-});
-
-final roleRepositoryProvider = Provider<RoleRepository>((ref) {
-  final dataSource = ref.watch(_roleRemoteDataSourceProvider);
-  return RoleRepositoryImpl(dataSource);
-});
+// ✅ Moved to: data/repositories/repository_providers.dart
+// - employeeRepositoryProvider
+// - roleRepositoryProvider
+// Import them from the new location above
 
 // ============================================================================
 // Employee Data Providers
@@ -243,11 +214,11 @@ final rolesProvider = FutureProvider.autoDispose<List<Role>>((ref) async {
 
 /// Employee State Provider - 메인 직원 상태 관리
 ///
-/// ✅ This is the new standard pattern using Freezed State + StateNotifier
-/// Use this provider for new code instead of individual StateProviders above
+/// ✅ Hybrid pattern: UseCase for complex operations, Repository for simple CRUD
 final employeeProvider = StateNotifierProvider<EmployeeNotifier, EmployeeState>((ref) {
   return EmployeeNotifier(
     repository: ref.read(employeeRepositoryProvider),
+    updateSalaryUseCase: ref.read(updateEmployeeSalaryUseCaseProvider),
   );
 });
 

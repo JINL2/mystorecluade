@@ -624,11 +624,11 @@ class _EmployeeSettingPageV2State extends ConsumerState<EmployeeSettingPageV2>
           ...employees.asMap().entries.map((entry) {
             final index = entry.key;
             final employee = entry.value;
-            
+
             return Column(
               children: [
                 _buildEmployeeCard(employee, index),
-                if (index < employees.length - 1) 
+                if (index < employees.length - 1)
                   Divider(
                     height: 1,
                     color: TossColors.gray100,
@@ -637,7 +637,7 @@ class _EmployeeSettingPageV2State extends ConsumerState<EmployeeSettingPageV2>
                   ),
               ],
             );
-          }).toList(),
+          }),
         ],
       ),
     );
@@ -731,7 +731,7 @@ class _EmployeeSettingPageV2State extends ConsumerState<EmployeeSettingPageV2>
                     SizedBox(height: 4),
                     // Role or department info
                     Text(
-                      employee.roleName ?? employee.department ?? 'No role assigned',
+                      employee.roleName.isNotEmpty ? employee.roleName : (employee.department ?? 'No role assigned'),
                       style: TossTextStyles.bodySmall.copyWith(
                         color: TossColors.gray500,
                       ),
@@ -946,8 +946,8 @@ class _EmployeeSettingPageV2State extends ConsumerState<EmployeeSettingPageV2>
                 ),
               ),
             );
-          }).toList(),
-          
+          }),
+
           SizedBox(height: TossSpacing.space4),
         ],
       ),
@@ -1211,7 +1211,7 @@ class _EmployeeSettingPageV2State extends ConsumerState<EmployeeSettingPageV2>
               onChanged,
               count: count,
             );
-          }).toList(),
+          }),
         ],
       ),
     );

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:myfinance_improved/core/utils/datetime_utils.dart';
 import 'package:myfinance_improved/core/utils/tag_validator.dart';
 import 'package:myfinance_improved/shared/themes/toss_animations.dart';
@@ -14,7 +13,9 @@ import 'package:myfinance_improved/shared/widgets/toss/modal_keyboard_patterns.d
 import 'package:myfinance_improved/shared/widgets/toss/toss_enhanced_text_field.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_modal.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_success_error_dialog.dart';
-import '../providers/role_providers.dart';
+import '../providers/state/state_providers.dart';
+import '../providers/repositories/repository_providers.dart';
+import '../providers/usecases/usecase_providers.dart';
 
 class RoleManagementSheet extends ConsumerStatefulWidget {
   final String roleId;
@@ -1018,52 +1019,14 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
   }
 
   Future<List<Map<String, dynamic>>> _getRoleMembers() async {
-    final supabase = Supabase.instance.client;
-    
     try {
-      // Get user IDs from user_roles table
-      final userRolesResponse = await supabase
-          .from('user_roles')
-          .select('user_id, created_at')
-          .eq('role_id', widget.roleId)
-          .eq('is_deleted', false);
-      
-      if (userRolesResponse.isEmpty) {
-        return [];
-      }
-      
-      // Extract user IDs
-      final userIds = (userRolesResponse as List).map((item) => item['user_id']).toList();
-      
-      // Get user details from users table
-      final usersResponse = await supabase
-          .from('users')
-          .select('user_id, first_name, last_name, email')
-          .inFilter('user_id', userIds);
-      
-      final members = <Map<String, dynamic>>[];
-      
-      for (final user in usersResponse as List) {
-        // Find the corresponding user_role entry to get created_at
-        final userRole = (userRolesResponse as List).firstWhere(
-          (role) => role['user_id'] == user['user_id'],
-          orElse: () => {'created_at': null},
-        );
-        
-        final firstName = user['first_name'] ?? '';
-        final lastName = user['last_name'] ?? '';
-        final fullName = '$firstName $lastName'.trim();
-        
-        members.add({
-          'user_id': user['user_id'],
-          'name': fullName.isEmpty ? 'Unknown User' : fullName,
-          'email': user['email'] ?? 'No email',
-          'created_at': userRole['created_at'],
-        });
-      }
-      
+      // ✅ Use GetRoleMembersUseCase instead of direct Supabase access
+      final getRoleMembersUseCase = ref.read(getRoleMembersUseCaseProvider);
+      final members = await getRoleMembersUseCase.execute(widget.roleId);
       return members;
     } catch (e) {
+      // Handle errors gracefully
+      debugPrint('Error fetching role members: $e');
       return [];
     }
   }
@@ -1371,42 +1334,23 @@ class _AddMemberBottomSheetState extends ConsumerState<_AddMemberBottomSheet> {
 
   Future<void> _loadUserRoleAssignments() async {
     if (!mounted) return;
-    
+
     setState(() => _isLoadingRoleAssignments = true);
-    
+
     try {
-      final supabase = Supabase.instance.client;
-      
-      // Get the company ID for this role with timeout
-      final roleData = await supabase
-          .from('roles')
-          .select('company_id')
-          .eq('role_id', widget.roleId)
-          .single()
-          .timeout(const Duration(seconds: 5));
-      
-      final companyId = roleData['company_id'];
-      
-      // Get all role assignments for users in this company with timeout
-      final userRoles = await supabase
-          .from('user_roles')
-          .select('user_id, role_id, role:roles!role_id(company_id)')
-          .eq('is_deleted', false)
-          .timeout(const Duration(seconds: 10));
-      
-      final assignments = <String, String?>{};
-      
-      for (final userRole in userRoles) {
-        final userId = userRole['user_id'] as String;
-        final roleId = userRole['role_id'] as String;
-        final role = userRole['role'] as Map<String, dynamic>?;
-        
-        // Only include roles from the current company
-        if (role != null && role['company_id'] == companyId) {
-          assignments[userId] = roleId;
-        }
-      }
-      
+      // ✅ Use GetUserRoleAssignmentsUseCase instead of direct Supabase access
+      final getUserRoleAssignmentsUseCase = ref.read(getUserRoleAssignmentsUseCaseProvider);
+      final roleRepository = ref.read(roleRepositoryProvider);
+
+      // Get role to extract company ID
+      final role = await roleRepository.getRoleById(widget.roleId);
+
+      // Get all user role assignments for this company
+      final assignments = await getUserRoleAssignmentsUseCase.execute(
+        roleId: widget.roleId,
+        companyId: role.companyId,
+      );
+
       if (mounted) {
         setState(() {
           _userRoleAssignments = assignments;
@@ -1415,6 +1359,7 @@ class _AddMemberBottomSheetState extends ConsumerState<_AddMemberBottomSheet> {
       }
     } catch (e) {
       // Graceful degradation: role name validation will still work
+      debugPrint('Error loading user role assignments: $e');
       if (mounted) {
         setState(() => _isLoadingRoleAssignments = false);
       }
@@ -1786,72 +1731,18 @@ class _AddMemberBottomSheetState extends ConsumerState<_AddMemberBottomSheet> {
     setState(() => _isAssigning = true);
 
     try {
-      final supabase = Supabase.instance.client;
+      // Get roleRepository to fetch companyId
+      final roleRepository = ref.read(roleRepositoryProvider);
+      final role = await roleRepository.getRoleById(widget.roleId);
+      final companyId = role.companyId;
 
-      // Note: Removed double-check validation as it requires companyId
-      // The database-level validation below is sufficient
-      
-      // Get the company_id for this role with timeout
-      final roleData = await supabase
-          .from('roles')
-          .select('company_id')
-          .eq('role_id', widget.roleId)
-          .single()
-          .timeout(const Duration(seconds: 10));
-
-      final companyId = roleData['company_id'] as String;
-      
-      // Check if user already has this exact role (database-level validation)
-      final existingExactRole = await supabase
-          .from('user_roles')
-          .select('user_role_id')
-          .eq('user_id', _selectedUserId!)
-          .eq('role_id', widget.roleId)
-          .eq('is_deleted', false)
-          .timeout(const Duration(seconds: 10));
-
-      if (existingExactRole.isNotEmpty) {
-        throw Exception('User is already assigned to this role');
-      }
-      
-      // Get all roles for this company to find any existing role
-      final companyRoles = await supabase
-          .from('roles')
-          .select('role_id')
-          .eq('company_id', companyId as Object)
-          .timeout(const Duration(seconds: 10));
-      
-      final roleIds = companyRoles.map((r) => r['role_id']).toList();
-      
-      // Check if user has any role in this company
-      final existingUserRoles = await supabase
-          .from('user_roles')
-          .select('user_role_id, role_id')
-          .eq('user_id', _selectedUserId!)
-          .inFilter('role_id', roleIds)
-          .eq('is_deleted', false)
-          .timeout(const Duration(seconds: 10));
-      
-      if (existingUserRoles.isNotEmpty) {
-        // User has an existing role in this company - update it
-        // The trigger will handle deactivating the old role
-        await supabase.from('user_roles').insert({
-          'user_id': _selectedUserId!,
-          'role_id': widget.roleId,
-          'created_at': DateTimeUtils.nowUtc(),
-          'updated_at': DateTimeUtils.nowUtc(),
-          'is_deleted': false,
-        }).timeout(const Duration(seconds: 15));
-      } else {
-        // User has no role in this company - simply insert
-        await supabase.from('user_roles').insert({
-          'user_id': _selectedUserId!,
-          'role_id': widget.roleId,
-          'created_at': DateTimeUtils.nowUtc(),
-          'updated_at': DateTimeUtils.nowUtc(),
-          'is_deleted': false,
-        }).timeout(const Duration(seconds: 15));
-      }
+      // ✅ Use AssignUserToRoleUseCase instead of direct database access
+      final assignUserUseCase = ref.read(assignUserToRoleUseCaseProvider);
+      await assignUserUseCase.execute(
+        userId: _selectedUserId!,
+        roleId: widget.roleId,
+        companyId: companyId,
+      );
 
       if (mounted) {
         Navigator.pop(context);

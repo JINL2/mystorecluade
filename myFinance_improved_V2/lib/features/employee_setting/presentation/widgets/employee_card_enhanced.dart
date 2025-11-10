@@ -56,14 +56,13 @@ class EmployeeCardEnhanced extends ConsumerWidget {
                       ),
                       
                       SizedBox(height: TossSpacing.space1),
-                      
+
                       // Role Badge (moved under name)
-                      if (employee.roleName != null)
-                        TossBadge(
-                          label: employee.roleName!,
-                          backgroundColor: _getRoleColor(employee.roleName!).withValues(alpha: 0.1),
-                          textColor: _getRoleColor(employee.roleName!),
-                        ),
+                      TossBadge(
+                        label: employee.roleName,
+                        backgroundColor: _getRoleColor(employee.roleName).withValues(alpha: 0.1),
+                        textColor: _getRoleColor(employee.roleName),
+                      ),
                     ],
                   ),
                 ),

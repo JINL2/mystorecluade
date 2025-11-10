@@ -4,7 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:myfinance_improved/app/providers/app_state_provider.dart';
 import 'package:myfinance_improved/core/utils/tag_validator.dart';
 import 'package:myfinance_improved/features/delegate_role/domain/entities/role.dart';
-import 'package:myfinance_improved/features/delegate_role/presentation/providers/role_providers.dart';
+import 'package:myfinance_improved/features/delegate_role/presentation/providers/usecases/usecase_providers.dart';
+import 'package:myfinance_improved/features/delegate_role/presentation/providers/state/state_providers.dart';
 import 'package:myfinance_improved/features/delegate_role/presentation/widgets/role_management_sheet.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
@@ -75,7 +76,7 @@ class _DelegateRolePageState extends ConsumerState<DelegateRolePage> {
       );
     }
 
-    final allRolesAsync = ref.watch(allCompanyRolesProvider((
+    final allRolesAsync = ref.watch(allCompanyRolesProvider(CompanyRolesParams(
       companyId: appState.companyChoosen,
       userId: appState.userId,
     )));
@@ -432,7 +433,7 @@ class _DelegateRolePageState extends ConsumerState<DelegateRolePage> {
   Future<void> _handleRefresh(WidgetRef ref) async {
     try {
       ref.invalidate(allCompanyRolesProvider);
-      ref.invalidate(activeDelegationsProvider);
+      // ref.invalidate(activeDelegationsProvider); // TODO: Add when used
 
       if (mounted) {
         // Show success dialog
@@ -1493,20 +1494,25 @@ class _CreateRoleBottomSheetState extends ConsumerState<_CreateRoleBottomSheet> 
         throw Exception('No company selected');
       }
 
-      final createRole = ref.read(createRoleProvider);
-      final roleId = await createRole(
+      // Use CreateRoleUseCase for business logic
+      final createRoleUseCase = ref.read(createRoleUseCaseProvider);
+      final roleId = await createRoleUseCase.execute(
         companyId: companyId,
-        roleName: roleName,
+        roleNameStr: roleName,
         description: _descriptionController.text.trim().isEmpty
             ? null
             : _descriptionController.text.trim(),
         roleType: 'custom',
-        tags: _selectedTags.isNotEmpty ? _selectedTags : null,
+        tagsStr: _selectedTags.isNotEmpty ? _selectedTags : null,
       );
 
+      // Update permissions if any selected
       if (_selectedPermissions.isNotEmpty) {
-        final updatePermissions = ref.read(updateRolePermissionsProvider);
-        await updatePermissions(roleId, _selectedPermissions);
+        final updatePermissionsUseCase = ref.read(updateRolePermissionsUseCaseProvider);
+        await updatePermissionsUseCase.execute(
+          roleId: roleId,
+          permissions: _selectedPermissions,
+        );
       }
 
       if (mounted) {

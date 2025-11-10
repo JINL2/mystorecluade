@@ -64,4 +64,10 @@ abstract class UserRepository {
     required String userId,
     required String storeId,
   });
+
+  /// Get user's complete data including companies and stores
+  ///
+  /// Returns raw data map with user info, companies, and stores.
+  /// Used for app initialization and data refresh.
+  Future<Map<String, dynamic>> getUserCompleteData(String userId);
 }

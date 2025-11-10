@@ -1,20 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:myfinance_improved/app/providers/app_state.dart';
-import 'package:myfinance_improved/app/providers/app_state_provider.dart';
-import 'package:myfinance_improved/app/providers/auth_providers.dart';
-import 'package:myfinance_improved/features/homepage/presentation/providers/homepage_providers.dart';
-import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
-import 'package:myfinance_improved/shared/themes/toss_colors.dart';
-import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
-import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
-import 'package:myfinance_improved/features/auth/presentation/providers/auth_service.dart';
-import 'package:myfinance_improved/features/homepage/presentation/widgets/company_store_selector.dart';
-import 'package:myfinance_improved/features/homepage/presentation/widgets/feature_grid.dart';
-import 'package:myfinance_improved/features/homepage/presentation/widgets/quick_access_section.dart';
-import 'package:myfinance_improved/features/homepage/presentation/widgets/revenue_card.dart';
-import 'package:myfinance_improved/shared/themes/toss_shadows.dart';
+
+import '../../../../app/providers/app_state.dart';
+import '../../../../app/providers/app_state_provider.dart';
+import '../../../../shared/themes/toss_border_radius.dart';
+import '../../../../shared/themes/toss_colors.dart';
+import '../../../../shared/themes/toss_shadows.dart';
+import '../../../../shared/themes/toss_spacing.dart';
+import '../../../../shared/themes/toss_text_styles.dart';
+import '../../../auth/presentation/providers/auth_service.dart';
+import '../providers/homepage_providers.dart';
+import '../widgets/company_store_selector.dart';
+import '../widgets/feature_grid.dart';
+import '../widgets/quick_access_section.dart';
+import '../widgets/revenue_card.dart';
 
 class Homepage extends ConsumerStatefulWidget {
   Homepage({super.key}); // ✅ Removed const to allow rebuilds

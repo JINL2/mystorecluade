@@ -10,10 +10,8 @@ import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 // Core - Navigation
 
 // App - Providers
-import '../../../../app/providers/app_state_provider.dart';
 
 // Auth - Services (Clean Architecture)
-import '../providers/auth_service.dart';
 
 /// Choose Role Page - Clean Architecture Version
 ///

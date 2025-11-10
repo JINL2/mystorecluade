@@ -13,7 +13,6 @@ import 'package:myfinance_improved/shared/widgets/toss/toss_dropdown.dart';
 
 import '../../domain/entities/currency_type.dart';
 import '../../domain/entities/employee_salary.dart';
-import '../../domain/value_objects/salary_update_request.dart';
 import '../providers/employee_providers.dart';
 class SalaryEditModal extends ConsumerStatefulWidget {
   final EmployeeSalary employee;
@@ -451,9 +450,8 @@ class _SalaryEditModalState extends ConsumerState<SalaryEditModal> {
       setState(() => _isSaving = true);
 
       try {
-        // Call the repository to update in database
-        final repository = ref.read(employeeRepositoryProvider);
-        final request = SalaryUpdateRequest(
+        // ✅ Use Notifier instead of calling repository directly
+        final success = await ref.read(employeeProvider.notifier).updateEmployeeSalary(
           salaryId: widget.employee.salaryId!,
           salaryAmount: amount,
           salaryType: _selectedPaymentType,
@@ -461,7 +459,9 @@ class _SalaryEditModalState extends ConsumerState<SalaryEditModal> {
           changeReason: 'Salary updated via mobile app',
         );
 
-        await repository.updateSalary(request);
+        if (!success) {
+          throw Exception('Failed to update salary');
+        }
 
         // Call the original callback to update local state with new values
         widget.onSave(
@@ -471,9 +471,6 @@ class _SalaryEditModalState extends ConsumerState<SalaryEditModal> {
           selectedCurrency.currencyName,
           selectedCurrency.symbol,
         );
-
-        // Refresh the employee list to get updated data from database
-        await refreshEmployees(ref);
 
         // Close modal
         if (mounted) Navigator.pop(context);

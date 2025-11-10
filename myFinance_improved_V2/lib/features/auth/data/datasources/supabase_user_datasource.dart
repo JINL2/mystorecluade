@@ -45,6 +45,10 @@ abstract class UserDataSource {
     required String userId,
     required String storeId,
   });
+
+  /// Get user's complete data including companies and stores
+  /// Calls the get_user_companies_and_stores RPC function
+  Future<Map<String, dynamic>> getUserCompleteData(String userId);
 }
 
 /// Supabase implementation of UserDataSource
@@ -198,6 +202,24 @@ class SupabaseUserDataSource implements UserDataSource {
       return access != null;
     } catch (e) {
       throw Exception('Failed to check store access: $e');
+    }
+  }
+
+  @override
+  Future<Map<String, dynamic>> getUserCompleteData(String userId) async {
+    try {
+      final response = await _client.rpc(
+        'get_user_companies_and_stores',
+        params: {'p_user_id': userId},
+      );
+
+      if (response == null) {
+        throw Exception('No user data returned');
+      }
+
+      return response as Map<String, dynamic>;
+    } catch (e) {
+      throw Exception('Failed to get user complete data: $e');
     }
   }
 }

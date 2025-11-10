@@ -119,4 +119,9 @@ class UserRepositoryImpl extends BaseRepository implements UserRepository {
       );
     });
   }
+
+  @override
+  Future<Map<String, dynamic>> getUserCompleteData(String userId) {
+    return execute(() => _dataSource.getUserCompleteData(userId));
+  }
 }

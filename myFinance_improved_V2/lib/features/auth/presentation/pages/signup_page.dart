@@ -966,7 +966,7 @@ class _SignupPageState extends ConsumerState<SignupPage>
           ),
         );
       }
-    } on NetworkException catch (e) {
+    } on NetworkException {
       // Handle network errors
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

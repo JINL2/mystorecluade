@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:supabase_flutter/supabase_flutter.dart' hide AuthException;
 
 // Shared - Theme System ✅
 import '../../../../shared/themes/toss_colors.dart';
@@ -17,7 +16,6 @@ import '../../../../core/constants/auth_constants.dart';
 import '../../../../core/notifications/services/production_token_service.dart';
 
 // App-level Providers ✅
-import '../../../../app/providers/app_state_provider.dart';
 
 // Widgets (from V1 - should be reused)
 // TODO: Verify these widgets exist in V2 or copy from V1
@@ -970,7 +968,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
           ),
         );
       }
-    } on NetworkException catch (e) {
+    } on NetworkException {
       // Handle network errors
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
