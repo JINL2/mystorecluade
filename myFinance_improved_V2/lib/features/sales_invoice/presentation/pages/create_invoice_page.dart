@@ -5,7 +5,6 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/constants/app_icons_fa.dart';
-import '../../../../core/navigation/safe_navigation.dart';
 import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
@@ -64,7 +63,7 @@ class _CreateInvoicePageState extends ConsumerState<CreateInvoicePage> {
         backgroundColor: TossColors.gray100,
         leading: IconButton(
           icon: const Icon(Icons.close, size: TossSpacing.iconMD),
-          onPressed: () => SafeNavigation.instance.safePop(context: context),
+          onPressed: () => context.pop(),
         ),
       ),
       body: SafeArea(

@@ -21,7 +21,6 @@ import 'package:myfinance_improved/shared/widgets/toss/toss_selection_bottom_she
 import 'package:myfinance_improved/shared/widgets/toss/toss_bottom_sheet.dart';
 
 // Core
-import 'package:myfinance_improved/core/navigation/safe_navigation.dart';
 
 // Feature
 import '../../domain/entities/counter_party.dart';
@@ -116,7 +115,7 @@ class _CounterPartyPageState extends ConsumerState<CounterPartyPage> {
         backgroundColor: TossColors.gray100, // ✅ 배경색과 일치
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: TossColors.textPrimary),
-          onPressed: () => context.safePop(),
+          onPressed: () => context.pop(),
         ),
         primaryActionText: 'Add',
         primaryActionIcon: Icons.add,
@@ -717,7 +716,7 @@ class _CounterPartyPageState extends ConsumerState<CounterPartyPage> {
                     onEdit: () => _showEditForm(counterParty),
                     onAccountSettings: () {
                       if (counterParty.isInternal) {
-                        context.safePush<void>('/debtAccountSettings/${counterParty.counterpartyId}/${Uri.encodeComponent(counterParty.name)}');
+                        context.push<void>('/debtAccountSettings/${counterParty.counterpartyId}/${Uri.encodeComponent(counterParty.name)}');
                       } else {
                         showDialog(
                           context: context,

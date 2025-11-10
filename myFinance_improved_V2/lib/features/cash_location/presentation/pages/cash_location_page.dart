@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:myfinance_improved/app/providers/app_state_provider.dart';
-import 'package:myfinance_improved/core/navigation/safe_navigation.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_shadows.dart';
@@ -591,7 +591,7 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
         // Refresh data before navigating
         _refreshData();
 
-        await context.safePush(
+        await context.push(
           '/cashLocation/account/${Uri.encodeComponent(location.locationName)}',
           extra: {
             'locationId': location.locationId,

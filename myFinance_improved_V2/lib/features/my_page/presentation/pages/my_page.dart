@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:myfinance_improved/core/navigation/safe_navigation.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
@@ -88,7 +87,7 @@ class _MyPageState extends ConsumerState<MyPage> with TickerProviderStateMixin {
                 children: [
                   IconButton(
                     icon: const Icon(Icons.arrow_back, size: 24),
-                    onPressed: () => context.safePop(),
+                    onPressed: () => context.pop(),
                     padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(),
                   ),
@@ -375,7 +374,7 @@ class _MyPageState extends ConsumerState<MyPage> with TickerProviderStateMixin {
 
   void _navigateToEditProfile() async {
     HapticFeedback.lightImpact();
-    await context.safePush('/edit-profile');
+    await context.push('/edit-profile');
 
     if (mounted) {
       ref.invalidate(currentUserProfileProvider);
@@ -384,12 +383,12 @@ class _MyPageState extends ConsumerState<MyPage> with TickerProviderStateMixin {
 
   void _navigateToNotifications() {
     HapticFeedback.lightImpact();
-    context.safePush('/notifications-settings');
+    context.push('/notifications-settings');
   }
 
   void _navigateToPrivacySecurity() {
     HapticFeedback.lightImpact();
-    context.safePush('/privacy-security');
+    context.push('/privacy-security');
   }
 
   void _handleSignOut() async {
@@ -408,7 +407,7 @@ class _MyPageState extends ConsumerState<MyPage> with TickerProviderStateMixin {
       try {
         await Supabase.instance.client.auth.signOut();
         if (mounted) {
-          context.safeGo('/auth/login');
+          context.go('/auth/login');
         }
       } catch (e) {
         if (mounted) {

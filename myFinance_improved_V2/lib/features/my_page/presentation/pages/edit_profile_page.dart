@@ -3,7 +3,6 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:myfinance_improved/app/providers/app_state_provider.dart';
-import 'package:myfinance_improved/core/navigation/safe_navigation.dart';
 import 'package:myfinance_improved/core/utils/datetime_utils.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
@@ -641,7 +640,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
           ),
         );
 
-        context.safePop();
+        context.pop();
       }
     } catch (e) {
       if (mounted) {

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:myfinance_improved/app/providers/app_state_provider.dart';
-import 'package:myfinance_improved/core/navigation/safe_navigation.dart';
 import 'package:myfinance_improved/core/utils/tag_validator.dart';
 import 'package:myfinance_improved/features/delegate_role/domain/entities/role.dart';
 import 'package:myfinance_improved/features/delegate_role/presentation/providers/role_providers.dart';
@@ -69,7 +68,7 @@ class _DelegateRolePageState extends ConsumerState<DelegateRolePage> {
             description: 'Please select a company to manage role delegations',
             action: TossPrimaryButton(
               text: 'Go to Home',
-              onPressed: () => context.safeGo('/'),
+              onPressed: () => context.go('/'),
             ),
           ),
         ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
@@ -9,7 +10,6 @@ import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/widgets/common/toss_scaffold.dart';
 import '../../../../shared/widgets/common/toss_white_card.dart';
 import '../../../../shared/widgets/toss/toss_search_field.dart';
-import '../../../../core/navigation/safe_navigation.dart';
 import '../../domain/entities/invoice.dart';
 import '../../domain/value_objects/invoice_period.dart';
 import '../../domain/value_objects/invoice_sort_option.dart';
@@ -50,7 +50,7 @@ class _SalesInvoicePageState extends ConsumerState<SalesInvoicePage> {
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => SafeNavigation.instance.safePop(context: context),
+          onPressed: () => context.pop(),
         ),
         title: Text(
           'Sales Invoice',
