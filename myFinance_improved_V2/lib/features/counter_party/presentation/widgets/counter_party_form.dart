@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
@@ -174,7 +175,7 @@ class _CounterPartyFormState extends ConsumerState<CounterPartyForm> with Ticker
         title: 'Error',
         message: message,
         primaryButtonText: 'OK',
-        onPrimaryPressed: () => Navigator.of(context).pop(),
+        onPrimaryPressed: () => context.pop(),
       ),
     );
   }
@@ -187,7 +188,7 @@ class _CounterPartyFormState extends ConsumerState<CounterPartyForm> with Ticker
         title: 'Success',
         message: message,
         primaryButtonText: 'Done',
-        onPrimaryPressed: () => Navigator.of(context).pop(),
+        onPrimaryPressed: () => context.pop(),
       ),
     );
   }
@@ -205,7 +206,7 @@ class _CounterPartyFormState extends ConsumerState<CounterPartyForm> with Ticker
     if (widget.counterParty == null) return;
     
     // Close confirmation dialog
-    Navigator.of(context).pop();
+    context.pop();
     
     setState(() => _isLoading = true);
 
@@ -468,7 +469,7 @@ class _CounterPartyFormState extends ConsumerState<CounterPartyForm> with Ticker
       isEditMode: widget.counterParty != null,
       onPrevious: _previousStep,
       onNext: _nextStep,
-      onCancel: () => Navigator.of(context).pop(),
+      onCancel: () => context.pop(),
     );
   }
 
@@ -547,7 +548,7 @@ class _CounterPartyFormState extends ConsumerState<CounterPartyForm> with Ticker
                         ],
                         // Close button
                         IconButton(
-                          onPressed: () => Navigator.of(context).pop(),
+                          onPressed: () => context.pop(),
                           icon: Icon(Icons.close, color: TossColors.gray600),
                           padding: EdgeInsets.zero,
                           constraints: BoxConstraints(minWidth: 40, minHeight: 40),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -283,7 +284,7 @@ class _RoleManagementModalState extends ConsumerState<RoleManagementModal> {
           title: 'Role Required',
           message: 'Please select a role before saving',
           primaryButtonText: 'OK',
-          onPrimaryPressed: () => Navigator.of(context).pop(),
+          onPrimaryPressed: () => context.pop(),
         ),
       );
       return;
@@ -336,7 +337,7 @@ class _RoleManagementModalState extends ConsumerState<RoleManagementModal> {
               title: 'Role Updated!',
               message: 'Employee role has been updated successfully',
               primaryButtonText: 'Done',
-              onPrimaryPressed: () => Navigator.of(context).pop(),
+              onPrimaryPressed: () => context.pop(),
             ),
           );
         }
@@ -355,7 +356,7 @@ class _RoleManagementModalState extends ConsumerState<RoleManagementModal> {
             title: 'Failed to Update Role',
             message: 'Could not update employee role: ${e.toString()}',
             primaryButtonText: 'OK',
-            onPrimaryPressed: () => Navigator.of(context).pop(),
+            onPrimaryPressed: () => context.pop(),
           ),
         );
       }

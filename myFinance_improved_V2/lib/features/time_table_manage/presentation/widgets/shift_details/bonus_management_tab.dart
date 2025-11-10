@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -109,7 +110,7 @@ class _BonusManagementTabState extends ConsumerState<BonusManagementTab> {
 
       // Close loading dialog
       if (mounted) {
-        Navigator.of(context).pop();
+        context.pop();
       }
 
       // Update the card in parent's state by returning the new bonus amount
@@ -120,7 +121,7 @@ class _BonusManagementTabState extends ConsumerState<BonusManagementTab> {
     } catch (e) {
       // Close loading dialog if open
       if (mounted && Navigator.canPop(context)) {
-        Navigator.of(context).pop();
+        context.pop();
       }
 
       // Show error message

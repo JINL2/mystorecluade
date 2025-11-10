@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -3526,7 +3527,7 @@ class _AttendanceContentState extends ConsumerState<AttendanceContent> {
                                       Navigator.of(dialogContext).pop();
                                       
                                       // Close the shift details bottom sheet
-                                      Navigator.of(context).pop();
+                                      context.pop();
 
                                       // Refresh the main page data
                                       _fetchMonthData(selectedDate);

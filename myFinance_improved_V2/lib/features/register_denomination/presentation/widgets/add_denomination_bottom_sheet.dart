@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
@@ -83,7 +84,7 @@ class _AddDenominationBottomSheetState extends ConsumerState<AddDenominationBott
                     ),
                   ),
                   IconButton(
-                    onPressed: () => Navigator.of(context).pop(),
+                    onPressed: () => context.pop(),
                     icon: const Icon(Icons.close),
                     color: TossColors.gray500,
                     padding: const EdgeInsets.all(TossSpacing.space2),
@@ -213,7 +214,7 @@ class _AddDenominationBottomSheetState extends ConsumerState<AddDenominationBott
                   // Cancel button
                   Expanded(
                     child: TextButton(
-                      onPressed: () => Navigator.of(context).pop(),
+                      onPressed: () => context.pop(),
                       style: TextButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 13),
                         shape: RoundedRectangleBorder(
@@ -295,7 +296,7 @@ class _AddDenominationBottomSheetState extends ConsumerState<AddDenominationBott
     
     // Close bottom sheet immediately for better UX
     if (mounted) {
-      Navigator.of(context).pop();
+      context.pop();
 
       // Show immediate success message (optimistic)
       await showDialog<bool>(

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:myfinance_improved/app/providers/auth_providers.dart';
 import 'package:myfinance_improved/features/homepage/presentation/providers/join_providers.dart';
@@ -183,7 +184,7 @@ class _JoinByCodeSheetState extends ConsumerState<JoinByCodeSheet> {
                   ),
                 ),
                 IconButton(
-                  onPressed: () => Navigator.of(context).pop(),
+                  onPressed: () => context.pop(),
                   icon: const Icon(Icons.close, color: TossColors.textSecondary),
                 ),
               ],

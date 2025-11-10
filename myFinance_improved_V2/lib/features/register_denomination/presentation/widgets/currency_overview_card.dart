@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -434,7 +435,7 @@ class CurrencyOverviewCard extends ConsumerWidget {
             ),
             actions: [
               TextButton(
-                onPressed: () => Navigator.of(context).pop(),
+                onPressed: () => context.pop(),
                 child: Text(
                   'Understood',
                   style: TossTextStyles.body.copyWith(
@@ -474,7 +475,7 @@ class CurrencyOverviewCard extends ConsumerWidget {
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.of(context).pop(),
+              onPressed: () => context.pop(),
               child: Text(
                 'Cancel',
                 style: TossTextStyles.body.copyWith(
@@ -586,7 +587,7 @@ class CurrencyOverviewCard extends ConsumerWidget {
     
     // Close dialog immediately for better UX
     if (context.mounted) {
-      Navigator.of(context).pop();
+      context.pop();
     }
     
     try {

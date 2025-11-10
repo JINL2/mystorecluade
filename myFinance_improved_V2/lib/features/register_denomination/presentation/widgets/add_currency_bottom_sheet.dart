@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_primary_button.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_secondary_button.dart';
@@ -194,7 +195,7 @@ class _AddCurrencyBottomSheetState extends ConsumerState<AddCurrencyBottomSheet>
               ),
             ),
             IconButton(
-              onPressed: () => Navigator.of(context).pop(),
+              onPressed: () => context.pop(),
               icon: const Icon(Icons.close, color: TossColors.gray600),
               style: IconButton.styleFrom(
                 backgroundColor: TossColors.gray100,
@@ -467,7 +468,7 @@ class _AddCurrencyBottomSheetState extends ConsumerState<AddCurrencyBottomSheet>
                 if (currencies.isEmpty) {
                   return TossPrimaryButton(
                     text: 'Close',
-                    onPressed: () => Navigator.of(context).pop(),
+                    onPressed: () => context.pop(),
                   );
                 }
                 
@@ -477,7 +478,7 @@ class _AddCurrencyBottomSheetState extends ConsumerState<AddCurrencyBottomSheet>
                     Expanded(
                       child: TossSecondaryButton(
                         text: 'Cancel',
-                        onPressed: () => Navigator.of(context).pop(),
+                        onPressed: () => context.pop(),
                       ),
                     ),
                     const SizedBox(width: TossSpacing.space3),
@@ -713,7 +714,7 @@ class _AddCurrencyBottomSheetState extends ConsumerState<AddCurrencyBottomSheet>
               Expanded(
                 child: TossSecondaryButton(
                   text: 'Cancel',
-                  onPressed: () => Navigator.of(context).pop(),
+                  onPressed: () => context.pop(),
                 ),
               ),
               const SizedBox(width: TossSpacing.space3),
@@ -854,7 +855,7 @@ class _AddCurrencyBottomSheetState extends ConsumerState<AddCurrencyBottomSheet>
       ref.read(localDenominationListProvider.notifier).reset(selectedCurrencyId!);
       
       if (mounted) {
-        Navigator.of(context).pop();
+        context.pop();
 
         // Show success message
         await showDialog<bool>(

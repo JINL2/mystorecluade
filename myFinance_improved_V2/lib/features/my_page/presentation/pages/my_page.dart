@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:go_router/go_router.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -212,7 +213,7 @@ class _MyPageState extends ConsumerState<MyPage> with TickerProviderStateMixin {
             title: 'Image Selection Failed',
             message: 'Failed to pick image: $e',
             primaryButtonText: 'OK',
-            onPrimaryPressed: () => Navigator.of(context).pop(),
+            onPrimaryPressed: () => context.pop(),
           ),
         );
       }
@@ -279,7 +280,7 @@ class _MyPageState extends ConsumerState<MyPage> with TickerProviderStateMixin {
             title: 'Profile Picture Updated!',
             message: 'Your profile picture has been updated successfully',
             primaryButtonText: 'Done',
-            onPrimaryPressed: () => Navigator.of(context).pop(),
+            onPrimaryPressed: () => context.pop(),
           ),
         );
 
@@ -309,7 +310,7 @@ class _MyPageState extends ConsumerState<MyPage> with TickerProviderStateMixin {
             title: 'Upload Failed',
             message: 'Failed to upload profile picture: ${e.toString()}',
             primaryButtonText: 'OK',
-            onPrimaryPressed: () => Navigator.of(context).pop(),
+            onPrimaryPressed: () => context.pop(),
           ),
         );
       }
@@ -349,7 +350,7 @@ class _MyPageState extends ConsumerState<MyPage> with TickerProviderStateMixin {
             title: 'Profile Picture Removed!',
             message: 'Your profile picture has been removed successfully',
             primaryButtonText: 'Done',
-            onPrimaryPressed: () => Navigator.of(context).pop(),
+            onPrimaryPressed: () => context.pop(),
           ),
         );
       }
@@ -365,7 +366,7 @@ class _MyPageState extends ConsumerState<MyPage> with TickerProviderStateMixin {
             title: 'Remove Failed',
             message: 'Failed to remove profile picture: ${e.toString()}',
             primaryButtonText: 'OK',
-            onPrimaryPressed: () => Navigator.of(context).pop(),
+            onPrimaryPressed: () => context.pop(),
           ),
         );
       }
@@ -418,7 +419,7 @@ class _MyPageState extends ConsumerState<MyPage> with TickerProviderStateMixin {
               title: 'Sign Out Failed',
               message: 'Failed to sign out: $e',
               primaryButtonText: 'OK',
-              onPrimaryPressed: () => Navigator.of(context).pop(),
+              onPrimaryPressed: () => context.pop(),
             ),
           );
         }

@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -1191,7 +1192,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab>
                       child: InkWell(
                         onTap: () {
                           HapticFeedback.selectionClick();
-                          Navigator.of(context).pop();
+                          context.pop();
                         },
                         borderRadius: const BorderRadius.only(
                           bottomLeft: Radius.circular(20),
@@ -1221,7 +1222,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab>
                       child: InkWell(
                         onTap: () {
                           HapticFeedback.mediumImpact();
-                          Navigator.of(context).pop();
+                          context.pop();
                           _showCancelConfirmationDialog(pendingShifts);
                         },
                         borderRadius: const BorderRadius.only(
@@ -1320,7 +1321,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab>
                 InkWell(
                   onTap: () {
                     HapticFeedback.selectionClick();
-                    Navigator.of(context).pop();
+                    context.pop();
                   },
                   borderRadius: const BorderRadius.only(
                     bottomLeft: Radius.circular(20),
@@ -1430,7 +1431,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab>
                 InkWell(
                   onTap: () {
                     HapticFeedback.selectionClick();
-                    Navigator.of(context).pop();
+                    context.pop();
                   },
                   borderRadius: const BorderRadius.only(
                     bottomLeft: Radius.circular(20),
@@ -1536,7 +1537,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab>
                       child: InkWell(
                         onTap: () {
                           HapticFeedback.selectionClick();
-                          Navigator.of(context).pop();
+                          context.pop();
                         },
                         borderRadius: const BorderRadius.only(
                           bottomLeft: Radius.circular(20),
@@ -1566,7 +1567,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab>
                       child: InkWell(
                         onTap: () async {
                           HapticFeedback.mediumImpact();
-                          Navigator.of(context).pop();
+                          context.pop();
                           await _cancelShifts(shiftsToCancel);
                         },
                         borderRadius: const BorderRadius.only(
@@ -1650,7 +1651,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab>
       }
       
       // Close loading indicator
-      if (mounted) Navigator.of(context).pop();
+      if (mounted) context.pop();
       
       // Reset selections first
       _resetSelections();
@@ -1736,7 +1737,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab>
                     InkWell(
                       onTap: () {
                         HapticFeedback.selectionClick();
-                        Navigator.of(context).pop();
+                        context.pop();
                       },
                       borderRadius: const BorderRadius.only(
                         bottomLeft: Radius.circular(20),
@@ -1767,7 +1768,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab>
       }
     } catch (e) {
       // Close loading indicator if still showing
-      if (mounted) Navigator.of(context).pop();
+      if (mounted) context.pop();
       
       // Show error message
       if (mounted) {
@@ -1780,7 +1781,7 @@ class _ShiftRegisterTabState extends ConsumerState<ShiftRegisterTab>
               actions: [
                 TextButton(
                   onPressed: () {
-                    Navigator.of(context).pop();
+                    context.pop();
                   },
                   child: Text(
                     'OK',

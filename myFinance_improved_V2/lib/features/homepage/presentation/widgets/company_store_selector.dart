@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:myfinance_improved/app/providers/app_state_provider.dart';
 import 'package:myfinance_improved/features/homepage/presentation/widgets/create_company_sheet.dart';
 import 'package:myfinance_improved/features/homepage/presentation/widgets/create_store_sheet.dart';
@@ -111,7 +112,7 @@ class CompanyStoreSelector extends ConsumerWidget {
                 ),
                 // Close Button
                 IconButton(
-                  onPressed: () => Navigator.of(context).pop(),
+                  onPressed: () => context.pop(),
                   icon: const Icon(
                     Icons.close,
                     color: TossColors.textSecondary,
@@ -352,7 +353,7 @@ class _CompanyStoreListState extends ConsumerState<_CompanyStoreList> {
                               storeName: storeName,
                             );
 
-                            Navigator.of(context).pop();
+                            context.pop();
                           },
                           borderRadius:
                               BorderRadius.circular(TossBorderRadius.md),
@@ -585,7 +586,7 @@ class _CompanyActionsSheet extends StatelessWidget {
                 ),
                 const Spacer(),
                 IconButton(
-                  onPressed: () => Navigator.of(context).pop(),
+                  onPressed: () => context.pop(),
                   icon: const Icon(Icons.close, color: TossColors.textSecondary),
                 ),
               ],
@@ -634,7 +635,7 @@ class _CompanyActionsSheet extends StatelessWidget {
 
   void _handleCreateCompany(BuildContext context) {
     // Close the actions sheet first
-    Navigator.of(context).pop();
+    context.pop();
 
     // Show create company sheet
     showModalBottomSheet(
@@ -744,7 +745,7 @@ class _CompanyActionsSheet extends StatelessWidget {
 
   void _handleJoinCompany(BuildContext context) {
     // Close the actions sheet first
-    Navigator.of(context).pop();
+    context.pop();
 
     // Show join by code sheet
     showModalBottomSheet(
@@ -885,7 +886,7 @@ class _StoreActionsSheet extends StatelessWidget {
                 ),
                 const Spacer(),
                 IconButton(
-                  onPressed: () => Navigator.of(context).pop(),
+                  onPressed: () => context.pop(),
                   icon: const Icon(Icons.close, color: TossColors.textSecondary),
                 ),
               ],
@@ -934,7 +935,7 @@ class _StoreActionsSheet extends StatelessWidget {
 
   void _handleCreateStore(BuildContext context) {
     // Close the actions sheet first
-    Navigator.of(context).pop();
+    context.pop();
 
     final companyId = company['company_id'] as String;
     final companyName = company['company_name'] as String;
@@ -995,7 +996,7 @@ class _StoreActionsSheet extends StatelessWidget {
 
   void _handleJoinStore(BuildContext context) {
     // Close the actions sheet first
-    Navigator.of(context).pop();
+    context.pop();
 
     // Show join by code sheet
     showModalBottomSheet(

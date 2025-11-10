@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:myfinance_improved/features/homepage/presentation/providers/store_providers.dart';
@@ -218,7 +219,7 @@ class _CreateStoreSheetState extends ConsumerState<CreateStoreSheet> {
                   ),
                   const Spacer(),
                   IconButton(
-                    onPressed: () => Navigator.of(context).pop(),
+                    onPressed: () => context.pop(),
                     icon: Icon(
                       Icons.close,
                       color: Theme.of(context).colorScheme.onSurfaceVariant,

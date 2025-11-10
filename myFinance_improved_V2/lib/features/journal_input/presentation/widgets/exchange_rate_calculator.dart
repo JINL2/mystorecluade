@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -128,7 +129,7 @@ class _ExchangeRateCalculatorState extends ConsumerState<ExchangeRateCalculator>
     }
     
     widget.onAmountSelected(finalAmount);
-    Navigator.of(context).pop();
+    context.pop();
   }
   
   Widget _buildBaseCurrencyWidget() {
@@ -285,7 +286,7 @@ class _ExchangeRateCalculatorState extends ConsumerState<ExchangeRateCalculator>
                   ),
                 ),
                 IconButton(
-                  onPressed: () => Navigator.of(context).pop(),
+                  onPressed: () => context.pop(),
                   icon: Icon(Icons.close, color: TossColors.gray600),
                   padding: EdgeInsets.zero,
                   constraints: BoxConstraints(minWidth: 32, minHeight: 32),
@@ -566,7 +567,7 @@ class _ExchangeRateCalculatorState extends ConsumerState<ExchangeRateCalculator>
                     Expanded(
                       child: TossSecondaryButton(
                         text: 'Cancel',
-                        onPressed: () => Navigator.of(context).pop(),
+                        onPressed: () => context.pop(),
                         fullWidth: true,
                       ),
                     ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
@@ -358,7 +359,7 @@ class _PrivacySecurityPageState extends ConsumerState<PrivacySecurityPage> {
             title: 'Password Updated!',
             message: 'Your password has been updated successfully',
             primaryButtonText: 'Done',
-            onPrimaryPressed: () => Navigator.of(context).pop(),
+            onPrimaryPressed: () => context.pop(),
           ),
         );
 
@@ -374,7 +375,7 @@ class _PrivacySecurityPageState extends ConsumerState<PrivacySecurityPage> {
             title: 'Password Update Failed',
             message: 'Failed to update password: $e',
             primaryButtonText: 'OK',
-            onPrimaryPressed: () => Navigator.of(context).pop(),
+            onPrimaryPressed: () => context.pop(),
           ),
         );
       }

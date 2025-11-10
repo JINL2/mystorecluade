@@ -396,7 +396,7 @@ class _AddProductPageState extends ConsumerState<AddProductPage> {
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.close),
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () => context.pop(),
         ),
         title: Text(
           'Add product',
@@ -1103,7 +1103,7 @@ class _CategoryCreationDialogState extends ConsumerState<_CategoryCreationDialog
             Expanded(
               child: TextButton(
                 onPressed: _isCreating ? null : () {
-                  Navigator.of(context).pop();
+                  context.pop();
                 },
                 child: Text(
                   'Cancel',
@@ -1158,7 +1158,7 @@ class _CategoryCreationDialogState extends ConsumerState<_CategoryCreationDialog
                       // Call the callback
                       widget.onCategoryCreated(category);
 
-                      Navigator.of(context).pop();
+                      context.pop();
                       await showDialog<bool>(
                         context: context,
                         barrierDismissible: false,
@@ -1339,7 +1339,7 @@ class _BrandCreationDialogState extends ConsumerState<_BrandCreationDialog> {
                 onPressed: _isCreating
                     ? null
                     : () {
-                        Navigator.of(context).pop();
+                        context.pop();
                       },
                 child: Text(
                   'Cancel',
@@ -1401,7 +1401,7 @@ class _BrandCreationDialogState extends ConsumerState<_BrandCreationDialog> {
                             widget.onBrandCreated(brand);
 
                             // Close dialog
-                            Navigator.of(context).pop();
+                            context.pop();
 
                             // Show success message
                             await showDialog<bool>(

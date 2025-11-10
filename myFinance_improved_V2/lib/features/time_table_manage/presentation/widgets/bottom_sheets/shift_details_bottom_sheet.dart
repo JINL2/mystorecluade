@@ -1,5 +1,6 @@
 // ignore_for_file: avoid_dynamic_calls, inference_failure_on_function_invocation, argument_type_not_assignable, invalid_assignment, non_bool_condition, non_bool_negation_expression, non_bool_operand, use_of_void_result
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -279,7 +280,7 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<ShiftDetailsBottomShee
 
       // Close loading dialog
       if (mounted) {
-        Navigator.of(context).pop();
+        context.pop();
       }
       
       // Show success message
@@ -300,7 +301,7 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<ShiftDetailsBottomShee
     } catch (e) {
       // Close loading dialog if still open
       if (mounted) {
-        Navigator.of(context).pop();
+        context.pop();
       }
       
       // Show error message
@@ -365,7 +366,7 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<ShiftDetailsBottomShee
       
       // Close loading dialog
       if (mounted) {
-        Navigator.of(context).pop();
+        context.pop();
       }
       
       // Check response
@@ -394,7 +395,7 @@ class _ShiftDetailsBottomSheetState extends ConsumerState<ShiftDetailsBottomShee
     } catch (e) {
       // Close loading dialog if still open
       if (mounted) {
-        Navigator.of(context).pop();
+        context.pop();
       }
       
       // Show error message

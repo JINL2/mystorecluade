@@ -132,7 +132,7 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
             child: InkWell(
               onTap: () {
                 // Navigate to My Page
-                Navigator.of(context).pop(); // Close drawer first
+                context.pop(); // Close drawer first
                 context.push('/myPage');
               },
               borderRadius: BorderRadius.circular(TossBorderRadius.md),
@@ -201,7 +201,7 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
           
           // Close Button
           IconButton(
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () => context.pop(),
             icon: Icon(
               Icons.close,
               color: Theme.of(context).colorScheme.onSurfaceVariant,
@@ -360,7 +360,7 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
                       }
                       
                       // Navigate to dashboard
-                      Navigator.of(context).pop();
+                      context.pop();
                       context.go('/');
                     },
                     borderRadius: BorderRadius.circular(TossBorderRadius.md),
@@ -524,7 +524,7 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
             await ref.read(appStateProvider.notifier).setCompanyChoosen(company['company_id'] as String);
             await ref.read(appStateProvider.notifier).setStoreChoosen(store['store_id'] as String);
             if (context.mounted) {
-              Navigator.of(context).pop();
+              context.pop();
             }
           },
           borderRadius: BorderRadius.circular(TossBorderRadius.md),
@@ -776,7 +776,7 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
                   ),
                   const Spacer(),
                   IconButton(
-                    onPressed: () => Navigator.of(context).pop(),
+                    onPressed: () => context.pop(),
                     icon: Icon(
                       Icons.close,
                       color: Theme.of(context).colorScheme.onSurfaceVariant,
@@ -875,7 +875,7 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
                   ),
                   const Spacer(),
                   IconButton(
-                    onPressed: () => Navigator.of(context).pop(),
+                    onPressed: () => context.pop(),
                     icon: Icon(
                       Icons.close,
                       color: Theme.of(context).colorScheme.onSurfaceVariant,
@@ -1099,7 +1099,7 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
                     ),
                     const Spacer(),
                     IconButton(
-                      onPressed: () => Navigator.of(context).pop(),
+                      onPressed: () => context.pop(),
                       icon: Icon(
                         Icons.close,
                         color: Theme.of(context).colorScheme.onSurfaceVariant,
@@ -1238,7 +1238,7 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
                       ),
                       const Spacer(),
                       IconButton(
-                        onPressed: () => Navigator.of(context).pop(),
+                        onPressed: () => context.pop(),
                         icon: Icon(
                           Icons.close,
                           color: Theme.of(context).colorScheme.onSurfaceVariant,
@@ -1432,7 +1432,7 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
                       ),
                       const Spacer(),
                       IconButton(
-                        onPressed: () => Navigator.of(context).pop(),
+                        onPressed: () => context.pop(),
                         icon: Icon(
                           Icons.close,
                           color: Theme.of(context).colorScheme.onSurfaceVariant,
@@ -1791,7 +1791,7 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
             companyName: companyName,
             roleName: (result['role_assigned'] ?? 'Member') as String,
             onContinue: () {
-              Navigator.of(context).pop(); // Close dialog
+              context.pop(); // Close dialog
               context.go('/'); // Navigate to dashboard
             },
           );
@@ -1805,7 +1805,7 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
           context: context,
           error: 'Invalid response from server',
           onRetry: () {
-            Navigator.of(context).pop();
+            context.pop();
             _joinCompany(context, ref, code);
           },
         );
@@ -1823,7 +1823,7 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
         context: context,
         error: e.toString().replaceAll('Exception: ', ''),
         onRetry: () {
-          Navigator.of(context).pop();
+          context.pop();
           _joinCompany(context, ref, code);
         },
       );
@@ -2034,7 +2034,7 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
           context: context,
           error: 'Invalid response from server',
           onRetry: () {
-            Navigator.of(context).pop();
+            context.pop();
             _joinStore(context, ref, code);
           },
         );
@@ -2051,7 +2051,7 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
         context: context,
         error: e.toString().replaceAll('Exception: ', ''),
         onRetry: () {
-          Navigator.of(context).pop();
+          context.pop();
           _joinCompany(context, ref, code);
         },
       );
@@ -2105,7 +2105,7 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
                   ),
                   const Spacer(),
                   IconButton(
-                    onPressed: () => Navigator.of(context).pop(),
+                    onPressed: () => context.pop(),
                     icon: Icon(
                       Icons.close,
                       color: Theme.of(context).colorScheme.onSurfaceVariant,

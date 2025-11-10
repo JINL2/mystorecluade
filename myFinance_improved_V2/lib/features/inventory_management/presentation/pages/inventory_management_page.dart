@@ -76,7 +76,7 @@ class _InventoryManagementPageState
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(TossIcons.back),
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () => context.pop(),
         ),
         title: Text(
           'Product',

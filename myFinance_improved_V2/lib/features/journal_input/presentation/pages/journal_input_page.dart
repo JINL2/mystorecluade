@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
@@ -206,7 +207,7 @@ class _JournalInputPageState extends ConsumerState<JournalInputPage>
             ? 'Please add at least one transaction'
             : 'Debits and credits must be balanced',
           primaryButtonText: 'OK',
-          onPrimaryPressed: () => Navigator.of(context).pop(),
+          onPrimaryPressed: () => context.pop(),
         ),
       );
       return;
@@ -285,7 +286,7 @@ class _JournalInputPageState extends ConsumerState<JournalInputPage>
                 TextButton(
                   onPressed: () {
                     Navigator.of(dialogContext).pop(); // Close dialog
-                    Navigator.of(context).pop(); // Navigate back to previous page
+                    context.pop(); // Navigate back to previous page
                   },
                   style: TextButton.styleFrom(
                     foregroundColor: TossColors.primary,
@@ -306,7 +307,7 @@ class _JournalInputPageState extends ConsumerState<JournalInputPage>
             title: 'Submission Failed',
             message: 'Failed to submit journal entry: ${e.toString()}',
             primaryButtonText: 'OK',
-            onPrimaryPressed: () => Navigator.of(context).pop(),
+            onPrimaryPressed: () => context.pop(),
           ),
         );
       }
@@ -330,7 +331,7 @@ class _JournalInputPageState extends ConsumerState<JournalInputPage>
         backgroundColor: TossColors.gray100,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios, color: TossColors.gray700, size: 20),
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () => context.pop(),
         ),
       ),
       body: FadeTransition(

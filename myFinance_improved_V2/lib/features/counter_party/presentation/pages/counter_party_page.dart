@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:go_router/go_router.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -725,7 +726,7 @@ class _CounterPartyPageState extends ConsumerState<CounterPartyPage> {
                             title: 'Not Available',
                             message: 'Account settings are only available for internal companies',
                             primaryButtonText: 'OK',
-                            onPrimaryPressed: () => Navigator.of(context).pop(),
+                            onPrimaryPressed: () => context.pop(),
                           ),
                         );
                       }
@@ -823,7 +824,7 @@ class _CounterPartyPageState extends ConsumerState<CounterPartyPage> {
             title: 'Counter Party Deleted!',
             message: '${counterParty.name} has been deleted successfully',
             primaryButtonText: 'Done',
-            onPrimaryPressed: () => Navigator.of(context).pop(),
+            onPrimaryPressed: () => context.pop(),
           ),
         );
       }
@@ -837,7 +838,7 @@ class _CounterPartyPageState extends ConsumerState<CounterPartyPage> {
             title: 'Failed to Delete',
             message: 'Could not delete counter party: ${e.toString()}',
             primaryButtonText: 'OK',
-            onPrimaryPressed: () => Navigator.of(context).pop(),
+            onPrimaryPressed: () => context.pop(),
           ),
         );
       }

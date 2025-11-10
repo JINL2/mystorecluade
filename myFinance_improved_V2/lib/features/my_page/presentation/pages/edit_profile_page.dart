@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:myfinance_improved/app/providers/app_state_provider.dart';
@@ -636,7 +637,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
             title: 'Profile Updated!',
             message: 'Your profile has been updated successfully',
             primaryButtonText: 'Done',
-            onPrimaryPressed: () => Navigator.of(context).pop(),
+            onPrimaryPressed: () => context.pop(),
           ),
         );
 
@@ -652,7 +653,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
             title: 'Update Failed',
             message: 'Failed to update profile: $e',
             primaryButtonText: 'OK',
-            onPrimaryPressed: () => Navigator.of(context).pop(),
+            onPrimaryPressed: () => context.pop(),
           ),
         );
       }

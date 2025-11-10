@@ -7,6 +7,7 @@
 ///
 /// Usage: TemplateUsageBottomSheet.show(context, template)
 import 'dart:async';
+import 'package:go_router/go_router.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -128,7 +129,7 @@ class TemplateUsageBottomSheet extends ConsumerStatefulWidget {
             text: 'Cancel',
             fullWidth: true,
             onPressed: () {
-              Navigator.of(context).pop();
+              context.pop();
             },
           ),
         ),
@@ -799,7 +800,7 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
             title: 'Validation Error',
             message: validationResult.firstError!,
             primaryButtonText: 'OK',
-            onPrimaryPressed: () => Navigator.of(context).pop(),
+            onPrimaryPressed: () => context.pop(),
           ),
         );
       }
@@ -829,7 +830,7 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
             title: 'Transaction Created!',
             message: 'Transaction created successfully',
             primaryButtonText: 'Done',
-            onPrimaryPressed: () => Navigator.of(context).pop(),
+            onPrimaryPressed: () => context.pop(),
           ),
         );
 
@@ -847,7 +848,7 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
             title: 'Transaction Failed',
             message: 'Failed to create transaction: ${e.toString()}',
             primaryButtonText: 'OK',
-            onPrimaryPressed: () => Navigator.of(context).pop(),
+            onPrimaryPressed: () => context.pop(),
           ),
         );
       }

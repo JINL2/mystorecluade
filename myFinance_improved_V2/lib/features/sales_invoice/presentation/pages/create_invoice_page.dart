@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
@@ -716,7 +717,7 @@ class _CreateInvoicePageState extends ConsumerState<CreateInvoicePage> {
           title: 'No Products Selected',
           message: 'Please add at least one product',
           primaryButtonText: 'OK',
-          onPrimaryPressed: () => Navigator.of(context).pop(),
+          onPrimaryPressed: () => context.pop(),
         ),
       );
       return;

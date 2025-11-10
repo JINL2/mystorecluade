@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_loading_view.dart';
@@ -35,7 +36,7 @@ class RoleSelectionHelper {
 
       // Close loading dialog
       if (context.mounted) {
-        Navigator.of(context).pop();
+        context.pop();
       }
 
       if (!context.mounted) return false;
@@ -51,7 +52,7 @@ class RoleSelectionHelper {
     } catch (error) {
       // Close loading dialog
       if (context.mounted) {
-        Navigator.of(context).pop();
+        context.pop();
       }
 
       // Show error dialog
@@ -143,7 +144,7 @@ class RoleSelectionHelper {
 
       // Close loading dialog
       if (context.mounted) {
-        Navigator.of(context).pop();
+        context.pop();
       }
 
       // Callback to update local state
@@ -164,7 +165,7 @@ class RoleSelectionHelper {
     } catch (e) {
       // Close loading dialog
       if (context.mounted) {
-        Navigator.of(context).pop();
+        context.pop();
       }
 
       // Show error dialog

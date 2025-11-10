@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
@@ -84,7 +85,7 @@ class DenominationGrid extends ConsumerWidget {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () => context.pop(),
             child: Text(
               'Cancel',
               style: TossTextStyles.labelLarge.copyWith(
@@ -94,7 +95,7 @@ class DenominationGrid extends ConsumerWidget {
           ),
           TextButton(
             onPressed: () async {
-              Navigator.of(context).pop();
+              context.pop();
               await _removeDenominationWithRefresh(context, ref, denomination);
             },
             child: Text(
@@ -157,7 +158,7 @@ class DenominationGrid extends ConsumerWidget {
             title: 'Delete',
             isDestructive: true,
             onTap: () async {
-              Navigator.of(context).pop(); // Close the bottom sheet first
+              context.pop(); // Close the bottom sheet first
               await _removeDenominationWithRefresh(context, ref, denomination);
             },
           ),

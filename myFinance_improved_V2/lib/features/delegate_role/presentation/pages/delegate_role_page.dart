@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:myfinance_improved/app/providers/app_state_provider.dart';
 import 'package:myfinance_improved/core/navigation/safe_navigation.dart';
@@ -443,7 +444,7 @@ class _DelegateRolePageState extends ConsumerState<DelegateRolePage> {
             title: 'Roles Refreshed!',
             message: 'All roles have been successfully refreshed',
             primaryButtonText: 'Done',
-            onPrimaryPressed: () => Navigator.of(context).pop(),
+            onPrimaryPressed: () => context.pop(),
           ),
         );
       }
@@ -457,7 +458,7 @@ class _DelegateRolePageState extends ConsumerState<DelegateRolePage> {
             title: 'Failed to Refresh',
             message: 'Could not refresh roles: ${e.toString()}',
             primaryButtonText: 'OK',
-            onPrimaryPressed: () => Navigator.of(context).pop(),
+            onPrimaryPressed: () => context.pop(),
           ),
         );
       }
@@ -1070,7 +1071,7 @@ class _CreateRoleBottomSheetState extends ConsumerState<_CreateRoleBottomSheet> 
           title: 'Invalid Tag',
           message: validation,
           primaryButtonText: 'OK',
-          onPrimaryPressed: () => Navigator.of(context).pop(),
+          onPrimaryPressed: () => context.pop(),
         ),
       );
       return;
@@ -1090,7 +1091,7 @@ class _CreateRoleBottomSheetState extends ConsumerState<_CreateRoleBottomSheet> 
           title: 'Duplicate Tag',
           message: 'Tag "$tag" has already been added',
           primaryButtonText: 'OK',
-          onPrimaryPressed: () => Navigator.of(context).pop(),
+          onPrimaryPressed: () => context.pop(),
         ),
       );
       return;
@@ -1104,7 +1105,7 @@ class _CreateRoleBottomSheetState extends ConsumerState<_CreateRoleBottomSheet> 
           title: 'Maximum Tags Reached',
           message: 'You can only add up to ${TagValidator.MAX_TAGS} tags',
           primaryButtonText: 'OK',
-          onPrimaryPressed: () => Navigator.of(context).pop(),
+          onPrimaryPressed: () => context.pop(),
         ),
       );
       return;
@@ -1453,7 +1454,7 @@ class _CreateRoleBottomSheetState extends ConsumerState<_CreateRoleBottomSheet> 
             title: 'Role Name Required',
             message: 'Please enter a role name to continue',
             primaryButtonText: 'OK',
-            onPrimaryPressed: () => Navigator.of(context).pop(),
+            onPrimaryPressed: () => context.pop(),
           ),
         );
         return;
@@ -1477,7 +1478,7 @@ class _CreateRoleBottomSheetState extends ConsumerState<_CreateRoleBottomSheet> 
           title: 'Role Name Required',
           message: 'Please enter a role name to create the role',
           primaryButtonText: 'OK',
-          onPrimaryPressed: () => Navigator.of(context).pop(),
+          onPrimaryPressed: () => context.pop(),
         ),
       );
       return;
@@ -1520,7 +1521,7 @@ class _CreateRoleBottomSheetState extends ConsumerState<_CreateRoleBottomSheet> 
             title: 'Role Created Successfully!',
             message: 'Role "$roleName" has been created',
             primaryButtonText: 'Done',
-            onPrimaryPressed: () => Navigator.of(context).pop(),
+            onPrimaryPressed: () => context.pop(),
           ),
         );
       }
@@ -1534,7 +1535,7 @@ class _CreateRoleBottomSheetState extends ConsumerState<_CreateRoleBottomSheet> 
             title: 'Failed to Create Role',
             message: 'Could not create role: $e',
             primaryButtonText: 'OK',
-            onPrimaryPressed: () => Navigator.of(context).pop(),
+            onPrimaryPressed: () => context.pop(),
           ),
         );
       }

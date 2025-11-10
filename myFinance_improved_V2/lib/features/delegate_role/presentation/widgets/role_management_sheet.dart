@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:myfinance_improved/core/utils/datetime_utils.dart';
@@ -1223,7 +1224,7 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
             title: 'Role Updated Successfully!',
             message: 'Role permissions have been updated',
             primaryButtonText: 'Done',
-            onPrimaryPressed: () => Navigator.of(context).pop(),
+            onPrimaryPressed: () => context.pop(),
           ),
         );
       }
@@ -1237,7 +1238,7 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
             title: 'Failed to Update Role',
             message: 'Could not update role permissions: $e',
             primaryButtonText: 'OK',
-            onPrimaryPressed: () => Navigator.of(context).pop(),
+            onPrimaryPressed: () => context.pop(),
           ),
         );
       }
@@ -1872,7 +1873,7 @@ class _AddMemberBottomSheetState extends ConsumerState<_AddMemberBottomSheet> {
             title: 'Member Added Successfully!',
             message: 'Member has been added to ${widget.roleName}',
             primaryButtonText: 'Done',
-            onPrimaryPressed: () => Navigator.of(context).pop(),
+            onPrimaryPressed: () => context.pop(),
           ),
         );
       }
@@ -1885,7 +1886,7 @@ class _AddMemberBottomSheetState extends ConsumerState<_AddMemberBottomSheet> {
             title: 'Failed to Add Member',
             message: 'Could not add member to role: $e',
             primaryButtonText: 'OK',
-            onPrimaryPressed: () => Navigator.of(context).pop(),
+            onPrimaryPressed: () => context.pop(),
           ),
         );
       }
@@ -1968,7 +1969,7 @@ class _TagSelectionBottomSheetState extends State<_TagSelectionBottomSheet> {
               title: 'Maximum Tags Reached',
               message: 'You can only add up to ${TagValidator.MAX_TAGS} tags',
               primaryButtonText: 'OK',
-              onPrimaryPressed: () => Navigator.of(context).pop(),
+              onPrimaryPressed: () => context.pop(),
             ),
           );
           return;

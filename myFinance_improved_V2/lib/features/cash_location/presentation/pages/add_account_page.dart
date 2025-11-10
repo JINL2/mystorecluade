@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'dart:convert';
@@ -593,7 +594,7 @@ class _AddAccountPageState extends ConsumerState<AddAccountPage> {
       await supabase.from('cash_locations').insert(data);
       
       // Close loading dialog
-      if (mounted) Navigator.of(context).pop();
+      if (mounted) context.pop();
       
       // Invalidate the cash locations cache to refresh the list
       ref.invalidate(allCashLocationsProvider);
@@ -612,11 +613,11 @@ class _AddAccountPageState extends ConsumerState<AddAccountPage> {
       }
 
       // Go back to previous screen
-      if (mounted) Navigator.of(context).pop();
+      if (mounted) context.pop();
       
     } catch (e) {
       // Close loading dialog
-      if (mounted) Navigator.of(context).pop();
+      if (mounted) context.pop();
 
       // Show error message
       if (mounted) {

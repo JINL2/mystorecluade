@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -407,7 +408,7 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
           title: 'Invalid Input',
           message: 'Please select an account and enter a valid amount',
           primaryButtonText: 'OK',
-          onPrimaryPressed: () => Navigator.of(context).pop(),
+          onPrimaryPressed: () => context.pop(),
         ),
       );
       return;
@@ -424,7 +425,7 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
           title: 'Mapping Required',
           message: 'Account mapping is required for this internal transaction',
           primaryButtonText: 'OK',
-          onPrimaryPressed: () => Navigator.of(context).pop(),
+          onPrimaryPressed: () => context.pop(),
         ),
       );
       return;
@@ -582,7 +583,7 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
                   ),
                 ),
                 IconButton(
-                  onPressed: () => Navigator.of(context).pop(),
+                  onPressed: () => context.pop(),
                   icon: Icon(Icons.close, color: TossColors.gray600),
                   padding: EdgeInsets.zero,
                   constraints: BoxConstraints(minWidth: 32, minHeight: 32),
@@ -1198,7 +1199,7 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
                         Expanded(
                           child: TossSecondaryButton(
                             text: 'Cancel',
-                            onPressed: () => Navigator.of(context).pop(),
+                            onPressed: () => context.pop(),
                             fullWidth: true,
                           ),
                         ),

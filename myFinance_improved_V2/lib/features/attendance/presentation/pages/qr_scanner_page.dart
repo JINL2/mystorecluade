@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
@@ -86,8 +87,8 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
         message: message,
         primaryButtonText: 'OK',
         onPrimaryPressed: () {
-          Navigator.of(context).pop(); // Close dialog
-          Navigator.of(context).pop(); // Return to attendance page
+          context.pop(); // Close dialog
+          context.pop(); // Return to attendance page
         },
         dismissible: false,
       ),
@@ -107,7 +108,7 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
         subtitle: DateTimeUtils.format(DateTime.now()),
         primaryButtonText: 'OK',
         onPrimaryPressed: () {
-          Navigator.of(context).pop(); // Close dialog
+          context.pop(); // Close dialog
           Navigator.of(context).pop(resultData); // Return to previous screen with result data
         },
         dismissible: false,
@@ -117,7 +118,7 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
     // Auto close after 2 seconds and return to previous screen with result data
     Future.delayed(const Duration(seconds: 2), () {
       if (mounted) {
-        Navigator.of(context).pop(); // Close dialog
+        context.pop(); // Close dialog
         Navigator.of(context).pop(resultData); // Return to previous screen with result data
       }
     });

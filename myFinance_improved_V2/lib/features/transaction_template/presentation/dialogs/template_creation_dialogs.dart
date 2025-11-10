@@ -8,6 +8,7 @@
 ///
 /// Usage: TemplateCreationDialogs.showSuccess(context), TemplateCreationDialogs.showError(context, error)
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
@@ -61,7 +62,7 @@ class TemplateCreationDialogs {
             TextButton(
               onPressed: () {
                 Navigator.of(dialogContext).pop();
-                Navigator.of(context).pop();
+                context.pop();
               },
               child: Text(
                 'OK',

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -1533,7 +1534,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                   ),
                   Spacer(),
                   IconButton(
-                    onPressed: () => Navigator.of(context).pop(),
+                    onPressed: () => context.pop(),
                     icon: Icon(
                       Icons.close,
                       color: TossColors.gray600,
@@ -1549,7 +1550,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                 return InkWell(
                   onTap: () {
                     ref.read(paymentMethodProvider.notifier).selectCashLocation(location);
-                    Navigator.of(context).pop();
+                    context.pop();
                   },
                   child: Container(
                     width: double.infinity,
@@ -1671,7 +1672,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
           title: 'Missing Information',
           message: 'Please ensure you are logged in and have selected a company and store.',
           primaryButtonText: 'OK',
-          onPrimaryPressed: () => Navigator.of(context).pop(),
+          onPrimaryPressed: () => context.pop(),
         ),
       );
       return;
@@ -1707,7 +1708,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
           title: 'No Items',
           message: 'No valid items to invoice',
           primaryButtonText: 'OK',
-          onPrimaryPressed: () => Navigator.of(context).pop(),
+          onPrimaryPressed: () => context.pop(),
         ),
       );
       return;
@@ -1781,7 +1782,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
       
       // Close loading dialog
       if (mounted) {
-        Navigator.of(context).pop();
+        context.pop();
       }
       
       // Check response
@@ -2049,11 +2050,11 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                         width: double.infinity,
                         child: ElevatedButton(
                           onPressed: () {
-                            Navigator.of(context).pop(); // Close bottom sheet
+                            context.pop(); // Close bottom sheet
                             // Force refresh of sales product data
                             ref.invalidate(salesProductProvider);
                             // Navigate back to Sales Product page (go back twice: from payment page and invoice selection)
-                            Navigator.of(context).pop(); // Close payment page
+                            context.pop(); // Close payment page
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: TossColors.primary,
@@ -2096,7 +2097,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
               title: 'Invoice Creation Failed',
               message: errorMessage,
               primaryButtonText: 'OK',
-              onPrimaryPressed: () => Navigator.of(context).pop(),
+              onPrimaryPressed: () => context.pop(),
             ),
           );
         }
@@ -2104,7 +2105,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
     } catch (e) {
       // Close loading dialog if still open
       if (mounted) {
-        Navigator.of(context).pop();
+        context.pop();
       }
 
 
@@ -2116,7 +2117,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
             title: 'Error',
             message: 'Error creating invoice: ${e.toString()}',
             primaryButtonText: 'OK',
-            onPrimaryPressed: () => Navigator.of(context).pop(),
+            onPrimaryPressed: () => context.pop(),
           ),
         );
       }
