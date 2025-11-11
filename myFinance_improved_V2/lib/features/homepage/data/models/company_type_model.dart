@@ -2,11 +2,16 @@ import 'package:myfinance_improved/features/homepage/domain/entities/company_typ
 
 /// Data Transfer Object for CompanyType
 /// Handles JSON serialization/deserialization from Supabase
-class CompanyTypeModel extends CompanyType {
+///
+/// Pure DTO that does not extend domain entity
+class CompanyTypeModel {
   const CompanyTypeModel({
-    required super.id,
-    required super.typeName,
+    required this.id,
+    required this.typeName,
   });
+
+  final String id;
+  final String typeName;
 
   /// Create from JSON (from Supabase response)
   factory CompanyTypeModel.fromJson(Map<String, dynamic> json) {

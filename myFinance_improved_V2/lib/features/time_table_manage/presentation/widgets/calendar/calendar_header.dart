@@ -29,7 +29,7 @@ class CalendarHeader extends StatelessWidget {
 
     return Container(
       padding: const EdgeInsets.all(TossSpacing.paddingMD),
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         color: TossColors.white,
         border: Border(
           bottom: BorderSide(
@@ -42,7 +42,7 @@ class CalendarHeader extends StatelessWidget {
         children: [
           // Previous month button
           IconButton(
-            icon: Icon(
+            icon: const Icon(
               Icons.chevron_left,
               color: TossColors.gray700,
             ),
@@ -65,7 +65,7 @@ class CalendarHeader extends StatelessWidget {
 
           // Next month button
           IconButton(
-            icon: Icon(
+            icon: const Icon(
               Icons.chevron_right,
               color: TossColors.gray700,
             ),
@@ -119,7 +119,7 @@ class WeekDayHeader extends StatelessWidget {
         vertical: TossSpacing.paddingXS,
         horizontal: TossSpacing.paddingMD,
       ),
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         color: TossColors.gray50,
         border: Border(
           bottom: BorderSide(

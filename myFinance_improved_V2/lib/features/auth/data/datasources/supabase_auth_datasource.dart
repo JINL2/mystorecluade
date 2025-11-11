@@ -1,8 +1,10 @@
 // lib/features/auth/data/datasources/supabase_auth_datasource.dart
 
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' hide User;
 import '../models/user_model.dart';
 import '../../../../core/utils/datetime_utils.dart';
+import '../../../../core/monitoring/sentry_config.dart';
 
 /// Supabase Auth DataSource
 ///
@@ -96,6 +98,7 @@ class SupabaseAuthDataSource implements AuthDataSource {
   }) async {
     try {
       // 1. Sign up with Supabase Auth
+      // ✅ Database Trigger (handle_new_user) automatically creates user profile
       final response = await _client.auth.signUp(
         email: email,
         password: password,
@@ -110,10 +113,26 @@ class SupabaseAuthDataSource implements AuthDataSource {
         throw Exception('Sign up failed - no user returned');
       }
 
-      // 2. Create user profile in users table
+      // 2. Wait briefly for trigger to complete
+      // Database trigger creates profile automatically, but we need a small delay
+      await Future.delayed(const Duration(milliseconds: 100));
+
+      // 3. Fetch the created user profile
+      // The trigger should have created this, but we verify
+      final userData = await _client
+          .from('users')
+          .select()
+          .eq('user_id', response.user!.id)
+          .maybeSingle();
+
+      if (userData != null) {
+        // ✅ Profile created by trigger - success
+        return UserModel.fromJson(userData);
+      }
+
+      // ⚠️ Fallback: Trigger failed, create manually
+      // This should rarely happen if trigger is working
       final now = DateTimeUtils.nowUtc();
-      // Use default timezone for Vietnam
-      // In the future, this can be detected from device settings or user preferences
       final timezone = 'Asia/Ho_Chi_Minh';
 
       final userModel = UserModel(
@@ -127,22 +146,38 @@ class SupabaseAuthDataSource implements AuthDataSource {
       );
 
       try {
-        // Use UPSERT to handle case where row already exists (e.g., created by trigger or elsewhere)
         await _client.from('users').upsert(
           userModel.toInsertMap(),
           onConflict: 'user_id',
         );
-      } catch (e) {
-        // If profile creation fails, user is still created in auth
-        // Log this critical error for monitoring
-        print('🚨 ERROR: Failed to create user profile for ${response.user!.id}');
-        print('Error: $e');
-        // TODO: In production, use proper logging service (Sentry, Firebase Crashlytics)
-        // TODO: Add retry queue or compensating transaction
-      }
 
-      // 3. Return UserModel
-      return userModel;
+        // ✅ Manual creation succeeded
+        return userModel;
+      } catch (e, stackTrace) {
+        // 🚨 CRITICAL: Both trigger and manual creation failed
+        // This indicates a serious database issue
+
+        // ✅ Log to Sentry with critical level
+        await SentryConfig.captureException(
+          e,
+          stackTrace,
+          hint: 'CRITICAL: User profile creation failed (trigger + manual)',
+          extra: {
+            'user_id': response.user!.id,
+            'email': email,
+            'context': 'signup_fallback',
+          },
+        );
+
+        if (kDebugMode) {
+          print('🚨 CRITICAL: User profile creation failed for ${response.user!.id}');
+          print('Error: $e');
+        }
+
+        // Still return UserModel to allow login
+        // The profile will be retried on next login
+        return userModel;
+      }
     } catch (e) {
       throw Exception('Failed to sign up: $e');
     }

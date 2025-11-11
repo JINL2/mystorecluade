@@ -2,14 +2,24 @@ import 'package:myfinance_improved/features/homepage/domain/entities/company.dar
 
 /// Data Transfer Object for Company
 /// Handles JSON serialization/deserialization from Supabase
-class CompanyModel extends Company {
+///
+/// This is a pure DTO that does not extend the domain entity.
+/// It follows Clean Architecture principles by keeping data layer
+/// separate from domain layer.
+class CompanyModel {
   const CompanyModel({
-    required super.id,
-    required super.name,
-    required super.code,
-    required super.companyTypeId,
-    required super.baseCurrencyId,
+    required this.id,
+    required this.name,
+    required this.code,
+    required this.companyTypeId,
+    required this.baseCurrencyId,
   });
+
+  final String id;
+  final String name;
+  final String code;
+  final String companyTypeId;
+  final String baseCurrencyId;
 
   /// Create from JSON (from Supabase response after creation)
   factory CompanyModel.fromJson(Map<String, dynamic> json) {

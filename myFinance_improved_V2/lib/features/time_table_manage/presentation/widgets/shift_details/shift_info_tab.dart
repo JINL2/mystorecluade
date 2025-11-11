@@ -1,19 +1,20 @@
 import 'package:flutter/material.dart';
 
+import '../../../../../core/utils/datetime_utils.dart';
 import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
+import '../../../domain/entities/shift_card.dart';
 import '../../../domain/value_objects/shift_time_formatter.dart';
 import 'shift_detail_row.dart';
-import 'shift_section_title.dart';
 import 'shift_status_pill.dart';
 
 /// Shift Info Tab
 ///
 /// A widget displaying comprehensive shift information including times, status, and details.
 class ShiftInfoTab extends StatelessWidget {
-  final Map<String, dynamic> card;
+  final ShiftCard card;
   final bool hasUnsolvedProblem;
 
   const ShiftInfoTab({
@@ -67,36 +68,36 @@ class ShiftInfoTab extends StatelessWidget {
                       ),
                     ],
                   ),
-                  if (card['problem_type'] != null) ...[
+                  if (card.problemType != null) ...[
                     const SizedBox(height: TossSpacing.space2),
                     Text(
-                      'Type: ${card['problem_type']}',
+                      'Type: ${card.problemType!}',
                       style: TossTextStyles.bodySmall.copyWith(
                         color: TossColors.error.withValues(alpha: 0.8),
                       ),
                     ),
                   ],
-                  if (card['problem_description'] != null) ...[
+                  if (false) ...[
                     const SizedBox(height: TossSpacing.space2),
                     Text(
-                      card['problem_description'].toString(),
+                      '',
                       style: TossTextStyles.bodySmall.copyWith(
                         color: TossColors.gray700,
                       ),
                     ),
                   ],
                   // Display report reason if the problem has been reported
-                  if (card['is_reported'] == true && card['report_reason'] != null && card['report_reason'].toString().isNotEmpty) ...[
+                  if (card.isReported && card.reportReason != null && card.reportReason!.isNotEmpty) ...[
                     const SizedBox(height: TossSpacing.space2),
                     Text(
-                      card['report_reason'].toString(),
+                      card.reportReason!,
                       style: TossTextStyles.bodySmall.copyWith(
                         color: TossColors.gray700,
                       ),
                     ),
                   ],
                   // Display notice tags if available
-                  if (card['notice_tag'] != null && (card['notice_tag'] as List).isNotEmpty) ...[
+                  if (card.tags.isNotEmpty) ...[
                     const SizedBox(height: TossSpacing.space3),
                     Text(
                       'Report Details:',
@@ -106,10 +107,9 @@ class ShiftInfoTab extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: TossSpacing.space2),
-                    ...(card['notice_tag'] as List).map((tag) {
-                      final tagData = tag is Map ? tag : <String, dynamic>{};
-                      final type = tagData['type']?.toString() ?? '';
-                      final content = tagData['content']?.toString() ?? '';
+                    ...card.tags.map((tag) {
+                      final type = tag.tagType;
+                      final content = tag.tagContent;
 
                       return Padding(
                         padding: const EdgeInsets.only(top: TossSpacing.space1),
@@ -138,7 +138,7 @@ class ShiftInfoTab extends StatelessWidget {
                           ],
                         ),
                       );
-                    }).toList(),
+                    }),
                   ],
                 ],
               ),
@@ -216,10 +216,10 @@ class ShiftInfoTab extends StatelessWidget {
                                     ),
                                     const SizedBox(height: TossSpacing.space2),
                                     Text(
-                                      ShiftTimeFormatter.formatTime(card['confirm_start_time']?.toString(), card['request_date']?.toString()),
+                                      ShiftTimeFormatter.formatTime(card.confirmedStartTime?.toIso8601String(), card.requestDate),
                                       style: TossTextStyles.display.copyWith(
                                         fontWeight: FontWeight.w700,
-                                        color: card['confirm_start_time'] != null
+                                        color: card.confirmedStartTime != null
                                           ? TossColors.gray900
                                           : TossColors.gray400,
                                         fontFamily: 'JetBrains Mono',
@@ -247,10 +247,10 @@ class ShiftInfoTab extends StatelessWidget {
                                     ),
                                     const SizedBox(height: TossSpacing.space2),
                                     Text(
-                                      ShiftTimeFormatter.formatTime(card['confirm_end_time']?.toString(), card['request_date']?.toString()),
+                                      ShiftTimeFormatter.formatTime(card.confirmedEndTime?.toIso8601String(), card.requestDate),
                                       style: TossTextStyles.display.copyWith(
                                         fontWeight: FontWeight.w700,
-                                        color: card['confirm_end_time'] != null
+                                        color: card.confirmedEndTime != null
                                           ? TossColors.gray900
                                           : TossColors.gray400,
                                         fontFamily: 'JetBrains Mono',
@@ -262,7 +262,7 @@ class ShiftInfoTab extends StatelessWidget {
                             ],
                           ),
                           // Total hours if available
-                          if (card['paid_hour'] != null && (card['paid_hour'] as num) > 0) ...[
+                          if (card.paidHour > 0) ...[
                             const SizedBox(height: TossSpacing.space4),
                             Container(
                               padding: const EdgeInsets.symmetric(
@@ -283,7 +283,7 @@ class ShiftInfoTab extends StatelessWidget {
                                   ),
                                   const SizedBox(width: TossSpacing.space2),
                                   Text(
-                                    'Total: ${card['paid_hour']} hours',
+                                    'Total: ${card.paidHour} hours',
                                     style: TossTextStyles.body.copyWith(
                                       color: TossColors.gray700,
                                       fontWeight: FontWeight.w600,
@@ -307,39 +307,39 @@ class ShiftInfoTab extends StatelessWidget {
                         children: [
                           // Approval status
                           ShiftStatusPill(
-                            icon: card['is_approved'] == true
+                            icon: card.isApproved
                               ? Icons.check_circle
                               : Icons.pending,
-                            label: card['is_approved'] == true ? 'Approved' : 'Pending',
-                            color: card['is_approved'] == true
+                            label: card.isApproved ? 'Approved' : 'Pending',
+                            color: card.isApproved
                               ? TossColors.success
                               : TossColors.warning,
                           ),
                           // Problem status
-                          if (card['is_problem'] == true)
+                          if (card.hasProblem)
                             ShiftStatusPill(
-                              icon: card['is_problem_solved'] == true
+                              icon: card.isProblemSolved
                                 ? Icons.check_circle_outline
                                 : Icons.warning_amber_rounded,
-                              label: card['is_problem_solved'] == true
+                              label: card.isProblemSolved
                                 ? 'Problem Solved'
                                 : 'Has Problem',
-                              color: card['is_problem_solved'] == true
+                              color: card.isProblemSolved
                                 ? TossColors.success
                                 : TossColors.error,
                             ),
                           // Late status
-                          if (card['is_late'] == true)
+                          if (card.isLate)
                             ShiftStatusPill(
                               icon: Icons.schedule,
-                              label: 'Late ${card['late_minute']}min',
+                              label: 'Late ${card.lateMinute}min',
                               color: TossColors.error,
                             ),
                           // Overtime
-                          if (card['is_over_time'] == true)
+                          if (card.isOverTime)
                             ShiftStatusPill(
                               icon: Icons.trending_up,
-                              label: 'OT ${card['over_time_minute']}min',
+                              label: 'OT ${card.overTimeMinute}min',
                               color: TossColors.info,
                             ),
                         ],
@@ -367,15 +367,15 @@ class ShiftInfoTab extends StatelessWidget {
                           const SizedBox(height: TossSpacing.space3),
                           ShiftDetailRow(
                             label: 'Store',
-                            value: card['store_name']?.toString() ?? 'N/A',
+                            value: card.shift.storeId,
                           ),
                           ShiftDetailRow(
                             label: 'Shift Type',
-                            value: card['shift_name']?.toString() ?? 'N/A',
+                            value: card.shift.shiftName ?? 'N/A',
                           ),
                           ShiftDetailRow(
                             label: 'Scheduled Time',
-                            value: ShiftTimeFormatter.formatShiftTime(card['shift_time']?.toString(), card['request_date']?.toString()),
+                            value: '${DateTimeUtils.formatTimeOnly(card.shift.planStartTime)}-${DateTimeUtils.formatTimeOnly(card.shift.planEndTime)}',
                           ),
                         ],
                       ),
@@ -403,14 +403,14 @@ class ShiftInfoTab extends StatelessWidget {
                           const SizedBox(height: TossSpacing.space3),
                           ShiftDetailRow(
                             label: 'Actual Check-in',
-                            value: card['actual_start'] != null
-                              ? ShiftTimeFormatter.formatTimeWithSeconds(card['actual_start']?.toString(), card['request_date']?.toString())
+                            value: card.actualStartTime != null
+                              ? ShiftTimeFormatter.formatTimeWithSeconds(card.actualStartTime?.toIso8601String(), card.requestDate)
                               : 'Not checked in',
                           ),
                           ShiftDetailRow(
                             label: 'Actual Check-out',
-                            value: card['actual_end'] != null
-                              ? ShiftTimeFormatter.formatTimeWithSeconds(card['actual_end']?.toString(), card['request_date']?.toString())
+                            value: card.actualEndTime != null
+                              ? ShiftTimeFormatter.formatTimeWithSeconds(card.actualEndTime?.toIso8601String(), card.requestDate)
                               : 'Not checked out',
                           ),
                         ],
@@ -419,7 +419,7 @@ class ShiftInfoTab extends StatelessWidget {
                     const SizedBox(height: TossSpacing.space3),
 
                     // Additional info
-                    if (card['notice_tag'] != null && (card['notice_tag'] as List).isNotEmpty) ...[
+                    if (card.tags.isNotEmpty) ...[
                       Container(
                         margin: const EdgeInsets.symmetric(horizontal: TossSpacing.space5),
                         padding: const EdgeInsets.all(TossSpacing.space4),
@@ -441,10 +441,9 @@ class ShiftInfoTab extends StatelessWidget {
                             Wrap(
                               spacing: TossSpacing.space2,
                               runSpacing: TossSpacing.space2,
-                              children: (card['notice_tag'] as List).map((tag) {
-                                // Parse tag as a Map and extract only content
-                                final tagData = tag is Map ? tag : <String, dynamic>{};
-                                final content = tagData['content']?.toString() ?? 'No content';
+                              children: card.tags.map((tag) {
+                                // Extract content from Tag entity
+                                final content = tag.tagContent;
 
                                 return Container(
                                   padding: const EdgeInsets.symmetric(
@@ -471,7 +470,7 @@ class ShiftInfoTab extends StatelessWidget {
                     ],
 
                     // Location section (if available)
-                    if (card['is_valid_checkin_location'] != null || card['is_valid_checkout_location'] != null) ...[
+                    if (card.isValidCheckinLocation != null || card.isValidCheckoutLocation != null) ...[
                       Container(
                         margin: const EdgeInsets.symmetric(horizontal: TossSpacing.space5),
                         padding: const EdgeInsets.all(TossSpacing.space4),
@@ -490,27 +489,27 @@ class ShiftInfoTab extends StatelessWidget {
                               ),
                             ),
                             const SizedBox(height: TossSpacing.space3),
-                            if (card['is_valid_checkin_location'] != null)
+                            if (card.isValidCheckinLocation != null)
                               ShiftDetailRow(
                                 label: 'Check-in Location',
-                                value: card['is_valid_checkin_location'] == true ? 'Valid' : 'Invalid',
-                                valueColor: card['is_valid_checkin_location'] == true ? TossColors.success : TossColors.error,
+                                value: card.isValidCheckinLocation == true ? 'Valid' : 'Invalid',
+                                valueColor: card.isValidCheckinLocation == true ? TossColors.success : TossColors.error,
                               ),
-                            if (card['checkin_distance_from_store'] != null && (card['checkin_distance_from_store'] as num) > 0)
+                            if (card.checkinDistanceFromStore != null && card.checkinDistanceFromStore! > 0)
                               ShiftDetailRow(
                                 label: 'Check-in Distance',
-                                value: '${card['checkin_distance_from_store']}m from store',
+                                value: '${card.checkinDistanceFromStore}m from store',
                               ),
-                            if (card['is_valid_checkout_location'] != null)
+                            if (card.isValidCheckoutLocation != null)
                               ShiftDetailRow(
                                 label: 'Check-out Location',
-                                value: card['is_valid_checkout_location'] == true ? 'Valid' : 'Invalid',
-                                valueColor: card['is_valid_checkout_location'] == true ? TossColors.success : TossColors.error,
+                                value: card.isValidCheckoutLocation == true ? 'Valid' : 'Invalid',
+                                valueColor: card.isValidCheckoutLocation == true ? TossColors.success : TossColors.error,
                               ),
-                            if (card['checkout_distance_from_store'] != null && (card['checkout_distance_from_store'] as num) > 0)
+                            if (card.checkoutDistanceFromStore != null && card.checkoutDistanceFromStore! > 0)
                               ShiftDetailRow(
                                 label: 'Check-out Distance',
-                                value: '${card['checkout_distance_from_store']}m from store',
+                                value: '${card.checkoutDistanceFromStore}m from store',
                               ),
                           ],
                         ),

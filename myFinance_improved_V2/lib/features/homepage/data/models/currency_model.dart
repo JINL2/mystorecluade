@@ -2,13 +2,20 @@ import 'package:myfinance_improved/features/homepage/domain/entities/currency.da
 
 /// Data Transfer Object for Currency
 /// Handles JSON serialization/deserialization from Supabase
-class CurrencyModel extends Currency {
+///
+/// Pure DTO that does not extend domain entity
+class CurrencyModel {
   const CurrencyModel({
-    required super.id,
-    required super.code,
-    required super.name,
-    required super.symbol,
+    required this.id,
+    required this.code,
+    required this.name,
+    required this.symbol,
   });
+
+  final String id;
+  final String code;
+  final String name;
+  final String symbol;
 
   /// Create from JSON (from Supabase response)
   factory CurrencyModel.fromJson(Map<String, dynamic> json) {

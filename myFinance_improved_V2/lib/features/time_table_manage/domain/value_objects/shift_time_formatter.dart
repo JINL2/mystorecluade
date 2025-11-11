@@ -73,6 +73,87 @@ class ShiftTimeFormatter {
     return '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
   }
 
+  /// Convert local time (HH:mm) to UTC time (HH:mm:ss) for database storage
+  ///
+  /// Input: "13:00" (local time), requestDate: "2025-11-07"
+  /// Output: "06:00:00" (UTC time with seconds)
+  static String convertLocalToUtc(String localTime, String requestDate) {
+    if (localTime.isEmpty || localTime == '--:--') {
+      throw ArgumentError('Invalid local time: $localTime');
+    }
+
+    try {
+      // Parse local time
+      final parts = localTime.split(':');
+      if (parts.length < 2) {
+        throw ArgumentError('Invalid time format: $localTime');
+      }
+
+      final hour = int.parse(parts[0]);
+      final minute = int.parse(parts[1]);
+
+      // Validate time values
+      if (hour < 0 || hour > 23 || minute < 0 || minute > 59) {
+        throw ArgumentError('Invalid time values: $localTime');
+      }
+
+      // Create local DateTime
+      final localDateTime = DateTime.parse('$requestDate $localTime:00');
+
+      // Convert to UTC
+      final utcDateTime = localDateTime.toUtc();
+
+      // Return HH:mm:ss format
+      return '${utcDateTime.hour.toString().padLeft(2, '0')}:${utcDateTime.minute.toString().padLeft(2, '0')}:${utcDateTime.second.toString().padLeft(2, '0')}';
+    } catch (e) {
+      throw ArgumentError('Failed to convert time: $e');
+    }
+  }
+
+  /// Validate and format time string to HH:mm format
+  ///
+  /// Input: "13:00", "13:00:00", "2025-11-07T13:00:00"
+  /// Output: "13:00" (HH:mm format)
+  static String? validateAndFormatTime(String? timeStr) {
+    if (timeStr == null || timeStr == '--:--' || timeStr.isEmpty) {
+      return null;
+    }
+
+    try {
+      // If already in HH:mm format, validate and return
+      if (RegExp(r'^\d{2}:\d{2}$').hasMatch(timeStr)) {
+        final parts = timeStr.split(':');
+        final hour = int.parse(parts[0]);
+        final minute = int.parse(parts[1]);
+
+        // Validate time values
+        if (hour >= 0 && hour <= 23 && minute >= 0 && minute <= 59) {
+          return timeStr;
+        }
+      }
+
+      // Try to extract time from datetime string
+      if (timeStr.contains('T') || timeStr.contains(' ')) {
+        final parts = timeStr.split(RegExp(r'[T ]'));
+        if (parts.length > 1) {
+          final timePart = parts[1];
+          final timeComponents = timePart.split(':');
+          if (timeComponents.length >= 2) {
+            final hour = int.tryParse(timeComponents[0]) ?? -1;
+            final minute = int.tryParse(timeComponents[1]) ?? -1;
+            if (hour >= 0 && hour <= 23 && minute >= 0 && minute <= 59) {
+              return '${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}';
+            }
+          }
+        }
+      }
+
+      return null;
+    } catch (e) {
+      return null;
+    }
+  }
+
   /// Convert time string from UTC to local time with seconds
   ///
   /// Input: "14:56:30", "14:56:30.123" (UTC), or "2025-11-07T18:40:30.000" (ISO8601)

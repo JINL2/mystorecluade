@@ -2,6 +2,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:myfinance_improved/features/homepage/data/models/company_model.dart';
 import 'package:myfinance_improved/features/homepage/data/models/company_type_model.dart';
 import 'package:myfinance_improved/features/homepage/data/models/currency_model.dart';
+import 'package:myfinance_improved/features/homepage/core/homepage_logger.dart';
 
 /// Remote data source for company operations
 /// Handles all direct Supabase communication for company feature
@@ -54,23 +55,20 @@ class CompanyRemoteDataSourceImpl implements CompanyRemoteDataSource {
     required String companyTypeId,
     required String baseCurrencyId,
   }) async {
-    print('🟠 [DataSource.createCompany] Starting company creation...');
-    print('🟠 [DataSource.createCompany] companyName: $companyName');
-    print('🟠 [DataSource.createCompany] companyTypeId: $companyTypeId');
-    print('🟠 [DataSource.createCompany] baseCurrencyId: $baseCurrencyId');
+    homepageLogger.i('Starting company creation - companyName: $companyName, companyTypeId: $companyTypeId, baseCurrencyId: $baseCurrencyId');
 
     final userId = supabaseClient.auth.currentUser?.id;
     if (userId == null) {
-      print('🔴 [DataSource.createCompany] User not authenticated');
+      homepageLogger.e('User not authenticated');
       throw Exception('User not authenticated');
     }
 
-    print('🟠 [DataSource.createCompany] userId: $userId');
+    homepageLogger.d('userId: $userId');
     String? companyId;
 
     try {
       // Step 1: Create the company
-      print('🟠 [DataSource.createCompany] Step 1: Creating company...');
+      homepageLogger.d('Step 1: Creating company...');
       final companyResponse = await supabaseClient
           .from('companies')
           .insert({
@@ -84,21 +82,21 @@ class CompanyRemoteDataSourceImpl implements CompanyRemoteDataSource {
 
       companyId = companyResponse['company_id'] as String;
       final companyCode = companyResponse['company_code'] as String;
-      print('✅ [DataSource.createCompany] Step 1 SUCCESS: companyId=$companyId, companyCode=$companyCode');
+      homepageLogger.i('Step 1 SUCCESS: companyId=$companyId, companyCode=$companyCode');
 
       // Step 2: Add user to company
-      print('🟠 [DataSource.createCompany] Step 2: Adding user to company...');
+      homepageLogger.d('Step 2: Adding user to company...');
       await supabaseClient.from('user_companies').insert({
         'user_id': userId,
         'company_id': companyId,
       });
-      print('✅ [DataSource.createCompany] Step 2 SUCCESS: User added to company');
+      homepageLogger.i('Step 2 SUCCESS: User added to company');
 
       // Note: All remaining steps (role creation, permissions, user_roles, company_currency)
       // are handled automatically by database triggers
 
       // Return created company
-      print('✅✅✅ [DataSource.createCompany] ALL STEPS SUCCESSFUL! Returning company model');
+      homepageLogger.i('ALL STEPS SUCCESSFUL! Returning company model');
       return CompanyModel(
         id: companyId,
         name: companyName,
@@ -107,25 +105,24 @@ class CompanyRemoteDataSourceImpl implements CompanyRemoteDataSource {
         baseCurrencyId: baseCurrencyId,
       );
     } catch (e) {
-      print('🔴🔴🔴 [DataSource.createCompany] ERROR CAUGHT: $e');
-      print('🔴 [DataSource.createCompany] Error type: ${e.runtimeType}');
+      homepageLogger.e('ERROR CAUGHT: $e (Type: ${e.runtimeType})');
 
       // Rollback: Clean up created company if something fails
       if (companyId != null) {
-        print('🟠 [DataSource.createCompany] Attempting rollback for companyId: $companyId');
+        homepageLogger.w('Attempting rollback for companyId: $companyId');
         try {
           await supabaseClient
               .from('companies')
               .delete()
               .eq('company_id', companyId);
-          print('✅ [DataSource.createCompany] Rollback successful');
+          homepageLogger.i('Rollback successful');
         } catch (rollbackError) {
-          print('🔴 [DataSource.createCompany] Rollback FAILED: $rollbackError');
+          homepageLogger.e('Rollback FAILED: $rollbackError');
           // Log rollback error but don't throw
         }
       }
 
-      print('🔴 [DataSource.createCompany] Rethrowing error...');
+      homepageLogger.e('Rethrowing error...');
       rethrow;
     }
   }

@@ -10,6 +10,10 @@ import '../../../../shared/themes/toss_animations.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 
+// Shared - Widgets
+import '../../../../shared/widgets/toss/toss_text_field.dart';
+import '../../../../shared/widgets/toss/toss_primary_button.dart';
+
 // Core - Constants & Navigation
 import '../../../../core/constants/auth_constants.dart';
 
@@ -394,7 +398,7 @@ class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
           ],
         ),
         const SizedBox(height: TossSpacing.space2),
-        _buildTextField(
+        TossTextField(
           controller: _businessNameController,
           focusNode: _businessNameFocusNode,
           hintText: 'Enter your business name',
@@ -481,7 +485,7 @@ class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
           ],
         ),
         const SizedBox(height: TossSpacing.space2),
-        _buildTextField(
+        TossTextField(
           controller: _businessEmailController,
           focusNode: _businessEmailFocusNode,
           hintText: 'business@example.com',
@@ -524,7 +528,7 @@ class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
           ],
         ),
         const SizedBox(height: TossSpacing.space2),
-        _buildTextField(
+        TossTextField(
           controller: _businessPhoneController,
           focusNode: _businessPhoneFocusNode,
           hintText: '+1 (555) 123-4567',
@@ -559,7 +563,7 @@ class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
           ],
         ),
         const SizedBox(height: TossSpacing.space2),
-        _buildTextField(
+        TossTextField(
           controller: _businessAddressController,
           focusNode: _businessAddressFocusNode,
           hintText: '123 Main Street, City, State, ZIP',
@@ -625,11 +629,11 @@ class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
         _selectedTypeId != null &&
         _selectedCurrencyId != null;
 
-    return _buildPrimaryButton(
+    return TossPrimaryButton(
       text: _isLoading ? 'Creating business...' : 'Create Business',
       onPressed: _isLoading || !canCreate ? null : _handleCreateBusiness,
       isLoading: _isLoading,
-      icon: _isLoading
+      leadingIcon: _isLoading
           ? null
           : Icon(
               Icons.business,
@@ -964,115 +968,4 @@ class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
     );
   }
 
-  // ==========================================
-  // Temporary Widget Implementations
-  // ==========================================
-
-  Widget _buildTextField({
-    required TextEditingController controller,
-    required FocusNode focusNode,
-    required String hintText,
-    TextInputType? keyboardType,
-    TextInputAction? textInputAction,
-    String? Function(String?)? validator,
-    void Function(String)? onFieldSubmitted,
-  }) {
-    return TextFormField(
-      controller: controller,
-      focusNode: focusNode,
-      keyboardType: keyboardType,
-      textInputAction: textInputAction,
-      validator: validator,
-      onFieldSubmitted: onFieldSubmitted,
-      style: TossTextStyles.body.copyWith(
-        color: TossColors.textPrimary,
-        fontWeight: FontWeight.w500,
-      ),
-      decoration: InputDecoration(
-        hintText: hintText,
-        hintStyle: TossTextStyles.body.copyWith(
-          color: TossColors.textTertiary,
-        ),
-        filled: true,
-        fillColor: TossColors.gray50,
-        contentPadding: EdgeInsets.symmetric(
-          horizontal: TossSpacing.space4,
-          vertical: TossSpacing.space3,
-        ),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AuthConstants.borderRadiusStandard),
-          borderSide: BorderSide(color: TossColors.border),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AuthConstants.borderRadiusStandard),
-          borderSide: BorderSide(color: TossColors.border),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AuthConstants.borderRadiusStandard),
-          borderSide: BorderSide(color: TossColors.primary, width: 2),
-        ),
-        errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AuthConstants.borderRadiusStandard),
-          borderSide: BorderSide(color: TossColors.error),
-        ),
-        focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AuthConstants.borderRadiusStandard),
-          borderSide: BorderSide(color: TossColors.error, width: 2),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPrimaryButton({
-    required String text,
-    required VoidCallback? onPressed,
-    bool isLoading = false,
-    Widget? icon,
-  }) {
-    return SizedBox(
-      width: double.infinity,
-      height: 48.0,
-      child: ElevatedButton(
-        onPressed: onPressed,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: onPressed == null ? TossColors.gray300 : TossColors.primary,
-          foregroundColor: TossColors.white,
-          elevation: 0,
-          shadowColor: Colors.transparent,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AuthConstants.borderRadiusStandard),
-          ),
-          padding: EdgeInsets.symmetric(
-            horizontal: TossSpacing.space5,
-            vertical: TossSpacing.space3,
-          ),
-        ),
-        child: isLoading
-            ? SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(TossColors.white),
-                ),
-              )
-            : Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  if (icon != null) ...[
-                    icon,
-                    const SizedBox(width: TossSpacing.space2),
-                  ],
-                  Text(
-                    text,
-                    style: TossTextStyles.button.copyWith(
-                      color: TossColors.white,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ],
-              ),
-      ),
-    );
-  }
 }

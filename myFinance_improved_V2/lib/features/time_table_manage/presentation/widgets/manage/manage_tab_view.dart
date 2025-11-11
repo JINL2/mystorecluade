@@ -8,7 +8,9 @@ import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../../shared/widgets/common/toss_calendar_bottom_sheet.dart';
 import '../../../../../shared/widgets/common/toss_loading_view.dart';
+import '../../../domain/entities/manager_overview.dart';
 import '../../../domain/entities/manager_shift_cards.dart';
+import '../../../domain/entities/shift_card.dart';
 import '../common/stat_card_widget.dart';
 import 'manage_shift_card.dart';
 
@@ -20,12 +22,12 @@ class ManageTabView extends ConsumerWidget {
   final String? selectedFilter;
   final bool isLoadingOverview;
   final bool isLoadingCards;
-  final Map<String, Map<String, dynamic>> managerOverviewDataByMonth;
+  final Map<String, ManagerOverview> managerOverviewDataByMonth;
   final Map<String, ManagerShiftCards> managerCardsDataByMonth;
   final void Function(String?) onFilterChanged;
   final void Function(DateTime) onDateChanged;
   final Future<void> Function(DateTime)? onMonthChanged;
-  final void Function(Map<String, dynamic>) onCardTap;
+  final void Function(ShiftCard) onCardTap;
   final String Function(int) getMonthName;
 
   const ManageTabView({
@@ -45,28 +47,29 @@ class ManageTabView extends ConsumerWidget {
 
   String _getMonthlyStatValue(String statKey) {
     final monthKey = '${manageSelectedDate.year}-${manageSelectedDate.month.toString().padLeft(2, '0')}';
-    final monthData = managerOverviewDataByMonth[monthKey];
+    final overview = managerOverviewDataByMonth[monthKey];
 
-    if (monthData == null || monthData['stores'] == null) {
+    if (overview == null) {
       return '0';
     }
 
-    final stores = monthData['stores'] as List<dynamic>? ?? [];
-    if (stores.isEmpty) {
-      return '0';
+    // Map statKey to entity properties
+    switch (statKey) {
+      case 'total_requests':
+        return overview.totalShifts.toString();
+      case 'total_problems':
+        return (overview.additionalStats['total_problems'] ?? 0).toString();
+      case 'total_approved':
+        return overview.totalApprovedRequests.toString();
+      case 'total_pending':
+        return overview.totalPendingRequests.toString();
+      case 'total_employees':
+        return overview.totalEmployees.toString();
+      case 'total_cost':
+        return overview.totalEstimatedCost.toStringAsFixed(0);
+      default:
+        return '0';
     }
-
-    final storeData = stores.first as Map<String, dynamic>;
-    final monthlyStats = storeData['monthly_stats'] as List<dynamic>? ?? [];
-
-    if (monthlyStats.isEmpty) {
-      return '0';
-    }
-
-    final monthStat = monthlyStats.first as Map<String, dynamic>;
-    final value = monthStat[statKey];
-
-    return value?.toString() ?? '0';
   }
 
   Map<String, bool> _getDateShiftStatus(DateTime date) {
@@ -103,7 +106,7 @@ class ManageTabView extends ConsumerWidget {
     };
   }
 
-  List<Map<String, dynamic>> _getFilteredCards() {
+  List<ShiftCard> _getFilteredCards() {
     final monthKey = '${manageSelectedDate.year}-${manageSelectedDate.month.toString().padLeft(2, '0')}';
     final monthData = managerCardsDataByMonth[monthKey];
 
@@ -113,11 +116,18 @@ class ManageTabView extends ConsumerWidget {
 
     // First filter by selected date
     final selectedDateStr = '${manageSelectedDate.year}-${manageSelectedDate.month.toString().padLeft(2, '0')}-${manageSelectedDate.day.toString().padLeft(2, '0')}';
-    final dateCards = monthData.getCardsByDate(selectedDateStr);
 
     // Then apply status filter
     final filteredCards = monthData.filterByStatus(selectedFilter);
     final filteredByDate = filteredCards.where((card) => card.requestDate == selectedDateStr).toList();
+
+    // Return ShiftCard entities directly
+    return filteredByDate;
+  }
+
+  // DEPRECATED: Old Map conversion method (kept for reference)
+  List<Map<String, dynamic>> _getFilteredCardsAsMap() {
+    final filteredByDate = _getFilteredCards();
 
     // Convert ShiftCard entities to Map for compatibility with existing widgets
     final result = filteredByDate.map((card) {
@@ -132,7 +142,7 @@ class ManageTabView extends ConsumerWidget {
         'id': tag.tagId,
         'type': tag.tagType,
         'content': tag.tagContent,
-      }).toList();
+      },).toList();
 
       return {
         'shift_request_id': card.shiftRequestId,

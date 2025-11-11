@@ -27,6 +27,15 @@ abstract class TimeTableRepository {
     required String storeId,
   });
 
+  /// Get raw shift metadata for UI display
+  ///
+  /// [storeId] - Store ID
+  ///
+  /// Returns dynamic list directly from RPC for backward compatibility
+  Future<dynamic> getShiftMetadataRaw({
+    required String storeId,
+  });
+
   /// Get monthly shift status for manager view
   ///
   /// [requestDate] - Date in format 'yyyy-MM-dd'
@@ -118,19 +127,6 @@ abstract class TimeTableRepository {
   Future<AvailableEmployeesData> getAvailableEmployees({
     required String storeId,
     required String shiftDate,
-  });
-
-  /// Insert shift schedule for selected employees
-  ///
-  /// [storeId] - Store ID
-  /// [shiftId] - Shift ID
-  /// [employeeIds] - List of employee IDs to assign
-  ///
-  /// Returns [OperationResult] indicating success or failure
-  Future<OperationResult> insertShiftSchedule({
-    required String storeId,
-    required String shiftId,
-    required List<String> employeeIds,
   });
 
   /// Get schedule data (employees and shifts) for a store

@@ -13,7 +13,7 @@ class GetMonthlyShiftStatus
 
   @override
   Future<List<MonthlyShiftStatus>> call(
-      GetMonthlyShiftStatusParams params) async {
+      GetMonthlyShiftStatusParams params,) async {
     return await _repository.getMonthlyShiftStatus(
       requestDate: params.requestDate,
       companyId: params.companyId,

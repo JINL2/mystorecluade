@@ -1,3 +1,21 @@
+/// Time Table Feature - Riverpod Providers
+///
+/// This file contains all Riverpod providers for the Time Table feature.
+///
+/// Structure:
+/// 1. Data Layer (Datasource, Repository)
+/// 2. Domain Layer (UseCases)
+/// 3. Presentation Layer UI State (selectedDateProvider)
+/// 4. Presentation Layer Data State (ShiftMetadata, MonthlyShiftStatus, etc.)
+/// 5. Form State Providers (AddShift, ShiftDetails)
+///
+/// Total Providers: ~35
+/// - Repository & Datasource: 3
+/// - UseCases: 22
+/// - UI State: 1
+/// - Data State: 4 (ShiftMetadata, MonthlyShiftStatus, ManagerOverview, SelectedRequests)
+/// - Form State: 2 (AddShiftForm, ShiftDetailsForm)
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -5,7 +23,9 @@ import '../../../../app/providers/app_state_provider.dart';
 import '../../data/datasources/time_table_datasource.dart';
 import '../../data/repositories/time_table_repository_impl.dart';
 import '../../domain/entities/manager_overview.dart';
+import '../../domain/entities/manager_shift_cards.dart';
 import '../../domain/entities/monthly_shift_status.dart';
+import '../../domain/entities/shift_card.dart';
 import '../../domain/entities/shift_metadata.dart';
 import '../../domain/repositories/time_table_repository.dart';
 import '../../domain/usecases/add_bonus.dart';
@@ -21,11 +41,14 @@ import '../../domain/usecases/get_shift_metadata.dart';
 import '../../domain/usecases/get_tags_by_card_id.dart';
 import '../../domain/usecases/input_card.dart';
 import '../../domain/usecases/insert_schedule.dart';
-import '../../domain/usecases/insert_shift_schedule.dart';
 import '../../domain/usecases/process_bulk_approval.dart';
 import '../../domain/usecases/toggle_shift_approval.dart';
 import '../../domain/usecases/update_bonus_amount.dart';
 import '../../domain/usecases/update_shift.dart';
+import 'notifiers/add_shift_form_notifier.dart';
+import 'notifiers/shift_details_form_notifier.dart';
+import 'states/add_shift_form_state.dart';
+import 'states/shift_details_form_state.dart';
 import 'states/time_table_state.dart';
 
 // ============================================================================
@@ -111,13 +134,6 @@ final getAvailableEmployeesUseCaseProvider =
   return GetAvailableEmployees(repository);
 });
 
-/// Insert Shift Schedule UseCase Provider
-final insertShiftScheduleUseCaseProvider =
-    Provider<InsertShiftSchedule>((ref) {
-  final repository = ref.watch(timeTableRepositoryProvider);
-  return InsertShiftSchedule(repository);
-});
-
 /// Get Schedule Data UseCase Provider
 final getScheduleDataUseCaseProvider = Provider<GetScheduleData>((ref) {
   final repository = ref.watch(timeTableRepositoryProvider);
@@ -172,24 +188,15 @@ final updateBonusAmountUseCaseProvider = Provider<UpdateBonusAmount>((ref) {
 // ============================================================================
 
 /// Selected Date Provider
+/// Used by overview_tab_view.dart and schedule_tab_view.dart
 final selectedDateProvider = StateProvider<DateTime>((ref) {
   return DateTime.now();
 });
 
-/// Selected Store ID Provider
-final selectedStoreIdProvider = StateProvider<String?>((ref) {
-  return null;
-});
-
-/// Focused Month Provider (for calendar navigation)
-final focusedMonthProvider = StateProvider<DateTime>((ref) {
-  return DateTime.now();
-});
-
-/// Tab Controller Index Provider
-final tabIndexProvider = StateProvider<int>((ref) {
-  return 0; // 0 = Schedule, 1 = Overview
-});
+// ❌ REMOVED: Unused UI State Providers (managed by Page State instead)
+// - selectedStoreIdProvider → managed in time_table_manage_page.dart
+// - focusedMonthProvider → managed in time_table_manage_page.dart
+// - tabIndexProvider → managed by TabController in time_table_manage_page.dart
 
 // ============================================================================
 // Shift Metadata Provider
@@ -388,6 +395,97 @@ final managerOverviewProvider = StateNotifierProvider.family<
 });
 
 // ============================================================================
+// Manager Shift Cards Provider
+// ============================================================================
+
+/// Manager Shift Cards Notifier
+class ManagerShiftCardsNotifier extends StateNotifier<ManagerShiftCardsState> {
+  final GetManagerShiftCards _getManagerShiftCardsUseCase;
+  final String _companyId;
+  final String _storeId;
+
+  ManagerShiftCardsNotifier(
+    this._getManagerShiftCardsUseCase,
+    this._companyId,
+    this._storeId,
+  ) : super(const ManagerShiftCardsState());
+
+  /// Load manager shift cards for a specific month
+  Future<void> loadMonth({
+    required DateTime month,
+    bool forceRefresh = false,
+  }) async {
+    final monthKey = '${month.year}-${month.month.toString().padLeft(2, '0')}';
+
+    // Skip if already loaded (unless force refresh)
+    if (!forceRefresh && state.dataByMonth.containsKey(monthKey)) {
+      print('📦 ManagerCards: Skipping load for $monthKey (already cached)');
+      return;
+    }
+
+    print('🔄 ManagerCards: Loading data for $monthKey (storeId: $_storeId, companyId: $_companyId)');
+    state = state.copyWith(isLoading: true, error: null);
+
+    try {
+      final firstDay = DateTime(month.year, month.month, 1);
+      final lastDay = DateTime(month.year, month.month + 1, 0);
+
+      final startDate = '${firstDay.year}-${firstDay.month.toString().padLeft(2, '0')}-${firstDay.day.toString().padLeft(2, '0')}';
+      final endDate = '${lastDay.year}-${lastDay.month.toString().padLeft(2, '0')}-${lastDay.day.toString().padLeft(2, '0')}';
+
+      final data = await _getManagerShiftCardsUseCase(
+        GetManagerShiftCardsParams(
+          startDate: startDate,
+          endDate: endDate,
+          companyId: _companyId,
+          storeId: _storeId,
+        ),
+      );
+
+      print('✅ ManagerCards: Loaded ${data.approvedCards.length} approved, ${data.pendingCards.length} pending');
+
+      final newDataByMonth = Map<String, ManagerShiftCards>.from(state.dataByMonth);
+      newDataByMonth[monthKey] = data;
+
+      state = state.copyWith(
+        dataByMonth: newDataByMonth,
+        isLoading: false,
+      );
+    } catch (e) {
+      print('❌ ManagerCards: Error loading data: $e');
+      state = state.copyWith(
+        isLoading: false,
+        error: e.toString(),
+      );
+    }
+  }
+
+  /// Clear data for a specific month
+  void clearMonth(String monthKey) {
+    final newDataByMonth = Map<String, ManagerShiftCards>.from(state.dataByMonth);
+    newDataByMonth.remove(monthKey);
+    state = state.copyWith(dataByMonth: newDataByMonth);
+  }
+
+  /// Clear all loaded data
+  void clearAll() {
+    state = const ManagerShiftCardsState();
+  }
+}
+
+/// Manager Shift Cards Provider
+final managerCardsProvider = StateNotifierProvider.family<
+    ManagerShiftCardsNotifier,
+    ManagerShiftCardsState,
+    String>((ref, storeId) {
+  final useCase = ref.watch(getManagerShiftCardsUseCaseProvider);
+  final appState = ref.watch(appStateProvider);
+  final companyId = appState.companyChoosen;
+
+  return ManagerShiftCardsNotifier(useCase, companyId, storeId);
+});
+
+// ============================================================================
 // Selected Shift Requests Provider (for multi-select approval)
 // ============================================================================
 
@@ -396,21 +494,25 @@ class SelectedShiftRequestsNotifier
     extends StateNotifier<SelectedShiftRequestsState> {
   SelectedShiftRequestsNotifier() : super(const SelectedShiftRequestsState());
 
-  void toggleSelection(String shiftRequestId, bool isApproved) {
+  void toggleSelection(String shiftRequestId, bool isApproved, String actualRequestId) {
     final newSelectedIds = Set<String>.from(state.selectedIds);
     final newApprovalStates = Map<String, bool>.from(state.approvalStates);
+    final newRequestIds = Map<String, String>.from(state.requestIds);
 
     if (newSelectedIds.contains(shiftRequestId)) {
       newSelectedIds.remove(shiftRequestId);
       newApprovalStates.remove(shiftRequestId);
+      newRequestIds.remove(shiftRequestId);
     } else {
       newSelectedIds.add(shiftRequestId);
       newApprovalStates[shiftRequestId] = isApproved;
+      newRequestIds[shiftRequestId] = actualRequestId;
     }
 
     state = state.copyWith(
       selectedIds: newSelectedIds,
       approvalStates: newApprovalStates,
+      requestIds: newRequestIds,
     );
   }
 
@@ -428,4 +530,36 @@ final selectedShiftRequestsProvider = StateNotifierProvider<
     SelectedShiftRequestsNotifier,
     SelectedShiftRequestsState>((ref) {
   return SelectedShiftRequestsNotifier();
+});
+
+// ============================================================================
+// Add Shift Form Provider
+// ============================================================================
+
+/// Add Shift Form Provider
+///
+/// Manages the state of the Add Shift bottom sheet form
+/// Requires storeId parameter
+final addShiftFormProvider = StateNotifierProvider.family<
+    AddShiftFormNotifier,
+    AddShiftFormState,
+    String>((ref, storeId) {
+  final repository = ref.watch(timeTableRepositoryProvider);
+  return AddShiftFormNotifier(repository, storeId);
+});
+
+// ============================================================================
+// Shift Details Form Provider
+// ============================================================================
+
+/// Shift Details Form Provider
+///
+/// Manages the state of the Shift Details bottom sheet
+/// Requires ShiftCard parameter
+final shiftDetailsFormProvider = StateNotifierProvider.family<
+    ShiftDetailsFormNotifier,
+    ShiftDetailsFormState,
+    ShiftCard>((ref, card) {
+  final repository = ref.watch(timeTableRepositoryProvider);
+  return ShiftDetailsFormNotifier(card, repository);
 });

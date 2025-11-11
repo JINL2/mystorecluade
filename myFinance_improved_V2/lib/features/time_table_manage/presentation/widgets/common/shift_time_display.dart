@@ -28,7 +28,7 @@ class ShiftTimeDisplay extends StatelessWidget {
         Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
+            const Icon(
               Icons.access_time,
               size: 16,
               color: TossColors.gray600,

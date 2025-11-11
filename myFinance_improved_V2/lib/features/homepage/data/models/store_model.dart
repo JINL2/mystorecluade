@@ -2,18 +2,30 @@ import 'package:myfinance_improved/features/homepage/domain/entities/store.dart'
 
 /// Data Transfer Object for Store
 /// Handles JSON serialization/deserialization from Supabase
-class StoreModel extends Store {
+///
+/// Pure DTO that does not extend domain entity
+class StoreModel {
   const StoreModel({
-    required super.id,
-    required super.name,
-    required super.code,
-    required super.companyId,
-    super.address,
-    super.phone,
-    super.huddleTime,
-    super.paymentTime,
-    super.allowedDistance,
+    required this.id,
+    required this.name,
+    required this.code,
+    required this.companyId,
+    this.address,
+    this.phone,
+    this.huddleTime,
+    this.paymentTime,
+    this.allowedDistance,
   });
+
+  final String id;
+  final String name;
+  final String code;
+  final String companyId;
+  final String? address;
+  final String? phone;
+  final int? huddleTime;
+  final int? paymentTime;
+  final int? allowedDistance;
 
   /// Create from JSON (from Supabase response after creation)
   factory StoreModel.fromJson(Map<String, dynamic> json) {

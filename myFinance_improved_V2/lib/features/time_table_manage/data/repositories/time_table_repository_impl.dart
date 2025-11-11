@@ -1,4 +1,3 @@
-import '../../../../core/utils/datetime_utils.dart';
 import '../../domain/entities/available_employees_data.dart';
 import '../../domain/entities/bulk_approval_result.dart';
 import '../../domain/entities/card_input_result.dart';
@@ -16,19 +15,33 @@ import '../../domain/exceptions/time_table_exceptions.dart';
 import '../../domain/repositories/time_table_repository.dart';
 import '../../domain/value_objects/create_shift_params.dart';
 import '../datasources/time_table_datasource.dart';
-import '../models/available_employees_data_model.dart';
-import '../models/bulk_approval_result_model.dart';
-import '../models/card_input_result_model.dart';
-import '../models/manager_overview_model.dart';
-import '../models/manager_shift_cards_model.dart';
-import '../models/monthly_shift_status_model.dart';
-import '../models/operation_result_model.dart';
-import '../models/schedule_data_model.dart';
-import '../models/shift_approval_result_model.dart';
-import '../models/shift_metadata_model.dart';
-import '../models/shift_model.dart';
-import '../models/shift_request_model.dart';
-import '../models/tag_model.dart';
+// Freezed DTOs
+import '../models/freezed/available_employees_data_dto.dart';
+import '../models/freezed/available_employees_data_dto_mapper.dart';
+import '../models/freezed/bulk_approval_result_dto.dart';
+import '../models/freezed/bulk_approval_result_dto_mapper.dart';
+import '../models/freezed/card_input_result_dto.dart';
+import '../models/freezed/card_input_result_dto_mapper.dart';
+import '../models/freezed/manager_overview_dto.dart';
+import '../models/freezed/manager_overview_dto_mapper.dart';
+import '../models/freezed/manager_shift_cards_dto.dart';
+import '../models/freezed/manager_shift_cards_dto_mapper.dart';
+import '../models/freezed/monthly_shift_status_dto.dart';
+import '../models/freezed/monthly_shift_status_dto_mapper.dart';
+import '../models/freezed/operation_result_dto.dart';
+import '../models/freezed/operation_result_dto_mapper.dart';
+import '../models/freezed/schedule_data_dto.dart';
+import '../models/freezed/schedule_data_dto_mapper.dart';
+import '../models/freezed/shift_approval_result_dto.dart';
+import '../models/freezed/shift_approval_result_dto_mapper.dart';
+import '../models/freezed/shift_card_dto.dart';
+import '../models/freezed/shift_card_dto_mapper.dart';
+import '../models/freezed/shift_dto.dart';
+import '../models/freezed/shift_dto_mapper.dart';
+import '../models/freezed/shift_metadata_dto.dart';
+import '../models/freezed/shift_metadata_dto_mapper.dart';
+import '../models/freezed/shift_request_dto.dart';
+import '../models/freezed/shift_request_dto_mapper.dart';
 
 /// Time Table Repository Implementation
 ///
@@ -44,12 +57,33 @@ class TimeTableRepositoryImpl implements TimeTableRepository {
   }) async {
     try {
       final data = await _datasource.getShiftMetadata(storeId: storeId);
-      final model = ShiftMetadataModel.fromJson(data as Map<String, dynamic>);
-      return model.toEntity();
+
+      // RPC returns TABLE format (List of rows), convert to List<ShiftMetadataDto>
+      final List<ShiftMetadataDto> dtos = (data as List)
+          .map((item) => ShiftMetadataDto.fromJson(item as Map<String, dynamic>))
+          .toList();
+
+      // Convert DTOs to entity using mapper
+      return ShiftMetadataDtoMapper.toEntity(dtos);
     } catch (e) {
       if (e is ShiftMetadataException) rethrow;
       throw ShiftMetadataException(
         'Failed to fetch shift metadata: $e',
+        originalError: e,
+      );
+    }
+  }
+
+  @override
+  Future<dynamic> getShiftMetadataRaw({
+    required String storeId,
+  }) async {
+    try {
+      return await _datasource.getShiftMetadata(storeId: storeId);
+    } catch (e) {
+      if (e is ShiftMetadataException) rethrow;
+      throw ShiftMetadataException(
+        'Failed to fetch raw shift metadata: $e',
         originalError: e,
       );
     }
@@ -67,114 +101,23 @@ class TimeTableRepositoryImpl implements TimeTableRepository {
         storeId: storeId,
       );
 
-      // The RPC returns a flat array of daily records, we need to group by month
-      // Each item has 'request_date' (yyyy-MM-dd), we group by yyyy-MM
-      final Map<String, List<Map<String, dynamic>>> groupedByMonth = {};
+      // ✅ FREEZED: Simple DTO conversion (100+ lines → 10 lines!)
+      final dtos = data
+          .map((item) =>
+              MonthlyShiftStatusDto.fromJson(item as Map<String, dynamic>),)
+          .toList();
 
-      for (final item in data) {
-        final itemMap = item as Map<String, dynamic>;
-        final requestDate = itemMap['request_date'] as String?;
-
-        if (requestDate != null && requestDate.length >= 7) {
-          // Extract month (yyyy-MM) from date (yyyy-MM-dd)
-          final month = requestDate.substring(0, 7);
-
-          if (!groupedByMonth.containsKey(month)) {
-            groupedByMonth[month] = [];
-          }
-
-          // Transform RPC response to match DailyShiftDataModel expectations
-          final transformedItem = Map<String, dynamic>.from(itemMap);
-          transformedItem['date'] = requestDate;
-          transformedItem.remove('request_date');
-
-          // Transform shifts array structure
-          // RPC returns: {shift_id, shift_name, pending_employees, approved_employees, ...}
-          // Model expects: {shift: {shift_id, shift_name, ...}, pending_requests: [...], approved_requests: [...]}
-          if (transformedItem['shifts'] is List) {
-            final shifts = transformedItem['shifts'] as List;
-            // Create DateTime objects for default times (today at 09:00 and 18:00)
-            final now = DateTime.now();
-            final defaultStartTime = DateTime(now.year, now.month, now.day, 9, 0);
-            final defaultEndTime = DateTime(now.year, now.month, now.day, 18, 0);
-
-            transformedItem['shifts'] = shifts.map((shift) {
-              if (shift is Map<String, dynamic>) {
-                // Transform employee lists to add missing fields required by ShiftRequestModel
-                final pendingEmployees = shift['pending_employees'] as List<dynamic>? ?? [];
-                final approvedEmployees = shift['approved_employees'] as List<dynamic>? ?? [];
-
-                final transformPendingRequests = pendingEmployees.map((emp) {
-                  if (emp is Map<String, dynamic>) {
-                    return {
-                      ...emp,
-                      'shift_id': shift['shift_id'], // Add missing shift_id
-                      'created_at': DateTimeUtils.toUtc(now), // Add missing created_at
-                      'employee': {
-                        'user_id': emp['user_id'],
-                        'user_name': emp['user_name'],
-                        'profile_image': emp['profile_image'],
-                      },
-                    };
-                  }
-                  return emp;
-                }).toList();
-
-                final transformApprovedRequests = approvedEmployees.map((emp) {
-                  if (emp is Map<String, dynamic>) {
-                    return {
-                      ...emp,
-                      'shift_id': shift['shift_id'], // Add missing shift_id
-                      'created_at': DateTimeUtils.toUtc(now), // Add missing created_at
-                      'approved_at': DateTimeUtils.toUtc(now), // Add approved_at for approved requests
-                      'employee': {
-                        'user_id': emp['user_id'],
-                        'user_name': emp['user_name'],
-                        'profile_image': emp['profile_image'],
-                      },
-                    };
-                  }
-                  return emp;
-                }).toList();
-
-                return {
-                  'shift': {
-                    'shift_id': shift['shift_id'],
-                    'shift_name': shift['shift_name'],
-                    'required_employees': shift['required_employees'],
-                    'plan_start_time': DateTimeUtils.toUtc(defaultStartTime),
-                    'plan_end_time': DateTimeUtils.toUtc(defaultEndTime),
-                  },
-                  'pending_requests': transformPendingRequests,
-                  'approved_requests': transformApprovedRequests,
-                };
-              }
-              return shift;
-            }).toList();
-          }
-
-          groupedByMonth[month]!.add(transformedItem);
-        }
+      // Group by month and convert to entities
+      final Map<String, List<MonthlyShiftStatusDto>> groupedByMonth = {};
+      for (final dto in dtos) {
+        final month = dto.requestDate.substring(0, 7); // yyyy-MM
+        groupedByMonth.putIfAbsent(month, () => []).add(dto);
       }
 
-      // Convert each month's data to MonthlyShiftStatus entity
-      final result = groupedByMonth.entries.map((entry) {
-        try {
-          // Create the structure that MonthlyShiftStatusModel expects
-          final monthData = <String, dynamic>{
-            'month': entry.key,
-            'daily_shifts': entry.value,
-            'statistics': <String, int>{},
-          };
-
-          final model = MonthlyShiftStatusModel.fromJson(monthData);
-          return model.toEntity();
-        } catch (e) {
-          rethrow;
-        }
-      }).toList();
-
-      return result;
+      // Convert to entities
+      return groupedByMonth.entries
+          .map((entry) => _createMonthlyStatus(entry.key, entry.value))
+          .toList();
     } catch (e) {
       if (e is ShiftStatusException) rethrow;
       throw ShiftStatusException(
@@ -182,6 +125,28 @@ class TimeTableRepositoryImpl implements TimeTableRepository {
         originalError: e,
       );
     }
+  }
+
+  /// Helper to create MonthlyShiftStatus from grouped DTOs
+  MonthlyShiftStatus _createMonthlyStatus(
+      String month,
+      List<MonthlyShiftStatusDto> dtos,) {
+    final dailyShifts = dtos.map((dto) => dto.toEntity(month: month)).toList();
+
+    // Aggregate statistics
+    final totalRequired = dtos.fold<int>(0, (sum, dto) => sum + dto.totalRequired);
+    final totalApproved = dtos.fold<int>(0, (sum, dto) => sum + dto.totalApproved);
+    final totalPending = dtos.fold<int>(0, (sum, dto) => sum + dto.totalPending);
+
+    return MonthlyShiftStatus(
+      month: month,
+      dailyShifts: dailyShifts.expand((status) => status.dailyShifts).toList(),
+      statistics: {
+        'total_required': totalRequired,
+        'total_approved': totalApproved,
+        'total_pending': totalPending,
+      },
+    );
   }
 
   @override
@@ -199,51 +164,9 @@ class TimeTableRepositoryImpl implements TimeTableRepository {
         storeId: storeId,
       );
 
-      // Extract monthly_stats from the response structure
-      // Response format: { stores: [{ monthly_stats: [{...}] }] }
-      final stores = data['stores'] as List<dynamic>? ?? [];
-      if (stores.isEmpty) {
-        return const ManagerOverview(
-          month: '',
-          totalShifts: 0,
-          totalApprovedRequests: 0,
-          totalPendingRequests: 0,
-          totalEmployees: 0,
-          totalEstimatedCost: 0.0,
-        );
-      }
-
-      final storeData = stores.first as Map<String, dynamic>;
-      final monthlyStats = storeData['monthly_stats'] as List<dynamic>? ?? [];
-
-      if (monthlyStats.isEmpty) {
-        return const ManagerOverview(
-          month: '',
-          totalShifts: 0,
-          totalApprovedRequests: 0,
-          totalPendingRequests: 0,
-          totalEmployees: 0,
-          totalEstimatedCost: 0.0,
-        );
-      }
-
-      final statsData = monthlyStats.first as Map<String, dynamic>;
-
-      // Map the RPC response fields to model fields
-      final mappedData = {
-        'month': statsData['month'] ?? '',
-        'total_shifts': statsData['total_requests'] ?? 0,  // Map total_requests to total_shifts
-        'total_approved_requests': statsData['total_approved'] ?? 0,
-        'total_pending_requests': statsData['total_pending'] ?? 0,
-        'total_employees': statsData['total_employees'] ?? 0,
-        'total_estimated_cost': statsData['total_estimated_cost'] ?? 0.0,
-        'additional_stats': {
-          'total_problems': statsData['total_problems'] ?? 0,  // Capture total_problems
-        },
-      };
-
-      final model = ManagerOverviewModel.fromJson(mappedData);
-      return model.toEntity();
+      // ✅ FREEZED: Direct DTO conversion
+      final dto = ManagerOverviewDto.fromJson(data);
+      return dto.toEntity();
     } catch (e) {
       if (e is TimeTableException) rethrow;
       throw TimeTableException(
@@ -268,8 +191,12 @@ class TimeTableRepositoryImpl implements TimeTableRepository {
         storeId: storeId,
       );
 
-      final model = ManagerShiftCardsModel.fromJson(data);
-      final entity = model.toEntity();
+      final dto = ManagerShiftCardsDto.fromJson(data);
+      final entity = dto.toEntity(
+        storeId: storeId,
+        startDate: startDate,
+        endDate: endDate,
+      );
       return entity;
     } catch (e) {
       if (e is TimeTableException) rethrow;
@@ -291,8 +218,8 @@ class TimeTableRepositoryImpl implements TimeTableRepository {
         newApprovalState: newApprovalState,
       );
 
-      final model = ShiftApprovalResultModel.fromJson(data);
-      return model.toEntity();
+      final dto = ShiftApprovalResultDto.fromJson(data);
+      return dto.toEntity();
     } catch (e) {
       if (e is ShiftApprovalException) rethrow;
       throw ShiftApprovalException(
@@ -315,8 +242,8 @@ class TimeTableRepositoryImpl implements TimeTableRepository {
       }
 
       final data = await _datasource.createShift(params: params.toJson());
-      final model = ShiftModel.fromJson(data);
-      return model.toEntity();
+      final dto = ShiftDto.fromJson(data);
+      return dto.toEntity();
     } catch (e) {
       if (e is ShiftCreationException || e is InvalidShiftParametersException) {
         rethrow;
@@ -351,8 +278,9 @@ class TimeTableRepositoryImpl implements TimeTableRepository {
   }) async {
     try {
       final data = await _datasource.deleteShiftTag(tagId: tagId, userId: userId);
-      final model = OperationResultModel.fromJson(data);
-      return model.toEntity();
+      // ✅ FREEZED: Direct DTO conversion
+      final dto = OperationResultDto.fromJson(data);
+      return dto.toEntity();
     } catch (e) {
       if (e is TimeTableException) rethrow;
       throw TimeTableException(
@@ -373,36 +301,12 @@ class TimeTableRepositoryImpl implements TimeTableRepository {
         shiftDate: shiftDate,
       );
 
-      final model = AvailableEmployeesDataModel.fromJson(data);
-      return model.toEntity();
+      final dto = AvailableEmployeesDataDto.fromJson(data);
+      return dto.toEntity();
     } catch (e) {
       if (e is TimeTableException) rethrow;
       throw TimeTableException(
         'Failed to fetch employee list: $e',
-        originalError: e,
-      );
-    }
-  }
-
-  @override
-  Future<OperationResult> insertShiftSchedule({
-    required String storeId,
-    required String shiftId,
-    required List<String> employeeIds,
-  }) async {
-    try {
-      final data = await _datasource.insertShiftSchedule(
-        storeId: storeId,
-        shiftId: shiftId,
-        employeeIds: employeeIds,
-      );
-
-      final model = OperationResultModel.fromJson(data);
-      return model.toEntity();
-    } catch (e) {
-      if (e is TimeTableException) rethrow;
-      throw TimeTableException(
-        'Failed to add shift schedule: $e',
         originalError: e,
       );
     }
@@ -414,8 +318,8 @@ class TimeTableRepositoryImpl implements TimeTableRepository {
   }) async {
     try {
       final data = await _datasource.getScheduleData(storeId: storeId);
-      final model = ScheduleDataModel.fromJson(data);
-      return model.toEntity();
+      final dto = ScheduleDataDto.fromJson(data);
+      return dto.toEntity(storeId: storeId);
     } catch (e) {
       if (e is TimeTableException) rethrow;
       throw TimeTableException(
@@ -436,8 +340,9 @@ class TimeTableRepositoryImpl implements TimeTableRepository {
         approvalStates: approvalStates,
       );
 
-      final model = BulkApprovalResultModel.fromJson(data);
-      return model.toEntity();
+      // ✅ FREEZED: Direct DTO conversion
+      final dto = BulkApprovalResultDto.fromJson(data);
+      return dto.toEntity();
     } catch (e) {
       if (e is TimeTableException) rethrow;
       throw TimeTableException(
@@ -462,8 +367,8 @@ class TimeTableRepositoryImpl implements TimeTableRepository {
         isProblemSolved: isProblemSolved,
       );
 
-      final model = ShiftRequestModel.fromJson(data);
-      return model.toEntity();
+      final dto = ShiftRequestDto.fromJson(data);
+      return dto.toEntity();
     } catch (e) {
       if (e is TimeTableException) rethrow;
       throw TimeTableException(
@@ -490,8 +395,9 @@ class TimeTableRepositoryImpl implements TimeTableRepository {
         approvedBy: approvedBy,
       );
 
-      final model = OperationResultModel.fromJson(data);
-      return model.toEntity();
+      // ✅ FREEZED: Direct DTO conversion
+      final dto = OperationResultDto.fromJson(data);
+      return dto.toEntity();
     } catch (e) {
       if (e is TimeTableException) rethrow;
       throw TimeTableException(
@@ -524,8 +430,8 @@ class TimeTableRepositoryImpl implements TimeTableRepository {
         isProblemSolved: isProblemSolved,
       );
 
-      final model = CardInputResultModel.fromJson(data);
-      return model.toEntity();
+      final dto = CardInputResultDto.fromJson(data);
+      return dto.toEntity();
     } catch (e) {
       if (e is TimeTableException) rethrow;
       throw TimeTableException(
@@ -541,7 +447,7 @@ class TimeTableRepositoryImpl implements TimeTableRepository {
   }) async {
     try {
       final data = await _datasource.getTagsByCardId(cardId: cardId);
-      return data.map((json) => TagModel.fromJson(json).toEntity()).toList();
+      return data.map((json) => TagDto.fromJson(json).toEntity()).toList();
     } catch (e) {
       if (e is TimeTableException) rethrow;
       throw TimeTableException(
@@ -564,8 +470,9 @@ class TimeTableRepositoryImpl implements TimeTableRepository {
         bonusReason: bonusReason,
       );
 
-      final model = OperationResultModel.fromJson(data);
-      return model.toEntity();
+      // ✅ FREEZED: Direct DTO conversion
+      final dto = OperationResultDto.fromJson(data);
+      return dto.toEntity();
     } catch (e) {
       if (e is TimeTableException) rethrow;
       throw TimeTableException(

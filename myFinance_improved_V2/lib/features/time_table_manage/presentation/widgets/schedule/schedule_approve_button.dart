@@ -1,18 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:flutter/services.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../../shared/widgets/common/toss_success_error_dialog.dart';
+import '../../providers/time_table_providers.dart';
 
 /// Schedule Approve Button
 ///
 /// Shows approve/not approve button for selected shift requests with toggle functionality
-class ScheduleApproveButton extends StatelessWidget {
+class ScheduleApproveButton extends ConsumerWidget {
   final Set<String> selectedShiftRequests;
   final Map<String, bool> selectedShiftApprovalStates;
   final Map<String, String> selectedShiftRequestIds;
@@ -30,7 +31,7 @@ class ScheduleApproveButton extends StatelessWidget {
     required this.onSuccess,
   });
 
-  Future<void> _handleApprovalToggle(BuildContext context) async {
+  Future<void> _handleApprovalToggle(BuildContext context, WidgetRef ref) async {
     HapticFeedback.mediumImpact();
 
     if (userId.isEmpty || selectedShiftRequestIds.isEmpty) {
@@ -47,13 +48,22 @@ class ScheduleApproveButton extends StatelessWidget {
     }
 
     try {
-      // Use direct Supabase RPC call (same as lib_old)
-      await Supabase.instance.client.rpc<void>(
-        'toggle_shift_approval',
-        params: {
-          'p_user_id': userId,
-          'p_shift_request_ids': selectedShiftRequestIds.values.toList(),
-        },
+      // ✅ FIXED: Use Repository/UseCase instead of direct Supabase call
+      // Determine new approval states based on current states
+      final shiftRequestIdsList = selectedShiftRequestIds.values.toList();
+      final approvalStatesList = shiftRequestIdsList.map((id) {
+        // Find the key (shift_id + user_name) that maps to this shift_request_id
+        final key = selectedShiftRequestIds.entries
+            .firstWhere((entry) => entry.value == id)
+            .key;
+        // Toggle the current state
+        final currentState = selectedShiftApprovalStates[key] ?? false;
+        return !currentState; // Toggle the state
+      }).toList();
+
+      await ref.read(timeTableRepositoryProvider).processBulkApproval(
+        shiftRequestIds: shiftRequestIdsList,
+        approvalStates: approvalStatesList,
       );
 
       // Determine action based on selected items - if mixed states, show generic message
@@ -133,13 +143,13 @@ class ScheduleApproveButton extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final isEnabled = selectedShiftRequests.isNotEmpty && selectedShiftRequestIds.isNotEmpty;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space5),
       child: InkWell(
-        onTap: isEnabled ? () => _handleApprovalToggle(context) : null,
+        onTap: isEnabled ? () => _handleApprovalToggle(context, ref) : null,
         borderRadius: BorderRadius.circular(TossBorderRadius.xl),
         child: Container(
           height: 56,

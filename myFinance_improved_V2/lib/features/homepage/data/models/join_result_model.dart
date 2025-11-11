@@ -2,15 +2,24 @@ import 'package:myfinance_improved/features/homepage/domain/entities/join_result
 
 /// Data model for JoinResult
 /// Handles JSON serialization from Supabase RPC response
-class JoinResultModel extends JoinResult {
+///
+/// Pure DTO that does not extend domain entity
+class JoinResultModel {
   const JoinResultModel({
-    required super.success,
-    super.companyId,
-    super.companyName,
-    super.storeId,
-    super.storeName,
-    super.roleAssigned,
+    required this.success,
+    this.companyId,
+    this.companyName,
+    this.storeId,
+    this.storeName,
+    this.roleAssigned,
   });
+
+  final bool success;
+  final String? companyId;
+  final String? companyName;
+  final String? storeId;
+  final String? storeName;
+  final String? roleAssigned;
 
   /// Create model from JSON response from join_user_by_code RPC
   ///

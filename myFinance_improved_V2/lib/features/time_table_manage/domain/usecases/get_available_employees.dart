@@ -13,7 +13,7 @@ class GetAvailableEmployees
 
   @override
   Future<AvailableEmployeesData> call(
-      GetAvailableEmployeesParams params) async {
+      GetAvailableEmployeesParams params,) async {
     if (params.storeId.isEmpty) {
       throw ArgumentError('Store ID cannot be empty');
     }

@@ -10,6 +10,10 @@ import 'package:myfinance_improved/shared/themes/toss_animations.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 
+// Shared - Widgets
+import '../../../../shared/widgets/toss/toss_text_field.dart';
+import '../../../../shared/widgets/toss/toss_primary_button.dart';
+
 // Core - Constants & Navigation
 import '../../../../core/constants/auth_constants.dart';
 
@@ -382,7 +386,7 @@ class _SignupPageState extends ConsumerState<SignupPage>
                     ],
                   ),
                   const SizedBox(height: TossSpacing.space1),
-                  _buildTextField(
+                  TossTextField(
                     controller: _firstNameController,
                     focusNode: _firstNameFocusNode,
                     hintText: AuthConstants.placeholderFirstName,
@@ -424,7 +428,7 @@ class _SignupPageState extends ConsumerState<SignupPage>
                     ],
                   ),
                   const SizedBox(height: TossSpacing.space1),
-                  _buildTextField(
+                  TossTextField(
                     controller: _lastNameController,
                     focusNode: _lastNameFocusNode,
                     hintText: AuthConstants.placeholderLastName,
@@ -470,7 +474,7 @@ class _SignupPageState extends ConsumerState<SignupPage>
           ],
         ),
         const SizedBox(height: TossSpacing.space2),
-        _buildTextField(
+        TossTextField(
           controller: _emailController,
           focusNode: _emailFocusNode,
           hintText: AuthConstants.placeholderEmail,
@@ -515,7 +519,7 @@ class _SignupPageState extends ConsumerState<SignupPage>
           ],
         ),
         const SizedBox(height: TossSpacing.space2),
-        _buildTextField(
+        TossTextField(
           controller: _passwordController,
           focusNode: _passwordFocusNode,
           hintText: AuthConstants.placeholderPassword,
@@ -572,7 +576,7 @@ class _SignupPageState extends ConsumerState<SignupPage>
           ],
         ),
         const SizedBox(height: TossSpacing.space2),
-        _buildTextField(
+        TossTextField(
           controller: _confirmPasswordController,
           focusNode: _confirmPasswordFocusNode,
           hintText: AuthConstants.placeholderConfirmPassword,
@@ -1056,65 +1060,7 @@ class _SignupPageState extends ConsumerState<SignupPage>
   // ==========================================
   // Temporary Widget Implementations
   // ==========================================
-
-  Widget _buildTextField({
-    required TextEditingController controller,
-    required FocusNode focusNode,
-    required String hintText,
-    TextInputType? keyboardType,
-    TextInputAction? textInputAction,
-    bool obscureText = false,
-    Widget? suffixIcon,
-    String? Function(String?)? validator,
-    void Function(String)? onFieldSubmitted,
-  }) {
-    return TextFormField(
-      controller: controller,
-      focusNode: focusNode,
-      keyboardType: keyboardType,
-      textInputAction: textInputAction,
-      obscureText: obscureText,
-      validator: validator,
-      onFieldSubmitted: onFieldSubmitted,
-      style: TossTextStyles.body.copyWith(
-        color: TossColors.textPrimary,
-        fontWeight: FontWeight.w500,
-      ),
-      decoration: InputDecoration(
-        hintText: hintText,
-        hintStyle: TossTextStyles.body.copyWith(
-          color: TossColors.textTertiary,
-        ),
-        suffixIcon: suffixIcon,
-        filled: true,
-        fillColor: TossColors.gray50,
-        contentPadding: EdgeInsets.symmetric(
-          horizontal: TossSpacing.space4,
-          vertical: TossSpacing.space3,
-        ),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AuthConstants.borderRadiusStandard),
-          borderSide: BorderSide(color: TossColors.border),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AuthConstants.borderRadiusStandard),
-          borderSide: BorderSide(color: TossColors.border),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AuthConstants.borderRadiusStandard),
-          borderSide: BorderSide(color: TossColors.primary, width: 2),
-        ),
-        errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AuthConstants.borderRadiusStandard),
-          borderSide: BorderSide(color: TossColors.error),
-        ),
-        focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AuthConstants.borderRadiusStandard),
-          borderSide: BorderSide(color: TossColors.error, width: 2),
-        ),
-      ),
-    );
-  }
+  // ✅ _buildTextField removed - using TossTextField from shared/widgets
 
   Widget _buildPrimaryButton({
     required String text,

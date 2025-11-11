@@ -9,20 +9,15 @@ import '../../../../shared/themes/toss_text_styles.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_animations.dart';
 
+// Shared - Widgets ✅
+import '../../../../shared/widgets/toss/toss_text_field.dart';
+import '../../../../shared/widgets/toss/toss_primary_button.dart';
+
 // Core - Constants ✅
 import '../../../../core/constants/auth_constants.dart';
 
 // Core - Infrastructure Services ✅
 import '../../../../core/notifications/services/production_token_service.dart';
-
-// App-level Providers ✅
-
-// Widgets (from V1 - should be reused)
-// TODO: Verify these widgets exist in V2 or copy from V1
-// import '../../../../presentation/widgets/toss/toss_primary_button.dart';
-// import '../../../../presentation/widgets/toss/toss_text_field.dart';
-// import '../../../../presentation/widgets/auth/storebase_auth_header.dart';
-// import '../../../../presentation/widgets/common/toss_scaffold.dart';
 
 // Clean Architecture - Auth Feature Providers
 import '../providers/auth_service.dart';
@@ -402,7 +397,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
                   ]
                 : null,
           ),
-          child: _buildTextField(
+          child: TossTextField(
             controller: _emailController,
             focusNode: _emailFocusNode,
             hintText: AuthConstants.placeholderEmail,
@@ -497,7 +492,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
               ),
             ],
           ),
-          child: _buildTextField(
+          child: TossTextField(
             controller: _passwordController,
             focusNode: _passwordFocusNode,
             hintText: AuthConstants.placeholderPassword,
@@ -531,60 +526,6 @@ class _LoginPageState extends ConsumerState<LoginPage>
           ),
         ),
       ],
-    );
-  }
-
-  // TODO: Replace with TossTextField when widget is available
-  Widget _buildTextField({
-    required TextEditingController controller,
-    required FocusNode focusNode,
-    required String hintText,
-    TextInputType? keyboardType,
-    TextInputAction? textInputAction,
-    bool obscureText = false,
-    bool autocorrect = true,
-    Widget? suffixIcon,
-    void Function(String)? onFieldSubmitted,
-    String? Function(String?)? validator,
-  }) {
-    return TextFormField(
-      controller: controller,
-      focusNode: focusNode,
-      keyboardType: keyboardType,
-      textInputAction: textInputAction,
-      obscureText: obscureText,
-      autocorrect: autocorrect,
-      onFieldSubmitted: onFieldSubmitted,
-      validator: validator,
-      style: TossTextStyles.body,
-      decoration: InputDecoration(
-        hintText: hintText,
-        hintStyle: TossTextStyles.body.copyWith(color: TossColors.textTertiary),
-        suffixIcon: suffixIcon,
-        filled: true,
-        fillColor: TossColors.white,
-        contentPadding: EdgeInsets.all(TossSpacing.space4),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AuthConstants.borderRadiusStandard),
-          borderSide: BorderSide(color: TossColors.borderLight),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AuthConstants.borderRadiusStandard),
-          borderSide: BorderSide(color: TossColors.borderLight),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AuthConstants.borderRadiusStandard),
-          borderSide: BorderSide(color: TossColors.primary, width: 2),
-        ),
-        errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AuthConstants.borderRadiusStandard),
-          borderSide: BorderSide(color: TossColors.error),
-        ),
-        focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AuthConstants.borderRadiusStandard),
-          borderSide: BorderSide(color: TossColors.error, width: 2),
-        ),
-      ),
     );
   }
 
@@ -666,7 +607,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
               ]
             : null,
       ),
-      child: _buildPrimaryButton(
+      child: TossPrimaryButton(
         text: _isLoading ? 'Signing in...' : AuthConstants.buttonSignIn,
         onPressed: _isLoading || !canLogin ? null : _handleLogin,
         isLoading: _isLoading,
@@ -676,56 +617,6 @@ class _LoginPageState extends ConsumerState<LoginPage>
                 Icons.lock_rounded,
                 size: AuthConstants.iconSizeMedium,
                 color: TossColors.white,
-              ),
-      ),
-    );
-  }
-
-  // TODO: Replace with TossPrimaryButton when widget is available
-  Widget _buildPrimaryButton({
-    required String text,
-    required VoidCallback? onPressed,
-    bool isLoading = false,
-    Widget? leadingIcon,
-  }) {
-    return SizedBox(
-      width: double.infinity,
-      height: 56,
-      child: ElevatedButton(
-        onPressed: onPressed,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: TossColors.primary,
-          disabledBackgroundColor: TossColors.gray300,
-          foregroundColor: TossColors.white,
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AuthConstants.borderRadiusStandard),
-          ),
-        ),
-        child: isLoading
-            ? SizedBox(
-                width: 24,
-                height: 24,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(TossColors.white),
-                ),
-              )
-            : Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  if (leadingIcon != null) ...[
-                    leadingIcon,
-                    const SizedBox(width: 8),
-                  ],
-                  Text(
-                    text,
-                    style: TossTextStyles.button.copyWith(
-                      color: TossColors.white,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ],
               ),
       ),
     );

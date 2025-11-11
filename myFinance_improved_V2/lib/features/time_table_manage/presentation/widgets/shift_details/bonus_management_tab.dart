@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../../core/utils/input_formatters.dart';
@@ -10,11 +10,12 @@ import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../../shared/widgets/common/toss_success_error_dialog.dart';
+import '../../../domain/entities/shift_card.dart';
 import '../../providers/time_table_providers.dart';
 import 'bonus_confirmation_dialog.dart';
 
 class BonusManagementTab extends ConsumerStatefulWidget {
-  final Map<String, dynamic> card;
+  final ShiftCard card;
 
   const BonusManagementTab({
     super.key,
@@ -50,16 +51,10 @@ class _BonusManagementTabState extends ConsumerState<BonusManagementTab> {
 
   Future<void> _showBonusConfirmationDialog() async {
     // Get current bonus from card
-    final dynamic rawBonusAmount = widget.card['bonus_amount'];
-    final num currentBonus = (rawBonusAmount is String
-        ? num.tryParse(rawBonusAmount) ?? 0
-        : rawBonusAmount ?? 0) as num;
+    final num currentBonus = widget.card.bonusAmount ?? 0;
 
-    // Get base pay
-    final dynamic rawBasePay = widget.card['base_pay'] ?? '0';
-    final num basePay = (rawBasePay is String
-        ? num.tryParse(rawBasePay.replaceAll(',', '')) ?? 0
-        : rawBasePay ?? 0) as num;
+    // Get base pay (paidHour * hourly wage)
+    final num basePay = widget.card.paidHour * (widget.card.employee.hourlyWage ?? 0);
 
     // Get typed bonus (remove commas for parsing)
     String cleanInput = bonusInputText.replaceAll(',', '');
@@ -96,7 +91,7 @@ class _BonusManagementTabState extends ConsumerState<BonusManagementTab> {
       );
 
       // Get shift request ID from the card
-      final shiftRequestId = widget.card['shift_request_id'] as String?;
+      final shiftRequestId = widget.card.shiftRequestId;
 
       if (shiftRequestId == null) {
         throw Exception('Shift request ID not found');
@@ -142,15 +137,12 @@ class _BonusManagementTabState extends ConsumerState<BonusManagementTab> {
   @override
   Widget build(BuildContext context) {
     // Extract salary information from card data
-    final String salaryType = (widget.card['salary_type'] ?? 'hourly') as String;
-    final String salaryAmountStr = (widget.card['salary_amount'] ?? '0') as String;
-    final dynamic rawBonusAmount = widget.card['bonus_amount'];
+    final String salaryType = widget.card.salaryType ?? 'hourly';
+    final String salaryAmountStr = widget.card.salaryAmount ?? '0';
+    final num bonusAmount = widget.card.bonusAmount ?? 0;
 
     // Parse salary amount
     final num salaryAmount = num.tryParse(salaryAmountStr.replaceAll(',', '')) ?? 0;
-    final num bonusAmount = (rawBonusAmount is String
-        ? num.tryParse(rawBonusAmount) ?? 0
-        : rawBonusAmount ?? 0) as num;
 
     // Calculate paid hours and base pay
     num paidHours = 0;
@@ -158,11 +150,11 @@ class _BonusManagementTabState extends ConsumerState<BonusManagementTab> {
 
     if (salaryType == 'hourly') {
       // Get time data - prefer confirm times, fallback to actual times
-      final String? confirmStartStr = widget.card['confirm_start_time'] as String?;
-      final String? confirmEndStr = widget.card['confirm_end_time'] as String?;
-      final String? actualStartStr = widget.card['actual_start'] as String?;
-      final String? actualEndStr = widget.card['actual_end'] as String?;
-      final String requestDate = widget.card['request_date'] as String? ?? '';
+      final String? confirmStartStr = widget.card.confirmedStartTime?.toIso8601String();
+      final String? confirmEndStr = widget.card.confirmedEndTime?.toIso8601String();
+      final String? actualStartStr = widget.card.actualStartTime?.toIso8601String();
+      final String? actualEndStr = widget.card.actualEndTime?.toIso8601String();
+      final String requestDate = widget.card.requestDate;
 
       String? startTimeStr;
       String? endTimeStr;
@@ -350,7 +342,7 @@ class _BonusManagementTabState extends ConsumerState<BonusManagementTab> {
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(
+                              const Icon(
                                 Icons.access_time,
                                 size: 14,
                                 color: TossColors.gray600,
