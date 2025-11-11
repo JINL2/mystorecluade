@@ -12,6 +12,7 @@ import '../../../../shared/themes/toss_text_styles.dart';
 import '../../../auth/presentation/providers/auth_service.dart';
 import '../providers/homepage_providers.dart';
 import '../widgets/company_store_selector.dart';
+import '../widgets/empty_state_screen.dart';
 import '../widgets/feature_grid.dart';
 import '../widgets/quick_access_section.dart';
 import '../widgets/revenue_card.dart';
@@ -33,22 +34,47 @@ class _HomepageState extends ConsumerState<Homepage> {
 
     // Wait for user companies to load before building UI
     return userCompaniesAsync.when(
-      data: (_) => _buildHomepage(),
+      data: (userData) {
+        // Check if userData is null or has no companies
+        if (userData == null) {
+          return EmptyStateScreen(
+            errorMessage: 'You haven\'t created or joined any company yet.',
+            onRetry: () => ref.invalidate(userCompaniesProvider),
+          );
+        }
+
+        final companies = (userData['companies'] as List<dynamic>?) ?? [];
+        if (companies.isEmpty) {
+          return EmptyStateScreen(
+            errorMessage: 'You haven\'t created or joined any company yet.',
+            onRetry: () => ref.invalidate(userCompaniesProvider),
+          );
+        }
+
+        return _buildHomepage();
+      },
       loading: () => Scaffold(
         backgroundColor: TossColors.gray100,
         body: Center(
           child: CircularProgressIndicator(color: TossColors.primary),
         ),
       ),
-      error: (error, stack) => Scaffold(
-        backgroundColor: TossColors.gray100,
-        body: Center(
-          child: Text(
-            'Error loading data: $error',
-            style: TossTextStyles.body.copyWith(color: TossColors.error),
-          ),
-        ),
-      ),
+      error: (error, stack) {
+        // Check if it's a "no companies" error
+        final errorMessage = error.toString();
+        if (errorMessage.contains('No user companies data')) {
+          return EmptyStateScreen(
+            errorMessage: 'Unable to load your company information.',
+            onRetry: () => ref.invalidate(userCompaniesProvider),
+          );
+        }
+
+        // For other errors, show generic error screen with retry
+        return EmptyStateScreen(
+          errorMessage: 'Something went wrong: $errorMessage',
+          onRetry: () => ref.invalidate(userCompaniesProvider),
+        );
+      },
     );
   }
 

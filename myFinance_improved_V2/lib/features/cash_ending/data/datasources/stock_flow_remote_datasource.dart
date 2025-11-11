@@ -1,7 +1,7 @@
 // lib/features/cash_ending/data/datasources/stock_flow_remote_datasource.dart
 
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../models/stock_flow_model.dart';
+import '../models/freezed/stock_flow_dto.dart';
 
 /// Remote data source for stock flow operations
 /// Handles API calls to Supabase RPC functions
@@ -20,11 +20,11 @@ class StockFlowRemoteDataSource {
   /// - p_offset: Pagination offset (default: 0)
   /// - p_limit: Number of records to fetch (default: 20)
   ///
-  /// Returns [StockFlowResponseModel] containing:
+  /// Returns [StockFlowResponseDto] containing:
   /// - success: Boolean indicating if the request was successful
   /// - data: Contains locationSummary and actualFlows list
   /// - pagination: Pagination information (offset, limit, hasMore)
-  Future<StockFlowResponseModel> getLocationStockFlow({
+  Future<StockFlowResponseDto> getLocationStockFlow({
     required String companyId,
     required String storeId,
     required String cashLocationId,
@@ -56,7 +56,7 @@ class StockFlowRemoteDataSource {
       );
 
       // Parse response into model
-      return StockFlowResponseModel.fromJson(response);
+      return StockFlowResponseDto.fromJson(response);
     } catch (e) {
       throw Exception('Failed to fetch stock flow data: $e');
     }

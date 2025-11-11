@@ -96,6 +96,9 @@ class _CashTabState extends ConsumerState<CashTab> {
 
   @override
   void dispose() {
+    // Dispose toolbar controller first (it may hold references to focus nodes)
+    _toolbarController?.dispose();
+
     // Dispose all controllers
     for (final currencyControllers in _controllers.values) {
       for (final controller in currencyControllers.values) {
@@ -108,8 +111,6 @@ class _CashTabState extends ConsumerState<CashTab> {
         focusNode.dispose();
       }
     }
-    // Dispose toolbar controller
-    _toolbarController?.dispose();
     super.dispose();
   }
 
@@ -213,11 +214,7 @@ class _CashTabState extends ConsumerState<CashTab> {
         limit: 20,
       );
 
-
       if (result.success) {
-        if (result.actualFlows.isNotEmpty) {
-        }
-
         setState(() {
           if (loadMore) {
             _actualFlows.addAll(result.actualFlows);
@@ -228,9 +225,9 @@ class _CashTabState extends ConsumerState<CashTab> {
           _hasMoreFlows = result.pagination?.hasMore ?? false;
           _flowsOffset += result.actualFlows.length;
         });
-
       }
-    } catch (e, stackTrace) {
+    } catch (e) {
+      // Error handled by BaseRepository
     } finally {
       if (mounted) {
         setState(() {

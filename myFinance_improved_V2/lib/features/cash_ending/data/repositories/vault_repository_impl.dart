@@ -3,14 +3,15 @@
 import '../../domain/entities/vault_transaction.dart';
 import '../../domain/repositories/vault_repository.dart';
 import '../datasources/vault_remote_datasource.dart';
-import '../models/vault_transaction_model.dart';
+import '../models/freezed/vault_transaction_dto.dart';
+import 'base_repository.dart';
 
 /// Repository Implementation for Vault operations (Data Layer)
 ///
 /// Implements the domain repository interface.
 /// Coordinates between datasource (Supabase) and domain entities.
-/// Handles data transformation and error mapping.
-class VaultRepositoryImpl implements VaultRepository {
+/// Handles data transformation and error mapping using BaseRepository.
+class VaultRepositoryImpl extends BaseRepository implements VaultRepository {
   final VaultRemoteDataSource _remoteDataSource;
 
   VaultRepositoryImpl({
@@ -19,19 +20,19 @@ class VaultRepositoryImpl implements VaultRepository {
 
   @override
   Future<void> saveVaultTransaction(VaultTransaction transaction) async {
-    try {
-      // Convert entity to model
-      final model = VaultTransactionModel.fromEntity(transaction);
+    return executeWithErrorHandling(
+      () async {
+        // Convert entity to DTO
+        final dto = VaultTransactionDto.fromEntity(transaction);
 
-      // Prepare RPC parameters
-      final params = model.toRpcParams();
+        // Prepare RPC parameters
+        final params = dto.toRpcParams();
 
-      // Call remote datasource
-      await _remoteDataSource.saveVaultTransaction(params);
-    } catch (e) {
-      // Map to domain exception if needed
-      throw Exception('Failed to save vault transaction: $e');
-    }
+        // Call remote datasource
+        await _remoteDataSource.saveVaultTransaction(params);
+      },
+      operationName: 'saveVaultTransaction',
+    );
   }
 
   @override
@@ -39,19 +40,20 @@ class VaultRepositoryImpl implements VaultRepository {
     required String locationId,
     int limit = 10,
   }) async {
-    try {
-      // Call remote datasource
-      final data = await _remoteDataSource.getVaultTransactionHistory(
-        locationId: locationId,
-        limit: limit,
-      );
+    return executeWithErrorHandling(
+      () async {
+        // Call remote datasource
+        final data = await _remoteDataSource.getVaultTransactionHistory(
+          locationId: locationId,
+          limit: limit,
+        );
 
-      // Convert JSON to models then to entities
-      return data
-          .map((json) => VaultTransactionModel.fromJson(json).toEntity())
-          .toList();
-    } catch (e) {
-      throw Exception('Failed to fetch vault transaction history: $e');
-    }
+        // Convert JSON to DTOs then to entities
+        return data
+            .map((json) => VaultTransactionDto.fromJson(json).toEntity())
+            .toList();
+      },
+      operationName: 'getVaultTransactionHistory',
+    );
   }
 }

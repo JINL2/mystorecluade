@@ -50,3 +50,9 @@ class LocationNotSelectedException extends CashEndingException {
   const LocationNotSelectedException()
       : super('Please select a location');
 }
+
+/// Exception thrown when data source operation fails (Supabase, network, etc.)
+class DataSourceException extends CashEndingException {
+  const DataSourceException(String message, {String? code, dynamic originalError})
+      : super(message, code: code, originalError: originalError);
+}
