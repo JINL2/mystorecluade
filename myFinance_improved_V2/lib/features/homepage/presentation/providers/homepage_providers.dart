@@ -280,14 +280,11 @@ final userCompaniesProvider = FutureProvider<Map<String, dynamic>?>((ref) async 
       selectedCompanyStores = (firstCompany['stores'] as List<dynamic>?) ?? [];
     }
 
-    // Select company
-    appStateNotifier.selectCompany(selectedCompanyId, companyName: selectedCompanyName);
-
     // Auto-select store
-    if (selectedCompanyStores!.isNotEmpty) {
-      String? selectedStoreId;
-      String? selectedStoreName;
+    String? selectedStoreId;
+    String? selectedStoreName;
 
+    if (selectedCompanyStores!.isNotEmpty) {
       // Check if last selected store still exists in this company
       if (lastStoreId != null && lastStoreId.isNotEmpty) {
         try {
@@ -309,9 +306,15 @@ final userCompaniesProvider = FutureProvider<Map<String, dynamic>?>((ref) async 
         selectedStoreId = firstStore['store_id'] as String;
         selectedStoreName = firstStore['store_name'] as String;
       }
-
-      appStateNotifier.selectStore(selectedStoreId, storeName: selectedStoreName);
     }
+
+    // Update both company and store in single call to avoid duplicate save
+    appStateNotifier.updateBusinessContext(
+      companyId: selectedCompanyId,
+      storeId: selectedStoreId ?? '',
+      companyName: selectedCompanyName,
+      storeName: selectedStoreName,
+    );
   }
 
   return userData;

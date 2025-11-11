@@ -9,7 +9,7 @@ import '../../domain/value_objects/currency.dart';
 import '../../domain/value_objects/create_company_command.dart';
 
 // Providers
-import '../../infrastructure/providers/repository_providers.dart';
+import '../providers/repository_providers.dart';
 import 'usecase_providers.dart';
 
 /// Company Service
@@ -56,10 +56,6 @@ class CompanyService {
     required String ownerId,
     required String companyTypeId,
     required String currencyId,
-    String? email,
-    String? phone,
-    String? address,
-    String? businessNumber,
   }) async {
     return await _createCompanyUseCase.execute(
       CreateCompanyCommand(
@@ -67,10 +63,6 @@ class CompanyService {
         ownerId: ownerId,
         companyTypeId: companyTypeId,
         currencyId: currencyId,
-        email: email?.trim(),
-        phone: phone?.trim(),
-        address: address?.trim(),
-        businessNumber: businessNumber?.trim(),
       ),
     );
   }

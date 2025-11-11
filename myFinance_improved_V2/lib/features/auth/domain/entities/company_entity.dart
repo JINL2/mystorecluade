@@ -2,7 +2,6 @@
 
 import 'package:freezed_annotation/freezed_annotation.dart';
 import '../value_objects/validation_result.dart';
-import '../validators/email_validator.dart';
 
 part 'company_entity.freezed.dart';
 
@@ -23,10 +22,6 @@ class Company with _$Company {
   const factory Company({
     required String id,
     required String name,
-    String? businessNumber,
-    String? email,
-    String? phone,
-    String? address,
     required String companyTypeId,
     required String currencyId,
     String? companyCode, // Unique code for employees to join
@@ -48,27 +43,6 @@ class Company with _$Company {
     }
     if (name.trim().length > 100) {
       errors.add('Company name must be less than 100 characters');
-    }
-
-    // Email validation (optional, but if provided must be valid)
-    if (email != null && email!.isNotEmpty) {
-      if (!EmailValidator.isValid(email!)) {
-        errors.add('Invalid email format');
-      }
-    }
-
-    // Business number validation (optional)
-    if (businessNumber != null && businessNumber!.isNotEmpty) {
-      if (businessNumber!.length < 5) {
-        errors.add('Business number too short');
-      }
-    }
-
-    // Phone validation (optional)
-    if (phone != null && phone!.isNotEmpty) {
-      if (phone!.length < 8) {
-        errors.add('Phone number too short');
-      }
     }
 
     // Company type and currency are required

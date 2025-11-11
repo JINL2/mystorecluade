@@ -27,7 +27,7 @@ class CategoryFeaturesModel with _$CategoryFeaturesModel {
       _$CategoryFeaturesModelFromJson(json);
 
   /// Convert Model to Domain Entity
-  CategoryWithFeatures toDomain() {
+  CategoryWithFeatures toEntity() {
     return CategoryWithFeatures(
       categoryId: categoryId,
       categoryName: categoryName,

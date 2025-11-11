@@ -10,7 +10,7 @@ import '../../domain/usecases/join_company_usecase.dart';
 import '../../domain/usecases/get_user_data_usecase.dart';
 
 // Repository Providers
-import '../../infrastructure/providers/repository_providers.dart';
+import '../providers/repository_providers.dart';
 
 /// Login UseCase Provider
 ///

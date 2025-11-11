@@ -362,6 +362,10 @@ class _HomepageState extends ConsumerState<Homepage> {
       // ✅ Small delay to show the loading message
       await Future.delayed(const Duration(milliseconds: 300));
 
+      // ✅ Clear app state FIRST (before widget disposal)
+      // This must happen before authService.signOut() which triggers navigation
+      appStateNotifier.signOut();
+
       // ✅ Execute auth logout
       // This will:
       // 1. Clear session
@@ -371,15 +375,14 @@ class _HomepageState extends ConsumerState<Homepage> {
       // 5. PopupMenu will close automatically during navigation
       await authService.signOut();
 
-      // ✅ Clear app state AFTER auth logout
-      appStateNotifier.signOut();
-
       // Note: Widget is disposed here due to GoRouter redirect
       // PopupMenu closes automatically, no manual pop() needed
       // This prevents "You have popped the last page" error
 
       // ✅ Use saved messenger reference (safe even after dispose)
-      messenger.hideCurrentSnackBar();
+      if (mounted) {
+        messenger.hideCurrentSnackBar();
+      }
 
       // GoRouter will automatically redirect to /auth/login
       // No manual navigation needed!

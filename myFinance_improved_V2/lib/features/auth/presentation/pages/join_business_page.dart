@@ -10,7 +10,7 @@ import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/widgets/common/toss_scaffold.dart';
 
 // Presentation - Providers
-import '../../infrastructure/providers/current_user_provider.dart';
+import '../providers/current_user_provider.dart';
 import '../providers/usecase_providers.dart';
 import '../../../../app/providers/app_state_provider.dart';
 

@@ -102,7 +102,7 @@ class CashEndingSelectionHelpers {
       return TossSelectionItem(
         id: location.locationId,
         title: location.locationName,
-        subtitle: _getLocationSubtitle(location, locationType),
+        subtitle: _getLocationSubtitle(ref, location, locationType),
         icon: _getLocationIcon(locationType),
       );
     }).toList();
@@ -175,12 +175,20 @@ class CashEndingSelectionHelpers {
     }
   }
 
-  static String? _getLocationSubtitle(Location location, String locationType) {
+  static String? _getLocationSubtitle(
+      WidgetRef ref, Location location, String locationType) {
     // Show currency for bank/vault if has fixed currency
     if ((locationType == 'bank' || locationType == 'vault') &&
         location.currencyId != null &&
         location.currencyId!.isNotEmpty) {
-      return 'Currency: ${location.currencyId}';
+      final state = ref.read(cashEndingProvider);
+      final currency = state.currencies.firstWhere(
+        (c) => c.currencyId == location.currencyId,
+        orElse: () => state.currencies.isNotEmpty
+            ? state.currencies.first
+            : throw Exception('No currencies available'),
+      );
+      return 'Currency: ${currency.currencyCode}';
     }
     return null;
   }

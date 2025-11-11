@@ -21,7 +21,7 @@ import '../../../../core/constants/auth_constants.dart';
 import '../../../../app/providers/app_state_provider.dart';
 
 // Presentation - Providers
-import '../../infrastructure/providers/current_user_provider.dart';
+import '../providers/current_user_provider.dart';
 import '../providers/store_service.dart';
 import '../providers/usecase_providers.dart';
 

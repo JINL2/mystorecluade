@@ -7,7 +7,7 @@ import '../../domain/usecases/create_store_usecase.dart';
 import '../../domain/value_objects/create_store_command.dart';
 
 // Providers
-import '../../infrastructure/providers/repository_providers.dart';
+import '../providers/repository_providers.dart';
 import 'usecase_providers.dart';
 
 /// Store Service

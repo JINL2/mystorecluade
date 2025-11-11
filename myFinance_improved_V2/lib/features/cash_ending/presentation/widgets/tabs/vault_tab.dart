@@ -20,6 +20,7 @@ import '../location_selector.dart';
 import '../real_section_widget.dart';
 import '../sheets/cash_ending_selection_helpers.dart';
 import '../sheets/currency_selector_sheet.dart';
+import '../sheets/flow_detail_bottom_sheet.dart';
 import '../store_selector.dart';
 import '../total_display.dart';
 
@@ -185,7 +186,15 @@ class _VaultTabState extends ConsumerState<VaultTab> {
   }
 
   void _showFlowDetails(ActualFlow flow) {
-    // TODO: Implement flow details bottom sheet
+    final state = ref.read(cashEndingProvider);
+    FlowDetailBottomSheet.show(
+      context: context,
+      flow: flow,
+      locationSummary: _locationSummary,
+      baseCurrencySymbol: state.currencies.isNotEmpty
+          ? state.currencies.first.symbol
+          : '\$',
+    );
   }
 
   TextEditingController _getController(String currencyId, String denominationId) {

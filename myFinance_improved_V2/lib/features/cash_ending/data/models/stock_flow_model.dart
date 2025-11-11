@@ -183,9 +183,9 @@ class DenominationDetailModel {
   final String denominationId;
   final double denominationValue;
   final String denominationType;
-  final int previousQuantity;
-  final int currentQuantity;
-  final int quantityChange;
+  final int? previousQuantity;   // Nullable - RPC returns null for non-comparative data
+  final int? currentQuantity;    // Nullable - RPC returns null for non-comparative data
+  final int? quantityChange;     // Nullable - RPC returns null for non-comparative data
   final double subtotal;
   final String? currencySymbol;
 
@@ -193,21 +193,26 @@ class DenominationDetailModel {
     required this.denominationId,
     required this.denominationValue,
     required this.denominationType,
-    required this.previousQuantity,
-    required this.currentQuantity,
-    required this.quantityChange,
+    this.previousQuantity,
+    this.currentQuantity,
+    this.quantityChange,
     required this.subtotal,
     this.currencySymbol,
   });
 
   factory DenominationDetailModel.fromJson(Map<String, dynamic> json) {
+    // Parse nullable int fields - keep null if RPC returned null
+    final prevQty = json['previous_quantity'];
+    final currQty = json['current_quantity'];
+    final qtyChange = json['quantity_change'];
+
     return DenominationDetailModel(
       denominationId: json['denomination_id']?.toString() ?? '',
       denominationValue: (json['denomination_value'] as num?)?.toDouble() ?? 0.0,
       denominationType: json['denomination_type']?.toString() ?? '',
-      previousQuantity: (json['previous_quantity'] as int?) ?? 0,
-      currentQuantity: (json['current_quantity'] as int?) ?? 0,
-      quantityChange: (json['quantity_change'] as int?) ?? 0,
+      previousQuantity: prevQty != null ? (prevQty as num).toInt() : null,
+      currentQuantity: currQty != null ? (currQty as num).toInt() : null,
+      quantityChange: qtyChange != null ? (qtyChange as num).toInt() : null,
       subtotal: (json['subtotal'] as num?)?.toDouble() ?? 0.0,
       currencySymbol: json['currency_symbol']?.toString(),
     );

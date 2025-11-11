@@ -32,7 +32,7 @@ class RevenueModel with _$RevenueModel {
       _$RevenueModelFromJson(json);
 
   /// Convert Model to Domain Entity
-  Revenue toDomain() {
+  Revenue toEntity() {
     return Revenue(
       amount: amount,
       currencyCode: currencySymbol,

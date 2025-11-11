@@ -31,13 +31,13 @@ class UserCompaniesModel with _$UserCompaniesModel {
       _$UserCompaniesModelFromJson(json);
 
   /// Convert Model to Domain Entity
-  UserWithCompanies toDomain() {
+  UserWithCompanies toEntity() {
     return UserWithCompanies(
       userId: userId,
       userFirstName: userFirstName ?? '',
       userLastName: userLastName ?? '',
       profileImage: profileImage ?? '',
-      companies: companies.map((model) => model.toDomain()).toList(),
+      companies: companies.map((model) => model.toEntity()).toList(),
     );
   }
 
@@ -73,13 +73,13 @@ class CompanyModel with _$CompanyModel {
       _$CompanyModelFromJson(json);
 
   /// Convert to Domain Entity
-  Company toDomain() {
+  Company toEntity() {
     return Company(
       id: companyId,
       companyName: companyName,
       companyCode: companyCode ?? '',
-      role: role?.toDomain() ?? UserRole(roleName: 'User', permissions: []),  // ✅ Provide default role
-      stores: stores.map((model) => model.toDomain(companyId)).toList(),
+      role: role?.toEntity() ?? UserRole(roleName: 'User', permissions: []),  // ✅ Provide default role
+      stores: stores.map((model) => model.toEntity(companyId)).toList(),
     );
   }
 
@@ -113,7 +113,7 @@ class StoreModel with _$StoreModel {
       _$StoreModelFromJson(json);
 
   /// Convert to Domain Entity (requires companyId from parent)
-  Store toDomain(String companyId) {
+  Store toEntity(String companyId) {
     return Store(
       id: storeId,
       storeName: storeName,
@@ -149,7 +149,7 @@ class RoleModel with _$RoleModel {
       _$RoleModelFromJson(json);
 
   /// Convert to Domain Entity
-  UserRole toDomain() {
+  UserRole toEntity() {
     return UserRole(
       roleName: roleName,
       permissions: permissions,

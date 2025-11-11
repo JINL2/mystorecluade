@@ -22,7 +22,7 @@ import '../../../../app/providers/app_state_provider.dart';
 
 // Presentation - Providers
 import '../providers/company_service.dart';
-import '../../infrastructure/providers/current_user_provider.dart';
+import '../providers/current_user_provider.dart';
 import '../providers/usecase_providers.dart';
 
 // Domain - Value Objects
@@ -720,15 +720,6 @@ class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
         ownerId: userId,
         companyTypeId: _selectedTypeId!,
         currencyId: _selectedCurrencyId!,
-        email: _businessEmailController.text.trim().isEmpty
-            ? null
-            : _businessEmailController.text.trim(),
-        phone: _businessPhoneController.text.trim().isEmpty
-            ? null
-            : _businessPhoneController.text.trim(),
-        address: _businessAddressController.text.trim().isEmpty
-            ? null
-            : _businessAddressController.text.trim(),
       );
 
       // Invalidate app state to force refresh

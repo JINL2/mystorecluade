@@ -1,9 +1,9 @@
 // lib/features/auth/data/datasources/supabase_user_datasource.dart
 
 import 'package:supabase_flutter/supabase_flutter.dart' hide User;
-import '../models/user_model.dart';
-import '../models/company_model.dart';
-import '../models/store_model.dart';
+import '../models/freezed/user_dto.dart';
+import '../models/freezed/company_dto.dart';
+import '../models/freezed/store_dto.dart';
 
 /// Supabase User DataSource
 ///
@@ -11,16 +11,16 @@ import '../models/store_model.dart';
 ///
 /// 책임:
 /// - Supabase Database 쿼리 (users, user_companies, user_stores)
-/// - JSON → UserModel, CompanyModel 변환
+/// - JSON → UserDto, CompanyDto, StoreDto 변환
 /// - 사용자 프로필 및 권한 조회
 ///
 /// 이 계층은 Supabase Database에 대한 모든 지식을 가지고 있습니다.
 abstract class UserDataSource {
   /// Find user by ID
-  Future<UserModel?> getUserById(String userId);
+  Future<UserDto?> getUserById(String userId);
 
   /// Update user profile
-  Future<UserModel> updateUserProfile({
+  Future<UserDto> updateUserProfile({
     required String userId,
     required Map<String, dynamic> updates,
   });
@@ -29,10 +29,10 @@ abstract class UserDataSource {
   Future<void> updateLastLogin(String userId);
 
   /// Get user's companies (where user is owner or member)
-  Future<List<CompanyModel>> getUserCompanies(String userId);
+  Future<List<CompanyDto>> getUserCompanies(String userId);
 
   /// Get user's stores (where user has access)
-  Future<List<StoreModel>> getUserStores(String userId);
+  Future<List<StoreDto>> getUserStores(String userId);
 
   /// Check if user has access to company
   Future<bool> hasCompanyAccess({
@@ -58,7 +58,7 @@ class SupabaseUserDataSource implements UserDataSource {
   SupabaseUserDataSource(this._client);
 
   @override
-  Future<UserModel?> getUserById(String userId) async {
+  Future<UserDto?> getUserById(String userId) async {
     try {
       final userData = await _client
           .from('users')
@@ -69,14 +69,14 @@ class SupabaseUserDataSource implements UserDataSource {
 
       if (userData == null) return null;
 
-      return UserModel.fromJson(userData);
+      return UserDto.fromJson(userData);
     } catch (e) {
       throw Exception('Failed to get user: $e');
     }
   }
 
   @override
-  Future<UserModel> updateUserProfile({
+  Future<UserDto> updateUserProfile({
     required String userId,
     required Map<String, dynamic> updates,
   }) async {
@@ -91,7 +91,7 @@ class SupabaseUserDataSource implements UserDataSource {
           .select()
           .single();
 
-      return UserModel.fromJson(updatedData);
+      return UserDto.fromJson(updatedData);
     } catch (e) {
       throw Exception('Failed to update user profile: $e');
     }
@@ -110,7 +110,7 @@ class SupabaseUserDataSource implements UserDataSource {
   }
 
   @override
-  Future<List<CompanyModel>> getUserCompanies(String userId) async {
+  Future<List<CompanyDto>> getUserCompanies(String userId) async {
     try {
       // Get companies where user is owner
       final companiesData = await _client
@@ -120,7 +120,7 @@ class SupabaseUserDataSource implements UserDataSource {
           .eq('is_deleted', false);
 
       return companiesData
-          .map((data) => CompanyModel.fromJson(data))
+          .map((data) => CompanyDto.fromJson(data))
           .toList();
     } catch (e) {
       throw Exception('Failed to get user companies: $e');
@@ -128,7 +128,7 @@ class SupabaseUserDataSource implements UserDataSource {
   }
 
   @override
-  Future<List<StoreModel>> getUserStores(String userId) async {
+  Future<List<StoreDto>> getUserStores(String userId) async {
     try {
       // Get stores through user_stores junction table
       final userStoresData = await _client
@@ -137,11 +137,11 @@ class SupabaseUserDataSource implements UserDataSource {
           .eq('user_id', userId)
           .eq('is_deleted', false);
 
-      final stores = <StoreModel>[];
+      final stores = <StoreDto>[];
       for (final userStore in userStoresData) {
         final storeData = userStore['stores'];
         if (storeData != null && storeData is Map<String, dynamic>) {
-          stores.add(StoreModel.fromJson(storeData));
+          stores.add(StoreDto.fromJson(storeData));
         }
       }
 

@@ -100,6 +100,8 @@ class AppStateNotifier extends StateNotifier<AppState> {
       companyName: companyName ?? state.companyName,
       storeName: storeName ?? state.storeName,
     );
+    // Save to cache
+    _saveLastSelection();
   }
 
   /// Update company selection

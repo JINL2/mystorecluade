@@ -18,10 +18,6 @@ final _privateConstructorUsedError = UnsupportedError(
 mixin _$Company {
   String get id => throw _privateConstructorUsedError;
   String get name => throw _privateConstructorUsedError;
-  String? get businessNumber => throw _privateConstructorUsedError;
-  String? get email => throw _privateConstructorUsedError;
-  String? get phone => throw _privateConstructorUsedError;
-  String? get address => throw _privateConstructorUsedError;
   String get companyTypeId => throw _privateConstructorUsedError;
   String get currencyId => throw _privateConstructorUsedError;
   String? get companyCode =>
@@ -44,10 +40,6 @@ abstract class $CompanyCopyWith<$Res> {
   $Res call(
       {String id,
       String name,
-      String? businessNumber,
-      String? email,
-      String? phone,
-      String? address,
       String companyTypeId,
       String currencyId,
       String? companyCode,
@@ -73,10 +65,6 @@ class _$CompanyCopyWithImpl<$Res, $Val extends Company>
   $Res call({
     Object? id = null,
     Object? name = null,
-    Object? businessNumber = freezed,
-    Object? email = freezed,
-    Object? phone = freezed,
-    Object? address = freezed,
     Object? companyTypeId = null,
     Object? currencyId = null,
     Object? companyCode = freezed,
@@ -93,22 +81,6 @@ class _$CompanyCopyWithImpl<$Res, $Val extends Company>
           ? _value.name
           : name // ignore: cast_nullable_to_non_nullable
               as String,
-      businessNumber: freezed == businessNumber
-          ? _value.businessNumber
-          : businessNumber // ignore: cast_nullable_to_non_nullable
-              as String?,
-      email: freezed == email
-          ? _value.email
-          : email // ignore: cast_nullable_to_non_nullable
-              as String?,
-      phone: freezed == phone
-          ? _value.phone
-          : phone // ignore: cast_nullable_to_non_nullable
-              as String?,
-      address: freezed == address
-          ? _value.address
-          : address // ignore: cast_nullable_to_non_nullable
-              as String?,
       companyTypeId: null == companyTypeId
           ? _value.companyTypeId
           : companyTypeId // ignore: cast_nullable_to_non_nullable
@@ -147,10 +119,6 @@ abstract class _$$CompanyImplCopyWith<$Res> implements $CompanyCopyWith<$Res> {
   $Res call(
       {String id,
       String name,
-      String? businessNumber,
-      String? email,
-      String? phone,
-      String? address,
       String companyTypeId,
       String currencyId,
       String? companyCode,
@@ -174,10 +142,6 @@ class __$$CompanyImplCopyWithImpl<$Res>
   $Res call({
     Object? id = null,
     Object? name = null,
-    Object? businessNumber = freezed,
-    Object? email = freezed,
-    Object? phone = freezed,
-    Object? address = freezed,
     Object? companyTypeId = null,
     Object? currencyId = null,
     Object? companyCode = freezed,
@@ -194,22 +158,6 @@ class __$$CompanyImplCopyWithImpl<$Res>
           ? _value.name
           : name // ignore: cast_nullable_to_non_nullable
               as String,
-      businessNumber: freezed == businessNumber
-          ? _value.businessNumber
-          : businessNumber // ignore: cast_nullable_to_non_nullable
-              as String?,
-      email: freezed == email
-          ? _value.email
-          : email // ignore: cast_nullable_to_non_nullable
-              as String?,
-      phone: freezed == phone
-          ? _value.phone
-          : phone // ignore: cast_nullable_to_non_nullable
-              as String?,
-      address: freezed == address
-          ? _value.address
-          : address // ignore: cast_nullable_to_non_nullable
-              as String?,
       companyTypeId: null == companyTypeId
           ? _value.companyTypeId
           : companyTypeId // ignore: cast_nullable_to_non_nullable
@@ -244,10 +192,6 @@ class _$CompanyImpl extends _Company {
   const _$CompanyImpl(
       {required this.id,
       required this.name,
-      this.businessNumber,
-      this.email,
-      this.phone,
-      this.address,
       required this.companyTypeId,
       required this.currencyId,
       this.companyCode,
@@ -260,14 +204,6 @@ class _$CompanyImpl extends _Company {
   final String id;
   @override
   final String name;
-  @override
-  final String? businessNumber;
-  @override
-  final String? email;
-  @override
-  final String? phone;
-  @override
-  final String? address;
   @override
   final String companyTypeId;
   @override
@@ -284,7 +220,7 @@ class _$CompanyImpl extends _Company {
 
   @override
   String toString() {
-    return 'Company(id: $id, name: $name, businessNumber: $businessNumber, email: $email, phone: $phone, address: $address, companyTypeId: $companyTypeId, currencyId: $currencyId, companyCode: $companyCode, ownerId: $ownerId, createdAt: $createdAt, updatedAt: $updatedAt)';
+    return 'Company(id: $id, name: $name, companyTypeId: $companyTypeId, currencyId: $currencyId, companyCode: $companyCode, ownerId: $ownerId, createdAt: $createdAt, updatedAt: $updatedAt)';
   }
 
   @override
@@ -294,11 +230,6 @@ class _$CompanyImpl extends _Company {
             other is _$CompanyImpl &&
             (identical(other.id, id) || other.id == id) &&
             (identical(other.name, name) || other.name == name) &&
-            (identical(other.businessNumber, businessNumber) ||
-                other.businessNumber == businessNumber) &&
-            (identical(other.email, email) || other.email == email) &&
-            (identical(other.phone, phone) || other.phone == phone) &&
-            (identical(other.address, address) || other.address == address) &&
             (identical(other.companyTypeId, companyTypeId) ||
                 other.companyTypeId == companyTypeId) &&
             (identical(other.currencyId, currencyId) ||
@@ -313,20 +244,8 @@ class _$CompanyImpl extends _Company {
   }
 
   @override
-  int get hashCode => Object.hash(
-      runtimeType,
-      id,
-      name,
-      businessNumber,
-      email,
-      phone,
-      address,
-      companyTypeId,
-      currencyId,
-      companyCode,
-      ownerId,
-      createdAt,
-      updatedAt);
+  int get hashCode => Object.hash(runtimeType, id, name, companyTypeId,
+      currencyId, companyCode, ownerId, createdAt, updatedAt);
 
   /// Create a copy of Company
   /// with the given fields replaced by the non-null parameter values.
@@ -341,10 +260,6 @@ abstract class _Company extends Company {
   const factory _Company(
       {required final String id,
       required final String name,
-      final String? businessNumber,
-      final String? email,
-      final String? phone,
-      final String? address,
       required final String companyTypeId,
       required final String currencyId,
       final String? companyCode,
@@ -357,14 +272,6 @@ abstract class _Company extends Company {
   String get id;
   @override
   String get name;
-  @override
-  String? get businessNumber;
-  @override
-  String? get email;
-  @override
-  String? get phone;
-  @override
-  String? get address;
   @override
   String get companyTypeId;
   @override

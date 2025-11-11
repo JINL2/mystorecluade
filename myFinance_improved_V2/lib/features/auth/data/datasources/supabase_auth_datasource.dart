@@ -2,7 +2,7 @@
 
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' hide User;
-import '../models/user_model.dart';
+import '../models/freezed/user_dto.dart';
 import '../../../../core/utils/datetime_utils.dart';
 import '../../../../core/monitoring/sentry_config.dart';
 
@@ -12,7 +12,7 @@ import '../../../../core/monitoring/sentry_config.dart';
 ///
 /// 책임:
 /// - Supabase Auth API 호출 (signIn, signUp, signOut)
-/// - Auth 응답 → UserModel 변환
+/// - Auth 응답 → UserDto 변환
 /// - 인증 관련 에러 처리
 ///
 /// 이 계층은 Supabase Auth에 대한 모든 지식을 가지고 있습니다.
@@ -20,18 +20,18 @@ import '../../../../core/monitoring/sentry_config.dart';
 abstract class AuthDataSource {
   /// Sign in with email and password
   ///
-  /// Returns [UserModel] if successful.
+  /// Returns [UserDto] if successful.
   /// Throws exception if credentials are invalid or network error occurs.
-  Future<UserModel> signIn({
+  Future<UserDto> signIn({
     required String email,
     required String password,
   });
 
   /// Sign up with email and password
   ///
-  /// Creates a new user account and returns [UserModel].
+  /// Creates a new user account and returns [UserDto].
   /// Throws exception if email exists or validation fails.
-  Future<UserModel> signUp({
+  Future<UserDto> signUp({
     required String email,
     required String password,
     String? firstName,
@@ -45,8 +45,8 @@ abstract class AuthDataSource {
 
   /// Get current authenticated user
   ///
-  /// Returns [UserModel] if user is authenticated, null otherwise.
-  Future<UserModel?> getCurrentUser();
+  /// Returns [UserDto] if user is authenticated, null otherwise.
+  Future<UserDto?> getCurrentUser();
 }
 
 /// Supabase implementation of AuthDataSource
@@ -56,7 +56,7 @@ class SupabaseAuthDataSource implements AuthDataSource {
   SupabaseAuthDataSource(this._client);
 
   @override
-  Future<UserModel> signIn({
+  Future<UserDto> signIn({
     required String email,
     required String password,
   }) async {
@@ -82,15 +82,15 @@ class SupabaseAuthDataSource implements AuthDataSource {
         throw Exception('User profile not found');
       }
 
-      // 3. Convert to UserModel
-      return UserModel.fromJson(userData);
+      // 3. Convert to UserDto
+      return UserDto.fromJson(userData);
     } catch (e) {
       throw Exception('Failed to sign in: $e');
     }
   }
 
   @override
-  Future<UserModel> signUp({
+  Future<UserDto> signUp({
     required String email,
     required String password,
     String? firstName,
@@ -127,7 +127,7 @@ class SupabaseAuthDataSource implements AuthDataSource {
 
       if (userData != null) {
         // ✅ Profile created by trigger - success
-        return UserModel.fromJson(userData);
+        return UserDto.fromJson(userData);
       }
 
       // ⚠️ Fallback: Trigger failed, create manually
@@ -135,7 +135,7 @@ class SupabaseAuthDataSource implements AuthDataSource {
       final now = DateTimeUtils.nowUtc();
       final timezone = 'Asia/Ho_Chi_Minh';
 
-      final userModel = UserModel(
+      final userModel = UserDto(
         userId: response.user!.id,
         email: email,
         firstName: firstName,
@@ -147,7 +147,7 @@ class SupabaseAuthDataSource implements AuthDataSource {
 
       try {
         await _client.from('users').upsert(
-          userModel.toInsertMap(),
+          userModel.toJson(),
           onConflict: 'user_id',
         );
 
@@ -174,7 +174,7 @@ class SupabaseAuthDataSource implements AuthDataSource {
           print('Error: $e');
         }
 
-        // Still return UserModel to allow login
+        // Still return UserDto to allow login
         // The profile will be retried on next login
         return userModel;
       }
@@ -193,7 +193,7 @@ class SupabaseAuthDataSource implements AuthDataSource {
   }
 
   @override
-  Future<UserModel?> getCurrentUser() async {
+  Future<UserDto?> getCurrentUser() async {
     try {
       final session = _client.auth.currentSession;
       if (session == null) return null;
@@ -209,7 +209,7 @@ class SupabaseAuthDataSource implements AuthDataSource {
 
       if (userData == null) return null;
 
-      return UserModel.fromJson(userData);
+      return UserDto.fromJson(userData);
     } catch (e) {
       throw Exception('Failed to get current user: $e');
     }

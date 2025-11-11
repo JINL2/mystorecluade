@@ -31,7 +31,7 @@ class TopFeatureModel with _$TopFeatureModel {
       _$TopFeatureModelFromJson(json);
 
   /// Convert Model to Domain Entity
-  TopFeature toDomain() {
+  TopFeature toEntity() {
     return TopFeature(
       featureId: featureId,
       featureName: featureName ?? '',

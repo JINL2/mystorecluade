@@ -108,9 +108,9 @@ class DenominationDetail {
   final String denominationId;
   final double denominationValue;
   final String denominationType;
-  final int previousQuantity;
-  final int currentQuantity;
-  final int quantityChange;
+  final int? previousQuantity;   // Nullable - only present for comparative counts
+  final int? currentQuantity;    // Nullable - only present for comparative counts
+  final int? quantityChange;     // Nullable - only present for comparative counts
   final double subtotal;
   final String? currencySymbol;
 
@@ -118,12 +118,18 @@ class DenominationDetail {
     required this.denominationId,
     required this.denominationValue,
     required this.denominationType,
-    required this.previousQuantity,
-    required this.currentQuantity,
-    required this.quantityChange,
+    this.previousQuantity,
+    this.currentQuantity,
+    this.quantityChange,
     required this.subtotal,
     this.currencySymbol,
   });
+
+  /// Check if this denomination has comparative data (previous vs current)
+  bool get hasComparativeData =>
+      previousQuantity != null &&
+      currentQuantity != null &&
+      quantityChange != null;
 }
 
 /// Pagination information
