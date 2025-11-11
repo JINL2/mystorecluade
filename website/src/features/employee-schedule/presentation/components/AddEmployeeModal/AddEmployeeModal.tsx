@@ -4,6 +4,8 @@
  */
 
 import React, { useState, useEffect } from 'react';
+import { TossSelector } from '@/shared/components/selectors/TossSelector';
+import type { TossSelectorOption } from '@/shared/components/selectors/TossSelector/TossSelector.types';
 import styles from './AddEmployeeModal.module.css';
 import type { AddEmployeeModalProps } from './AddEmployeeModal.types';
 
@@ -28,6 +30,20 @@ export const AddEmployeeModal: React.FC<AddEmployeeModalProps> = ({
       setError('');
     }
   }, [isOpen]);
+
+  // Convert shifts to TossSelector options
+  const shiftOptions: TossSelectorOption[] = shifts.map((shift) => ({
+    value: shift.shiftId,
+    label: shift.shiftName,
+    description: shift.timeRange,
+  }));
+
+  // Convert employees to TossSelector options
+  const employeeOptions: TossSelectorOption[] = employees.map((employee) => ({
+    value: employee.userId,
+    label: employee.fullName,
+    description: employee.displayRole,
+  }));
 
   // Format date display
   const formatDateDisplay = (dateStr: string): string => {
@@ -69,85 +85,47 @@ export const AddEmployeeModal: React.FC<AddEmployeeModalProps> = ({
     }
   };
 
-  // Close icon SVG
+  // Close icon SVG (Material Design - 24px for modal header)
   const CloseIcon = () => (
     <svg
       className={styles.closeIcon}
       viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
+      fill="currentColor"
     >
-      <line x1="18" y1="6" x2="6" y2="18" />
-      <line x1="6" y1="6" x2="18" y2="18" />
+      <path d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"/>
     </svg>
   );
 
-  // Calendar icon SVG
+  // Calendar icon SVG (Material Design - 20px)
   const CalendarIcon = () => (
     <svg
       className={styles.calendarIcon}
       viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
+      fill="currentColor"
     >
-      <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-      <line x1="16" y1="2" x2="16" y2="6" />
-      <line x1="8" y1="2" x2="8" y2="6" />
-      <line x1="3" y1="10" x2="21" y2="10" />
+      <path d="M19,19H5V8H19M16,1V3H8V1H6V3H5C3.89,3 3,3.89 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5C21,3.89 20.1,3 19,3H18V1M17,12H12V17H17V12Z"/>
     </svg>
   );
 
-  // Chevron down icon SVG
-  const ChevronDownIcon = () => (
-    <svg
-      className={styles.selectIcon}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <polyline points="6 9 12 15 18 9" />
-    </svg>
-  );
-
-  // Alert icon SVG
+  // Alert icon SVG (Material Design - 20px)
   const AlertIcon = () => (
     <svg
       className={styles.errorIcon}
       viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
+      fill="currentColor"
     >
-      <circle cx="12" cy="12" r="10" />
-      <line x1="12" y1="8" x2="12" y2="12" />
-      <line x1="12" y1="16" x2="12.01" y2="16" />
+      <path d="M13,13H11V7H13M13,17H11V15H13M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z"/>
     </svg>
   );
 
-  // Plus icon SVG
+  // Plus icon SVG (Material Design - 18px for button)
   const PlusIcon = () => (
     <svg
       className={styles.buttonIcon}
       viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
+      fill="currentColor"
     >
-      <line x1="12" y1="5" x2="12" y2="19" />
-      <line x1="5" y1="12" x2="19" y2="12" />
+      <path d="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z"/>
     </svg>
   );
 
@@ -188,52 +166,33 @@ export const AddEmployeeModal: React.FC<AddEmployeeModalProps> = ({
           )}
 
           {/* Shift Selection */}
-          <div className={styles.formSection}>
-            <label className={styles.label} htmlFor="shift-select">
-              Select Shift
-            </label>
-            <div className={styles.selectWrapper}>
-              <select
-                id="shift-select"
-                className={styles.select}
-                value={selectedShiftId}
-                onChange={(e) => setSelectedShiftId(e.target.value)}
-                disabled={loading}
-              >
-                <option value="">Choose a shift...</option>
-                {shifts.map((shift) => (
-                  <option key={shift.shiftId} value={shift.shiftId}>
-                    {shift.shiftName} ({shift.timeRange})
-                  </option>
-                ))}
-              </select>
-              <ChevronDownIcon />
-            </div>
-          </div>
+          <TossSelector
+            id="shift-select"
+            label="Select Shift"
+            placeholder="Choose a shift..."
+            value={selectedShiftId}
+            options={shiftOptions}
+            onChange={(value) => setSelectedShiftId(value)}
+            disabled={loading}
+            fullWidth
+            showDescriptions
+            required
+          />
 
           {/* Employee Selection */}
-          <div className={styles.formSection}>
-            <label className={styles.label} htmlFor="employee-select">
-              Select Employee
-            </label>
-            <div className={styles.selectWrapper}>
-              <select
-                id="employee-select"
-                className={styles.select}
-                value={selectedEmployeeId}
-                onChange={(e) => setSelectedEmployeeId(e.target.value)}
-                disabled={loading}
-              >
-                <option value="">Choose an employee...</option>
-                {employees.map((employee) => (
-                  <option key={employee.userId} value={employee.userId}>
-                    {employee.fullName} - {employee.displayRole}
-                  </option>
-                ))}
-              </select>
-              <ChevronDownIcon />
-            </div>
-          </div>
+          <TossSelector
+            id="employee-select"
+            label="Select Employee"
+            placeholder="Choose an employee..."
+            value={selectedEmployeeId}
+            options={employeeOptions}
+            onChange={(value) => setSelectedEmployeeId(value)}
+            disabled={loading}
+            fullWidth
+            showDescriptions
+            searchable
+            required
+          />
         </div>
 
         {/* Footer */}

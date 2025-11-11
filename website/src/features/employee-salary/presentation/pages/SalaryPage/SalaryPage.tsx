@@ -5,6 +5,7 @@
 
 import React, { useState } from 'react';
 import { Navbar } from '@/shared/components/common/Navbar';
+import { StoreSelector } from '@/shared/components/selectors/StoreSelector';
 import { useSalary } from '../../hooks/useSalary';
 import { useAppState } from '@/app/providers/app_state_provider';
 import type { SalaryPageProps } from './SalaryPage.types';
@@ -13,11 +14,10 @@ import styles from './SalaryPage.module.css';
 export const SalaryPage: React.FC<SalaryPageProps> = ({ initialMonth }) => {
   const { currentCompany } = useAppState();
   const companyId = currentCompany?.company_id || '';
-  const [selectedStore, setSelectedStore] = useState<string>('all');
+  const [selectedStore, setSelectedStore] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState<'all' | 'monthly' | 'hourly' | 'problems' | 'overtime'>('all');
   const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set());
-  const [storeDropdownOpen, setStoreDropdownOpen] = useState(false);
 
   const {
     records,
@@ -54,8 +54,8 @@ export const SalaryPage: React.FC<SalaryPageProps> = ({ initialMonth }) => {
     if (searchQuery && !record.fullName.toLowerCase().includes(searchQuery.toLowerCase())) {
       return false;
     }
-    // Store filter
-    if (selectedStore !== 'all' && record.storeName !== selectedStore) {
+    // Store filter - null means "All Stores"
+    if (selectedStore && record.storeName !== selectedStore) {
       return false;
     }
     // Type filter (monthly/hourly - we'll use role as proxy)
@@ -152,7 +152,15 @@ export const SalaryPage: React.FC<SalaryPageProps> = ({ initialMonth }) => {
               {/* Export Excel Button */}
               <button
                 className={styles.exportExcelBtn}
-                onClick={exportToExcel}
+                onClick={() => {
+                  const companyName = currentCompany?.company_name || 'Company';
+                  let storeName = 'AllStores';
+                  if (selectedStore) {
+                    const store = stores.find((s) => s.store_id === selectedStore);
+                    storeName = store?.store_name || 'Store';
+                  }
+                  exportToExcel(selectedStore, companyName, storeName);
+                }}
                 disabled={exporting || records.length === 0}
               >
                 {exporting ? (
@@ -186,68 +194,12 @@ export const SalaryPage: React.FC<SalaryPageProps> = ({ initialMonth }) => {
           </div>
 
           {/* Store Filter */}
-          <div className={styles.controlsCard}>
-            <div
-              className={`${styles.controlSection} ${storeDropdownOpen ? styles.dropdownOpen : ''}`}
-              onClick={() => setStoreDropdownOpen(!storeDropdownOpen)}
-            >
-              <svg className={styles.controlIcon} viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12,5.5A3.5,3.5 0 0,1 15.5,9A3.5,3.5 0 0,1 12,12.5A3.5,3.5 0 0,1 8.5,9A3.5,3.5 0 0,1 12,5.5M5,8C5.56,8 6.08,8.15 6.53,8.42C6.38,9.85 6.8,11.27 7.66,12.38C7.16,13.34 6.16,14 5,14A3,3 0 0,1 2,11A3,3 0 0,1 5,8M19,8A3,3 0 0,1 22,11A3,3 0 0,1 19,14C17.84,14 16.84,13.34 16.34,12.38C17.2,11.27 17.62,9.85 17.47,8.42C17.92,8.15 18.44,8 19,8M5.5,18.25C5.5,16.18 8.41,14.5 12,14.5C15.59,14.5 18.5,16.18 18.5,18.25V20H5.5V18.25M0,20V18.5C0,17.11 1.89,15.94 4.45,15.6C3.86,16.28 3.5,17.22 3.5,18.25V20H0M24,20H20.5V18.25C20.5,17.22 20.14,16.28 19.55,15.6C22.11,15.94 24,17.11 24,18.5V20Z" />
-              </svg>
-              <span className={styles.controlLabel}>
-                {selectedStore === 'all' ? 'All Stores' : stores.find((s) => s.store_id === selectedStore)?.store_name}
-              </span>
-              <svg className={styles.controlDropdown} viewBox="0 0 24 24" fill="currentColor">
-                <path d="M7,10L12,15L17,10H7Z" />
-              </svg>
-
-              {/* Store Dropdown */}
-              {storeDropdownOpen && (
-                <div
-                  className={`${styles.storeFilterDropdown} ${storeDropdownOpen ? styles.active : ''}`}
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <div
-                    className={`${styles.storeFilterDropdownOption} ${selectedStore === 'all' ? styles.selected : ''}`}
-                    onClick={() => {
-                      setSelectedStore('all');
-                      setStoreDropdownOpen(false);
-                    }}
-                  >
-                    <svg className={styles.storeFilterDropdownOptionIcon} viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M12,5.5A3.5,3.5 0 0,1 15.5,9A3.5,3.5 0 0,1 12,12.5A3.5,3.5 0 0,1 8.5,9A3.5,3.5 0 0,1 12,5.5M5,8C5.56,8 6.08,8.15 6.53,8.42C6.38,9.85 6.8,11.27 7.66,12.38C7.16,13.34 6.16,14 5,14A3,3 0 0,1 2,11A3,3 0 0,1 5,8M19,8A3,3 0 0,1 22,11A3,3 0 0,1 19,14C17.84,14 16.84,13.34 16.34,12.38C17.2,11.27 17.62,9.85 17.47,8.42C17.92,8.15 18.44,8 19,8M5.5,18.25C5.5,16.18 8.41,14.5 12,14.5C15.59,14.5 18.5,16.18 18.5,18.25V20H5.5V18.25M0,20V18.5C0,17.11 1.89,15.94 4.45,15.6C3.86,16.28 3.5,17.22 3.5,18.25V20H0M24,20H20.5V18.25C20.5,17.22 20.14,16.28 19.55,15.6C22.11,15.94 24,17.11 24,18.5V20Z" />
-                    </svg>
-                    <span className={styles.storeFilterDropdownOptionText}>All Stores</span>
-                    {selectedStore === 'all' && (
-                      <svg className={styles.storeFilterDropdownOptionCheck} viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M21,7L9,19L3.5,13.5L4.91,12.09L9,16.17L19.59,5.59L21,7Z" />
-                      </svg>
-                    )}
-                  </div>
-                  {stores.map((store) => (
-                    <div
-                      key={store.store_id}
-                      className={`${styles.storeFilterDropdownOption} ${selectedStore === store.store_id ? styles.selected : ''}`}
-                      onClick={() => {
-                        setSelectedStore(store.store_id);
-                        setStoreDropdownOpen(false);
-                      }}
-                    >
-                      <svg className={styles.storeFilterDropdownOptionIcon} viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M18,6H16V4A2,2 0 0,0 14,2H10A2,2 0 0,0 8,4V6H6A2,2 0 0,0 4,8V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8A2,2 0 0,0 18,6M10,4H14V6H10V4M18,20H6V8H18V20Z" />
-                      </svg>
-                      <span className={styles.storeFilterDropdownOptionText}>{store.store_name}</span>
-                      {selectedStore === store.store_id && (
-                        <svg className={styles.storeFilterDropdownOptionCheck} viewBox="0 0 24 24" fill="currentColor">
-                          <path d="M21,7L9,19L3.5,13.5L4.91,12.09L9,16.17L19.59,5.59L21,7Z" />
-                        </svg>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
+          <StoreSelector
+            stores={stores}
+            selectedStoreId={selectedStore}
+            onStoreSelect={setSelectedStore}
+            companyId={companyId}
+          />
 
           {/* Summary Cards */}
           {summary && (
@@ -337,7 +289,25 @@ export const SalaryPage: React.FC<SalaryPageProps> = ({ initialMonth }) => {
           {/* Employee List */}
           {filteredRecords.length === 0 ? (
             <div className={styles.emptyState}>
-              <div className={styles.emptyIcon}>📋</div>
+              <svg className={styles.emptyIcon} width="120" height="120" viewBox="0 0 120 120" fill="none">
+                {/* Background Circle */}
+                <circle cx="60" cy="60" r="50" fill="#F0F6FF"/>
+
+                {/* Wallet/Card Base */}
+                <rect x="30" y="45" width="60" height="40" rx="6" fill="white" stroke="#0064FF" strokeWidth="2"/>
+
+                {/* Card Stripe */}
+                <rect x="30" y="55" width="60" height="8" fill="#0064FF"/>
+
+                {/* Card Chip */}
+                <rect x="38" y="68" width="12" height="10" rx="2" fill="#E9ECEF"/>
+                <line x1="41" y1="68" x2="41" y2="78" stroke="#ADB5BD" strokeWidth="1"/>
+                <line x1="47" y1="68" x2="47" y2="78" stroke="#ADB5BD" strokeWidth="1"/>
+
+                {/* Money Symbol */}
+                <circle cx="75" cy="73" r="10" fill="#0064FF"/>
+                <text x="75" y="78" textAnchor="middle" fill="white" fontSize="14" fontWeight="600">$</text>
+              </svg>
               <h3 className={styles.emptyTitle}>No Salary Records</h3>
               <p className={styles.emptyText}>No employees found matching your criteria</p>
             </div>

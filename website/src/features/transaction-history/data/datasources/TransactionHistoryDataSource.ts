@@ -17,8 +17,8 @@ export class TransactionHistoryDataSource {
 
     const rpcParams: any = {
       p_company_id: companyId,
-      p_start_date: startDate,
-      p_end_date: endDate,
+      p_date_from: startDate,
+      p_date_to: endDate,
     };
 
     if (storeId) {

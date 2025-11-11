@@ -90,29 +90,112 @@ export const useSalary = (companyId: string, initialMonth?: string) => {
     setCurrentMonth(getCurrentMonth());
   };
 
-  const exportToExcel = async () => {
+  const exportToExcel = async (
+    storeId: string | null = null,
+    companyName: string = 'Company',
+    storeName: string = 'AllStores'
+  ) => {
+    // Try to get file handle immediately with user gesture
+    let fileHandle: any = null;
+
+    // Check if File System Access API is available
+    if ('showSaveFilePicker' in window) {
+      try {
+        const cleanName = (str: string) =>
+          str.replace(/[^a-zA-Z0-9가-힣\s-]/g, '').replace(/\s+/g, '_');
+        const suggestedFilename = `ShiftRecords_${cleanName(companyName)}_${cleanName(storeName)}_${currentMonth}.xlsx`;
+
+        // Show save dialog immediately
+        fileHandle = await (window as any).showSaveFilePicker({
+          suggestedName: suggestedFilename,
+          types: [
+            {
+              description: 'Excel Files',
+              accept: {
+                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'],
+              },
+            },
+          ],
+          excludeAcceptAllOption: true,
+        });
+
+        console.log('File handle obtained successfully');
+      } catch (err: any) {
+        if (err && err.name === 'AbortError') {
+          console.log('User cancelled file selection');
+          return; // User cancelled
+        }
+        console.log('Could not get file handle:', err?.name || 'Unknown error');
+        // Continue with fallback
+      }
+    }
+
     setExporting(true);
     try {
-      const result = await repository.exportToExcel(companyId, currentMonth);
+      const result = await repository.exportToExcel(
+        companyId,
+        currentMonth,
+        storeId,
+        companyName,
+        storeName
+      );
 
       if (!result.success || !result.blob) {
         throw new Error(result.error || 'Failed to export data');
       }
 
-      // Download the blob
-      const url = URL.createObjectURL(result.blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `salary_${currentMonth}.xlsx`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      const blob = result.blob;
+      const filename = result.filename || `salary_${currentMonth}.xlsx`;
+
+      // If we have a file handle, use it
+      if (fileHandle) {
+        try {
+          console.log('Writing to pre-obtained file handle...');
+          const writable = await fileHandle.createWritable();
+          await writable.write(blob);
+          await writable.close();
+
+          console.log(`Excel file saved successfully: ${filename}`);
+          alert(
+            `✅ Export Successful! ${result.recordCount || 0} shift records exported to: ${filename}`
+          );
+        } catch (error) {
+          console.error('Failed to write to file handle:', error);
+          // Fall back to traditional download
+          fallbackDownload(blob, filename);
+        }
+      } else {
+        // Traditional download fallback
+        fallbackDownload(blob, filename);
+      }
     } catch (err) {
       console.error('Export error:', err);
       alert(err instanceof Error ? err.message : 'Failed to export data');
     } finally {
       setExporting(false);
+    }
+  };
+
+  // Fallback download function
+  const fallbackDownload = (blob: Blob, filename: string) => {
+    try {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      a.style.display = 'none';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      setTimeout(() => {
+        const message = `📁 File "${filename}" is being saved to your browser's default download folder. To change download location, check your browser settings.`;
+        console.log(message);
+      }, 1000);
+    } catch (error) {
+      console.error('Fallback download failed:', error);
+      alert('Failed to download the Excel file. Please try again.');
     }
   };
 

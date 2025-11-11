@@ -4,9 +4,13 @@
  */
 
 .container {
+  flex: 1;
   min-height: 100vh;
   padding: var(--space-6);
-  background: var(--toss-gray-50);
+  background: white;
+  max-width: 1400px;
+  margin: 0 auto;
+  width: 100%;
 }
 
 .pageHeader {
@@ -39,7 +43,7 @@
   background: var(--toss-primary);
   color: white;
   border: none;
-  border-radius: var(--radius-medium);
+  border-radius: var(--radius-lg);
   font-size: var(--font-base);
   font-weight: 600;
   cursor: pointer;
@@ -47,9 +51,9 @@
 }
 
 .addButton:hover {
-  background: var(--toss-blue-600);
+  background: var(--toss-primary-dark);
   transform: translateY(-1px);
-  box-shadow: var(--shadow-medium);
+  box-shadow: 0 4px 12px rgba(0, 100, 255, 0.3);
 }
 
 /* Loading & Error States */
@@ -158,139 +162,214 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: var(--space-4);
+  margin-bottom: var(--space-6);
 }
 
 .card {
-  background: white;
-  border: 1px solid var(--toss-gray-200);
-  border-radius: var(--radius-large);
-  padding: var(--space-4);
-  box-shadow: var(--shadow-card);
-  transition: all 0.2s ease;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
+  background: var(--toss-white);
+  border: 1px solid var(--toss-border-light);
+  border-radius: var(--radius-lg);
+  padding: var(--space-3);
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .card:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-medium);
+  background: var(--toss-surface-primary);
   border-color: var(--toss-primary);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .card.readOnly {
-  background: var(--toss-gray-50);
+  background: white;
+  border-color: var(--toss-gray-200);
+  cursor: default;
   opacity: 0.9;
 }
 
 .card.readOnly:hover {
-  transform: none;
-  box-shadow: var(--shadow-card);
+  background: white;
   border-color: var(--toss-gray-200);
+  transform: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
+/* Card Header */
 .cardHeader {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-2);
+  padding-bottom: var(--space-2);
 }
 
-.accountCode {
-  font-family: monospace;
-  font-size: var(--font-large);
-  font-weight: 600;
-  color: var(--toss-primary);
-}
-
-.typeBadge {
-  padding: var(--space-1) var(--space-2);
-  border-radius: var(--radius-small);
-  font-size: var(--font-small);
-  font-weight: 600;
-  text-transform: capitalize;
-}
-
-.typeBadge.payable {
-  background: rgba(239, 68, 68, 0.1);
-  color: rgb(239, 68, 68);
-}
-
-.typeBadge.receivable {
-  background: rgba(59, 130, 246, 0.1);
-  color: rgb(59, 130, 246);
-}
-
-.typeBadge.contra_asset {
-  background: rgba(107, 114, 128, 0.1);
-  color: rgb(107, 114, 128);
-}
-
-.typeBadge.cash {
-  background: rgba(34, 197, 94, 0.1);
-  color: rgb(34, 197, 94);
-}
-
-.typeBadge.general {
-  background: rgba(107, 114, 128, 0.1);
-  color: rgb(107, 114, 128);
-}
-
-.typeBadge.fixed_asset {
-  background: rgba(168, 85, 247, 0.1);
-  color: rgb(168, 85, 247);
-}
-
-.typeBadge.equity {
-  background: rgba(14, 165, 233, 0.1);
-  color: rgb(14, 165, 233);
-}
-
-.cardBody {
+.direction {
   flex: 1;
 }
 
+.directionBadge {
+  font-size: 12px;
+  color: var(--toss-primary);
+  font-weight: 600;
+  background: var(--toss-primary-surface);
+  padding: 2px 8px;
+  border-radius: 4px;
+  display: inline-block;
+}
+
+.card.readOnly .directionBadge {
+  background: var(--toss-gray-100);
+  color: var(--toss-gray-500);
+}
+
+.readOnlyIndicator {
+  display: flex;
+  align-items: center;
+  color: var(--toss-gray-400);
+}
+
+.cardHeader .deleteButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: var(--toss-gray-500);
+}
+
+.cardHeader .deleteButton:hover {
+  background: rgba(244, 67, 54, 0.1);
+  color: var(--toss-red-500);
+}
+
+/* Account Details */
+.accountDetails {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.mappingItem {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1);
+  border-radius: var(--radius-sm);
+  background: var(--toss-surface-secondary);
+}
+
+.card.readOnly .mappingItem {
+  background: var(--toss-surface-secondary);
+}
+
+.accountIcon {
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-sm);
+  background: var(--toss-primary);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.card.readOnly .accountIcon {
+  background: var(--toss-gray-400);
+}
+
+.accountInfo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
 .accountName {
-  font-size: var(--font-base);
+  font-size: 13px;
   font-weight: 500;
   color: var(--text-primary);
-  margin-bottom: var(--space-1);
+  line-height: 1.2;
+  margin-bottom: 2px;
 }
 
-.description {
-  font-size: var(--font-small);
-  color: var(--text-secondary);
-  line-height: 1.5;
+.card.readOnly .accountName {
+  color: var(--toss-gray-600);
 }
 
-.cardFooter {
+.accountCode {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+}
+
+.card.readOnly .accountCode {
+  color: var(--toss-gray-600);
+}
+
+.companyName {
+  font-size: 11px;
+  color: var(--toss-gray-500);
+  margin-top: 2px;
+}
+
+.arrow {
+  text-align: center;
+  color: var(--toss-primary);
+  font-size: 18px;
+  font-weight: 600;
+  padding: var(--space-2) 0;
+}
+
+.card.readOnly .arrow {
+  color: var(--toss-gray-400);
+}
+
+.mappingConnection {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding-top: var(--space-2);
-  border-top: 1px solid var(--toss-gray-100);
-}
-
-.createdDate {
-  font-size: var(--font-small);
+  justify-content: center;
+  padding: var(--space-2) 0;
   color: var(--text-tertiary);
 }
 
-.deleteButton {
-  padding: var(--space-2) var(--space-3);
-  background: transparent;
-  color: var(--toss-red-500);
-  border: 1px solid var(--toss-red-500);
-  border-radius: var(--radius-small);
-  font-size: var(--font-small);
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
+.mappingArrow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: 12px;
 }
 
-.deleteButton:hover {
-  background: var(--toss-red-500);
-  color: white;
+.card.readOnly .mappingArrow {
+  color: var(--toss-gray-400);
 }
+
+.companyBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 2px 6px;
+  background: var(--toss-gray-100);
+  border-radius: 4px;
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin-left: var(--space-1);
+}
+
+.card.readOnly .companyBadge {
+  background: var(--toss-gray-200);
+  color: var(--toss-gray-600);
+}
+
 
 /* Modal */
 .modalOverlay {

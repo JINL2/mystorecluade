@@ -10,7 +10,7 @@ export class AccountMappingDataSource {
   async getAccountMappings(companyId: string) {
     const supabase = supabaseService.getClient();
 
-    const { data, error } = await supabase.rpc('get_account_mappings', {
+    const { data, error } = await (supabase as any).rpc('get_account_mapping_page', {
       p_company_id: companyId,
     });
 
@@ -31,7 +31,7 @@ export class AccountMappingDataSource {
   ) {
     const supabase = supabaseService.getClient();
 
-    const { data, error } = await supabase.rpc('create_account_mapping', {
+    const { data, error } = await (supabase as any).rpc('create_account_mapping', {
       p_company_id: companyId,
       p_account_code: accountCode,
       p_account_name: accountName,
@@ -56,7 +56,7 @@ export class AccountMappingDataSource {
   ) {
     const supabase = supabaseService.getClient();
 
-    const { data, error } = await supabase.rpc('update_account_mapping', {
+    const { data, error } = await (supabase as any).rpc('update_account_mapping', {
       p_mapping_id: mappingId,
       p_account_code: accountCode,
       p_account_name: accountName,
@@ -75,7 +75,7 @@ export class AccountMappingDataSource {
   async deleteAccountMapping(mappingId: string) {
     const supabase = supabaseService.getClient();
 
-    const { data, error } = await supabase.rpc('delete_account_mapping', {
+    const { data, error } = await (supabase as any).rpc('delete_account_mapping', {
       p_mapping_id: mappingId,
     });
 

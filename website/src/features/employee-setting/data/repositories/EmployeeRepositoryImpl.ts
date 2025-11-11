@@ -79,4 +79,18 @@ export class EmployeeRepositoryImpl implements IEmployeeRepository {
   async deleteEmployee(userId: string): Promise<{ success: boolean; error?: string }> {
     return await this.dataSource.deleteEmployee(userId);
   }
+
+  async updateEmployeeSalary(
+    salaryId: string,
+    salaryAmount: number,
+    salaryType: 'monthly' | 'hourly',
+    currencyId: string
+  ): Promise<{ success: boolean; error?: string }> {
+    return await this.dataSource.updateEmployeeSalary(
+      salaryId,
+      salaryAmount,
+      salaryType,
+      currencyId
+    );
+  }
 }

@@ -1,6 +1,6 @@
 /**
  * AccountMapping Entity
- * Represents an account mapping configuration
+ * Represents an account mapping between two companies
  */
 
 export type AccountType =
@@ -12,24 +12,30 @@ export type AccountType =
   | 'fixed_asset'
   | 'equity';
 
+export type MappingDirection = 'outgoing' | 'incoming' | 'both';
+
 export class AccountMapping {
   constructor(
     public readonly mappingId: string,
-    public readonly companyId: string,
-    public readonly accountCode: string,
-    public readonly accountName: string,
-    public readonly accountType: AccountType,
-    public readonly description: string | null,
-    public readonly isActive: boolean,
+    public readonly myCompanyId: string,
+    public readonly myAccountName: string,
+    public readonly myAccountCode: string | null,
+    public readonly myCategoryTag: string,
+    public readonly linkedCompanyId: string,
+    public readonly linkedCompanyName: string,
+    public readonly linkedAccountName: string,
+    public readonly linkedAccountCode: string | null,
+    public readonly linkedCategoryTag: string,
+    public readonly direction: MappingDirection,
     public readonly createdAt: Date,
     public readonly isReadOnly: boolean = false
   ) {}
 
   /**
-   * Get account type display name
+   * Get category display name
    */
-  get accountTypeDisplay(): string {
-    switch (this.accountType) {
+  getCategoryDisplay(tag: string): string {
+    switch (tag) {
       case 'payable':
         return 'Payable';
       case 'receivable':
@@ -45,22 +51,31 @@ export class AccountMapping {
       case 'equity':
         return 'Equity';
       default:
-        return this.accountType;
+        return tag;
     }
   }
 
   /**
-   * Get account type color class
+   * Get direction display
    */
-  get accountTypeColor(): string {
-    return this.accountType;
+  get directionDisplay(): string {
+    switch (this.direction) {
+      case 'outgoing':
+        return 'Outgoing';
+      case 'incoming':
+        return 'Incoming';
+      case 'both':
+        return 'Both Ways';
+      default:
+        return this.direction;
+    }
   }
 
   /**
    * Check if mapping can be edited
    */
   get isEditable(): boolean {
-    return !this.isReadOnly && this.isActive;
+    return !this.isReadOnly;
   }
 
   /**

@@ -8,7 +8,6 @@ import { ScheduleShift } from '../../domain/entities/ScheduleShift';
 import { ScheduleAssignment } from '../../domain/entities/ScheduleAssignment';
 import { ScheduleEmployee } from '../../domain/entities/ScheduleEmployee';
 import { ScheduleRepositoryImpl } from '../../data/repositories/ScheduleRepositoryImpl';
-import { ScheduleDataSource } from '../../data/datasources/ScheduleDataSource';
 
 export const useSchedule = (companyId: string, storeId: string) => {
   // Get current week's start and end dates
@@ -36,7 +35,6 @@ export const useSchedule = (companyId: string, storeId: string) => {
   const [currentWeek, setCurrentWeek] = useState(new Date());
 
   const repository = new ScheduleRepositoryImpl();
-  const dataSource = new ScheduleDataSource();
 
   const loadScheduleData = useCallback(async () => {
     setLoading(true);
@@ -70,37 +68,15 @@ export const useSchedule = (companyId: string, storeId: string) => {
     setLoadingEmployees(true);
 
     try {
-      const result = await dataSource.getEmployees(companyId, storeId);
+      const result = await repository.getEmployees(companyId, storeId);
 
-      if (!result.success || !result.data) {
+      if (!result.success || !result.employees) {
         console.error('Failed to load employees:', result.error);
         setEmployees([]);
         return;
       }
 
-      // Convert raw data to ScheduleEmployee entities
-      const employeeList = result.data.map(
-        (emp) =>
-          new ScheduleEmployee(
-            emp.user_id,
-            emp.full_name,
-            emp.email,
-            emp.role_ids || [],
-            emp.role_names || [],
-            emp.stores || [],
-            emp.company_id,
-            emp.company_name,
-            emp.salary_id,
-            emp.salary_amount,
-            emp.salary_type,
-            emp.bonus_amount,
-            emp.currency_id,
-            emp.currency_code,
-            emp.account_id
-          )
-      );
-
-      setEmployees(employeeList);
+      setEmployees(result.employees);
     } catch (err) {
       console.error('Error loading employees:', err);
       setEmployees([]);
@@ -160,15 +136,16 @@ export const useSchedule = (companyId: string, storeId: string) => {
   const createAssignment = async (
     shiftId: string,
     employeeId: string,
-    date: string
+    date: string,
+    approvedBy: string
   ): Promise<{ success: boolean; error?: string }> => {
     try {
-      const result = await dataSource.createAssignment(
-        companyId,
-        storeId,
+      const result = await repository.createAssignment(
         employeeId,
         shiftId,
-        date
+        storeId,
+        date,
+        approvedBy
       );
 
       if (!result.success) {

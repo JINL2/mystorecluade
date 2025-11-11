@@ -1,15 +1,261 @@
-.container { min-height: 100vh; padding: var(--space-6); background: var(--toss-gray-50); }
-.header { margin-bottom: var(--space-6); }
-.title { font-size: var(--font-h1); font-weight: 700; margin: 0 0 var(--space-2) 0; }
-.subtitle { font-size: var(--font-large); color: var(--text-secondary); margin: 0; }
-.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: var(--space-4); }
-.card { background: white; padding: var(--space-5); border-radius: var(--radius-large); box-shadow: var(--shadow-card); display: flex; align-items: center; gap: var(--space-4); border: 2px solid transparent; }
-.card.default { border-color: var(--toss-primary); background: var(--toss-blue-50); }
-.symbol { width: 56px; height: 56px; background: var(--toss-gray-100); color: var(--text-primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: var(--font-h3); font-weight: 700; }
-.info { flex: 1; }
-.code { font-weight: 600; font-size: var(--font-large); margin-bottom: var(--space-1); }
-.name { font-size: var(--font-small); color: var(--text-secondary); }
-.setBtn { padding: var(--space-2) var(--space-3); background: var(--toss-primary); color: white; border: none; border-radius: var(--radius-medium); font-size: var(--font-small); font-weight: 600; cursor: pointer; }
-.badge { padding: var(--space-2) var(--space-3); background: var(--toss-primary); color: white; border-radius: var(--radius-medium); font-size: var(--font-small); font-weight: 600; }
-.spinner { width: 40px; height: 40px; border: 3px solid var(--toss-gray-200); border-top-color: var(--toss-primary); border-radius: 50%; animation: spin 1s linear infinite; margin: var(--space-8) auto; }
-@keyframes spin { to { transform: rotate(360deg); } }
+/* Page Container */
+.pageContainer {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.pageContent {
+  flex: 1;
+  padding: 32px;
+  max-width: 1400px;
+  margin: 0 auto;
+  width: 100%;
+  background: #FFFFFF;
+}
+
+/* Page Header */
+.pageHeader {
+  margin-bottom: var(--space-8);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+}
+
+.pageHeaderContent {
+  flex: 1;
+}
+
+.pageTitle {
+  font-size: var(--font-h1);
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 var(--space-2) 0;
+}
+
+.pageSubtitle {
+  font-size: var(--font-large);
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+/* Button styles removed - using TossButton component */
+
+/* Stats Card */
+.statsCard {
+  background: var(--toss-white);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+  box-shadow: var(--shadow-sm);
+  margin-bottom: var(--space-6);
+}
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--space-6);
+}
+
+.statItem {
+  text-align: center;
+}
+
+.statValue {
+  font-size: var(--font-h2);
+  font-weight: 700;
+  color: var(--toss-primary);
+  margin: 0 0 var(--space-1) 0;
+}
+
+.statLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 0;
+}
+
+/* Currency Section */
+.currencySection {
+  margin-bottom: var(--space-6);
+}
+
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-5);
+}
+
+.sectionTitle {
+  font-size: var(--font-h3);
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+/* Currency Grid */
+.currencyGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: var(--space-4);
+}
+
+/* Currency Card */
+.currencyCard {
+  background: var(--toss-white);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  transition: all 0.2s ease;
+  overflow: hidden;
+  border: 1px solid var(--toss-border-light);
+}
+
+.currencyCard:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.currencyCardHeader {
+  padding: var(--space-5);
+  border-bottom: 1px solid var(--toss-border-light);
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.currencyIconWrapper {
+  width: 48px;
+  height: 48px;
+  background: var(--toss-primary-surface);
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.currencySymbol {
+  font-size: var(--font-h3);
+  font-weight: 700;
+  color: var(--toss-primary);
+}
+
+.currencyHeaderInfo {
+  flex: 1;
+}
+
+.currencyCode {
+  font-size: var(--font-large);
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 var(--space-1) 0;
+}
+
+.currencyName {
+  font-size: var(--font-small);
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.currencyBadgePrimary {
+  padding: var(--space-1) var(--space-2);
+  background: var(--toss-primary-surface);
+  color: var(--toss-primary);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-small);
+  font-weight: 600;
+}
+
+.currencyCardBody {
+  padding: var(--space-5);
+}
+
+.currencyDetails {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.currencyDetailItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.currencyDetailLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.currencyDetailValue {
+  font-size: var(--font-medium);
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.currencyCardFooter {
+  padding: var(--space-4) var(--space-5);
+  background: var(--toss-gray-50);
+  border-top: 1px solid var(--toss-border-light);
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.currencyActions {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+  justify-content: flex-end;
+}
+
+/* Loading State - using LoadingAnimation component */
+
+/* Empty State */
+.emptyContainer {
+  text-align: center;
+  padding: var(--space-16) var(--space-6);
+  background: var(--toss-white);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.emptyTitle {
+  font-size: var(--font-h3);
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 var(--space-3) 0;
+}
+
+.emptyText {
+  font-size: var(--font-medium);
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .pageContent {
+    padding: 16px;
+  }
+
+  .currencyGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .statsGrid {
+    grid-template-columns: 1fr;
+    gap: var(--space-4);
+  }
+
+  .pageHeader {
+    flex-direction: column;
+  }
+}

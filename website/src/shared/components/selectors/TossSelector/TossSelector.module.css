@@ -192,32 +192,25 @@
 .tossSelectOption {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 12px;
-  border-radius: 6px;
+  gap: 12px;
+  padding: 12px 16px;
   cursor: pointer;
   transition: all 0.15s ease;
-  margin-bottom: 4px;
   background: transparent;
   color: var(--toss-gray-900, #212529) !important;
 }
 
-.tossSelectOption:last-child {
-  margin-bottom: 0;
-}
-
 .tossSelectOption:hover {
-  background: var(--toss-gray-100, #F1F3F5) !important;
+  background: var(--toss-gray-50, #F8F9FA) !important;
 }
 
 .tossSelectOption.tossSelectOptionSelected {
-  background: var(--toss-primary, #0064FF) !important;
-  font-weight: 500;
-  color: #FFFFFF !important;
+  background: rgba(0, 100, 255, 0.08) !important;
+  color: var(--toss-primary, #0064FF) !important;
 }
 
 .tossSelectOption.tossSelectOptionSelected:hover {
-  background: var(--toss-primary-dark, #0050CC) !important;
+  background: rgba(0, 100, 255, 0.12) !important;
 }
 
 .tossSelectOption.tossSelectOptionDisabled {
@@ -231,41 +224,39 @@
   flex: 1;
   min-width: 0;
   display: flex;
-  flex-direction: column;
-  gap: 2px;
+  align-items: center;
+  gap: 12px;
 }
 
 .tossSelectOptionLabel {
   font-size: 16px;
+  font-weight: 600;
   color: inherit;
+  min-width: 48px;
+}
+
+.tossSelectOptionDescription {
+  flex: 1;
+  font-size: 14px;
+  color: var(--text-secondary, #868E96);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.tossSelectOptionDescription {
-  font-size: 13px;
-  color: inherit;
-  opacity: 0.8;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.tossSelectOption.tossSelectOptionSelected .tossSelectOptionDescription {
+  color: var(--toss-primary, #0064FF);
 }
 
 /* Option Badge */
 .tossSelectOptionBadge {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 4px 10px;
-  border-radius: 4px;
-  font-size: 13px;
-  font-weight: 500;
-  white-space: nowrap;
+  justify-content: center;
+  width: 32px;
+  font-size: 18px;
   flex-shrink: 0;
-  margin-left: 8px;
-  background: rgba(0, 100, 255, 0.1);
-  color: var(--toss-primary, #0064FF);
+  color: inherit;
 }
 
 .tossSelectOption.tossSelectOptionSelected .tossSelectOptionBadge {

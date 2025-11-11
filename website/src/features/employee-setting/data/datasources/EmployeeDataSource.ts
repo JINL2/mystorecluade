@@ -102,4 +102,41 @@ export class EmployeeDataSource {
     // TODO: Implement delete employee RPC/API call
     return { success: false, error: 'Not implemented yet' };
   }
+
+  /**
+   * Update employee salary via RPC
+   */
+  async updateEmployeeSalary(
+    salaryId: string,
+    salaryAmount: number,
+    salaryType: 'monthly' | 'hourly',
+    currencyId: string
+  ): Promise<{ success: boolean; error?: string }> {
+    try {
+      const supabase = supabaseService.getClient();
+
+      const { error } = await (supabase as any).rpc('update_user_salary', {
+        p_salary_id: salaryId,
+        p_salary_amount: salaryAmount,
+        p_salary_type: salaryType,
+        p_currency_id: currencyId,
+      });
+
+      if (error) {
+        console.error('Update salary RPC error:', error);
+        return {
+          success: false,
+          error: error.message || 'Failed to update salary',
+        };
+      }
+
+      return { success: true };
+    } catch (error) {
+      console.error('Update salary datasource error:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error occurred',
+      };
+    }
+  }
 }

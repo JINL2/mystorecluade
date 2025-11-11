@@ -175,31 +175,28 @@ export class ScheduleDataSource {
 
   /**
    * Create schedule assignment
-   * @param companyId - Company identifier
-   * @param storeId - Store identifier
    * @param userId - Employee user identifier
    * @param shiftId - Shift identifier
-   * @param date - Assignment date (ISO string)
+   * @param storeId - Store identifier
+   * @param date - Assignment date (ISO string YYYY-MM-DD)
+   * @param approvedBy - User ID of the manager approving this assignment
    */
   async createAssignment(
-    companyId: string,
-    storeId: string,
     userId: string,
     shiftId: string,
-    date: string
+    storeId: string,
+    date: string,
+    approvedBy: string
   ): Promise<{ success: boolean; data?: any; error?: string }> {
     try {
       const supabase = supabaseService.getClient();
 
-      // TODO: Replace with actual RPC name when available
-      // For now, we'll use a placeholder that will need to be updated
-      const { data, error } = await supabase.rpc('create_shift_assignment', {
-        p_company_id: companyId,
-        p_store_id: storeId,
+      const { data, error } = await supabase.rpc('manager_shift_insert_schedule', {
         p_user_id: userId,
         p_shift_id: shiftId,
-        p_date: date,
-        p_status: 'scheduled',
+        p_store_id: storeId,
+        p_request_date: date,
+        p_approved_by: approvedBy,
       });
 
       if (error) {

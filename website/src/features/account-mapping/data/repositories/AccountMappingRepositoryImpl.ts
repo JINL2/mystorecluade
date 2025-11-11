@@ -24,24 +24,55 @@ export class AccountMappingRepositoryImpl implements IAccountMappingRepository {
     try {
       const data = await this.dataSource.getAccountMappings(companyId);
 
-      const mappings = data.map(
+      // get_account_mapping_page returns an object with accounts, account_mappings, reverse_account_mappings
+      const accountMappings = (data as any)?.account_mappings || [];
+      const reverseAccountMappings = (data as any)?.reverse_account_mappings || [];
+
+      // Process outgoing mappings
+      const outgoingMappings = accountMappings.map(
         (item: any) =>
           new AccountMapping(
             item.mapping_id,
-            item.company_id,
-            item.account_code,
-            item.account_name,
-            item.account_type,
-            item.description,
-            item.is_active,
+            item.my_company_id,
+            item.my_account_name,
+            item.my_account_code || null,
+            item.my_category_tag,
+            item.linked_company_id,
+            item.linked_company_name,
+            item.linked_account_name,
+            item.linked_account_code || null,
+            item.linked_category_tag,
+            item.direction || 'outgoing',
             new Date(item.created_at),
-            item.is_read_only || false
+            false
           )
       );
 
+      // Process incoming mappings (reverse)
+      const incomingMappings = reverseAccountMappings.map(
+        (item: any) =>
+          new AccountMapping(
+            item.mapping_id,
+            item.my_company_id,
+            item.my_account_name,
+            item.my_account_code || null,
+            item.my_category_tag,
+            item.linked_company_id,
+            item.linked_company_name,
+            item.linked_account_name,
+            item.linked_account_code || null,
+            item.linked_category_tag,
+            item.direction || 'incoming',
+            new Date(item.created_at),
+            true // incoming mappings are read-only
+          )
+      );
+
+      const allMappings = [...outgoingMappings, ...incomingMappings];
+
       return {
         success: true,
-        data: mappings,
+        data: allMappings,
       };
     } catch (error) {
       console.error('Repository error fetching account mappings:', error);

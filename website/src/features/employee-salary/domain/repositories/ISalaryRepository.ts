@@ -16,6 +16,8 @@ export interface SalaryDataResult {
 export interface SalaryExportResult {
   success: boolean;
   blob?: Blob;
+  filename?: string;
+  recordCount?: number;
   error?: string;
 }
 
@@ -32,7 +34,16 @@ export interface ISalaryRepository {
    * Export salary data to Excel
    * @param companyId - Company identifier
    * @param month - Month in YYYY-MM format
+   * @param storeId - Optional store filter
+   * @param companyName - Company name for filename
+   * @param storeName - Store name for filename
    * @returns SalaryExportResult with Excel blob
    */
-  exportToExcel(companyId: string, month: string): Promise<SalaryExportResult>;
+  exportToExcel(
+    companyId: string,
+    month: string,
+    storeId?: string | null,
+    companyName?: string,
+    storeName?: string
+  ): Promise<SalaryExportResult>;
 }

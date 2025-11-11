@@ -33,21 +33,29 @@ export class TransactionHistoryRepositoryImpl implements ITransactionHistoryRepo
         accountId
       );
 
-      const transactions = data.map(
-        (item: any) =>
-          new Transaction(
-            item.transaction_id,
-            item.date,
-            item.account_name,
-            item.description,
-            item.debit_amount,
-            item.credit_amount,
-            item.balance,
-            item.category_tag,
-            item.counterparty_name,
-            item.currency_symbol || '₩'
-          )
-      );
+      // Flatten journal entries with their lines into individual transactions
+      const transactions: Transaction[] = [];
+
+      data.forEach((journal: any) => {
+        if (journal.lines && Array.isArray(journal.lines)) {
+          journal.lines.forEach((line: any) => {
+            transactions.push(
+              new Transaction(
+                line.line_id || journal.journal_id,
+                journal.entry_date,
+                line.account_name || '',
+                line.description || journal.description || '',
+                line.debit || 0,
+                line.credit || 0,
+                0, // Balance calculation would need to be done separately
+                null, // category_tag not in line structure
+                line.counterparty?.name || line.display_counterparty || null,
+                journal.currency_symbol || '₩'
+              )
+            );
+          });
+        }
+      });
 
       return {
         success: true,

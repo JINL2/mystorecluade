@@ -3,11 +3,12 @@
  * Employee management page matching backup design
  */
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Navbar } from '@/shared/components/common/Navbar';
 import { useEmployees } from '../../hooks/useEmployees';
 import { EmployeeCard } from '../../components/EmployeeCard';
-import { TossSelect } from '@/shared/components/toss/TossSelect';
+import { EditEmployeeModal } from '../../components/EditEmployeeModal';
+import { StoreSelector } from '@/shared/components/selectors/StoreSelector';
 import { useAppState } from '@/app/providers/app_state_provider';
 import type { EmployeeSettingPageProps } from './EmployeeSettingPage.types';
 import styles from './EmployeeSettingPage.module.css';
@@ -37,9 +38,54 @@ export const EmployeeSettingPage: React.FC<EmployeeSettingPageProps> = () => {
   const { employees, stats, loading, error, storeFilter, filterByStore, refresh } =
     useEmployees(companyId);
 
+  // Modal state
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [selectedEmployee, setSelectedEmployee] = useState<{
+    userId: string;
+    fullName: string;
+    email: string;
+    roleName: string;
+    storeName: string;
+    salaryType: 'monthly' | 'hourly';
+    salaryAmount: number;
+    currencyId: string;
+    currencyCode: string;
+    salaryId: string;
+    companyId: string;
+    accountId: string;
+    initials: string;
+  } | null>(null);
+
   const handleEditEmployee = (userId: string) => {
-    // TODO: Implement edit employee modal
-    alert(`Edit employee: ${userId}`);
+    const employee = employees.find((emp) => emp.userId === userId);
+    if (employee) {
+      setSelectedEmployee({
+        userId: employee.userId,
+        fullName: employee.fullName,
+        email: employee.email,
+        roleName: employee.displayRole,
+        storeName: employee.displayStore,
+        salaryType: employee.salaryType,
+        salaryAmount: employee.salaryAmount,
+        currencyId: employee.currencyId,
+        currencyCode: employee.currencyCode,
+        salaryId: employee.salaryId,
+        companyId: employee.companyId,
+        accountId: employee.accountId,
+        initials: employee.initials,
+      });
+      setIsEditModalOpen(true);
+    }
+  };
+
+  const handleCloseEditModal = () => {
+    setIsEditModalOpen(false);
+    setSelectedEmployee(null);
+  };
+
+  const handleSaveEmployee = () => {
+    // Refresh employee list after save
+    refresh();
   };
 
   const handleDeleteEmployee = (userId: string) => {
@@ -48,6 +94,9 @@ export const EmployeeSettingPage: React.FC<EmployeeSettingPageProps> = () => {
       alert(`Delete employee: ${userId}`);
     }
   };
+
+  // Get stores from current company
+  const stores = currentCompany?.stores || [];
 
   if (loading) {
     return (
@@ -86,25 +135,6 @@ export const EmployeeSettingPage: React.FC<EmployeeSettingPageProps> = () => {
     );
   }
 
-  // Get unique stores for filter dropdown
-  const storeOptions = [
-    { value: 'all', label: 'All Stores' },
-    ...Array.from(
-      new Set(
-        employees.flatMap((emp) =>
-          emp.storeIds.map((id, idx) => ({
-            id,
-            name: emp.storeNames[idx],
-          }))
-        )
-      )
-    )
-      .filter((store) => store.id)
-      .map((store) => ({
-        value: store.id,
-        label: store.name,
-      })),
-  ];
 
   return (
     <>
@@ -132,11 +162,12 @@ export const EmployeeSettingPage: React.FC<EmployeeSettingPageProps> = () => {
 
         {/* Store Filter */}
         <div className={styles.filterSection}>
-          <TossSelect
-            value={storeFilter || 'all'}
-            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => filterByStore(e.target.value === 'all' ? null : e.target.value)}
-            options={storeOptions}
-            fullWidth
+          <StoreSelector
+            stores={stores}
+            selectedStoreId={storeFilter}
+            onStoreSelect={filterByStore}
+            companyId={companyId}
+            width="100%"
           />
         </div>
 
@@ -183,6 +214,14 @@ export const EmployeeSettingPage: React.FC<EmployeeSettingPageProps> = () => {
             </div>
           )}
         </div>
+
+        {/* Edit Employee Modal */}
+        <EditEmployeeModal
+          isOpen={isEditModalOpen}
+          onClose={handleCloseEditModal}
+          employee={selectedEmployee}
+          onSave={handleSaveEmployee}
+        />
       </div>
     </>
   );

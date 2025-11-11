@@ -21,43 +21,35 @@ export const EmployeeCard: React.FC<EmployeeCardProps> = ({
 }) => {
   return (
     <div className={styles.card}>
-      {/* Top Section: Avatar + Info */}
-      <div className={styles.topSection}>
+      {/* Header: Avatar + Info + Actions */}
+      <div className={styles.header}>
         {/* Avatar */}
         <div className={styles.avatarContainer}>
           <div className={styles.avatar}>{initials}</div>
         </div>
 
-        {/* Employee Info */}
-        <div className={styles.info}>
-          <h3 className={styles.name}>{fullName}</h3>
-          <p className={styles.role}>{roleName}</p>
-          <p className={styles.store}>
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor" style={{ opacity: 0.6 }}>
-              <circle cx="7" cy="7" r="7" />
-            </svg>
-            {storeName}
-          </p>
-        </div>
-      </div>
-
-      {/* Active Status Badge */}
-      {isActive && (
-        <div className={styles.statusBadge}>
-          <span className={styles.statusDot}></span>
-          Active
-        </div>
-      )}
-
-      {/* Salary Section with Actions */}
-      <div className={styles.salarySection}>
-        <div className={styles.salaryContainer}>
-          <div className={styles.salaryLabel}>SALARY</div>
-          <div className={styles.salaryAmount}>{formattedSalary}</div>
-          <div className={styles.salaryType}>{salaryTypeLabel}</div>
+        {/* Body with Info */}
+        <div className={styles.body}>
+          <div className={styles.info}>
+            <h3 className={styles.name}>{fullName}</h3>
+            <p className={styles.role}>{roleName}</p>
+            <p className={styles.store}>
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor" style={{ opacity: 0.6 }}>
+                <circle cx="7" cy="7" r="7" />
+              </svg>
+              {storeName}
+            </p>
+            {/* Active Status Badge - INSIDE info */}
+            {isActive && (
+              <div className={styles.statusBadge}>
+                <span className={styles.statusDot}></span>
+                Active
+              </div>
+            )}
+          </div>
         </div>
 
-        {/* Action Buttons */}
+        {/* Action Buttons - INSIDE header */}
         <div className={styles.actions}>
           {onEdit && (
             <button
@@ -83,6 +75,15 @@ export const EmployeeCard: React.FC<EmployeeCardProps> = ({
               </svg>
             </button>
           )}
+        </div>
+      </div>
+
+      {/* Details: Salary Section - NO actions */}
+      <div className={styles.details}>
+        <div className={styles.salaryContainer}>
+          <div className={styles.salaryLabel}>Salary</div>
+          <div className={styles.salaryAmount}>{formattedSalary}</div>
+          <div className={styles.salaryType}>{salaryTypeLabel}</div>
         </div>
       </div>
     </div>

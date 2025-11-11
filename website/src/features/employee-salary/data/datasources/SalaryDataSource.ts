@@ -3,7 +3,7 @@
  * Data layer - Handles Supabase RPC calls for salary data
  */
 
-import { supabaseService } from '@/core/services/supabase.service';
+import { supabaseService } from '@/core/services/supabase_service';
 
 export interface SalaryEmployeeRaw {
   user_id: string;
@@ -69,11 +69,22 @@ export interface SalaryRawData {
   employees: SalaryEmployeeRaw[];
   summary: {
     total_employees: number;
-    total_salary: number;
+    total_salary?: number;
+    total_payment?: number;
+    total_base_payment?: number;
     average_salary: number;
     total_bonuses: number;
     total_deductions: number;
-    currency_symbol: string;
+    unsolved_problems?: number;
+    total_problems?: number;
+    employee_breakdown?: {
+      monthly: number;
+      hourly: number;
+    };
+    base_currency: {
+      currency_symbol: string;
+      currency_code: string;
+    };
   };
 }
 

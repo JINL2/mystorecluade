@@ -723,8 +723,10 @@
 }
 
 .emptyIcon {
-  font-size: 48px;
-  margin-bottom: var(--space-4);
+  width: 120px;
+  height: 120px;
+  margin: 0 auto 24px;
+  display: block;
 }
 
 .emptyTitle {

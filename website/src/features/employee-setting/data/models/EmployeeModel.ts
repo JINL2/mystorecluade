@@ -54,6 +54,10 @@ export class EmployeeModel {
       currency_code: rawData.currency_code,
       currency_symbol: currencySymbol,
       user_role_id: null, // This field doesn't exist in RPC response
+      salary_type: (rawData.salary_type as 'monthly' | 'hourly') || 'monthly',
+      salary_id: rawData.salary_id || '',
+      company_id: rawData.company_id,
+      account_id: rawData.account_id || '',
     });
   }
 

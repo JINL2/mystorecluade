@@ -17,10 +17,11 @@ import styles from './ScheduleDetailPage.module.css';
 export const ScheduleDetailPage: React.FC<ScheduleDetailPageProps> = () => {
   const { storeId } = useParams<{ storeId: string }>();
   const navigate = useNavigate();
-  const { currentCompany } = useAppState();
+  const { currentCompany, currentUser } = useAppState();
 
   const companyId = currentCompany?.company_id || '';
   const scheduleStoreId = storeId || '';
+  const currentUserId = currentUser?.user_id || '';
 
   const {
     shifts,
@@ -68,7 +69,11 @@ export const ScheduleDetailPage: React.FC<ScheduleDetailPageProps> = () => {
   const handleAddEmployee = async (shiftId: string, employeeId: string, date: string) => {
     setAddingEmployee(true);
     try {
-      const result = await createAssignment(shiftId, employeeId, date);
+      if (!currentUserId) {
+        throw new Error('User not logged in');
+      }
+
+      const result = await createAssignment(shiftId, employeeId, date, currentUserId);
 
       if (!result.success) {
         throw new Error(result.error || 'Failed to add employee to shift');

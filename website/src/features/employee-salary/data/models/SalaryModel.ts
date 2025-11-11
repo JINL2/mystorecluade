@@ -53,14 +53,17 @@ export class SalaryModel {
     period: string,
     rawSummary: SalaryRawData['summary']
   ): SalarySummary {
+    const baseCurrency = rawSummary.base_currency || { currency_symbol: '$', currency_code: 'USD' };
+    const totalSalary = rawSummary.total_payment || rawSummary.total_salary || 0;
+
     return SalarySummary.create({
       period,
       total_employees: rawSummary.total_employees || 0,
-      total_salary: rawSummary.total_salary || 0,
+      total_salary: totalSalary,
       average_salary: rawSummary.average_salary || 0,
       total_bonuses: rawSummary.total_bonuses || 0,
       total_deductions: rawSummary.total_deductions || 0,
-      currency_symbol: rawSummary.currency_symbol || '$',
+      currency_symbol: baseCurrency.currency_symbol,
     });
   }
 

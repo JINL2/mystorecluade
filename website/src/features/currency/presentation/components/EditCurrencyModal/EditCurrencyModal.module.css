@@ -1,0 +1,225 @@
+/* Modal Overlay */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.modalOverlay.show {
+  display: flex;
+  opacity: 1;
+}
+
+/* Modal Content */
+.modalContent {
+  background: var(--toss-white);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  width: 90%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+  transform: scale(0.9);
+  transition: transform 0.2s ease;
+}
+
+.modalOverlay.show .modalContent {
+  transform: scale(1);
+}
+
+/* Modal Header */
+.modalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-6);
+  border-bottom: 1px solid var(--toss-border-light);
+}
+
+.modalTitle {
+  font-size: var(--font-h3);
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.modalCloseBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: var(--space-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  transition: color 0.2s ease;
+  border-radius: var(--radius-sm);
+}
+
+.modalCloseBtn:hover {
+  color: var(--text-primary);
+  background: var(--toss-gray-50);
+}
+
+/* Modal Body */
+.modalBody {
+  padding: var(--space-6);
+}
+
+/* Modal Info Group */
+.modalInfoGroup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+  padding: var(--space-4);
+  background: var(--toss-gray-50);
+  border-radius: var(--radius-md);
+}
+
+.modalInfoItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modalInfoLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.modalInfoValue {
+  font-size: var(--font-medium);
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+/* Modal Form Group */
+.modalFormGroup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.modalLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.modalInput {
+  width: 100%;
+  padding: var(--space-3);
+  border: 1px solid var(--toss-border-light);
+  border-radius: var(--radius-md);
+  font-size: var(--font-medium);
+  color: var(--text-primary);
+  transition: border-color 0.2s ease;
+}
+
+.modalInput:focus {
+  outline: none;
+  border-color: var(--toss-primary);
+}
+
+/* Exchange Rate Info */
+.exchangeRateInfo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+
+.liveRateDisplay {
+  font-size: var(--font-small);
+  color: var(--text-secondary);
+}
+
+.loadingRate {
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+.rateError {
+  color: var(--toss-red);
+}
+
+.liveRateText {
+  color: var(--text-primary);
+}
+
+.liveRateText strong {
+  font-weight: 600;
+}
+
+.rateValue {
+  font-weight: 600;
+  color: var(--toss-primary);
+}
+
+.baseCurrency {
+  font-weight: 500;
+}
+
+.useLiveRateBtn {
+  align-self: flex-start;
+  padding: var(--space-2) var(--space-3);
+  background: var(--toss-primary-surface);
+  color: var(--toss-primary);
+  border: 1px solid var(--toss-primary);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-small);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.useLiveRateBtn:hover {
+  background: var(--toss-primary);
+  color: var(--toss-white);
+}
+
+/* Modal Footer */
+.modalFooter {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-3);
+  padding: var(--space-6);
+  border-top: 1px solid var(--toss-border-light);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .modalContent {
+    width: 95%;
+    max-width: none;
+  }
+
+  .modalHeader,
+  .modalBody,
+  .modalFooter {
+    padding: var(--space-4);
+  }
+
+  .modalFooter {
+    flex-direction: column;
+  }
+
+  .modalFooter button {
+    width: 100%;
+  }
+}
