@@ -43,11 +43,17 @@ export const JournalInputPage: React.FC<JournalInputPageProps> = () => {
     removeTransactionLine,
     submitJournalEntry,
     resetJournalEntry,
+    checkAccountMapping,
+    getCounterpartyStores,
+    getCounterpartyCashLocations,
   } = useJournalInput(companyId, selectedStoreId, user?.id || '');
 
   const [isTransactionModalOpen, setIsTransactionModalOpen] = useState(false);
   const [modalTransactionType, setModalTransactionType] = useState<'debit' | 'credit'>('debit');
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
+
+  // Form validation state from TransactionForm
+  const [isFormValid, setIsFormValid] = useState(false);
 
   // Error message states
   const [showValidationError, setShowValidationError] = useState(false);
@@ -82,18 +88,21 @@ export const JournalInputPage: React.FC<JournalInputPageProps> = () => {
 
   const handleAddDebit = () => {
     setEditingIndex(null);
+    setIsFormValid(false);
     setModalTransactionType(getAutoTransactionType());
     setIsTransactionModalOpen(true);
   };
 
   const handleAddCredit = () => {
     setEditingIndex(null);
+    setIsFormValid(false);
     setModalTransactionType(getAutoTransactionType());
     setIsTransactionModalOpen(true);
   };
 
   const handleAddTransaction = () => {
     setEditingIndex(null);
+    setIsFormValid(false);
     setModalTransactionType(getAutoTransactionType());
     setIsTransactionModalOpen(true);
   };
@@ -109,7 +118,7 @@ export const JournalInputPage: React.FC<JournalInputPageProps> = () => {
       ? counterparties.find(cp => cp.counterpartyId === data.counterpartyId)
       : null;
 
-    // Create TransactionLine instance
+    // Create TransactionLine instance with new debt fields for p_lines alignment
     const transactionLine = new TransactionLine(
       data.isDebit,
       data.accountId,
@@ -122,9 +131,18 @@ export const JournalInputPage: React.FC<JournalInputPageProps> = () => {
       cashLocation?.locationType || null,
       data.counterpartyId || null,
       counterparty?.counterpartyName || null,
-      null, // counterpartyStoreId - not used in this context
-      null, // counterpartyStoreName - not used in this context
-      null  // debtCategory - not used in this context
+      data.counterpartyStoreId || null,
+      null, // counterpartyStoreName - will be resolved in backend
+      data.debtCategory || null,
+      // New debt fields from form
+      data.interestRate || null,
+      data.interestAccountId || null,
+      data.interestDueDay || null,
+      data.issueDate || null,
+      data.dueDate || null,
+      data.debtDescription || null,
+      counterparty?.linkedCompanyId || null, // linkedCompanyId from counterparty
+      data.counterpartyCashLocationId || null // counterparty's cash location for mirror journal
     );
 
     // If editing, update the line; otherwise, add new line
@@ -141,10 +159,12 @@ export const JournalInputPage: React.FC<JournalInputPageProps> = () => {
   const handleTransactionCancel = () => {
     setIsTransactionModalOpen(false);
     setEditingIndex(null);
+    setIsFormValid(false);
   };
 
   const handleEditTransaction = (index: number) => {
     setEditingIndex(index);
+    setIsFormValid(false);
     const line = journalEntry.transactionLines[index];
     setModalTransactionType(line.isDebit ? 'debit' : 'credit');
     setIsTransactionModalOpen(true);
@@ -228,8 +248,7 @@ export const JournalInputPage: React.FC<JournalInputPageProps> = () => {
             selectedStoreId={selectedStoreId}
             onStoreSelect={handleStoreSelect}
             companyId={companyId}
-            showAllStoresOption={true}
-            allStoresLabel="All Stores"
+            showAllStoresOption={false}
             width="100%"
           />
         </div>
@@ -433,6 +452,17 @@ export const JournalInputPage: React.FC<JournalInputPageProps> = () => {
           isDebit: editingLine.isDebit,
           cashLocationId: editingLine.cashLocationId || undefined,
           counterpartyId: editingLine.counterpartyId || undefined,
+          // Counterparty-related fields
+          counterpartyStoreId: editingLine.counterpartyStoreId || undefined,
+          counterpartyCashLocationId: editingLine.counterpartyCashLocationId || undefined,
+          // Debt-related fields
+          debtCategory: editingLine.debtCategory || undefined,
+          interestRate: editingLine.interestRate || undefined,
+          interestAccountId: editingLine.interestAccountId || undefined,
+          interestDueDay: editingLine.interestDueDay || undefined,
+          issueDate: editingLine.issueDate || undefined,
+          dueDate: editingLine.dueDate || undefined,
+          debtDescription: editingLine.debtDescription || undefined,
         } : undefined;
 
         // Get the cash location ID that should be hidden from dropdown
@@ -467,6 +497,10 @@ export const JournalInputPage: React.FC<JournalInputPageProps> = () => {
                   initialData={initialData}
                   isEditMode={isEditMode}
                   disabledCashLocationId={disabledCashLocationId}
+                  onCheckAccountMapping={checkAccountMapping}
+                  onGetCounterpartyStores={getCounterpartyStores}
+                  onGetCounterpartyCashLocations={getCounterpartyCashLocations}
+                  onValidationChange={setIsFormValid}
                 />
               </div>
               <div className={styles.modalFooter}>
@@ -476,6 +510,7 @@ export const JournalInputPage: React.FC<JournalInputPageProps> = () => {
                 <TossButton
                   variant="primary"
                   size="lg"
+                  disabled={!isFormValid}
                   onClick={() => {
                     // Submit form by triggering the hidden submit button
                     const form = document.querySelector('form');

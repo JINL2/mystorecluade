@@ -18,7 +18,17 @@ export class TransactionLine {
     public readonly counterpartyName: string | null,
     public readonly counterpartyStoreId: string | null,
     public readonly counterpartyStoreName: string | null,
-    public readonly debtCategory: string | null
+    public readonly debtCategory: string | null,
+    // Additional debt fields for p_lines alignment
+    public readonly interestRate: number | null = null,
+    public readonly interestAccountId: string | null = null,
+    public readonly interestDueDay: number | null = null,
+    public readonly issueDate: string | null = null,
+    public readonly dueDate: string | null = null,
+    public readonly debtDescription: string | null = null,
+    public readonly linkedCompanyId: string | null = null,
+    // Counterparty cash location for mirror journal (p_if_cash_location_id)
+    public readonly counterpartyCashLocationId: string | null = null
   ) {}
 
   /**

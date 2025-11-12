@@ -28,12 +28,24 @@ export interface Counterparty {
   isInternal: boolean;
   email?: string;
   phone?: string;
+  linkedCompanyId?: string | null; // For internal counterparties linked to another company
 }
 
 export interface JournalSubmitResult {
   success: boolean;
   error?: string;
   journalId?: string;
+}
+
+export interface AccountMapping {
+  myAccountId: string;
+  linkedAccountId: string;
+  direction: string;
+}
+
+export interface CounterpartyStore {
+  storeId: string;
+  storeName: string;
 }
 
 export interface IJournalInputRepository {
@@ -51,6 +63,20 @@ export interface IJournalInputRepository {
    * Get counterparties for company
    */
   getCounterparties(companyId: string): Promise<Counterparty[]>;
+
+  /**
+   * Check account mapping for internal transactions
+   */
+  checkAccountMapping(
+    companyId: string,
+    counterpartyId: string,
+    accountId: string
+  ): Promise<AccountMapping | null>;
+
+  /**
+   * Get stores for counterparty's linked company
+   */
+  getCounterpartyStores(linkedCompanyId: string): Promise<CounterpartyStore[]>;
 
   /**
    * Submit journal entry

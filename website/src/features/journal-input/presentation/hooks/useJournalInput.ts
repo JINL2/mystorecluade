@@ -150,6 +150,46 @@ export const useJournalInput = (
     );
   }, [companyId]);
 
+  // Check account mapping for internal counterparty validation
+  const checkAccountMapping = useCallback(
+    async (companyId: string, counterpartyId: string, accountId: string): Promise<boolean> => {
+      try {
+        const mapping = await repository.checkAccountMapping(companyId, counterpartyId, accountId);
+        return mapping !== null;
+      } catch (error) {
+        console.error('Error checking account mapping:', error);
+        return false;
+      }
+    },
+    []
+  );
+
+  // Get counterparty stores for internal counterparties
+  const getCounterpartyStores = useCallback(
+    async (linkedCompanyId: string) => {
+      try {
+        return await repository.getCounterpartyStores(linkedCompanyId);
+      } catch (error) {
+        console.error('Error fetching counterparty stores:', error);
+        return [];
+      }
+    },
+    []
+  );
+
+  // Get cash locations for counterparty's company/store
+  const getCounterpartyCashLocations = useCallback(
+    async (linkedCompanyId: string, storeId?: string | null) => {
+      try {
+        return await repository.getCashLocations(linkedCompanyId, storeId);
+      } catch (error) {
+        console.error('Error fetching counterparty cash locations:', error);
+        return [];
+      }
+    },
+    []
+  );
+
   return {
     journalEntry,
     accounts,
@@ -163,5 +203,8 @@ export const useJournalInput = (
     submitJournalEntry,
     changeJournalDate,
     resetJournalEntry,
+    checkAccountMapping,
+    getCounterpartyStores,
+    getCounterpartyCashLocations,
   };
 };

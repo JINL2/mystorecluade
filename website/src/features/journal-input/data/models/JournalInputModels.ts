@@ -81,12 +81,13 @@ export class CounterpartyModel {
    */
   static fromJson(json: any): Counterparty {
     return {
-      counterpartyId: json.id,
+      counterpartyId: json.counterparty_id || json.id,
       counterpartyName: json.name,
       type: json.type,
-      isInternal: json.isInternal,
+      isInternal: json.is_internal ?? json.isInternal ?? false,
       email: json.email,
       phone: json.phone,
+      linkedCompanyId: json.linked_company_id || json.linkedCompanyId || null,
     };
   }
 
@@ -101,6 +102,7 @@ export class CounterpartyModel {
       isInternal: counterparty.isInternal,
       email: counterparty.email,
       phone: counterparty.phone,
+      linkedCompanyId: counterparty.linkedCompanyId,
     };
   }
 }

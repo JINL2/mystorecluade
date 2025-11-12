@@ -9,6 +9,8 @@ import {
   CashLocation,
   Counterparty,
   JournalSubmitResult,
+  AccountMapping,
+  CounterpartyStore,
 } from '../../domain/repositories/IJournalInputRepository';
 import { JournalEntry } from '../../domain/entities/JournalEntry';
 import { JournalInputDataSource } from '../datasources/JournalInputDataSource';
@@ -51,9 +53,50 @@ export class JournalInputRepositoryImpl implements IJournalInputRepository {
   async getCounterparties(companyId: string): Promise<Counterparty[]> {
     try {
       const data = await this.dataSource.getCounterparties(companyId);
-      return data.map(CounterpartyModel.fromJson);
+      console.log('Raw counterparty data from datasource:', data);
+      const mapped = data.map(CounterpartyModel.fromJson);
+      console.log('Mapped counterparty data:', mapped);
+      return mapped;
     } catch (error) {
       console.error('Repository error fetching counterparties:', error);
+      return [];
+    }
+  }
+
+  async checkAccountMapping(
+    companyId: string,
+    counterpartyId: string,
+    accountId: string
+  ): Promise<AccountMapping | null> {
+    try {
+      const data = await this.dataSource.checkAccountMapping({
+        companyId,
+        counterpartyId,
+        accountId,
+      });
+
+      if (!data) return null;
+
+      return {
+        myAccountId: data.my_account_id,
+        linkedAccountId: data.linked_account_id,
+        direction: data.direction,
+      };
+    } catch (error) {
+      console.error('Repository error checking account mapping:', error);
+      return null;
+    }
+  }
+
+  async getCounterpartyStores(linkedCompanyId: string): Promise<CounterpartyStore[]> {
+    try {
+      const data = await this.dataSource.getCounterpartyStores(linkedCompanyId);
+      return data.map((store) => ({
+        storeId: store.store_id,
+        storeName: store.store_name,
+      }));
+    } catch (error) {
+      console.error('Repository error fetching counterparty stores:', error);
       return [];
     }
   }
@@ -79,6 +122,15 @@ export class JournalInputRepositoryImpl implements IJournalInputRepository {
           counterpartyId: line.counterpartyId,
           counterpartyStoreId: line.counterpartyStoreId,
           debtCategory: line.debtCategory,
+          // New debt fields
+          interestRate: line.interestRate,
+          interestAccountId: line.interestAccountId,
+          interestDueDay: line.interestDueDay,
+          issueDate: line.issueDate,
+          dueDate: line.dueDate,
+          debtDescription: line.debtDescription,
+          linkedCompanyId: line.linkedCompanyId,
+          counterpartyCashLocationId: line.counterpartyCashLocationId,
         })),
       });
 

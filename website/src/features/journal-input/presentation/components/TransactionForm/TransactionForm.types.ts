@@ -65,6 +65,26 @@ export interface TransactionFormProps {
    * This cash location should not be selectable in the dropdown
    */
   disabledCashLocationId?: string | null;
+
+  /**
+   * Repository for account mapping validation
+   */
+  onCheckAccountMapping?: (companyId: string, counterpartyId: string, accountId: string) => Promise<boolean>;
+
+  /**
+   * Callback to get counterparty stores
+   */
+  onGetCounterpartyStores?: (linkedCompanyId: string) => Promise<Array<{ storeId: string; storeName: string }>>;
+
+  /**
+   * Callback to get counterparty cash locations
+   */
+  onGetCounterpartyCashLocations?: (linkedCompanyId: string, storeId?: string | null) => Promise<CashLocation[]>;
+
+  /**
+   * Callback when form validation state changes
+   */
+  onValidationChange?: (isValid: boolean) => void;
 }
 
 export interface TransactionFormData {
@@ -76,6 +96,17 @@ export interface TransactionFormData {
   isDebit: boolean;
   cashLocationId?: string;
   counterpartyId?: string;
+  // Counterparty-related fields (for internal counterparties)
+  counterpartyStoreId?: string;
+  counterpartyCashLocationId?: string;
+  // Debt-related fields (for payable/receivable accounts)
+  debtCategory?: string;
+  interestRate?: number;
+  interestAccountId?: string;
+  interestDueDay?: number;
+  issueDate?: string; // ISO date string (yyyy-MM-dd)
+  dueDate?: string; // ISO date string (yyyy-MM-dd)
+  debtDescription?: string;
 }
 
 // Re-export types for convenience
